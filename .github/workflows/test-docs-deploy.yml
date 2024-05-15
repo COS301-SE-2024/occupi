@@ -6,9 +6,11 @@ on:
     paths:
         - "documentation/ocp-live-docs/**"
 
+  workflow_dispatch:
+
 defaults:
   run:
-    working-directory: ./documentation/ocp-live-docs
+    working-directory: ${{ github.workspace }}/documentation/ocp-live-docs
 
 jobs:
   test-deploy:
