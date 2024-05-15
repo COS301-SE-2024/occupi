@@ -5,6 +5,14 @@ on:
     branches: [ master ] 
     paths:
         - "documentation/ocp-live-docs/**"
+  workflow_run:
+    workflows: [Test docs deployment]
+    types:
+      - completed
+
+defaults:
+  run:
+    working-directory: ./documentation/ocp-live-docs
 
 jobs:
   test-deploy:
