@@ -1,39 +1,32 @@
-# Welcome to your Expo app 👋
+# Welcome to Occupi-Mobile 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+//place mobile app renderings here
 
-## Get started
+**NB: This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).**
 
-1. Install dependencies
+## Get yourself set up for development
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
+1. We use bun as our package manager. Please download it at <a href="https://bun.sh/docs/installation">bun</a>.
+2. Install dependencies
 
    ```bash
-    npx expo start
+   bun install
    ```
 
-In the output, you'll find options to open the app in a
+3. If you want to develop with a simulator, you will need to install <a href="https://docs.expo.dev/workflow/android-studio-emulator/">Android Studio</a> for android development or <a href="https://docs.expo.dev/workflow/ios-simulator/">xcode(only for MacOS)</a> for iOS development. We instead recommend using your own device as the development environment using <a href="https://expo.dev/go">Expo Go</a>
+4. Start the app
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+    bun expo start
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Development cycle(with Expo Go)
 
-## Get a fresh project
+//add more details
 
-When you're ready, run:
+## Development cycle(using the Simulator)
 
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+//add more details
 
 ## Learn more
 
@@ -41,10 +34,3 @@ To learn more about developing your project with Expo, look at the following res
 
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

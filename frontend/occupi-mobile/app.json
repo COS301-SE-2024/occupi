@@ -31,6 +31,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "fdc64200-785d-44b8-8519-f969a414366a"
+      }
+    },
+    "owner": "y2kode"
   }
 }

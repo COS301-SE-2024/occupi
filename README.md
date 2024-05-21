@@ -53,7 +53,9 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
+    </div style="border-radius: 50%;">
       <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
+    <div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
@@ -70,7 +72,9 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
+      </div style="border-radius: 50%;">
       <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
+    <div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
@@ -87,7 +91,9 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
+      </div style="border-radius: 50%;">
       <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
+    <div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
@@ -104,7 +110,9 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
+      </div style="border-radius: 50%;">
       <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
+    <div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
@@ -121,7 +129,9 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
+      </div style="border-radius: 50%;">
       <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
+    <div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
