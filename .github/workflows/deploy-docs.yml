@@ -29,14 +29,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
-      - name: Install Unix dependencies
-        run: sudo apt-get update && sudo apt-get install -y libc-bin
 
       - name: Setup Bun
-        run: |
-          curl -fsSL https://bun.sh/install | bash
-          echo 'export PATH="/home/runner/.bun/bin:$PATH"' >> $GITHUB_ENV
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest # or "latest", "canary", <sha>
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -47,23 +44,11 @@ jobs:
           # You may remove this line if you want to manage the configuration yourself.
           static_site_generator: next
 
-      - name: Restore cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.bun
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
       - name: Install dependencies with Bun
         run: bun install
-        env:
-          PATH: /home/runner/.bun/bin:$PATH
 
       - name: Build with Next.js
-        run: bun next build
-        env:
-          PATH: /home/runner/.bun/bin:$PATH
+        run: bun run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
