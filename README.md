@@ -2,10 +2,12 @@
 
 <p align="center">
 
-![GitHub commit activity](https://img.shields.io/github/commit-activity/y/COS301-SE-2024/Office-Capacity-Predictor?style=flat-square)
-![Codecov](https://img.shields.io/codecov/c/github/COS301-SE-2024/Office-Capacity-Predictor?style=flat-square)
-![GitHub License](https://img.shields.io/github/license/COS301-SE-2024/Office-Capacity-Predictor?style=flat-square)
-![GitHub repo size](https://img.shields.io/github/repo-size/COS301-SE-2024/Office-Capacity-Predictor?style=flat-square)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/COS301-SE-2024/occupi?style=flat-square)
+![Codecov](https://img.shields.io/codecov/c/github/COS301-SE-2024/occupi?style=flat-square)
+![GitHub License](https://img.shields.io/github/license/COS301-SE-2024/occupi?style=flat-square)
+![GitHub repo size](https://img.shields.io/github/repo-size/COS301-SE-2024/occupi?style=flat-square)
+![Docs website](https://img.shields.io/website?url=https%3A%2F%2Fcos301-se-2024.github.io%2Foccupi%2F&style=flat-square)
+![GitHub Repo stars](https://img.shields.io/github/stars/COS301-SE-2024/occupi?style=flat-square)
 
 </p>
 
@@ -65,8 +67,8 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 
 # Credits
 
-<a href="https://github.com/COS301-SE-2024/Office-Capacity-Predictor/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=COS301-SE-2024/Office-Capacity-Predictor" />
+<a href="https://github.com/COS301-SE-2024/occupi/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=COS301-SE-2024/occupi" />
 </a>
 
 # Meet the team
