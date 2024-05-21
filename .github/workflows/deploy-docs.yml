@@ -29,6 +29,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
+      - name: Install Unix dependencies
+        run: sudo apt-get update && sudo apt-get install -y getconf
 
       - name: Setup Bun
         run: |
@@ -52,7 +55,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-bun-
 
-      - name: Install dependencies
+      - name: Install dependencies with Bun
         run: bun install
         env:
           PATH: /home/runner/.bun/bin:$PATH
