@@ -35,11 +35,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
-
-      - name: Print working directory
-        run: pwd
-
+      
       - name: Detect package manager
         id: detect-package-manager
         run: |
@@ -85,6 +81,17 @@ jobs:
           static_site_generator: next
 
       - name: Restore cache
+        if: steps.detect-package-manager.outputs.manager == 'bun'
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Restore cache
+        if: steps.detect-package-manager.outputs.manager != 'bun'
         uses: actions/cache@v3
         with:
           path: |
