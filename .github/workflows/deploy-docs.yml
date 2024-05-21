@@ -48,7 +48,11 @@ jobs:
         run: bun install
 
       - name: Build with Next.js
-        run: bun run build
+        run: bun run build 
+
+        #print all files and folders in the current directory
+      - name: List files
+        run: ls -a
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
