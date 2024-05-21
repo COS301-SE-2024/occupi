@@ -1,4 +1,4 @@
-# Office Capacity Predictor
+# Occupi
 
 <p align="center">
 
@@ -11,11 +11,37 @@
 
 </p>
 
+# Table of content
+
+# Documentation
+
 # Accessing the app
+
+Occupi is a cross-platform app. This means that it is available on mobile, desktop and web.
+- If you would like to access the desktop app under the <a href="">releases tab</a>
+- If you would like to access the web app, please access <a href="">occupi-web</a>
+- If you would like to access the mobile app, please search for it in either google play store or apples app store.
+
+<p align="center">
+<img height=60 src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg">
+<img  height=60 src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg">
+</p>
+
+# Tech Stack
+
+<p align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=androidstudio,bun,cypress,docker,figma,go,md,mongodb,postman,py,react,swift,tailwind,tauri,tensorflow,ts,vite,vitest&perline=6&theme=light" />
+  </a>
+</p>
 
 # Contributing
 
+Please have a look at <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> file to get started.
+
 # Reporting security issues
+
+Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how to report security issues.
 
 # Credits:
 
@@ -27,16 +53,12 @@
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
-      <b style="font-size: 16px;">Project Manager, Backend Developer</b><br>
-      This is just placeholder lorem ipsum text, please replace with actual content
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-    molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-    numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-    optio, eaque rerum! Provident similique accusantium nemo autem.
+      <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
+      Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
       <a href="https://github.com/waveyboym" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>
@@ -48,16 +70,12 @@
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
-      <b style="font-size: 16px;">Project Manager, Backend Developer</b><br>
-      This is just placeholder lorem ipsum text, please replace with actual content
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-    molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-    numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-    optio, eaque rerum! Provident similique accusantium nemo autem.
+      <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
+      Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
       <a href="https://github.com/waveyboym" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>
@@ -69,16 +87,12 @@
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
-      <b style="font-size: 16px;">Project Manager, Backend Developer</b><br>
-      This is just placeholder lorem ipsum text, please replace with actual content
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-    molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-    numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-    optio, eaque rerum! Provident similique accusantium nemo autem.
+      <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
+      Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
       <a href="https://github.com/waveyboym" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>
@@ -90,16 +104,12 @@
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
-      <b style="font-size: 16px;">Project Manager, Backend Developer</b><br>
-      This is just placeholder lorem ipsum text, please replace with actual content
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-    molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-    numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-    optio, eaque rerum! Provident similique accusantium nemo autem.
+      <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
+      Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
       <a href="https://github.com/waveyboym" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>
@@ -111,16 +121,12 @@
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
-      <b style="font-size: 16px;">Project Manager, Backend Developer</b><br>
-      This is just placeholder lorem ipsum text, please replace with actual content
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia,
-    molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum
-    numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium
-    optio, eaque rerum! Provident similique accusantium nemo autem.
+      <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
+      Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
       <a href="https://github.com/waveyboym" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>

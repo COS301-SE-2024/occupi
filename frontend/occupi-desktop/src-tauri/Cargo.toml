@@ -1,7 +1,7 @@
 [package]
 name = "occupi-desktop"
 version = "0.0.0"
-description = "A Tauri App"
+description = "A system to record and predict office occupancy on a day to day basis"
 authors = ["you"]
 edition = "2021"
 
