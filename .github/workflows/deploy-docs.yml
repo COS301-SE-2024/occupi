@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Install Unix dependencies
-        run: sudo apt-get update && sudo apt-get install -y getconf
+        run: sudo apt-get update && sudo apt-get install -y libc-bin
 
       - name: Setup Bun
         run: |
