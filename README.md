@@ -6,25 +6,45 @@
 ![Codecov](https://img.shields.io/codecov/c/github/COS301-SE-2024/Office-Capacity-Predictor?style=flat-square)
 ![GitHub License](https://img.shields.io/github/license/COS301-SE-2024/Office-Capacity-Predictor?style=flat-square)
 ![GitHub repo size](https://img.shields.io/github/repo-size/COS301-SE-2024/Office-Capacity-Predictor?style=flat-square)
-![Docs Workflow Status](https://img.shields.io/github/actions/workflow/status/COS301-SE-2024/Office-Capacity-Predictor/.github%2Fworkflows%2Ftest-docs-deploy.yml?style=flat-square)
-![Docs Deployment Status](https://img.shields.io/github/actions/workflow/status/COS301-SE-2024/Office-Capacity-Predictor/.github%2Fworkflows%2Fdeploy-docs.yml?style=flat-square)
+
+</p>
+
+<p align="center">
+
+![Deploy Landing page](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
+![Deploy Docs site to Pages](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
 
 </p>
 
 # Table of content
+
+- [Occupi](#occupi)
+- [Table of content](#table-of-content)
+- [Documentation](#documentation)
+- [Accessing the app](#accessing-the-app)
+- [Tech Stack](#tech-stack)
+- [Contributing](#contributing)
+- [Reporting security issues](#reporting-security-issues)
+- [Credits](#credits)
+- [Meet the team](#meet-the-team)
+- [Additional info](#additional-info)
 
 # Documentation
 
 # Accessing the app
 
 Occupi is a cross-platform app. This means that it is available on mobile, desktop and web.
-- If you would like to access the desktop app under the <a href="">releases tab</a>
-- If you would like to access the web app, please access <a href="">occupi-web</a>
-- If you would like to access the mobile app, please search for it in either google play store or apples app store.
+- If you would like to access the desktop app under the <a href="https://github.com/COS301-SE-2024/occupi/releases">releases tab</a>
+- If you would like to access the web app, please access <a href="https://occupi.tech/">occupi-web</a>
+- If you would like to access the mobile app, please search for it on either google play store or apples app store. Or simply click the icons below to be taken to their respective download pages.
 
 <p align="center">
-<img height=60 src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg">
-<img  height=60 src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg">
+<a href="https://play.google.com/store/apps">
+  <img height=60 src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg">
+</a>
+<a href="https://www.apple.com/app-store/">
+  <img  height=60 src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg">
+</a>
 </p>
 
 # Tech Stack
@@ -43,13 +63,13 @@ Please have a look at <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> file to get 
 
 Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how to report security issues.
 
-# Credits:
+# Credits
 
 <a href="https://github.com/COS301-SE-2024/Office-Capacity-Predictor/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=COS301-SE-2024/Office-Capacity-Predictor" />
 </a>
 
-# Meet the team:
+# Meet the team
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">

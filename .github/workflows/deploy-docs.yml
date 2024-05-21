@@ -44,14 +44,10 @@ jobs:
       - name: Build with Next.js
         run: bun run build 
 
-        #print all files and folders in the current directory
-      - name: List files
-        run: ls -a
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: documentation/occupi-docs/.next
+          path: documentation/occupi-docs/out
 
   # Deployment job
   deploy:
