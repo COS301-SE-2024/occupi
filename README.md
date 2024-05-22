@@ -1,9 +1,9 @@
-<center>
-
-![logo](/presentation/Occupi/file%20(3).png)
-![logo with app name](/presentation/Occupi/file%20(1).png)
-
-</center>
+<p align="center">
+  <img src="/presentation/Occupi/file%20(3).png">
+</p>
+<p align="center">
+  <img src="/presentation/Occupi/file%20(1).png">
+</p>
 
 <p align="center">
 
