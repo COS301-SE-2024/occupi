@@ -1,4 +1,9 @@
-# Occupi
+<p align="center">
+
+![logo](/presentation/Occupi/file%20(3).png)
+![logo with app name](/presentation/Occupi/file%20(1).png)
+
+</p>
 
 <p align="center">
 
@@ -20,7 +25,6 @@
 
 # Table of content
 
-- [Occupi](#occupi)
 - [Table of content](#table-of-content)
 - [Documentation](#documentation)
 - [Accessing the app](#accessing-the-app)
@@ -171,3 +175,6 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 </table>
 
 # Additional info
+
+![logo with app name](/presentation/Occupi/Occupi-black.png)
+![sponsor](/presentation/Sponsor/Deloitte_Logo.jpg)
