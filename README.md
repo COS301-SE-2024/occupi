@@ -1,9 +1,9 @@
-<p align="center">
+<center>
 
 ![logo](/presentation/Occupi/file%20(3).png)
 ![logo with app name](/presentation/Occupi/file%20(1).png)
 
-</p>
+</center>
 
 <p align="center">
 
@@ -27,6 +27,9 @@
 
 - [Table of content](#table-of-content)
 - [Documentation](#documentation)
+    - [Software Requirements Specification](#software-requirements-specification)
+    - [Architecture Document](#architecture-document)
+    - [Deployment Diagram](#deployment-diagram)
 - [Accessing the app](#accessing-the-app)
 - [Tech Stack](#tech-stack)
 - [Contributing](#contributing)
@@ -37,9 +40,23 @@
 
 # Documentation
 
+<p align="center">
+
+### Software Requirements Specification
+[Document](null)
+
+### Architecture Document
+[Diagram](null) <br>
+[Document](null)
+
+### Deployment Diagram
+[Deployment](null)
+
+</p>
+
 # Accessing the app
 
-Occupi is a cross-platform app. This means that it is available on mobile, desktop and web.
+Occupi is a cross-platform app. This means that it is available on mobile, desktop and on the web.
 - If you would like to access the desktop app under the <a href="https://github.com/COS301-SE-2024/occupi/releases">releases tab</a>
 - If you would like to access the web app, please access <a href="https://occupi.tech/">occupi-web</a>
 - If you would like to access the mobile app, please search for it on either google play store or apples app store. Or simply click the icons below to be taken to their respective download pages.
