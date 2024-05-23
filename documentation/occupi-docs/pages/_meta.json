@@ -1,15 +1,23 @@
 {
   "index": "Introduction",
-  "another": "Another Page",
-  "advanced": "Advanced (A Folder)",
-  "about": {
-    "title": "About",
+  "api-documentation": "Api documentation",
+  "coding-standards": "Coding Standards",
+  "srs": {
+    "title": "Software Requirements Specification",
+    "type": "page"
+  },
+  "architecture": {
+    "title": "architecture",
+    "type": "page"
+  },
+  "deployment": {
+    "title": "deployment",
     "type": "page"
   },
   "contact": {
     "title": "Contact ↗",
     "type": "page",
-    "href": "https://twitter.com/shuding_",
+    "href": "mailto:y2kode.labs@gmail.com",
     "newWindow": true
   }
 }

@@ -30,13 +30,14 @@
     - [Software Requirements Specification](#software-requirements-specification)
     - [Architecture Document](#architecture-document)
     - [Deployment Diagram](#deployment-diagram)
+    - [Coding standards](#coding-standards)
 - [Accessing the app](#accessing-the-app)
 - [Tech Stack](#tech-stack)
 - [Contributing](#contributing)
 - [Reporting security issues](#reporting-security-issues)
-- [Credits](#credits)
-- [Meet the team](#meet-the-team)
+- [Meet the team behind occupi](#meet-the-team-behind-occupi)
 - [Additional info](#additional-info)
+- [Sponsors and Stakeholders](#sponsors-and-stakeholders)
 
 # Documentation
 
@@ -51,6 +52,9 @@
 
 ### Deployment Diagram
 [Deployment](null)
+
+### Coding standards
+[Standards](null)
 
 </p>
 
@@ -86,19 +90,13 @@ Please have a look at <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> file to get 
 
 Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how to report security issues.
 
-# Credits
-
-<a href="https://github.com/COS301-SE-2024/occupi/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=COS301-SE-2024/occupi" />
-</a>
-
-# Meet the team
+# Meet the team behind occupi
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-    </div style="border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
-    <div>
+    <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
+    </div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
@@ -115,12 +113,12 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      </div style="border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
-    <div>
+      <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
+    </div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
-      <h2><b style="font-size: 18px;">Michael</b></h2>
+      <h2><b style="font-size: 18px;">Carey</b></h2>
       <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
       Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
@@ -134,12 +132,12 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      </div style="border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
-    <div>
+      <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
+    </div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
-      <h2><b style="font-size: 18px;">Michael</b></h2>
+      <h2><b style="font-size: 18px;">Kamo</b></h2>
       <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
       Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
@@ -153,12 +151,12 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      </div style="border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
-    <div>
+      <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
+    </div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
-      <h2><b style="font-size: 18px;">Michael</b></h2>
+      <h2><b style="font-size: 18px;">Tinashe</b></h2>
       <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
       Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
@@ -172,12 +170,12 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      </div style="border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="800" height="auto" style="display: block; margin: 0 auto; border-radius: 50%;">
-    <div>
+      <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
+    </div>
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
-      <h2><b style="font-size: 18px;">Michael</b></h2>
+      <h2><b style="font-size: 18px;">Reta</b></h2>
       <b style="font-size: 16px;">Project Manager, Backend Developer, DevOps, Infrastructure management, QA engineer</b><br>
       Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps,and Systems Design, making him a versatile contributor to any team.
       <br><br>
@@ -193,5 +191,24 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 
 # Additional info
 
-![logo with app name](/presentation/Occupi/Occupi-black.png)
-![sponsor](/presentation/Sponsor/Deloitte_Logo.jpg)
+//stub
+
+# Sponsors and Stakeholders
+
+<a href="https://github.com/COS301-SE-2024/occupi/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=COS301-SE-2024/occupi" />
+</a>
+<br>
+<br>
+<br>
+<p align="center">
+  <a href="https://occupi.tech/">
+    <img height=60 src="/presentation/Occupi/Occupi-black.png">
+  </a>
+  <a href="https://www.deloitte.com/za/en.html">
+    <img height=60 src="/presentation/Sponsor/Deloitte_Logo.jpg">
+  </a>
+  <a href="https://www.cs.up.ac.za/">
+    <img height=60 src="/presentation/Sponsor/UP.png">
+  </a>
+</p>
