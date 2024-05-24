@@ -2,24 +2,30 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Response struct {
-	Message string            `json:"message"`
-	Data    []models.Resource `json:"data"`
+	Message string `json:"message"`
+	Data    []bson.M `json:"data"`
 }
 
-func GetResource(db []models.Resource) http.HandlerFunc {
+func TestFunction (db *mongo.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		data := database.GetAllData(db);
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		response := Response{
-			Message: "Hello, World!",
-			Data:    db,
+			Message: "Data fetched successfully",
+			Data:    data,
 		}
+		fmt.Println(response)
 		json.NewEncoder(w).Encode(response)
 	}
 }
