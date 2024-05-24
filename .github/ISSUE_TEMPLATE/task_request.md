@@ -1,4 +1,11 @@
-#### Task Request
+---
+name: Task
+about: Create a task to be implemented
+title: "[TASK]"
+labels: task
+---
+
+**Task Request**
 
 - [ ] Task 1
 - [ ] Task 2
@@ -7,5 +14,5 @@
 
 <tag_user_here>, please tick off as you complete each task by clicking on the task you are done with in this comment
 
-#### Additional info
+**Additional info**
 Any additional info, articles that you think may help the developer should be added here.
