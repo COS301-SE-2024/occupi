@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   VStack,
   Box,
@@ -27,20 +27,22 @@ import {
   InputIcon,
   InputSlot,
   ScrollView,
-} from "@gluestack-ui/themed";
-import { AlertTriangle } from "lucide-react-native";
+  FormControlLabel,
+  FormControlLabelText,
+} from '@gluestack-ui/themed';
+import { AlertTriangle } from 'lucide-react-native';
+import Logo from '../../screens/Login/assets/images/Occupi/file.png';
+import { useForm, Controller } from 'react-hook-form';
+import { z } from 'zod';
+import { Keyboard } from 'react-native';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-import { useForm, Controller } from "react-hook-form";
-import { z } from "zod";
-import { Keyboard } from "react-native";
-import { zodResolver } from "@hookform/resolvers/zod";
+import GuestLayout from '../../layouts/GuestLayout';
 
-import GuestLayout from "../../layouts/GuestLayout";
+import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
+import { router } from 'expo-router';
 
-import StyledExpoRouterLink from "../../components/StyledExpoRouterLink";
-import { router } from "expo-router";
-
-import { styled, StyledProvider } from "@gluestack-style/react"; // Import StyledProvider
+import { styled } from '@gluestack-style/react';
 
 const StyledImage = styled(Image, {
   props: {
@@ -50,27 +52,26 @@ const StyledImage = styled(Image, {
     },
   },
 });
-
 const createPasswordSchema = z.object({
   password: z
     .string()
-    .min(6, "Must be at least 8 characters in length")
-    .regex(new RegExp(".*[A-Z].*"), "One uppercase character")
-    .regex(new RegExp(".*[a-z].*"), "One lowercase character")
-    .regex(new RegExp(".*\\d.*"), "One number")
+    .min(6, 'Must be at least 8 characters in length')
+    .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
+    .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
+    .regex(new RegExp('.*\\d.*'), 'One number')
     .regex(
-      new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"),
-      "One special character"
+      new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
+      'One special character'
     ),
   confirmpassword: z
     .string()
-    .min(6, "Must be at least 8 characters in length")
-    .regex(new RegExp(".*[A-Z].*"), "One uppercase character")
-    .regex(new RegExp(".*[a-z].*"), "One lowercase character")
-    .regex(new RegExp(".*\\d.*"), "One number")
+    .min(6, 'Must be at least 8 characters in length')
+    .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
+    .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
+    .regex(new RegExp('.*\\d.*'), 'One number')
     .regex(
-      new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"),
-      "One special character"
+      new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
+      'One special character'
     ),
 });
 
@@ -91,38 +92,28 @@ export default function CreatePassword() {
   const onSubmit = (data: CreatePasswordSchemaType) => {
     if (data.password === data.confirmpassword) {
       toast.show({
-        placement: "bottom right",
+        placement: 'bottom right',
         render: ({ id }) => {
           return (
-            <StyledProvider config={undefined}>
-              {" "}
-              {/* Wrap your component tree with StyledProvider */}
-              <GuestLayout>
-                <Toast nativeID={id} variant="accent" action="success">
-                  <ToastTitle>Password updated successfully</ToastTitle>
-                </Toast>
-              </GuestLayout>
-            </StyledProvider>
+            <Toast nativeID={id} variant="accent" action="success">
+              <ToastTitle>Password updated successfully</ToastTitle>
+            </Toast>
           );
         },
       });
 
       // Navigate screen to appropriate location
-      router.replace("/");
+      router.replace('/');
 
       reset();
     } else {
       toast.show({
-        placement: "bottom right",
+        placement: 'bottom right',
         render: ({ id }) => {
           return (
-            <StyledProvider config={undefined}>
-              <GuestLayout>
-                <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>Passwords do not match</ToastTitle>
-                </Toast>
-              </GuestLayout>
-            </StyledProvider>
+            <Toast nativeID={id} variant="accent" action="error">
+              <ToastTitle>Passwords do not match</ToastTitle>
+            </Toast>
           );
         },
       });
@@ -149,35 +140,20 @@ export default function CreatePassword() {
     });
   };
 
-  function Header() {
-    return (
-      <HStack space="md" px="$3" my="$4.5" alignItems="center">
-        <StyledExpoRouterLink href="..">
-          <Icon
-            size="md"
-            as={ArrowLeftIcon}
-            color="$textLight50"
-            sx={{ _dark: { color: "$textDark50" } }}
-          />
-        </StyledExpoRouterLink>
-        <Text
-          color="$textLight50"
-          fontSize="$lg"
-          sx={{ _dark: { color: "$textDark50" } }}
-        >
-          Create Password
-        </Text>
-      </HStack>
-    );
-  }
 
   function ScreenText() {
     return (
       <VStack space="md">
+         <HStack space="md" alignItems="center" justifyContent="center">
+          <Image
+            source={Logo}
+            style={{ width: 110, height: 110 }}
+          />
+        </HStack>
         <Heading
           fontSize="$xl"
           sx={{
-            "@md": { fontSize: "$2xl" },
+            '@md': { fontSize: '$2xl' },
           }}
         >
           Create new password
@@ -196,33 +172,32 @@ export default function CreatePassword() {
         flex={1}
         bg="$primary500"
         sx={{
-          _dark: { bg: "$primary500" },
+          _dark: { bg: '$primary500' },
         }}
       >
+        
         <StyledImage
           w="$80"
           h="$10"
           alt="Gluestack-ui pro"
           resizeMode="contain"
-          source={require("./assets/images/gluestackUiProLogo_web_light.svg")}
+          source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
         />
       </Center>
     );
   }
-
   return (
     <GuestLayout>
       <Box
         sx={{
-          "@md": { display: "none" },
+          '@md': { display: 'none' },
         }}
       >
-        <Header />
       </Box>
       <Box
         display="none"
         sx={{
-          "@md": { display: "flex" },
+          '@md': { display: 'flex' },
         }}
         flex={1}
       >
@@ -241,10 +216,10 @@ export default function CreatePassword() {
           pb="$4"
           px="$4"
           sx={{
-            "@md": {
-              p: "$8",
+            '@md': {
+              p: '$8',
             },
-            _dark: { bg: "$backgroundDark800" },
+            '_dark': { bg: '$backgroundDark800' },
           }}
           flex={1}
         >
@@ -253,11 +228,14 @@ export default function CreatePassword() {
             mt="$7"
             space="md"
             sx={{
-              "@md": { mt: "$8" },
+              '@md': { mt: '$8' },
             }}
           >
-            <Box sx={{ "@base": { w: "$full" }, "@md": { width: "$80" } }}>
+            <Box sx={{ '@base': { w: '$full' }, '@md': { width: '$80' } }}>
               <FormControl isInvalid={!!errors.password} isRequired={true}>
+              <FormControlLabel mb="$1">
+            <FormControlLabelText>Create Password</FormControlLabelText>
+          </FormControlLabel>
                 <Controller
                   defaultValue=""
                   name="password"
@@ -275,7 +253,7 @@ export default function CreatePassword() {
                     },
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
-                    <Input>
+                    <Input   borderRadius="$full" backgroundColor="#f2f2f2">
                       <InputField
                         fontSize="$sm"
                         placeholder="Password"
@@ -284,7 +262,7 @@ export default function CreatePassword() {
                         onBlur={onBlur}
                         onSubmitEditing={handleKeyPress}
                         returnKeyType="done"
-                        type={showPassword ? "text" : "password"}
+                        type={showPassword ? 'text' : 'password'}
                       />
                       <InputSlot onPress={handleState} mr="$2">
                         <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -307,14 +285,17 @@ export default function CreatePassword() {
 
             <Box
               sx={{
-                "@base": { w: "$full" },
-                "@md": { width: "$80" },
+                '@base': { w: '$full' },
+                '@md': { width: '$80' },
               }}
             >
               <FormControl
                 isInvalid={!!errors.confirmpassword}
                 isRequired={true}
               >
+                <FormControlLabel mb="$1">
+            <FormControlLabelText>Confirm Password</FormControlLabelText>
+          </FormControlLabel>
                 <Controller
                   defaultValue=""
                   name="confirmpassword"
@@ -332,7 +313,7 @@ export default function CreatePassword() {
                     },
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
-                    <Input>
+                    <Input   borderRadius="$full" backgroundColor="#f2f2f2">
                       <InputField
                         fontSize="$sm"
                         placeholder="Confirm Password"
@@ -341,7 +322,7 @@ export default function CreatePassword() {
                         onBlur={onBlur}
                         onSubmitEditing={handleKeyPress}
                         returnKeyType="done"
-                        type={showConfirmPassword ? "text" : "password"}
+                        type={showConfirmPassword ? 'text' : 'password'}
                       />
                       <InputSlot onPress={handleConfirmPasswordState} mr="$2">
                         <InputIcon
@@ -371,11 +352,16 @@ export default function CreatePassword() {
           <Button
             variant="solid"
             size="lg"
-            mt="auto"
-            sx={{ "@md": { mt: "$40" } }}
+            mt="$12"
+            sx={{ '@md': { mt: '$40' } }}
             onPress={handleSubmit(onSubmit)}
+            borderRadius="$full"
+            bg="cyan"
           >
-            <ButtonText fontSize="$sm">UPDATE PASSWORD</ButtonText>
+            <ButtonText color="white" fontSize="sm">
+              Update Password
+            </ButtonText>{' '}
+            {/* Adjust color value */}
           </Button>
         </Box>
       </ScrollView>
