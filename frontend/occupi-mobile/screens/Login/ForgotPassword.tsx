@@ -20,9 +20,11 @@ import {
   ArrowLeftIcon,
   Heading,
   Center,
+  FormControlLabel,
+  FormControlLabelText,
 } from '@gluestack-ui/themed';
 import GuestLayout from '../../layouts/GuestLayout';
-
+import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -169,7 +171,7 @@ export default function ForgotPassword() {
     reset();
 
     // Navigate screen to appropriate location
-    router.push('/verify-otp'); // Note: Make sure to import 'router' from your routing library
+    router.push('/verify-otp');
   };
 
   const handleKeyPress = () => {
@@ -178,20 +180,26 @@ export default function ForgotPassword() {
   };
 
   return (
-    <GuestLayout> {/* Use your GuestLayout component */}
+    <GuestLayout>
       <VStack
         sx={{
           '@md': { flexDirection: 'row' },
           '_dark': { bg: '$backgroundDark900' },
         }}
         flex={1}
-        bg="$primary500"
+        bg="white"
       >
         <Box sx={{ '@md': { display: 'none' } }}>
-          {/* Your Header and MobileScreenImage components */}
+          <Header />
+          <HStack space="md" alignItems="center" justifyContent="center">
+          <Image
+            source={Logo}
+            style={{ width: 150, height: 150 }}
+          />
+        </HStack>
         </Box>
         <Box sx={{ '@md': { display: 'flex' } }} display="none" flex={1}>
-          {/* Your SideContainerWeb component */}
+          <SideContainerWeb />
         </Box>
         <Box
           maxWidth="$508"
@@ -214,7 +222,7 @@ export default function ForgotPassword() {
             sx={{ '@md': { alignItems: 'flex-start' } }}
           >
             <Heading
-              fontSize="$xl"
+              fontSize="$2xl"
               textAlign="center"
               sx={{
                 '@md': {
@@ -245,6 +253,9 @@ export default function ForgotPassword() {
             isInvalid={(!!errors.email || isEmailFocused) && !!errors.email}
             isRequired={true}
           >
+             <FormControlLabel mb="$1">
+      <FormControlLabelText>Email</FormControlLabelText>
+    </FormControlLabel>
             <Controller
               defaultValue=""
               name="email"
@@ -262,7 +273,7 @@ export default function ForgotPassword() {
                 },
               }}
               render={({ field: { onChange, onBlur, value } }) => (
-                <Input>
+                <Input  mt="$5"  backgroundColor="#f2f2f2" borderRadius="$full">
                   <InputField
                     fontSize="$sm"
                     placeholder="Email"
@@ -283,9 +294,17 @@ export default function ForgotPassword() {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
-          <Button variant="solid" size="lg" onPress={handleSubmit(onSubmit)}>
-            <ButtonText fontSize="$sm">Send OTP</ButtonText>
-          </Button>
+          
+          <Button
+  variant="solid"
+  size="lg"
+  mt="$12"
+  onPress={handleSubmit(onSubmit)}
+  borderRadius="$full"
+  bg="cyan"
+>
+  <ButtonText color="white" fontSize="sm">Send OTP</ButtonText> {/* Adjust color value */}
+</Button>
         </Box>
       </VStack>
     </GuestLayout>
