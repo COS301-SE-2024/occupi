@@ -2,8 +2,8 @@
 
 
 <div style="position: relative; display: inline-block;">
-  <img src="screens/Login/assets/images/Occupi/black_iPhone.png" alt="Black iPhone" style="position: absolute; width: 300px; z-index: 2; left: 500px; "/>
-  <img src="screens/Login/assets/images/Occupi/white_iPhone.png" alt="White iPhone" style="position: relative; left: 610px; width: 300px; z-index: 1;"/>
+  <img src="screens/Login/assets/images/Occupi/black_iPhone.png" alt="Black iPhone" style="position: absolute; width: 300px;"/>
+  <img src="screens/Login/assets/images/Occupi/white_iPhone.png" alt="White iPhone" style="position: relative; width: 300px;"/>
 </div>
 
 **NB: This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).** 🚀
