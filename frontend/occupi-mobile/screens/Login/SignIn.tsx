@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { LinearGradient } from '@gluestack-ui/themed';
+import { SafeAreaView } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import {
   Center,
   Button,
@@ -32,15 +35,19 @@ import {
   Heading,
   LinkText,
   InputSlot,
+  FormControlLabel,
+  FormControlLabelText,
+  FormControlHelperText,
 } from '@gluestack-ui/themed';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Keyboard } from 'react-native';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
+import { FingerprintIcon } from 'lucide-react-native';
 
 import { GoogleIcon, FacebookIcon } from './assets/Icons/Social';
-
+import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 
@@ -115,11 +122,16 @@ const SignInForm = () => {
 
   return (
     <>
-      <VStack justifyContent="space-between">
+    
+      <VStack justifyContent="space-between" >
         <FormControl
+        
           isInvalid={(!!errors.email || isEmailFocused) && !!errors.email}
           isRequired={true}
         >
+          <FormControlLabel mb="$1">
+      <FormControlLabelText>Email</FormControlLabelText>
+    </FormControlLabel>
           <Controller
             name="email"
             defaultValue=""
@@ -135,10 +147,10 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input>
+              <Input mt="$5"   backgroundColor="#f2f2f2" borderRadius="$full">
                 <InputField
                   fontSize="$sm"
-                  placeholder="Email"
+                  placeholder="john.doe@gmail.com"
                   type="text"
                   value={value}
                   onChangeText={onChange}
@@ -146,8 +158,11 @@ const SignInForm = () => {
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
                 />
+                
               </Input>
+              
             )}
+            
           />
           <FormControlError>
             <FormControlErrorIcon size="md" as={AlertTriangle} />
@@ -158,6 +173,9 @@ const SignInForm = () => {
         </FormControl>
 
         <FormControl my="$6" isInvalid={!!errors.password} isRequired={true}>
+          <FormControlLabel mb="$1">
+            <FormControlLabelText>Password</FormControlLabelText>
+          </FormControlLabel>
           <Controller
             name="password"
             defaultValue=""
@@ -175,10 +193,10 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input>
+              <Input mt="$5" backgroundColor="#f2f2f2"  borderRadius="$full">
                 <InputField
                   fontSize="$sm"
-                  placeholder="Password"
+                  placeholder="Enter your password"
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
@@ -187,7 +205,7 @@ const SignInForm = () => {
                   type={showPassword ? 'text' : 'password'}
                 />
                 <InputSlot onPress={handleState} pr="$3">
-                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
                 </InputSlot>
               </Input>
             )}
@@ -202,37 +220,51 @@ const SignInForm = () => {
           <FormControlHelper></FormControlHelper>
         </FormControl>
       </VStack>
-      <StyledExpoRouterLink ml="auto" href="/forgot-password">
-        <LinkText fontSize="$xs">Forgot password?</LinkText>
-      </StyledExpoRouterLink>
-      <Controller
-        name="rememberme"
-        defaultValue={false}
-        control={control}
-        render={({ field: { onChange, value } }) => (
-          <Checkbox
-            my="$5"
-            size="sm"
-            value="Remember me"
-            isChecked={value}
-            onChange={onChange}
-            alignSelf="flex-start"
-          >
-            <CheckboxIndicator mr="$2">
-              <CheckboxIcon as={CheckIcon} />
-            </CheckboxIndicator>
-            <CheckboxLabel>Remember me and keep me logged in</CheckboxLabel>
-          </Checkbox>
-        )}
-      />
-      <Button
-        variant="solid"
-        size="lg"
-        mt="$5"
-        onPress={handleSubmit(onSubmit)}
+
+      <HStack
+        alignItems="center"
+        mt="$4"
+        justifyContent="space-between"
+        space="$4"
       >
-        <ButtonText fontSize="$sm"> SIGN IN</ButtonText>
-      </Button>
+        <Controller
+          name="rememberme"
+          defaultValue={false}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <Checkbox
+           
+              size="sm"
+              value="Remember me"
+              isChecked={value}
+              onChange={onChange}
+            >
+              <CheckboxLabel mr="$2">Remember me</CheckboxLabel>
+              <CheckboxIndicator>
+                <CheckboxIcon as={CheckIcon} />
+              </CheckboxIndicator>
+            </Checkbox>
+          )}
+        />
+
+<StyledExpoRouterLink href="/forgot-password">
+            <LinkText color="cyan" fontSize="$sm">
+              Forgot Password?
+            </LinkText>
+          </StyledExpoRouterLink>
+      </HStack>
+
+      <Button
+  variant="solid"
+  size="lg"
+  mt="$12"
+  onPress={handleSubmit(onSubmit)}
+  borderRadius="$full"
+  bg="cyan"
+>
+  <ButtonText color="white" fontSize="sm">Login</ButtonText> {/* Adjust color value */}
+</Button>
+
     </>
   );
 };
@@ -257,52 +289,23 @@ function SideContainerWeb() {
   );
 }
 
-function MobileHeader() {
-  return (
-    <VStack px="$3" mt="$4.5" space="md">
-      <HStack space="md" alignItems="center">
-        <StyledExpoRouterLink href="..">
-          <Icon
-            as={ArrowLeftIcon}
-            color="$textLight50"
-            sx={{ _dark: { color: '$textDark50' } }}
-          />
-        </StyledExpoRouterLink>
-        <Text
-          color="$textLight50"
-          sx={{ _dark: { color: '$textDark50' } }}
-          fontSize="$lg"
-        >
-          Sign In
-        </Text>
-      </HStack>
-      <VStack space="xs" ml="$1" my="$4">
-        <Heading color="$textLight50" sx={{ _dark: { color: '$textDark50' } }}>
-          Welcome back
-        </Heading>
-        <Text
-          fontSize="$md"
-          fontWeight="normal"
-          color="$primary300"
-          sx={{
-            _dark: { color: '$textDark400' },
-          }}
-        >
-          Sign in to continue
-        </Text>
-      </VStack>
-    </VStack>
-  );
-}
-
 const Main = () => {
   return (
     <>
-      <Box sx={{ '@md': { display: 'none' } }}>
-        <MobileHeader />
-      </Box>
-      <Box
+    {/* will remove later */}
+     <StyledExpoRouterLink bg="$backgroundLight0" href="..">
+          <Icon
+            as={ArrowLeftIcon}
+            color="$textLight800"
+            sx={{ _dark: { color: '$textDark800' } }}
+          />
+        </StyledExpoRouterLink>
+
+
+    <Box
+    
         px="$4"
+        
         sx={{
           '@md': {
             px: '$8',
@@ -316,62 +319,34 @@ const Main = () => {
         flex={1}
         bg="$backgroundLight0"
         justifyContent="space-between"
-        borderTopLeftRadius="$2xl"
-        borderTopRightRadius="$2xl"
-        borderBottomRightRadius="$none"
       >
-        <Heading
-          display="none"
-          mb="$8"
-          sx={{
-            '@md': { display: 'flex', fontSize: '$2xl' },
-          }}
-        >
-          Sign in to continue
-        </Heading>
-        <SignInForm />
-        <HStack my="$4" space="md" alignItems="center" justifyContent="center">
-          <Divider
-            w="$2/6"
-            bg="$backgroundLight200"
-            sx={{ _dark: { bg: '$backgroundDark700' } }}
+      <VStack  px="$3" mt="$8"  space="md">
+       
+        <HStack space="md" alignItems="center" justifyContent="center">
+          <Image
+            source={Logo}
+            style={{ width: 150, height: 150 }}
           />
-          <Text
-            fontWeight="medium"
-            color="$textLight400"
-            sx={{ _dark: { color: '$textDark300' } }}
+        </HStack>
+        <VStack space="xs" mt="$4" ml="$1" my="$5">
+          <Heading
+            color="$textLight800"
+            sx={{ _dark: { color: '$textDark800' } }}
+            size="xl"
           >
-            or
+            Welcome back to Occupi.
+          </Heading>
+          <Text color="$textLight400"
+          size="xl"
+           sx={{ _dark: { color: '$textDark800' } }}>
+            Predict. Plan. Perfect.
           </Text>
-          <Divider
-            w="$2/6"
-            bg="$backgroundLight200"
-            sx={{ _dark: { bg: '$backgroundDark700' } }}
-          />
-        </HStack>
-        <HStack
-          mt="$6"
-          sx={{
-            '@md': {
-              mt: '$4',
-            },
-          }}
-          mb="$9"
-          justifyContent="center"
-          alignItems="center"
-          space="lg"
-        >
-          <Link href="">
-            <Button action="secondary" variant="link" onPress={() => {}}>
-              <ButtonIcon as={FacebookIcon} />
-            </Button>
-          </Link>
-          <Link href="">
-            <Button action="secondary" variant="link" onPress={() => {}}>
-              <ButtonIcon as={GoogleIcon} />
-            </Button>
-          </Link>
-        </HStack>
+        </VStack>
+      </VStack>
+
+      
+        <SignInForm />
+
         <HStack
           space="xs"
           alignItems="center"
@@ -383,10 +358,10 @@ const Main = () => {
             fontSize="$sm"
             sx={{ _dark: { color: '$textDark400' } }}
           >
-            Don't have an account?
+            New to Occupi?
           </Text>
           <StyledExpoRouterLink href="/signup">
-            <LinkText fontSize="$sm">Sign up</LinkText>
+            <LinkText color="cyan" fontSize="$sm">Register</LinkText>
           </StyledExpoRouterLink>
         </HStack>
       </Box>
