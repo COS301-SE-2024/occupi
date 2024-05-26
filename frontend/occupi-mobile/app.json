@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "expo-head-starter-kit",
-    "slug": "expo-head-starter-kit",
+    "name": "occupi-mobile",
+    "slug": "occupi-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
