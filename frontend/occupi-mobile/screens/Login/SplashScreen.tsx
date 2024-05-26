@@ -7,11 +7,10 @@ import {
   Center,
   ButtonText,
 } from '@gluestack-ui/themed';
-
 import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
-
 import { styled } from '@gluestack-style/react';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const StyledImage = styled(Image, {
   '@sm': {
@@ -32,76 +31,14 @@ const StyledImage = styled(Image, {
   },
 });
 
-// to render login and sign up buttons
-function ActionButtons() {
-  return (
-    <VStack
-      space="xs"
-      mt="$10"
-      sx={{
-        '@md': {
-          mt: '$12',
-        },
-      }}
-    >
-      <Button
-        sx={{
-          ':hover': {
-            bg: '$backgroundLight100',
-          },
-        }}
-        size="md"
-        variant="solid"
-        action="primary"
-        isDisabled={false}
-        isFocusVisible={false}
-        backgroundColor="$backgroundLight0"
-      >
-        <StyledExpoRouterLink href="/login">
-          <ButtonText
-            fontWeight="$bold"
-            textDecorationLine="none"
-            color="$primary500"
-          >
-            LOGIN
-          </ButtonText>
-        </StyledExpoRouterLink>
-      </Button>
-
-      <Button
-        sx={{
-          ':hover': {
-            bg: '$backgroundLight0',
-            _text: {
-              color: '$primary500',
-            },
-          },
-        }}
-        my="$4"
-        size="md"
-        variant="outline"
-        borderColor="$borderLight0"
-        action="primary"
-        isDisabled={false}
-        isFocusVisible={false}
-      >
-        <StyledExpoRouterLink href="/signup">
-          <ButtonText textDecorationLine="none" color="$textLight50">
-            SIGN UP
-          </ButtonText>
-        </StyledExpoRouterLink>
-      </Button>
-    </VStack>
-  );
-}
 
 function HeaderLogo() {
   return (
     <Box alignItems="center" justifyContent="center">
       <StyledImage
-        alt="gluestack-ui Pro"
         resizeMode="contain"
-        source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
+        source={require('../../screens/Login/assets/images/Occupi/occupi-white-trans.png')}
+        style={{ width: 110, height: 110 }}
         sx={{
           '@md': {
             display: 'flex',
@@ -109,16 +46,15 @@ function HeaderLogo() {
         }}
         display="none"
       />
-
       <StyledImage
         sx={{
           '@md': {
             display: 'none',
           },
         }}
-        alt="gluestack-ui Pro"
+        style={{ width: 110, height: 110 }}
         display="flex"
-        source={require('./assets/images/gluestackUiProLogo_mobile.png')}
+        source={require('../../screens/Login/assets/images/Occupi/occupi-white-trans.png')}
       />
     </Box>
   );
@@ -126,28 +62,24 @@ function HeaderLogo() {
 
 export default function SplashScreen() {
   return (
-    // Wrapper component includes the <GluestackUIProvider></GluestackUIProvider>
-    // place GluestackUIProvider in your app root accordingly
-    // remove Wrapper tag from here in your codebase
     <GuestLayout>
       <Center w="$full" flex={1}>
-        <Box
-          maxWidth="$508"
-          w="$full"
-          minHeight="$authcard"
-          sx={{
-            '@md': {
-              // h: '$authcard',
-              px: '$8',
-              bg: '$primary500',
-            },
-          }}
-          px="$4"
-          justifyContent="center"
+        <LinearGradient
+          colors={['#2F2270', '#8CE39E', '#BBF65A', '#EEF060']}
+          start={{ x: 1, y: 1 }}
+          end={{ x: 1, y: 0 }}
+          style={{ flex: 1, width: '100%', justifyContent: 'center' }}
         >
-          <HeaderLogo />
-          <ActionButtons />
-        </Box>
+          <Box
+            maxWidth="$508"
+            w="$full"
+            minHeight="$authcard"
+            px="$4"
+            justifyContent="center"
+          >
+            <HeaderLogo />
+          </Box>
+        </LinearGradient>
       </Center>
     </GuestLayout>
   );
