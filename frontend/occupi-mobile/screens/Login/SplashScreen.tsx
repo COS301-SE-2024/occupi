@@ -1,16 +1,9 @@
 import React from 'react';
-import {
-  Box,
-  VStack,
-  Button,
-  Image,
-  Center,
-  ButtonText,
-} from '@gluestack-ui/themed';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Box, VStack, Button, Image, Center, ButtonText } from '@gluestack-ui/themed';
 import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { styled } from '@gluestack-style/react';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const StyledImage = styled(Image, {
   '@sm': {
@@ -30,6 +23,7 @@ const StyledImage = styled(Image, {
     },
   },
 });
+
 
 
 function HeaderLogo() {
@@ -63,24 +57,30 @@ function HeaderLogo() {
 export default function SplashScreen() {
   return (
     <GuestLayout>
-      <Center w="$full" flex={1}>
-        <LinearGradient
-          colors={['#2F2270', '#8CE39E', '#BBF65A', '#EEF060']}
-          start={{ x: 1, y: 1 }}
-          end={{ x: 1, y: 0 }}
-          style={{ flex: 1, width: '100%', justifyContent: 'center' }}
-        >
+      <LinearGradient
+        colors={['#2F2270', '#8CE39E', '#BBF65A', '#EEF060']}
+        start={[0, 0]}
+        end={[1, 1]}
+        style={{ flex: 1 }}
+      >
+        <Center w="$full" flex={1}>
           <Box
             maxWidth="$508"
             w="$full"
             minHeight="$authcard"
+            sx={{
+              '@md': {
+                px: '$8',
+                bg: '$primary500',
+              },
+            }}
             px="$4"
             justifyContent="center"
           >
             <HeaderLogo />
           </Box>
-        </LinearGradient>
-      </Center>
+        </Center>
+      </LinearGradient>
     </GuestLayout>
   );
 }

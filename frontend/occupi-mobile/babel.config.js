@@ -6,6 +6,8 @@ module.exports = function (api) {
       ['@babel/preset-env', { targets: { node: 'current' } }],
       '@babel/preset-typescript',
     ],
-    plugins: ['@gluestack-style/babel-plugin-styled-resolver'],
+    plugins: [
+      // No need for 'expo-router/babel' anymore
+    ],
   };
 };
