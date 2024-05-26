@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   VStack,
   Box,
@@ -23,7 +23,7 @@ import {
   useToast,
   Heading,
 } from '@gluestack-ui/themed';
-
+import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import GuestLayout from '../../layouts/GuestLayout';
 import { z } from 'zod';
 import { AlertTriangle } from 'lucide-react-native';
@@ -34,6 +34,8 @@ import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
 
 import { styled } from '@gluestack-style/react';
+
+// const [remainingTime, setRemainingTime] = useState(60);
 
 const StyledImage = styled(Image, {
   props: {
@@ -60,16 +62,23 @@ function PinInput({
 }: PinInputProps) {
   return (
     <HStack space="xs">
+      
       {Array.from({ length: 6 }, (_, index) => (
-        <Input key={index} variant="outline" w="$100/7" size="md">
+        <Input
+          ml="$1.5"
+          key={index}
+          variant="outline"
+          w="$100/7"
+          size="md"
+          mt="$5"  
+          backgroundColor="#f2f2f2"
+          borderRadius="$2xl"
+        >
           <InputField
             //@ts-ignore
             ref={refList[index]}
             placeholder=""
-            borderBottomColor={
-              focusedIndex === index ? '$primary900' : '$borderLight500'
-            }
-            bg="$backgroundLight0"
+            bg="#f2f2f2"
             sx={{
               '@md': {
                 w: '$1/6',
@@ -79,14 +88,11 @@ function PinInput({
               },
               '_dark': {
                 bgColor: '$backgroundDark400',
-                borderBottomColor:
-                  focusedIndex === index ? '$primary500' : '$borderDark100',
               },
             }}
             w="$100/7"
             textAlign="center"
             maxLength={1}
-            borderBottomWidth="$2"
             onChangeText={(text) => {
               if (text.length === 1 && index < 5) {
                 refList[index + 1].current?.focus();
@@ -102,34 +108,14 @@ function PinInput({
               };
               updateOtpAtIndex(index, text);
             }}
-            rounded="$xs"
           />
         </Input>
       ))}
+      {/* <Text fontSize="$md">{remainingTime} seconds remaining</Text> */}
     </HStack>
   );
 }
 
-function Header() {
-  return (
-    <HStack space="xs" px="$3" my="$4.5" alignItems="center">
-      <StyledExpoRouterLink href="/">
-        <Icon
-          as={ArrowLeftIcon}
-          color="$textLight50"
-          sx={{ _dark: { color: '$textDark50' } }}
-        />
-      </StyledExpoRouterLink>
-      <Text
-        color="$textLight50"
-        fontSize="$lg"
-        sx={{ _dark: { color: '$textDark50' } }}
-      >
-        OTP Verification
-      </Text>
-    </HStack>
-  );
-}
 function SideContainerWeb() {
   return (
     <Center
@@ -154,17 +140,24 @@ function SideContainerWeb() {
 function MainText() {
   return (
     <VStack space="xs">
+      <HStack space="md" alignItems="center" justifyContent="center">
+          <Image
+            source={Logo}
+            style={{ width: 110, height: 110 }}
+          />
+        </HStack>
       <Heading
-        fontSize="$xl"
+        fontSize="$2xl"
         sx={{
           '@md': { fontSize: '$2xl', pb: '$4' },
         }}
       >
-        Enter OTP
+        We sent you an email code
       </Heading>
-      <HStack space="xs" alignItems="center">
+      <HStack space="sm" alignItems="center">
         <Text
-          color="$textLight800"
+          color="$textLight400"
+          mt="$5"  
           sx={{
             '@md': {
               pb: '$12',
@@ -173,12 +166,12 @@ function MainText() {
               color: '$textDark400',
             },
           }}
-          fontSize="$sm"
+          fontSize="$md"
         >
           We have sent the OTP code to
           <Text
             fontWeight="$bold"
-            color="$textLight800"
+            color="$textLight400"
             sx={{
               _dark: {
                 color: '$textDark400',
@@ -186,7 +179,7 @@ function MainText() {
             }}
             fontSize="$sm"
           >
-            {''} 87******47
+            {''} ******@****
           </Text>
         </Text>
       </HStack>
@@ -218,14 +211,14 @@ function AccountLink() {
         Already have an account?
       </Text>
       <StyledExpoRouterLink href="/login">
-        <LinkText fontSize="$sm">Sign In</LinkText>
+        <LinkText color="cyan" fontSize="$sm">Login</LinkText>
       </StyledExpoRouterLink>
     </HStack>
   );
 }
 function ResendLink() {
   return (
-    <HStack py="$8">
+    <HStack py="$8"   mt="$5"  >
       <Text
         color="$textLight800"
         sx={{
@@ -238,7 +231,7 @@ function ResendLink() {
         Didn't receive the OTP?
       </Text>
       <StyledExpoRouterLink href="/verify-otp">
-        <LinkText fontSize="$sm">RESEND OTP</LinkText>
+        <LinkText color="cyan"  ml="$2"   fontSize="$sm">Resend OTP</LinkText>
       </StyledExpoRouterLink>
     </HStack>
   );
@@ -251,6 +244,17 @@ const OTPSchema = z.object({
 type OTPSchemaType = z.infer<typeof OTPSchema>;
 
 export default function OtpVerification() {
+  // const [remainingTime, setRemainingTime] = useState(60);
+
+  // useEffect(() => {
+  //   if (remainingTime > 0) {
+  //     const timerId = setTimeout(() => {
+  //       setRemainingTime(remainingTime - 1);
+  //     }, 1000);
+  //     return () => clearTimeout(timerId); // Clear the timer if the component is unmounted
+  //   }
+  // }, [remainingTime]);
+
   const {
     control,
     formState: { errors },
@@ -282,36 +286,36 @@ export default function OtpVerification() {
 
   const toast = useToast();
 
-  // const onSubmit = (_data: OTPSchemaType) => {
-  //   toast.show({
-  //     placement: 'bottom right',
-  //     render: ({ id }) => {
-  //       const pinValues = refList.map((ref) => ref?.current?.value);
-  //       const pin = pinValues.join('');
-  //       const Count = otpInput.filter((value) => value !== '').length;
+  const onSubmit = (_data: OTPSchemaType) => {
+    toast.show({
+      placement: 'bottom right',
+      render: ({ id }) => {
+        const pinValues = refList.map((ref) => ref?.current?.value);
+        const pin = pinValues.join('');
+        const Count = otpInput.filter((value) => value !== '').length;
 
-  //       if (Count < 6) {
-  //         setValidationError('OTP must be at least 6 characters in length');
-  //         return;
-  //       }
-  //       setValidationError(null);
+        if (Count < 6) {
+          setValidationError('OTP must be at least 6 characters in length');
+          return;
+        }
+        setValidationError(null);
 
-  //       return (
-  //         <Toast nativeID={id} variant="accent" action="success">
-  //           <ToastTitle>OTP sent successfully</ToastTitle>
-  //         </Toast>
-  //       );
-  //     },
-  //   });
-  //   reset();
-  //   // Implement your own onSubmit and navigation logic here.
-  //   router.replace('/create-password');
-  // };
+        return (
+          <Toast nativeID={id} variant="accent" action="success">
+            <ToastTitle>OTP sent successfully</ToastTitle>
+          </Toast>
+        );
+      },
+    });
+    reset();
+    // Implement your own onSubmit and navigation logic here.
+    router.replace('/create-password');
+  };
 
-  // const handleKeyPress = () => {
-  //   Keyboard.dismiss();
-  //   handleSubmit(onSubmit)();
-  // };
+  const handleKeyPress = () => {
+    Keyboard.dismiss();
+    handleSubmit(onSubmit)();
+  };
 
   return (
     <GuestLayout>
@@ -323,7 +327,6 @@ export default function OtpVerification() {
         }}
         display="flex"
       >
-        <Header />
       </Box>
       <Box
         sx={{
@@ -379,14 +382,21 @@ export default function OtpVerification() {
           </FormControl>
 
           <Button
-            size="lg"
             variant="solid"
+            size="lg"
+            mt="$5"
+            onPress={handleSubmit(onSubmit)}
+            borderRadius="$full"
+            bg="cyan"
             action="primary"
             isDisabled={false}
             isFocusVisible={false}
             onPress={() => router.replace('/create-password')}
           >
-            <ButtonText fontSize="$sm">PROCEED </ButtonText>
+            <ButtonText color="white" fontSize="sm">
+              Continue
+            </ButtonText>{' '}
+            {/* Adjust color value */}
           </Button>
         </VStack>
 
