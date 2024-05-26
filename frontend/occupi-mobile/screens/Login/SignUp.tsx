@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import {
   Button,
   Checkbox,
@@ -32,6 +33,8 @@ import {
   ArrowLeftIcon,
   InputField,
   InputSlot,
+  FormControlLabel,
+  FormControlLabelText,
 } from '@gluestack-ui/themed';
 
 import { Controller, useForm } from 'react-hook-form';
@@ -57,7 +60,7 @@ const StyledImage = styled(Image, {
     },
   },
 });
-
+const isEmployeeIdFocused = false;
 const signUpSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
   password: z
@@ -81,6 +84,7 @@ const signUpSchema = z.object({
       'One special character'
     ),
   rememberme: z.boolean().optional(),
+  employeeId: z.string().min(1, 'Employee ID is required').regex(/^\d+$/, 'Employee ID must be numerical'),
 });
 
 type SignUpSchemaType = z.infer<typeof signUpSchema>;
@@ -107,45 +111,7 @@ function SideContainerWeb() {
   );
 }
 
-function MobileHeader() {
-  return (
-    <VStack px="$3" mt="$4.5" mb="$5" space="md">
-      <HStack space="md" alignItems="center">
-        <StyledExpoRouterLink href="..">
-          <Icon
-            as={ArrowLeftIcon}
-            color="$textLight50"
-            sx={{ _dark: { color: '$textDark50' } }}
-          />
-        </StyledExpoRouterLink>
 
-        <Text
-          color="$textLight50"
-          sx={{ _dark: { color: '$textDark50' } }}
-          fontSize="$lg"
-        >
-          Sign Up
-        </Text>
-      </HStack>
-      <VStack space="xs" ml="$1" my="$4">
-        <Heading color="$textLight50" sx={{ _dark: { color: '$textDark50' } }}>
-          Welcome
-        </Heading>
-        <Text
-          color="$primary300"
-          fontSize="$md"
-          sx={{
-            _dark: {
-              color: '$textDark400',
-            },
-          }}
-        >
-          Sign up to continue
-        </Text>
-      </VStack>
-    </VStack>
-  );
-}
 
 const SignUpForm = () => {
   const {
@@ -215,6 +181,9 @@ const SignUpForm = () => {
           isInvalid={(!!errors.email || isEmailFocused) && !!errors.email}
           isRequired={true}
         >
+          <FormControlLabel mb="$1">
+            <FormControlLabelText>Email Address</FormControlLabelText>
+          </FormControlLabel>
           <Controller
             name="email"
             defaultValue=""
@@ -230,7 +199,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input>
+              <Input   borderRadius="$full" backgroundColor="#f2f2f2" backgroundColor="#f2f2f2" >
                 <InputField
                   placeholder="Email"
                   fontSize="$sm"
@@ -252,7 +221,55 @@ const SignUpForm = () => {
           </FormControlError>
         </FormControl>
 
+        <FormControl
+  isInvalid={(!!errors.employeeId || isEmployeeIdFocused) && !!errors.employeeId}
+  isRequired={true}
+>
+  <FormControlLabel mb="$1" my="$6">
+    <FormControlLabelText>Employee ID</FormControlLabelText>
+  </FormControlLabel>
+  <Controller
+    name="employeeId"
+    defaultValue=""
+    control={control}
+    rules={{
+      validate: async (value) => {
+        try {
+          await signUpSchema.parseAsync({ employeeId: value });
+          return true;
+        } catch (error) {
+          return error.message;
+        }
+      },
+    }}
+    render={({ field: { onChange, onBlur, value } }) => (
+      <Input   borderRadius="$full" backgroundColor="#f2f2f2">
+        <InputField
+          placeholder="Employee ID"
+          fontSize="$sm"
+          type="number"
+          value={value}
+          onChangeText={onChange}
+          onBlur={onBlur}
+          onSubmitEditing={handleKeyPress}
+          returnKeyType="done"
+        />
+      </Input>
+    )}
+  />
+  <FormControlError>
+    <FormControlErrorIcon size="md" as={AlertTriangle} />
+    <FormControlErrorText>
+      {errors?.employeeId?.message}
+    </FormControlErrorText>
+  </FormControlError>
+
+
+</FormControl>
         <FormControl isInvalid={!!errors.password} isRequired={true} my="$6">
+        <FormControlLabel mb="$1">
+            <FormControlLabelText>Password</FormControlLabelText>
+          </FormControlLabel>
           <Controller
             defaultValue=""
             name="password"
@@ -270,7 +287,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input>
+              <Input   borderRadius="$full" backgroundColor="#f2f2f2">
                 <InputField
                   fontSize="$sm"
                   placeholder="Password"
@@ -296,6 +313,9 @@ const SignUpForm = () => {
         </FormControl>
 
         <FormControl isInvalid={!!errors.confirmpassword} isRequired={true}>
+        <FormControlLabel mb="$1">
+            <FormControlLabelText>Confirm Password</FormControlLabelText>
+          </FormControlLabel>
           <Controller
             defaultValue=""
             name="confirmpassword"
@@ -314,7 +334,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input>
+              <Input   borderRadius="$full" backgroundColor="#f2f2f2">
                 <InputField
                   placeholder="Confirm Password"
                   fontSize="$sm"
@@ -373,6 +393,7 @@ const SignUpForm = () => {
                       marginTop: '$0.5',
                     },
                   }}
+                  color="cyan"
                 >
                   Terms of Use
                 </LinkText>
@@ -388,6 +409,7 @@ const SignUpForm = () => {
                       marginTop: '$0.5',
                     },
                   }}
+                  color="cyan"
                 >
                   Privacy Policy
                 </LinkText>
@@ -397,13 +419,15 @@ const SignUpForm = () => {
         )}
       />
       <Button
-        mt="$5"
-        variant="solid"
-        size="lg"
-        onPress={handleSubmit(onSubmit)}
-      >
-        <ButtonText fontSize="$sm">SIGN UP</ButtonText>
-      </Button>
+  variant="solid"
+  size="lg"
+  mt="$12"
+  onPress={handleSubmit(onSubmit)}
+  borderRadius="$full"
+  bg="cyan"
+>
+  <ButtonText color="white" fontSize="sm">Signup</ButtonText> {/* Adjust color value */}
+</Button>
     </>
   );
 };
@@ -418,12 +442,12 @@ function SignUpFormComponent() {
           },
         }}
       >
-        <MobileHeader />
       </Box>
 
       <Box
-        flex={1}
-        bg="$backgroundLight0"
+    
+        px="$4"
+        
         sx={{
           '@md': {
             px: '$8',
@@ -431,48 +455,40 @@ function SignUpFormComponent() {
             borderTopRightRadius: '$none',
             borderBottomRightRadius: '$none',
           },
-          '_dark': {
-            bg: '$backgroundDark800',
-          },
+          '_dark': { bg: '$backgroundDark800' },
         }}
-        px="$4"
         py="$8"
+        flex={1}
+        bg="$backgroundLight0"
         justifyContent="space-between"
-        borderTopLeftRadius="$2xl"
-        borderTopRightRadius="$2xl"
-        borderBottomRightRadius="$none"
       >
-        <Heading
-          display="none"
-          mb="$8"
-          sx={{
-            '@md': { display: 'flex', fontSize: '$2xl' },
-          }}
-        >
-          Sign up to continue
-        </Heading>
-
-        <SignUpForm />
-
-        <HStack my="$4" space="md" alignItems="center" justifyContent="center">
-          <Divider
-            w="$2/6"
-            bg="$backgroundLight200"
-            sx={{ _dark: { bg: '$backgroundDark700' } }}
-          />
-          <Text
-            fontWeight="$medium"
-            color="$textLight400"
-            sx={{ _dark: { color: '$textDark300' } }}
-          >
-            or
-          </Text>
-          <Divider
-            w="$2/6"
-            bg="$backgroundLight200"
-            sx={{ _dark: { bg: '$backgroundDark700' } }}
+      <VStack  px="$3" mt="$8"  space="md">
+       
+        <HStack space="md" alignItems="center" justifyContent="center">
+          <Image
+            source={Logo}
+            style={{ width: 150, height: 150 }}
           />
         </HStack>
+        <VStack space="xs" mt="$4" ml="$1" my="$5">
+          <Heading
+            color="$textLight800"
+            sx={{ _dark: { color: '$textDark800' } }}
+            size="xl"
+          >
+            Register for Occupi.
+          </Heading>
+          <Text color="$textLight400"
+          size="xl"
+           sx={{ _dark: { color: '$textDark800' } }}>
+            Predict. Plan. Perfect.
+          </Text>
+        </VStack>
+      </VStack>
+      
+        <SignUpForm />
+
+        
         <HStack
           sx={{
             '@md': {
@@ -480,21 +496,12 @@ function SignUpFormComponent() {
             },
           }}
           mt="$6"
-          mb="$9"
+          mb="$4"
           alignItems="center"
           justifyContent="center"
           space="lg"
         >
-          <Link href="">
-            <Button action="secondary" variant="link" onPress={() => {}}>
-              <ButtonIcon as={FacebookIcon} />
-            </Button>
-          </Link>
-          <Link href="">
-            <Button action="secondary" variant="link" onPress={() => {}}>
-              <ButtonIcon as={GoogleIcon} size="md" />
-            </Button>
-          </Link>
+          
         </HStack>
 
         <HStack
@@ -512,11 +519,11 @@ function SignUpFormComponent() {
             }}
             fontSize="$sm"
           >
-            Already have an account?
+            Have an account?
           </Text>
 
           <StyledExpoRouterLink href="/login">
-            <LinkText fontSize="$sm">Sign In</LinkText>
+            <LinkText color="cyan" fontSize="$sm">Login</LinkText>
           </StyledExpoRouterLink>
         </HStack>
       </Box>
