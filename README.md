@@ -94,9 +94,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-    <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
-    </div>
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width=800 >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
@@ -113,9 +111,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
-    </div>
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width=800 >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Carey</b></h2>
@@ -132,9 +128,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
-    </div>
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width=800 >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Kamo</b></h2>
@@ -151,9 +145,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
-    </div>
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width=800 >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Tinashe</b></h2>
@@ -170,9 +162,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <div style="width: 300px; height: 300px; display: flex; overflow: hidden; justify-content: center; align-items: center; border-radius: 50%;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" style="display: inline; min-width: 100%; margin: 0 auto; height: 100%; object-fit: cover;">
-    </div>
+      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width=800 >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Reta</b></h2>
@@ -203,12 +193,12 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 <br>
 <p align="center">
   <a href="https://occupi.tech/">
-    <img height=60 src="/presentation/Occupi/Occupi-black.png">
+    <img height=100 src="/presentation/Occupi/Occupi-black.png">
   </a>
   <a href="https://www.deloitte.com/za/en.html">
-    <img height=60 src="/presentation/Sponsor/Deloitte_Logo.jpg">
+    <img height=100 src="/presentation/Sponsor/Deloitte_Logo.jpg">
   </a>
   <a href="https://www.cs.up.ac.za/">
-    <img height=60 src="/presentation/Sponsor/UP.png">
+    <img height=100 src="/presentation/Sponsor/UP.png">
   </a>
 </p>
