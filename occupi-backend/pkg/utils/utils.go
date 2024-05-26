@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"fmt"
+	"log"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -14,9 +16,9 @@ func SetupLogger() {
 
 	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		logrus.Fatalf("Failed to open log file: %v", err)
+		log.Fatal(fmt.Printf("Failed to open log file: %v", err))
 	}
-	defer file.Close()
+	//defer file.Close()
 
 	// Set the output of the logs to the file
 	logrus.SetOutput(file)

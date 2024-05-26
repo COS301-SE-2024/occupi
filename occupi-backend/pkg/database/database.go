@@ -19,7 +19,7 @@ func ConnectToDatabase() *mongo.Client {
 	password := configs.GetMongoDBPassword()
 	clusterURI := configs.GetMongoDBCLUSTERURI()
 	dbName := configs.GetMongoDBName()
-	mongoDbStartURI := configs.GetMongoDBCLUSTERURI()
+	mongoDbStartURI := configs.GetMongoDBStartURI()
 
 	// Escape the special characters in the password
 	escapedPassword := url.QueryEscape(password)

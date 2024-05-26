@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/joho/godotenv"
@@ -15,17 +16,21 @@ import (
 )
 
 func main() {
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	//setup logger to log all server interactions
 	utils.SetupLogger()
 
-	// Load environment variables from .env file
-	if err := godotenv.Load(); err != nil {
-		logrus.Error("Error loading .env file")
-	}
-
 	//connect to the database
 	db := database.ConnectToDatabase()
+
+	//create a router
 	r := router.OccupiRouter(db)
+
+	//listening on the port
 	logrus.Error(
 		http.ListenAndServe( //add tls in a bit
 			fmt.Sprintf(":%s", configs.GetPort()),

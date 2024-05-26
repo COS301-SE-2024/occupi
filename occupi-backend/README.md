@@ -5,7 +5,18 @@ Occupi's backend is the beating heart of occupi. This contains the code that int
 ### Getting started
 
 1. You will have to download <a href="https://go.dev/doc/install">go-lang</a> as this is a <a href="https://go.dev/doc/install">go-lang</a> based backend
-2. You can now begin coding. Before you do all of that however, here is a nice overview of how the codebase is organized with a small explanation for each folder/file:
+2. Create a .env file and fill out:
+```bash
+MONGODB_USERNAME=
+MONGODB_PASSWORD=
+MONGODB_CLUSTERURI=
+MONGODB_DBNAME=
+MONGODB_START_URI=
+PORT=
+LOG_FILE_NAME=
+```
+3. Create a .log file with the same name as that specified in the log_file_name env variable.
+4. You can now begin coding. Before you do all of that however, here is a nice overview of how the codebase is organized with a small explanation for each folder/file:
 
 ```bash
 myapp/

@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myapp
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/go/src/COS301-SE-2024/occupi/occupi-backend

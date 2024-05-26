@@ -1,0 +1,17 @@
+# Binaries
+/occupi-backend
+
+# Vendor
+/vendor
+
+# Node modules
+/node_modules
+
+# scripts folder
+/scripts
+
+# Other
+*.log
+*.tmp
+*.swp
+*.gitignore

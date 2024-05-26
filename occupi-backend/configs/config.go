@@ -46,7 +46,7 @@ func GetMongoDBName() string {
 	return name
 }
 
-func GetMongoDBStartUIR() string {
+func GetMongoDBStartURI() string {
 	startURI := os.Getenv("MONGODB_START_URI")
 	if startURI == "" {
 		startURI = "mongodb://"
