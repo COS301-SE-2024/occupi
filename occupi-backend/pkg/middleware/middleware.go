@@ -1,13 +1,15 @@
 package middleware
 
 import (
-	"log"
+	"fmt"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request URI: %s", r.RequestURI)
+		logrus.Info(fmt.Printf("Request URI: %s", r.RequestURI))
 		next.ServeHTTP(w, r)
 	})
 }
