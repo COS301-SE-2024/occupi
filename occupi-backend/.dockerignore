@@ -10,8 +10,12 @@
 # scripts folder
 /scripts
 
+# tests
+/tests
+
 # Other
 *.log
 *.tmp
 *.swp
 *.gitignore
+*.md

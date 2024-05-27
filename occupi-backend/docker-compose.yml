@@ -1,14 +1,24 @@
 version: '3.8'
 
 services:
-  app:
+  occupi-backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: myapp
+    container_name: occupi-backend
     env_file:
       - .env
     ports:
       - "8080:8080"
     volumes:
       - .:/go/src/COS301-SE-2024/occupi/occupi-backend
+
+  nginx:
+    image: nginx:latest
+    container_name: occupi-nginx
+    ports:
+      - "13000:13000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - occupi-backend
