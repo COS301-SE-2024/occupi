@@ -13,7 +13,7 @@ services:
     volumes:
       - .:/go/src/COS301-SE-2024/occupi/occupi-backend
 
-  nginx:
+  occupi-nginx:
     image: nginx:latest
     container_name: occupi-nginx
     ports:
