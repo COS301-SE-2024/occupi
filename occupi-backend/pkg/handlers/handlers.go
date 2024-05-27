@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,7 +18,7 @@ type Response struct {
 	Data    []bson.M `json:"data,omitempty"`
 }
 
-var users = make(map[string]model.User)
+var users = make(map[string]models.User)
 
 func FetchResource(db *mongo.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +36,7 @@ func FetchResource(db *mongo.Client) http.HandlerFunc {
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
-	var user model.User
+	var user models.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
@@ -53,7 +55,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	subject := "Please verify your email"
 	body := "Click the following link to verify your email: " + verificationLink
 
-	if err := utils.SendMail(user.Email, subject, body); err != nil {
+	if err := mail.SendMail(user.Email, subject, body); err != nil {
 		http.Error(w, "Failed to send email", http.StatusInternalServerError)
 		return
 	}
