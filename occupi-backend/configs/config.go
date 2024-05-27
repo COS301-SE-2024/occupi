@@ -81,7 +81,7 @@ func GetSmtpPort() string {
 func GetSmtpPassword() string {
 	password := os.Getenv("SMTP_PASSWORD")
 	if password == "" {
-		password = "password"
+		password = ""
 	}
 	return password
 }

@@ -2,13 +2,15 @@ package mail
 
 import (
 	"net/smtp"
+
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 )
 
 func SendMail(to string, subject string, body string) error {
-	from := "testemailnetworks123@gmail.com"
-	password := "faue bmhu ytnr uogp"
-	smtpHost := "smtp.gmail.com"
-	smtpPort := "587"
+	from := configs.GetSystemEmail()
+	password := configs.GetSmtpPassword()
+	smtpHost := configs.GetSmtpHost()
+	smtpPort := configs.GetSmtpPort()
 
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 

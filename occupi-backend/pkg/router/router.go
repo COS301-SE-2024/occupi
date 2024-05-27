@@ -9,6 +9,7 @@ import (
 func OccupiRouter(db *mongo.Client) *mux.Router {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/resource", handlers.FetchResource(db)).Methods("GET")
-
+	r.HandleFunc("/api/register", handlers.Register).Methods("POST")
+	r.HandleFunc("/api/verify-otp", handlers.VerifyOTP).Methods("POST")
 	return r
 }

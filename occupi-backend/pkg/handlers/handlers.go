@@ -42,18 +42,17 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.GenerateToken()
+	otp, err := utils.GenerateOTP()
 	if err != nil {
-		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		http.Error(w, "Failed to generate OTP", http.StatusInternalServerError)
 		return
 	}
 
-	user.Token = token
+	user.Token = otp // Store the OTP in the user struct
 	users[user.Email] = user
 
-	verificationLink := "http://localhost:8080/verify?token=" + token
-	subject := "Please verify your email"
-	body := "Click the following link to verify your email: " + verificationLink
+	subject := "Your OTP for Email Verification"
+	body := "Your OTP is: " + otp
 
 	if err := mail.SendMail(user.Email, subject, body); err != nil {
 		http.Error(w, "Failed to send email", http.StatusInternalServerError)
@@ -62,19 +61,31 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Registration successful! Please check your email to verify your account."})
+	json.NewEncoder(w).Encode(map[string]string{"message": "Registration successful! Please check your email for the OTP to verify your account."})
 }
 
-func Verify(w http.ResponseWriter, r *http.Request) {
-	token := r.URL.Query().Get("token")
-	for _, user := range users {
-		if user.Token == token {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(map[string]string{"message": "Email verified successfully!"})
-			return
-		}
+func VerifyOTP(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Email string `json:"email"`
+		OTP   string `json:"otp"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
 	}
 
-	http.Error(w, "Invalid token", http.StatusBadRequest)
+	user, exists := users[request.Email]
+	if !exists {
+		http.Error(w, "Email not registered", http.StatusBadRequest)
+		return
+	}
+
+	if user.Token == request.OTP {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Email verified successfully!"})
+		return
+	}
+
+	http.Error(w, "Invalid OTP", http.StatusBadRequest)
 }
