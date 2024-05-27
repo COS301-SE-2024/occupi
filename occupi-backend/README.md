@@ -108,3 +108,7 @@ func TestGetResource(t *testing.T) {
 }
 
 ```
+6. Run tests with:
+```
+go test ./tests/... 
+```
