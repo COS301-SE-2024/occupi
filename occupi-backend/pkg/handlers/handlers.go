@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -12,8 +13,10 @@ import (
 type Response struct {
 	Status  int      `json:"status"`
 	Message string   `json:"message"`
-	Data    []bson.M `json:"data"`
+	Data    []bson.M `json:"data,omitempty"`
 }
+
+var users = make(map[string]model.User)
 
 func FetchResource(db *mongo.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -30,18 +33,16 @@ func FetchResource(db *mongo.Client) http.HandlerFunc {
 	}
 }
 
-var users = make(map[string]model.User)
-
-func Register(c *gin.Context) {
+func Register(w http.ResponseWriter, r *http.Request) {
 	var user model.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
 	token, err := utils.GenerateToken()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
@@ -52,22 +53,26 @@ func Register(c *gin.Context) {
 	subject := "Please verify your email"
 	body := "Click the following link to verify your email: " + verificationLink
 
-	if err := mail.SendMail(user.Email, subject, body); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
+	if err := utils.SendMail(user.Email, subject, body); err != nil {
+		http.Error(w, "Failed to send email", http.StatusInternalServerError)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Registration successful! Please check your email to verify your account."})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Registration successful! Please check your email to verify your account."})
 }
 
-func Verify(c *gin.Context) {
-	token := c.Query("token")
+func Verify(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
 	for _, user := range users {
 		if user.Token == token {
-			c.JSON(http.StatusOK, gin.H{"message": "Email verified successfully!"})
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(map[string]string{"message": "Email verified successfully!"})
 			return
 		}
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid token"})
+	http.Error(w, "Invalid token", http.StatusBadRequest)
 }

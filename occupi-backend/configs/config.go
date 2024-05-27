@@ -61,3 +61,35 @@ func GetLogFileName() string {
 	}
 	return logFileName
 }
+
+func GetSystemEmail() string {
+	email := os.Getenv("SYSTEM_EMAIL")
+	if email == "" {
+		email = ""
+	}
+	return email
+}
+
+func GetSmtpPort() string {
+	port := os.Getenv("SMTP_PORT")
+	if port == "" {
+		port = "587"
+	}
+	return port
+}
+
+func GetSmtpPassword() string {
+	password := os.Getenv("SMTP_PASSWORD")
+	if password == "" {
+		password = "password"
+	}
+	return password
+}
+
+func GetSmtpHost() string {
+	host := os.Getenv("SMTP_HOST")
+	if host == "" {
+		host = "smtp.gmail.com"
+	}
+	return host
+}
