@@ -1,99 +1,39 @@
 .box .image-container {
-  height: 100;
-  width: 100;
+  @apply h-[100] w-[100];
 }
-
 .box .image {
-  height: 100;
-  width: 100;
-  position: absolute;
-  top: 197px;
+  @apply h-[100] w-[100] absolute object-cover right-[650px] top-[197px];
   /* left: 156px; */
-  object-fit: cover;
-  right: 650px;
 }
-
 .box {
-  height: 846px;
-  position: relative;
-  width: 430px;
-  margin-left: 900px;
+  @apply h-[846px] relative w-[430px] ml-[900px];
 }
-
 .box .group {
-  height: 846px;
-  left: 0;
+  @apply h-[846px] w-[436px] left-0 top-0;
   /* position: fixed; */
-  top: 0;
-  width: 436px;
 }
-
 .box .overlap {
-  height: 400px;
-  left: 0;
-  position: absolute;
-  top: 0;
-  width: 434px;
+  @apply h-[400px] absolute w-[434px] left-0 top-0;
 }
-
 .box .frame {
-  height: 295px;
-  left: 17px;
-  position: absolute;
-  top: 0;
-  width: 393px;
+  @apply h-[295px] absolute w-[393px] left-[17px] top-0;
 }
-
 .box .div {
-  height: 181px;
-  left: 0;
-  position: absolute;
-  top: 219px;
-  width: 434px;
+  @apply h-[181px] absolute w-[434px] left-0 top-[219px];
 }
-
 .box .text-wrapper {
-  color: rgba(10, 10, 10, 1);
+  @apply text-[rgba(10,10,10,1)] text-[50px] not-italic font-semibold h-[152px] left-[-100px] tracking-[-0.5px] leading-[50px] absolute w-[500px] text-left top-10;
   font-family: "Inter", Helvetica;
-  font-size: 50px;
-  font-style: normal;
-  font-weight: 600;
-  height: 152px;
-  left: -100px;
-  letter-spacing: -0.5px;
-  line-height: 50px;
-  position: absolute;
-  top: 40px;
-  width: 500px;
-  text-align: left;
 }
-
 .box .text-wrapper-2 {
-  color: var(--colours-gray-1000);
+  @apply text-[color:var(--colours-gray-1000)] text-[length:var(--inter-extra-light-24-font-size)] font-[number:var(--inter-extra-light-24-font-weight)] h-[29px] left-[-100px] tracking-[var(--inter-extra-light-24-letter-spacing)] leading-[var(--inter-extra-light-24-line-height)] absolute w-[430px] text-left top-[155px];
   font-family: var(--inter-extra-light-24-font-family);
-  font-size: var(--inter-extra-light-24-font-size);
   font-style: var(--inter-extra-light-24-font-style);
-  font-weight: var(--inter-extra-light-24-font-weight);
-  height: 29px;
-  left: -100px;
-  letter-spacing: var(--inter-extra-light-24-letter-spacing);
-  line-height: var(--inter-extra-light-24-line-height);
-  position: absolute;
-  top: 155px;
-  width: 430px;
-  text-align: left;
 }
-
 .box .group-2 {
-  height: 73px;
-  left: 0;
-  position: absolute;
-  top: 490px;
-  width: 434px;
+  @apply h-[73px] absolute w-[434px] left-0 top-[490px];
 }
-
 .button-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 0px; /* Adjust the spacing as needed */
+  @apply flex justify-end mt-0;
+  /* Adjust the spacing as needed */
 }
