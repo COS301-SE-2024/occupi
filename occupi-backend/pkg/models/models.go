@@ -11,3 +11,8 @@ type User struct {
 	Password string `json:"password"`
 	Token    string `json:"token"`
 }
+
+type UserOTP struct {
+	Email string `json:"email"`
+	OTP   string `json:"otp"`
+}
