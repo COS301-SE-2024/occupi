@@ -3,7 +3,6 @@ package tests
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +11,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -139,24 +139,36 @@ func TestVerifyOTP_EmailNotRegistered(t *testing.T) {
 
 func TestGetResource(t *testing.T) {
 	// Load environment variables from .env file
-	/*if err := godotenv.Load("../.env"); err != nil {
-		log.Fatal(fmt.Printf("Error loading .env file %s", err))
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Fatal("Error loading .env file: ", err)
 	}
 
-	//connect to the database
+	// Connect to the database
 	db := database.ConnectToDatabase()
 
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	r.GET("/api/resource", func(c *gin.Context) {
+		handlers.FetchResource(c, db)
+	})
+
+	// Create a request to pass to the handler
 	req, err := http.NewRequest("GET", "/api/resource", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	// Create a response recorder to record the response
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(handlers.FetchResource(db))
 
-	handler.ServeHTTP(rr, req)
+	// Serve the request
+	r.ServeHTTP(rr, req)
 
+	// Check the status code is what we expect.
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}*/
+	}
+
 }
