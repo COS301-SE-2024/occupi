@@ -1,8 +1,8 @@
 .box .image-container{
-  @apply h-[100] w-[100];
+  @apply h-[400] w-[400];
 }
 .box .image{
-  @apply h-[100] w-[100] absolute object-cover right-[800px] top-[197px];
+  @apply h-[200] w-[200] absolute object-cover right-[800px] top-[197px];
   /* left: 156px; */
 }
 .box {
