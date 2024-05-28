@@ -2,6 +2,7 @@ package configs
 
 import (
 	"os"
+	"strings"
 )
 
 //define configs in this file
@@ -76,4 +77,22 @@ func GetKeyFileName() string {
 		keyFileName = "KEY_FILE_NAME"
 	}
 	return keyFileName
+}
+
+func GetGinRunMode() string {
+	ginRunMode := os.Getenv("GIN_RUN_MODE")
+	if ginRunMode == "" {
+		ginRunMode = "debug"
+	}
+	return ginRunMode
+}
+
+func GetTrustedProxies() []string {
+	trustedProxies := os.Getenv("TRUSTED_PROXIES")
+	if trustedProxies != "" {
+		proxyList := strings.Split(trustedProxies, ",")
+		return proxyList
+	} else {
+		return []string{""}
+	}
 }
