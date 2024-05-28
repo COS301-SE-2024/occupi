@@ -9,7 +9,7 @@ import (
 func GetPort() string {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "PORT"
 	}
 	return port
 }
@@ -17,7 +17,7 @@ func GetPort() string {
 func GetMongoDBUsername() string {
 	username := os.Getenv("MONGODB_USERNAME")
 	if username == "" {
-		username = "username"
+		username = "MONGODB_USERNAME"
 	}
 	return username
 }
@@ -25,7 +25,7 @@ func GetMongoDBUsername() string {
 func GetMongoDBPassword() string {
 	password := os.Getenv("MONGODB_PASSWORD")
 	if password == "" {
-		password = "password"
+		password = "MONGODB_PASSWORD"
 	}
 	return password
 }
@@ -33,7 +33,7 @@ func GetMongoDBPassword() string {
 func GetMongoDBCLUSTERURI() string {
 	uri := os.Getenv("MONGODB_CLUSTERURI")
 	if uri == "" {
-		uri = "mongodb://localhost:27017"
+		uri = "MONGODB_CLUSTERURI"
 	}
 	return uri
 }
@@ -41,7 +41,7 @@ func GetMongoDBCLUSTERURI() string {
 func GetMongoDBName() string {
 	name := os.Getenv("MONGODB_DBNAME")
 	if name == "" {
-		name = "noname"
+		name = "MONGODB_DBNAME"
 	}
 	return name
 }
@@ -49,7 +49,7 @@ func GetMongoDBName() string {
 func GetMongoDBStartURI() string {
 	startURI := os.Getenv("MONGODB_START_URI")
 	if startURI == "" {
-		startURI = "mongodb://"
+		startURI = "MONGODB_START_URI"
 	}
 	return startURI
 }
@@ -57,7 +57,23 @@ func GetMongoDBStartURI() string {
 func GetLogFileName() string {
 	logFileName := os.Getenv("LOG_FILE_NAME")
 	if logFileName == "" {
-		logFileName = "log.txt"
+		logFileName = "LOG_FILE_NAME"
 	}
 	return logFileName
+}
+
+func GetCertFileName() string {
+	certFileName := os.Getenv("CERT_FILE_NAME")
+	if certFileName == "" {
+		certFileName = "CERT_FILE_NAME"
+	}
+	return certFileName
+}
+
+func GetKeyFileName() string {
+	keyFileName := os.Getenv("KEY_FILE_NAME")
+	if keyFileName == "" {
+		keyFileName = "KEY_FILE_NAME"
+	}
+	return keyFileName
 }
