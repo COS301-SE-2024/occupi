@@ -1,8 +1,8 @@
 import React from "react";
 import "./OtpPage.css";
-import OtpComponent from "../OtpComponent/OtpComponent";
+import OtpComponent from "../../Components/OtpComponent/OtpComponent";
 import loginImage from '../../assets/otp.png';
-import GradientButton from "../gradientButtonComponent/gradientButton";
+import GradientButton from "../../Components/gradientButtonComponent/gradientButton";
 
 const OtpPage = () => {
   return (

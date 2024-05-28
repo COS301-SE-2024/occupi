@@ -14,16 +14,21 @@ MONGODB_DBNAME=
 MONGODB_START_URI=
 PORT=
 LOG_FILE_NAME=
+CERT_FILE_NAME=
+KEY_FILE_NAME=
 ```
-3. Create a .log file with the same name as that specified in the LOG_FILE_NAME env variable.
-4. You can also proceed to download <a href="https://www.docker.com/products/docker-desktop/">docker desktop</a>
-5. To build the container, run:
+3. You can also proceed to download <a href="https://www.docker.com/products/docker-desktop/">docker desktop</a>
+4. To build the container, run:
 ```bash
 docker-compose build
 ```
-6. To run the container, run:
+5. To run the container, run:
 ```bash
 docker-compose up
+```
+6. Run this command to generate some certicate and key files for TLS:
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout <name of key file goes here> -out <name of certificate file goes here> -days 365 -nodes
 ```
 7. You can now begin coding. Before you do all of that however, here is a nice overview of how the codebase is organized with a small explanation for each folder/file:
 
@@ -62,7 +67,17 @@ myapp/
     └── // go-lang function documentation
 ```
 
-### Development cycle
+### Development Cycle
+1. Please make sure you have golang installed
+2. Run 
+```bash
+go run cmd/occupi-backend/main.go
+```
+3. Make a request on the port you specified with
+```bash
+```
+
+### Development Cycle with Docker
 
 1. Please make use of docker desktop to manage your containers lifecycle
 2. To build the container, run:
@@ -73,9 +88,15 @@ docker-compose build
 ```bash
 docker-compose up
 ```
-4. To stop the container, click the stop button in docker desktop
-5. Please write tests under the test folder for your api endpoint if you write one. Below is a general schema for writing tests that we follow:
-````go
+4. Make a request on the nginx port of 13000 with
+```bash
+```
+5. To stop the container, click the stop button in docker desktop
+
+### Writing tests for the api
+
+1. Please write tests under the test folder for your api endpoint if you write one. Below is a general schema for writing tests that we follow:
+```go
 package tests
 
 import (
@@ -106,5 +127,36 @@ func TestGetResource(t *testing.T) {
         t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
     }
 }
+```
 
+2. Run tests with:
+```bash
+go test ./tests/... 
+```
+
+### Writing tests for utils
+
+1. Please write tests under the test folder for your util function if you write one. Below is a general schema for writing tests that we follow:
+```go
+package tests
+
+import (
+	"testing"
+
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
+)
+
+func TestGenEmpID(t *testing.T) {
+	empID, err := utils.GenerateEmployeeID()
+	if err != nil {
+		t.Errorf("Error generating employee ID: %s", err)
+		return
+	}
+	t.Logf("Generated Employee ID: %s", empID)
+}
+```
+
+2. Run tests with:
+```bash
+go test ./tests/... 
 ```

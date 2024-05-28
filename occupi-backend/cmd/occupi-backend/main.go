@@ -18,7 +18,7 @@ import (
 func main() {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
 	}
 
 	//setup logger to log all server interactions
@@ -30,10 +30,20 @@ func main() {
 	//create a router
 	r := router.OccupiRouter(db)
 
+	certFile := configs.GetCertFileName()
+	keyFile := configs.GetKeyFileName()
+
+	//fatal error if the cert or key file is not found
+	if certFile == "CERT_FILE_NAME" || keyFile == "KEY_FILE_NAME" {
+		logrus.Fatal("Cert or Key file not found")
+	}
+
 	//listening on the port
 	logrus.Error(
-		http.ListenAndServe( //add tls in a bit
+		http.ListenAndServeTLS(
 			fmt.Sprintf(":%s", configs.GetPort()),
+			certFile,
+			keyFile,
 			middleware.LoggingMiddleware(r),
 		),
 	)

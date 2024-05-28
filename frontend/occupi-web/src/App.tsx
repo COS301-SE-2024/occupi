@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
-import LoginForm from './Components/Login/LoginForm'
-import OtpPage from './Components/otp-page/OtpPage'
+import LoginForm from './pages/Login/LoginForm'
+import OtpPage from './pages/otp-page/OtpPage'
 
 
 function App() {
@@ -10,9 +10,9 @@ function App() {
   return (
     
       <div>
-       {/* <LoginForm /> */}
+       <LoginForm />
 {/* <OtpComponent /> */}
-<OtpPage />
+{/* <OtpPage /> */}
     </div>
   )
 }

@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"crypto/rand"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -31,4 +33,28 @@ func SetupLogger() {
 
 	// Set log level (optional, defaults to Info)
 	logrus.SetLevel(logrus.InfoLevel)
+}
+
+// Function to generate a random 4-digit number
+func generateRandomNumber() (int, error) {
+	var num int
+	b := make([]byte, 2)
+	_, err := rand.Read(b)
+	if err != nil {
+		return 0, err
+	}
+	num = int(b[0])<<8 + int(b[1])
+	num = num % 10000 // Ensure it's a 4-digit number
+	return num, nil
+}
+
+// Function to generate an employee ID with the structure OCCUPIYYYYXXXX
+func GenerateEmployeeID() (string, error) {
+	currentYear := time.Now().Year()
+	randomNum, err := generateRandomNumber()
+	if err != nil {
+		return "", err
+	}
+	employeeID := fmt.Sprintf("OCCUPI%d%04d", currentYear, randomNum)
+	return employeeID, nil
 }

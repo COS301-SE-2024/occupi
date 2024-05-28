@@ -17,6 +17,7 @@ type Response struct {
 }
 
 var Users = make(map[string]models.User)
+var OTP string
 
 func FetchResource(db *mongo.Client) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -41,17 +42,17 @@ func Register(generateOTP func() (string, error), sendMail func(to, subject, bod
 			return
 		}
 
-		otp, err := generateOTP()
+		OTP, err := generateOTP()
 		if err != nil {
 			http.Error(w, "Failed to generate OTP", http.StatusInternalServerError)
 			return
 		}
 
-		user.Token = otp
+		user.Token = OTP
 		Users[user.Email] = user
 
 		subject := "Your OTP for Email Verification"
-		body := "Your OTP is: " + otp
+		body := "Your OTP is: " + OTP
 
 		if err := sendMail(user.Email, subject, body); err != nil {
 			http.Error(w, "Failed to send email", http.StatusInternalServerError)
