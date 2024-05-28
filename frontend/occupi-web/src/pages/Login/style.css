@@ -1,0 +1,357 @@
+
+.box .image-container{
+
+
+  height: 100;
+  width: 100;
+}
+
+.box .image{
+  height: 100;
+  width: 100;
+  position: absolute;
+  top: 197px;
+  /* left: 156px; */
+  object-fit: cover;
+  
+    right: 800px;
+
+}
+
+
+
+
+
+
+.box {
+    height: 846px;
+    position: relative;
+    width: 430px;
+    margin-left: 900px
+  }
+  
+  .box .group {
+    height: 846px;
+    left: 0;
+    /* position: fixed; */
+    top: 0;
+    width: 436px;
+  }
+  
+  
+  .box .overlap {
+    height: 400px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 434px;
+  }
+  
+  .box .frame {
+    height: 295px;
+    left: 17px;
+    position: absolute;
+    top: 0;
+    width: 393px;
+  }
+  
+  .box .div {
+    height: 181px;
+    left: 0;
+    position: absolute;
+    top: 219px;
+    width: 434px;
+  }
+  
+  .box .text-wrapper {
+    color: rgba(10, 10, 10, 1);
+    font-family: "Inter", Helvetica;
+    font-size: 50px;
+    font-style: normal;
+    font-weight: 600;
+    height: 152px;
+    left: 0;
+    letter-spacing: -0.5px;
+    line-height: 50px;
+    position: absolute;
+    top: 40px;
+    width: 430px;
+    text-align: left;
+  }
+  
+  .box .text-wrapper-2 {
+    color: var(--colours-black-950);
+    font-family: var(--inter-extra-light-24-font-family);
+    font-size: var(--inter-extra-light-24-font-size);
+    font-style: var(--inter-extra-light-24-font-style);
+    font-weight: var(--inter-extra-light-24-font-weight);
+    height: 29px;
+    left: 0;
+    letter-spacing: var(--inter-extra-light-24-letter-spacing);
+    line-height: var(--inter-extra-light-24-line-height);
+    position: absolute;
+    top: 155px;
+    width: 430px;
+    text-align: left;
+  }
+  
+  .box .group-2 {
+    height: 73px;
+    left: 0;
+    position: absolute;
+    top: 450px;
+    width: 434px;
+  }
+  
+  .box .overlap-group {
+    background-color: rgba(235, 235, 235, 1);
+    border-radius: 15px;
+    height: 50px;
+    left: 0;
+    position: absolute;
+    top: 23px;
+    width: 430px;
+  }
+  
+  .box .text-wrapper-3 {
+    color: rgba(10, 10, 10, 1);
+    font-family: "Inter", Helvetica;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: var(--inter-extra-light-12-font-weight);
+    height: 18px;
+    left: 18px;
+    letter-spacing: var(--inter-extra-light-12-letter-spacing);
+    line-height: var(--inter-extra-light-12-line-height);
+    position: absolute;
+    top: 16px;
+    width: 391px;
+  }
+  
+  .box .text-wrapper-4 {
+    color: var(--colours-black-950);
+    font-family: var(--inter-regular-16-font-family);
+    font-size: var(--inter-regular-16-font-size);
+    font-style: var(--inter-regular-16-font-style);
+    font-weight: var(--inter-regular-16-font-weight);
+    height: 18px;
+    left: 0;
+    letter-spacing: var(--inter-regular-16-letter-spacing);
+    line-height: var(--inter-regular-16-line-height);
+    position: absolute;
+    top: 0;
+    width: 430px;
+  }
+  
+  .box .group-3 {
+    height: 73px;
+    left: 0;
+    position: absolute;
+    top: 553px;
+    width: 436px;
+  }
+
+  .box .div2 {
+    color: var(--colours-black-950);
+    font-family: var(--inter-regular-16-font-family);
+    font-size: var(--inter-regular-16-font-size);
+    font-style: var(--inter-regular-16-font-style);
+    font-weight: var(--inter-regular-16-font-weight);
+    height: 18px;
+    left: 0;
+    letter-spacing: var(--inter-regular-16-letter-spacing);
+    line-height: var(--inter-regular-16-line-height);
+    position: absolute;
+    top: 0;
+    width: 430px;
+
+
+  }
+  
+  .box .overlap-2 {
+    background-color: var(--colours-white-800);
+    border: 2px solid;
+    border-color: var(--colours-red-650);
+    border-radius: 15px;
+    height: 50px;
+    left: 0;
+    position: absolute;
+    top: 23px;
+    width: 430px;
+  }
+  
+  .box .text-wrapper-5 {
+    color: var(--colours-black-950);
+    font-family: var(--inter-extra-light-12-font-family);
+    font-size: var(--inter-extra-light-12-font-size);
+    font-style: var(--inter-extra-light-12-font-style);
+    font-weight: var(--inter-extra-light-12-font-weight);
+    height: 18px;
+    left: 13px;
+    letter-spacing: var(--inter-extra-light-12-letter-spacing);
+    line-height: var(--inter-extra-light-12-line-height);
+    position: absolute;
+    top: 14px;
+    width: 325px;
+  }
+  
+  .box .eye-closed {
+    height: 24px !important;
+    left: 385px !important;
+    position: absolute !important;
+    top: 11px !important;
+    width: 24px !important;
+  }
+  
+  .box .overlap-3 {
+    height: 18px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 430px;
+  }
+  
+  .box .text-wrapper-6 {
+    color: var(--colours-red-650);
+    font-family: var(--inter-regular-16-font-family);
+    font-size: var(--inter-regular-16-font-size);
+    font-style: var(--inter-regular-16-font-style);
+    font-weight: var(--inter-regular-16-font-weight);
+    height: 18px;
+    left: 0;
+    letter-spacing: var(--inter-regular-16-letter-spacing);
+    line-height: var(--inter-regular-16-line-height);
+    position: absolute;
+    text-align: right;
+    top: 0;
+    width: 430px;
+  }
+  
+  .box .overlap-4 {
+    height: 29px;
+    left: 0;
+    position: absolute;
+    top: 659px;
+    width: 430px;
+  }
+  
+  .box .group-4 {
+    height: 29px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 425px;
+  }
+  
+  .box .text-wrapper-7 {
+    color: var(--colours-green-600);
+    font-family: var(--inter-semi-bold-12-font-family);
+    font-size: 15;
+    font-style: var(--inter-semi-bold-12-font-style);
+    font-weight: var(--inter-semi-bold-12-font-weight);
+    height: 29px;
+    left: 29px;
+    letter-spacing: var(--inter-semi-bold-12-letter-spacing);
+    line-height: var(--inter-semi-bold-12-line-height);
+    position: absolute;
+    top: 15px;
+    width: 394px;
+  }
+  
+  .box .check-square {
+    height: 24px !important;
+    left: 0 !important;
+    position: absolute !important;
+    top: 3px !important;
+    width: 29px !important;
+  }
+  
+  .box .text-wrapper-8 {
+    color: var(--colours-green-600);
+    font-family: var(--inter-semi-bold-12-font-family);
+    font-size: 15;
+    font-style: var(--inter-semi-bold-12-font-style);
+    font-weight: var(--inter-semi-bold-12-font-weight);
+    height: 29px;
+    left: 7px;
+    letter-spacing: var(--inter-semi-bold-12-letter-spacing);
+    line-height: var(--inter-semi-bold-12-line-height);
+    position: absolute;
+    text-align: right;
+    top: 15px;
+    width: 423px;
+  }
+  
+  .box .login-button {
+    all: unset;
+    background: linear-gradient(90deg, rgb(96.72, 77.4, 99.75) 1.53%, rgb(133.72, 234.6, 204.34) 31.5%, rgb(178.21, 252.03, 57.55) 66.99%, rgb(238.07, 240.12, 96.25) 97%);
+    background-color: rgba(255, 255, 255, 1);
+    border-radius: 18px;
+    box-shadow: var(--shadow-9-7-30-10);
+    box-sizing: border-box;
+    height: 55px;
+    left: 0;
+    opacity: 0.9; /* so i can make it more bright or opaque */
+    overflow: hidden;
+    position: relative;
+    top: 729px;
+    width: 450px;
+  }
+  
+  .box .text-wrapper-9 {
+    color: var(--colours-white-1000);
+    font-family: var(--inter-semi-bold-16-font-family);
+    font-size: 27px;
+    font-style: var(--inter-semi-bold-16-font-style);
+    font-weight: var(--inter-semi-bold-16-font-weight);
+    height: 29px;
+    left: 39px;
+    letter-spacing: var(--inter-semi-bold-16-letter-spacing);
+    line-height: var(--inter-semi-bold-16-line-height);
+    position: absolute;
+    text-align: center;
+    top: 22px;
+    width: 350px;
+  }
+  
+  .box .overlap-5 {
+    height: 29px;
+    left: 0;
+    position: absolute;
+    top: 817px;
+    width: 430px;
+  }
+  
+  .box .p {
+    color: var(--colours-black-950);
+    font-family: var(--inter-regular-12-font-family);
+    font-size: 15;
+    font-style: var(--inter-regular-12-font-style);
+    font-weight: var(--inter-regular-12-font-weight);
+    height: 29px;
+    left: 0;
+    letter-spacing: var(--inter-regular-12-letter-spacing);
+    line-height: var(--inter-regular-12-line-height);
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 430px;
+  }
+  
+  .box .text-wrapper-10 {
+    color: var(--colours-green-600);
+    font-family: var(--inter-regular-12-font-family);
+    font-size: 15;
+    font-style: var(--inter-regular-12-font-style);
+    font-weight: var(--inter-regular-12-font-weight);
+    height: 29px;
+    left: 210px;
+    letter-spacing: var(--inter-regular-12-letter-spacing);
+    line-height: var(--inter-regular-12-line-height);
+    position: absolute;
+    top: 15px;
+    width: 203px;
+  }
+  
+
+  
