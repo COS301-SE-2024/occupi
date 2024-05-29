@@ -17,6 +17,7 @@
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
     "@expo/metro-runtime": "^3.2.1",
+    "@expo/ngrok": "^4.1.0",
     "@expo/vector-icons": "^14.0.0",
     "@gluestack-style/babel-plugin-styled-resolver": "^1.0.7",
     "@gluestack-style/react": "^1.0.56",
