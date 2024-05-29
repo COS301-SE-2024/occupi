@@ -1,31 +1,193 @@
 # Api Usage
 
-```js filename="demo.js" {3} copy
-let a = 1;
+This page provides a detailed explanation of how to use the Occupi API. 
+The Occupi API is a RESTful API that allows you to interact with the Occupi platform programmatically. 
+The API provides endpoints for creating, reading, updating, and deleting resources. 
+The API also allows you to retrieve information about these resources.
 
-console.log(a);
+# Table of Contents
+
+- [Api Usage](#api-usage)
+  - [Table of Contents](#table-of-contents)
+    - [Base URL](#base-url)
+    - [Ping](#ping)
+    - [Authentication](#authentication)
+      - [Register](#register)
+      - [Login](#login)
+      - [Verify OTP](#verify-otp)
+    - [Api](#api)
+      - [Resources](#resources)
+      - [Users](#users)
+      - [Roles](#roles)
+
+## Base URL
+
+The base URL for the Occupi API is `https://occupi.tech` or `https://localhost:8080` if you are in develop mode.
+
+## Ping
+
+The ping endpoint is used to check if the API is up and running.
+
+- **URL**
+
+  `/ping`
+
+- **Method**
+  
+    `GET`
+
+- **Success Response**
+  
+    - **Code:** 200
+    - **Content:** `{ "message": "pong -> I am alive and kicking" }`
+
+- **Error Response**
+    
+    - **Code:** 404
+    - **Content:** `{ "message": "Resource not found" }`
+
+***Example json to send:***
+
+```json copy
+{
+    
+}
 ```
 
-## Component
+## Authentication
 
-import { useState } from 'react'
+The authentication endpoints are used to register, login, and verify users. Only POST requests are used for these endpoints.
 
-{/* Import CSS modules */}
-import styles from '../../components/counters.module.css'
+### Register
 
-export const Counter = () => {
-  const [count, setCount] = useState(0);
-  return (
-    <div>
-      <button onClick={() => setCount(count + 1)} className={styles.counter}>Clicked {count} times</button>
-    </div>
-  );
-};
+- **URL**
 
-<Counter/>
+  `/auth/register`
 
-## External Component
+- **Method**
+  
+    `POST`
 
-import Counters from '../../components/counters'
+- **Success Response**
+    
+    - **Code:** 200
+    - **Content:** `{ "message": "User registered successfully" }`
 
-<Counters />
+- **Error Response**
+      
+    - **Code:** 400
+    - **Content:** `{ "message": "Bad Request" }`
+
+- **Error Response**
+        
+    - **Code:** 500
+    - **Content:** `{ "message": "Internal server error" }`
+
+***Example json to send:***
+
+```json copy
+{
+    "ID": "1",
+    "Email": "abcd@gmail.com",
+    "Password": "123456",
+    "Token": "$123456$",
+}
+```
+
+### Login
+
+- **URL**
+  
+    `/auth/login`
+
+- **Method**
+    
+    `POST`
+
+- **Success Response**
+
+    - `This endpoint is yet to be defined`
+
+***Example json to send:***
+
+```json copy
+{
+    
+}
+```
+
+### Verify OTP
+
+- **URL**
+  
+    `/auth/verify-otp`
+
+- **Method**
+    
+    `POST`
+
+- **Success Response**
+    
+    - **Code:** 200
+    - **Content:** `{ "message": "Email verified successfully!" }`
+
+- **Error Response**
+      
+    - **Code:** 400
+    - **Content:** `{ "message": "Invalid request payload" }`
+
+***Example json to send:***
+
+```json copy
+{
+    "Email": "abcd@gmail.com",
+	  "OTP":   "123456"
+}
+```
+
+## Api
+
+The API endpoints are used to interact with the Occupi platform. Mainly GET, POST, PUT, DELETE requests are used.
+
+### Resources
+
+The resources endpoints are used to create, read, update, and delete resources.
+
+- **URL**
+
+  `/api/resources`
+
+- **Method**
+  
+    `GET`
+
+- **Success Response**
+      
+    - **Code:** 200
+    - **Content:** `{ "message": "Resources fetched successfully" }`
+
+- **Error Response**
+
+    - **Code:** 400
+    - **Content:** `{ "message": "Bad Request" }`
+
+- **Error Response**
+        
+    - **Code:** 500
+    - **Content:** `{ "message": "Internal server error" }`
+
+***Example json to send:***
+
+```json copy
+{
+    
+}
+```
+
+### Users
+
+The users endpoints are used to create, read, update, and delete users.
+
+### Roles
+
+The roles endpoints are used to create, read, update, and delete roles.

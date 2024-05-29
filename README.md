@@ -23,9 +23,9 @@
 
 </p>
 
-# Table of content
+# Table of contents
 
-- [Table of content](#table-of-content)
+- [Table of contents](#table-of-contents)
 - [Documentation](#documentation)
     - [Software Requirements Specification](#software-requirements-specification)
     - [Architecture Document](#architecture-document)
