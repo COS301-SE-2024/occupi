@@ -14,6 +14,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
+// occupi backend entry point
 func main() {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {

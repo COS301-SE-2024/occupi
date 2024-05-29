@@ -6,6 +6,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 )
 
+// sends an email using smtp
 func SendMail(to string, subject string, body string) error {
 	from := configs.GetSystemEmail()
 	password := configs.GetSmtpPassword()

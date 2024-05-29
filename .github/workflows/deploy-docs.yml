@@ -1,15 +1,18 @@
-# To get started with Next.js see: https://nextjs.org/docs/getting-started
-#
 name: Deploy Docs site to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ["develop"]
-    paths:
-      - "documentation/occupi-docs/**"
+    paths: [
+      "documentation/occupi-docs/pages/**",
+      "documentation/occupi-docs/components/**",
+      "documentation/occupi-docs/.gitignore",
+      "documentation/occupi-docs/next.config.js",
+      "documentation/occupi-docs/package.json",
+      "documentation/occupi-docs/theme.config.tsx",
+      "documentation/occupi-docs/tsconfig.json"
+    ]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 defaults:

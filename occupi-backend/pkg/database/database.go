@@ -13,6 +13,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 )
 
+// attempts to and establishes a connection with the remote mongodb database
 func ConnectToDatabase() *mongo.Client {
 	// MongoDB connection parameters
 	username := configs.GetMongoDBUsername()
@@ -47,6 +48,7 @@ func ConnectToDatabase() *mongo.Client {
 	return client
 }
 
+// returns all data from the mongo database
 func GetAllData(db *mongo.Client) []bson.M {
 	// Use the client
 	collection := db.Database("Occupi").Collection("Users")
@@ -77,5 +79,4 @@ func GetAllData(db *mongo.Client) []bson.M {
 	}
 
 	return users
-
 }

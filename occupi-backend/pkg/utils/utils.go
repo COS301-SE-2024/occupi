@@ -12,6 +12,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 )
 
+// sets up the logger and configures it
 func SetupLogger() {
 	// Open or create the log file
 	logFile := configs.GetLogFileName()

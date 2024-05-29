@@ -7,6 +7,7 @@ import (
 
 //define configs in this file
 
+// gets the port to start the server on as defined in the .env file
 func GetPort() string {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -15,6 +16,7 @@ func GetPort() string {
 	return port
 }
 
+// gets the mongodb username as defined in the .env file
 func GetMongoDBUsername() string {
 	username := os.Getenv("MONGODB_USERNAME")
 	if username == "" {
@@ -23,6 +25,7 @@ func GetMongoDBUsername() string {
 	return username
 }
 
+// gets the mongodb password as defined in the .env file
 func GetMongoDBPassword() string {
 	password := os.Getenv("MONGODB_PASSWORD")
 	if password == "" {
@@ -31,6 +34,7 @@ func GetMongoDBPassword() string {
 	return password
 }
 
+// gets the mongodb cluster uri as defined in the .env file
 func GetMongoDBCLUSTERURI() string {
 	uri := os.Getenv("MONGODB_CLUSTERURI")
 	if uri == "" {
@@ -39,6 +43,7 @@ func GetMongoDBCLUSTERURI() string {
 	return uri
 }
 
+// gets the mongodb name as defined in the .env file
 func GetMongoDBName() string {
 	name := os.Getenv("MONGODB_DBNAME")
 	if name == "" {
@@ -47,6 +52,7 @@ func GetMongoDBName() string {
 	return name
 }
 
+// gets the mongodb start uri as defined in the .env file
 func GetMongoDBStartURI() string {
 	startURI := os.Getenv("MONGODB_START_URI")
 	if startURI == "" {
@@ -63,6 +69,7 @@ func GetLogFileName() string {
 	return logFileName
 }
 
+// gets the system email as defined in the .env file
 func GetSystemEmail() string {
 	email := os.Getenv("SYSTEM_EMAIL")
 	if email == "" {
@@ -71,6 +78,7 @@ func GetSystemEmail() string {
 	return email
 }
 
+// gets the smtp port as defined in the .env file
 func GetSmtpPort() string {
 	port := os.Getenv("SMTP_PORT")
 	if port == "" {
@@ -79,6 +87,7 @@ func GetSmtpPort() string {
 	return port
 }
 
+// gets the smtp password as defined in the .env file
 func GetSmtpPassword() string {
 	password := os.Getenv("SMTP_PASSWORD")
 	if password == "" {
@@ -87,6 +96,7 @@ func GetSmtpPassword() string {
 	return password
 }
 
+// gets the smtp host as defined in the .env file
 func GetSmtpHost() string {
 	host := os.Getenv("SMTP_HOST")
 	if host == "" {
@@ -95,6 +105,7 @@ func GetSmtpHost() string {
 	return host
 }
 
+// gets the certificate file name as defined in the .env file
 func GetCertFileName() string {
 	certFileName := os.Getenv("CERT_FILE_NAME")
 	if certFileName == "" {
@@ -103,6 +114,7 @@ func GetCertFileName() string {
 	return certFileName
 }
 
+// gets the key file name as defined in the .env file
 func GetKeyFileName() string {
 	keyFileName := os.Getenv("KEY_FILE_NAME")
 	if keyFileName == "" {
@@ -111,6 +123,7 @@ func GetKeyFileName() string {
 	return keyFileName
 }
 
+// gets gins run mode as defined in the .env file
 func GetGinRunMode() string {
 	ginRunMode := os.Getenv("GIN_RUN_MODE")
 	if ginRunMode == "" {
@@ -119,6 +132,7 @@ func GetGinRunMode() string {
 	return ginRunMode
 }
 
+// gets list of trusted proxies as defined in the .env file
 func GetTrustedProxies() []string {
 	trustedProxies := os.Getenv("TRUSTED_PROXIES")
 	if trustedProxies != "" {

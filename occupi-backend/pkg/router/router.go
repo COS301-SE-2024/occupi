@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// creates available endpoints and attaches handlers for each endpoint
 func OccupiRouter(r *gin.Engine, db *mongo.Client) {
 	ping := r.Group("/ping")
 	{

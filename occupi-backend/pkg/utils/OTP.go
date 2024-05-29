@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// generates a new OTP
 func GenerateOTP() (string, error) {
 	b := make([]byte, 3)
 	_, err := rand.Read(b)
