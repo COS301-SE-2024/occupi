@@ -14,8 +14,14 @@ MONGODB_DBNAME=
 MONGODB_START_URI=
 PORT=
 LOG_FILE_NAME=
+SMTP_HOST=
+SMTP_PORT=
+SMTP_PASSWORD=
+SYSTEM_EMAIL=
 CERT_FILE_NAME=
 KEY_FILE_NAME=
+GIN_RUN_MODE=
+TRUSTED_PROXIES=
 ```
 3. You can also proceed to download <a href="https://www.docker.com/products/docker-desktop/">docker desktop</a>
 4. To build the container, run:
@@ -75,6 +81,11 @@ go run cmd/occupi-backend/main.go
 ```
 3. Make a request on the port you specified with
 ```bash
+https://localhost:{port you specified in env}/ping
+
+or
+
+https://localhost:{port you specified in env}/api/resource
 ```
 
 ### Development Cycle with Docker
