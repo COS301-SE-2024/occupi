@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/gin-contrib/sessions"
@@ -45,6 +46,7 @@ func OccupiRouter(r *gin.Engine, db *mongo.Client) {
 		auth.GET("/login", func(c *gin.Context) { handlers.Login(c, authenticator, db) })
 		auth.POST("/register", func(c *gin.Context) { h.Register(c, authenticator, db) })
 		auth.POST("/verify-otp", func(c *gin.Context) { h.VerifyOTP(c) })
+		auth.POST("/book-room", func(c *gin.Context) { database.BookRoom(c, db) })
 		//auth.POST("/logout", func(c *gin.Context) { handlers.Logout(c, authenticator) })
 		auth.GET("/callback", func(c *gin.Context) { handlers.CallbackHandler(c, authenticator) })
 	}

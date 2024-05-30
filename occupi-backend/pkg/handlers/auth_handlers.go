@@ -16,12 +16,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Handler struct to hold the authenticator,database client and the users.
+// We use dependency injection to avoid having global variables
 type Handler struct {
 	authenticator *authenticator.Authenticator
 	db            *mongo.Client
 	users         map[string]models.User
 }
 
+// NewHandler creates a new handler with the given authenticator and database client
 func NewHandler(authenticator *authenticator.Authenticator, db *mongo.Client) *Handler {
 	return &Handler{
 		authenticator: authenticator,

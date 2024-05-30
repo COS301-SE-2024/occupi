@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 )
