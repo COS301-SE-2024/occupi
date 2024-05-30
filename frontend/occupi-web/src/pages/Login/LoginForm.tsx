@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import "./style.css";
 import loginImage from "../../assets/login.png"; // adjust the path as necessary
 import { Checkbox } from "../../Components/ui/checkbox";
-// import { useHistory } from "react-router-dom"; // Import useHistory
 import GradientButton from "../../Components/gradientButtonComponent/gradientButton";
+import LandingPage from "../landing-page/LandingPage";
 
 const LoginForm = (): JSX.Element => {
   const [email, setEmail] = useState("");
@@ -45,6 +45,7 @@ const LoginForm = (): JSX.Element => {
     if (valid) {
       // Handle form submission
       console.log("Form is valid. Submitting...");
+      window.location.href = '{LandingPage}'; // Redirect to landing page
     }
   };
   const inputStyle = (hasError: boolean) => ({
