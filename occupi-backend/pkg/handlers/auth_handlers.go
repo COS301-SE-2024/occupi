@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
@@ -15,10 +16,19 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// PLEASE REFACTOR THIS CODE BY ABSOLUTELY ALL MEANS
-var Users = make(map[string]models.User) //IS THIS A GLOBALE MUTABLE VARIABLE? ABSOLUTE NO NO
-var OTP string                           //IS THIS A GLOBALE MUTABLE VARIABLE? ABSOLUTE NO NO
-//PLEASE REFACTOR THIS CODE BY ABSOLUTELY ALL MEANS
+type Handler struct {
+	authenticator *authenticator.Authenticator
+	db            *mongo.Client
+	users         map[string]models.User
+}
+
+func NewHandler(authenticator *authenticator.Authenticator, db *mongo.Client) *Handler {
+	return &Handler{
+		authenticator: authenticator,
+		db:            db,
+		users:         make(map[string]models.User),
+	}
+}
 
 // handler for loggin a new user on occupi /auth/login
 func Login(c *gin.Context, authenticator *authenticator.Authenticator, db *mongo.Client) {
@@ -43,24 +53,37 @@ func Login(c *gin.Context, authenticator *authenticator.Authenticator, db *mongo
 }
 
 // handler for registering a new user on occupi /auth/register
-func Register(c *gin.Context, authenticator *authenticator.Authenticator, db *mongo.Client) {
+func (h *Handler) Register(c *gin.Context, authenticator *authenticator.Authenticator, db *mongo.Client) {
 	var user models.User
 	if err := c.ShouldBindBodyWithJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	OTP, err := utils.GenerateOTP()
+	otp, err := utils.GenerateOTP()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate OTP"})
 		return
 	}
 
-	user.Token = OTP
-	Users[user.Email] = user
+	user.Token = otp
+	user.TokenTime = time.Now()
+	h.users[user.Email] = user
 
-	subject := "Your OTP for Email Verification"
-	body := "Your OTP is: " + OTP
+	subject := "Email Verification - Your One-Time Password (OTP)"
+	body := `
+		
+		Thank you for registering with Occupi. To complete your registration, please use the following One-Time Password (OTP) to verify your email address:
+
+		OTP: ` + otp + `
+
+		This OTP is valid for the next 10 minutes. Please do not share this OTP with anyone for security reasons.
+
+		If you did not request this email, please disregard it.
+
+		Thank you,
+		The Occupi Team
+		`
 
 	if err := mail.SendMail(user.Email, subject, body); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
@@ -71,16 +94,21 @@ func Register(c *gin.Context, authenticator *authenticator.Authenticator, db *mo
 }
 
 // handler for verifying a users otp /api/verify-otp
-func VerifyOTP(c *gin.Context) {
+func (h *Handler) VerifyOTP(c *gin.Context) {
 	var userotp models.UserOTP
 	if err := c.ShouldBindBodyWithJSON(&userotp); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	user, exists := Users[userotp.Email]
+	user, exists := h.users[userotp.Email]
 	if !exists {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email not registered"})
+		return
+	}
+
+	if time.Since(user.TokenTime) > 10*time.Minute {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "OTP has expired"})
 		return
 	}
 

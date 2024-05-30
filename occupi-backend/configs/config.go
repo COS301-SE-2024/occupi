@@ -2,6 +2,7 @@ package configs
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -78,13 +79,20 @@ func GetSystemEmail() string {
 	return email
 }
 
-// gets the smtp port as defined in the .env file
-func GetSmtpPort() string {
+// GetSmtpPort retrieves the SMTP port from the environment and converts it to an integer.
+// If the environment variable is not set, it returns the default port 587.
+func GetSmtpPort() int {
 	port := os.Getenv("SMTP_PORT")
 	if port == "" {
-		port = "587"
+		return 587
 	}
-	return port
+
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		// If the conversion fails, return the default port 587
+		return 587
+	}
+	return portInt
 }
 
 // gets the smtp password as defined in the .env file

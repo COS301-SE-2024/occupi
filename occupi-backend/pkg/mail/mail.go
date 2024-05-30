@@ -1,27 +1,26 @@
 package mail
 
 import (
-	"net/smtp"
-
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"gopkg.in/gomail.v2"
 )
 
-// sends an email using smtp
+// SendMail sends an email using gomail
 func SendMail(to string, subject string, body string) error {
 	from := configs.GetSystemEmail()
 	password := configs.GetSmtpPassword()
 	smtpHost := configs.GetSmtpHost()
 	smtpPort := configs.GetSmtpPort()
 
-	auth := smtp.PlainAuth("", from, password, smtpHost)
+	m := gomail.NewMessage()
+	m.SetHeader("From", from)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/plain", body)
 
-	msg := []byte("To: " + to + "\r\n" +
-		"Subject: " + subject + "\r\n" +
-		"\r\n" +
-		body + "\r\n")
+	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
 
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
-	if err != nil {
+	if err := d.DialAndSend(m); err != nil {
 		return err
 	}
 

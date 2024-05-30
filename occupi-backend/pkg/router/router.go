@@ -19,7 +19,7 @@ func OccupiRouter(r *gin.Engine, db *mongo.Client) {
 	if err != nil {
 		panic(err)
 	}
-
+	h := handlers.NewHandler(authenticator, db)
 	// To store custom types in our cookies,
 	// we must first register them using gob.Register
 	gob.Register(map[string]interface{}{})
@@ -43,8 +43,8 @@ func OccupiRouter(r *gin.Engine, db *mongo.Client) {
 	auth := r.Group("/auth")
 	{
 		auth.GET("/login", func(c *gin.Context) { handlers.Login(c, authenticator, db) })
-		auth.POST("/register", func(c *gin.Context) { handlers.Register(c, authenticator, db) })
-		auth.POST("/verify-otp", handlers.VerifyOTP)
+		auth.POST("/register", func(c *gin.Context) { h.Register(c, authenticator, db) })
+		auth.POST("/verify-otp", func(c *gin.Context) { h.VerifyOTP(c) })
 		//auth.POST("/logout", func(c *gin.Context) { handlers.Logout(c, authenticator) })
 		auth.GET("/callback", func(c *gin.Context) { handlers.CallbackHandler(c, authenticator) })
 	}
