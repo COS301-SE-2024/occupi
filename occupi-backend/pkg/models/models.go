@@ -1,12 +1,12 @@
 package models
 
-//strucutre of resource object
+// strucutre of resource object
 type Resource struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-//strucutre of users
+// strucutre of users
 type User struct {
 	ID       uint   `json:"id"`
 	Email    string `json:"email"`

@@ -33,9 +33,6 @@ func main() {
 	// Create a Gin router
 	r := gin.Default()
 
-	// Add middleware
-	//r.Use(middleware.AuthMiddleware(db))
-
 	// Set trusted proxies
 	err := r.SetTrustedProxies(configs.GetTrustedProxies())
 	if err != nil {
