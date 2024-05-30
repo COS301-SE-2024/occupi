@@ -2,6 +2,7 @@ package configs
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -78,13 +79,20 @@ func GetSystemEmail() string {
 	return email
 }
 
-// gets the smtp port as defined in the .env file
-func GetSmtpPort() string {
+// GetSmtpPort retrieves the SMTP port from the environment and converts it to an integer.
+// If the environment variable is not set, it returns the default port 587.
+func GetSmtpPort() int {
 	port := os.Getenv("SMTP_PORT")
 	if port == "" {
-		port = "587"
+		return 587
 	}
-	return port
+
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		// If the conversion fails, return the default port 587
+		return 587
+	}
+	return portInt
 }
 
 // gets the smtp password as defined in the .env file
@@ -141,4 +149,36 @@ func GetTrustedProxies() []string {
 	} else {
 		return []string{""}
 	}
+}
+
+func GetAuth0Domain() string {
+	auth0Domain := os.Getenv("AUTH0_DOMAIN")
+	if auth0Domain == "" {
+		auth0Domain = ""
+	}
+	return auth0Domain
+}
+
+func GetAuth0ClientID() string {
+	auth0ClientID := os.Getenv("AUTH0_CLIENT_ID")
+	if auth0ClientID == "" {
+		auth0ClientID = ""
+	}
+	return auth0ClientID
+}
+
+func GetAuth0ClientSecret() string {
+	auth0ClientSecret := os.Getenv("AUTH0_CLIENT_SECRET")
+	if auth0ClientSecret == "" {
+		auth0ClientSecret = ""
+	}
+	return auth0ClientSecret
+}
+
+func GetAuth0CallbackURL() string {
+	auth0CallbackURL := os.Getenv("AUTH0_CALLBACK_URL")
+	if auth0CallbackURL == "" {
+		auth0CallbackURL = ""
+	}
+	return auth0CallbackURL
 }

@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "NODE_ENV=development next dev",
         "build": "next build",
+        "buildbackend": "APP_ENV=backend next build",
         "start": "next start"
     },
     "dependencies": {

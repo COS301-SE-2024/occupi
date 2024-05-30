@@ -1,4 +1,3 @@
-import React from "react";
 import "./OtpPage.css";
 import OtpComponent from "../../Components/OtpComponent/OtpComponent";
 import loginImage from '../../assets/otp.png';

@@ -1,6 +1,5 @@
 
 import PropTypes from "prop-types";
-import React from "react";
 
 export const CheckSquareContained = ({ color = "black", className }: { color?: string, className: string }) => {
   return (
