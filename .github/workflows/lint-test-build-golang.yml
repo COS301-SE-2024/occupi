@@ -1,0 +1,67 @@
+name: Test and Build golang
+
+on:
+  pull_request:
+    branches: ["develop"]
+
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: occupi-backend
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'  # Specify the Go version you are using
+
+    - name: Install golangci-lint
+      run: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+    - name: Run golangci-lint
+      run: |
+        golangci-lint run
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'  # Specify the Go version you are using
+
+    - name: Run tests
+      run: |
+        go test ./tests/...
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'  # Specify the Go version you are using
+
+    - name: Build the code
+      run: |
+        go build -v cmd/occupi-backend/main.go

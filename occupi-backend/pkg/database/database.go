@@ -26,13 +26,13 @@ func ConnectToDatabase() *mongo.Client {
 	password := configs.GetMongoDBPassword()
 	clusterURI := configs.GetMongoDBCLUSTERURI()
 	dbName := configs.GetMongoDBName()
-	mongoDbStartURI := configs.GetMongoDBStartURI()
+	mongoDBStartURI := configs.GetMongoDBStartURI()
 
 	// Escape the special characters in the password
 	escapedPassword := url.QueryEscape(password)
 
 	// Construct the connection URI
-	uri := fmt.Sprintf("%s://%s:%s@%s/%s", mongoDbStartURI, username, escapedPassword, clusterURI, dbName)
+	uri := fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)
@@ -113,9 +113,9 @@ func BookRoom(c *gin.Context, db *mongo.Client) {
 
 		Thank you for booking with Occupi. Here are your booking details:
 
-		Booking ID: ` + fmt.Sprint(booking.BookingId) + `
-		Room ID: ` + booking.RoomId + `
-		Slot: ` + fmt.Sprint(booking.Slot) + `
+		Booking ID: ` + strconv.Itoa(booking.BookingID) + `
+		Room ID: ` + booking.RoomID + `
+		Slot: ` + strconv.Itoa(booking.Slot) + `
 
 		If you have any questions, feel free to contact us.
 
@@ -172,8 +172,8 @@ func CheckIn(c *gin.Context, db *mongo.Client) {
 
 	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
-		"bookingId": request.BookingId,
-		"roomId":    request.RoomId,
+		"bookingId": request.BookingID,
+		"roomId":    request.RoomID,
 		"$or":       emailFilter,
 	}
 

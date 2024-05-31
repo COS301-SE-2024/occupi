@@ -22,7 +22,7 @@ func SetupLogger() {
 	if err != nil {
 		log.Fatal(fmt.Printf("Failed to open log file: %v", err))
 	}
-	//defer file.Close()
+	// defer file.Close()
 
 	// Set the output of the logs to the file
 	logrus.SetOutput(file)
@@ -46,7 +46,7 @@ func generateRandomNumber() (int, error) {
 		return 0, err
 	}
 	num = int(b[0])<<8 + int(b[1])
-	num = num % 10000 // Ensure it's a 4-digit number
+	num %= 10000 // Ensure it's a 4-digit number
 	return num, nil
 }
 

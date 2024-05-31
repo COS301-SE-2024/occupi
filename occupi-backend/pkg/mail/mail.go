@@ -8,9 +8,9 @@ import (
 // SendMail sends an email using gomail
 func SendMail(to string, subject string, body string) error {
 	from := configs.GetSystemEmail()
-	password := configs.GetSmtpPassword()
-	smtpHost := configs.GetSmtpHost()
-	smtpPort := configs.GetSmtpPort()
+	password := configs.GetSMTPPassword()
+	smtpHost := configs.GetSMTPHost()
+	smtpPort := configs.GetSMTPPort()
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", from)

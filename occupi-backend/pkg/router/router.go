@@ -15,7 +15,6 @@ import (
 
 // creates available endpoints and attaches handlers for each endpoint
 func OccupiRouter(r *gin.Engine, db *mongo.Client) {
-
 	authenticator, err := authenticator.New()
 	if err != nil {
 		panic(err)
@@ -38,8 +37,8 @@ func OccupiRouter(r *gin.Engine, db *mongo.Client) {
 	}
 	api := r.Group("/api")
 	{
-		api.GET("/resource", func(c *gin.Context) { handlers.FetchResource(c, db) })                                      //non-authenticated
-		api.GET("/resource-auth", middleware.IsAuthenticated, func(c *gin.Context) { handlers.FetchResourceAuth(c, db) }) //authenticated
+		api.GET("/resource", func(c *gin.Context) { handlers.FetchResource(c, db) })                                      // non-authenticated
+		api.GET("/resource-auth", middleware.IsAuthenticated, func(c *gin.Context) { handlers.FetchResourceAuth(c, db) }) // authenticated
 	}
 	auth := r.Group("/auth")
 	{
@@ -48,7 +47,7 @@ func OccupiRouter(r *gin.Engine, db *mongo.Client) {
 		auth.POST("/verify-otp", func(c *gin.Context) { h.VerifyOTP(c) })
 		auth.POST("/book-room", func(c *gin.Context) { database.BookRoom(c, db) })
 		auth.POST("check-in", func(c *gin.Context) { database.CheckIn(c, db) })
-		//auth.POST("/logout", func(c *gin.Context) { handlers.Logout(c, authenticator) })
+		// auth.POST("/logout", func(c *gin.Context) { handlers.Logout(c, authenticator) })
 		auth.GET("/callback", func(c *gin.Context) { handlers.CallbackHandler(c, authenticator) })
 	}
 }

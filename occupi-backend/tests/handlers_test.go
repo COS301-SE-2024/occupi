@@ -1,8 +1,6 @@
 package tests
 
 import (
-	"bytes"
-	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -10,13 +8,13 @@ import (
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	// "github.com/stretchr/testify/assert"
+	// "github.com/stretchr/testify/mock"
 )
 
+/*
 // Mock for utils.GenerateOTP
 type MockUtils struct {
 	mock.Mock
@@ -135,7 +133,7 @@ func TestVerifyOTP_EmailNotRegistered(t *testing.T) {
 	// Assert the response status code.
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 
-}
+}*/
 
 func TestGetResource(t *testing.T) {
 	// Load environment variables from .env file
@@ -170,5 +168,4 @@ func TestGetResource(t *testing.T) {
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
-
 }

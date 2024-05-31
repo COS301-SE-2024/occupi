@@ -4,13 +4,13 @@ import (
 	"time"
 )
 
-// strucutre of resource object
+// structure of resource object
 type Resource struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
-// strucutre of users
+// structure of users
 type User struct {
 	ID        uint      `json:"id"`
 	Email     string    `json:"email"`
@@ -19,18 +19,18 @@ type User struct {
 	TokenTime time.Time `json:"token_time"`
 }
 
-// strucutre of otp
+// structure of otp
 type UserOTP struct {
 	Email string `json:"email"`
 	OTP   string `json:"otp"`
 }
 
-// strucutre of booking
+// structure of booking
 type Booking struct {
 	ID        string            `json:"_id" bson:"_id,omitempty"`
-	OccupiId  int               `json:"occupiId" bson:"occupiId"`
-	BookingId int               `json:"bookingId" bson:"bookingId"`
-	RoomId    string            `json:"roomId" bson:"roomId"`
+	OccupiID  int               `json:"occupiId" bson:"occupiId"`
+	BookingID int               `json:"bookingId" bson:"bookingId"`
+	RoomID    string            `json:"roomId" bson:"roomId"`
 	Slot      int               `json:"slot" bson:"slot"`
 	Emails    map[string]string `json:"emails" bson:"emails"`
 	CheckedIn bool              `json:"checkedIn" bson:"checkedIn"`
@@ -38,7 +38,7 @@ type Booking struct {
 
 // structure of CheckIn
 type CheckIn struct {
-	BookingId int    `json:"bookingId" bson:"bookingId"`
+	BookingID int    `json:"bookingId" bson:"bookingId"`
 	Email     string `json:"email" bson:"email"`
-	RoomId    string `json:"roomId" bson:"roomId"`
+	RoomID    string `json:"roomId" bson:"roomId"`
 }

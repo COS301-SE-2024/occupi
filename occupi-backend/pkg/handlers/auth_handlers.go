@@ -51,7 +51,7 @@ func Login(c *gin.Context, authenticator *authenticator.Authenticator, db *mongo
 		return
 	}
 
-	//redirect to the Auth0 login page
+	// redirect to the Auth0 login page
 	c.Redirect(http.StatusTemporaryRedirect, authenticator.AuthCodeURL(state))
 }
 
@@ -125,7 +125,7 @@ func (h *Handler) VerifyOTP(c *gin.Context) {
 
 // handler for logging out a user on occupi /auth/logout
 func Logout(c *gin.Context, authenticator *authenticator.Authenticator) {
-	logoutUrl, err := url.Parse("https://" + configs.GetAuth0Domain() + "/v2/logout")
+	logoutURL, err := url.Parse("https://" + configs.GetAuth0Domain() + "/v2/logout")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		logrus.Error(err)
@@ -147,7 +147,7 @@ func Logout(c *gin.Context, authenticator *authenticator.Authenticator) {
 	parameters := url.Values{}
 	parameters.Add("returnTo", returnTo.String())
 	parameters.Add("client_id", configs.GetAuth0ClientID())
-	logoutUrl.RawQuery = parameters.Encode()
+	logoutURL.RawQuery = parameters.Encode()
 
-	c.Redirect(http.StatusTemporaryRedirect, logoutUrl.String())
+	c.Redirect(http.StatusTemporaryRedirect, logoutURL.String())
 }

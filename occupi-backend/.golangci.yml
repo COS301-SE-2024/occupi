@@ -1,0 +1,55 @@
+linters:
+  disable-all: true
+  enable:
+    - asasalint     # Checks for potential security vulnerabilities and coding issues
+    - cyclop        # Checks for code complexity based on cyclomatic complexity
+    # - depguard    # If enabled, checks dependencies and imported packages with defined rules
+    - dupl          # Detects code duplication
+    - errcheck      # Checks for unchecked errors
+    # - errorlint   # If enabled, checks for wrapping errors and error type assertions without ,ok idioms
+    - exhaustive    # Checks for exhaustiveness in enum switches
+    - goconst       # Finds repeated constants that could be replaced with a named constant
+    - gocritic      # Provides various checks for potential bugs, performance issues, and style problems
+    # - godox       # If enabled, checks lines for finding "TODOs", "BUG", and "FIXME" phrases
+    - gocyclo       # Measures the cyclomatic complexity of functions
+    #- gomnd         # Detects magic numbers in code
+    - gosimple      # Suggests simplifications to Go code
+    - gosec         # Analyzes code for common security issues
+    - govet         # Reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
+    - misspell      # Detects common spelling mistakes
+    - musttag       # Ensures struct fields have required tags
+    - perfsprint    # Identifies potential performance improvements
+    - prealloc      # Warns about slice declarations that could be preallocated for efficiency
+    - predeclared   # Checks for redeclarations of predeclared identifiers
+    # - usestdlibvars # Ensures standard library variable use
+    - whitespace    # Checks for various whitespace issues
+    #- wsl           # Enforces one statement per line rule
+    # - revive        # Provides various linting rules focused on best practices and code style ->this will be commented back in
+    - bodyclose     # Ensures HTTP response bodies are closed
+    - exportloopref # Detects pointers to loop variables that are exported
+    - ineffassign   # Detects when assignments to variables are ineffective
+    - nolintlint    # Checks for incorrect or malformed nolint directives
+    - stylecheck    # Provides stylistic checks following the Go style guide
+    - unconvert     # Detects unnecessary type conversions
+
+issues:
+  exclude:
+    - "don't use underscores in Go names"
+  exclude-rules:
+    - text: "test/.go"
+      linters:
+        - errcheck
+      path: internal/mocks/*
+    - text: "deprecated"
+      linters:
+        - errcheck
+      path: cmd/legacy/*
+  include:
+    - "error return value not checked"
+
+run:
+  exclude:
+    - internal/mocks/*
+    - vendor/*
+    - cmd/legacy/*
+    - tests/*

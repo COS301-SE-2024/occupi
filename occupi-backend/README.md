@@ -77,7 +77,7 @@ myapp/
 1. Please make sure you have golang installed
 2. Run 
 ```bash
-go run cmd/occupi-backend/main.go
+go run -v cmd/occupi-backend/main.go
 ```
 3. Make a request on the port you specified with
 ```bash
