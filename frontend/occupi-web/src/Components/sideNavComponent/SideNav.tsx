@@ -1,4 +1,4 @@
-import React from "react";
+//import React from "react";
 import {
   MdOutlineDashboard,
   MdOutlineSettings,
@@ -9,8 +9,8 @@ import {
   MdOutlinePieChart,
   MdOutlineSmartToy,
 } from "react-icons/md";
-import GraphContainer from "../graphContainer/GraphContainer";
-import SearchBar from "../searchBarComponent/SearchBar";
+//import GraphContainer from "../graphContainer/GraphContainer";
+//import SearchBar from "../searchBarComponent/SearchBar";
 const SideNav = () => {
   return (
     <div className="flex h-screen">
