@@ -108,6 +108,9 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 // CheckIn handles the check-in process for a booking
 func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
+	// consider structuring api respones to match that as outlined in our coding standards documentation
+	//link: https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards#response-and-error-handling
+
 	var request models.CheckIn
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -124,7 +127,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Print the emailFilter for debugging
-	fmt.Printf("Email Filter: %+v\n", emailFilter)
+	fmt.Printf("Email Filter: %+v\n", emailFilter) //it would be better if you used a logger here, logrus is already setup, dont print
 
 	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
