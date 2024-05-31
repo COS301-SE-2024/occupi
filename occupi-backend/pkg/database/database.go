@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -147,4 +148,66 @@ func BookRoom(c *gin.Context, db *mongo.Client) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Booking successful! Confirmation emails sent."})
+}
+
+// CheckIn handles the check-in process for a booking
+func CheckIn(c *gin.Context, db *mongo.Client) {
+	var request models.CheckIn
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	collection := db.Database("occupi").Collection("bookings")
+
+	// Build the dynamic filter for email check
+	emailFilter := bson.A{}
+	for key := range request.Email {
+		emailFilter = append(emailFilter, bson.M{"emails." + strconv.Itoa(key): request.Email})
+	}
+
+	// Print the emailFilter for debugging
+	fmt.Printf("Email Filter: %+v\n", emailFilter)
+
+	// Find the booking by bookingId, roomId, and check if the email is in the emails object
+	filter := bson.M{
+		"bookingId": request.BookingId,
+		"roomId":    request.RoomId,
+		"$or":       emailFilter,
+	}
+
+	// Print the filter for debugging
+	fmt.Printf("Filter: %+v\n", filter)
+
+	// Find the booking
+	var booking models.Booking
+	err := collection.FindOne(context.TODO(), filter).Decode(&booking)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found or email not associated with the room"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find booking"})
+		}
+		return
+	}
+	// Print the emails for debugging
+	for key, email := range booking.Emails {
+		fmt.Printf("Email %s: %s\n", key, email)
+	}
+	// Update the CheckedIn status
+	update := bson.M{
+		"$set": bson.M{"checkedIn": true},
+	}
+
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	var updatedBooking models.Booking
+
+	err = collection.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedBooking)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update booking"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Check-in successful", "booking": updatedBooking})
 }

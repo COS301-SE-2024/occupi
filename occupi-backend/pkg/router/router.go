@@ -47,6 +47,7 @@ func OccupiRouter(r *gin.Engine, db *mongo.Client) {
 		auth.POST("/register", func(c *gin.Context) { h.Register(c, authenticator, db) })
 		auth.POST("/verify-otp", func(c *gin.Context) { h.VerifyOTP(c) })
 		auth.POST("/book-room", func(c *gin.Context) { database.BookRoom(c, db) })
+		auth.POST("check-in", func(c *gin.Context) { database.CheckIn(c, db) })
 		//auth.POST("/logout", func(c *gin.Context) { handlers.Logout(c, authenticator) })
 		auth.GET("/callback", func(c *gin.Context) { handlers.CallbackHandler(c, authenticator) })
 	}

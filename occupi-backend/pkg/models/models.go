@@ -33,4 +33,12 @@ type Booking struct {
 	RoomId    string            `json:"roomId" bson:"roomId"`
 	Slot      int               `json:"slot" bson:"slot"`
 	Emails    map[string]string `json:"emails" bson:"emails"`
+	CheckedIn bool              `json:"checkedIn" bson:"checkedIn"`
+}
+
+// structure of CheckIn
+type CheckIn struct {
+	BookingId int    `json:"bookingId" bson:"bookingId"`
+	Email     string `json:"email" bson:"email"`
+	RoomId    string `json:"roomId" bson:"roomId"`
 }
