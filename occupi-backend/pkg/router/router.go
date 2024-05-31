@@ -28,7 +28,7 @@ func OccupiRouter(r *gin.Engine, db *mongo.Client) {
 	store := cookie.NewStore([]byte("secret"))
 	r.Use(sessions.Sessions("auth-session", store))
 
-	r.Static("/landing", "./web/landing")
+	r.Static("/landing", "./web/landing") //this must become the root url at some point, that is '/'
 	r.Static("/app/dashboard", "./web/dashboard")
 	r.Static("/documentation", "./web/documentation")
 

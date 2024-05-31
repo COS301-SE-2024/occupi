@@ -5,7 +5,7 @@ import "./style.css";
 import loginImage from "../../assets/login.png"; // adjust the path as necessary
 import { Checkbox } from "../../Components/ui/checkbox";
 import GradientButton from "../../Components/gradientButtonComponent/gradientButton";
-import LandingPage from "../landing-page/LandingPage";
+//import LandingPage from "../landing-page/LandingPage";
 
 const LoginForm = (): JSX.Element => {
   const [email, setEmail] = useState("");

@@ -6,7 +6,7 @@ import path from "path"
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-
+  base: '/app/dashboard/', // Set the base path for assets **this is specific to the golang backend, don't modify and not notify the team
 
   resolve: {
     alias: {

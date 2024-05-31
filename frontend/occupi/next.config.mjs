@@ -7,12 +7,18 @@ const prodConfig = {
     basePath: '/occupi',
     assetPrefix: '/occupi/',
     output: 'export',
+    images: {
+        unoptimized: true
+    }
 };
 
 const backendConfig = {
-    basePath: '/documentation',
-    assetPrefix: '/documentation/',
+    basePath: '/landing',
+    assetPrefix: '/landing/',
     output: 'export',
+    images: {
+        unoptimized: true
+    }
 }
 
 export default isDev ?  {} : isBackend ? backendConfig : prodConfig;

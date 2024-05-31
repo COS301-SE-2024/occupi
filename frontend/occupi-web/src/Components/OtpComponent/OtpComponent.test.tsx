@@ -1,5 +1,5 @@
-import React from 'react';
-import { render, fireEvent,screen } from '@testing-library/react';
+//import React from 'react';
+import { render, fireEvent,/*screen*/ } from '@testing-library/react';
 import OtpComponent from './OtpComponent';
 import '@testing-library/jest-dom';
 
