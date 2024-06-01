@@ -1,15 +1,8 @@
-import LoginForm from './pages/Login/LoginForm'
-import OtpPage from './pages/otp-page/OtpPage'
-import SideNav from './Components/sideNavComponent/SideNav'
-import LandingPage from './pages/landing-page/LandingPage'
-import TabComponent from './Components/tabComponent/TabComponent'
-import Routers from './Routers'
-import SearchBar from './Components/searchBarComponent/SearchBar'
-import Settings from './pages/settings-page/Settings'
-import Layout from './Layout'
+import { LoginForm, OtpPage, LandingPage, Settings} from "@pages/index";
+import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-function App() {
 
+function App() {
   return (
     <Router>
       <Routes>
@@ -30,21 +23,3 @@ function App() {
 }
 
 export default App
-
-
-/*
- {/*<div>
-        {/* <Routers /> }
-       {/* <LoginForm /> }
-{/* <OtpComponent /> }
-{/* <OtpPage /> }
-{/* <SideNav /> /}
-{/* <LandingPage /> /}
-{/* <div className='ml-5'>
-
-</div> /}
-{/* <TabComponent /> /}
-
-{/* <SearchBar /> /}
-<Settings />/}
-*/

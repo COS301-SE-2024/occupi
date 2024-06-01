@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface DrawerComponentProps {
   isOpen: boolean;
   onClose: () => void;

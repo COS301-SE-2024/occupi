@@ -1,9 +1,6 @@
 import { useState } from "react";
-import loginImage from "../../assets/login.png"; // adjust the path as necessary
-import logo from "../../assets/occupi-logo.svg";
-import { Checkbox } from "../../Components/ui/checkbox";
-import GradientButton from "../../Components/gradientButtonComponent/gradientButton";
-import InputBox from "../../Components/InputBox/InbutBox";
+import {loginpng, occupi_logo} from "@assets/index";
+import { Checkbox, GradientButton, InputBox } from "@components/index";
 
 const LoginForm = (): JSX.Element => {
 
@@ -18,14 +15,14 @@ const LoginForm = (): JSX.Element => {
     <div className="flex justify-center w-screen h-screen items-center">
       <div className="w-[60vw] h-[40vw] flex justify-center items-center">
         <div className="w-[40vw] h-[40vw]">
-          <img className="min-w-[100%] h-[100%] inline m-auto object-cover" src={loginImage} alt="welcomes" />
+          <img className="min-w-[100%] h-[100%] inline m-auto object-cover" src={loginpng} alt="welcomes" />
         </div>
       </div>
         <div className="w-[30vw] ml-10 mr-3 flex flex-col items-center">
           <div className="w-[10vw] h-[10vw] mt-[7rem]">
               <img className="min-w-[100%] h-[100%] inline m-auto object-cover"
                 alt="Frame"
-                src={logo}
+                src={occupi_logo}
               />
           </div>
           <h2 className="w-[30vw] text-text_col font-semibold text-5xl mt-2">Welcome back to Occupi.</h2>

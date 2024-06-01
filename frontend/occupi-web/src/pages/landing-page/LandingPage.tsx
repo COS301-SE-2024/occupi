@@ -1,9 +1,9 @@
 import React from "react";
-import SideNav from "../../Components/sideNavComponent/SideNav";
-import TabComponent from "../../Components/tabComponent/TabComponent";
-import SearchBar from "../../Components/searchBarComponent/SearchBar";
-import GraphContainer from "../../Components/graphContainer/GraphContainer";
-import TopNav from "../../Components/topNav/TopNav";
+import SideNav from "../../components/sideNavComponent/SideNav";
+import TabComponent from "../../components/tabComponent/TabComponent";
+import SearchBar from "../../components/searchBarComponent/SearchBar";
+import GraphContainer from "../../components/graphContainer/GraphContainer";
+import TopNav from "../../components/topNav/TopNav";
 const LandingPage = () => {
   return (
     <div className="fixed w-full">
