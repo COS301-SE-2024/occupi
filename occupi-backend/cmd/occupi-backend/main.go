@@ -10,6 +10,7 @@ import (
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
@@ -30,16 +31,16 @@ func main() {
 	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
-	router := gin.Default()
+	ginRouter := gin.Default()
 
 	// Set trusted proxies
-	err := router.SetTrustedProxies(configs.GetTrustedProxies())
+	err := ginRouter.SetTrustedProxies(configs.GetTrustedProxies())
 	if err != nil {
 		logrus.Fatal("Failed to set trusted proxies: ", err)
 	}
 
 	// Register routes
-	router.OccupiRouter(router, db)
+	router.OccupiRouter(ginRouter, db)
 
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()
@@ -50,7 +51,7 @@ func main() {
 	}
 
 	// Listening on the port with TLS
-	if err := router.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
+	if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
 		logrus.Fatal("Failed to run server: ", err)
 	}
 }

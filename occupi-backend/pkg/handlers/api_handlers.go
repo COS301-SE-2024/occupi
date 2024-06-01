@@ -14,8 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
-
-	"sync"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,6 +43,9 @@ func FetchResourceAuth(ctx *gin.Context, appsession *models.AppSession) {
 
 // BookRoom handles booking a room and sends a confirmation email
 func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
+	// consider structuring api respones to match that as outlined in our coding standards documentation
+	//link: https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards#response-and-error-handling
+
 	var booking models.Booking
 	if err := ctx.ShouldBindJSON(&booking); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
@@ -62,45 +64,14 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Prepare the email content
 	subject := "Booking Confirmation - Occupi"
-	body := `
-		Dear User,
+	body := mail.FormatBookingEmailBody(booking.BookingId, booking.RoomId, booking.Slot)
 
-		Thank you for booking with Occupi. Here are your booking details:
-
-		Booking ID: ` + fmt.Sprint(booking.BookingId) + `
-		Room ID: ` + booking.RoomId + `
-		Slot: ` + fmt.Sprint(booking.Slot) + `
-
-		If you have any questions, feel free to contact us.
-
-		Thank you,
-		The Occupi Team
-		`
-
-	//	it would make more sense to abstract this section of code into a function
-	// Use a WaitGroup to wait for all goroutines to complete
-	var wg sync.WaitGroup
-	var emailErrors []string
-	var mu sync.Mutex
-
-	for _, email := range booking.Emails {
-		wg.Add(1)
-		go func(email string) {
-			defer wg.Done()
-			if err := mail.SendMail(email, subject, body); err != nil {
-				mu.Lock()
-				emailErrors = append(emailErrors, email)
-				mu.Unlock()
-			}
-		}(email)
-	}
-
-	// Wait for all email sending goroutines to complete
-	wg.Wait()
+	// Send the confirmation email concurrently to all recipients
+	emailErrors := utils.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
 
 	if len(emailErrors) > 0 {
 		//avoid letting the user know which emails failed
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send confirmation emails to some addresses", "failedEmails": emailErrors})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send confirmation emails to some addresses"})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Booking successful! Confirmation emails sent."})
