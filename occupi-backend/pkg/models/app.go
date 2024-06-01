@@ -8,13 +8,11 @@ import (
 type AppSession struct {
 	Authenticator *authenticator.Authenticator
 	DB            *mongo.Client
-	Users         map[string]User
 }
 
 func New(authenticator *authenticator.Authenticator, db *mongo.Client) *AppSession {
 	return &AppSession{
 		Authenticator: authenticator,
 		DB:            db,
-		Users:         make(map[string]User),
 	}
 }

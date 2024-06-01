@@ -18,3 +18,18 @@ func FormatBookingEmailBody(bookingID int, roomID string, slot int) string {
 		The Occupi Team
 		`
 }
+
+func FormatEmailVerificationBody(otp string) string {
+	return `
+		Thank you for registering with Occupi. To complete your registration, please use the following One-Time Password (OTP) to verify your email address:
+
+		OTP: ` + otp + `
+
+		This OTP is valid for the next 10 minutes. Please do not share this OTP with anyone for security reasons.
+
+		If you did not request this email, please disregard it.
+
+		Thank you,
+		The Occupi Team
+		`
+}

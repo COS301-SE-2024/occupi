@@ -3,3 +3,5 @@
 *.pem
 
 /web
+
+*.exe
