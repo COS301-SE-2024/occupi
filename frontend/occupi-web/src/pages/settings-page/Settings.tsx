@@ -27,7 +27,6 @@ const Settings = () => {
 
         {/* SearchBar (Top Right Corner) */}
       </div>
-      <SideNav />
     </div>
   );
 };

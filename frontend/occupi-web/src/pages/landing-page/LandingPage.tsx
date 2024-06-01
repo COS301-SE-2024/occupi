@@ -9,8 +9,6 @@ const LandingPage = () => {
     <div className="fixed w-full">
       {/* Top Navigation */}
       <TopNav />
-      {/* Sidebar */}
-      <SideNav />
 
       {/* Main Content */}
       <div className="overflow-y-auto max-h-[calc(100vh-0rem)] overflow-x-auto max-w-[calc(100vh- -5rem)] ">

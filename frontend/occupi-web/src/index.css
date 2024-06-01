@@ -1,151 +1,76 @@
 @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
+@tailwind components;
+@tailwind utilities;
 
-  @layer base {
-    :root {
+:root {
+  --primary: #FFFFFF;
+  --secondary: #EBEBEB;
+  --tertiary: #434343;
+  --text-col: #0D0D0D;
+  --primary-alt: #0D0D0D;
+  --secondary-alt: #252525;
+  --text-col-alt: #FFFFFF;
+  --red-salmon: #FF5F5F;
+  --green-leaf: #AFF16C;
+}
 
-      
-      --background: 0 0% 100%;
-      --foreground: 222.2 84% 4.9%;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #0D0D0D;
+    --secondary: #252525;
+    --text-col: #FFFFFF;
+    --primary-alt: #FFFFFF;
+    --secondary-alt: #EBEBEB;
+    --text-col-alt: #0D0D0D;
+  }
+}
 
-      --card: 0 0% 100%;
-      --card-foreground: 222.2 84% 4.9%;
+html{background: var(--primary); width: 100vw; overflow-x: hidden; height: 100vh; overflow: overlay;}
 
-      --popover: 0 0% 100%;
-      --popover-foreground: 222.2 84% 4.9%;
+a{text-decoration: none; color: var(--text-col);}
 
-      --primary: 222.2 47.4% 11.2%;
-      --primary-foreground: 210 40% 98%;
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  background: var(--primary);
+}
 
-      --secondary: 210 40% 96.1%;
-      --secondary-foreground: 222.2 47.4% 11.2%;
-
-      --muted: 210 40% 96.1%;
-      --muted-foreground: 215.4 16.3% 46.9%;
-
-      --accent: 210 40% 96.1%;
-      --accent-foreground: 222.2 47.4% 11.2%;
-
-      --destructive: 0 84.2% 60.2%;
-      --destructive-foreground: 210 40% 98%;
-
-      --border: 214.3 31.8% 91.4%;
-      --input: 214.3 31.8% 91.4%;
-      --ring: 222.2 84% 4.9%;
-
-      --radius: 0.5rem;
-
-
-
-
-
-      --collection-1-cyan: rgba(101, 255, 237, 1);
-      --collection-1-dark-green: rgba(90, 194, 8, 1);
-      --colours-black-950: rgba(10, 10, 10, 1);
-      --colours-cyan-650: rgba(82, 241, 251, 1);
-      --colours-gray-1000: rgba(37, 37, 37, 1);
-      --colours-green-600: rgba(175, 241, 108, 1);
-      --colours-red-650: rgba(255, 95, 95, 1);
-      --colours-white-1000: rgba(255, 255, 255, 1);
-      --colours-white-800: rgba(235, 235, 235, 1);
-      --colours-linear-gradient: linear-gradient(90deg, rgb(96.72, 77.4, 99.75) 1.53%, rgb(133.72, 234.6, 204.34) 31.5%, rgb(178.21, 252.03, 57.55) 66.99%, rgb(238.07, 240.12, 96.25) 97%);
-      --inter-extra-light-12-font-family: "Inter", Helvetica;
-      --inter-extra-light-12-font-size: 12px;
-      --inter-extra-light-12-font-style: normal;
-      --inter-extra-light-12-font-weight: 200;
-      --inter-extra-light-12-letter-spacing: -0.5px;
-      --inter-extra-light-12-line-height: 14px;
-      --inter-extra-light-20-font-family: "Inter", Helvetica;
-      --inter-extra-light-20-font-size: 20px;
-      --inter-extra-light-20-font-style: normal;
-      --inter-extra-light-20-font-weight: 200;
-      --inter-extra-light-20-letter-spacing: -0.5px;
-      --inter-extra-light-20-line-height: 23px;
-      --inter-extra-light-24-font-family: "Inter", Helvetica;
-      --inter-extra-light-24-font-size: 24px;
-      --inter-extra-light-24-font-style: normal;
-      --inter-extra-light-24-font-weight: 200;
-      --inter-extra-light-24-letter-spacing: -0.5px;
-      --inter-extra-light-24-line-height: 14px;
-      --inter-regular-12-font-family: "Inter", Helvetica;
-      --inter-regular-12-font-size: 12px;
-      --inter-regular-12-font-style: normal;
-      --inter-regular-12-font-weight: 400;
-      --inter-regular-12-letter-spacing: -0.5px;
-      --inter-regular-12-line-height: 14px;
-      --inter-regular-16-font-family: "Inter", Helvetica;
-      --inter-regular-16-font-size: 16px;
-      --inter-regular-16-font-style: normal;
-      --inter-regular-16-font-weight: 400;
-      --inter-regular-16-letter-spacing: -0.5px;
-      --inter-regular-16-line-height: 14px;
-      --inter-semi-bold-12-font-family: "Inter", Helvetica;
-      --inter-semi-bold-12-font-size: 12px;
-      --inter-semi-bold-12-font-style: normal;
-      --inter-semi-bold-12-font-weight: 600;
-      --inter-semi-bold-12-letter-spacing: -0.5px;
-      --inter-semi-bold-12-line-height: 14px;
-      --inter-semi-bold-16-font-family: "Inter", Helvetica;
-      --inter-semi-bold-16-font-size: 16px;
-      --inter-semi-bold-16-font-style: normal;
-      --inter-semi-bold-16-font-weight: 600;
-      --inter-semi-bold-16-letter-spacing: -0.5px;
-      --inter-semi-bold-16-line-height: 14px;
-      --inter-semi-bold-24-font-family: "Inter", Helvetica;
-      --inter-semi-bold-24-font-size: 24px;
-      --inter-semi-bold-24-font-style: normal;
-      --inter-semi-bold-24-font-weight: 600;
-      --inter-semi-bold-24-letter-spacing: -0.5px;
-      --inter-semi-bold-24-line-height: 14px;
-      --inter-semi-bold-40-font-family: "Inter", Helvetica;
-      --inter-semi-bold-40-font-size: 40px;
-      --inter-semi-bold-40-font-style: normal;
-      --inter-semi-bold-40-font-weight: 600;
-      --inter-semi-bold-40-letter-spacing: -0.5px;
-      --inter-semi-bold-40-line-height: 50px;
-      --shadow-9-7-30-10: 0px 9px 30px 7px rgba(0, 0, 0, 0.1);
-    }
-
-    .dark {
-      --background: 222.2 84% 4.9%;
-      --foreground: 210 40% 98%;
-
-      --card: 222.2 84% 4.9%;
-      --card-foreground: 210 40% 98%;
-
-      --popover: 222.2 84% 4.9%;
-      --popover-foreground: 210 40% 98%;
-
-      --primary: 210 40% 98%;
-      --primary-foreground: 222.2 47.4% 11.2%;
-
-      --secondary: 217.2 32.6% 17.5%;
-      --secondary-foreground: 210 40% 98%;
-
-      --muted: 217.2 32.6% 17.5%;
-      --muted-foreground: 215 20.2% 65.1%;
-
-      --accent: 217.2 32.6% 17.5%;
-      --accent-foreground: 210 40% 98%;
-
-      --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 210 40% 98%;
-
-      --border: 217.2 32.6% 17.5%;
-      --input: 217.2 32.6% 17.5%;
-      --ring: 212.7 26.8% 83.9%;
-    }
-
-
-    
+@media (min-width: 1280px) { 
+  /*scrollbars*/
+  ::-webkit-scrollbar { 
+    width: 6px; 
+    z-index: 5000;
   }
 
-  @layer base {
-    * {
-      @apply border-border;
-    }
-    body {
-      @apply bg-background text-foreground;
-    }
+  /* Track */
+  ::-webkit-scrollbar-track {
+    border-radius: 15px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    z-index: 5000;
   }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: var(--secondary-alt);
+    opacity: 0.8;
+    border-radius: 15px;
+    z-index: 5000;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--green-leaf);
+    z-index: 5000; 
+  }
+
+  /* Handle on active */
+  ::-webkit-scrollbar-thumb:active {
+    background: var(--green-leaf);
+    z-index: 5000; 
+  }
+}
