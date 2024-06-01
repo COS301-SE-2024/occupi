@@ -1,38 +1,40 @@
-import "./OtpPage.css";
-import OtpComponent from "../../components/OtpComponent/OtpComponent";
-import loginImage from "../../assets/otp.png";
-import GradientButton from "../../components/gradientButtonComponent/gradientButton";
+import { useState } from "react";
+import {loginpng, occupi_logo} from "@assets/index";
+import {  GradientButton, OtpComponent } from "@components/index";
 
 const OtpPage = () => {
+
+  const [otp, setOTP] = useState<{
+    otp: string,
+    validity: boolean
+  }>({otp: "", validity: false});
+
   return (
-    <div className="box absolute">
-       <div className="image-container w-[900px] h-[500px]">
-          <img
-            className="image w-[600px] h-[400px] relative top-[200px] right-[900px]"
-            src={loginImage}
-            alt="OTP"
-          />
+    <div className="flex justify-center w-screen h-screen items-center">
+      <div className="w-[60vw] h-[40vw] flex justify-center items-center">
+        <div className="w-[40vw] h-[40vw]">
+          <img className="min-w-[100%] h-[100%] inline m-auto object-cover" src={loginpng} alt="welcomes" />
         </div>
-      <div className="group">
-     
-        <div className="overlap">
-          <img
-            className="frame"
-            alt="Frame"
-            src="https://c.animaapp.com/Ac7JpPyQ/img/frame-6.svg"
-          />
-          <div className="div">
-            <div className="text-wrapper">We sent you an email with a code</div>
-            <div className="text-wrapper-2">
-              Please enter the code below to continue
-            </div>
+      </div>
+        <div className="w-[30vw] ml-10 mr-3 flex flex-col items-center">
+          <div className="w-[10vw] h-[10vw] mt-[1rem]">
+              <img className="min-w-[100%] h-[100%] inline m-auto object-cover"
+                alt="Frame"
+                src={occupi_logo}
+              />
+          </div>
+          <h2 className="w-[30vw] text-text_col font-semibold text-5xl mt-2">We sent you an email with a code</h2>
+          <h3 className="w-[30vw] text-text_col font-extralight text-2xl mt-4">Please enter it to continue</h3>
+
+          <OtpComponent setOtp={(otp_val, validity) => {
+            setOTP({ ... otp, otp : otp_val.toString()})
+            setOTP({ ... otp, validity : validity})
+          }}/>
+
+          <div className="mt-5 w-full">
+            <GradientButton Text="Complete" isClickable={otp.validity} clickEvent={() => {}}/>
           </div>
         </div>
-        <div className="group-2 justify flex flex-col gap-16">
-          <OtpComponent />
-          <GradientButton buttonText="Verify" />
-        </div>     
-      </div>
     </div>
   );
 };
