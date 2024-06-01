@@ -31,16 +31,16 @@ func main() {
 	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
-	r := gin.Default()
+	ginRouter := gin.Default()
 
 	// Set trusted proxies
-	err := r.SetTrustedProxies(configs.GetTrustedProxies())
+	err := ginRouter.SetTrustedProxies(configs.GetTrustedProxies())
 	if err != nil {
 		logrus.Fatal("Failed to set trusted proxies: ", err)
 	}
 
 	// Register routes
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(ginRouter, db)
 
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()
@@ -51,7 +51,7 @@ func main() {
 	}
 
 	// Listening on the port with TLS
-	if err := r.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
+	if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
 		logrus.Fatal("Failed to run server: ", err)
 	}
 }

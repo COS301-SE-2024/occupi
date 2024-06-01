@@ -26,11 +26,19 @@ TRUSTED_PROXIES=
 3. You can also proceed to download <a href="https://www.docker.com/products/docker-desktop/">docker desktop</a>
 4. To build the container, run:
 ```bash
-docker-compose build
+./occupi.sh docker build
+
+or
+
+occupi.bat docker build
 ```
 5. To run the container, run:
 ```bash
-docker-compose up
+./occupi.sh docker up
+
+or
+
+occupi.bat docker up
 ```
 6. Run this command to generate some certicate and key files for TLS:
 ```bash
@@ -77,7 +85,11 @@ myapp/
 1. Please make sure you have golang installed
 2. Run 
 ```bash
-go run cmd/occupi-backend/main.go
+./occupi.sh run dev
+
+or
+
+occupi.bat run dev
 ```
 3. Make a request on the port you specified with
 ```bash
@@ -87,17 +99,33 @@ or
 
 https://localhost:{port you specified in env}/api/resource
 ```
+4. Please consult our cli to find out what commands are available to you by running:
+```bash
+./occupi.sh help
+
+or
+
+occupi.bat help
+```
 
 ### Development Cycle with Docker
 
 1. Please make use of docker desktop to manage your containers lifecycle
 2. To build the container, run:
 ```bash
-docker-compose build
+./occupi.sh docker build
+
+or
+
+occupi.bat docker build
 ```
 3. To run the container, run:
 ```bash
-docker-compose up
+./occupi.sh docker up
+
+or
+
+occupi.bat docker up
 ```
 4. Make a request on the nginx port of 13000 with
 ```bash
@@ -142,7 +170,11 @@ func TestGetResource(t *testing.T) {
 
 2. Run tests with:
 ```bash
-go test ./tests/... 
+./occupi.sh test
+
+or
+
+occupi.bat test
 ```
 
 ### Writing tests for utils
@@ -169,5 +201,9 @@ func TestGenEmpID(t *testing.T) {
 
 2. Run tests with:
 ```bash
-go test ./tests/... 
+./occupi.sh test
+
+or
+
+occupi.bat test
 ```
