@@ -111,7 +111,7 @@ export default function SplashScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSelectedIndex(1); // Assuming Onboarding1 is at index 1
-      router.push('/onboarding1'); // Navigate to Onboarding1 screen
+      router.push('/settings'); // Navigate to Onboarding1 screen
     }, 2000); // 2 seconds
 
     return () => clearTimeout(timer); // Clean up timer on component unmount

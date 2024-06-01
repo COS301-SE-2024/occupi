@@ -83,31 +83,31 @@ const Settings = () => {
 
   return (
     <ScrollView style={[styles.container, theme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
-      <Layout style={styles.profileContainer}>
+      {/* <Layout style={styles.profileContainer}> */}
         <View style={styles.imageContainer}>
           <Image 
             source={{ uri: 'https://via.placeholder.com/150' }} 
             style={styles.profileImage} 
           />
-          <Icon name='camera-outline' style={styles.cameraIcon} fill={theme === 'dark' ? '#fff' : 'black'} />
+          <Icon name='star' style={styles.cameraIcon} fill={theme === 'dark' ? '#fff' : 'black'} />
         </View>
-        <View style={styles.profileInfo}>
+        {/* <View style={styles.profileInfo}>
           <View style={styles.nameContainer}>
             <Text style={[styles.profileName, theme === 'dark' ? styles.darkText : styles.lightText]}>Sabrina Carpenter</Text>
             <Icon name='edit-outline' style={styles.editIcon} fill={theme === 'dark' ? '#fff' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')}/>
           </View>
           <Text style={[styles.profileTitle, theme === 'dark' ? styles.darkText : styles.lightText]}>Chief Executive Officer</Text>
-        </View>
-      </Layout>
-      <Divider style={theme === 'dark' ? styles.darkDivider : styles.lightDivider} />
-      <List
+        </View> */}
+      {/* </Layout> */}
+      {/* <Divider style={theme === 'dark' ? styles.darkDivider : styles.lightDivider} /> */}
+      {/* <List
         data={data}
         ItemSeparatorComponent={() => <Divider style={theme === 'dark' ? styles.darkDivider : styles.lightDivider} />}
         renderItem={renderListItem}
-      />
-      <Layout style={styles.footerContainer}>
+      /> */}
+      {/* <Layout style={styles.footerContainer}>
         <Text style={[styles.versionText, theme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
-      </Layout>
+      </Layout> */}
     </ScrollView>
   );
 }
