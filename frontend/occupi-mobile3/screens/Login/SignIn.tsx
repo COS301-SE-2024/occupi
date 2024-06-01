@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import {
   Center,
   Button,
@@ -103,6 +104,7 @@ const SignInForm = () => {
       },
     });
     reset();
+    router.push('/home')
     // Implement your own onSubmit and navigation logic here.
   };
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Button,
   FormControl,
@@ -28,7 +29,7 @@ import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Keyboard } from 'react-native';
+import { Keyboard, StyleSheet } from 'react-native';
 
 import { AlertTriangle } from 'lucide-react-native';
 
@@ -159,17 +160,47 @@ export default function ForgotPassword() {
     handleSubmit(onSubmit)();
   };
 
+  const GradientButton = ({ onPress, text }) => (
+    <LinearGradient
+    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+    locations={[0.02, 0.31, 0.67, 0.97]}
+    start={[0, 1]}
+    end={[1, 0]}
+      style={styles.buttonContainer}
+    >
+      <Heading style={styles.buttonText} onPress={onPress}>
+        {text}
+      </Heading>
+    </LinearGradient>
+  );
+  
+  const styles = StyleSheet.create({
+    buttonContainer: {
+      borderRadius: 15,
+      marginTop: 20,
+      alignSelf: 'center',
+      width: 360,
+      height: 50
+    },
+    buttonText: {
+      color: 'black',
+      fontSize: 16,
+      textAlign: 'center',
+      lineHeight: 50,
+    }
+  });
+
   return (
-    
+
     <GuestLayout>
       <StyledExpoRouterLink bg="$white" href="..">
-          <Icon
-            as={ChevronLeftIcon}
-            color="$textLight800"
-            m="$0" w="$10" h="$16"
-            sx={{ _dark: { color: '$textDark800' } }}
-          />
-        </StyledExpoRouterLink>
+        <Icon
+          as={ChevronLeftIcon}
+          color="$textLight800"
+          m="$0" w="$10" h="$16"
+          sx={{ _dark: { color: '$textDark800' } }}
+        />
+      </StyledExpoRouterLink>
       <VStack
         sx={{
           '$md': { flexDirection: 'row' },
@@ -180,12 +211,12 @@ export default function ForgotPassword() {
       >
         <Box sx={{ '$md': { display: 'none' } }}>
           <HStack space="$md" alignItems="center" justifyContent="center">
-          <Image
-            alt="logo"
-            source={Logo}
-            style={{ width: 150, height: 150 }}
-          />
-        </HStack>
+            <Image
+              alt="logo"
+              source={Logo}
+              style={{ width: 150, height: 150 }}
+            />
+          </HStack>
         </Box>
         <Box sx={{ '$md': { display: 'flex' } }} display="none" flex={1}>
           <SideContainerWeb />
@@ -212,10 +243,12 @@ export default function ForgotPassword() {
           >
             <Heading
               fontSize="$2xl"
-              textAlign="center"
+              textAlign="$left"
+              alignSelf="$left"
+              my="$4"
               sx={{
                 '$md': {
-                  textAlign: 'left',
+                  textAlign: '$left',
                   fontSize: '$2xl',
                 },
               }}
@@ -223,9 +256,9 @@ export default function ForgotPassword() {
               Forgot Password?
             </Heading>
             <Text
-              fontSize="$sm"
-              fontWeight="normal"
-              textAlign="center"
+              fontSize="$16"
+              fontWeight="$light"
+              textAlign="$left"
               sx={{
                 '$md': {
                   textAlign: 'left',
@@ -242,9 +275,9 @@ export default function ForgotPassword() {
             isInvalid={(!!errors.email || isEmailFocused) && !!errors.email}
             isRequired={true}
           >
-             <FormControlLabel mb="$1">
-      <FormControlLabelText>Email</FormControlLabelText>
-    </FormControlLabel>
+            <FormControlLabel mb="$1">
+              <FormControlLabelText>Email</FormControlLabelText>
+            </FormControlLabel>
             <Controller
               defaultValue=""
               name="email"
@@ -262,9 +295,10 @@ export default function ForgotPassword() {
                 },
               }}
               render={({ field: { onChange, onBlur, value } }) => (
-                <Input  mt="$5"  backgroundColor="#f2f2f2" borderRadius="$full">
+                <Input mt="$1" backgroundColor="#f2f2f2" borderRadius="$12" borderColor="#f2f2f2" h="$12">
                   <InputField
-                    fontSize="$sm"
+                    fontSize="$md"
+                    h="50"
                     placeholder="Email"
                     type="text"
                     value={value}
@@ -283,17 +317,11 @@ export default function ForgotPassword() {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
-          
-          <Button
-  variant="solid"
-  size="lg"
-  mt="$12"
-  onPress={handleSubmit(onSubmit)}
-  borderRadius="$full"
-  bg="cyan"
->
-  <ButtonText color="white" fontSize="sm">Send OTP</ButtonText>
-</Button>
+
+          <GradientButton
+            onPress={handleSubmit(onSubmit)}
+            text="Send OTP"
+          />
         </Box>
       </VStack>
     </GuestLayout>

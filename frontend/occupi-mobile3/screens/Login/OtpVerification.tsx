@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   VStack,
   Box,
@@ -22,14 +23,14 @@ import {
   Heading,
 } from '@gluestack-ui/themed';
 import Logo from './assets/images/Occupi/file.png';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 import GuestLayout from '../../layouts/GuestLayout';
 import { z } from 'zod';
 import { AlertTriangle } from 'lucide-react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as MailComposer from 'expo-mail-composer';
 import * as Random from 'expo-random';
 import * as SecureStore from 'expo-secure-store';
@@ -41,7 +42,6 @@ const OTPSchema = z.object({
 type OTPSchemaType = z.infer<typeof OTPSchema>;
 
 const OTPVerification = () => {
-  const router = useRouter();
   const [email, setemail] = useState('kamo@gmail.com');
 
   const [otp, setOtp] = useState('');
@@ -123,7 +123,6 @@ const OTPVerification = () => {
     const pinValues = refList.map((ref) => ref?.current?.value);
     const pin = pinValues.join('');
     const Count = otpInput.filter((value) => value !== '').length;
-
     if (Count < 6) {
       setValidationError('OTP must be at least 6 characters in length');
       return;
@@ -139,11 +138,44 @@ const OTPVerification = () => {
         </Toast>
       ),
     });
-
     reset();
+    router.push('/home');
   };
 
+  // const handleverify = async () => {
+  //   router.push('/home');
+  // }
+
+  const GradientButton = ({ onPress, text }) => (
+    <LinearGradient
+    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+    locations={[0.02, 0.31, 0.67, 0.97]}
+    start={[0, 1]}
+    end={[1, 0]}
+      style={styles.buttonContainer}
+    >
+      <Heading style={styles.buttonText} onPress={onPress}>
+        {text}
+      </Heading>
+    </LinearGradient>
+  );
   
+  const styles = StyleSheet.create({
+    buttonContainer: {
+      borderRadius: 15,
+      marginTop: 20,
+      alignSelf: 'center',
+      width: 360,
+      height: 50
+    },
+    buttonText: {
+      color: 'black',
+      fontSize: 16,
+      textAlign: 'center',
+      lineHeight: 50,
+    }
+  });
+
 
   return (
     <GuestLayout>
@@ -196,22 +228,11 @@ const OTPVerification = () => {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
-          <Text fontSize="$md">{remainingTime} seconds remaining</Text>
-          <Button
-            variant="solid"
-            size="lg"
-            mt="$5"
-            onPress={handleSubmit(onSubmit)}
-            borderRadius="$full"
-            bg="#7FFF00"
-            action="primary"
-            isDisabled={false}
-            isFocusVisible={false}
-          >
-            <ButtonText color="white" fontSize="$sm">
-              Verify
-            </ButtonText>
-          </Button>
+          <Text fontSize="$md" mb="$40">{remainingTime} seconds remaining</Text>
+            <GradientButton
+              onPress={handleSubmit(onSubmit)}
+              text="Verify"
+            />
         </VStack>
         <AccountLink />
       </Box>
@@ -235,16 +256,17 @@ function PinInput({
   otpInput,
 }: PinInputProps) {
   return (
-    <HStack space="">
+    <HStack>
       {Array.from({ length: 6 }, (_, index) => (
         <Input
-          ml="$1.5"
+          ml="$2"
           key={index}
           variant="outline"
           w={50}
-          size="md"
+          h={50}
           mt="$5"
           backgroundColor="#f2f2f2"
+          borderColor="#f2f2f2"
           borderRadius="$2xl"
         >
           <InputField
@@ -298,11 +320,12 @@ function MainText({ email }: { email: string }) {
 
   return (
     <VStack space="xs">
-      <HStack space="md" alignItems="center" justifyContent="center">
+      <HStack space="md" alignItems="center" justifyContent="center" m="$12">
         <Image source={Logo} alt="occupi" style={{ width: 110, height: 110 }} />
       </HStack>
       <Heading
         fontSize="$2xl"
+        fontWeight="$bold"
         color="black"
         sx={{
           '@md': { fontSize: '$2xl', pb: '$4' },
@@ -312,8 +335,8 @@ function MainText({ email }: { email: string }) {
       </Heading>
       <HStack space="sm" alignItems="center">
         <Text
-          color="$textLight400"
-          mt="$5"
+          color="$black"
+          mt="$2"
           sx={{
             '@md': {
               pb: '$12',
@@ -322,18 +345,20 @@ function MainText({ email }: { email: string }) {
               color: '$textDark400',
             },
           }}
-          fontSize="$md"
+          fontSize="$20"
+          fontWeight="$light"
         >
           We have sent the OTP code to
           <Text
             fontWeight="$bold"
-            color="$textLight400"
+            color="$black"
             sx={{
               _dark: {
                 color: '$textDark400',
               },
             }}
-            fontSize="$sm"
+            fontSize="$20"
+          fontWeight="$light"
           >
             {' ' + email}
           </Text>
@@ -358,6 +383,7 @@ function AccountLink() {
     >
       <Text
         color="$textLight800"
+        mt="$4"
         sx={{
           _dark: {
             color: '$textDark400',
@@ -367,7 +393,7 @@ function AccountLink() {
       >
         Already have an account?
       </Text>
-      <StyledExpoRouterLink href="/login">
+      <StyledExpoRouterLink href="/login"  mt="$4">
         <LinkText color="#7FFF00" fontSize="$sm">
           Login
         </LinkText>

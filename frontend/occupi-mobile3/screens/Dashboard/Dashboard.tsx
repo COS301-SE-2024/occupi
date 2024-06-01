@@ -1,5 +1,6 @@
 import React from 'react'
 import { StatusBar } from 'expo-status-bar';
+import Navbar from "../../components/NavBar"
 import { 
     StyleSheet, 
     Text, 
@@ -45,7 +46,9 @@ const Dashboard = () => {
                     p="$10"
                     source={require('./assets/graph.png')}
                     style={{ width: "full", height: 260, flexDirection: 'column' }}
-                />       
+                />  
+
+            {/* <Navbar/>      */}
         </View>
           
     )
