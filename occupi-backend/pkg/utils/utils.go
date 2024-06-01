@@ -145,6 +145,12 @@ func ValidatePassword(password string) bool {
 	return true
 }
 
+func ValidateOTP(otp string) bool {
+	// Regex pattern for otp validation
+	var otpRegex = regexp.MustCompile(`^[0-9]{6}$`)
+	return otpRegex.MatchString(otp)
+}
+
 func Argon2IDHash(password string) (string, error) {
 	// CreateHash returns a Argon2id hash of a plain-text password using the
 	// provided algorithm parameters. The returned hash follows the format used
@@ -157,10 +163,10 @@ func Argon2IDHash(password string) (string, error) {
 	return hash, nil
 }
 
-func CompareArgon2IDHash(password string) (bool, error) {
+func CompareArgon2IDHash(password string, hashedPassword string) (bool, error) {
 	// ComparePasswordAndHash compares a plain-text password with a Argon2id hash and returns true if the
 	// password and hash match, otherwise it returns false.
-	match, err := argon2id.ComparePasswordAndHash(password, password)
+	match, err := argon2id.ComparePasswordAndHash(password, hashedPassword)
 	if err != nil {
 		return false, err
 	}

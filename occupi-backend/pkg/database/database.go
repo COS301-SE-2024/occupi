@@ -175,11 +175,40 @@ func VerifyUser(ctx *gin.Context, db *mongo.Client, email string) (bool, error) 
 	// Verify the user in the database and set next date to verify to 90 days from now
 	collection := db.Database("Occupi").Collection("Users")
 	filter := bson.M{"email": email}
-	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 90)}}
+	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30)}}
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
 		return false, err
 	}
 	return true, nil
+}
+
+func GetPassword(ctx *gin.Context, db *mongo.Client, email string) (string, error) {
+	// Get the password from the database
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	return user.Password, nil
+}
+
+func CheckIfNextVerificationDateIsDue(ctx *gin.Context, db *mongo.Client, email string) bool {
+	// Check if the next verification date is due
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+	if time.Now().After(user.NextVerificationDate) {
+		return true
+	}
+	return false
 }
