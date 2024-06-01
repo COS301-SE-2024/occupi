@@ -43,7 +43,7 @@ func FetchResourceAuth(ctx *gin.Context, appsession *models.AppSession) {
 
 // BookRoom handles booking a room and sends a confirmation email
 func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
-	// consider structuring api respones to match that as outlined in our coding standards documentation
+	// consider structuring api responses to match that as outlined in our coding standards documentation
 	//link: https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards#response-and-error-handling
 
 	var booking models.Booking
@@ -64,13 +64,13 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Prepare the email content
 	subject := "Booking Confirmation - Occupi"
-	body := mail.FormatBookingEmailBody(booking.BookingId, booking.RoomId, booking.Slot)
+	body := mail.FormatBookingEmailBody(booking.BookingID, booking.RoomID, booking.Slot)
 
 	// Send the confirmation email concurrently to all recipients
 	emailErrors := utils.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
 
 	if len(emailErrors) > 0 {
-		//avoid letting the user know which emails failed
+		// avoid letting the user know which emails failed
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send confirmation emails to some addresses"})
 		return
 	}
@@ -79,7 +79,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 // CheckIn handles the check-in process for a booking
 func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
-	// consider structuring api respones to match that as outlined in our coding standards documentation
+	// consider structuring api responses to match that as outlined in our coding standards documentation
 	//link: https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards#response-and-error-handling
 
 	var request models.CheckIn
@@ -98,17 +98,17 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Print the emailFilter for debugging
-	fmt.Printf("Email Filter: %+v\n", emailFilter) //it would be better if you used a logger here, logrus is already setup, dont print
+	fmt.Printf("Email Filter: %+v\n", emailFilter) // it would be better if you used a logger here, logrus is already setup, dont print
 
 	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
-		"bookingId": request.BookingId,
-		"roomId":    request.RoomId,
+		"bookingId": request.BookingID,
+		"roomId":    request.RoomID,
 		"$or":       emailFilter,
 	}
 
 	// Print the filter for debugging
-	fmt.Printf("Filter: %+v\n", filter) //it would be better if you used a logger here, logrus is already setup, dont print
+	fmt.Printf("Filter: %+v\n", filter) // it would be better if you used a logger here, logrus is already setup, dont print
 
 	// Find the booking
 	var booking models.Booking
@@ -124,7 +124,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	/**This section of code needs to be reviewed, can't make it to prod**/
 	// Print the emails for debugging
 	for key, email := range booking.Emails {
-		fmt.Printf("Email %s: %s\n", key, email) //it would be better if you used a logger here, logrus is already setup, dont print
+		fmt.Printf("Email %s: %s\n", key, email) // it would be better if you used a logger here, logrus is already setup, dont print
 	}
 	/**This section of code needs to be reviewed**/
 

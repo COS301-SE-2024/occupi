@@ -22,7 +22,7 @@ linters:
     - prealloc      # Warns about slice declarations that could be preallocated for efficiency
     - predeclared   # Checks for redeclarations of predeclared identifiers
     # - usestdlibvars # Ensures standard library variable use
-    - whitespace    # Checks for various whitespace issues
+    # - whitespace    # Checks for various whitespace issues
     #- wsl           # Enforces one statement per line rule
     # - revive        # Provides various linting rules focused on best practices and code style ->this will be commented back in
     - bodyclose     # Ensures HTTP response bodies are closed

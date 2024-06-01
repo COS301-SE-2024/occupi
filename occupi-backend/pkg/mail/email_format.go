@@ -1,16 +1,16 @@
 package mail
 
-import "fmt"
+import "strconv"
 
-func FormatBookingEmailBody(BookingId int, RoomId string, Slot int) string {
+func FormatBookingEmailBody(bookingID int, roomID string, slot int) string {
 	return `
 		Dear User,
 
 		Thank you for booking with Occupi. Here are your booking details:
 
-		Booking ID: ` + fmt.Sprint(BookingId) + `
-		Room ID: ` + RoomId + `
-		Slot: ` + fmt.Sprint(Slot) + `
+		Booking ID: ` + strconv.Itoa(bookingID) + `
+		Room ID: ` + roomID + `
+		Slot: ` + strconv.Itoa(slot) + `
 
 		If you have any questions, feel free to contact us.
 
