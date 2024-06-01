@@ -3,30 +3,37 @@ import SideNav from "../../Components/sideNavComponent/SideNav";
 import TabComponent from "../../Components/tabComponent/TabComponent";
 import SearchBar from "../../Components/searchBarComponent/SearchBar";
 import GraphContainer from "../../Components/graphContainer/GraphContainer";
-
+import TopNav from "../../Components/topNav/TopNav";
 const LandingPage = () => {
   return (
-    <div className="flex">
+    <div className="fixed w-full">
+      {/* Top Navigation */}
+      <TopNav />
       {/* Sidebar */}
       <SideNav />
 
       {/* Main Content */}
-      <div className="flex flex-col w-full">
-        {/* GraphContainer (Right side with space) */}
-    
-
-        {/* TabComponent (Left of Sidebar on large screens, below on small screens) */}
-        <div className="lg:ml-64 w-full lg:w-auto">
-          <TabComponent />
+      <div className="overflow-y-auto max-h-[calc(100vh-0rem)] overflow-x-auto max-w-[calc(100vh- -5rem)] ">
+        {" "}
+        {/* Adjust the max height as needed */}
+        <div className="flex flex-row gap-16 ml-64 mt-10">
+          {" "}
+          {/* Added gap-4 for spacing between containers */}
+          <div className="-ml-4 mt-10">
+            <GraphContainer />
+          </div>
+          <div className="mt-10">
+            <GraphContainer />
+          </div>
+          {/* <div>
+      <GraphContainer />
+    </div> */}
         </div>
-
-        {/* SearchBar (Top Right Corner) */}
-        <div className="lg:ml-auto mb-4 lg:mb-4">
-          <SearchBar />
+        <div className="flex flex-row gap-16 ml-60 mt-10">
+          <GraphContainer width="500px" height="400px" />
         </div>
-
-        <div className="ml-auto mr-6">
-          <GraphContainer />
+        <div className=" ml-60 mt-10  ">
+          <GraphContainer width="500px" height="400px" />
         </div>
       </div>
     </div>
