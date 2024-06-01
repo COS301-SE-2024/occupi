@@ -1,5 +1,5 @@
 import React from 'react';
-import SideNav from "./Components/sideNavComponent//SideNav";
+import SideNav from "../components/sideNavComponent/SideNav";
 
 type Props = {
   children: React.ReactNode

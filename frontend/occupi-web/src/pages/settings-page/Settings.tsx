@@ -1,9 +1,9 @@
 import React from "react";
-import SideNav from "@/Components/sideNavComponent/SideNav";
-import TopNav from "@/Components/topNav/TopNav";
-import TabComponent from "@/Components/tabComponent/TabComponent";
-import SearchBar from "@/Components/searchBarComponent/SearchBar";
-import DrawerComponent from "@/Components/drawerComponent/DrawerComponent";
+import SideNav from "../../components/sideNavComponent/SideNav";
+import TopNav from "../../components/topNav/TopNav";
+import TabComponent from "../../components/tabComponent/TabComponent";
+import SearchBar from "../../components/searchBarComponent/SearchBar";
+import DrawerComponent from "../../components/drawerComponent/DrawerComponent";
 const Settings = () => {
   return (
     <div>
