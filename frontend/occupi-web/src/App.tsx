@@ -1,4 +1,3 @@
-import './App.css'
 import LoginForm from './pages/Login/LoginForm'
 import OtpPage from './pages/otp-page/OtpPage'
 import SideNav from './Components/sideNavComponent/SideNav'
