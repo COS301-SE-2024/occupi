@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//define configs in this file
+// define configs in this file
 
 // gets the port to start the server on as defined in the .env file
 func GetPort() string {
@@ -79,9 +79,9 @@ func GetSystemEmail() string {
 	return email
 }
 
-// GetSmtpPort retrieves the SMTP port from the environment and converts it to an integer.
+// GetSMTPPort retrieves the SMTP port from the environment and converts it to an integer.
 // If the environment variable is not set, it returns the default port 587.
-func GetSmtpPort() int {
+func GetSMTPPort() int {
 	port := os.Getenv("SMTP_PORT")
 	if port == "" {
 		return 587
@@ -96,7 +96,7 @@ func GetSmtpPort() int {
 }
 
 // gets the smtp password as defined in the .env file
-func GetSmtpPassword() string {
+func GetSMTPPassword() string {
 	password := os.Getenv("SMTP_PASSWORD")
 	if password == "" {
 		password = ""
@@ -105,7 +105,7 @@ func GetSmtpPassword() string {
 }
 
 // gets the smtp host as defined in the .env file
-func GetSmtpHost() string {
+func GetSMTPHost() string {
 	host := os.Getenv("SMTP_HOST")
 	if host == "" {
 		host = "smtp.gmail.com"
@@ -146,9 +146,8 @@ func GetTrustedProxies() []string {
 	if trustedProxies != "" {
 		proxyList := strings.Split(trustedProxies, ",")
 		return proxyList
-	} else {
-		return []string{""}
 	}
+	return []string{""}
 }
 
 func GetAuth0Domain() string {

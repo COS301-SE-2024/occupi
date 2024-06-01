@@ -22,13 +22,13 @@ func ConnectToDatabase() *mongo.Client {
 	password := configs.GetMongoDBPassword()
 	clusterURI := configs.GetMongoDBCLUSTERURI()
 	dbName := configs.GetMongoDBName()
-	mongoDbStartURI := configs.GetMongoDBStartURI()
+	mongoDBStartURI := configs.GetMongoDBStartURI()
 
 	// Escape the special characters in the password
 	escapedPassword := url.QueryEscape(password)
 
 	// Construct the connection URI
-	uri := fmt.Sprintf("%s://%s:%s@%s/%s", mongoDbStartURI, username, escapedPassword, clusterURI, dbName)
+	uri := fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)

@@ -19,10 +19,10 @@ if "%1 %2" == "run dev" (
 ) else if "%1 %2" == "docker up" (
     docker-compose up
     exit /b 0
-) else if "%1 %2" == "test" (
+) else if "%1" == "test" (
     go test ./tests/...
     exit /b 0
-) else if "%1 %2" == "lint" (
+) else if "%1" == "lint" (
     golangci-lint run
     exit /b 0
 ) else if "%1" == "help" (

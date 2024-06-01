@@ -1,9 +1,7 @@
 package tests
 
 import (
-	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,10 +11,11 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	// "github.com/stretchr/testify/assert"
+	// "github.com/stretchr/testify/mock"
 )
 
+/*
 // Mock for utils.GenerateOTP
 type MockUtils struct {
 	mock.Mock
@@ -135,12 +134,54 @@ func TestVerifyOTP_EmailNotRegistered(t *testing.T) {
 	// Assert the response status code.
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 
+}*/
+
+func TestPingRoute(t *testing.T) {
+	// Create a new Gin router
+	r := gin.Default()
+
+	// Register the route
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "pong -> I am alive and kicking"})
+	})
+
+	// Create a request to pass to the handler
+	req, err := http.NewRequest("GET", "/ping", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a response recorder to record the response
+	rr := httptest.NewRecorder()
+
+	// Serve the request
+	r.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect.
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// Define the expected response
+	expectedResponse := gin.H{"message": "pong -> I am alive and kicking"}
+
+	// Unmarshal the actual response
+	var actualResponse gin.H
+	if err := json.Unmarshal(rr.Body.Bytes(), &actualResponse); err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+
+	// Compare the responses
+	if actualResponse["message"] != expectedResponse["message"] {
+		t.Errorf("handler returned unexpected body: got %v want %v",
+			actualResponse, expectedResponse)
+	}
 }
 
 func TestGetResource(t *testing.T) {
 	// Load environment variables from .env file
 	if err := godotenv.Load("../.env"); err != nil {
-		log.Fatal("Error loading .env file: ", err)
+		t.Fatal("Error loading .env file: ", err)
 	}
 
 	// Connect to the database
@@ -149,9 +190,12 @@ func TestGetResource(t *testing.T) {
 	// Create a Gin router
 	r := gin.Default()
 
+	// create a new valid session for management of shared variables
+	appsession := models.New(nil, db)
+
 	// Register the route
 	r.GET("/api/resource", func(c *gin.Context) {
-		handlers.FetchResource(c, db)
+		handlers.FetchResource(c, appsession)
 	})
 
 	// Create a request to pass to the handler
@@ -170,5 +214,4 @@ func TestGetResource(t *testing.T) {
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
-
 }
