@@ -41,15 +41,12 @@ import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard } from 'react-native';
-
+import { Keyboard, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
-
 import GuestLayout from '../../layouts/GuestLayout';
-
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
-
 import { styled } from '@gluestack-style/react';
 
 const StyledImage = styled(Image, {
@@ -174,6 +171,36 @@ const SignUpForm = () => {
     });
   };
 
+  const GradientButton = ({ onPress, text }) => (
+    <LinearGradient
+    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+    locations={[0.02, 0.31, 0.67, 0.97]}
+    start={[0, 1]}
+    end={[1, 0]}
+      style={styles.buttonContainer}
+    >
+      <Heading style={styles.buttonText} onPress={onPress}>
+        {text}
+      </Heading>
+    </LinearGradient>
+  );
+  
+  const styles = StyleSheet.create({
+    buttonContainer: {
+      borderRadius: 15,
+      marginTop: 20,
+      alignSelf: 'center',
+      width: 360,
+      height: 50
+    },
+    buttonText: {
+      color: 'black',
+      fontSize: 16,
+      textAlign: 'center',
+      lineHeight: 50,
+    }
+  });
+
   return (
     <>
       <VStack justifyContent="space-between">
@@ -182,7 +209,7 @@ const SignUpForm = () => {
           isRequired={true}
         >
           <FormControlLabel mb="$1">
-            <FormControlLabelText>Deloitte Email Address</FormControlLabelText>
+            <FormControlLabelText fontWeight="$normal">Deloitte Email Address</FormControlLabelText>
           </FormControlLabel>
           <Controller
             name="email"
@@ -199,7 +226,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input   borderRadius="$full" backgroundColor="#f2f2f2" backgroundColor="#f2f2f2" >
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12" >
                 <InputField
                   placeholder="Email"
                   fontSize="$sm"
@@ -222,53 +249,53 @@ const SignUpForm = () => {
         </FormControl>
 
         <FormControl
-  isInvalid={(!!errors.employeeId || isEmployeeIdFocused) && !!errors.employeeId}
-  isRequired={true}
->
-  <FormControlLabel mb="$1" my="$6">
-    <FormControlLabelText>Employee ID</FormControlLabelText>
-  </FormControlLabel>
-  <Controller
-    name="employeeId"
-    defaultValue=""
-    control={control}
-    rules={{
-      validate: async (value) => {
-        try {
-          await signUpSchema.parseAsync({ employeeId: value });
-          return true;
-        } catch (error) {
-          return error.message;
-        }
-      },
-    }}
-    render={({ field: { onChange, onBlur, value } }) => (
-      <Input   borderRadius="$full" backgroundColor="#f2f2f2">
-        <InputField
-          placeholder="Employee ID"
-          fontSize="$sm"
-          type="number"
-          value={value}
-          onChangeText={onChange}
-          onBlur={onBlur}
-          onSubmitEditing={handleKeyPress}
-          returnKeyType="done"
-        />
-      </Input>
-    )}
-  />
-  <FormControlError>
-    <FormControlErrorIcon size="md" as={AlertTriangle} />
-    <FormControlErrorText>
-      {errors?.employeeId?.message}
-    </FormControlErrorText>
-  </FormControlError>
+          isInvalid={(!!errors.employeeId || isEmployeeIdFocused) && !!errors.employeeId}
+          isRequired={true}
+          mt="$4"
+        >
+          <FormControlLabel mb="$1">
+            <FormControlLabelText fontWeight="$normal">Employee ID</FormControlLabelText>
+          </FormControlLabel>
+          <Controller
+            name="employeeId"
+            defaultValue=""
+            control={control}
+            rules={{
+              validate: async (value) => {
+                try {
+                  await signUpSchema.parseAsync({ employeeId: value });
+                  return true;
+                } catch (error) {
+                  return error.message;
+                }
+              },
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
+                <InputField
+                  placeholder="Employee ID"
+                  fontSize="$sm"
+                  type="number"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  onSubmitEditing={handleKeyPress}
+                  returnKeyType="done"
+                />
+              </Input>
+            )}
+          />
+          <FormControlError>
+            <FormControlErrorIcon size="md" as={AlertTriangle} />
+            <FormControlErrorText>
+              {errors?.employeeId?.message}
+            </FormControlErrorText>
+          </FormControlError>
+        </FormControl>
 
-
-</FormControl>
-        <FormControl isInvalid={!!errors.password} isRequired={true} my="$6">
-        <FormControlLabel mb="$1">
-            <FormControlLabelText>Password</FormControlLabelText>
+        <FormControl isInvalid={!!errors.password} isRequired={true} mt="$4">
+          <FormControlLabel mb="$1">
+            <FormControlLabelText fontWeight="$normal">Password</FormControlLabelText>
           </FormControlLabel>
           <Controller
             defaultValue=""
@@ -287,7 +314,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input   borderRadius="$full" backgroundColor="#f2f2f2">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
                 <InputField
                   fontSize="$sm"
                   placeholder="Password"
@@ -312,9 +339,9 @@ const SignUpForm = () => {
           </FormControlError>
         </FormControl>
 
-        <FormControl isInvalid={!!errors.confirmpassword} isRequired={true}>
-        <FormControlLabel mb="$1">
-            <FormControlLabelText>Confirm Password</FormControlLabelText>
+        <FormControl isInvalid={!!errors.confirmpassword} isRequired={true} mt="$4">
+          <FormControlLabel mb="$1">
+            <FormControlLabelText fontWeight="$normal">Confirm Password</FormControlLabelText>
           </FormControlLabel>
           <Controller
             defaultValue=""
@@ -334,7 +361,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input   borderRadius="$full" backgroundColor="#f2f2f2">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
                 <InputField
                   placeholder="Confirm Password"
                   fontSize="$sm"
@@ -367,14 +394,15 @@ const SignUpForm = () => {
           <Checkbox
             aria-label="termsofuse"
             size="sm"
-            value="Remember me"
+            value="privacy"
             isChecked={value}
             onChange={onChange}
             alignSelf="flex-start"
-            mt="$5"
+            mt="$2"
+            mb="$12"
           >
             <CheckboxIndicator mr="$2">
-              <CheckboxIcon as={CheckIcon} />
+              <CheckboxIcon color="yellowgreen" as={CheckIcon} />
             </CheckboxIndicator>
             <CheckboxLabel
               sx={{
@@ -394,7 +422,7 @@ const SignUpForm = () => {
                       marginTop: '$0.5',
                     },
                   }}
-                  color="cyan"
+                  color="yellowgreen"
                 >
                   Terms of Use
                 </LinkText>
@@ -410,7 +438,7 @@ const SignUpForm = () => {
                       marginTop: '$0.5',
                     },
                   }}
-                  color="cyan"
+                  color="yellowgreen"
                 >
                   Privacy Policy
                 </LinkText>
@@ -419,16 +447,11 @@ const SignUpForm = () => {
           </Checkbox>
         )}
       />
-      <Button
-  variant="solid"
-  size="lg"
-  mt="$12"
-  onPress={handleSubmit(onSubmit)}
-  borderRadius="$full"
-  bg="cyan"
->
-  <ButtonText color="white" fontSize="$sm">Signup</ButtonText>
-</Button>
+
+      <GradientButton
+        onPress={handleSubmit(onSubmit)}
+        text="Signup"
+      />
     </>
   );
 };
@@ -446,9 +469,9 @@ function SignUpFormComponent() {
       </Box>
 
       <Box
-    
+
         px="$4"
-        
+
         sx={{
           '@md': {
             px: '$8',
@@ -458,59 +481,43 @@ function SignUpFormComponent() {
           },
           '_dark': { bg: '$backgroundDark800' },
         }}
-        py="$8"
+        py="$4"
         flex={1}
         bg="$backgroundLight0"
         justifyContent="space-between"
       >
-      <VStack  px="$3" mt="$8"  space="md">
-       
-        <HStack space="md" alignItems="center" justifyContent="center">
-          <Image
-            alt="logo"
-            source={Logo}
-            style={{ width: 150, height: 150 }}
-          />
-        </HStack>
-        <VStack space="xs" mt="$4" ml="$1" my="$5">
-          <Heading
-            color="$textLight800"
-            sx={{ _dark: { color: '$textDark800' } }}
-            size="xl"
-          >
-            Register for Occupi.
-          </Heading>
-          <Text color="$textLight400"
-          size="xl"
-           sx={{ _dark: { color: '$textDark800' } }}>
-            Predict. Plan. Perfect.
-          </Text>
+        <VStack mb="$5" space="md">
+
+          <HStack alignItems="center" justifyContent="center">
+            <Image
+              alt="Occupi Logo"
+              source={Logo}
+              style={{ width: 100, height: 100 }}
+            />
+          </HStack>
+          <VStack space="xs" mb="$2">
+            <Heading
+              color="$textLight800"
+              sx={{ _dark: { color: '$textDark800' } }}
+              size="xl"
+            >
+              Register for Occupi.
+            </Heading>
+            <Text color="$black"
+              fontSize="$2xl"
+              fontWeight="$100"
+              sx={{ _dark: { color: '$textDark800' } }}>
+              Predict. Plan. Perfect.
+            </Text>
+          </VStack>
         </VStack>
-      </VStack>
-      
+
         <SignUpForm />
-
-        
-        <HStack
-          sx={{
-            '@md': {
-              mt: '$4',
-            },
-          }}
-          mt="$6"
-          mb="$4"
-          alignItems="center"
-          justifyContent="center"
-          space="lg"
-        >
-          
-        </HStack>
-
         <HStack
           space="xs"
           alignItems="center"
           justifyContent="center"
-          mt="auto"
+          mt="$5"
         >
           <Text
             color="$textLight500"
@@ -525,7 +532,7 @@ function SignUpFormComponent() {
           </Text>
 
           <StyledExpoRouterLink href="/login">
-            <LinkText color="cyan" fontSize="$sm">Login</LinkText>
+            <LinkText color="yellowgreen" fontSize="$sm">Login</LinkText>
           </StyledExpoRouterLink>
         </HStack>
       </Box>
@@ -536,7 +543,7 @@ function SignUpFormComponent() {
 export default function SignUp() {
   return (
     <GuestLayout>
-      <Box
+    <Box
         sx={{
           '@md': {
             display: 'flex',

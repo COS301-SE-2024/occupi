@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { LinearGradient } from '@gluestack-ui/themed';
-import { SafeAreaView } from 'react-native';
-import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Center,
   Button,
@@ -120,15 +119,45 @@ const SignInForm = () => {
     });
   };
 
+  const GradientButton = ({ onPress, text }) => (
+    <LinearGradient
+    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+    locations={[0.02, 0.31, 0.67, 0.97]}
+    start={[0, 1]}
+    end={[1, 0]}
+      style={styles.buttonContainer}
+    >
+      <Heading style={styles.buttonText} onPress={onPress}>
+        {text}
+      </Heading>
+    </LinearGradient>
+  );
+  
+  const styles = StyleSheet.create({
+    buttonContainer: {
+      borderRadius: 15,
+      marginTop: 20,
+      alignSelf: 'center',
+      width: 360,
+      height: 50
+    },
+    buttonText: {
+      color: 'black',
+      fontSize: 16,
+      textAlign: 'center',
+      lineHeight: 50,
+    }
+  });
+
   return (
     <>
-      <VStack justifyContent="space-between" >
+      <VStack justifyContent="space-between">
         <FormControl
           isInvalid={(!!errors.email || isEmailFocused) && !!errors.email}
           isRequired={true}
         >
-          <FormControlLabel mb="$1">
-            <FormControlLabelText>Email</FormControlLabelText>
+          <FormControlLabel>
+            <FormControlLabelText fontWeight="$normal">Deloitte Email Address</FormControlLabelText>
           </FormControlLabel>
           <Controller
             name="email"
@@ -145,9 +174,9 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input mt="$5" backgroundColor="#f2f2f2" borderRadius="$full">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
                 <InputField
-                  fontSize="$sm"
+                  fontSize="$md"
                   placeholder="john.doe@gmail.com"
                   type="text"
                   value={value}
@@ -170,9 +199,9 @@ const SignInForm = () => {
           </FormControlError>
         </FormControl>
 
-        <FormControl my="$6" isInvalid={!!errors.password} isRequired={true}>
+        <FormControl mt="$6" isInvalid={!!errors.password} isRequired={true}>
           <FormControlLabel mb="$1">
-            <FormControlLabelText>Password</FormControlLabelText>
+            <FormControlLabelText  fontWeight="$normal">Password</FormControlLabelText>
           </FormControlLabel>
           <Controller
             name="password"
@@ -191,7 +220,7 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input mt="$5" backgroundColor="#f2f2f2" borderRadius="$full">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
                 <InputField
                   fontSize="$sm"
                   placeholder="Enter your password"
@@ -221,9 +250,9 @@ const SignInForm = () => {
 
       <HStack
         alignItems="center"
-        mt="$4"
         justifyContent="space-between"
         space="$4"
+        mb="$10"
       >
         <Controller
           name="rememberme"
@@ -237,74 +266,34 @@ const SignInForm = () => {
               isChecked={value}
               onChange={onChange}
             >
-              <CheckboxLabel mr="$2">Remember me</CheckboxLabel>
               <CheckboxIndicator>
-                <CheckboxIcon as={CheckIcon} />
+                <CheckboxIcon as={CheckIcon} color="yellowgreen"/>
               </CheckboxIndicator>
+              <CheckboxLabel ml="$2" color="yellowgreen">Remember me</CheckboxLabel>
             </Checkbox>
           )}
         />
 
         <StyledExpoRouterLink href="/forgot-password">
-          <LinkText color="cyan" fontSize="$sm">
+          <LinkText color="yellowgreen" fontSize="$sm">
             Forgot Password?
           </LinkText>
         </StyledExpoRouterLink>
       </HStack>
 
-      <Button
-        variant="solid"
-        size="lg"
-        mt="$12"
+      <GradientButton
         onPress={handleSubmit(onSubmit)}
-        borderRadius="$full"
-        bg="cyan"
-      >
-        {/* <ButtonText color="white" fontSize="sm">Login</ButtonText> Adjust color value */}
-      </Button>
-
+        text="Login"
+      />
     </>
   );
 };
 
-function SideContainerWeb() {
-  return (
-    <Center
-      flex={1}
-      bg="$primary500"
-      sx={{
-        _dark: { bg: '$primary500' },
-      }}
-    >
-      <StyledImage
-        w="$80"
-        h="$10"
-        alt="gluestack-ui Pro"
-        resizeMode="contain"
-        source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
-      />
-    </Center>
-  );
-}
-
 const Main = () => {
   return (
     <>
-      {/* will remove later */}
-      <StyledExpoRouterLink bg="$backgroundLight0" href="..">
-        <Icon
-          as={ChevronLeftIcon}
-          color="$textLight800"
-          m="$0" w="$10" h="$16"
-          sx={{ _dark: { color: '$textDark800' } }}
-        />
-      </StyledExpoRouterLink>
-
-
       <Box
-
         px="$4"
-
         sx={{
           '@md': {
             px: '$8',
@@ -316,10 +305,10 @@ const Main = () => {
         }}
         py="$4"
         flex={1}
-        bg="$backgroundLight0"
-        justifyContent="space-between"
+        bg="$white"
+        justifyContent="$center"
       >
-        <VStack px="$3" mt="$2" space="md">
+        <VStack mt="$8"  mb="$5" space="md">
 
           <HStack space="md" alignItems="center" justifyContent="center">
             <Image
@@ -328,7 +317,7 @@ const Main = () => {
               style={{ width: 150, height: 150 }}
             />
           </HStack>
-          <VStack space="xs" mt="$4" ml="$1" my="$5">
+          <VStack space="xs" mt="$10" my="$5">
             <Heading
               color="$textLight800"
               sx={{ _dark: { color: '$textDark800' } }}
@@ -336,8 +325,9 @@ const Main = () => {
             >
               Welcome back to Occupi.
             </Heading>
-            <Text color="$textLight400"
-              size="xl"
+            <Text color="$black"
+              fontSize="$2xl"
+              fontWeight="$100"
               sx={{ _dark: { color: '$textDark800' } }}>
               Predict. Plan. Perfect.
             </Text>
@@ -351,17 +341,17 @@ const Main = () => {
           space="xs"
           alignItems="center"
           justifyContent="center"
-          mt="auto"
+          mt="$8"
         >
           <Text
-            color="$textLight500"
+            color="$black"
             fontSize="$sm"
             sx={{ _dark: { color: '$textDark400' } }}
           >
             New to Occupi?
           </Text>
           <StyledExpoRouterLink href="/signup">
-            <LinkText color="cyan" fontSize="$sm">Register</LinkText>
+            <LinkText color="yellowgreen" fontSize="$sm">Register</LinkText>
           </StyledExpoRouterLink>
         </HStack>
       </Box>
@@ -371,12 +361,10 @@ const Main = () => {
 
 const SignIn = () => {
   return (
-    <GuestLayout>
-      <Box display="none" sx={{ '@md': { display: 'flex' } }} flex={1}>
-        <SideContainerWeb />
-      </Box>
+    <>
       <Main />
-    </GuestLayout>
+    </>
+      
   );
 };
 

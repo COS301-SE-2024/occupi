@@ -20,12 +20,7 @@ export default function GuestLayout(props: GuestLayoutProps) {
             },
           }}
           height="100%"
-        >
-          <StatusBar
-            translucent
-            backgroundColor="transparent"
-            barStyle="light-content"
-          />
+        >    
           <ScrollView
             flex={1}
             contentContainerStyle={{
