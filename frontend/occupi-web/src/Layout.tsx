@@ -1,18 +1,16 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
 import SideNav from "./Components/sideNavComponent//SideNav";
 
-const Layout = () => {
-  return (
-    <div className="fixed w-full flex">
-      {/* Sidebar */}
-      <SideNav />
+type Props = {
+  children: React.ReactNode
+}
 
-      {/* Main Content */}
-      <div className="ml-60 w-full p-4">
-        <Outlet />
+const Layout = (props: Props) => {
+  return (
+      <div className="fixed w-full flex">
+        <SideNav />
+        {props.children}
       </div>
-    </div>
   );
 };
 

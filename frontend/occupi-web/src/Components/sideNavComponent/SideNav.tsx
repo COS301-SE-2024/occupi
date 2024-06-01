@@ -11,6 +11,7 @@ import {
 } from "react-icons/md";
 import Settings  from "../../pages/settings-page/Settings";
 import DrawerComponent from "../drawerComponent/DrawerComponent";
+import { NavLink } from 'react-router-dom';
 
 const SideNav: React.FC = () => {
   const [activeButton, setActiveButton] = useState("");
@@ -43,8 +44,8 @@ const SideNav: React.FC = () => {
           </div>
           <ul className="menu">
             <li className="mb-2">
-              <a
-                role="button"
+              <NavLink
+                to="/landing"
                 className={`btn text-[18px] ${
                   activeButton === "Dashboard"
                     ? "bg-black text-white"
@@ -54,7 +55,7 @@ const SideNav: React.FC = () => {
               >
                 <MdOutlineDashboard className="mr-3 text-xl" />
                 <span className="flex-grow text-left">Dashboard</span>
-              </a>
+              </NavLink>
             </li>
             <li className="mb-2">
               <a
@@ -128,8 +129,8 @@ const SideNav: React.FC = () => {
               </a>
             </li>
             <li className="mb-2">
-              <a
-                role="button"
+              <NavLink
+                to="/settings"
                 className={`btn text-[18px] ${
                   activeButton === "Settings"
                     ? "bg-black text-white"
@@ -139,7 +140,7 @@ const SideNav: React.FC = () => {
               >
                 <MdOutlineSettings className="mr-3 text-xl" />
                 <span className="flex-grow text-left">Settings</span>
-              </a>
+              </NavLink>
             </li>
             <li className="mb-2">
               <a

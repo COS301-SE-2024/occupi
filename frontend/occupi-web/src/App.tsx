@@ -12,37 +12,40 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 function App() {
 
   return (
-
-    
-    
-      <div>
-        {/* <Routers /> */}
-       {/* <LoginForm /> */}
-{/* <OtpComponent /> */}
-{/* <OtpPage /> */}
-{/* <SideNav /> */}
-{/* <LandingPage /> */}
-{/* <div className='ml-5'>
-
-</div> */}
-{/* <TabComponent /> */}
-
-{/* <SearchBar /> */}
-<Settings />
-
-{/* <Router>
+    <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<LandingPage />} />
-          <Route path="settings" element={<Settings />} />
+        <Route path="/" element={<LoginForm />} />
+        <Route path="/otp" element={<OtpPage />} />
+
+        <Route path="/*" element={
+          <Layout>
+          <Routes>
+            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </Layout>}>
         </Route>
       </Routes>
-    </Router> */}
-
-
-
-    </div>
+    </Router> 
   )
 }
 
 export default App
+
+
+/*
+ {/*<div>
+        {/* <Routers /> }
+       {/* <LoginForm /> }
+{/* <OtpComponent /> }
+{/* <OtpPage /> }
+{/* <SideNav /> /}
+{/* <LandingPage /> /}
+{/* <div className='ml-5'>
+
+</div> /}
+{/* <TabComponent /> /}
+
+{/* <SearchBar /> /}
+<Settings />/}
+*/
