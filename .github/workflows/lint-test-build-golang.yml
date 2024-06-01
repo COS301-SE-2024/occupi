@@ -3,6 +3,12 @@ name: Test and Build golang
 on:
   pull_request:
     branches: ["develop"]
+    paths: [
+      "occupi-backend/cmd/**",
+      "occupi-backend/configs/**",
+      "occupi-backend/pkg/**",
+      "occupi-backend/.golangci.yml"
+    ]
 
   workflow_dispatch:
 

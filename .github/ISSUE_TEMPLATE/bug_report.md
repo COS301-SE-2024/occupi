@@ -30,6 +30,7 @@ If applicable, add logs that you may have gathered as well.
  - Node version [e.g. 18, 20]
  - npm version [e.g. 10]
  - App version [e.g. 0.2.0(can usually be found in the <a href="">package.json</a> file, first line)]
+NB: The above is optional if it's applicable and as such may be removed if it's not useful
 
 **Additional context**
 Add any other context about the problem here.
