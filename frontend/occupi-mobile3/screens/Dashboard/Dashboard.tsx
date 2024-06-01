@@ -48,7 +48,7 @@ const Dashboard = () => {
                     style={{ width: "full", height: 260, flexDirection: 'column' }}
                 />  
 
-            {/* <Navbar/>      */}
+            <Navbar/>     
         </View>
           
     )
