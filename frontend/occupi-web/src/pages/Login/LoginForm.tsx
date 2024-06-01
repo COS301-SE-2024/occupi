@@ -6,6 +6,10 @@ import loginImage from "../../assets/login.png"; // adjust the path as necessary
 import { Checkbox } from "../../Components/ui/checkbox";
 import GradientButton from "../../Components/gradientButtonComponent/gradientButton";
 import LandingPage from "../landing-page/LandingPage";
+import routes from "../../Routers";
+import { Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 
 const LoginForm = (): JSX.Element => {
   const [email, setEmail] = useState("");
@@ -45,7 +49,7 @@ const LoginForm = (): JSX.Element => {
     if (valid) {
       // Handle form submission
       console.log("Form is valid. Submitting...");
-      window.location.href = '{LandingPage}'; // Redirect to landing page
+      window.location.href = '{/LandingPage}'; // Redirect to landing page
     }
   };
   const inputStyle = (hasError: boolean) => ({
@@ -64,6 +68,8 @@ const LoginForm = (): JSX.Element => {
     marginTop: "5px",
   };
 
+  
+
   return (
     <div className="box">
       <div className="group">
@@ -73,7 +79,7 @@ const LoginForm = (): JSX.Element => {
             alt="Frame"
             src="https://c.animaapp.com/Ac7JpPyQ/img/frame-6.svg"
           />
-          <div className="div">
+          <div className="div ">
             <div className="text-wrapper">Welcome back to Occupi.</div>
             <div className="text-wrapper-2">Predict. Plan. Perfect</div>
           </div>
@@ -107,24 +113,26 @@ const LoginForm = (): JSX.Element => {
               )}{" "}
             </div>
           </div>
-          <div className="overlap-4 justify-between ">
+          <div className="overlap-4 justify flex flex-col gap-4">
             <div className="group-4 flex items-center ">
               <div className="text-black mr-2 ">Remember me</div>
               <Checkbox id="rememberMeCheckbox" />
             </div>
             <div className="text-green-600 ">Forgot Password?</div>
+            
+            <GradientButton buttonText="Login"  />
+
+            <div className="flex items-center justify-center ">
+              <p className="mr-4">New to occupi?</p>
+              <div className="text-green-600">Learn more</div>{" "}
+            </div>
           </div>
           
-          <GradientButton buttonText="Login" containerClassName="mt-auto" />
-
-          <div className="flex items-center justify-center ">
-            <p className="mr-4">New to occupi?</p>
-            <div className="text-green-600">Learn more</div>{" "}
-          </div>
+          
         </form>
       </div>
       <div className="image-container">
-        <img className="image" src={loginImage} alt="welcomes" />
+        <img className="image w-[500px] h-[500px]" src={loginImage} alt="welcomes" />
       </div>
     </div>
   );
