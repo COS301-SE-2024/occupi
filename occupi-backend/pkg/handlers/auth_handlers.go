@@ -6,35 +6,16 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler struct to hold the authenticator,database client and the users.
-// We use dependency injection to avoid having global variables
-type Handler struct {
-	authenticator *authenticator.Authenticator
-	db            *mongo.Client
-	users         map[string]models.User
-}
-
-// NewHandler creates a new handler with the given authenticator and database client
-func NewHandler(authenticator *authenticator.Authenticator, db *mongo.Client) *Handler {
-	return &Handler{
-		authenticator: authenticator,
-		db:            db,
-		users:         make(map[string]models.User),
-	}
-}
-
 // handler for loggin a new user on occupi /auth/login
-func Login(c *gin.Context, authenticator *authenticator.Authenticator, db *mongo.Client) {
+func Login(c *gin.Context, appsession *models.AppSession) {
 	state, err := utils.GenerateRandomState()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
@@ -50,13 +31,12 @@ func Login(c *gin.Context, authenticator *authenticator.Authenticator, db *mongo
 		logrus.Error(err)
 		return
 	}
-
-	// redirect to the Auth0 login page
-	c.Redirect(http.StatusTemporaryRedirect, authenticator.AuthCodeURL(state))
+	//redirect to the Auth0 login page
+	c.Redirect(http.StatusTemporaryRedirect, appsession.Authenticator.AuthCodeURL(state))
 }
 
 // handler for registering a new user on occupi /auth/register
-func (h *Handler) Register(c *gin.Context, authenticator *authenticator.Authenticator, db *mongo.Client) {
+func Register(c *gin.Context, appsession *models.AppSession) {
 	var user models.User
 	if err := c.ShouldBindBodyWithJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
@@ -71,7 +51,7 @@ func (h *Handler) Register(c *gin.Context, authenticator *authenticator.Authenti
 
 	user.Token = otp
 	user.TokenTime = time.Now()
-	h.users[user.Email] = user
+	appsession.Users[user.Email] = user
 
 	subject := "Email Verification - Your One-Time Password (OTP)"
 	body := `
@@ -97,14 +77,14 @@ func (h *Handler) Register(c *gin.Context, authenticator *authenticator.Authenti
 }
 
 // handler for verifying a users otp /api/verify-otp
-func (h *Handler) VerifyOTP(c *gin.Context) {
+func VerifyOTP(c *gin.Context, appsession *models.AppSession) {
 	var userotp models.UserOTP
 	if err := c.ShouldBindBodyWithJSON(&userotp); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
 
-	user, exists := h.users[userotp.Email]
+	user, exists := appsession.Users[userotp.Email]
 	if !exists {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email not registered"})
 		return
@@ -124,8 +104,8 @@ func (h *Handler) VerifyOTP(c *gin.Context) {
 }
 
 // handler for logging out a user on occupi /auth/logout
-func Logout(c *gin.Context, authenticator *authenticator.Authenticator) {
-	logoutURL, err := url.Parse("https://" + configs.GetAuth0Domain() + "/v2/logout")
+func Logout(c *gin.Context) {
+	logoutUrl, err := url.Parse("https://" + configs.GetAuth0Domain() + "/v2/logout")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		logrus.Error(err)

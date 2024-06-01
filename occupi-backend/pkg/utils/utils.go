@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 )
 
 // sets up the logger and configures it
@@ -71,4 +73,28 @@ func GenerateRandomState() (string, error) {
 	state := base64.StdEncoding.EncodeToString(b)
 
 	return state, nil
+}
+
+func SendMultipleEmailsConcurrently(emails map[string]string, subject, body string) []string {
+	// Use a WaitGroup to wait for all goroutines to complete
+	var wg sync.WaitGroup
+	var emailErrors []string
+	var mu sync.Mutex
+
+	for _, email := range emails {
+		wg.Add(1)
+		go func(email string) {
+			defer wg.Done()
+			if err := mail.SendMail(email, subject, body); err != nil {
+				mu.Lock()
+				emailErrors = append(emailErrors, email)
+				mu.Unlock()
+			}
+		}(email)
+	}
+
+	// Wait for all email sending goroutines to complete
+	wg.Wait()
+
+	return emailErrors
 }
