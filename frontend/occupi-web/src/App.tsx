@@ -1,4 +1,4 @@
-import { LoginForm, OtpPage, LandingPage, Settings} from "@pages/index";
+import { LoginForm, OtpPage, Settings, Dashboard} from "@pages/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -12,7 +12,7 @@ function App() {
         <Route path="/*" element={
           <Layout>
           <Routes>
-            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </Layout>}>

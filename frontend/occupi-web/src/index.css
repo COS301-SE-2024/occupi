@@ -74,3 +74,19 @@ body {
     z-index: 5000; 
   }
 }
+
+.hover_buttons:hover svg path{
+  stroke: var(--primary);
+}
+
+.selected_buttons svg path{
+  stroke: var(--primary);
+}
+
+.hover_buttons_text:hover h2{
+  color: var(--primary);
+}
+
+.selected_buttons_text h2{
+  color: var(--primary);
+}

@@ -1,6 +1,6 @@
 const OccupiLogo = () => {
     return (
-    <svg  x="0px" y="0px" width="100%" viewBox="0 0 224 208" enableBackground="new 0 0 224 208">
+    <svg x="0px" y="0px" width="100%" viewBox="0 0 224 208" enableBackground="new 0 0 224 208" xmlns="http://www.w3.org/2000/svg">
             <path fill="var(--primary-alt)" opacity="1.000000" stroke="none" 
                 d="
             M163.220001,169.285751 

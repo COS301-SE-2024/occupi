@@ -27,6 +27,7 @@ module.exports = {
       },
       borderColor: {
         red_salmon: 'var(--red-salmon)',
+        gray_900: 'var(--tertiary)',
       },
     },
   },
