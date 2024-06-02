@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
-import SplashScreen from '../SplashScreen'; // Adjust the import path accordingly
+import SplashScreen from '../../screens/Login/SplashScreen'; // Adjust the import path accordingly
 import { router } from 'expo-router';
 
 jest.mock('expo-router', () => ({
@@ -16,7 +16,7 @@ describe('SplashScreen Component', () => {
     expect(getByAltText('logo')).toBeTruthy();
   });
 
-  it('navigates to settings screen after 2 seconds', async () => {
+  it('navigates to settings screen after 5 seconds', async () => {
     render(<SplashScreen />);
 
     await waitFor(() => {
