@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import Dashboard from '../Dashboard'; // Adjust the import path accordingly
+import Dashboard from '../../screens/Dashboard/Dashboard'; // Adjust the import path accordingly
 import { router } from 'expo-router';
 
 jest.mock('expo-router', () => ({
