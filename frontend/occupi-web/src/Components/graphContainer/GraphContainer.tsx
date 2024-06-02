@@ -8,7 +8,7 @@ interface GraphContainerProps {
 const GraphContainer: React.FC<GraphContainerProps> = ({ width = '471px', height = '259px' }) => {
   return (
     <div>
-      <div className={`card w-[${width}] h-[${height}] bg-[#EBEBEB] rounded-[20px]`} />
+      <div style={{ width, height }} data-testid="graph-container" className={`card w-[${width}] h-[${height}] bg-[#EBEBEB] rounded-[20px]`} />
     </div>
   );
 }
