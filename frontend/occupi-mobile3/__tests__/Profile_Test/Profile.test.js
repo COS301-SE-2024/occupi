@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import Profile from '../Profile'; // Adjust the import path accordingly
+import Profile from '../../screens/Login/Profile'; // Adjust the import path accordingly
 import { router } from 'expo-router';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
