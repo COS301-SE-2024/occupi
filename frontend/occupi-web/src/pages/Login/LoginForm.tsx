@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {loginpng, occupi_logo} from "@assets/index";
+import {loginpng, OccupiLogo} from "@assets/index";
 import { Checkbox, GradientButton, InputBox } from "@components/index";
 
 const LoginForm = (): JSX.Element => {
@@ -20,10 +20,7 @@ const LoginForm = (): JSX.Element => {
       </div>
         <div className="w-[30vw] ml-10 mr-3 flex flex-col items-center">
           <div className="w-[10vw] h-[10vw] mt-[7rem]">
-              <img className="min-w-[100%] h-[100%] inline m-auto object-cover"
-                alt="Frame"
-                src={occupi_logo}
-              />
+            <OccupiLogo />
           </div>
           <h2 className="w-[30vw] text-text_col font-semibold text-5xl mt-2">Welcome back to Occupi.</h2>
           <h3 className="w-[30vw] text-text_col font-extralight text-2xl mt-4">Predict. Plan. Perfect</h3>
