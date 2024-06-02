@@ -4,6 +4,7 @@
 
 :root {
   --primary: #FFFFFF;
+  --primary-40: rgba(255, 255, 255, 0.40);
   --secondary: #EBEBEB;
   --tertiary: #434343;
   --text-col: #0D0D0D;
@@ -17,6 +18,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --primary: #0D0D0D;
+    --primary-40: rgba(10, 10, 10, 0.40);
     --secondary: #252525;
     --text-col: #FFFFFF;
     --primary-alt: #FFFFFF;

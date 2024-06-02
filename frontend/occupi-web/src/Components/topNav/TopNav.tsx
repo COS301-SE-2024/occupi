@@ -1,23 +1,21 @@
-import React from 'react'
-import SearchBar from '../searchBarComponent/SearchBar'
-import TabComponent from '../tabComponent/TabComponent'
-const TopNav = () => {
+type TopNavProps = {
+  mainComponent?: JSX.Element;
+  searchQuery: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const TopNav = (props: TopNavProps) => {
   return (
-    <div>
-       <div className="relative w-full h-7 border-b-2 border-#EBEBEB">
-        {/* GraphContainer (Right side with space) */}
-
-        {/* TabComponent (Left of Sidebar on large screens, below on small screens) */}
-        <div className="fixed left-72 top-2">
-          <TabComponent />
-        </div>
-
-        {/* SearchBar (Top Right Corner) */}
-        <div className="fixed top-2 right-9">
-          <SearchBar />
-        </div>
+      <div className="overflow-hidden border-b-[2px] border-b-gray_900 flex items-center justify-between h-[110px] backdrop-blur-[20px] bg-primary_40">
+        <div />
+        <input
+          type="text"
+          placeholder="ctrl/cmd-k to search"
+          className="w-[30vw] h-[50px] rounded-[15px] bg-secondary p-[8px] mr-[30px]"
+          value={props.searchQuery}
+          onChange={props.onChange}
+        />
       </div>
-    </div>
   )
 }
 
