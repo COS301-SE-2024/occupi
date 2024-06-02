@@ -5,11 +5,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// state management for the web app during runtime
 type AppSession struct {
 	Authenticator *authenticator.Authenticator
 	DB            *mongo.Client
 }
 
+// constructor for app session
 func New(authenticator *authenticator.Authenticator, db *mongo.Client) *AppSession {
 	return &AppSession{
 		Authenticator: authenticator,

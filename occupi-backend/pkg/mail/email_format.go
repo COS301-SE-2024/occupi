@@ -2,6 +2,7 @@ package mail
 
 import "strconv"
 
+// formats booking email body
 func FormatBookingEmailBody(bookingID int, roomID string, slot int) string {
 	return `
 		Dear User,
@@ -19,6 +20,7 @@ func FormatBookingEmailBody(bookingID int, roomID string, slot int) string {
 		`
 }
 
+// formats verification email body
 func FormatEmailVerificationBody(otp string) string {
 	return `
 		Thank you for registering with Occupi. To complete your registration, please use the following One-Time Password (OTP) to verify your email address:

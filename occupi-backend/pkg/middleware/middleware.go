@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// IsAuthenticated is a middleware that checks if
+// ProtectedRoute is a middleware that checks if
 // the user has already been authenticated previously.
 func ProtectedRoute(c *gin.Context) {
 	if sessions.Default(c).Get("profile") == nil {
@@ -22,6 +22,8 @@ func ProtectedRoute(c *gin.Context) {
 	}
 }
 
+// ProtectedRoute is a middleware that checks if
+// the user has not been authenticated previously.
 func UnProtectedRoute(c *gin.Context) {
 	if sessions.Default(c).Get("profile") != nil {
 		// If the user is authenticated, return a 401 Unauthorized response

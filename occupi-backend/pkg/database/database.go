@@ -85,6 +85,7 @@ func GetAllData(db *mongo.Client) []bson.M {
 	return users
 }
 
+// attempts to save booking in database
 func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bool, error) {
 	// Save the booking to the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
@@ -96,6 +97,7 @@ func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bo
 	return true, nil
 }
 
+// checks if email exists in database
 func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
 	// Check if the email exists in the database
 	collection := db.Database("Occupi").Collection("Users")
@@ -109,8 +111,9 @@ func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
 	return true
 }
 
+// adds user to database
 func AddUser(ctx *gin.Context, db *mongo.Client, user models.RequestUser) (bool, error) {
-	//convert to user struct
+	// convert to user struct
 	userStruct := models.User{
 		OccupiID:             utils.GenerateEmployeeID(),
 		Password:             user.Password,
@@ -130,6 +133,7 @@ func AddUser(ctx *gin.Context, db *mongo.Client, user models.RequestUser) (bool,
 	return true, nil
 }
 
+// adds otp to database
 func AddOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool, error) {
 	// Save the OTP to the database
 	collection := db.Database("Occupi").Collection("OTPS")
@@ -146,6 +150,7 @@ func AddOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool,
 	return true, nil
 }
 
+// checks if otp exists in database
 func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool, error) {
 	// Check if the OTP exists in the database
 	collection := db.Database("Occupi").Collection("OTPS")
@@ -159,6 +164,7 @@ func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) (bo
 	return true, nil
 }
 
+// deletes otp from database
 func DeleteOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool, error) {
 	// Delete the OTP from the database
 	collection := db.Database("Occupi").Collection("OTPS")
@@ -171,6 +177,7 @@ func DeleteOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bo
 	return true, nil
 }
 
+// verifies a user in the database
 func VerifyUser(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
 	// Verify the user in the database and set next date to verify to 30 days from now
 	collection := db.Database("Occupi").Collection("Users")
@@ -184,6 +191,7 @@ func VerifyUser(ctx *gin.Context, db *mongo.Client, email string) (bool, error) 
 	return true, nil
 }
 
+// get's the hash password stored in the database belonging to this user
 func GetPassword(ctx *gin.Context, db *mongo.Client, email string) (string, error) {
 	// Get the password from the database
 	collection := db.Database("Occupi").Collection("Users")
@@ -197,6 +205,7 @@ func GetPassword(ctx *gin.Context, db *mongo.Client, email string) (string, erro
 	return user.Password, nil
 }
 
+// checks if the next verification date is due
 func CheckIfNextVerificationDateIsDue(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
 	// Check if the next verification date is due
 	collection := db.Database("Occupi").Collection("Users")
@@ -218,6 +227,7 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, db *mongo.Client, email 
 	return false, nil
 }
 
+// checks if the user is verified
 func CheckIfUserIsVerified(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
 	// Check if the user is verified
 	collection := db.Database("Occupi").Collection("Users")
@@ -231,6 +241,7 @@ func CheckIfUserIsVerified(ctx *gin.Context, db *mongo.Client, email string) (bo
 	return user.IsVerified, nil
 }
 
+// updates the users verification status to true or false
 func UpdateVerificationStatusTo(ctx *gin.Context, db *mongo.Client, email string, status bool) (bool, error) {
 	// Update the verification status of the user
 	collection := db.Database("Occupi").Collection("Users")
