@@ -21,12 +21,18 @@ import { Appearance, useColorScheme } from 'react-native';
 
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const { colorMode, toggleColorMode } = useColorMode();
+  // const { colorMode, toggleColorMode } = useColorMode();
   const navigation = useNavigation();
+  let colorScheme = useColorScheme();
+  // console.log(colorScheme);
 
   const toggleNotifications = () => {
     setNotificationsEnabled(!notificationsEnabled);
   };
+
+  const toggleColorMode = () => {
+    colorScheme = !colorScheme;
+  }
 
   const handleNavigate = (screen) => {
     navigation.navigate(screen);
@@ -61,7 +67,7 @@ const Settings = () => {
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', accessoryRight: () => <Switch isChecked={notificationsEnabled} onToggle={toggleNotifications} /> },
     { title: 'Privacy Policy', description: 'View privacy policy', iconName: 'lock', onPress: () => handleNavigate('PrivacyPolicyScreen') },
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => handleNavigate('SecurityScreen') },
-    { title: 'Dark mode', description: 'Enable or disable dark mode', iconName: 'moon', accessoryRight: () => <Switch isChecked={colorScheme === 'dark'} onToggle={toggleColorMode} /> },
+    // { title: 'Dark mode', description: 'Enable or disable dark mode', iconName: 'moon', accessoryRight: () => <Switch isChecked={colorScheme == 'dark'} onToggle={toggleColorMode} /> },
     { title: 'Terms and Policies', description: 'View terms and policies', iconName: 'file-text', onPress: () => handleNavigate('TermsPoliciesScreen') },
     { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
     { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
@@ -73,26 +79,20 @@ const Settings = () => {
     <Pressable onPress={item.onPress} style={[styles.listItem, colorScheme === 'dark' ? styles.darkItem : styles.lightItem]}>
       <HStack space={3} justifyContent="space-between" alignItems="center">
         <View flexDirection="row">
-          <Box mr="$6" p="$3" borderRadius="$full" backgroundColor="$gainsboro">
-            <Icon as={Feather} name={item.iconName} size="lg" color={colorMode === 'dark' ? 'white' : 'black'} />
+          <Box mr="$6" p="$3" borderRadius="$full" backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '$gainsboro'}>
+            <Icon as={Feather} name={item.iconName} size="lg" color={colorScheme === 'dark' ? 'white' : 'black'} />
           </Box>
           <VStack>
             <Text style={[styles.title, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.title}</Text>
             <Text style={[styles.description, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
           </VStack>
         </View>
-        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="30" color={colorMode === 'dark' ? 'white' : 'black'} />}
+        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="30" color={colorScheme === 'dark' ? 'white' : 'black'} />}
       </HStack>
     </Pressable>
   );
 
-  let colorScheme = useColorScheme();
-  console.log(colorScheme);
-  if (colorScheme === 'dark') {
-    // render some dark thing
-  } else {
-    // render some light thing
-  }
+  
 
   return (
     <>
@@ -108,7 +108,7 @@ const Settings = () => {
         <Box style={styles.profileInfo}>
           <HStack space={2} alignItems="center">
             <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Sabrina Carpenter</Text>
-            <Icon as={Feather} name="edit" size="sm" color={colorMode === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} />
+            {/* <Icon as={Feather} name="edit" size="sm" color={colorScheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
           </HStack>
           <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Chief Executive Officer</Text>
         </Box>
@@ -123,7 +123,7 @@ const Settings = () => {
         ))}
       </VStack>
       <Center style={styles.footerContainer}>
-        <Text style={[styles.versionText, colorMode === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
+        <Text style={[styles.versionText, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
       </Center>
     </ScrollView>
     <Navbar />
