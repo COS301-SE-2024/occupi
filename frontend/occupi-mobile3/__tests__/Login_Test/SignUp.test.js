@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import SignUp from '../SignUp'; // Adjust the import path accordingly
+import SignUp from '../../screens/Login/SignUp'; // Adjust the import path accordingly
 import { useToast } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 
+// Mock the router
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
@@ -11,6 +12,7 @@ jest.mock('expo-router', () => ({
   },
 }));
 
+// Mock the useToast hook
 jest.mock('@gluestack-ui/themed', () => ({
   useToast: jest.fn(),
 }));
@@ -29,7 +31,7 @@ describe('SignUp Component', () => {
 
   it('shows error message when passwords do not match', async () => {
     const mockToast = { show: jest.fn() };
-    (useToast as jest.Mock).mockReturnValue(mockToast);
+    useToast.mockReturnValue(mockToast);
 
     const { getByPlaceholderText, getByText } = render(<SignUp />);
 
@@ -61,7 +63,7 @@ describe('SignUp Component', () => {
 
   it('shows success message and navigates to verify-otp screen on valid submission', async () => {
     const mockToast = { show: jest.fn() };
-    (useToast as jest.Mock).mockReturnValue(mockToast);
+    useToast.mockReturnValue(mockToast);
 
     const { getByPlaceholderText, getByText } = render(<SignUp />);
 
