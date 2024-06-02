@@ -120,6 +120,7 @@ const OTPVerification = () => {
   const toast = useToast();
 
   const onSubmit = async (_data: OTPSchemaType) => {
+    console.log('here');
     const pinValues = refList.map((ref) => ref?.current?.value);
     const pin = pinValues.join('');
     const Count = otpInput.filter((value) => value !== '').length;
@@ -128,18 +129,19 @@ const OTPVerification = () => {
       return;
     }
     setValidationError(null);
-
+    console.log('here');
 
     toast.show({
-      placement: 'bottom right',
+      placement: 'top',
       render: ({ id }) => (
         <Toast nativeID={id} variant="accent" action="success">
-          <ToastTitle>OTP sent successfully</ToastTitle>
+          <ToastTitle>Signup successful</ToastTitle>
         </Toast>
       ),
     });
     reset();
-    router.push('/home');
+    console.log('here');
+    router.push('/login');
   };
 
   // const handleverify = async () => {
@@ -230,7 +232,7 @@ const OTPVerification = () => {
           </FormControl>
           <Text fontSize="$md" mb="$40">{remainingTime} seconds remaining</Text>
             <GradientButton
-              onPress={handleSubmit(onSubmit)}
+              onPress={onSubmit}
               text="Verify"
             />
         </VStack>

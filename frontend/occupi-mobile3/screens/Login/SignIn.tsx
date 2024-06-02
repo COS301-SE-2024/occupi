@@ -89,23 +89,64 @@ const SignInForm = () => {
     resolver: zodResolver(signInSchema),
   });
   const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const toast = useToast();
 
   const onSubmit = (_data: SignInSchemaType) => {
-    toast.show({
-      placement: 'bottom right',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={id} variant="accent" action="success">
-            <ToastTitle>Signed in successfully</ToastTitle>
-          </Toast>
-        );
-      },
-    });
-    reset();
-    router.push('/home')
-    // Implement your own onSubmit and navigation logic here.
+      setLoading(true)
+      setTimeout(() => {
+        setLoading(false);
+        if (_data.email !== 'tester@deloitte.co.za' || _data.password !== 'Test@1234') {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>Invalid credentials</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          reset();
+        } else {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="success">
+                  <ToastTitle>Login successful</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          reset();
+          router.push('/home')
+        }
+      }, 3000);
+
+      // try {
+      //   const response = await fetch('https://192.168.137.1:8080/auth/register', {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json'
+      //     },
+      //     body: JSON.stringify({
+      //       email: "example",
+      //       password: "12345"
+      //     })
+      //   });
+
+      //   const data = await response.json();
+
+      //   if (response.ok) {
+      //     Alert.alert('Success', 'User registered successfully!');
+      //   } else {
+      //     Alert.alert('Error', data.message || 'Something went wrong!');
+      //   }
+      // } catch (error) {
+      //   Alert.alert('Error', error.message);
+      // }   
   };
 
   const handleKeyPress = () => {
@@ -123,10 +164,10 @@ const SignInForm = () => {
 
   const GradientButton = ({ onPress, text }) => (
     <LinearGradient
-    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-    locations={[0.02, 0.31, 0.67, 0.97]}
-    start={[0, 1]}
-    end={[1, 0]}
+      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+      locations={[0.02, 0.31, 0.67, 0.97]}
+      start={[0, 1]}
+      end={[1, 0]}
       style={styles.buttonContainer}
     >
       <Heading style={styles.buttonText} onPress={onPress}>
@@ -134,7 +175,7 @@ const SignInForm = () => {
       </Heading>
     </LinearGradient>
   );
-  
+
   const styles = StyleSheet.create({
     buttonContainer: {
       borderRadius: 15,
@@ -203,7 +244,7 @@ const SignInForm = () => {
 
         <FormControl mt="$6" isInvalid={!!errors.password} isRequired={true}>
           <FormControlLabel mb="$1">
-            <FormControlLabelText  fontWeight="$normal">Password</FormControlLabelText>
+            <FormControlLabelText fontWeight="$normal">Password</FormControlLabelText>
           </FormControlLabel>
           <Controller
             name="password"
@@ -269,7 +310,7 @@ const SignInForm = () => {
               onChange={onChange}
             >
               <CheckboxIndicator>
-                <CheckboxIcon as={CheckIcon} color="yellowgreen"/>
+                <CheckboxIcon as={CheckIcon} color="yellowgreen" />
               </CheckboxIndicator>
               <CheckboxLabel ml="$2" color="yellowgreen">Remember me</CheckboxLabel>
             </Checkbox>
@@ -283,10 +324,17 @@ const SignInForm = () => {
         </StyledExpoRouterLink>
       </HStack>
 
-      <GradientButton
-        onPress={handleSubmit(onSubmit)}
-        text="Login"
-      />
+      {loading ? (
+        <GradientButton
+          onPress={onSubmit}
+          text="Verifying..."
+        />
+      ) : (
+        <GradientButton
+          onPress={onSubmit}
+          text="Signup"
+        />
+      )}
     </>
   );
 };
@@ -310,7 +358,7 @@ const Main = () => {
         bg="$white"
         justifyContent="$center"
       >
-        <VStack mt="$8"  mb="$5" space="md">
+        <VStack mt="$8" mb="$5" space="md">
 
           <HStack space="md" alignItems="center" justifyContent="center">
             <Image
@@ -366,7 +414,7 @@ const SignIn = () => {
     <>
       <Main />
     </>
-      
+
   );
 };
 
