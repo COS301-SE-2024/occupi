@@ -1,63 +1,42 @@
-// import React from 'react';
-// import { render, fireEvent } from '@testing-library/react-native';
-// import { LinearGradient } from 'expo-linear-gradient';
-// import Onboarding3, { GradientButton } from '../Onboarding3'; // Adjust the import path accordingly
-// import { router } from 'expo-router';
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import Welcome from '../../screens/Login/Welcome';
+import { router } from 'expo-router';
 
-// jest.mock('expo-router', () => ({
-//   router: {
-//     push: jest.fn(),
-//   },
-// }));
+// Mock the router
+jest.mock('expo-router', () => ({
+  router: {
+    push: jest.fn(),
+  },
+}));
 
-// jest.mock('expo-linear-gradient', () => ({
-//   LinearGradient: jest.fn().mockImplementation(({ children }) => children),
-// }));
+describe('Welcome', () => {
+  it('renders correctly', () => {
+    const { getByText, getByAltText } = render(<Welcome />);
 
-// describe('Onboarding3 Component', () => {
-//   it('renders correctly', () => {
-//     const { getByText, getByAltText } = render(<Onboarding3 />);
+    // Check if the text elements are rendered
+    expect(getByText("Log in. Let's Plan.")).toBeTruthy();
+    expect(getByText("Predict. Plan. Perfect.")).toBeTruthy();
+    expect(getByText("Login")).toBeTruthy();
+    expect(getByText("Register")).toBeTruthy();
 
-//     expect(getByText("Log in. Let's Plan.")).toBeTruthy();
-//     expect(getByText('Predict. Plan. Perfect.')).toBeTruthy();
-//     expect(getByText('Login')).toBeTruthy();
-//     expect(getByText('Register')).toBeTruthy();
-//     expect(getByAltText('logo')).toBeTruthy();
-//   });
+    // Check if the logo image is rendered
+    expect(getByAltText("logo")).toBeTruthy();
+  });
 
-//   it('navigates to login screen on login button press', () => {
-//     const { getByText } = render(<Onboarding3 />);
+  it('navigates to login screen when Login button is pressed', () => {
+    const { getByText } = render(<Welcome />);
+    const loginButton = getByText("Login");
 
-//     const loginButton = getByText('Login');
-//     fireEvent.press(loginButton);
+    fireEvent.press(loginButton);
+    expect(router.push).toHaveBeenCalledWith('/login');
+  });
 
-//     expect(router.push).toHaveBeenCalledWith('/login');
-//   });
+  it('navigates to signup screen when Register text is pressed', () => {
+    const { getByText } = render(<Welcome />);
+    const registerText = getByText("Register");
 
-//   it('navigates to signup screen on register text press', () => {
-//     const { getByText } = render(<Onboarding3 />);
-
-//     const registerText = getByText('Register');
-//     fireEvent.press(registerText);
-
-//     expect(router.push).toHaveBeenCalledWith('/signup');
-//   });
-// });
-
-// describe('GradientButton Component', () => {
-//   it('renders correctly with given text', () => {
-//     const { getByText } = render(<GradientButton onPress={() => {}} text="Test Button" />);
-
-//     expect(getByText('Test Button')).toBeTruthy();
-//   });
-
-//   it('calls onPress when pressed', () => {
-//     const mockOnPress = jest.fn();
-//     const { getByText } = render(<GradientButton onPress={mockOnPress} text="Test Button" />);
-
-//     const button = getByText('Test Button');
-//     fireEvent.press(button);
-
-//     expect(mockOnPress).toHaveBeenCalled();
-//   });
-// });
+    fireEvent.press(registerText);
+    expect(router.push).toHaveBeenCalledWith('/signup');
+  });
+});
