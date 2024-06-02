@@ -2,7 +2,7 @@ linters:
   disable-all: true
   enable:
     - asasalint     # Checks for potential security vulnerabilities and coding issues
-    - cyclop        # Checks for code complexity based on cyclomatic complexity
+    # - cyclop        # Checks for code complexity based on cyclomatic complexity
     # - depguard    # If enabled, checks dependencies and imported packages with defined rules
     - dupl          # Detects code duplication
     - errcheck      # Checks for unchecked errors

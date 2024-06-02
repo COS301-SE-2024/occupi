@@ -40,17 +40,16 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client) {
 	}
 	api := router.Group("/api")
 	{
-		api.GET("/resource", func(ctx *gin.Context) { handlers.FetchResource(ctx, appsession) })                                      // non-authenticated
-		api.GET("/resource-auth", middleware.IsAuthenticated, func(ctx *gin.Context) { handlers.FetchResourceAuth(ctx, appsession) }) // authenticated
-		api.GET("/book-room", middleware.IsAuthenticated, func(ctx *gin.Context) { handlers.BookRoom(ctx, appsession) })
-		api.GET("check-in", middleware.IsAuthenticated, func(ctx *gin.Context) { handlers.CheckIn(ctx, appsession) })
+		api.GET("/resource-auth", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FetchResourceAuth(ctx, appsession) }) // authenticated
+		api.GET("/book-room", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.BookRoom(ctx, appsession) })
+		api.GET("check-in", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CheckIn(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{
-		auth.GET("/login", func(ctx *gin.Context) { handlers.Login(ctx, appsession) })
-		auth.POST("/register", func(ctx *gin.Context) { handlers.Register(ctx, appsession) })
-		auth.POST("/verify-otp", func(ctx *gin.Context) { handlers.VerifyOTP(ctx, appsession) })
-		// auth.POST("/logout", func(ctx *gin.Context) { handlers.Logout(ctx) })
-		auth.GET("/callback", func(ctx *gin.Context) { handlers.CallbackHandler(ctx, appsession) })
+		auth.POST("/login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession) })
+		auth.POST("/register", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Register(ctx, appsession) })
+		auth.POST("/verify-otp", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.VerifyOTP(ctx, appsession) })
+		// auth.POST("/logout", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Logout(ctx) })
+		auth.GET("/callback", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.CallbackHandler(ctx, appsession) })
 	}
 }

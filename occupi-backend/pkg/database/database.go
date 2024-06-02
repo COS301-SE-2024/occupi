@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -83,10 +85,169 @@ func GetAllData(db *mongo.Client) []bson.M {
 	return users
 }
 
+// attempts to save booking in database
 func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bool, error) {
 	// Save the booking to the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
 	_, err := collection.InsertOne(ctx, booking)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// checks if email exists in database
+func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
+	// Check if the email exists in the database
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+	return true
+}
+
+// adds user to database
+func AddUser(ctx *gin.Context, db *mongo.Client, user models.RequestUser) (bool, error) {
+	// convert to user struct
+	userStruct := models.User{
+		OccupiID:             utils.GenerateEmployeeID(),
+		Password:             user.Password,
+		Email:                user.Email,
+		Role:                 "basic",
+		OnSite:               true,
+		IsVerified:           false,
+		NextVerificationDate: time.Now(), // this will be updated once the email is verified
+	}
+	// Save the user to the database
+	collection := db.Database("Occupi").Collection("Users")
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// adds otp to database
+func AddOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool, error) {
+	// Save the OTP to the database
+	collection := db.Database("Occupi").Collection("OTPS")
+	otpStruct := models.OTP{
+		Email:      email,
+		OTP:        otp,
+		ExpireWhen: time.Now().Add(time.Minute * 10),
+	}
+	_, err := collection.InsertOne(ctx, otpStruct)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// checks if otp exists in database
+func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool, error) {
+	// Check if the OTP exists in the database
+	collection := db.Database("Occupi").Collection("OTPS")
+	filter := bson.M{"email": email, "otp": otp}
+	var otpStruct models.OTP
+	err := collection.FindOne(ctx, filter).Decode(&otpStruct)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// deletes otp from database
+func DeleteOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool, error) {
+	// Delete the OTP from the database
+	collection := db.Database("Occupi").Collection("OTPS")
+	filter := bson.M{"email": email, "otp": otp}
+	_, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// verifies a user in the database
+func VerifyUser(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
+	// Verify the user in the database and set next date to verify to 30 days from now
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30)}}
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// get's the hash password stored in the database belonging to this user
+func GetPassword(ctx *gin.Context, db *mongo.Client, email string) (string, error) {
+	// Get the password from the database
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	return user.Password, nil
+}
+
+// checks if the next verification date is due
+func CheckIfNextVerificationDateIsDue(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
+	// Check if the next verification date is due
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	if time.Now().After(user.NextVerificationDate) {
+		_, err := UpdateVerificationStatusTo(ctx, db, email, false)
+		if err != nil {
+			logrus.Error(err)
+			return false, err
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
+// checks if the user is verified
+func CheckIfUserIsVerified(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
+	// Check if the user is verified
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return user.IsVerified, nil
+}
+
+// updates the users verification status to true or false
+func UpdateVerificationStatusTo(ctx *gin.Context, db *mongo.Client, email string, status bool) (bool, error) {
+	// Update the verification status of the user
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"isVerified": status}}
+	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
 		return false, err
