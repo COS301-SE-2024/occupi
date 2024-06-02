@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import {
   Button,
@@ -7,6 +7,7 @@ import {
   HStack,
   VStack,
   Text,
+  View,
   Link,
   Divider,
   Icon,
@@ -41,7 +42,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard, StyleSheet } from 'react-native';
+import { Keyboard, StyleSheet, Alert, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
 import GuestLayout from '../../layouts/GuestLayout';
@@ -122,21 +123,67 @@ const SignUpForm = () => {
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [pwMatched, setPwMatched] = useState(false);
   const toast = useToast();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const spinValue = useRef(new Animated.Value(0)).current;
 
-  const onSubmit = (_data: SignUpSchemaType) => {
+  const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
       setPwMatched(true);
-      toast.show({
-        placement: 'bottom right',
-        render: ({ id }) => {
-          return (
-            <Toast nativeID={id} variant="accent" action="success">
-              <ToastTitle>Email verified</ToastTitle>
-            </Toast>
-          );
-        },
-      });
-      reset();
+      setLoading(true)
+      setTimeout(() => {
+        setLoading(false);
+        if (_data.email !== 'tester@deloitte.co.za') {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>Deloitte email verification failed.</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          reset();
+        } else {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="success">
+                  <ToastTitle>Verification successful</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          reset();
+          router.push('/verify-otp')
+        }
+      }, 3000);
+
+      // try {
+      //   const response = await fetch('https://192.168.137.1:8080/auth/register', {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json'
+      //     },
+      //     body: JSON.stringify({
+      //       email: "example",
+      //       password: "12345"
+      //     })
+      //   });
+
+      //   const data = await response.json();
+
+      //   if (response.ok) {
+      //     Alert.alert('Success', 'User registered successfully!');
+      //   } else {
+      //     Alert.alert('Error', data.message || 'Something went wrong!');
+      //   }
+      // } catch (error) {
+      //   Alert.alert('Error', error.message);
+      // }   
     } else {
       toast.show({
         placement: 'bottom right',
@@ -151,7 +198,7 @@ const SignUpForm = () => {
     }
     // Implement your own onSubmit and navigation logic here.
     // Navigate to appropriate location
-    router.replace('/verify-otp');
+    // router.replace('/verify-otp');
   };
 
   const handleKeyPress = () => {
@@ -173,10 +220,10 @@ const SignUpForm = () => {
 
   const GradientButton = ({ onPress, text }) => (
     <LinearGradient
-    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-    locations={[0.02, 0.31, 0.67, 0.97]}
-    start={[0, 1]}
-    end={[1, 0]}
+      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+      locations={[0.02, 0.31, 0.67, 0.97]}
+      start={[0, 1]}
+      end={[1, 0]}
       style={styles.buttonContainer}
     >
       <Heading style={styles.buttonText} onPress={onPress}>
@@ -184,7 +231,7 @@ const SignUpForm = () => {
       </Heading>
     </LinearGradient>
   );
-  
+
   const styles = StyleSheet.create({
     buttonContainer: {
       borderRadius: 15,
@@ -448,10 +495,18 @@ const SignUpForm = () => {
         )}
       />
 
-      <GradientButton
-        onPress={handleSubmit(onSubmit)}
-        text="Signup"
-      />
+
+      {loading ? (
+        <GradientButton
+          onPress={handleSubmit(onSubmit)}
+          text="Verifying..."
+        />
+      ) : (
+        <GradientButton
+          onPress={handleSubmit(onSubmit)}
+          text="Signup"
+        />
+      )}
     </>
   );
 };
@@ -543,7 +598,7 @@ function SignUpFormComponent() {
 export default function SignUp() {
   return (
     <GuestLayout>
-    <Box
+      <Box
         sx={{
           '@md': {
             display: 'flex',
