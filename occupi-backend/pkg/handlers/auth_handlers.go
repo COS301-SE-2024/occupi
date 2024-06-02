@@ -65,8 +65,28 @@ func Login(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// check if the user is verified
+	verified, err := database.CheckIfUserIsVerified(ctx, appsession.DB, requestUser.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		logrus.Error(err)
+		return
+	}
+
+	if !verified {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "You are not verified"})
+		return
+	}
+
 	//check if the next verification date is due
-	if due := database.CheckIfNextVerificationDateIsDue(ctx, appsession.DB, requestUser.Email); due {
+	due, err := database.CheckIfNextVerificationDateIsDue(ctx, appsession.DB, requestUser.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		logrus.Error(err)
+		return
+	}
+
+	if due {
 		ReverifyUsersEmail(ctx, appsession, requestUser.Email)
 		return
 	}
@@ -206,7 +226,13 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// check if the otp is in the database
-	if exists := database.OTPExists(ctx, appsession.DB, userotp.Email, userotp.OTP); !exists {
+	exists, err := database.OTPExists(ctx, appsession.DB, userotp.Email, userotp.OTP)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		logrus.Error(err)
+		return
+	}
+	if !exists {
 		ctx.JSON(http.StatusOK, gin.H{"message": "Email not registered, otp expired or invalid"})
 		return
 	}

@@ -146,7 +146,7 @@ func AddOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool,
 	return true, nil
 }
 
-func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) bool {
+func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool, error) {
 	// Check if the OTP exists in the database
 	collection := db.Database("Occupi").Collection("OTPS")
 	filter := bson.M{"email": email, "otp": otp}
@@ -154,9 +154,9 @@ func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) boo
 	err := collection.FindOne(ctx, filter).Decode(&otpStruct)
 	if err != nil {
 		logrus.Error(err)
-		return false
+		return false, err
 	}
-	return true
+	return true, nil
 }
 
 func DeleteOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool, error) {
@@ -197,7 +197,7 @@ func GetPassword(ctx *gin.Context, db *mongo.Client, email string) (string, erro
 	return user.Password, nil
 }
 
-func CheckIfNextVerificationDateIsDue(ctx *gin.Context, db *mongo.Client, email string) bool {
+func CheckIfNextVerificationDateIsDue(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
 	// Check if the next verification date is due
 	collection := db.Database("Occupi").Collection("Users")
 	filter := bson.M{"email": email}
@@ -205,10 +205,41 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, db *mongo.Client, email 
 	err := collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		logrus.Error(err)
-		return false
+		return false, err
 	}
 	if time.Now().After(user.NextVerificationDate) {
-		return true
+		_, err := UpdateVerificationStatusTo(ctx, db, email, false)
+		if err != nil {
+			logrus.Error(err)
+			return false, err
+		}
+		return true, nil
 	}
-	return false
+	return false, nil
+}
+
+func CheckIfUserIsVerified(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
+	// Check if the user is verified
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return user.IsVerified, nil
+}
+
+func UpdateVerificationStatusTo(ctx *gin.Context, db *mongo.Client, email string, status bool) (bool, error) {
+	// Update the verification status of the user
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"isVerified": status}}
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
 }
