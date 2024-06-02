@@ -2,17 +2,20 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useToast } from '@gluestack-ui/themed';
 import { useForm } from 'react-hook-form';
-import CreatePassword from '../CreatePassword';
+import CreatePassword from '../../screens/Login/CreatePassword';
 
+// Mock the react-hook-form
 jest.mock('react-hook-form', () => ({
   ...jest.requireActual('react-hook-form'),
   useForm: jest.fn(),
 }));
 
+// Mock the useToast hook
 jest.mock('@gluestack-ui/themed', () => ({
   useToast: jest.fn(),
 }));
 
+// Mock the expo-router
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     replace: jest.fn(),
@@ -28,11 +31,11 @@ describe('CreatePassword', () => {
 
   beforeEach(() => {
     control = jest.fn();
-    handleSubmit = jest.fn();
+    handleSubmit = jest.fn((fn) => fn());
     reset = jest.fn();
     formState = { errors: {} };
 
-    (useForm as jest.Mock).mockReturnValue({
+    useForm.mockReturnValue({
       control,
       handleSubmit,
       reset,
@@ -48,7 +51,7 @@ describe('CreatePassword', () => {
 
   it('shows error message if passwords do not match', async () => {
     const mockToast = { show: jest.fn() };
-    (useToast as jest.Mock).mockReturnValue(mockToast);
+    useToast.mockReturnValue(mockToast);
 
     const { getByPlaceholderText, getByText } = render(<CreatePassword />);
     const passwordInput = getByPlaceholderText('Password');
@@ -76,7 +79,7 @@ describe('CreatePassword', () => {
   it('shows success message if passwords match', async () => {
     const mockToast = { show: jest.fn() };
     const mockRouter = require('expo-router').useRouter();
-    (useToast as jest.Mock).mockReturnValue(mockToast);
+    useToast.mockReturnValue(mockToast);
 
     const { getByPlaceholderText, getByText } = render(<CreatePassword />);
     const passwordInput = getByPlaceholderText('Password');
