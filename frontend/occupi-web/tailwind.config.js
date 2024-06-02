@@ -23,7 +23,8 @@ module.exports = {
         primary: 'var(--primary)',
         secondary: 'var(--secondary)',
         primary_alt: 'var(--primary-alt)',
-        secondary_alt: 'var(--secondary-alt)'
+        secondary_alt: 'var(--secondary-alt)',
+        primary_40: 'var(--primary-40)'
       },
       borderColor: {
         red_salmon: 'var(--red-salmon)',
