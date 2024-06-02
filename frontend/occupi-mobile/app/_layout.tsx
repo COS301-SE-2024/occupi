@@ -1,67 +1,74 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from 'expo-router';
-import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from '../screens/Login/SplashScreen';
+import LoginScreen from '../screens/Login/SignIn';
+import SignupScreen from '../screens/Login/SignUp';
+import WelcomeScreen from '../screens/Login/WelcomeScreen';
+import ForgotPasswordScreen from '../screens/Login/ForgotPassword';
+import VerifyOTPScreen from '../screens/Login/OtpVerification';
+import CreatePasswordScreen from '../screens/Login/CreatePassword';
+import EditProfileScreen from '../screens/Login/EditProfile';
+import ProfileScreen from '../screens/Profile/Profile';
+import SettingsScreen from '../screens/Profile/Settings';
+import BookingsScreen from '../screens/Dashboard/Bookings';
+import Onboarding1Screen from '../screens/Login/Onboarding1';
+import Onboarding2Screen from '../screens/Login/Onboarding2';
+import Onboarding3Screen from '../screens/Login/Onboarding3';
+import HomeScreen from '../screens/Dashboard/Home';
 
-import { config } from '../gluestack-ui.config';
-import { GluestackUIProvider } from '@gluestack-ui/themed';
+import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
+import { EvaIconsPack } from '@ui-kitten/eva-icons';
+import * as eva from '@eva-design/eva';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+const Stack = createStackNavigator();
+const ThemeContext = createContext({});
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: 'index',
-};
+export const useTheme = () => useContext(ThemeContext);
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+const RootLayoutNav = () => {
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const loadTheme = async () => {
+      const savedTheme = await AsyncStorage.getItem('theme');
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
+    };
+    loadTheme();
+  }, []);
 
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const toggleTheme = async () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    await AsyncStorage.setItem('theme', newTheme);
+  };
 
   return (
-    <GluestackUIProvider config={config}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="signup" options={{ headerShown: false }} />
-        <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
-        <Stack.Screen name="verify-otp" options={{ headerShown: false }} />
-        <Stack.Screen name="create-password" options={{ headerShown: false }} />
-      </Stack>
-    </GluestackUIProvider>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <IconRegistry icons={EvaIconsPack} />
+      <ApplicationProvider {...eva} theme={theme === 'dark' ? eva.dark : eva.light}>
+        <Stack.Navigator initialRouteName="index">
+          <Stack.Screen name="index" component={HomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="signup" component={SignupScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="welcome-screen" component={WelcomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="forgot-password" component={ForgotPasswordScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="verify-otp" component={VerifyOTPScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="create-password" component={CreatePasswordScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="edit-profile" component={EditProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="profile" component={ProfileScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="settings" component={SettingsScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="bookings" component={BookingsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding1" component={Onboarding1Screen} options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding2" component={Onboarding2Screen} options={{ headerShown: false }} />
+        <Stack.Screen name="home" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding3" component={Onboarding3Screen} options={{ headerShown: false }} />
+        </Stack.Navigator>
+      </ApplicationProvider>
+    </ThemeContext.Provider>
   );
-}
+};
+
+export default RootLayoutNav;
