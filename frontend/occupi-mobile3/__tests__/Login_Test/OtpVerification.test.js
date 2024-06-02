@@ -1,15 +1,17 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import OTPVerification from '../OTPVerification'; // Adjust the import path accordingly
+import OTPVerification from '../../screens/Login/OTPVerification'; // Adjust the import path accordingly
 import { useToast } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 
+// Mock the router
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
   },
 }));
 
+// Mock the useToast hook
 jest.mock('@gluestack-ui/themed', () => ({
   useToast: jest.fn(),
 }));
@@ -38,7 +40,7 @@ describe('OTPVerification Component', () => {
 
   it('shows success message and navigates to home screen on valid OTP', async () => {
     const mockToast = { show: jest.fn() };
-    (useToast as jest.Mock).mockReturnValue(mockToast);
+    useToast.mockReturnValue(mockToast);
 
     const { getByText, getByPlaceholderText } = render(<OTPVerification />);
 
