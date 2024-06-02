@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect, useRef } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
     Button,
@@ -8,7 +8,7 @@ import {
     Text,
     Heading,
   } from '@gluestack-ui/themed';
-import { StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
 const GradientButton = ({ onPress, text }) => (
@@ -25,6 +25,49 @@ const GradientButton = ({ onPress, text }) => (
     </LinearGradient>
   );
 
+  const spinValue = useRef(new Animated.Value(0)).current;
+  const scaleValue = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    // Spin animation
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 5000,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // Scale animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleValue, {
+          toValue: 1.2,
+          duration: 5000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleValue, {
+          toValue: 0.8,
+          duration: 5000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleValue, {
+          toValue: 1,
+          duration: 5000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [scaleValue, spinValue]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const animatedStyle = {
+    transform: [{ rotate: spin }, { scale: scaleValue }],
+  };
+
 
 const Welcome = () => {
   return (
@@ -34,6 +77,7 @@ const Welcome = () => {
               alt="logo"
               source={require('../../screens/Login/assets/images/Occupi/logo-white.png')}
               style={{ width: 200, height: 200 }}
+              style={[styles.logo, animatedStyle]}
               mb="$12"
               mt="$12"
             />

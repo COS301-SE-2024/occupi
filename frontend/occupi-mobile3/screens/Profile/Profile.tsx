@@ -14,6 +14,7 @@ import { Radio, RadioGroup, RadioLabel, RadioIndicator, RadioIcon, VStack, Circl
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { Appearance, useColorScheme } from 'react-native';
 
 const COLORS = {
   white: "#FFFFFF",
@@ -47,6 +48,7 @@ const Profile = () => {
   const [date, setDate] = useState(new Date(2000, 6, 7));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const { colorMode, toggleColorMode } = useColorMode();
+  let colorScheme = useColorScheme();
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -69,32 +71,32 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={colorScheme === 'dark' ? styles.containerdark : styles.containerlight}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
-          <Icon as={Feather} name="chevron-left" size="30" color={colorMode === 'dark' ? 'white' : 'black'} onPress={() => router.push('settings')} />
-          <Text style={styles.headerTitle}>My account</Text>
+          <Icon as={Feather} name="chevron-left" size="30" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.push('/settings')} />
+          <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>My account</Text>
           <MaterialIcons
             name="person-outline"
             size={24}
-            color="black"
+            color={colorScheme === 'dark' ? 'white' : 'black'}
             style={styles.icon}
           />
         </View>
 
-        <Text style={styles.label}>Full name</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
         <TextInput
-          style={styles.input}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder="Sabrina Carpenter"
           placeholderTextColor={COLORS.gray}
           placeholder={name}
           onChangeText={setName}
         />
 
-        <Text style={styles.label}>Date of birth</Text>
-        <TouchableOpacity onPress={showDatePicker} style={styles.dateInputContainer}>
-          <Text style={styles.dateText}>{date.toLocaleDateString()}</Text>
-          <MaterialIcons name="calendar-today" size={24} color="black" />
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Date of birth</Text>
+        <TouchableOpacity onPress={showDatePicker} style={colorScheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}>
+          <Text style={colorScheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>{date.toLocaleDateString()}</Text>
+          <MaterialIcons name="calendar-today" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
         </TouchableOpacity>
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
@@ -103,7 +105,7 @@ const Profile = () => {
           onCancel={hideDatePicker}
         />
 
-        <Text style={styles.label}>Gender</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
         {/* <RadioGroup
           selectedIndex={selectedGenderIndex}
           onChange={(index) => setSelectedGenderIndex(index)}
@@ -115,20 +117,20 @@ const Profile = () => {
         </RadioGroup> */}
         <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
           <VStack flexDirection="$row" justifyContent="$space-between" space="$2">
-            <Radio backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4">
-              <RadioLabel color="$black">Male</RadioLabel>
+            <Radio backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'} borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4">
+              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
-            <Radio backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4">
-              <RadioLabel color="$black">Female</RadioLabel>
+            <Radio backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'} borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4">
+              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Female</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
-            <Radio backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4"> 
-              <RadioLabel color="$black">Other</RadioLabel>
+            <Radio backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'} borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4"> 
+              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Other</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
@@ -137,36 +139,36 @@ const Profile = () => {
         </RadioGroup>
 
 
-        <Text style={styles.label}>Email Address</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
         <TextInput
-          style={styles.input}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder="**********@deloitte.co.za"
           placeholderTextColor={COLORS.gray}
           // value={email}
           onChangeText={setEmail}
         />
 
-        <Text style={styles.label}>Employee ID</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Employee ID</Text>
         <TextInput
-          style={styles.input}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder="2******"
           placeholderTextColor={COLORS.gray}
           // placeholder={employeeId}
           onChangeText={setEmployeeId}
         />
 
-        <Text style={styles.label}>Number</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Number</Text>
         <TextInput
-          style={styles.input}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder="011 *** ****"
           placeholderTextColor={COLORS.gray}
           // placeholder={phoneNumber}
           onChangeText={setPhoneNumber}
         />
 
-        <Text style={styles.label}>Pronouns (optional)</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Pronouns (optional)</Text>
         <TextInput
-          style={styles.input}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder="she/her"
           placeholderTextColor={COLORS.gray}
           placeholder={pronouns}
@@ -188,9 +190,13 @@ const Profile = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  containerlight: {
     flex: 1,
     backgroundColor: COLORS.white,
+  },
+  containerdark: {
+    flex: 1,
+    backgroundColor: COLORS.black,
   },
   contentContainer: {
     padding: SIZES.padding,
@@ -207,12 +213,27 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...FONTS.h3,
   },
-  label: {
+  labeldark: {
+    ...FONTS.body3,
+    color: COLORS.white,
+    marginBottom: SIZES.base,
+  },
+  labellight: {
     ...FONTS.body3,
     color: COLORS.black,
     marginBottom: SIZES.base,
   },
-  input: {
+  inputdark: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: "#5A5A5A",
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding,
+    marginBottom: SIZES.padding,
+    color: COLORS.white,
+    backgroundColor: "#5A5A5A"
+  },
+  inputlight: {
     height: 44,
     borderWidth: 1,
     borderColor: "#f2f2f2",
@@ -222,7 +243,19 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     backgroundColor: "#f2f2f2"
   },
-  dateInputContainer: {
+  dateInputContainerdark: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#5A5A5A",
+    borderRadius: SIZES.radius,
+    paddingHorizontal: SIZES.padding,
+    marginBottom: SIZES.padding,
+    height: 44,
+    color: COLORS.white,
+    backgroundColor: "#5A5A5A"
+  },
+  dateInputContainerlight: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
@@ -231,9 +264,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIZES.padding,
     marginBottom: SIZES.padding,
     height: 44,
+    color: COLORS.black,
     backgroundColor: "#f2f2f2"
   },
-  dateText: {
+  textdark: {
+    color: COLORS.white,
+  },
+  textlight: {
+    color: COLORS.black,
+  },
+  dateTextdark: {
+    flex: 1,
+    color: COLORS.white,
+  },
+  dateTextlight: {
     flex: 1,
     color: COLORS.black,
   },
