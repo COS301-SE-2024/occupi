@@ -172,7 +172,7 @@ func DeleteOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bo
 }
 
 func VerifyUser(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
-	// Verify the user in the database and set next date to verify to 90 days from now
+	// Verify the user in the database and set next date to verify to 30 days from now
 	collection := db.Database("Occupi").Collection("Users")
 	filter := bson.M{"email": email}
 	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30)}}
