@@ -1,8 +1,8 @@
-import loginpng from "./login.png";
-import loginsvg from "./login.svg";
-import occupi_logo from "./occupi-logo.svg";
-import otp from "./otp.png"
+import loginpng from "./images/login.png";
+import OccupiLogo from "./icons/occupi/OccupiLogo";
+import login_image from "./images/otp.png";
+import {CheckSquareContained} from "./icons/CheckSquareContained/CheckSquareContained";
 
 export {
-    loginpng, loginsvg, occupi_logo, otp
+    loginpng, OccupiLogo, login_image, CheckSquareContained
 }
