@@ -6,6 +6,8 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "baseUrl": "./src", // This is to avoid adding the ./src prefix to each path below.
+    "types": ["bun-types","jest"],
+
     "paths": {
       "@api/*": ["api/*"],
       "@assets/*": ["assets/*"],
@@ -16,7 +18,7 @@
       "@pages/*": ["pages/*"],
       "@services/*": ["services/*"],
       "@store/*": ["store/*"],
-      "@utils/*": ["utils/*"],
+      "@utils/*": ["utils/*"]
     },
 
     /* Bundler mode */
@@ -33,6 +35,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "jest.setup.ts", "happydom.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,3 +1,4 @@
+
 import React,{useState, useRef} from 'react'
 
 type OtpComponentProps = {
@@ -28,7 +29,7 @@ const OtpComponent = (props: OtpComponentProps) => {
       }
     }
     else{
-      setError("Invalid OTP");
+      setError("Invalid OTP: Please Enter a Valid 6-digit OTP.");
       props.setOtp(otp, false);
     }
   };
@@ -48,6 +49,7 @@ const OtpComponent = (props: OtpComponentProps) => {
       {err !== "" && <h5 className="text-text_col_red_salmon font-normal text-base mt-3 mb-1">{err}</h5>}
       {otp.map((data, index) => (
         <input
+        role='textbox'
           key={index}
           type="text"
           maxLength={1}
@@ -55,7 +57,7 @@ const OtpComponent = (props: OtpComponentProps) => {
           onChange={(e) => handleChange(e.target, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           ref={(element) => inputsRef.current[index] = element}
-          className={'h-[50px] w-[3.48vw] rounded-[15px] bg-secondary p-[8px]  mb-[5px] mt-6 ' +
+          className={'h-[3.48vw] w-[3.48vw] rounded-[15px] bg-secondary p-[8px]  mb-[5px] mt-6 text-center ' +
             (index !== 5 ? " mr-[1.81vw]" : "") +
             (err !== "" ? " border-[2px] border-red_salmon " : "")
           }
