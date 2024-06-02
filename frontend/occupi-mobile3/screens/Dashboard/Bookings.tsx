@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, useColorScheme, ScrollView } from 'react-native';
 import {
     StyleSheet,
     Text,
@@ -16,6 +16,7 @@ import {
 import FloorDropdown from '../../components/FloorDropdown';
 import GuestLayout from '../../layouts/GuestLayout';
 import Navbar from "../../components/NavBar";
+import { router } from 'expo-router';
 
 const Bookings = () => {
     const colorScheme = useColorScheme();
@@ -34,8 +35,8 @@ const Bookings = () => {
 
     return (
         <>
-            <GuestLayout>
-                <View pt="$2" px="$4" flex="$1" flexDirection="column" backgroundColor={backgroundColor}>
+            <ScrollView>
+                <View pt="$16" px="$4" flex="$1" flexDirection="column" backgroundColor={backgroundColor}>
                     <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
                     <View flexDirection="row" justifyContent="space-between" alignItems="center" mb="$4">
                         <Heading size="2xl" fontWeight="$bold" color={textColor}>Offices</Heading>
@@ -56,77 +57,77 @@ const Bookings = () => {
                         </View>
                     </Card>
 
-<Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
-    <View flexDirection="row" justifyContent="space-between" alignItems="center">
-        <View flexDirection="column">
-            <Heading size="md" mt="$0" color={textColor}>Conference Room</Heading>
-            <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
-        </View>
-        <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
-    </View>
-    <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
-        <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
-        <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={notAvailableButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Not Available</ButtonText></Button>
-    </View>
-</Card>
+                    <Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
+                        <View flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <View flexDirection="column">
+                                <Heading size="md" mt="$0" color={textColor}>Conference Room</Heading>
+                                <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
+                            </View>
+                            <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
+                        </View>
+                        <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
+                            <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={notAvailableButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Not Available</ButtonText></Button>
+                        </View>
+                    </Card>
 
-<Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
-    <View flexDirection="row" justifyContent="space-between" alignItems="center">
-        <View flexDirection="column">
-            <Heading size="md" mt="$0" color={textColor}>Meeting Room 1</Heading>
-            <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
-        </View>
-        <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
-    </View>
-    <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
-        <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
-        <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={fullyBookedButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Fully Booked</ButtonText></Button>
-    </View>
-</Card>
+                    <Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
+                        <View flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <View flexDirection="column">
+                                <Heading size="md" mt="$0" color={textColor}>Meeting Room 1</Heading>
+                                <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
+                            </View>
+                            <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
+                        </View>
+                        <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
+                            <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={fullyBookedButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Fully Booked</ButtonText></Button>
+                        </View>
+                    </Card>
 
-<Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
-    <View flexDirection="row" justifyContent="space-between" alignItems="center">
-        <View flexDirection="column">
-            <Heading size="md" mt="$0" color={textColor}>Meeting Room 2</Heading>
-            <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
-        </View>
-        <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
-    </View>
-    <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
-        <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
-        <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={buttonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Available now</ButtonText></Button>
-    </View>
-</Card>
+                    <Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
+                        <View flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <View flexDirection="column">
+                                <Heading size="md" mt="$0" color={textColor}>Meeting Room 2</Heading>
+                                <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
+                            </View>
+                            <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
+                        </View>
+                        <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
+                            <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={buttonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Available now</ButtonText></Button>
+                        </View>
+                    </Card>
 
-<Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
-    <View flexDirection="row" justifyContent="space-between" alignItems="center">
-        <View flexDirection="column">
-            <Heading size="md" mt="$0" color={textColor}>Conference Room</Heading>
-            <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
-        </View>
-        <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
-    </View>
-    <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
-        <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
-        <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={notAvailableButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Not Available</ButtonText></Button>
-    </View>
-</Card>
+                    <Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
+                        <View flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <View flexDirection="column">
+                                <Heading size="md" mt="$0" color={textColor}>Conference Room</Heading>
+                                <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
+                            </View>
+                            <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
+                        </View>
+                        <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
+                            <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={notAvailableButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Not Available</ButtonText></Button>
+                        </View>
+                    </Card>
 
-<Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
-    <View flexDirection="row" justifyContent="space-between" alignItems="center">
-        <View flexDirection="column">
-            <Heading size="md" mt="$0" color={textColor}>Conference Room</Heading>
-            <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
-        </View>
-        <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
-    </View>
-    <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
-        <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
-        <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={notAvailableButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Not Available</ButtonText></Button>
-    </View>
-</Card>
+                    <Card size="lg" p="$3" variant="elevated" mt="$4" w="$full" style={{ height: 110 }} backgroundColor={cardBackgroundColor} borderRadius="$20">
+                        <View flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <View flexDirection="column">
+                                <Heading size="md" mt="$0" color={textColor}>Conference Room</Heading>
+                                <Text size="sm" color={textColor}>Boasting sunset views, long desk and a large TV.</Text>
+                            </View>
+                            <Icon as={ChevronRightIcon} w="$6" h="$6" alignSelf="center" color={textColor} />
+                        </View>
+                        <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
+                            <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
+                            <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={notAvailableButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Not Available</ButtonText></Button>
+                        </View>
+                    </Card>
                 </View>
-            </GuestLayout>
+            </ScrollView>
             <Navbar />
         </>
     );

@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar, useColorScheme } from 'react-native';
 import Navbar from "../../components/NavBar";
-import { 
-    StyleSheet, 
-    Text, 
-    View, 
+import {
+    StyleSheet,
+    Text,
+    View,
     Image,
     Card,
+    Toast,
+    useToast,
+    ToastTitle,
     Button,
     ButtonText,
     Icon,
@@ -17,10 +20,40 @@ import { router } from 'expo-router';
 const Dashboard = () => {
     const colorScheme = useColorScheme();
     const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+    const [checkedIn, setCheckedIn] = useState(false);
+    const toast = useToast();
 
     useEffect(() => {
         setIsDarkMode(colorScheme === 'dark');
     }, [colorScheme]);
+
+    const checkIn = () => {
+        setCheckedIn(!checkedIn);
+        if (checkedIn === false) {
+            toast.show({
+                placement: 'top',
+                render: ({ id }) => {
+                    return (
+                        <Toast nativeID={id} variant="accent" action="info">
+                            <ToastTitle>Travel safe</ToastTitle>
+                        </Toast>
+                    );
+                },
+            });
+        } else {
+            toast.show({
+                placement: 'top',
+                render: ({ id }) => {
+                    return (
+                        <Toast nativeID={id} variant="accent" action="info">
+                            <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
+                        </Toast>
+                    );
+                },
+            });
+        }
+        
+    }
 
     const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
     const textColor = isDarkMode ? 'white' : 'black';
@@ -51,15 +84,20 @@ const Dashboard = () => {
             </View >
             <View flexDirection="row" justifyContent="space-between" mt="$6" mb="$4" h="$8" alignItems="center">
                 <Text color={textColor}>Office analytics</Text>
-                <Button w="$36" borderRadius="$12" backgroundColor="greenyellow" onPress={() => router.push('/bookings')}><ButtonText color="dimgrey">Book a space</ButtonText><Icon as={ArrowRightIcon} ml="$1" w="$4" h="$4" /></Button>
+                {/* <Button w="$36" borderRadius="$12" backgroundColor="greenyellow" onPress={() => router.push('/bookings')}><ButtoText color="dimgrey">Check in</ButtoText><Icon as={ArrowRightIcon} ml="$1" w="$4" h="$4" /></Button> */}
+                {checkedIn ? (
+                    <Button w="$36" borderRadius="$12" backgroundColor="greenyellow" onPress={checkIn}><ButtonText color="dimgrey">Check in</ButtonText></Button>
+                ) : (
+                    <Button w="$36" borderRadius="$12" backgroundColor="lightblue" onPress={checkIn}><ButtonText color="dimgrey">Check out</ButtonText></Button>
+                )}
             </View>
             <Image
                 alt="logo"
                 p="$10"
                 source={require('./assets/graph.png')}
                 style={{ width: "full", height: 260, flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
-            />  
-            <Navbar/>     
+            />
+            <Navbar />
         </View>
     );
 };
