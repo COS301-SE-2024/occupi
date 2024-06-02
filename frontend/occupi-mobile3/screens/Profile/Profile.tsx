@@ -9,8 +9,8 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialIcons } from "@expo/vector-icons";
-import { Radio, RadioGroup, RadioLabel, RadioIndicator, RadioIcon, VStack, CircleIcon } from "@gluestack-ui/themed";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { Radio, RadioGroup, RadioLabel, RadioIndicator, RadioIcon, VStack, CircleIcon, Icon, useColorMode } from "@gluestack-ui/themed";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -46,6 +46,7 @@ const Profile = () => {
   const [pronouns, setPronouns] = useState("she/her");
   const [date, setDate] = useState(new Date(2000, 6, 7));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const { colorMode, toggleColorMode } = useColorMode();
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -71,7 +72,7 @@ const Profile = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
-          <MaterialIcons name="arrow-back" size={24} color="black" onPress={() => router.push('/settings')} />
+          <Icon as={Feather} name="chevron-left" size="30" color={colorMode === 'dark' ? 'white' : 'black'} onPress={() => router.push('settings')} />
           <Text style={styles.headerTitle}>My account</Text>
           <MaterialIcons
             name="person-outline"
@@ -139,7 +140,7 @@ const Profile = () => {
         <Text style={styles.label}>Email Address</Text>
         <TextInput
           style={styles.input}
-          placeholder="**********@deloite.co.za"
+          placeholder="**********@deloitte.co.za"
           placeholderTextColor={COLORS.gray}
           // value={email}
           onChangeText={setEmail}

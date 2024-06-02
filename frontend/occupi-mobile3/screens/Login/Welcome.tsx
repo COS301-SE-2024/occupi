@@ -26,7 +26,7 @@ const GradientButton = ({ onPress, text }) => (
   );
 
 
-const Onboarding3 = () => {
+const Welcome = () => {
   return (
       <View style={{backgroundColor: 'white' }} p="$4">
         <Center h="$full" >
@@ -67,4 +67,4 @@ const styles = StyleSheet.create({
     }
   });
   
-export default Onboarding3
+export default Welcome

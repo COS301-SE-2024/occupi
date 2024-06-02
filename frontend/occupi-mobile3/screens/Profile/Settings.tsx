@@ -1,23 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, Text, Image, ScrollView, Alert } from 'react-native';
-import { Icon, Layout, Toggle, List, ListItem, Divider } from '@ui-kitten/components';
+import {
+  VStack,
+  HStack,
+  Box,
+  Center,
+  Icon,
+  Heading,
+  Switch,
+  Divider,
+  Pressable,
+  useColorMode
+} from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
-// import { useTheme } from '../../app/_layout';
-import { useTheme, ChevronDownIcon } from '@gluestack-ui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import Navbar from "../../components/NavBar"
+import { Appearance, useColorScheme } from 'react-native';
 
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [doNotDisturbEnabled, setDoNotDisturbEnabled] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { colorMode, toggleColorMode } = useColorMode();
   const navigation = useNavigation();
 
   const toggleNotifications = () => {
     setNotificationsEnabled(!notificationsEnabled);
-  };
-
-  const toggleDoNotDisturb = () => {
-    setDoNotDisturbEnabled(!doNotDisturbEnabled);
   };
 
   const handleNavigate = (screen) => {
@@ -33,88 +41,101 @@ const Settings = () => {
           text: "Cancel",
           style: "cancel"
         },
-        { text: "OK", onPress: async () => {
-            await AsyncStorage.clear();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'login' }],
-            });
-          }
+        { 
+          text: "OK", 
+          onPress: () => handleNavigate('login') 
+          // onPress: async () => {
+          //   await AsyncStorage.clear();
+          //   navigation.reset({
+          //     index: 0,
+          //     routes: [{ name: 'Login' }]
+          //   });
+          // }
         }
       ]
     );
   };
 
-  const renderItemIcon = (props, name) => (
-    <Icon {...props} name={name} />
-  );
-
-  const renderItemAccessory = (props) => (checked, onChange) => (
-    <Toggle {...props} checked={checked} onChange={onChange} />
-  );
-
-  const renderListItem = ({ item }) => (
-    <ListItem
-      style={[styles.listItem, theme === 'dark' ? styles.darkItem : styles.lightItem]}
-      title={item.title}
-      description={item.description}
-      accessoryLeft={(props) => renderItemIcon(props, item.iconName)}
-      accessoryRight={(props) => (
-        <View style={styles.itemRight}>
-          {item.accessoryRight ? item.accessoryRight(props) : <Icon name="arrow-ios-forward-outline" fill={theme === 'dark' ? '#fff' : 'black'} style={styles.arrowIcon} />}
-        </View>
-      )}
-      onPress={item.onPress}
-    />
-  );
-
   const data = [
-    { title: 'My account', description: 'Make changes to your account', iconName: 'person-outline', onPress: () => handleNavigate('AccountScreen') },
-    { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell-outline', accessoryRight: (props) => renderItemAccessory(props)(notificationsEnabled, toggleNotifications) },
-    { title: 'Privacy Policy', description: 'View privacy policy', iconName: 'lock-outline', onPress: () => handleNavigate('PrivacyPolicyScreen') },
-    { title: 'Security', description: 'Enhance your security', iconName: 'shield-outline', onPress: () => handleNavigate('SecurityScreen') },
-    { title: 'Dark mode', description: 'Enable or disable dark mode', iconName: 'bulb-outline', accessoryRight: (props) => renderItemAccessory(props)(theme === 'dark', toggleTheme) },
-    { title: 'Terms and Policies', description: 'View terms and policies', iconName: 'file-text-outline', onPress: () => handleNavigate('TermsPoliciesScreen') },
-    { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle-outline', onPress: () => handleNavigate('ReportProblemScreen') },
-    { title: 'Support', description: 'Get support', iconName: 'headphones-outline', onPress: () => handleNavigate('SupportScreen') },
-    { title: 'Log out', description: 'Log out from your account', iconName: 'log-out-outline', onPress: handleLogout },
-    { title: 'About and Help', description: '', iconName: 'question-mark-circle-outline', onPress: () => handleNavigate('AboutHelpScreen') },
+    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => handleNavigate('profile') },
+    { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', accessoryRight: () => <Switch isChecked={notificationsEnabled} onToggle={toggleNotifications} /> },
+    { title: 'Privacy Policy', description: 'View privacy policy', iconName: 'lock', onPress: () => handleNavigate('PrivacyPolicyScreen') },
+    { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => handleNavigate('SecurityScreen') },
+    { title: 'Dark mode', description: 'Enable or disable dark mode', iconName: 'moon', accessoryRight: () => <Switch isChecked={colorScheme === 'dark'} onToggle={toggleColorMode} /> },
+    { title: 'Terms and Policies', description: 'View terms and policies', iconName: 'file-text', onPress: () => handleNavigate('TermsPoliciesScreen') },
+    { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
+    { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
+    { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: handleLogout },
+    { title: 'About and Help', description: '', iconName: 'info', onPress: () => handleNavigate('AboutHelpScreen') },
   ];
 
+  const renderListItem = ({ item }) => (
+    <Pressable onPress={item.onPress} style={[styles.listItem, colorScheme === 'dark' ? styles.darkItem : styles.lightItem]}>
+      <HStack space={3} justifyContent="space-between" alignItems="center">
+        <View flexDirection="row">
+          <Box mr="$6" p="$3" borderRadius="$full" backgroundColor="$gainsboro">
+            <Icon as={Feather} name={item.iconName} size="lg" color={colorMode === 'dark' ? 'white' : 'black'} />
+          </Box>
+          <VStack>
+            <Text style={[styles.title, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.title}</Text>
+            <Text style={[styles.description, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
+          </VStack>
+        </View>
+        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="30" color={colorMode === 'dark' ? 'white' : 'black'} />}
+      </HStack>
+    </Pressable>
+  );
+
+  let colorScheme = useColorScheme();
+  console.log(colorScheme);
+  if (colorScheme === 'dark') {
+    // render some dark thing
+  } else {
+    // render some light thing
+  }
+
   return (
-    <ScrollView style={[styles.container, theme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
-      {/* <Layout style={styles.profileContainer}> */}
-        <View style={styles.imageContainer}>
+    <>
+    <ScrollView style={[styles.container, colorScheme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
+    <Box style={styles.profileContainer}>
+        <Center style={styles.imageContainer}>
           <Image 
-            source={{ uri: 'https://via.placeholder.com/150' }} 
+            source={{ uri: 'https://bookingagentinfo.com/wp-content/uploads/2022/09/Sabrina-Carpenter-1.jpg' }} 
             style={styles.profileImage} 
           />
-          <Icon name='star' style={styles.cameraIcon} fill={theme === 'dark' ? '#fff' : 'black'} />
-        </View>
-        {/* <View style={styles.profileInfo}>
-          <View style={styles.nameContainer}>
-            <Text style={[styles.profileName, theme === 'dark' ? styles.darkText : styles.lightText]}>Sabrina Carpenter</Text>
-            <Icon name='edit-outline' style={styles.editIcon} fill={theme === 'dark' ? '#fff' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')}/>
+          <Icon as={MaterialIcons} name="camera-alt" size="md" color={colorScheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
+        </Center>
+        <Box style={styles.profileInfo}>
+          <HStack space={2} alignItems="center">
+            <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Sabrina Carpenter</Text>
+            <Icon as={Feather} name="edit" size="sm" color={colorMode === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} />
+          </HStack>
+          <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Chief Executive Officer</Text>
+        </Box>
+      </Box>
+      <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
+      <VStack space={4}>
+        {data.map((item, index) => (
+          <View key={index}>
+            {renderListItem({ item })}
+            {index < data.length - 1 && <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />}
           </View>
-          <Text style={[styles.profileTitle, theme === 'dark' ? styles.darkText : styles.lightText]}>Chief Executive Officer</Text>
-        </View> */}
-      {/* </Layout> */}
-      {/* <Divider style={theme === 'dark' ? styles.darkDivider : styles.lightDivider} /> */}
-      {/* <List
-        data={data}
-        ItemSeparatorComponent={() => <Divider style={theme === 'dark' ? styles.darkDivider : styles.lightDivider} />}
-        renderItem={renderListItem}
-      /> */}
-      {/* <Layout style={styles.footerContainer}>
-        <Text style={[styles.versionText, theme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
-      </Layout> */}
+        ))}
+      </VStack>
+      <Center style={styles.footerContainer}>
+        <Text style={[styles.versionText, colorMode === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
+      </Center>
     </ScrollView>
+    <Navbar />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 40,
+    top: 0
   },
   lightContainer: {
     backgroundColor: '#fff',
@@ -142,7 +163,7 @@ const styles = StyleSheet.create({
   cameraIcon: {
     position: 'absolute',
     bottom: 0,
-    left: 20,
+    left: 70,
     width: 24,
     height: 24,
   },
@@ -169,11 +190,6 @@ const styles = StyleSheet.create({
   darkText: {
     color: '#fff',
   },
-  editIcon: {
-    width: 20,
-    height: 20,
-    marginLeft: 8,
-  },
   footerContainer: {
     padding: 16,
     alignItems: 'center',
@@ -183,6 +199,7 @@ const styles = StyleSheet.create({
   },
   listItem: {
     paddingVertical: 15,
+    paddingHorizontal: 20,
   },
   lightItem: {
     backgroundColor: '#fff',
@@ -204,6 +221,15 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     marginLeft: 8,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 60,
+  },
+  description: {
+    fontSize: 14,
+    fontWeight: 'light'
   },
 });
 
