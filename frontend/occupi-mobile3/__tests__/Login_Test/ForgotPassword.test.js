@@ -1,15 +1,17 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import ForgotPassword from '../ForgotPassword'; // Adjust the import path accordingly
+import ForgotPassword from '../../screens/Login/ForgotPassword'; // Adjust the import path accordingly
 import { useToast } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 
+// Mock the router
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
   },
 }));
 
+// Mock the useToast hook
 jest.mock('@gluestack-ui/themed', () => ({
   useToast: jest.fn(),
 }));
@@ -40,7 +42,7 @@ describe('ForgotPassword Component', () => {
 
   it('shows success message and navigates to verify-otp screen on valid submission', async () => {
     const mockToast = { show: jest.fn() };
-    (useToast as jest.Mock).mockReturnValue(mockToast);
+    useToast.mockReturnValue(mockToast);
 
     const { getByText, getByPlaceholderText } = render(<ForgotPassword />);
 
