@@ -1,0 +1,290 @@
+## Table of contents
+
+- [Table of contents](#table-of-contents)
+- [Pre-info](#pre-info)
+  - [High-Level Functional Requirements:](#high-level-functional-requirements)
+  - [Low-Level Functional Requirements:](#low-level-functional-requirements)
+    - [Based on the provided high-level and low-level functional requirements, here are the potential subsystems for Occupi system:](#based-on-the-provided-high-level-and-low-level-functional-requirements-here-are-the-potential-subsystems-for-occupi-system)
+  - [Functional Req by subsystem](#functional-req-by-subsystem)
+    - [User Authentication Subsystem](#user-authentication-subsystem)
+    - [User Authorisation Subsystem](#user-authorisation-subsystem)
+    - [Other subsystems to be discussed:](#other-subsystems-to-be-discussed)
+- [Software Requirements Specification (SRS) Document for Occupi](#software-requirements-specification-srs-document-for-occupi)
+  - [What MVC does:](#what-mvc-does)
+  - [Layered architectural pattern](#layered-architectural-pattern)
+    - [Layered pattern:](#layered-pattern)
+  - [Constraints](#constraints)
+  - [Technology Requirements](#technology-requirements)
+- [User Story for users](#user-story-for-users)
+- [User stories for managers](#user-stories-for-managers)
+- [User stories for administrators](#user-stories-for-administrators)
+
+## Pre-info
+
+### High-Level Functional Requirements:
+- Real-time Check-in
+    - Employees must be able to check in via the app on a mobile device to update their status of being in the building or planning to come in.
+- Current Capacity Display
+    - The system must display the current occupancy of the office in real-time to all users.
+- Capacity Prediction Algorithm
+    - The system must predict office capacity 1-2 days in advance and display this information to employees.
+- Management Terminal
+    - A management terminal must be provided to display historical trends and future predictions of office capacity.
+- Long-term Predictions
+    - The system should provide long-term predictions to allow for planning of personnel in the office.
+- Report Generation  
+    - The system must generate monthly performance reports
+- Notifications: 
+    - The system must send notifications to users regarding office capacity updates, including alerts when the office is nearing or has reached full capacity.
+
+### Low-Level Functional Requirements:
+1. User Authentication: Users must authenticate using their Deloitte credentials. This implies that the system should integrate with Deloitte's existing authentication system, such as Active Directory or a single sign-on (SSO) solution.
+2. Check-in System: Allow employees to check in and out, updating the current office capacity.
+3. Real-Time Capacity Display: Show real-time office occupancy on the app.
+4. User Authorization : After successful authentication, the system should authorize users based on their assigned roles and permissions. For example:
+    - Employees should have access to check-in, check-out, view real-time capacity, and access predictions for planning their visits.
+    - Managers should have access to the management terminal to view historical trends and plan office space usage.
+    - System administrators should have elevated privileges to maintain and manage the application, ensuring data accuracy and system performance.
+
+### Functional Requirements by subsystem
+Based on the provided high-level and low-level functional requirements, here are the potential subsystems for Occupi system:
+
+#### User Authentication Subsystem
+1. Login
+    - Be able to login with Deloitte credentials, ie Deloitte email/employee number/password
+ Integrates with Deloitte's existing authentication system (e.g., Active Directory, SSO)
+2. Logout 
+    - Users can logout of the system when they want to
+3. Remove Account
+    - Manager or Account Administrator can remove accounts
+
+#### User Authorisation Subsystem
+1. User roles
+    - Manages user roles and permissions (employees, managers, administrators)
+2. Check-in/Check-out Subsystem
+    - Provides the check-in and check-out functionality for employees
+    - Updates the current office capacity in real-time
+    - Interfaces with the Real-Time Capacity Display Subsystem
+
+3. Real-Time Capacity Display Subsystem
+    - Displays the current office occupancy in real-time
+    - Receives updates from the Check-in/Check-out Subsystem
+    - Presents the capacity information to users (employees, managers)
+
+4. Prediction Engine Subsystem
+    - Implements the capacity prediction algorithm
+    - Generates short-term (1-2 days) and long-term capacity predictions
+    - Utilizes historical occupancy data and current trends
+    - Provides predictions to the Real-Time Capacity Display Subsystem and Management Terminal
+
+5. Management Terminal Subsystem
+    - Provides an interface for managers to access historical trends and future predictions
+    - Displays visualizations and reports for capacity analysis
+    - Integrates with the Prediction Engine Subsystem and Historical Data Repository
+
+6. Historical Data Repository
+    - Stores historical occupancy data
+    - Serves as a data source for the Prediction Engine Subsystem and Management Terminal
+
+7. Notification Subsystem
+    - Sends notifications and alerts to users
+    - Integrates with the Real-Time Capacity Display Subsystem and Prediction Engine Subsystem
+    - Notifies users about capacity updates, nearing full capacity, etc.
+
+8. Reporting Subsystem
+    - Generates monthly performance reports
+    - Collects and analyzes data from various subsystems
+    - Provides report generation and export functionality
+
+9. Integration Subsystem
+    - Handles integration with Deloitte's existing systems (e.g., building access control)
+    - Facilitates data exchange and synchronization between systems
+
+#### Other subsystems to be discussed:
+1. Data Ingestion Subsystem
+    - Responsible for collecting and ingesting data from various sources
+    - Interfaces with external systems (e.g., building access control) to obtain occupancy data
+    - Preprocesses and formats the data for storage and analysis
+2. Data Processing Subsystem
+    - Handles data cleaning, transformation, and feature engineering
+    - Ensures data quality and consistency
+    - Prepares the data for use by the Prediction Engine Subsystem
+3. Monitoring and Logging Subsystem
+    - Monitors the system's performance, health, and availability
+    - Collects and analyzes logs from various subsystems
+    - Provides alerts and notifications for system issues or anomalies
+4. Security and Compliance Subsystem
+    - Enforces security measures and access controls
+    - Implements data encryption and protection mechanisms
+    - Ensures compliance with relevant regulations and standards (e.g., data privacy, security)
+5. Configuration Management Subsystem
+    - Manages system configurations and settings
+    - Provides a centralized repository for configuration data
+    - Allows for easy updates and changes to system parameters
+6. Caching Subsystem
+    - Improves performance by caching frequently accessed data
+    - Reduces the load on the database and other subsystems
+    - Implements caching strategies and eviction policies
+7. Scheduling and Batch Processing Subsystem
+    - Handles scheduled tasks and batch processing jobs
+    - Executes periodic tasks (e.g., data updates, report generation)
+    - Ensures efficient utilization of system resources
+8. Messaging and Event Handling Subsystem
+    - Facilitates communication and event handling between subsystems
+    - Implements messaging patterns (e.g., publish-subscribe, queue-based)
+    - Ensures loose coupling and scalability of the system
+
+## Software Requirements Specification (SRS) Document for Occupi
+1. Introduction
+    1. Vision and Objectives
+        - Occupi aims to record and predict office occupancy on a day-to-day basis. The primary objective is to provide real-time updates on current office capacity and predict future capacity using historical data and current trends. This system is essential for managing office space efficiently, especially in a hybrid work environment where the number of employees may exceed available desks.
+    2. Business Need
+        - Deloitte's hybrid work policies have led to scenarios where more employees are present than desks available, causing inconvenience. This system addresses this issue by providing accurate predictions and real-time updates on office occupancy, thereby aiding in better space management and planning.
+    3. Project Scope
+        - The project includes developing a mobile-accessible application for employees to check in and view office capacity. It will also feature a management terminal for viewing historical trends and future predictions. The scope is limited to Deloitte employees, with potential for future scalability to other offices.
+2. User Stories / User Characteristics
+    1. Intended Users
+        - Employees: Use the app to check in, view current office capacity, and see predictions for planning their visits.
+        - Managers: Access the management terminal to view historical trends and plan office space usage.
+        - System Administrators: Maintain and manage the application, ensuring data accuracy and system performance.
+
+***Here is an example user story for the Occupi system***:
+
+**User Story**: As an employee, I want to check the real-time capacity of the office before leaving for work, so that I can decide whether to go to the office or work remotely.
+
+**Acceptance Criteria**:
+- I can access Occupi app on my mobile device.
+- After authenticating with my Deloitte credentials, I can view the current office capacity in real-time.
+- The app displays the capacity as a percentage of available seats occupied.
+- The app provides clear guidance on what the capacity percentage means (e.g., 80% capacity means the office is nearly full).
+- I can set a personal capacity threshold (e.g., 70%) and receive notifications when the office capacity exceeds that threshold.
+- The app interface is intuitive and easy to navigate.
+- The real-time capacity information is accurate and updated frequently (e.g., every 5 minutes).
+
+**Non-Functional Requirements**:
+- The app is responsive and fast, with minimal loading times.
+- The app is compatible with the latest versions of iOS and Android operating systems.
+- The app follows Deloitte's branding guidelines and design standards.
+- The app is secure, with proper authentication and data encryption measures in place.
+
+**Additional Context:**
+- As an employee in a hybrid work environment, I need to plan my office visits effectively to ensure a productive work environment and avoid overcrowding.
+- Real-time capacity information helps me make informed decisions about going to the office or working remotely, saving time and increasing efficiency.
+- Accurate and up-to-date information is crucial for making these decisions, as capacity can fluctuate throughout the day.
+
+3. Functional Requirements
+    1. Use Cases
+        - High-Level Use Case Diagram
+            - (Include a diagram here)
+        - Service Contracts
+            - Each use case will be detailed using a service contract approach to define inputs, outputs, and system behavior.
+    2. Requirements
+        - Functional Requirements
+        - Subsystems
+            - User Management Subsystem: Handles user authentication and role management.
+            - Occupancy Tracking Subsystem: Manages real-time check-ins and updates.
+            - Prediction Engine Subsystem: Analyzes historical data and current trends to forecast future occupancy.
+4. Class Diagram
+    - (Include a UML class diagram here that illustrates the relationships and multiplicities between classes such as User, CheckIn, Office, and PredictionEngine)
+5. Architectural Requirements
+    1. Quality Requirements/Quality Attributes (Non-Functional Requirements):
+        - Performance: The system should handle real-time updates with minimal latency.  The document states that "The system should handle real-time updates with minimal latency." This requirement emphasizes the need for good performance, especially in handling real-time updates of office occupancy data.
+        - Reliability: The SRS specifies that the system should "Ensure high availability and accuracy of occupancy data." This requirement focuses on the reliability of the system in terms of availability and data accuracy.
+        - Scalability: Design the system to accommodate an increasing number of users and data points.The document mentions that the system should be designed "to accommodate an increasing number of users and data points." This requirement highlights the need for scalability to handle growing user bases and larger volumes of data.
+        - Security: Protect user data with robust authentication and encryption mechanisms. The SRS states that the system should "Protect user data with robust authentication and encryption mechanisms." This requirement emphasizes the need for security measures, such as authentication and encryption, to protect user data.
+        - Usability: Since the system includes a mobile application for employees and a management terminal for managers, it is implied that the user interfaces should be intuitive, user-friendly, and easy to navigate.
+        - Maintainability: The suggestion to use architectural patterns like MVC (Model-View-Controller) indicates a concern for maintainability
+        - Interoperability: The requirement to "integrate seamlessly with Deloitte's existing building access control systems" implies that the system should be interoperable with other systems in the organization.
+        - Compliance: The need to follow "Deloitte's design standards and guidelines" suggests that the system should comply with the organization's policies, standards, and regulations.
+    2. Design Patterns
+        - Observer Pattern: This pattern can be used to notify interested parties (such as the Real-Time Capacity Display or Prediction Engine) when the occupancy status changes due to check-ins or check-outs. As stated in the document, the Observer pattern should be used to "Notify the system of changes in occupancy status." This pattern allows the system to be notified when an occupancy status changes, such as an employee checking in or out. This pattern promotes loose coupling between the subject (Office or Occupancy Tracking Subsystem) and observers (components that need to be notified of occupancy changes).
+        - Strategy Pattern: This pattern can be employed in the Prediction Engine Subsystem to allow for different prediction algorithms or strategies to be used interchangeably, making it easier to swap or extend the prediction logic as needed.
+        - Decorator Pattern: This pattern can be used to add new functionality or behavior to existing components, such as adding logging or caching capabilities to certain parts of the system without modifying the core components.
+        - Facade Pattern: This pattern can provide a simplified interface to complex subsystems, such as the Prediction Engine or User Management Subsystem, making it easier for other parts of the system to interact with them. This pattern could be employed to provide a simplified interface to a complex subsystem, such as the Prediction Engine Subsystem, hiding the intricate details and making it easier to use.
+        - Proxy Pattern: This pattern can be used to control or manage access to certain resources or components, such as the Check-in System or the Occupancy Tracking Subsystem, by introducing an intermediary proxy object.
+        - Memento Pattern: This pattern can be employed to capture and restore the internal state of the Prediction Engine or other subsystems, allowing for rollbacks or checkpointing during the prediction process.
+        - Command Pattern: This pattern can be used to encapsulate requests or actions, such as check-in, check-out, or prediction requests, as objects, enabling better control and flexibility over their execution.
+        - Template Method Pattern: This pattern can be used to define a skeleton algorithm or process for tasks like data processing, prediction, or occupancy tracking, allowing subclasses to override or extend specific steps as needed.
+        - Visitor Pattern: This pattern can be used to separate the algorithm or operation from the object structure, enabling the addition of new operations or analyses on the occupancy data or prediction results without modifying the core objects.
+        - Model-View-Controller (MVC) Pattern: The document recommends using the MVC architectural pattern to "Separate concerns for user interface, business logic, and data management." This pattern separates the application into three interconnected components: the Model (data and business logic), the View (user interface), and the Controller (handling user input and updating the Model and View).
+        - Decorator Pattern: This pattern could be useful for adding additional responsibilities or behaviors to existing objects in the system, such as adding logging or caching capabilities to certain components.
+    3. Architectural Patterns:
+        - **Event-Driven Architecture**: To support real-time updates and ensure high availability (Reliability), an Event-Driven Architecture can be adopted. This pattern involves using an event bus or message queue to decouple the components of the system. When an event occurs, such as an employee checking in or out, the event is published to the event bus, and interested components (e.g., Occupancy Tracking, Real-Time Display) can subscribe to and react to these events.
+        - **The Pipe and Filter**:  pattern promotes modularity, reusability, and maintainability by separating concerns into distinct filters. Each filter can be developed, tested, and deployed independently, allowing for easier evolution and scaling of the Prediction Engine subsystem.
+            *Additionally*, this pattern can enhance the system's performance by enabling parallel processing of data through multiple instances of the same filter running concurrently.
+        - **MVC (Model-View-Controller)**: Separate concerns for user interface, business logic, and data management. The MVC pattern promotes a clean separation of concerns between data management (Model), user interface (View), and application logic (Controller), making the codebase more modular and easier to maintain.
+6. Appendix
+    - Previous Versions
+        - Include sections of the document that have been updated, detailing changes made and the reasons for these changes.
+
+### What MVC does:
+1. **Testability**: The separation of concerns in the MVC pattern makes it easier to write unit tests for each component in isolation, improving the overall testability of the system.
+2. **Usability**: By separating the user interface (View) from the underlying data and logic, the MVC pattern facilitates the creation of intuitive and user-friendly interfaces. The Views can be designed and updated independently, adhering to Deloitte's design standards and guidelines, which contributes to better usability.
+3. **Maintainability**: This separation makes the codebase more modular and easier to maintain, as changes in one component have minimal impact on the others.
+4. **Reusability**: The MVC pattern promotes reusability of components, as the Model, View, and Controller can be reused across different parts of the application or even in other applications, reducing duplication of effort and promoting code reuse.
+
+*While* the MVC pattern does not directly address performance, reliability, scalability, or security requirements, it can be combined with other architectural patterns and design principles to address those concerns. 
+
+### Layered architectural pattern
+The Occupi system can benefit from improved modularity, maintainability, and scalability. Each layer can be developed, tested, and evolved independently, reducing the impact of changes on the entire system. Additionally, this pattern promotes code reusability and facilitates the integration of new features or components within the appropriate layer.
+
+#### Layered pattern:
+1. **Presentation Layer**: This layer would consist of the user interfaces, such as the mobile application for employees and the management terminal for managers. It would handle user input, display data, and provide a consistent user experience adhering to Deloitte's design standards and guidelines (Usability and Compliance).
+2. **Application Layer**: This layer would encapsulate the business logic and rules related to occupancy tracking, prediction algorithms, and other core functionalities of the system. It would serve as an intermediary between the Presentation Layer and the lower layers, ensuring proper separation of concerns.
+3. **Service Layer**: This layer would consist of various services or components responsible for specific tasks, such as user management, occupancy tracking, prediction engine, and real-time updates. These services could be implemented as microservices, promoting scalability and maintainability.
+4. **Data Access Layer**: This layer would abstract the underlying data storage mechanisms (e.g., MongoDB) and provide a consistent interface for interacting with the data sources. It would handle tasks such as querying, updating, and retrieving data related to occupancy, historical trends, and user information.
+5. **External Systems Layer**: This layer would facilitate integration with external systems, such as Deloitte's existing building access control systems. It would handle communication protocols, data transformations, and any necessary adaptations required for seamless integration (Interoperability).
+6. **Security Layer**: This layer would handle authentication, authorization, and other security-related concerns, such as encryption and data protection (Security). It could be implemented as a cross-cutting concern or as a separate layer depending on the complexity of the security requirements.
+
+### Constraints
+- **Integration with Existing Systems**: Must integrate seamlessly with Deloitte’s existing building access control systems.
+- **Mobile Accessibility**: Ensure the application is accessible via mobile devices.
+- **Design Consistency**: Maintain Deloitte's design standards and guidelines.
+
+### Technology Requirements
+- **Frontend**: React Native for mobile application development.
+- **Backend**: Node.js with Express for the server-side application.
+- **Database**: MongoDB for storing occupancy data.
+- **AI/ML**: Python-based machine learning models for capacity prediction.
+
+Reference:
+https://cs.lmu.edu/~ray/notes/designpatterns/
+https://dl.acm.org/doi/abs/10.1145/3624716
+https://help.ovhcloud.com/csm/es-es-public-cloud-ai-deploy-build-use-custom-image?id=kb_article_view&sysparm_article=KB0057409
+https://reactnative.dev/docs/interactionmanager
+
+## User Story for users
+
+| User Story                  | Details                                                                                                                         |  Criteria                                                                                                                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User Login                  | As a user, I want to log in using my Deloitte credentials so that I can access the application.                                 | Users must enter their Deloitte email and password. System must authenticate the credentials against the Deloitte directory. User is redirected to the dashboard upon successful login. |
+| Check-in Feature            | As an employee, I want to check in when I arrive at the office so that the system updates the current occupancy.                | Users can check in via the mobile app. the current occupancy is updated immediately after check-in. Confirmation message is displayed upon successful check-in.                         |
+| Real-Time Capacity View     | As an employee, I want to see the real-time office capacity so that I can decide whether to come to the office.                 | The dashboard displays the current number of people in the office. Data is refreshed every minute.                                                                                      |
+| Future Capacity Predictions | As an employee, I want to view predicted office capacity for the next two days so that I can plan my office visits accordingly. | Predicted capacity is shown based on historical data. Users can view predictions for today, tomorrow, and the day after.                                                                |
+| User Profile Management     | As a user, I want to update my profile information so that my contact details and preferences are accurate.                     | Users can edit their profile details.Changes are saved and reflected immediately.                                                                                                       |
+| Notification System         | As an employee, I want to receive notifications about office capacity updates so that I am informed if the office is full.      | Notifications are sent when capacity exceeds a certain threshold. Users can opt-in or out of notifications.                                                                             |
+| Search Functionality        | As a user, I want to search for occupancy data by date so that I can find specific information quickly.                         | Users can enter a date or range of dates to search. Search results display the relevant occupancy data.                                                                                 |
+| Feedback System             | As a user, I want to provide feedback on the app so that the development team can improve it.                                   | Users can submit feedback through the app. Submitted feedback is stored in the system for review.                                                                                       |
+| Multi-Language Support      | As a user, I want to use the application in my preferred language so that I can navigate it easily.                             | The application supports at least three languages. Users can switch languages from the settings menu.                                                                                   |
+| User-Friendly Interface     | As an employee, I want to navigate the app easily so that I can find information quickly.                                       | The UI follows intuitive design principles. Users can access main features within three clicks from the homepage.                                                                       |
+
+## User stories for managers
+| USER STORY                    | DETAILS                                                                                                                                   | ACCEPTANCE CRITERIA                                                                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Manager Dashboard             | As a manager, I want to access historical and predicted occupancy data so that I can plan office space usage efficiently.                 | Managers can view charts and graphs of historical occupancy. Predictions are displayed alongside historical trends.                 |
+| Notification System           | As a manager, I want to receive notifications about office capacity updates so that I can take appropriate actions if the office is full. | Notifications are sent when capacity exceeds a certain threshold. Managers can customize notification thresholds.                   |
+| Data Export                   | As a manager, I want to export occupancy data so that I can analyze it externally or share it with stakeholders.                          | Data can be exported in CSV and PDF formats. Exported data includes both historical and predicted occupancy.                        |
+| Search Functionality          | As a manager, I want to search for occupancy data by date so that I can quickly retrieve specific information for analysis or reporting.  | Managers can enter a date or range of dates to search. Search results display the relevant occupancy data.                          |
+| Feedback System               | As a manager, I want to receive feedback on the app from users so that I can understand user needs and improve the application.           | Users can submit feedback through the app. Submitted feedback is stored in the system for review.                                |
+| Daily Summary Report          | As a manager, I want to receive a daily summary report of office occupancy so that I can review daily trends.                             | Reports are generated automatically at the end of each day. Reports include total check-ins, peak occupancy times, and predictions. |
+| Historical Data Visualization | As a manager, I want to see visual representations of historical data so that I can understand trends better.                             | Data is displayed in charts and graphs. Visualization options include line charts, bar charts, and pie charts.                      |
+
+## User stories for administrators
+| USER STORY                              | DETAILS                                                                                                                                     | ACCEPTANCE CRITERIA                                                                                                                            |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Audit Logs                              | As a system administrator, I want to view audit logs of check-ins and check-outs so that I can track user actions for security purposes.    | Logs include user ID, timestamp, and action type. Logs are accessible only to administrators.                                         |
+| Role-Based Access Control               | As a system administrator, I want to manage user roles so that different users have appropriate access levels.                              | Roles include employee, manager, and admin. Access is restricted based on the user’s role.                                               |
+| Integration with Access Control Systems | As a system administrator, I want to integrate the app with building access control systems so that check-in data is automatically updated. | The system automatically logs check-ins from access control data. Integration is seamless and requires minimal manual intervention.   |
+| Capacity Alert Thresholds               | As a manager, I want to set capacity alert thresholds so that I am notified when occupancy reaches critical levels.                         | Managers can set and update alert thresholds. Notifications are triggered when thresholds are exceeded.                               |
+| Security Features                       | As a system administrator, I want to implement security measures so that user data is protected.                                            | Data encryption is applied to sensitive information. Users must authenticate using two-factor authentication (2FA).                      |
+| Scalability                             | As a system architect, I want to ensure the system can handle increasing users and data so that it remains performant as usage grows.       | System performance remains stable with up to 1000 concurrent users. Data handling scales efficiently with increased check-in volumes. |

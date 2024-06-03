@@ -1,0 +1,309 @@
+# General Go Coding Standards
+
+- [General Go Coding Standards](#general-go-coding-standards)
+  - [File Naming:](#file-naming)
+  - [Package Naming:](#package-naming)
+  - [Function and Variable Naming:](#function-and-variable-naming)
+  - [Use PascalCase for **exported** functions and types:](#use-pascalcase-for-exported-functions-and-types)
+  - [Constants:](#constants)
+  - [Error Handling:](#error-handling)
+  - [Comments:](#comments)
+- [API Specific Best Practices](#api-specific-best-practices)
+  - [Project Structure:](#project-structure)
+  - [Global Variables:](#global-variables)
+  - [Configuration Management:](#configuration-management)
+  - [Router Setup:](#router-setup)
+  - [Response and Error Handling:](#response-and-error-handling)
+  - [Testing:](#testing)
+
+
+## File Naming:
+
+Use lowercase letters and underscores. For example, ```user_handler.go```.
+
+##  Package Naming:
+
+Use short, concise names in lowercase. For example, handlers, models.
+
+## Function and Variable Naming:
+
+Use camelCase for local variables and function parameters.
+
+```go filename="main.go" {2-3} copy
+// Correct
+var userName string
+var userID int
+
+// Incorrect
+var username string
+var UserID int
+```
+
+## Use PascalCase for **exported** functions and types:
+
+Use concise and descriptive names. Avoid single-character names except for common idiomatic uses (e.g., i for loop counters).
+
+```go filename="main.go" {2-3} copy
+// Correct
+func GetUserByID(id int) User{}
+type UserService struct{}
+
+// Incorrect
+func getU(id int) User{}
+type us struct{}
+```
+
+## Constants:
+
+Use PascalCase for exported constants and camelCase for unexported constants. For example, const Pi = 3.14 and const maxSize = 1024.
+
+```go filename="main.go" {2-3} copy
+// Correct for exported constants
+const MaxRetries = 3
+const DefaultTimeout = 30 * time.Second
+
+// Correct for unexported constants
+const maxRetries = 3  
+const defaultTimeout = 30 * time.Second
+
+```
+
+## Error Handling:
+
+Always check for and handle errors. **Do not ignore them**. Log errors with logrus, otherwise if it is user facing, return an error response.
+
+```go filename="main.go" {2-5} copy
+// Correct
+if err != nil {
+    logrus.Errorf("error: %v", err)
+    return
+}
+
+// Also correct(using gin web framework)
+if err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+    return
+}
+```
+
+## Comments:
+
+Use comments to explain the intent of the code, not the implementation.
+Use // for single-line comments and documentation of functions and /* ... */ for block comments.
+Provide comments for all exported functions, types, and constants.
+
+```go filename="main.go" {2} copy
+// GetUserByID fetches a user by ID from the database.
+func GetUserByID(id int) User{}
+
+// User represents a user in the system.
+type User struct{}
+```
+
+# API Specific Best Practices
+
+## Project Structure:
+
+Organize code into packages based on functionality, such as handlers, services, models, middlewares, etc.
+Separate business logic from HTTP handlers. Use service layers to handle business logic. Have a look at our backends organization structure below:
+    
+```bash
+myapp/
+├── cmd/
+│   └── occupi-backend/
+│       └── main.go //entry point
+├── configs/
+│   └── config.go //env variables are imported in this file
+├── pkg/
+│   ├── handlers/
+│   │   └── handlers.go //handles individual api endpoints
+│   ├── middleware/
+│   │   ├── middleware.go //a logger for each incoming api request
+│   │   └── auth.go //contains authentication middleware
+│   ├── models/
+│   │   └── models.go //contains database defined models(NOSQL)
+│   ├── database/
+│   │   ├── database.go //contains database struct
+│   │   └── migrations/
+│   │       └── //may perhaps contain database migrations
+│   ├── router/
+│   │   └── router.go //contains api endpoints
+│   └── utils/
+│       └── utils.go //contains universally used functions
+├── tests/
+│   └── handlers_test.go //unit tests endpoints
+|   └── unit_test.go //unit tests utils
+├── Dockerfile // Containerization
+├── docker-compose.yml
+├── go.mod
+├── go.sum
+├── nginx.conf //reverse proxy config
+└── docs/
+    └── // go-lang function documentation
+```
+
+## Security conscience
+
+## Global Variables:
+
+Avoid using global mutable variables. Use dependency injection to pass dependencies to functions and methods.
+    
+```go filename="main.go" {2-4} copy
+// Correct
+func NewServer(db *database.DB) *Server {
+    return &Server{db: db}
+}
+
+// Incorrect
+var db *database.DB //this may cause issues with concurrent requests
+
+func NewServer() *Server {
+    return &Server{db: db}
+}
+```
+
+## Configuration Management:
+
+Use environment variables or configuration files for application configuration and storing secrets.
+
+```go filename="main.go" copy
+func GetPort() string {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "PORT"
+	}
+	return port
+}
+```
+
+and .env file
+
+```bash copy
+PORT=8080
+```
+
+## Router Setup:
+
+Group routes logically and use middlewares for common functionalities like logging, authentication, and error handling.
+
+```go filename="main.go" copy
+func OccupiRouter(r *gin.Engine, db *mongo.Client) {
+	ping := r.Group("/ping")
+	{
+		ping.GET("", func(c *gin.Context) { c.JSON(200, gin.H{"message": "pong -> I am alive and kicking"}) })
+	}
+	api := r.Group("/api")
+	{
+		api.GET("/resource", func(c *gin.Context) { handlers.FetchResource(c, db) })
+	}
+	auth := r.Group("/auth")
+	{
+		//auth.POST("/login", handlers.Login(db))
+		auth.POST("/register", handlers.Register)
+		auth.POST("/verify-otp", handlers.VerifyOTP)
+	}
+}
+```
+
+## Response and Error Handling:
+
+Standardize API responses using a consistent format. For example, always include status codes, messages, and data.Gin provides us with a .H object that will allow you to format responses.
+
+```go filename="main.go" {2} copy
+// Correct
+c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Resource fetched successfully", "data": resource})
+
+// Incorrect
+c.JSON(http.StatusOK, resource)
+```
+
+A typical success API response should have the following structure:
+
+```json copy
+{
+    "status": 200,
+    "message": "Resource fetched successfully",
+    "data": {
+        // Your data here
+    },
+    "meta": {
+        // Optional metadata here
+    }
+}
+```
+
+A typical error API response should have the following structure:
+
+```json copy
+{
+    "status": 400,
+    "message": "Bad Request",
+    "error": {
+        "code": "INVALID_INPUT",
+        "message": "The input provided is invalid",
+        "details": {
+            // Additional error details here
+        }
+    }
+}
+```
+
+A typical success paginated API response should have the following structure:
+
+```json copy
+{
+    "status": 200,
+    "message": "Request successful",
+    "data": [
+        // List of items here
+    ],
+    "meta": {
+        "currentPage": 1,
+        "totalPages": 10,
+        "pageSize": 20,
+        "totalCount": 200
+    }
+}
+
+```
+
+
+## Testing:
+
+Write unit tests for individual functions and methods. example:
+
+```go filename="main.go" copy
+func TestAdd(t *testing.T) {
+    result := Add(1, 2)
+    if result != 3 {
+        t.Errorf("Add(1, 2) = %d; want 3", result)
+    }
+}
+```
+
+Write integration tests for API endpoints. example:
+    
+```go filename="main.go" copy
+func TestGetResource(t *testing.T) {
+    req, err := http.NewRequest("GET", "/api/resource", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    handler := http.HandlerFunc(handlers.GetResource)
+
+    handler.ServeHTTP(rr, req)
+
+    if status := rr.Code; status != http.StatusOK {
+        t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+    }
+
+    expected := `{"message":"Hello, World!"}`
+    if rr.Body.String() != expected {
+        t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
+    }
+}
+```
+
+***NB: Use testing frameworks like testing package and libraries like testify for assertions.***

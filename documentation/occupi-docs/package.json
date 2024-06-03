@@ -1,0 +1,22 @@
+{
+    "name": "occupi-docs",
+    "version": "0.0.1",
+    "description": "Occupi documentation",
+    "scripts": {
+        "dev": "NODE_ENV=development next dev",
+        "build": "next build",
+        "buildbackend": "APP_ENV=backend next build",
+        "start": "next start"
+    },
+    "dependencies": {
+        "next": "^14.2.3", 
+        "nextra": "latest",
+        "nextra-theme-docs": "latest",
+        "react": "^18.3.1", 
+        "react-dom": "^18.3.1"
+    },
+    "devDependencies": {
+        "@types/node": "18.11.10",
+        "typescript": "^4.9.3"
+    }
+}

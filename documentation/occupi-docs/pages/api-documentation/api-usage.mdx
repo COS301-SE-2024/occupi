@@ -1,0 +1,209 @@
+# Api Usage
+
+This page provides a detailed explanation of how to use the Occupi API. 
+The Occupi API is a RESTful API that allows you to interact with the Occupi platform programmatically. 
+The API provides endpoints for creating, reading, updating, and deleting resources. 
+The API also allows you to retrieve information about these resources.
+
+# Table of Contents
+
+- [Api Usage](#api-usage)
+  - [Table of Contents](#table-of-contents)
+    - [Base URL](#base-url)
+    - [Ping](#ping)
+    - [Authentication](#authentication)
+      - [Register](#register)
+      - [Login](#login)
+      - [Verify OTP](#verify-otp)
+    - [Api](#api)
+      - [Resources](#resources)
+      - [Users](#users)
+      - [Roles](#roles)
+
+## Base URL
+
+The base URL for the Occupi API is `https://occupi.tech` or `https://localhost:8080` if you are in develop mode.
+
+## Ping
+
+The ping endpoint is used to check if the API is up and running.
+
+- **URL**
+
+  `/ping`
+
+- **Method**
+  
+    `GET`
+
+- **Success Response**
+  
+    - **Code:** 200
+    - **Content:** `{ "message": "pong -> I am alive and kicking" }`
+
+- **Error Response**
+    
+    - **Code:** 404
+    - **Content:** `{ "message": "Resource not found" }`
+
+***Example json to send:***
+
+```json copy
+{
+    
+}
+```
+
+## Authentication
+
+The authentication endpoints are used to register, login, and verify users. Only POST requests are used for these endpoints.
+
+### Register
+
+- **URL**
+
+  `/auth/register`
+
+- **Method**
+  
+    `POST`
+
+- **Success Response**
+    
+    - **Code:** 200
+    - **Content:** `{ "status":  200, "message": "Registration successful! Please check your email for the OTP to verify your account.", "data": {}, }`
+
+ **Error Response**
+      
+    - **Code:** 400
+    - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+
+- **Error Response**
+        
+    - **Code:** 500
+    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+***Example json to send:***
+
+```json copy
+{
+    "email": "abcd@gmail.com",
+    "password": "123456",
+}
+```
+
+### Login
+
+- **URL**
+  
+    `/auth/login`
+
+- **Method**
+    
+    `POST`
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+ **Error Response**
+      
+    - **Code:** 400
+    - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+        
+    - **Code:** 500
+    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+***Example json to send:***
+
+```json copy
+{
+    "email": "abcd@gmail.com",
+    "password": "123456",
+}
+```
+
+### Verify OTP
+
+- **URL**
+  
+    `/auth/verify-otp`
+
+- **Method**
+    
+    `POST`
+
+- **Success Response**
+    
+    - **Code:** 200
+    - **Content:** `{ "status":  200, "message": "OTP verified successfully!", "data": {}, }`
+
+- **Error Response**
+      
+    - **Code:** 400
+    - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+        
+    - **Code:** 500
+    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+***Example json to send:***
+
+```json copy
+{
+    "email": "abcd@gmail.com",
+	"oTP":   "123456"
+}
+```
+
+## Api
+
+The API endpoints are used to interact with the Occupi platform. Mainly GET, POST, PUT, DELETE requests are used.
+
+### Resources
+
+The resources endpoints are used to create, read, update, and delete resources.
+
+- **URL**
+
+  `/api/resources`
+
+- **Method**
+  
+    `GET`
+
+- **Success Response**
+      
+    - **Code:** 200
+    - **Content:** `{ "message": "Resources fetched successfully" }`
+
+- **Error Response**
+
+    - **Code:** 400
+    - **Content:** `{ "message": "Bad Request" }`
+
+- **Error Response**
+        
+    - **Code:** 500
+    - **Content:** `{ "message": "Internal server error" }`
+
+***Example json to send:***
+
+```json copy
+{
+    
+}
+```
+
+### Users
+
+The users endpoints are used to create, read, update, and delete users.
+
+### Roles
+
+The roles endpoints are used to create, read, update, and delete roles.
