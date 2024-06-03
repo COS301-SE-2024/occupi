@@ -12,8 +12,10 @@ import UserProfileGroup from "./icons/UserProfileGroup";
 import Bell from "./icons/Bell";
 import SettingsIcon from "./icons/SettingsIcon";
 import Logout from "./icons/Logout";
+import Loading from './icons/Loading';
 
 export {
     loginpng, OccupiLogo, login_image, CheckSquareContained, CloseDrawer, OpenDrawer,
-    Grid, PieChart, ColorSwatch, Home, UserProfileGroup, Bell, SettingsIcon, Logout
+    Grid, PieChart, ColorSwatch, Home, UserProfileGroup, Bell, SettingsIcon, Logout,
+    Loading
 }
