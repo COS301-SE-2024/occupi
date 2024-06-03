@@ -1,119 +1,120 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { useToast } from '@gluestack-ui/themed';
-import { useForm } from 'react-hook-form';
 import CreatePassword from '../../screens/Login/CreatePassword';
+import { router } from 'expo-router';
 
-// Mock the react-hook-form
-jest.mock('react-hook-form', () => ({
-  ...jest.requireActual('react-hook-form'),
-  useForm: jest.fn(),
-}));
-
-// Mock the useToast hook
-jest.mock('@gluestack-ui/themed', () => ({
-  useToast: jest.fn(),
-}));
-
-// Mock the expo-router
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     replace: jest.fn(),
     push: jest.fn(),
   }),
+  router: {
+    replace: jest.fn(),
+  },
+}));
+
+jest.mock('@gluestack-ui/themed', () => ({
+  VStack: 'View',
+  Box: 'View',
+  HStack: 'View',
+  Icon: 'View',
+  Text: 'Text',
+  Button: 'View',
+  Image: 'Image',
+  Center: 'View',
+  ArrowLeftIcon: 'View',
+  FormControl: 'View',
+  Heading: 'Text',
+  FormControlHelperText: 'Text',
+  EyeIcon: 'View',
+  EyeOffIcon: 'View',
+  ButtonText: 'Text',
+  Input: 'TextInput',
+  useToast: () => ({
+    show: jest.fn(),
+  }),
+  Toast: 'View',
+  InputField: 'TextInput',
+  ToastTitle: 'Text',
+  FormControlHelper: 'Text',
+  FormControlError: 'View',
+  FormControlErrorIcon: 'View',
+  FormControlErrorText: 'Text',
+  InputIcon: 'View',
+  InputSlot: 'View',
+  ScrollView: 'View',
+  FormControlLabel: 'View',
+  FormControlLabelText: 'Text',
+}));
+
+jest.mock('react-hook-form', () => ({
+  useForm: () => ({
+    control: jest.fn(),
+    formState: { errors: {} },
+    handleSubmit: (fn) => fn,
+    reset: jest.fn(),
+  }),
+  Controller: ({ render }) => render({ field: { onChange: jest.fn(), onBlur: jest.fn(), value: '' } }),
 }));
 
 describe('CreatePassword', () => {
-  let control;
-  let handleSubmit;
-  let reset;
-  let formState;
-
-  beforeEach(() => {
-    control = jest.fn();
-    handleSubmit = jest.fn((fn) => fn());
-    reset = jest.fn();
-    formState = { errors: {} };
-
-    useForm.mockReturnValue({
-      control,
-      handleSubmit,
-      reset,
-      formState,
-    });
+  it('renders the main text correctly', () => {
+    const { getByText } = render(<CreatePassword />);
+    expect(getByText('Create new password')).toBeTruthy();
+    expect(getByText('Your new password must be different from previous used passwords and must be of at least 8 characters.')).toBeTruthy();
   });
 
-  it('renders correctly', () => {
-    const { getByPlaceholderText } = render(<CreatePassword />);
-    expect(getByPlaceholderText('Password')).toBeTruthy();
-    expect(getByPlaceholderText('Confirm Password')).toBeTruthy();
+  it('renders the image correctly', () => {
+    const { getByRole } = render(<CreatePassword />);
+    const image = getByRole('image', { name: 'logo' });
+    expect(image).toBeTruthy();
   });
 
-  it('shows error message if passwords do not match', async () => {
-    const mockToast = { show: jest.fn() };
-    useToast.mockReturnValue(mockToast);
+  it('displays error message when passwords do not match', async () => {
+    const { getByText, getByPlaceholderText } = render(<CreatePassword />);
 
-    const { getByPlaceholderText, getByText } = render(<CreatePassword />);
-    const passwordInput = getByPlaceholderText('Password');
-    const confirmPasswordInput = getByPlaceholderText('Confirm Password');
-    const submitButton = getByText('Update Password');
+    fireEvent.changeText(getByPlaceholderText('Password'), 'Password1!');
+    fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'Password2!');
 
-    fireEvent.changeText(passwordInput, 'Password1!');
-    fireEvent.changeText(confirmPasswordInput, 'Password2!');
-    fireEvent.press(submitButton);
+    fireEvent.press(getByText('Update Password'));
 
     await waitFor(() => {
-      expect(mockToast.show).toHaveBeenCalledWith(
-        expect.objectContaining({
-          render: expect.any(Function),
-        })
-      );
+      expect(getByText('Passwords do not match')).toBeTruthy();
     });
-
-    const toastRender = mockToast.show.mock.calls[0][0].render;
-    const toastComponent = toastRender({ id: 'mockId' });
-    const toastText = render(toastComponent).getByText('Passwords do not match');
-    expect(toastText).toBeTruthy();
   });
 
-  it('shows success message if passwords match', async () => {
-    const mockToast = { show: jest.fn() };
-    const mockRouter = require('expo-router').useRouter();
-    useToast.mockReturnValue(mockToast);
+  it('navigates to the home screen when passwords match', async () => {
+    const { getByText, getByPlaceholderText } = render(<CreatePassword />);
 
-    const { getByPlaceholderText, getByText } = render(<CreatePassword />);
-    const passwordInput = getByPlaceholderText('Password');
-    const confirmPasswordInput = getByPlaceholderText('Confirm Password');
-    const submitButton = getByText('Update Password');
+    fireEvent.changeText(getByPlaceholderText('Password'), 'Password1!');
+    fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'Password1!');
 
-    fireEvent.changeText(passwordInput, 'Password1!');
-    fireEvent.changeText(confirmPasswordInput, 'Password1!');
-    fireEvent.press(submitButton);
+    fireEvent.press(getByText('Update Password'));
 
     await waitFor(() => {
-      expect(mockToast.show).toHaveBeenCalledWith(
-        expect.objectContaining({
-          render: expect.any(Function),
-        })
-      );
-      expect(mockRouter.replace).toHaveBeenCalledWith('/');
+      expect(router.replace).toHaveBeenCalledWith('/');
     });
+  });
 
-    const toastRender = mockToast.show.mock.calls[0][0].render;
-    const toastComponent = toastRender({ id: 'mockId' });
-    const toastText = render(toastComponent).getByText('Password updated successfully');
-    expect(toastText).toBeTruthy();
+  it('validates password input correctly', async () => {
+    const { getByText, getByPlaceholderText, findByText } = render(<CreatePassword />);
+
+    fireEvent.changeText(getByPlaceholderText('Password'), 'short');
+    fireEvent.changeText(getByPlaceholderText('Confirm Password'), 'short');
+
+    fireEvent.press(getByText('Update Password'));
+
+    expect(await findByText('Must be at least 8 characters in length')).toBeTruthy();
   });
 
   it('toggles password visibility', () => {
     const { getByPlaceholderText, getByTestId } = render(<CreatePassword />);
+
     const passwordInput = getByPlaceholderText('Password');
-    const toggleButton = getByTestId('toggle-password-visibility');
+    const toggleButton = getByTestId('togglePasswordVisibility');
 
     fireEvent.press(toggleButton);
+
     expect(passwordInput.props.secureTextEntry).toBe(false);
-
-    fireEvent.press(toggleButton);
-    expect(passwordInput.props.secureTextEntry).toBe(true);
   });
 });

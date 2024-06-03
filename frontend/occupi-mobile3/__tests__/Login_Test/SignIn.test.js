@@ -16,6 +16,12 @@ jest.mock('@gluestack-ui/themed', () => ({
   useToast: jest.fn(),
 }));
 
+// Mock the StyledExpoRouterLink component
+jest.mock('../../components/StyledExpoRouterLink', () => {
+  const MockStyledExpoRouterLink = () => null;
+  return MockStyledExpoRouterLink;
+});
+
 describe('SignIn Component', () => {
   it('renders correctly', () => {
     const { getByText, getByPlaceholderText } = render(<SignIn />);

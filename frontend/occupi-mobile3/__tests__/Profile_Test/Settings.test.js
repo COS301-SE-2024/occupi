@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Settings from '../../screens/Login/Settings';
+import Settings from '../../screens/Profile/Settings';
 import { useNavigation, NavigationContainer } from '@react-navigation/native';
 
 jest.mock('@react-native-async-storage/async-storage', () => ({

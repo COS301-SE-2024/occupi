@@ -1,18 +1,45 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import Onboarding1 from '../../screens/Login/Onboarding1';
+import { router } from 'expo-router';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
     replace: jest.fn(),
     push: jest.fn(),
   }),
+  router: {
+    push: jest.fn(),
+  },
+}));
+
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children }) => children,
+}));
+
+jest.mock('@gluestack-style/react', () => ({
+  StyledProvider: ({ children }) => children,
+  useStyled: () => ({}),
+  StyledText: 'Text',
+  StyledView: 'View',
+  StyledImage: 'Image',
+  StyledButton: 'Button',
+  // Mock other components if necessary
+}));
+
+jest.mock('@gluestack-ui/themed', () => ({
+  Box: 'View',
+  Image: 'Image',
+  Center: 'View',
+  Text: 'Text',
+  Heading: 'Text',
+  Button: 'Button',
 }));
 
 describe('Onboarding1', () => {
   it('renders the image correctly', () => {
-    const { getByAltText } = render(<Onboarding1 />);
-    const image = getByAltText('logo');
+    const { getByTestId } = render(<Onboarding1 />);
+    const image = getByTestId('logo');
     expect(image).toBeTruthy();
   });
 
@@ -23,11 +50,9 @@ describe('Onboarding1', () => {
   });
 
   it('navigates to the onboarding2 screen when the button is pressed', () => {
-    const push = require('expo-router').useRouter().push;
     const { getByText } = render(<Onboarding1 />);
     const button = getByText('Next');
-
     fireEvent.press(button);
-    expect(push).toHaveBeenCalledWith('/onboarding2');
+    expect(router.push).toHaveBeenCalledWith('/onboarding2');
   });
 });
