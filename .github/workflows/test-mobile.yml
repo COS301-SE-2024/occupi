@@ -5,7 +5,7 @@ on:
     branches:
       - develop
     paths: [
-      "frontend/occupi-mobile/**"
+      "frontend/occupi-mobile3/**"
     ]
 
   workflow_dispatch:
