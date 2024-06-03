@@ -42,7 +42,7 @@ const OTPSchema = z.object({
 type OTPSchemaType = z.infer<typeof OTPSchema>;
 
 const OTPVerification = () => {
-  const [email, setemail] = useState('kamo@gmail.com');
+  const [email, setemail] = useState('sabrina@deloitte.co.za');
 
   const [otp, setOtp] = useState('');
   // const [otpSent, setOtpSent] = useState(false);

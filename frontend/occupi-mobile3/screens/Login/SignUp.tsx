@@ -134,7 +134,7 @@ const SignUpForm = () => {
       setLoading(true)
       setTimeout(() => {
         setLoading(false);
-        if (_data.email !== 'tester@deloitte.co.za') {
+        if (_data.email !== 'sabrina@deloitte.co.za') {
           toast.show({
             placement: 'top',
             render: ({ id }) => {

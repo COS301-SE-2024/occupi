@@ -97,7 +97,7 @@ const SignInForm = () => {
       setLoading(true)
       setTimeout(() => {
         setLoading(false);
-        if (_data.email !== 'tester@deloitte.co.za' || _data.password !== 'Test@1234') {
+        if (_data.email !== 'sabrina@deloitte.co.za' || _data.password !== 'Test@1234') {
           toast.show({
             placement: 'top',
             render: ({ id }) => {
