@@ -94,7 +94,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="250" >
+      <img src="https://github.com/COS301-SE-2024/occupi/blob/update/ReadMe/Images/Kamo.jpg" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Kamo</b></h2>
@@ -111,7 +111,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="250" >
+      <img src="https://github.com/COS301-SE-2024/occupi/blob/update/ReadMe/Images/IMG_9675_1.jpg" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Carey</b></h2>
@@ -145,7 +145,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="250" >
+      <img src="https://github.com/COS301-SE-2024/occupi/blob/update/ReadMe/Images/img.prof.jpg" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Tinashe</b></h2>
@@ -162,7 +162,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="250" >
+      <img src="https://github.com/COS301-SE-2024/occupi/blob/update/ReadMe/Images/WhatsApp%20Image%202024-06-03%20at%2013.12.54_a03fd102.jpg" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Reta</b></h2>
