@@ -24,12 +24,6 @@ Please note that this project is released with a <a href="./CODE_OF_CONDUCT.md">
       - [Before Submitting an Enhancement](#before-submitting-an-enhancement)
       - [How Do I Submit a Good Enhancement Suggestion?](#how-do-i-submit-a-good-enhancement-suggestion)
     - [Your First Code Contribution](#your-first-code-contribution)
-      - [Frontend](#frontend)
-        - [Mobile](#mobile)
-        - [Web and Desktop](#web-and-desktop)
-        - [Landing page](#landing-page)
-      - [Backend](#backend)
-      - [AI model](#ai-model)
     - [Improving The Documentation](#improving-the-documentation)
   - [Attribution](#attribution)
 
@@ -118,17 +112,11 @@ Enhancement suggestions are tracked as [GitHub issues](/issues).
 
 Choose a section you want to contribute to and navigate to the appropriate readme's
 
-#### Frontend
-
-##### Mobile
-
-##### Web and Desktop
-
-##### Landing page
-
-#### Backend
-
-#### AI model
+[Mobile](https://github.com/COS301-SE-2024/occupi/tree/develop/frontend/occupi-mobile3)
+[Web and Desktop](https://github.com/COS301-SE-2024/occupi/tree/develop/frontend/occupi-web)
+[Landing page](https://github.com/COS301-SE-2024/occupi/tree/develop/frontend/occupi)
+[Backend](https://github.com/COS301-SE-2024/occupi/tree/develop/occupi-backend)
+[AI model]()
 
 
 ### Improving The Documentation
