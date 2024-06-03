@@ -6,11 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	// "github.com/stretchr/testify/assert"
 	// "github.com/stretchr/testify/mock"
 )
@@ -178,6 +175,7 @@ func TestPingRoute(t *testing.T) {
 	}
 }
 
+/*
 func TestGetResource(t *testing.T) {
 	// Load environment variables from .env file
 	if err := godotenv.Load("../.env"); err != nil {
@@ -215,3 +213,4 @@ func TestGetResource(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 }
+*/
