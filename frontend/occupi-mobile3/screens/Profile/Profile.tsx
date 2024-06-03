@@ -41,9 +41,9 @@ const Profile = () => {
   // this needs integration
   const [selectedGenderIndex, setSelectedGenderIndex] = useState(1);
   const [name, setName] = useState("Sabrina Carpenter");
-  const [email, setEmail] = useState("u21546551@tuks.co.za");
-  const [employeeId, setEmployeeId] = useState("21546551");
-  const [phoneNumber, setPhoneNumber] = useState("011 101 1111");
+  const [email, setEmail] = useState("sabrina@deloitte.co.za");
+  const [employeeId, setEmployeeId] = useState("31115087");
+  const [phoneNumber, setPhoneNumber] = useState("082 083 3988");
   const [pronouns, setPronouns] = useState("she/her");
   const [date, setDate] = useState(new Date(2000, 6, 7));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -116,7 +116,7 @@ const Profile = () => {
           <RadioLabel>Non-Binary</RadioLabel>
         </RadioGroup> */}
         <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
-          {/* <VStack flexDirection="$row" justifyContent="$space-between" space="$2"> */}
+          <VStack flexDirection="$row" justifyContent="$space-between" space="$2">
             <Radio backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'} borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4">
               <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
               <RadioIndicator ml="$2">
@@ -135,7 +135,7 @@ const Profile = () => {
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
-          {/* </VStack> */}
+          </VStack>
         </RadioGroup>
 
 

@@ -28,25 +28,26 @@ const Dashboard = () => {
     }, [colorScheme]);
 
     const checkIn = () => {
-        setCheckedIn(!checkedIn);
         if (checkedIn === false) {
-            toast.show({
-                placement: 'top',
-                render: ({ id }) => {
-                    return (
-                        <Toast nativeID={id} variant="accent" action="info">
-                            <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
-                        </Toast>
-                    );
-                },
-            });
-        } else {
+            setCheckedIn(true);
             toast.show({
                 placement: 'top',
                 render: ({ id }) => {
                     return (
                         <Toast nativeID={id} variant="accent" action="info">
                             <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
+                        </Toast>
+                    );
+                },
+            });
+        } else {
+            setCheckedIn(false);
+            toast.show({
+                placement: 'top',
+                render: ({ id }) => {
+                    return (
+                        <Toast nativeID={id} variant="accent" action="info">
+                            <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
                         </Toast>
                     );
                 },
@@ -86,9 +87,9 @@ const Dashboard = () => {
                 <Text color={textColor}>Office analytics</Text>
                 {/* <Button w="$36" borderRadius="$12" backgroundColor="greenyellow" onPress={() => router.push('/bookings')}><ButtoText color="dimgrey">Check in</ButtoText><Icon as={ArrowRightIcon} ml="$1" w="$4" h="$4" /></Button> */}
                 {checkedIn ? (
-                    <Button w="$36" borderRadius="$12" backgroundColor="greenyellow" onPress={checkIn}><ButtonText color="dimgrey">Check out</ButtonText></Button>
+                    <Button w="$36" borderRadius="$12" backgroundColor="lightblue" onPress={checkIn}><ButtonText color="dimgrey">Check out</ButtonText></Button>
                 ) : (
-                    <Button w="$36" borderRadius="$12" backgroundColor="lightblue" onPress={checkIn}><ButtonText color="dimgrey">Check in</ButtonText></Button>
+                    <Button w="$36" borderRadius="$12" backgroundColor="greenyellow" onPress={checkIn}><ButtonText color="dimgrey">Check in</ButtonText></Button>
                 )}
             </View>
             <Image
