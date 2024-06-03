@@ -17,6 +17,9 @@ func ProtectedRoute(c *gin.Context) {
 			"message": "Bad Request",
 			"error":   "User not authenticated",
 		})
+		//Add the following so that the next() doesn't get called
+		c.Abort()
+		return
 	} else {
 		c.Next()
 	}
@@ -32,6 +35,9 @@ func UnProtectedRoute(c *gin.Context) {
 			"message": "Bad Request",
 			"error":   "User already authenticated",
 		})
+		//Add the following so that the next() doesn't get called
+		c.Abort()
+		return
 	} else {
 		c.Next()
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -96,6 +97,48 @@ func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bo
 	}
 	return true, nil
 }
+func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) (bool, error) {
+	// Save the check-in to the database
+	collection := db.Database("Occupi").Collection("bookings")
+
+	// Build the dynamic filter for email check
+	emailFilter := bson.A{}
+	for key := range checkIn.Email {
+		emailFilter = append(emailFilter, bson.M{"emails." + strconv.Itoa(key): checkIn.Email})
+	}
+
+	//Find the booking by bookingId, roomId, and check if the email is in the emails object
+	filter := bson.M{
+		"bookingId": checkIn.BookingID,
+		"roomId":    checkIn.RoomID,
+		"$or":       emailFilter,
+	}
+
+	// Find the booking
+	var booking models.Booking
+	err := collection.FindOne(context.TODO(), filter).Decode(&booking)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("Email not associated with the room")
+			return false, fmt.Errorf("Email not associated with the room")
+		}
+		logrus.Error("Failed to find booking:", err)
+		return false, err
+	}
+
+	update := bson.M{
+		"$set": bson.M{"checkedIn": true},
+	}
+
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	var updatedBooking models.Booking
+	err = collection.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedBooking)
+	if err != nil {
+		logrus.Error("Failed to update booking:", err)
+		return false, err
+	}
+	return true, nil
+}
 
 // checks if email exists in database
 func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
@@ -104,6 +147,20 @@ func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+	return true
+}
+
+// checks if booking exists in database
+func BookingExists(ctx *gin.Context, db *mongo.Client, bookingID int) bool {
+	// Check if the booking exists in the database
+	collection := db.Database("Occupi").Collection("RoomBooking")
+	filter := bson.M{"bookingID": bookingID}
+	var booking models.Booking
+	err := collection.FindOne(ctx, filter).Decode(&booking)
 	if err != nil {
 		logrus.Error(err)
 		return false
