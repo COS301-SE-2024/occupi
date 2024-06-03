@@ -373,6 +373,6 @@ func TestErrorResponseWithMeta(t *testing.T) {
 		},
 	}
 
-	response := utils.ErrorResponseWithMeta(http.StatusBadRequest, "Bad Request", "INVALID_INPUT", "Invalid input provided", gin.H{"field": "value"}, gin.H{"request_id": "12345"})
+	response := utils.ErrorResponseWithMeta(http.StatusBadRequest, "Bad Request ", "INVALID_INPUT", "Invalid input provided", gin.H{"field": "value"}, gin.H{"request_id": "12345"})
 	assert.Equal(t, expected, response)
 }
