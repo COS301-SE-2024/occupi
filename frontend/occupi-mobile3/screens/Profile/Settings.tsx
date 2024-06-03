@@ -21,10 +21,16 @@ import { Appearance, useColorScheme } from 'react-native';
 
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [name, setName] = useState("Sabrina Carpenter")
   // const { colorMode, toggleColorMode } = useColorMode();
   const navigation = useNavigation();
   let colorScheme = useColorScheme();
   // console.log(colorScheme);
+
+  const handleNameChange = () => {
+    setName("Sabrina Palmer");
+    router.push('/profile');
+  };
 
   const toggleNotifications = () => {
     setNotificationsEnabled(!notificationsEnabled);
@@ -63,7 +69,7 @@ const Settings = () => {
   };
 
   const data = [
-    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => handleNavigate('profile') },
+    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => handleNameChange()},
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', accessoryRight: () => <Switch isChecked={notificationsEnabled} onToggle={toggleNotifications} /> },
     { title: 'Privacy Policy', description: 'View privacy policy', iconName: 'lock', onPress: () => handleNavigate('PrivacyPolicyScreen') },
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => handleNavigate('SecurityScreen') },
@@ -107,7 +113,7 @@ const Settings = () => {
         </Center>
         <Box style={styles.profileInfo}>
           <HStack space={2} alignItems="center">
-            <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Sabrina Carpenter</Text>
+            <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
             {/* <Icon as={Feather} name="edit" size="sm" color={colorScheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
           </HStack>
           <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Chief Executive Officer</Text>

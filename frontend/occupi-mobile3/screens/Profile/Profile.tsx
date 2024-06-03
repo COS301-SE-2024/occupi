@@ -87,7 +87,7 @@ const Profile = () => {
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="Sabrina Carpenter"
+          placeholder={name}
           placeholderTextColor={COLORS.gray}
           placeholder={name}
           onChangeText={setName}
@@ -116,7 +116,7 @@ const Profile = () => {
           <RadioLabel>Non-Binary</RadioLabel>
         </RadioGroup> */}
         <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
-          <VStack flexDirection="$row" justifyContent="$space-between" space="$2">
+          {/* <VStack flexDirection="$row" justifyContent="$space-between" space="$2"> */}
             <Radio backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'} borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4">
               <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
               <RadioIndicator ml="$2">
@@ -135,14 +135,14 @@ const Profile = () => {
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
-          </VStack>
+          {/* </VStack> */}
         </RadioGroup>
 
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="**********@deloitte.co.za"
+          placeholder={email}
           placeholderTextColor={COLORS.gray}
           // value={email}
           onChangeText={setEmail}
@@ -151,7 +151,7 @@ const Profile = () => {
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Employee ID</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="2******"
+          placeholder={employeeId}
           placeholderTextColor={COLORS.gray}
           // placeholder={employeeId}
           onChangeText={setEmployeeId}
@@ -160,7 +160,7 @@ const Profile = () => {
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Number</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="011 *** ****"
+          placeholder={phoneNumber}
           placeholderTextColor={COLORS.gray}
           // placeholder={phoneNumber}
           onChangeText={setPhoneNumber}
