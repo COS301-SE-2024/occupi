@@ -9,72 +9,28 @@ module.exports = {
   ],
   prefix: "",
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
-      backgroundImage: {
-        'colours-linear-gradient': 'linear-gradient(90deg, rgba(96, 77, 100, 1) 1.53%, rgba(134, 234, 204, 1) 31.5%, rgba(178, 252, 58, 1) 66.99%, rgba(238, 240, 96, 1) 97%)',
-      },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        text_col: 'var(--text-col)',
+        text_col_alt: 'var(--text-col-alt)',
+        text_col_tertiary: 'var(--tertiary)',
+        text_col_green_leaf: 'var(--green-leaf)',
+        text_col_red_salmon: 'var(--red-salmon)'
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+      backgroundColor: {
+        red_salmon: 'var(--red-salmon)',
+        green_leaf: 'var(--green-leaf)',
+        primary: 'var(--primary)',
+        secondary: 'var(--secondary)',
+        primary_alt: 'var(--primary-alt)',
+        secondary_alt: 'var(--secondary-alt)',
+        primary_40: 'var(--primary-40)'
       },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+      borderColor: {
+        red_salmon: 'var(--red-salmon)',
+        gray_900: 'var(--tertiary)',
       },
     },
   },
-  plugins: [require("tailwindcss-animate"),require('daisyui'),],
+  plugins: [require("tailwindcss-animate")],
 }

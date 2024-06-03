@@ -1,7 +1,9 @@
+type CheckSquareContainedProps = {
+  color: string,
+  className: string
+}
 
-import PropTypes from "prop-types";
-
-export const CheckSquareContained = ({ color = "black", className }: { color?: string, className: string }) => {
+export const CheckSquareContained = ({ color = "black", className }: CheckSquareContainedProps) => {
   return (
     <svg
       className={`check-square-contained ${className}`}
@@ -21,8 +23,4 @@ export const CheckSquareContained = ({ color = "black", className }: { color?: s
       />
     </svg>
   );
-};
-
-CheckSquareContained.propTypes = {
-  color: PropTypes.string,
 };
