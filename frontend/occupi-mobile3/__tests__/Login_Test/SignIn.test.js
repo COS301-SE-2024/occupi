@@ -1,18 +1,26 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import SignIn from '../SignIn'; // Adjust the import path accordingly
+import SignIn from '../../screens/Login/SignIn'; // Adjust the import path accordingly
 import { useToast } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 
+// Mock the router
 jest.mock('expo-router', () => ({
   router: {
     push: jest.fn(),
   },
 }));
 
+// Mock the useToast hook
 jest.mock('@gluestack-ui/themed', () => ({
   useToast: jest.fn(),
 }));
+
+// Mock the StyledExpoRouterLink component
+jest.mock('../../components/StyledExpoRouterLink', () => {
+  const MockStyledExpoRouterLink = () => null;
+  return MockStyledExpoRouterLink;
+});
 
 describe('SignIn Component', () => {
   it('renders correctly', () => {
@@ -40,7 +48,7 @@ describe('SignIn Component', () => {
 
   it('shows success message and navigates to home screen on valid submission', async () => {
     const mockToast = { show: jest.fn() };
-    (useToast as jest.Mock).mockReturnValue(mockToast);
+    useToast.mockReturnValue(mockToast);
 
     const { getByText, getByPlaceholderText } = render(<SignIn />);
 
