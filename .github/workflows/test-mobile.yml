@@ -12,7 +12,7 @@ on:
 
 defaults:
   run:
-    working-directory: frontend/occupi-mobile
+    working-directory: frontend/occupi-mobile3
     
 jobs:
   test:
