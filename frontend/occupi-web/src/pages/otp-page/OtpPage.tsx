@@ -10,6 +10,15 @@ const OtpPage = () => {
     otp: string,
     validity: boolean
   }>({otp: "", validity: false});
+  const [isloading, setIsLoading] = useState<boolean>(false);
+
+  function SendOTP() {
+    setIsLoading(true);
+    // login functionality should happen here, use axios if possible
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+  }
 
   return (
     <div className="flex justify-center w-screen h-screen items-center">
@@ -31,7 +40,7 @@ const OtpPage = () => {
           }}/>
 
           <div className="mt-5 w-full">
-            <GradientButton Text="Complete" isClickable={otp.validity} clickEvent={() => {}}/>
+            <GradientButton isLoading={isloading} Text="Complete" isClickable={otp.validity} clickEvent={SendOTP}/>
           </div>
         </div>
     </div>

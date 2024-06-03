@@ -10,6 +10,15 @@ const LoginForm = (): JSX.Element => {
     valid_email: boolean, 
     valid_password: boolean
   }>({email: "", password: "", valid_email: false, valid_password: false});
+  const [isloading, setIsLoading] = useState<boolean>(false);
+
+  function Login() {
+    setIsLoading(true);
+    // login functionality should happen here, use axios if possible
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+  }
 
   return (
     <div className="flex justify-center w-screen h-screen items-center">
@@ -54,7 +63,7 @@ const LoginForm = (): JSX.Element => {
           </div>
           
           <div className="mt-5 w-full">
-            <GradientButton Text="Login" isClickable={form.valid_email && form.valid_password} clickEvent={() => {}}/>
+            <GradientButton isLoading={isloading} Text="Login" isClickable={form.valid_email && form.valid_password} clickEvent={Login}/>
           </div>
 
           <div className="flex items-center justify-center mt-5 mb-5">
