@@ -1,4 +1,3 @@
-import React from 'react';
 import 'react-native-gesture-handler/jestSetup';
 import mockAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import { Animated } from 'react-native';
@@ -32,3 +31,18 @@ jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper', () => ({
   startAnimatingNode: jest.fn(),
   stopAnimation: jest.fn(),
 }));
+
+jest.mock('react-native-keyboard-aware-scroll-view', () => {
+  const { View } = require('react-native');
+  return {
+    KeyboardAwareScrollView: View,
+  };
+});
+
+jest.mock('@expo/vector-icons', () => {
+  const { View } = require('react-native');
+  return {
+    Feather: View,
+    MaterialIcons: View,
+  };
+});
