@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, useColorScheme, ScrollView } from 'react-native';
+import { StatusBar, useColorScheme, ScrollView, Alert } from 'react-native';
 import {
     StyleSheet,
     Text,
     View,
     Image,
     Card,
+    Toast,
+    useToast,
+    ToastTitle,
     Button,
     ButtonText,
     Icon,
@@ -21,6 +24,9 @@ import { router } from 'expo-router';
 const Bookings = () => {
     const colorScheme = useColorScheme();
     const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+    const [isBooked, setisBooked] = useState(false);
+    const toast = useToast();
+
 
     useEffect(() => {
         setIsDarkMode(colorScheme === 'dark');
@@ -32,6 +38,35 @@ const Bookings = () => {
     const buttonBackgroundColor = isDarkMode ? 'greenyellow' : 'greenyellow';
     const notAvailableButtonBackgroundColor = isDarkMode ? '#3A3A3C' : 'lightgrey';
     const fullyBookedButtonBackgroundColor = isDarkMode ? '#7F1D1D' : 'orangered';
+
+    const handleBooking = (roomName : string) => {
+        Alert.alert(
+          "Book",
+          `Book ${roomName} on floor 7?`,
+          [
+            {
+              text: "Cancel",
+              style: "cancel"
+            },
+            { 
+              text: "OK", 
+              onPress: async () => {
+                setisBooked(true);
+                toast.show({
+                    placement: 'top',
+                    render: ({ id }) => {
+                      return (
+                        <Toast nativeID={id} variant="accent" action="success">
+                          <ToastTitle>Room has been booked, an email has been sent to you with the details.</ToastTitle>
+                        </Toast>
+                      );
+                    },
+                  });
+              }
+            }
+          ]
+        );
+      };
 
     return (
         <>
@@ -53,7 +88,11 @@ const Bookings = () => {
                         </View>
                         <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
                             <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}> Closes at: 7pm</Text>
-                            <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={buttonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Available now</ButtonText></Button>
+                            {isBooked ? (
+                                <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor='orangered' onPress={() => handleBooking('HDMI Room')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Booked</ButtonText></Button>
+                            ) : (
+                                <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={buttonBackgroundColor} onPress={() => handleBooking('HDMI Room')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Book now</ButtonText></Button>
+                            )}
                         </View>
                     </Card>
 
@@ -81,7 +120,7 @@ const Bookings = () => {
                         </View>
                         <View mt="$3" flexDirection="row" justifyContent="space-between" alignItems="center">
                             <Text size="sm" color={isDarkMode ? 'light-grey' : 'grey'}>Closes at: 6pm</Text>
-                            <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={fullyBookedButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Fully Booked</ButtonText></Button>
+                            <Button style={{ height: 32, width: 130 }} borderRadius="$8" backgroundColor={fullyBookedButtonBackgroundColor} onPress={() => router.push('/bookings')}><ButtonText color="dimgrey" size="sm" fontWeight="light">Booked</ButtonText></Button>
                         </View>
                     </Card>
 
