@@ -13,6 +13,8 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/COS301-SE-2024/occupi?style=flat-square)
 ![Docs website](https://img.shields.io/website?url=https%3A%2F%2Fcos301-se-2024.github.io%2Foccupi%2F&style=flat-square)
 ![GitHub Repo stars](https://img.shields.io/github/stars/COS301-SE-2024/occupi?style=flat-square)
+[![codecov](https://codecov.io/gh/COS301-SE-2024/occupi/graph/badge.svg?token=71QPCD9NNP)](https://codecov.io/gh/COS301-SE-2024/occupi)
+![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/COS301-SE-2024/occupi?style=flat-square)
 
 </p>
 
@@ -20,6 +22,9 @@
 
 ![Deploy Landing page](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
 ![Deploy Docs site to Pages](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
+![Lint Test and Build Golang](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-golang.yml/badge.svg)
+![Lint Test and Build Occupi-Web](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-web.yml/badge.svg)
+![Test Occupi-mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/test-mobile.yml/badge.svg)
 
 </p>
 
@@ -42,6 +47,10 @@
 # Documentation
 
 <p align="center">
+  Our documentation is hosted <a href="https://cos301-se-2024.github.io/occupi/">occupi-docs</a>
+</p>
+
+<p align="center">
 
 ### Software Requirements Specification
 [Document](null)
@@ -54,7 +63,7 @@
 [Deployment](null)
 
 ### Coding standards
-[Standards](null)
+[Go coding Standards](https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards)
 
 </p>
 
@@ -132,7 +141,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
-      <b style="font-size: 16px;">Designer, Backend Engineer, DevOps, Frontend Engineer</b><br>
+      <b style="font-size: 16px;">Infrastructure management, Designer, Backend Engineer, DevOps, Frontend Engineer</b><br>
       Michael is a computer science enthusiast with a keen interest in creating engaging and aesthetically pleasing CS-related projects. His strengths lie in UI design, FullStack development, DevOps, and Systems Design, making him a versatile contributor to any team.
       <br><br>
       <a href="https://github.com/waveyboym" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
