@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/joho/godotenv"
@@ -173,6 +177,43 @@ func TestPingRoute(t *testing.T) {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			actualResponse, expectedResponse)
 	}
+}
+
+func TestRateLimit(t *testing.T) {
+	router := setupRouter()
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	var wg sync.WaitGroup
+	numRequests := 10
+	responseCodes := make([]int, numRequests)
+
+	for i := 0; i < numRequests; i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			resp, err := http.Get(server.URL + "/ping")
+			if err != nil {
+				t.Errorf("Request %d failed: %v", index, err)
+				return
+			}
+			defer resp.Body.Close()
+			responseCodes[index] = resp.StatusCode
+		}(i)
+		time.Sleep(100 * time.Millisecond) // Slight delay to spread out the requests
+	}
+
+	wg.Wait()
+
+	rateLimitedCount := 0
+	for _, code := range responseCodes {
+		if code == http.StatusTooManyRequests {
+			rateLimitedCount++
+		}
+	}
+
+	assert.Greater(t, rateLimitedCount, 0, "There should be some requests that are rate limited")
+	assert.LessOrEqual(t, rateLimitedCount, numRequests-5, "There should be at least 5 requests that are not rate limited")
 }
 
 /*
