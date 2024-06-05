@@ -9,6 +9,7 @@ import { Box,
 import { styled } from '@gluestack-style/react';
 import { ViewPager } from '@ui-kitten/components';
 import { router } from 'expo-router';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const GradientButton = ({ onPress, text }) => (
   <LinearGradient
@@ -157,20 +158,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 110,
-    height: 110,
+    width: wp('27%'),
+    height: wp('27%'),
   },
   buttonContainer: {
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+    paddingVertical: hp('2%'),
+    paddingHorizontal: wp('8%'),
     borderRadius: 25,
-    marginTop: 20,
+    marginTop: hp('2%'),
     alignSelf: 'center',
-    width: 150,
+    width: wp('40%'),
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: wp('4%'),
     textAlign: 'center',
   },
 });
