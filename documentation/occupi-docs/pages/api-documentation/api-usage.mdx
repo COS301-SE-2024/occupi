@@ -71,26 +71,25 @@ The authentication endpoints are used to register, login, and verify users. Only
 - **Success Response**
     
     - **Code:** 200
-    - **Content:** `{ "message": "User registered successfully" }`
+    - **Content:** `{ "status":  200, "message": "Registration successful! Please check your email for the OTP to verify your account.", "data": {}, }`
 
-- **Error Response**
+ **Error Response**
       
     - **Code:** 400
-    - **Content:** `{ "message": "Bad Request" }`
+    - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
 
 - **Error Response**
         
     - **Code:** 500
-    - **Content:** `{ "message": "Internal server error" }`
+    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
 
 ***Example json to send:***
 
 ```json copy
 {
-    "ID": "1",
-    "Email": "abcd@gmail.com",
-    "Password": "123456",
-    "Token": "$123456$",
+    "email": "abcd@gmail.com",
+    "password": "123456",
 }
 ```
 
@@ -106,13 +105,25 @@ The authentication endpoints are used to register, login, and verify users. Only
 
 - **Success Response**
 
-    - `This endpoint is yet to be defined`
+    - **Code:** 200
+    - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+ **Error Response**
+      
+    - **Code:** 400
+    - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+        
+    - **Code:** 500
+    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
 
 ***Example json to send:***
 
 ```json copy
 {
-    
+    "email": "abcd@gmail.com",
+    "password": "123456",
 }
 ```
 
@@ -129,19 +140,24 @@ The authentication endpoints are used to register, login, and verify users. Only
 - **Success Response**
     
     - **Code:** 200
-    - **Content:** `{ "message": "Email verified successfully!" }`
+    - **Content:** `{ "status":  200, "message": "OTP verified successfully!", "data": {}, }`
 
 - **Error Response**
       
     - **Code:** 400
-    - **Content:** `{ "message": "Invalid request payload" }`
+    - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+        
+    - **Code:** 500
+    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
 
 ***Example json to send:***
 
 ```json copy
 {
-    "Email": "abcd@gmail.com",
-	  "OTP":   "123456"
+    "email": "abcd@gmail.com",
+	"oTP":   "123456"
 }
 ```
 

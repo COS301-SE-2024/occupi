@@ -21,37 +21,37 @@ func main() {
 		log.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
 	}
 
-	//setup logger to log all server interactions
+	// setup logger to log all server interactions
 	utils.SetupLogger()
 
-	//connect to the database
+	// connect to the database
 	db := database.ConnectToDatabase()
 
-	//set gin run mode
+	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
-	r := gin.Default()
+	ginRouter := gin.Default()
 
 	// Set trusted proxies
-	err := r.SetTrustedProxies(configs.GetTrustedProxies())
+	err := ginRouter.SetTrustedProxies(configs.GetTrustedProxies())
 	if err != nil {
 		logrus.Fatal("Failed to set trusted proxies: ", err)
 	}
 
 	// Register routes
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(ginRouter, db)
 
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()
 
-	//fatal error if the cert or key file is not found
+	// fatal error if the cert or key file is not found
 	if certFile == "CERT_FILE_NAME" || keyFile == "KEY_FILE_NAME" {
 		logrus.Fatal("Cert or Key file not found")
 	}
 
 	// Listening on the port with TLS
-	if err := r.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
+	if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
 		logrus.Fatal("Failed to run server: ", err)
 	}
 }

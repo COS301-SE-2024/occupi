@@ -9,11 +9,11 @@ const TabComponent = () => {
 
   return (
     <div>
-      <div role="tablist" className="tabs tabs-boxed tabs-md w-10 bg-transparent ">
+      <div role="tablist" className="tabs tabs-boxed tabs-md w-48 ">
         <a
           href="#"
           role="tab"
-          className={`tab ${activeTab === 1 ? "tab-active bg-white text-black" : "bg-gray-200 text-black"}`}
+          className={`tab ${activeTab === 1 ? " bg-white text-black" : "bg-gray-200 text-black"}`}
           onClick={() => handleTabClick(1)}
         >
           Tab1
@@ -21,7 +21,7 @@ const TabComponent = () => {
         <a
           href="#"
           role="tab"
-          className={`tab ${activeTab === 2 ? "tab-active bg-white text-black" : "bg-gray-200 text-black"}`}
+          className={`tab ${activeTab === 2 ? " bg-white text-black" : "bg-gray-200 text-black"}`}
           onClick={() => handleTabClick(2)}
         >
           Tab2
@@ -29,7 +29,7 @@ const TabComponent = () => {
         <a
           href="#"
           role="tab"
-          className={`tab ${activeTab === 3 ? "tab-active" : ""}`}
+          className={`tab ${activeTab === 3 ?  " bg-white text-black" : "bg-gray-200 text-black"}`}
           onClick={() => handleTabClick(3)}
         >
           Tab3

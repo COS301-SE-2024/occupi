@@ -6,11 +6,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
+	"sync"
 	"time"
 
+	"github.com/alexedwards/argon2id"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 )
 
 // sets up the logger and configures it
@@ -22,7 +27,7 @@ func SetupLogger() {
 	if err != nil {
 		log.Fatal(fmt.Printf("Failed to open log file: %v", err))
 	}
-	//defer file.Close()
+	// defer file.Close()
 
 	// Set the output of the logs to the file
 	logrus.SetOutput(file)
@@ -46,21 +51,22 @@ func generateRandomNumber() (int, error) {
 		return 0, err
 	}
 	num = int(b[0])<<8 + int(b[1])
-	num = num % 10000 // Ensure it's a 4-digit number
+	num %= 10000 // Ensure it's a 4-digit number
 	return num, nil
 }
 
 // Function to generate an employee ID with the structure OCCUPIYYYYXXXX
-func GenerateEmployeeID() (string, error) {
+func GenerateEmployeeID() string {
 	currentYear := time.Now().Year()
 	randomNum, err := generateRandomNumber()
 	if err != nil {
-		return "", err
+		return "OCCUPI00000000"
 	}
 	employeeID := fmt.Sprintf("OCCUPI%d%04d", currentYear, randomNum)
-	return employeeID, nil
+	return employeeID
 }
 
+// generates a random auth0 state
 func GenerateRandomState() (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
@@ -71,4 +77,111 @@ func GenerateRandomState() (string, error) {
 	state := base64.StdEncoding.EncodeToString(b)
 
 	return state, nil
+}
+
+// sends multiple emails concurrently
+func SendMultipleEmailsConcurrently(emails map[string]string, subject, body string) []string {
+	// Use a WaitGroup to wait for all goroutines to complete
+	var wg sync.WaitGroup
+	var emailErrors []string
+	var mu sync.Mutex
+
+	for _, email := range emails {
+		wg.Add(1)
+		go func(email string) {
+			defer wg.Done()
+			if err := mail.SendMail(email, subject, body); err != nil {
+				mu.Lock()
+				emailErrors = append(emailErrors, email)
+				mu.Unlock()
+			}
+		}(email)
+	}
+
+	// Wait for all email sending goroutines to complete
+	wg.Wait()
+
+	return emailErrors
+}
+
+// sanitizes the given input
+func SanitizeInput(input string) string {
+	p := bluemonday.UGCPolicy()
+	return p.Sanitize(input)
+}
+
+// validates an email against a regex pattern
+func ValidateEmail(email string) bool {
+	// Regex pattern for email validation
+	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return emailRegex.MatchString(email)
+}
+
+// validates a password against a regex pattern
+func ValidatePassword(password string) bool {
+	// Note: Golang does not support lookaheads in regex so regex looks very different and verbose
+	var (
+		lowercaseLetter = regexp.MustCompile(`[a-z]`)
+		uppercaseLetter = regexp.MustCompile(`[A-Z]`)
+		digit           = regexp.MustCompile(`\d`)
+		specialChar     = regexp.MustCompile(`[@$!%*?&]`)
+	)
+
+	if len(password) < 8 {
+		return false
+	}
+
+	if !lowercaseLetter.MatchString(password) {
+		return false
+	}
+
+	if !uppercaseLetter.MatchString(password) {
+		return false
+	}
+
+	if !digit.MatchString(password) {
+		return false
+	}
+
+	if !specialChar.MatchString(password) {
+		return false
+	}
+
+	return true
+}
+
+// validates an otp against a regex pattern
+func ValidateOTP(otp string) bool {
+	// Regex pattern for otp validation
+	var otpRegex = regexp.MustCompile(`^[0-9]{6}$`)
+	return otpRegex.MatchString(otp)
+}
+
+// hashes a password using argon2id algorithm
+func Argon2IDHash(password string) (string, error) {
+	// CreateHash returns a Argon2id hash of a plain-text password using the
+	// provided algorithm parameters. The returned hash follows the format used
+	// by the Argon2 reference C implementation and looks like this for hash of "pa$$word":
+	// $argon2id$v=19$m=65536,t=3,p=2$c29tZXNhbHQ$RdescudvJCsgt3ub+b+dWRWJTmaaJObG
+	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		return "", err
+	}
+	return hash, nil
+}
+
+// compares a password and it's hash using argon2id
+func CompareArgon2IDHash(password string, hashedPassword string) (bool, error) {
+	// ComparePasswordAndHash compares a plain-text password with a Argon2id hash and returns true if the
+	// password and hash match, otherwise it returns false.
+	match, err := argon2id.ComparePasswordAndHash(password, hashedPassword)
+	if err != nil {
+		return false, err
+	}
+	return match, nil
+}
+
+func WillRemove() {
+	// This function is only here to make sure that the package is not empty
+	// and that the linter does not complain about it
 }
