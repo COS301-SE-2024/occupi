@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
 import * as MailComposer from 'expo-mail-composer';
-import * as Random from 'expo-random';
+import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 import GuestLayout from '../../layouts/GuestLayout';
 import Logo from '../Login/assets/images/Occupi/file.png';
@@ -44,7 +44,7 @@ const OTPVerification = ({ route }) => {
   }, [remainingTime, otpSent]);
 
   const generateOtp = async (): Promise<string> => {
-    const randomBytes = await Random.getRandomBytesAsync(6);
+    const randomBytes = await Crypto.getRandomBytesAsync(6);
     const otp = Array.from(randomBytes).map(byte => byte % 10).join('');
     return otp;
   };
