@@ -7,6 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
+	"github.com/ulule/limiter/v3"
+	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
+	"github.com/ulule/limiter/v3/drivers/store/memory"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
@@ -38,6 +41,18 @@ func main() {
 	if err != nil {
 		logrus.Fatal("Failed to set trusted proxies: ", err)
 	}
+
+	// Define a rate limit: 5 requests per second
+	rate, _ := limiter.NewRateFromFormatted("5-S")
+
+	store := memory.NewStore()
+	instance := limiter.New(store, rate)
+
+	// Create the rate limiting middleware
+	middleware := mgin.NewMiddleware(instance)
+
+	// Apply the middleware to the router
+	ginRouter.Use(middleware)
 
 	// Register routes
 	router.OccupiRouter(ginRouter, db)
