@@ -1,39 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
-import {
-  VStack,
-  Box,
-  HStack,
-  Text,
-  Button,
-  Image,
-  Center,
-  FormControl,
-  Input,
-  LinkText,
-  FormControlHelperText,
-  InputField,
-  ButtonText,
-  FormControlError,
-  FormControlErrorIcon,
-  FormControlErrorText,
-  Toast,
-  ToastTitle,
-  useToast,
-  Heading,
-} from '@gluestack-ui/themed';
-import Logo from './assets/images/Occupi/file.png';
-import { Alert, StyleSheet } from 'react-native';
-import GuestLayout from '../../layouts/GuestLayout';
-import { z } from 'zod';
-import { AlertTriangle } from 'lucide-react-native';
+import { TouchableOpacity, View, Text, StyleSheet, Alert } from 'react-native';
+import { VStack, Box, HStack, Image, FormControl, Input, Button, Heading } from '@gluestack-ui/themed';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import * as MailComposer from 'expo-mail-composer';
 import * as Random from 'expo-random';
 import * as SecureStore from 'expo-secure-store';
+import GuestLayout from '../../layouts/GuestLayout';
+import Logo from '../Login/assets/images/Occupi/file.png';
+import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { AlertTriangle } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const OTPSchema = z.object({
   OTP: z.string().min(6, 'OTP must be at least 6 characters in length'),
@@ -41,51 +21,52 @@ const OTPSchema = z.object({
 
 type OTPSchemaType = z.infer<typeof OTPSchema>;
 
-const OTPVerification = () => {
-  const [email, setemail] = useState('sabrina@deloitte.co.za');
-
-  const [otp, setOtp] = useState('');
-  // const [otpSent, setOtpSent] = useState(false);
+const OTPVerification = ({ route }) => {
+  const { email } = route?.params || {};
   const [remainingTime, setRemainingTime] = useState(60); // 1 minute
-
+  const [otpSent, setOtpSent] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-  
-    if (remainingTime > 0) {
-      timer = setInterval(() => {
-        setRemainingTime(remainingTime-1);
+    if (remainingTime > 0 && otpSent) {
+      timerRef.current = setInterval(() => {
+        setRemainingTime((prevTime) => prevTime - 1);
       }, 1000);
+    } else if (remainingTime === 0 && timerRef.current) {
+      clearInterval(timerRef.current);
     }
-  
     return () => {
-      if (timer) {
-        clearInterval(timer);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
       }
     };
-  }, [remainingTime]);
+  }, [remainingTime, otpSent]);
 
   const generateOtp = async (): Promise<string> => {
-    const randomBytes = await Random.getRandomBytesAsync(3);
+    const randomBytes = await Random.getRandomBytesAsync(6);
     const otp = Array.from(randomBytes).map(byte => byte % 10).join('');
     return otp;
   };
 
+  const sendOtp = async () => {
+    const generatedOtp = await generateOtp();
+    setRemainingTime(60);
+    setOtpSent(true);
 
+    await SecureStore.setItemAsync('user_otp', generatedOtp);
 
-  // Dummy data for registered emails
-  const registeredEmails = ['example@example.com', 'test@test.com'];
-
-  const checkIfEmailIsRegistered = async (email: string): Promise<boolean> => {
-    // Simulating an API call or database query
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Check if the email exists in the registeredEmails array
-        const isRegistered = registeredEmails.includes(email);
-        resolve(isRegistered);
-      }, 1000); // Simulating a 1-second delay for demonstration purposes
-    });
+    // Send the OTP via email (example using Expo MailComposer)
+    const isAvailable = await MailComposer.isAvailableAsync();
+    if (isAvailable) {
+      await MailComposer.composeAsync({
+        recipients: [email],
+        subject: 'Your OTP Code',
+        body: `Your OTP code is ${generatedOtp}`,
+      });
+    } else {
+      Alert.alert('MailComposer is not available');
+    }
   };
 
   const {
@@ -115,12 +96,9 @@ const OTPVerification = () => {
   ];
 
   const [inputFocus, setInputFocus] = useState<number>(-1);
-  const [validationError, setValidationError] = useState<string | null>(null); // State to hold validation error message
-
-  const toast = useToast();
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const onSubmit = async (_data: OTPSchemaType) => {
-    console.log('here');
     const pinValues = refList.map((ref) => ref?.current?.value);
     const pin = pinValues.join('');
     const Count = otpInput.filter((value) => value !== '').length;
@@ -129,31 +107,28 @@ const OTPVerification = () => {
       return;
     }
     setValidationError(null);
-    console.log('here');
 
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => (
-        <Toast nativeID={id} variant="accent" action="success">
-          <ToastTitle>Signup successful</ToastTitle>
-        </Toast>
-      ),
-    });
-    reset();
-    console.log('here');
-    router.push('/login');
+    const storedOtp = await SecureStore.getItemAsync('user_otp');
+    if (pin === storedOtp) {
+      Alert.alert('Signup successful');
+      reset();
+      router.push('/login');
+    } else {
+      Alert.alert('Invalid OTP');
+    }
   };
 
-  // const handleverify = async () => {
-  //   router.push('/home');
-  // }
+  useEffect(() => {
+    // Automatically send OTP when component mounts
+    sendOtp();
+  }, []);
 
   const GradientButton = ({ onPress, text }) => (
     <LinearGradient
-    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-    locations={[0.02, 0.31, 0.67, 0.97]}
-    start={[0, 1]}
-    end={[1, 0]}
+      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+      locations={[0.02, 0.31, 0.67, 0.97]}
+      start={[0, 1]}
+      end={[1, 0]}
       style={styles.buttonContainer}
     >
       <Heading style={styles.buttonText} onPress={onPress}>
@@ -161,23 +136,6 @@ const OTPVerification = () => {
       </Heading>
     </LinearGradient>
   );
-  
-  const styles = StyleSheet.create({
-    buttonContainer: {
-      borderRadius: 15,
-      marginTop: 20,
-      alignSelf: 'center',
-      width: 360,
-      height: 50
-    },
-    buttonText: {
-      color: 'black',
-      fontSize: 16,
-      textAlign: 'center',
-      lineHeight: 50,
-    }
-  });
-
 
   return (
     <GuestLayout>
@@ -202,7 +160,7 @@ const OTPVerification = () => {
         py="$8"
         px="$4"
         flex={1}
-        maxWidth={508}
+        maxWidth={wp('90%')}
       >
         <MainText email={email} />
         <VStack space="md" mt="$6">
@@ -219,22 +177,15 @@ const OTPVerification = () => {
                 {validationError}
               </Text>
             )}
-            {/* <FormControlHelperText mt="$8">
-              <ResendLink sendOtp={sendOtp} />
-            </FormControlHelperText> */}
-
-            <FormControlError>
-              <FormControlErrorIcon as={AlertTriangle} size="md" />
-              <FormControlErrorText>
-                {errors?.OTP?.message}
-              </FormControlErrorText>
-            </FormControlError>
+            {errors?.OTP && (
+              <Text fontSize="$sm" color="$error700">
+                {errors.OTP.message}
+              </Text>
+            )}
           </FormControl>
           <Text fontSize="$md" mb="$40">{remainingTime} seconds remaining</Text>
-            <GradientButton
-              onPress={onSubmit}
-              text="Verify"
-            />
+          <GradientButton onPress={handleSubmit(onSubmit)} text="Verify" />
+          <GradientButton onPress={sendOtp} text="Resend OTP" />
         </VStack>
         <AccountLink />
       </Box>
@@ -264,15 +215,14 @@ function PinInput({
           ml="$2"
           key={index}
           variant="outline"
-          w={50}
-          h={50}
+          w={wp('12%')}
+          h={hp('6%')}
           mt="$5"
           backgroundColor="#f2f2f2"
           borderColor="#f2f2f2"
           borderRadius="$2xl"
         >
-          <InputField
-            //@ts-ignore
+          <Input
             ref={refList[index]}
             placeholder=""
             bg="#f2f2f2"
@@ -287,7 +237,6 @@ function PinInput({
                 bgColor: '$backgroundDark400',
               },
             }}
-            w={100/2}
             textAlign="center"
             maxLength={1}
             onChangeText={(text) => {
@@ -313,6 +262,10 @@ function PinInput({
 }
 
 function MainText({ email }: { email: string }) {
+  if (!email) {
+    return <Text>Email is missing</Text>;
+  }
+
   const obfuscatedEmail = email.replace(/(.{2})(.*)(?=@)/,
     (gp1, gp2, gp3) => {
       for (let i = 0; i < gp3.length; i++) {
@@ -323,14 +276,14 @@ function MainText({ email }: { email: string }) {
   return (
     <VStack space="xs">
       <HStack space="md" alignItems="center" justifyContent="center" m="$12">
-        <Image source={Logo} alt="occupi" style={{ width: 110, height: 110 }} />
+        <Image source={Logo} alt="occupi" style={{ width: wp('30%'), height: wp('30%') }} />
       </HStack>
       <Heading
-        fontSize="$2xl"
+        fontSize={wp('8%')}
         fontWeight="$bold"
         color="black"
         sx={{
-          '@md': { fontSize: '$2xl', pb: '$4' },
+          '@md': { fontSize: wp('8%'), pb: '$4' },
         }}
       >
         We sent you an email code
@@ -347,7 +300,7 @@ function MainText({ email }: { email: string }) {
               color: '$textDark400',
             },
           }}
-          fontSize="$20"
+          fontSize={wp('5%')}
           fontWeight="$light"
         >
           We have sent the OTP code to
@@ -359,10 +312,10 @@ function MainText({ email }: { email: string }) {
                 color: '$textDark400',
               },
             }}
-            fontSize="$20"
-          fontWeight="$light"
+            fontSize={wp('5%')}
+            fontWeight="$light"
           >
-            {' ' + email}
+            {' ' + obfuscatedEmail}
           </Text>
         </Text>
       </HStack>
@@ -391,42 +344,33 @@ function AccountLink() {
             color: '$textDark400',
           },
         }}
-        fontSize="$sm"
+        fontSize={wp('4%')}
       >
         Already have an account?
       </Text>
-      <StyledExpoRouterLink href="/login"  mt="$4">
-        <LinkText color="#7FFF00" fontSize="$sm">
+      <StyledExpoRouterLink href="/login" mt="$4">
+        <Text style={{ color: '#7FFF00', fontSize: wp('4%') }}>
           Login
-        </LinkText>
+        </Text>
       </StyledExpoRouterLink>
     </HStack>
   );
 }
 
-// interface ResendLinkProps {
-//   sendOtp: () => void;
-// }
-
-// function ResendLink({ sendOtp }: ResendLinkProps) {
-//   return (
-//     <HStack py="$8" mt="$5">
-//       <Text
-//         color="$textLight800"
-//         sx={{
-//           _dark: {
-//             color: '$textDark400',
-//           },
-//         }}
-//         fontSize="$sm"
-//       >
-//         Didn't receive the OTP?
-//       </Text>
-//       <LinkText color="#7FFF00" ml="$2" fontSize="$sm" onPress={sendOtp}>
-//         Resend OTP
-//       </LinkText>
-//     </HStack>
-//   );
-// }
+const styles = StyleSheet.create({
+  buttonContainer: {
+    borderRadius: 15,
+    marginTop: hp('2%'),
+    alignSelf: 'center',
+    width: wp('90%'),
+    height: hp('6%'),
+  },
+  buttonText: {
+    color: 'black',
+    fontSize: wp('4%'),
+    textAlign: 'center',
+    lineHeight: hp('6%'),
+  },
+});
 
 export default OTPVerification;

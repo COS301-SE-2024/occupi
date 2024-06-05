@@ -49,12 +49,13 @@ import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
 import { styled } from '@gluestack-style/react';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const StyledImage = styled(Image, {
   props: {
     style: {
-      height: 40,
-      width: 320,
+      height: wp('10%'),
+      width: wp('80%'),
     },
   },
 });
@@ -108,8 +109,6 @@ function SideContainerWeb() {
     </Center>
   );
 }
-
-
 
 const SignUpForm = () => {
   const {
@@ -235,16 +234,16 @@ const SignUpForm = () => {
   const styles = StyleSheet.create({
     buttonContainer: {
       borderRadius: 15,
-      marginTop: 20,
+      marginTop: hp('2%'),
       alignSelf: 'center',
-      width: 360,
-      height: 50
+      width: wp('90%'),
+      height: hp('6%'),
     },
     buttonText: {
       color: 'black',
-      fontSize: 16,
+      fontSize: wp('4%'),
       textAlign: 'center',
-      lineHeight: 50,
+      lineHeight: hp('6%'),
     }
   });
 
@@ -273,10 +272,10 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12" >
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Email"
-                  fontSize="$sm"
+                  fontSize={wp('4%')}
                   type="text"
                   value={value}
                   onChangeText={onChange}
@@ -318,10 +317,10 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Employee ID"
-                  fontSize="$sm"
+                  fontSize={wp('4%')}
                   type="number"
                   value={value}
                   onChangeText={onChange}
@@ -361,9 +360,9 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
-                  fontSize="$sm"
+                  fontSize={wp('4%')}
                   placeholder="Password"
                   value={value}
                   onChangeText={onChange}
@@ -408,10 +407,10 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Confirm Password"
-                  fontSize="$sm"
+                  fontSize={wp('4%')}
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
@@ -474,7 +473,6 @@ const SignUpForm = () => {
                   Terms of Use
                 </LinkText>
               </Link>{' '}
-              {/* &{' '} */}
               <Link>
                 <LinkText
                   sx={{
@@ -547,7 +545,7 @@ function SignUpFormComponent() {
             <Image
               alt="Occupi Logo"
               source={Logo}
-              style={{ width: 100, height: 100 }}
+              style={{ width: wp('30%'), height: wp('30%') }}
             />
           </HStack>
           <VStack space="xs" mb="$2">
@@ -559,7 +557,7 @@ function SignUpFormComponent() {
               Register for Occupi.
             </Heading>
             <Text color="$black"
-              fontSize="$2xl"
+              fontSize={wp('6%')}
               fontWeight="$100"
               sx={{ _dark: { color: '$textDark800' } }}>
               Predict. Plan. Perfect.
