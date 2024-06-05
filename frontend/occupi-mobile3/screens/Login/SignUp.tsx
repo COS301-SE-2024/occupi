@@ -103,7 +103,7 @@ function SideContainerWeb() {
         w="$80"
         alt="gluestack-ui Pro"
         resizeMode="contain"
-        source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
+        // source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
       />
     </Center>
   );
@@ -132,58 +132,58 @@ const SignUpForm = () => {
     if (_data.password === _data.confirmpassword) {
       setPwMatched(true);
       setLoading(true)
-      setTimeout(() => {
-        setLoading(false);
-        if (_data.email !== 'sabrina@deloitte.co.za') {
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>Deloitte email verification failed.</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          reset();
-        } else {
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="success">
-                  <ToastTitle>Verification successful</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          reset();
-          router.push('/verify-otp')
-        }
-      }, 3000);
-
-      // try {
-      //   const response = await fetch('https://192.168.137.1:8080/auth/register', {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json'
-      //     },
-      //     body: JSON.stringify({
-      //       email: "example",
-      //       password: "12345"
-      //     })
-      //   });
-
-      //   const data = await response.json();
-
-      //   if (response.ok) {
-      //     Alert.alert('Success', 'User registered successfully!');
+      // setTimeout(() => {
+      //   setLoading(false);
+      //   if (_data.email !== 'sabrina@deloitte.co.za') {
+      //     toast.show({
+      //       placement: 'top',
+      //       render: ({ id }) => {
+      //         return (
+      //           <Toast nativeID={id} variant="accent" action="error">
+      //             <ToastTitle>Deloitte email verification failed.</ToastTitle>
+      //           </Toast>
+      //         );
+      //       },
+      //     });
+      //     reset();
       //   } else {
-      //     Alert.alert('Error', data.message || 'Something went wrong!');
+      //     toast.show({
+      //       placement: 'top',
+      //       render: ({ id }) => {
+      //         return (
+      //           <Toast nativeID={id} variant="accent" action="success">
+      //             <ToastTitle>Verification successful</ToastTitle>
+      //           </Toast>
+      //         );
+      //       },
+      //     });
+      //     reset();
+      //     router.push('/verify-otp')
       //   }
-      // } catch (error) {
-      //   Alert.alert('Error', error.message);
-      // }   
+      // }, 3000);
+
+      try {
+        const response = await fetch('https://192.168.137.:8080/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: "example",
+            password: "12345"
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          Alert.alert('Success', 'User registered successfully!');
+        } else {
+          Alert.alert('Error', data.message || 'Something went wrong!');
+        }
+      } catch (error) {
+        Alert.alert('Error', error.message);
+      }   
     } else {
       toast.show({
         placement: 'bottom right',
@@ -267,7 +267,7 @@ const SignUpForm = () => {
                 try {
                   await signUpSchema.parseAsync({ email: value });
                   return true;
-                } catch (error: any) {
+                } catch (error) {
                   return error.message;
                 }
               },
@@ -355,7 +355,7 @@ const SignUpForm = () => {
                     password: value,
                   });
                   return true;
-                } catch (error: any) {
+                } catch (error  ) {
                   return error.message;
                 }
               },

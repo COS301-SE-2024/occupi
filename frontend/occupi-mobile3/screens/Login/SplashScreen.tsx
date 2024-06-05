@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Box,
+import { Box,
   Image,
   Center,
   Heading,
