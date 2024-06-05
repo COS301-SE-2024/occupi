@@ -176,7 +176,7 @@ export default function ForgotPassword() {
 
   const styles = StyleSheet.create({
     buttonContainer: {
-      borderRadius: 15,
+      borderRadius: 15, 
       marginTop: hp('2%'),
       alignSelf: 'center',
       width: wp('90%'),
