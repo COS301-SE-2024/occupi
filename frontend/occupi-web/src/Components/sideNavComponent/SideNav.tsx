@@ -1,8 +1,9 @@
 import { OccupiLogo, CloseDrawer, OpenDrawer, Grid, Logout, Bell, ColorSwatch, Home, PieChart, SettingsIcon, UserProfileGroup } from "@assets/index";
 import {SideNavBarButton} from "@components/index";
-
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 const sidenavvariants = {
   open: {
@@ -49,11 +50,38 @@ const sidebarcontent = [
 ]
 
 const SideNav = () => {
+  const navigate = useNavigate();
+
   const [isMinimized, setIsMinimized] = useState(false);
   const [selectedPanel, setSelectedPanel] = useState("Dashboard");
 
   function setSelectedPanelF(arg: string){
       setSelectedPanel(arg);
+      if (arg === "Dashboard") {
+        navigate('/dashboard');
+      }
+      else if (arg === "Analysis") {
+        navigate('/analysis');
+      }
+      else if (arg === "AI model") {
+        navigate('/ai-model');
+      }
+      else if (arg === "Buildings") {
+        navigate('/buildings');
+      }
+      else if (arg === "Teams") {
+        navigate('/teams');
+      }
+      else if (arg === "Notifications") {
+        navigate('/notifications');
+      }
+      else if (arg === "Settings") {
+        navigate('/settings');
+      }
+      else if (arg === "Logout") {
+        navigate('/');
+      }
+
   }
 
   function toggleSideNav() {
