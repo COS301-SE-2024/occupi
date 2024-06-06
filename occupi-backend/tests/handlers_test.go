@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	// "github.com/joho/godotenv"
 	// "github.com/stretchr/testify/assert"
 	// "github.com/stretchr/testify/mock"
@@ -180,7 +182,17 @@ func TestPingRoute(t *testing.T) {
 }
 
 func TestRateLimit(t *testing.T) {
-	router := setupRouter()
+	// Create a new Gin router
+	router := gin.Default()
+
+	// attach rate limit middleware
+	middleware.AttachRateLimitMiddleware(router)
+
+	// Register the route
+	router.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "pong -> I am alive and kicking"})
+	})
+
 	server := httptest.NewServer(router)
 	defer server.Close()
 
