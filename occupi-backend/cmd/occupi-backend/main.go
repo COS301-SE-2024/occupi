@@ -10,6 +10,7 @@ import (
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
@@ -38,6 +39,9 @@ func main() {
 	if err != nil {
 		logrus.Fatal("Failed to set trusted proxies: ", err)
 	}
+
+	// adding rate limiting middleware
+	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
 	router.OccupiRouter(ginRouter, db)
