@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -17,6 +16,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+// Database interface allows us to isolate business logic from the database implementation while allowing us to
+// mock the database for testing purposes
+type Database interface {
+	EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool
+	BookingExists(ctx *gin.Context, db *mongo.Client, bookingID int) bool
+}
 
 // attempts to and establishes a connection with the remote mongodb database
 func ConnectToDatabase() *mongo.Client {
@@ -99,31 +105,35 @@ func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bo
 }
 func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) (bool, error) {
 	// Save the check-in to the database
-	collection := db.Database("Occupi").Collection("bookings")
-
-	// Build the dynamic filter for email check
-	emailFilter := bson.A{}
-	for key := range checkIn.Email {
-		emailFilter = append(emailFilter, bson.M{"emails." + strconv.Itoa(key): checkIn.Email})
-	}
+	collection := db.Database("Occupi").Collection("RoomBooking")
 
 	//Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
 		"bookingId": checkIn.BookingID,
-		"roomId":    checkIn.RoomID,
-		"$or":       emailFilter,
 	}
 
 	// Find the booking
 	var booking models.Booking
+	fmt.Println(filter)
 	err := collection.FindOne(context.TODO(), filter).Decode(&booking)
 	if err != nil {
+		fmt.Println(err)
 		if err == mongo.ErrNoDocuments {
-			logrus.Error("Email not associated with the room")
-			return false, fmt.Errorf("Email not associated with the room")
+			logrus.Error("Booking not found")
+			return false, fmt.Errorf("booking not found")
 		}
 		logrus.Error("Failed to find booking:", err)
 		return false, err
+	}
+
+	// Check if the email exists in any of the emails map values
+	for _, email := range booking.Emails {
+		if email == checkIn.Email {
+			break
+		} else {
+			logrus.Error("Email not associated with the room")
+			return false, fmt.Errorf("email not associated with the room")
+		}
 	}
 
 	update := bson.M{
@@ -158,9 +168,9 @@ func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
 func BookingExists(ctx *gin.Context, db *mongo.Client, bookingID int) bool {
 	// Check if the booking exists in the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
-	filter := bson.M{"bookingID": bookingID}
-	var booking models.Booking
-	err := collection.FindOne(ctx, filter).Decode(&booking)
+	filter := bson.M{"bookingId": bookingID}
+	var existingbooking models.Booking
+	err := collection.FindOne(ctx, filter).Decode(&existingbooking)
 	if err != nil {
 		logrus.Error(err)
 		return false
@@ -307,6 +317,37 @@ func UpdateVerificationStatusTo(ctx *gin.Context, db *mongo.Client, email string
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// Confirms if a booking has been cancelled
+func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, bookingID int) (bool, error) {
+	// Save the check-in to the database
+	collection := db.Database("Occupi").Collection("RoomBooking")
+
+	//Find the booking by bookingId, roomId, and check if the email is in the emails object
+	filter := bson.M{
+		"bookingId": bookingID}
+
+	// Find the booking
+	var localBooking models.Booking
+	err := collection.FindOne(context.TODO(), filter).Decode(&localBooking)
+	if err != nil {
+		fmt.Println(err)
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("Email not associated with the room")
+			return false, fmt.Errorf("email not associated with the room")
+		}
+		logrus.Error("Failed to find booking:", err)
+		return false, err
+	}
+
+	// Delete the booking
+	_, err = collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		logrus.Error("Failed to cancel booking:", err)
 		return false, err
 	}
 	return true, nil
