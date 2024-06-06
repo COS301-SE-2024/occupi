@@ -1,8 +1,10 @@
 import { useState } from "react";
 import {loginpng, OccupiLogo} from "@assets/index";
 import { Checkbox, GradientButton, InputBox } from "@components/index";
+import { useNavigate} from "react-router-dom";
 
 const LoginForm = (): JSX.Element => {
+  const navigate = useNavigate();
 
   const [form, setForm] = useState<{
     email: string, 
@@ -12,11 +14,15 @@ const LoginForm = (): JSX.Element => {
   }>({email: "", password: "", valid_email: false, valid_password: false});
   const [isloading, setIsLoading] = useState<boolean>(false);
 
+
   function Login() {
     setIsLoading(true);
     // login functionality should happen here, use axios if possible
+  //  <Link to="/dashboard" ></Link> // navigate to OTP page on successful login
+  
     setTimeout(() => {
       setIsLoading(false);
+      navigate("/otp");
     }, 2000);
   }
 

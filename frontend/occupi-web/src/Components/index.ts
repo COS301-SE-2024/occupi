@@ -5,7 +5,7 @@ import InputBox from "./InputBox/InputBox";
 import OtpComponent from "./OtpComponent/OtpComponent";
 import SideNavBarButton from "./SideNavBarButton/SideNavBarButton";
 import TopNav from './topNav/TopNav';
-
+import GraphContainer from "./graphContainer/GraphContainer";
 export {
     DrawerComponent,
     GradientButton,
@@ -13,5 +13,6 @@ export {
     InputBox,
     OtpComponent,
     SideNavBarButton,
-    TopNav
+    TopNav,
+    GraphContainer
 }
