@@ -10,10 +10,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="w-full">
-      <TopNav searchQuery={searchQuery} onChange={handleInputChange} />
+    <div className="w-full overflow-auto">
 
-      <div>
+        <div className="sticky top-0 z-10">
+
+      <TopNav searchQuery={searchQuery} onChange={handleInputChange} />
+        </div>
+
+      <div className="">
 
       <div className="flex gap-10 ml-10 mt-10">
       <GraphContainer />
@@ -22,7 +26,7 @@ const Dashboard = () => {
       </div>
       <div className="flex gap-10 mt-20 ml-10">
         <GraphContainer width="39.063vw" height="50.063vw"/>
-        <GraphContainer width="39.063vw" height="50.063vw"/>
+        <GraphContainer width="40.063vw" height="40.063vw"/>
 
       </div>
 
