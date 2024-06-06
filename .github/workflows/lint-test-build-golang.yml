@@ -9,6 +9,7 @@ on:
       "occupi-backend/pkg/**",
       "occupi-backend/.golangci.yml",
       "occupi-backend/tests/**",
+      ".github/workflows/lint-test-build-golang.yml"
     ]
   pull_request:
     branches: ["develop"]
@@ -18,6 +19,7 @@ on:
       "occupi-backend/pkg/**",
       "occupi-backend/.golangci.yml",
       "occupi-backend/tests/**",
+      ".github/workflows/lint-test-build-golang.yml"
     ]
 
   workflow_dispatch:
