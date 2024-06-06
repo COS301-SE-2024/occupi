@@ -23,7 +23,7 @@ if "%1 %2" == "run dev" (
     go test -v ./tests/...
     exit /b 0
 ) else if "%1 %2" == "test codecov" (
-    go test -v ./tests/... -race -coverprofile=coverage.out -covermode=atomic
+    go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers ./tests/... -coverprofile=coverage.out
     exit /b 0
 ) else if "%1" == "lint" (
     golangci-lint run
