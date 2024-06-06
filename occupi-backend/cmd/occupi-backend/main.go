@@ -40,7 +40,7 @@ func main() {
 		logrus.Fatal("Failed to set trusted proxies: ", err)
 	}
 
-	//adding rate limiting middleware
+	// adding rate limiting middleware
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
