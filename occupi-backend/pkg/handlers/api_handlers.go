@@ -112,7 +112,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to find booking", constants.InternalServerErrorCode, "Failed to find booking", nil))
 		return
 	}
-	//Confirm the check-in to the database
+	// Confirm the check-in to the database
 	_, err := database.ConfirmCheckIn(ctx, appsession.DB, checkIn)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to check in", constants.InternalServerErrorCode, "Failed to check in. Email not associated with booking", nil))

@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -100,7 +101,7 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 	// Save the check-in to the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
 
-	//Find the booking by bookingId, roomId, and check if the email is in the emails object
+	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
 		"bookingId": checkIn.BookingID,
 	}
@@ -113,7 +114,7 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 		fmt.Println(err)
 		if err == mongo.ErrNoDocuments {
 			logrus.Error("Booking not found")
-			return false, fmt.Errorf("booking not found")
+			return false, errors.New("booking not found")
 		}
 		logrus.Error("Failed to find booking:", err)
 		return false, err
@@ -125,7 +126,7 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 			break
 		} else {
 			logrus.Error("Email not associated with the room")
-			return false, fmt.Errorf("email not associated with the room")
+			return false, errors.New("email not associated with the room")
 		}
 	}
 
@@ -320,7 +321,7 @@ func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, bookingID int) (boo
 	// Save the check-in to the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
 
-	//Find the booking by bookingId, roomId, and check if the email is in the emails object
+	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
 		"bookingId": bookingID}
 
@@ -331,7 +332,7 @@ func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, bookingID int) (boo
 		fmt.Println(err)
 		if err == mongo.ErrNoDocuments {
 			logrus.Error("Email not associated with the room")
-			return false, fmt.Errorf("email not associated with the room")
+			return false, errors.New("email not associated with the room")
 		}
 		logrus.Error("Failed to find booking:", err)
 		return false, err
