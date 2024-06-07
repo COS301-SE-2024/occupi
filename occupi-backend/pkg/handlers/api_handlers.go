@@ -1,17 +1,12 @@
 package handlers
 
 import (
-	"context"
-	"fmt"
 	"net/http"
-	"strconv"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -77,70 +72,52 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Booking successful! Confirmation emails sent."})
 }
 
+// Cancel booking handles the cancellation of a booking
+func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
+	var booking models.Booking
+	if err := ctx.ShouldBindJSON(&booking); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Booking ID, Room ID, and Email Address", nil))
+		return
+	}
+
+	// Check if the booking exists
+	exists := database.BookingExists(ctx, appsession.DB, booking.BookingID)
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(404, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
+		return
+	}
+
+	// Confirm the cancellation to the database
+	_, err := database.ConfirmCancellation(ctx, appsession.DB, booking.BookingID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel booking", constants.InternalServerErrorCode, "Failed to cancel booking", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully cancelled booking!", nil))
+}
+
 // CheckIn handles the check-in process for a booking
 func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
-	// consider structuring api responses to match that as outlined in our coding standards documentation
-	//link: https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards#response-and-error-handling
+	var checkIn models.CheckIn
 
-	var request models.CheckIn
-
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+	if err := ctx.ShouldBindJSON(&checkIn); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Booking ID, Room ID, and Email Address", nil))
 		return
 	}
 
-	collection := appsession.DB.Database("occupi").Collection("bookings")
-
-	// Build the dynamic filter for email check
-	emailFilter := bson.A{}
-	for key := range request.Email {
-		emailFilter = append(emailFilter, bson.M{"emails." + strconv.Itoa(key): request.Email})
+	// Check if the booking exists
+	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingID)
+	if !exists {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to find booking", constants.InternalServerErrorCode, "Failed to find booking", nil))
+		return
 	}
-
-	// Print the emailFilter for debugging
-	fmt.Printf("Email Filter: %+v\n", emailFilter) // it would be better if you used a logger here, logrus is already setup, dont print
-
-	// Find the booking by bookingId, roomId, and check if the email is in the emails object
-	filter := bson.M{
-		"bookingId": request.BookingID,
-		"roomId":    request.RoomID,
-		"$or":       emailFilter,
-	}
-
-	// Print the filter for debugging
-	fmt.Printf("Filter: %+v\n", filter) // it would be better if you used a logger here, logrus is already setup, dont print
-
-	// Find the booking
-	var booking models.Booking
-	err := collection.FindOne(context.TODO(), filter).Decode(&booking)
+	//Confirm the check-in to the database
+	_, err := database.ConfirmCheckIn(ctx, appsession.DB, checkIn)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Booking not found or email not associated with the room"})
-		} else {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find booking"})
-		}
-		return
-	}
-	/**This section of code needs to be reviewed, can't make it to prod**/
-	// Print the emails for debugging
-	for key, email := range booking.Emails {
-		fmt.Printf("Email %s: %s\n", key, email) // it would be better if you used a logger here, logrus is already setup, dont print
-	}
-	/**This section of code needs to be reviewed**/
-
-	// Update the CheckedIn status
-	update := bson.M{
-		"$set": bson.M{"checkedIn": true},
-	}
-
-	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	var updatedBooking models.Booking
-
-	err = collection.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedBooking)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update booking"})
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to check in", constants.InternalServerErrorCode, "Failed to check in. Email not associated with booking", nil))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Check-in successful", "booking": updatedBooking})
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully checked in!", nil))
 }

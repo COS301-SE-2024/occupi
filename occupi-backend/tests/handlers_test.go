@@ -121,6 +121,7 @@ func TestVerifyOTP_InvalidOTP(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
+
 // TestVerifyOTP_EmailNotRegistered tests OTP verification for an unregistered email.
 func TestVerifyOTP_EmailNotRegistered(t *testing.T) {
 	// Create a new HTTP request with an unregistered email.
