@@ -17,13 +17,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Database interface allows us to isolate business logic from the database implementation while allowing us to
-// mock the database for testing purposes
-type Database interface {
-	EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool
-	BookingExists(ctx *gin.Context, db *mongo.Client, bookingID int) bool
-}
-
 // attempts to and establishes a connection with the remote mongodb database
 func ConnectToDatabase() *mongo.Client {
 	// MongoDB connection parameters
