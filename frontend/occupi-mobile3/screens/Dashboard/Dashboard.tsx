@@ -75,7 +75,7 @@ const Dashboard = () => {
           style={{ width: wp('8%'), height: wp('8%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
         />
       </View>
-      <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('10%')} backgroundColor={cardBackgroundColor} borderRadius="$20" />
+      <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius="$20" />
       <View display="flex" flexDirection="row" rowGap="$4" mt="$1" justifyContent="space-between">
         <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$20" />
         <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$20" />
@@ -96,7 +96,7 @@ const Dashboard = () => {
         alt="logo"
         p="$10"
         source={require('./assets/graph.png')}
-        style={{ width: wp('100%'), height: hp('30%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
+        style={{ width: wp('100%'), height: hp('31%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
       />
       <Navbar />
     </View>
