@@ -104,7 +104,7 @@ function SideContainerWeb() {
         w="$80"
         alt="gluestack-ui Pro"
         resizeMode="contain"
-        // source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
+      // source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
       />
     </Center>
   );
@@ -130,59 +130,52 @@ const SignUpForm = () => {
   const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
       setPwMatched(true);
-      setLoading(true)
-      // setTimeout(() => {
-      //   setLoading(false);
-      //   if (_data.email !== 'sabrina@deloitte.co.za') {
-      //     toast.show({
-      //       placement: 'top',
-      //       render: ({ id }) => {
-      //         return (
-      //           <Toast nativeID={id} variant="accent" action="error">
-      //             <ToastTitle>Deloitte email verification failed.</ToastTitle>
-      //           </Toast>
-      //         );
-      //       },
-      //     });
-      //     reset();
-      //   } else {
-      //     toast.show({
-      //       placement: 'top',
-      //       render: ({ id }) => {
-      //         return (
-      //           <Toast nativeID={id} variant="accent" action="success">
-      //             <ToastTitle>Verification successful</ToastTitle>
-      //           </Toast>
-      //         );
-      //       },
-      //     });
-      //     reset();
-      //     router.push('/verify-otp')
-      //   }
-      // }, 3000);
-
+      setLoading(true);
       try {
-        const response = await fetch('https://192.168.137.:8080/auth/register', {
+        const response = await fetch('http://192.168.0.3:8080/auth/register', {
           method: 'POST',
           headers: {
+            Accept: 'application/json',
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            email: "example",
-            password: "12345"
-          })
+            email: _data.email,
+            password: _data.password
+          }),
+          credentials: "include"
         });
-
         const data = await response.json();
-
         if (response.ok) {
-          Alert.alert('Success', 'User registered successfully!');
+          setLoading(false);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          router.push({pathname:'/login', params: { email: _data.email}});
         } else {
-          Alert.alert('Error', data.message || 'Something went wrong!');
+          setLoading(false);
+          // console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
         }
       } catch (error) {
-        Alert.alert('Error', error.message);
-      }   
+        console.error('Error:', error);
+      }
+      setLoading(false)
     } else {
       toast.show({
         placement: 'bottom right',
@@ -195,9 +188,6 @@ const SignUpForm = () => {
         },
       });
     }
-    // Implement your own onSubmit and navigation logic here.
-    // Navigate to appropriate location
-    // router.replace('/verify-otp');
   };
 
   const handleKeyPress = () => {
@@ -354,7 +344,7 @@ const SignUpForm = () => {
                     password: value,
                   });
                   return true;
-                } catch (error  ) {
+                } catch (error) {
                   return error.message;
                 }
               },

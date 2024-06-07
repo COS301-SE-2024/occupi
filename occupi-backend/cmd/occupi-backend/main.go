@@ -51,7 +51,7 @@ func main() {
 	}
 
 	// Listening on the port with TLS
-	if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
+	if err := ginRouter.Run(":"+configs.GetPort()); err != nil {
 		logrus.Fatal("Failed to run server: ", err)
 	}
 }

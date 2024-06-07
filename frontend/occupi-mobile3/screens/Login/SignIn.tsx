@@ -3,8 +3,8 @@ import { SafeAreaView, StyleSheet, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
-import { Ionicons } from '@expo/vector-icons'; 
-import { TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity, View, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import {
   Center,
   Button,
@@ -93,7 +93,7 @@ const SignInForm = () => {
   const handleBiometricSignIn = async () => {
     const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
     console.log('Supported biometric types:', biometricType);
-    
+
     if (biometricType.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION) || biometricType.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
       try {
         const result = await LocalAuthentication.authenticateAsync({
@@ -148,37 +148,55 @@ const SignInForm = () => {
     }
   };
 
-  const onSubmit = (_data: SignInSchemaType) => {
+  const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      if (_data.email !== 'sabrina@deloitte.co.za' || _data.password !== 'Test@1234') {
+    try {
+      const response = await fetch('http://192.168.0.3:8080/auth/login', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: _data.email,
+          password:_data.password
+        }),
+        credentials: "include"
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setLoading(false);
         toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="error">
-                <ToastTitle>Invalid credentials</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        reset();
-      } else {
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="success">
-                <ToastTitle>Login successful</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        reset();
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="success">
+                    <ToastTitle>{data.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
         router.push('/home');
+      } else {
+        setLoading(false);
+        // console.log(data);
+        toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="error">
+                    <ToastTitle>{data.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
       }
-    }, 3000);
+    } catch (error) {
+      console.error('Error:', error);
+      // setResponse('An error occurred');
+    }
+    // }, 3000);
+    setLoading(false);
   };
 
   const handleKeyPress = () => {
@@ -357,15 +375,16 @@ const SignInForm = () => {
 
       {loading ? (
         <GradientButton
-          onPress={onSubmit}
+          onPress={handleSubmit(onSubmit)}
           text="Verifying..."
         />
       ) : (
         <GradientButton
-          onPress={onSubmit}
-          text="Signup"
+          onPress={handleSubmit(onSubmit)}
+          text="Login"
         />
       )}
+      {/* <PostRequestExample/> */}
     </>
   );
 };
@@ -438,9 +457,12 @@ const Main = () => {
 
 const SignIn = () => {
   return (
-    <>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
       <Main />
-    </>
+    </KeyboardAvoidingView>
   );
 };
 

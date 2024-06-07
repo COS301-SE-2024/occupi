@@ -4,7 +4,7 @@ import { VStack, Box, HStack, Image, FormControl, Input, Button, Heading } from 
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams  } from 'expo-router';
 import * as MailComposer from 'expo-mail-composer';
 import * as Random from 'expo-random';
 import * as SecureStore from 'expo-secure-store';
@@ -21,12 +21,13 @@ const OTPSchema = z.object({
 
 type OTPSchemaType = z.infer<typeof OTPSchema>;
 
-const OTPVerification = ({ route }) => {
-  const { email } = route?.params || {};
+const OTPVerification = () => {
+  const email = useLocalSearchParams();
   const [remainingTime, setRemainingTime] = useState(60); // 1 minute
   const [otpSent, setOtpSent] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
+  // console.log(email);
 
   useEffect(() => {
     if (remainingTime > 0 && otpSent) {
@@ -108,14 +109,15 @@ const OTPVerification = ({ route }) => {
     }
     setValidationError(null);
 
-    const storedOtp = await SecureStore.getItemAsync('user_otp');
-    if (pin === storedOtp) {
-      Alert.alert('Signup successful');
-      reset();
-      router.push('/login');
-    } else {
-      Alert.alert('Invalid OTP');
-    }
+    // const storedOtp = await SecureStore.getItemAsync('user_otp');
+    // if (pin === storedOtp) {
+    //   Alert.alert('Signup successful');
+    //   reset();
+    //   router.push('/login');
+    // } else {
+    //   Alert.alert('Invalid OTP');
+    // }
+
   };
 
   useEffect(() => {
@@ -138,15 +140,15 @@ const OTPVerification = ({ route }) => {
   );
 
   return (
-    <GuestLayout>
-      <Box
-        sx={{
-          '@md': {
-            display: 'none',
-          },
-        }}
-        display="flex"
-      ></Box>
+    // <GuestLayout>
+      // <Box
+      //   sx={{
+      //     '@md': {
+      //       display: 'none',
+      //     },
+      //   }}
+      //   display="flex"
+      // ></Box>
       <Box
         bg="$backgroundLight0"
         sx={{
@@ -160,7 +162,6 @@ const OTPVerification = ({ route }) => {
         py="$8"
         px="$4"
         flex={1}
-        maxWidth={wp('90%')}
       >
         <MainText email={email} />
         <VStack space="md" mt="$6">
@@ -189,7 +190,7 @@ const OTPVerification = ({ route }) => {
         </VStack>
         <AccountLink />
       </Box>
-    </GuestLayout>
+    // </GuestLayout>
   );
 };
 
@@ -214,7 +215,7 @@ function PinInput({
         <Input
           ml="$2"
           key={index}
-          variant="outline"
+          // variant="outline"
           w={wp('12%')}
           h={hp('6%')}
           mt="$5"
@@ -262,16 +263,6 @@ function PinInput({
 }
 
 function MainText({ email }: { email: string }) {
-  if (!email) {
-    return <Text>Email is missing</Text>;
-  }
-
-  const obfuscatedEmail = email.replace(/(.{2})(.*)(?=@)/,
-    (gp1, gp2, gp3) => {
-      for (let i = 0; i < gp3.length; i++) {
-        gp2 += '*';
-      } return gp2;
-    });
 
   return (
     <VStack space="xs">
@@ -315,7 +306,7 @@ function MainText({ email }: { email: string }) {
             fontSize={wp('5%')}
             fontWeight="$light"
           >
-            {' ' + obfuscatedEmail}
+            {' ' + email}
           </Text>
         </Text>
       </HStack>
@@ -333,7 +324,7 @@ function AccountLink() {
       }}
       mt="auto"
       space="xs"
-      alignItems="center"
+      alignItems="$center"
       justifyContent="center"
     >
       <Text
@@ -348,7 +339,7 @@ function AccountLink() {
       >
         Already have an account?
       </Text>
-      <StyledExpoRouterLink href="/login" mt="$4">
+      <StyledExpoRouterLink href="/login">
         <Text style={{ color: '#7FFF00', fontSize: wp('4%') }}>
           Login
         </Text>
