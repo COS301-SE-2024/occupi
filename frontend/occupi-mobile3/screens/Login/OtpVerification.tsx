@@ -24,6 +24,7 @@ type OTPSchemaType = z.infer<typeof OTPSchema>;
 const OTPVerification = () => {
   const emailParams = useLocalSearchParams();
   const email = emailParams.email ? String(emailParams.email) : '';
+  // const email = 'kamo@gmail.com';
   const [remainingTime, setRemainingTime] = useState(60); // 1 minute
   const [otpSent, setOtpSent] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -33,7 +34,7 @@ const OTPVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [inputFocus, setInputFocus] = useState<number>(-1);
   const [validationError, setValidationError] = useState<string | null>(null);
-  console.log(email.email);
+  // console.log(email);
 
   useEffect(() => {
     if (remainingTime > 0 && !otpSent) {
@@ -61,7 +62,8 @@ const OTPVerification = () => {
 
   
 
-  const onSubmit = async ({email}) => {
+  const onSubmit = async () => {
+    console.log(email);
     const pin = otp.join('');
     const Count = otp.filter((value) => value !== '').length;
     if (Count < 6) {
@@ -72,7 +74,7 @@ const OTPVerification = () => {
     console.log(pin);
     setLoading(true);
     try {
-      const response = await fetch('http://10.0.0.160:8080/auth/login', {
+      const response = await fetch('http://10.0.0.160:8080/auth/verify-otp', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -80,7 +82,7 @@ const OTPVerification = () => {
         },
         body: JSON.stringify({
           email: email,
-          otp: otp
+          otp: pin
         }),
         credentials: "include"
       });
@@ -154,7 +156,18 @@ const OTPVerification = () => {
         <OTPInput otp={otp} setOtp={setOtp}/>
         <Text>Entered OTP: {otp.join('')}</Text>
           <Text fontSize="$md">{remainingTime} seconds remaining</Text>
-          <GradientButton onPress={onSubmit} text="Verify" />
+          {loading ? (
+            <GradientButton 
+             onPress={onSubmit}
+             text="Verifying OTP..." 
+            />
+           ) : (
+            <GradientButton 
+            onPress={onSubmit}
+            text="Verify" 
+           />
+           )}
+          
           <GradientButton text="Resend OTP" />
         </VStack>
         <AccountLink />
