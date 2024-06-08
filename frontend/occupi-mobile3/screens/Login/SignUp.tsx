@@ -132,7 +132,7 @@ const SignUpForm = () => {
       setPwMatched(true);
       setLoading(true);
       try {
-        const response = await fetch('http://192.168.0.3:8080/auth/register', {
+        const response = await fetch('http://10.0.0.160:8080/auth/register', {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -157,7 +157,7 @@ const SignUpForm = () => {
               );
             },
           });
-          router.push({pathname:'/login', params: { email: _data.email}});
+          router.push({pathname:'/verify-otp', params: { email: _data.email}});
         } else {
           setLoading(false);
           // console.log(data);

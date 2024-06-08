@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { TouchableOpacity, View, Text, StyleSheet, Alert, TextInput } from 'react-native';
-import { VStack, Box, HStack, Image, FormControl, Input, Button, Heading } from '@gluestack-ui/themed';
+import { VStack, Box, HStack, Image, FormControl, Input, Button, Heading, Toast, useToast, ToastTitle } from '@gluestack-ui/themed';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,18 +22,21 @@ const OTPSchema = z.object({
 type OTPSchemaType = z.infer<typeof OTPSchema>;
 
 const OTPVerification = () => {
-  const email = useLocalSearchParams();
+  const emailParams = useLocalSearchParams();
+  const email = emailParams.email ? String(emailParams.email) : '';
   const [remainingTime, setRemainingTime] = useState(60); // 1 minute
   const [otpSent, setOtpSent] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const toast = useToast();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [inputFocus, setInputFocus] = useState<number>(-1);
   const [validationError, setValidationError] = useState<string | null>(null);
-  // console.log(email);
+  console.log(email.email);
 
   useEffect(() => {
-    if (remainingTime > 0 && otpSent) {
+    if (remainingTime > 0 && !otpSent) {
       timerRef.current = setInterval(() => {
         setRemainingTime((prevTime) => prevTime - 1);
       }, 1000);
@@ -58,15 +61,63 @@ const OTPVerification = () => {
 
   
 
-  const onSubmit = async (_data: OTPSchemaType) => {
+  const onSubmit = async ({email}) => {
     const pin = otp.join('');
     const Count = otp.filter((value) => value !== '').length;
-    console.log(pin);
     if (Count < 6) {
       setValidationError('OTP must be at least 6 characters in length');
       return;
     }
     setValidationError(null);
+    console.log(pin);
+    setLoading(true);
+    try {
+      const response = await fetch('http://10.0.0.160:8080/auth/login', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          otp: otp
+        }),
+        credentials: "include"
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setLoading(false);
+        toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="success">
+                    <ToastTitle>{data.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
+        router.push('/home');
+      } else {
+        setLoading(false);
+        // console.log(data);
+        toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="error">
+                    <ToastTitle>{data.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      // setResponse('An error occurred');
+    }
+    // }, 3000);
+    setLoading(false);
   };
 
   const GradientButton = ({ onPress, text }) => (
@@ -83,49 +134,6 @@ const OTPVerification = () => {
     </LinearGradient>
   );
 
-  const OTPInput = () => {
-    const inputRefs = useRef([]);
-    const handleChangeText = (text, index) => {
-      const newOtp = [...otp];
-      newOtp[index] = text;
-      setOtp(newOtp);
-  
-      if (text && index < 5) {
-        inputRefs.current[index + 1].focus();
-      }
-    };
-  
-    const handleKeyPress = (e, index) => {
-      if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
-        inputRefs.current[index - 1].focus();
-      }
-    };
-
-    useEffect(() => {
-      // if ( otp[5] == '') {
-        inputRefs.current[0].focus();
-      // }
-      // console.log(inputRefs.current[0].value)
-    }, []);  
-  
-    return (
-      <View style={styles.container}>
-        {otp.map((digit, index) => (
-          <TextInput
-            key={index}
-            value={digit}
-            onChangeText={(text) => handleChangeText(text, index)}
-            onKeyPress={(e) => handleKeyPress(e, index)}
-            style={styles.input}
-            keyboardType="numeric"
-            maxLength={1}
-            ref={(ref) => inputRefs.current[index] = ref}
-          />
-        ))}
-      </View>
-    );
-  };
-
   return (
       <Box
         bg="$backgroundLight0"
@@ -141,9 +149,10 @@ const OTPVerification = () => {
         px="$4"
         flex={1}
       >
-        <MainText email={email} />
+        <MainText email={email}/>
         <VStack space="md">
-        <OTPInput />
+        <OTPInput otp={otp} setOtp={setOtp}/>
+        <Text>Entered OTP: {otp.join('')}</Text>
           <Text fontSize="$md">{remainingTime} seconds remaining</Text>
           <GradientButton onPress={onSubmit} text="Verify" />
           <GradientButton text="Resend OTP" />
@@ -153,7 +162,7 @@ const OTPVerification = () => {
   );
 };
 
-function MainText({ email }: { email: string }) {
+const MainText = (email : string) => {
 
   return (
     <VStack space="xs">
@@ -197,7 +206,7 @@ function MainText({ email }: { email: string }) {
             fontSize={wp('5%')}
             fontWeight="$light"
           >
-            {' ' + email}
+            {' '+email.email}
           </Text>
         </Text>
       </HStack>
@@ -239,7 +248,51 @@ function AccountLink() {
   );
 }
 
+const OTPInput = ({ otp, setOtp }) => {
+  const inputRefs = useRef([]);
 
+  const handleChangeText = (text, index) => {
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+
+    if (text && index < 5) {
+      inputRefs.current[index + 1].focus();
+    } else if (index === 5) {
+      inputRefs.current[index].blur(); // Dismiss the keyboard after entering the 6th digit
+    }
+  };
+
+  const handleKeyPress = (e, index) => {
+    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  useEffect(() => {
+    if (inputRefs.current[0]) {
+      inputRefs.current[0].focus();
+    }
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      {otp.map((digit, index) => (
+        <TextInput
+          key={index}
+          value={digit}
+          onChangeText={(text) => handleChangeText(text, index)}
+          onKeyPress={(e) => handleKeyPress(e, index)}
+          style={styles.input}
+          keyboardType="numeric"
+          maxLength={1}
+          ref={(ref) => inputRefs.current[index] = ref}
+          // autoFocus={index === inputRefs.current[index]} // Auto focus the first input on mount
+        />
+      ))}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   buttonContainer: {
