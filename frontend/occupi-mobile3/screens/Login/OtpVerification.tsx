@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, Alert } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet, Alert, TextInput } from 'react-native';
 import { VStack, Box, HStack, Image, FormControl, Input, Button, Heading } from '@gluestack-ui/themed';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -27,6 +27,9 @@ const OTPVerification = () => {
   const [otpSent, setOtpSent] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [inputFocus, setInputFocus] = useState<number>(-1);
+  const [validationError, setValidationError] = useState<string | null>(null);
   // console.log(email);
 
   useEffect(() => {
@@ -44,32 +47,6 @@ const OTPVerification = () => {
     };
   }, [remainingTime, otpSent]);
 
-  const generateOtp = async (): Promise<string> => {
-    const randomBytes = await Random.getRandomBytesAsync(6);
-    const otp = Array.from(randomBytes).map(byte => byte % 10).join('');
-    return otp;
-  };
-
-  const sendOtp = async () => {
-    const generatedOtp = await generateOtp();
-    setRemainingTime(60);
-    setOtpSent(true);
-
-    await SecureStore.setItemAsync('user_otp', generatedOtp);
-
-    // Send the OTP via email (example using Expo MailComposer)
-    const isAvailable = await MailComposer.isAvailableAsync();
-    if (isAvailable) {
-      await MailComposer.composeAsync({
-        recipients: [email],
-        subject: 'Your OTP Code',
-        body: `Your OTP code is ${generatedOtp}`,
-      });
-    } else {
-      Alert.alert('MailComposer is not available');
-    }
-  };
-
   const {
     control,
     formState: { errors },
@@ -79,51 +56,18 @@ const OTPVerification = () => {
     resolver: zodResolver(OTPSchema),
   });
 
-  const [otpInput, setOtpInput] = useState(['', '', '', '', '', '']);
-  const firstInput = useRef<HTMLInputElement>(null);
-  const secondInput = useRef<HTMLInputElement>(null);
-  const thirdInput = useRef<HTMLInputElement>(null);
-  const fourthInput = useRef<HTMLInputElement>(null);
-  const fifthInput = useRef<HTMLInputElement>(null);
-  const sixthInput = useRef<HTMLInputElement>(null);
-
-  const refList = [
-    firstInput,
-    secondInput,
-    thirdInput,
-    fourthInput,
-    fifthInput,
-    sixthInput,
-  ];
-
-  const [inputFocus, setInputFocus] = useState<number>(-1);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  
 
   const onSubmit = async (_data: OTPSchemaType) => {
-    const pinValues = refList.map((ref) => ref?.current?.value);
-    const pin = pinValues.join('');
-    const Count = otpInput.filter((value) => value !== '').length;
+    const pin = otp.join('');
+    const Count = otp.filter((value) => value !== '').length;
+    console.log(pin);
     if (Count < 6) {
       setValidationError('OTP must be at least 6 characters in length');
       return;
     }
     setValidationError(null);
-
-    // const storedOtp = await SecureStore.getItemAsync('user_otp');
-    // if (pin === storedOtp) {
-    //   Alert.alert('Signup successful');
-    //   reset();
-    //   router.push('/login');
-    // } else {
-    //   Alert.alert('Invalid OTP');
-    // }
-
   };
-
-  useEffect(() => {
-    // Automatically send OTP when component mounts
-    sendOtp();
-  }, []);
 
   const GradientButton = ({ onPress, text }) => (
     <LinearGradient
@@ -139,16 +83,50 @@ const OTPVerification = () => {
     </LinearGradient>
   );
 
+  const OTPInput = () => {
+    const inputRefs = useRef([]);
+    const handleChangeText = (text, index) => {
+      const newOtp = [...otp];
+      newOtp[index] = text;
+      setOtp(newOtp);
+  
+      if (text && index < 5) {
+        inputRefs.current[index + 1].focus();
+      }
+    };
+  
+    const handleKeyPress = (e, index) => {
+      if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+        inputRefs.current[index - 1].focus();
+      }
+    };
+
+    useEffect(() => {
+      // if ( otp[5] == '') {
+        inputRefs.current[0].focus();
+      // }
+      // console.log(inputRefs.current[0].value)
+    }, []);  
+  
+    return (
+      <View style={styles.container}>
+        {otp.map((digit, index) => (
+          <TextInput
+            key={index}
+            value={digit}
+            onChangeText={(text) => handleChangeText(text, index)}
+            onKeyPress={(e) => handleKeyPress(e, index)}
+            style={styles.input}
+            keyboardType="numeric"
+            maxLength={1}
+            ref={(ref) => inputRefs.current[index] = ref}
+          />
+        ))}
+      </View>
+    );
+  };
+
   return (
-    // <GuestLayout>
-      // <Box
-      //   sx={{
-      //     '@md': {
-      //       display: 'none',
-      //     },
-      //   }}
-      //   display="flex"
-      // ></Box>
       <Box
         bg="$backgroundLight0"
         sx={{
@@ -164,103 +142,16 @@ const OTPVerification = () => {
         flex={1}
       >
         <MainText email={email} />
-        <VStack space="md" mt="$6">
-          <FormControl>
-            <PinInput
-              refList={refList}
-              setInputFocus={setInputFocus}
-              focusedIndex={inputFocus}
-              otpInput={otpInput}
-              setOtpInput={setOtpInput}
-            />
-            {validationError && (
-              <Text fontSize="$sm" color="$error700">
-                {validationError}
-              </Text>
-            )}
-            {errors?.OTP && (
-              <Text fontSize="$sm" color="$error700">
-                {errors.OTP.message}
-              </Text>
-            )}
-          </FormControl>
-          <Text fontSize="$md" mb="$40">{remainingTime} seconds remaining</Text>
-          <GradientButton onPress={handleSubmit(onSubmit)} text="Verify" />
-          <GradientButton onPress={sendOtp} text="Resend OTP" />
+        <VStack space="md">
+        <OTPInput />
+          <Text fontSize="$md">{remainingTime} seconds remaining</Text>
+          <GradientButton onPress={onSubmit} text="Verify" />
+          <GradientButton text="Resend OTP" />
         </VStack>
         <AccountLink />
       </Box>
-    // </GuestLayout>
   );
 };
-
-interface PinInputProps {
-  refList: React.RefObject<HTMLInputElement>[];
-  setInputFocus: React.Dispatch<React.SetStateAction<number>>;
-  focusedIndex: number;
-  setOtpInput: (otpInput: Array<string>) => void;
-  otpInput: any;
-}
-
-function PinInput({
-  refList,
-  setInputFocus,
-  focusedIndex,
-  setOtpInput,
-  otpInput,
-}: PinInputProps) {
-  return (
-    <HStack>
-      {Array.from({ length: 6 }, (_, index) => (
-        <Input
-          ml="$2"
-          key={index}
-          // variant="outline"
-          w={wp('12%')}
-          h={hp('6%')}
-          mt="$5"
-          backgroundColor="#f2f2f2"
-          borderColor="#f2f2f2"
-          borderRadius="$2xl"
-        >
-          <Input
-            ref={refList[index]}
-            placeholder=""
-            bg="#f2f2f2"
-            sx={{
-              '@md': {
-                w: '$1/5',
-              },
-              '@lg': {
-                w: '$25/2',
-              },
-              '_dark': {
-                bgColor: '$backgroundDark400',
-              },
-            }}
-            textAlign="center"
-            maxLength={1}
-            onChangeText={(text) => {
-              if (text.length === 1 && index < 5) {
-                refList[index + 1].current?.focus();
-                setInputFocus(index + 1);
-              } else if (text.length === 0 && index > 0) {
-                refList[index - 1].current?.focus();
-              }
-
-              const updateOtpAtIndex = (index: number, value: string) => {
-                const newOtpInput = [...otpInput];
-                newOtpInput[index] = value;
-                setOtpInput(newOtpInput);
-              };
-              updateOtpAtIndex(index, text);
-            }}
-          />
-        </Input>
-      ))}
-    </HStack>
-  );
-}
 
 function MainText({ email }: { email: string }) {
 
@@ -348,6 +239,8 @@ function AccountLink() {
   );
 }
 
+
+
 const styles = StyleSheet.create({
   buttonContainer: {
     borderRadius: 15,
@@ -361,6 +254,22 @@ const styles = StyleSheet.create({
     fontSize: wp('4%'),
     textAlign: 'center',
     lineHeight: hp('6%'),
+  },
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  input: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    textAlign: 'center',
+    fontSize: 18,
   },
 });
 
