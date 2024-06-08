@@ -80,7 +80,7 @@ func GenerateRandomState() (string, error) {
 }
 
 // sends multiple emails concurrently
-func SendMultipleEmailsConcurrently(emails map[string]string, subject, body string) []string {
+func SendMultipleEmailsConcurrently(emails []string, subject, body string) []string {
 	// Use a WaitGroup to wait for all goroutines to complete
 	var wg sync.WaitGroup
 	var emailErrors []string
