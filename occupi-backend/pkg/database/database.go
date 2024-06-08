@@ -97,6 +97,30 @@ func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bo
 	}
 	return true, nil
 }
+
+// Retrieves bookings associated with a user
+func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models.Booking, error) {
+	// Get the bookings for the user
+	collection := db.Database("Occupi").Collection("RoomBooking")
+	filter := bson.M{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}}
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var bookings []models.Booking
+	for cursor.Next(ctx) {
+		var booking models.Booking
+		if err := cursor.Decode(&booking); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		bookings = append(bookings, booking)
+	}
+	return bookings, nil
+}
 func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) (bool, error) {
 	// Save the check-in to the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
@@ -108,10 +132,8 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 
 	// Find the booking
 	var booking models.Booking
-	fmt.Println(filter)
 	err := collection.FindOne(context.TODO(), filter).Decode(&booking)
 	if err != nil {
-		fmt.Println(err)
 		if err == mongo.ErrNoDocuments {
 			logrus.Error("Booking not found")
 			return false, errors.New("booking not found")

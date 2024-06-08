@@ -2,6 +2,7 @@ package router
 
 import (
 	"encoding/gob"
+	"net/http"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
@@ -36,7 +37,7 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client) {
 
 	ping := router.Group("/ping")
 	{
-		ping.GET("", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"message": "pong -> I am alive and kicking"}) })
+		ping.GET("", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"message": "pong -> I am alive and kicking"}) })
 	}
 	api := router.Group("/api")
 	{
