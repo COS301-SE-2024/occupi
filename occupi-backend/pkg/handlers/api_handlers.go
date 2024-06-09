@@ -64,7 +64,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	body := mail.FormatBookingEmailBody(booking.ID, booking.RoomID, booking.Slot)
 
 	// Send the confirmation email concurrently to all recipients
-	emailErrors := utils.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
+	emailErrors := mail.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
 
 	if len(emailErrors) > 0 {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send confirmation email", constants.InternalServerErrorCode, "Failed to send confirmation email", nil))
@@ -119,7 +119,7 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	body := mail.FormatBookingEmailBody(booking.ID, booking.RoomID, booking.Slot)
 
 	// Send the confirmation email concurrently to all recipients
-	emailErrors := utils.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
+	emailErrors := mail.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
 
 	if len(emailErrors) > 0 {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send cancellation email", constants.InternalServerErrorCode, "Failed to send cancellation email", nil))
