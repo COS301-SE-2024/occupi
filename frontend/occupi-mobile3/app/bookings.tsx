@@ -1,7 +1,7 @@
-import Bookings from "../screens/Dashboard/Bookings";
+import BookRoom from "../screens/Dashboard/BookRoom";
 
 export default function Home() {
     return (
-        <Bookings />
+        <BookRoom />
     );
 }
