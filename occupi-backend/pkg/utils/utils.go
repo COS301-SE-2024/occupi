@@ -180,8 +180,3 @@ func CompareArgon2IDHash(password string, hashedPassword string) (bool, error) {
 	}
 	return match, nil
 }
-
-func WillRemove() {
-	// This function is only here to make sure that the package is not empty
-	// and that the linter does not complain about it
-}
