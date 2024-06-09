@@ -9,7 +9,7 @@ const TabComponent = () => {
 
   return (
     <div>
-      <div role="tablist" className="tabs tabs-boxed tabs-md w-48 ">
+      <div role="tablist" className="tabs tabs-boxed tabs-lg 098  ">
         <a
           href="#"
           role="tab"

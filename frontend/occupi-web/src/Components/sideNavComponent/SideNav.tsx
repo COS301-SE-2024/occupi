@@ -81,12 +81,14 @@ const SideNav = () => {
       else if (arg === "Logout") {
         navigate('/');
       }
+      
 
   }
 
   function toggleSideNav() {
     setIsMinimized(!isMinimized);
   }
+
 
   return (
     <motion.div className="overflow-hidden border-r-[2px] border-r-gray_900 flex flex-col items-center"
