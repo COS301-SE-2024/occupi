@@ -13,9 +13,12 @@ import Bell from "./icons/Bell";
 import SettingsIcon from "./icons/SettingsIcon";
 import Logout from "./icons/Logout";
 import Loading from './icons/Loading';
-
+import SettingsImg from "./images/15.png";
+import Macbook1 from "./images/MacSys.svg";
+import Macbook2 from "./images/macDark.svg";
+import Macbook3 from "./images/macLight.svg";
 export {
     loginpng, OccupiLogo, login_image, CheckSquareContained, CloseDrawer, OpenDrawer,
     Grid, PieChart, ColorSwatch, Home, UserProfileGroup, Bell, SettingsIcon, Logout,
-    Loading
+    Loading,SettingsImg, Macbook1, Macbook2, Macbook3
 }

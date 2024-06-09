@@ -6,6 +6,9 @@ import OtpComponent from "./OtpComponent/OtpComponent";
 import SideNavBarButton from "./SideNavBarButton/SideNavBarButton";
 import TopNav from './topNav/TopNav';
 import GraphContainer from "./graphContainer/GraphContainer";
+import TabComponent from "./tabComponent/TabComponent";
+import ColourCircle from "./colourCircle/ColourCircle";
+import Appearance from "./appearance/Appearance";
 export {
     DrawerComponent,
     GradientButton,
@@ -14,5 +17,8 @@ export {
     OtpComponent,
     SideNavBarButton,
     TopNav,
-    GraphContainer
+    GraphContainer,
+    TabComponent,
+    ColourCircle,
+    Appearance
 }
