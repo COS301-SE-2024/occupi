@@ -17,7 +17,7 @@ type User struct {
 // structure of booking
 type Booking struct {
 	ID        string   `json:"_id" bson:"_id,omitempty"`
-	OccupiID  int      `json:"occupiId" bson:"occupiId,omitempty"`
+	OccupiID  string   `json:"occupiId" bson:"occupiId,omitempty"`
 	RoomID    string   `json:"roomId" bson:"roomId"`
 	Slot      int      `json:"slot" bson:"slot"`
 	Emails    []string `json:"emails" bson:"emails"`

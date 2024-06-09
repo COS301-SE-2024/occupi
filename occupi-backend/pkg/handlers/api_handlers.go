@@ -49,7 +49,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
-	booking.OccupiID = 1
+	booking.OccupiID = utils.GenerateOccupiBookID()
 	booking.CheckedIn = false
 
 	// Save the booking to the database

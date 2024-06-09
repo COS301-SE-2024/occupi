@@ -64,6 +64,17 @@ func GenerateEmployeeID() string {
 	return employeeID
 }
 
+// Function to generate a Booking ID with the structure BOOKYYYYMMDDXXXX
+func GenerateOccupiBookID() string {
+	currentYear := time.Now().Year()
+	randomNum, err := generateRandomNumber()
+	if err != nil {
+		return "BOOK00000000"
+	}
+	BookID := fmt.Sprintf("BOOK%d%04d", currentYear, randomNum)
+	return BookID
+}
+
 // generates a random auth0 state
 func GenerateRandomState() (string, error) {
 	b := make([]byte, 32)
