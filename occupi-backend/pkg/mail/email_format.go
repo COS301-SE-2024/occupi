@@ -3,13 +3,13 @@ package mail
 import "strconv"
 
 // formats booking email body
-func FormatBookingEmailBody(bookingID int, roomID string, slot int) string {
+func FormatBookingEmailBody(bookingID string, roomID string, slot int) string {
 	return `
 		Dear User,
 
 		Thank you for booking with Occupi. Here are your booking details:
 
-		Booking ID: ` + strconv.Itoa(bookingID) + `
+		Booking ID: ` + bookingID + `
 		Room ID: ` + roomID + `
 		Slot: ` + strconv.Itoa(slot) + `
 
