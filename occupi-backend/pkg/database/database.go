@@ -121,6 +121,8 @@ func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models
 	}
 	return bookings, nil
 }
+
+// Confirms the user check-in by checking certain criteria
 func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) (bool, error) {
 	// Save the check-in to the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
@@ -149,7 +151,7 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 		}
 		// If we finish the loop without finding the email
 		logrus.Error("Email not associated with the room")
-		return false, fmt.Errorf("email not associated with the room")
+		return false, errors.New("email not associated with the room")
 	}
 
 	update := bson.M{
@@ -181,11 +183,11 @@ func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
 }
 
 // checks if booking exists in database
-func BookingExists(ctx *gin.Context, db *mongo.Client, ID string) bool {
+func BookingExists(ctx *gin.Context, db *mongo.Client, id string) bool {
 	// Check if the booking exists in the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
 
-	filter := bson.M{"_id": ID}
+	filter := bson.M{"_id": id}
 	var existingbooking models.Booking
 	err := collection.FindOne(ctx, filter).Decode(&existingbooking)
 	if err != nil {
@@ -340,20 +342,19 @@ func UpdateVerificationStatusTo(ctx *gin.Context, db *mongo.Client, email string
 }
 
 // Confirms if a booking has been cancelled
-func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, ID string, email string) (bool, error) {
+func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, id string, email string) (bool, error) {
 	// Save the check-in to the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
 
 	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
-		"_id":     ID,
+		"_id":     id,
 		"creator": email}
 
 	// Find the booking
 	var localBooking models.Booking
 	err := collection.FindOne(context.TODO(), filter).Decode(&localBooking)
 	if err != nil {
-		fmt.Println(err)
 		if err == mongo.ErrNoDocuments {
 			logrus.Error("Email not associated with the room")
 			return false, errors.New("email not associated with the room")
