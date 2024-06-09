@@ -194,6 +194,218 @@ The resources endpoints are used to create, read, update, and delete resources.
 {}
 ```
 
+### BookRoom
+
+This endpoint is used to book a room in the Occupi system. The client needs to provide the room ID,
+slot, a list of email addresses, the creator's email, and the floor number.
+Upon a successful booking, a unique booking ID is generated, and a confirmation email is sent to all specified recipients.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/book-room`
+
+- **Method**
+
+  `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+    "roomId": "string",
+    "slot": "integer",
+    "emails": ["string"],
+    "creator": "string",
+    "floorNo": "integer"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "message": "Resources fetched successfully"
+                "data" : "Booking ID" }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "message": "Invalid request Payload",
+            "code" : "InvalidRequestPayloadCode",
+            "details: "Expected RoomID, Slot, Emails[], Creator, FloorNo" }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "message": "Failed to save booking",
+            "code": "InternalServerErrorCode",
+            "details": "Failed to save booking" }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "message": "Failed to send confirmation emails",
+            "code": "InternalServerErrorCode",
+            "details": "Failed to send confirmation emails" }`
+
+### ViewBookings
+
+This endpoint is used to view all bookings made by a user. The client needs to provide the user's email address.
+Upon a successful request, a list of all bookings made by the user is returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/view-bookings`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{  
+    "emails": "string",
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "message": "Bookings fetched successfully",
+                "data" : "List of bookings" }`
+
+**Error Response**
+    
+- **Code:** 400
+- **Content:** `{ "message": "Invalid request Payload",
+            "code" : "InvalidRequestPayloadCode",
+            "details: "Expected Email Address" }`  
+
+**Error Response**
+     
+- **Code:** 500
+- **Content:** `{ "message": "Failed to fetch bookings",
+            "code": "InternalServerErrorCode",
+            "details": "Failed to fetch bookings" }`
+
+### CancelBooking
+
+This endpoint is used to cancel a booking made by a user. 
+The client needs to provide the booking ID and the person who booked.
+Upon a successful request, the booking is canceled, and a confirmation email is sent to all recipients.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/cancel-booking`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{  
+    "bookingId": "string",
+    "creator": "string",
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "message": "Booking canceled successfully",
+                "data" : "nil" }`
+
+**Error Response**
+        
+- **Code:** 400
+- **Content:** `{ "message": "Invalid request Payload",
+                "code" : "InvalidRequestPayloadCode",
+                "details: "Expected Booking ID, Creator" }`
+
+**Error Response**
+            
+- **Code:** 500
+- **Content:** `{ "message": "Failed to cancel booking",
+                    "code": "InternalServerErrorCode",
+                    "details": "Failed to cancel booking" }`
+
+**Error Response**
+                    
+- **Code:** 500
+- **Content:** `{ "message": "Failed to send confirmation emails",
+                            "code": "InternalServerErrorCode",
+                            "details": "Failed to send confirmation emails" }`
+                              
+### CheckIn
+
+This endpoint is used to check-in a user who has booked a room.
+The client needs to provide the booking ID and their email.
+Upon a successful request, the user is checked in.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/check-in`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{  
+    "bookingId": "string",
+    "email": "string",
+    "roomId": "string",
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "message": "Checked in successfully",
+                "data" : "nil" }`
+
+**Error Response**
+            
+- **Code:** 400
+- **Content:** `{ "message": "Invalid request Payload",
+                "code" : "InvalidRequestPayloadCode",
+                "details: "Expected Booking ID, Email, RoomID" }`
+
+**Error Response**
+                        
+- **Code:** 500
+- **Content:** `{ "message": "Failed to check-in",
+                    "code": "InternalServerErrorCode",
+                    "details": "Failed to check-in" }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "message": "Failed to send confirmation emails",
+                    "code": "InternalServerErrorCode",
+                    "details": "Failed to send confirmation emails" }`  
+
+
+
+
+
+
 ### Users
 
 The users endpoints are used to create, read, update, and delete users.
