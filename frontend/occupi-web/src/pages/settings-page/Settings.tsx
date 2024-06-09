@@ -3,10 +3,20 @@ import TopNav from "../../components/topNav/TopNav";
 import DrawerComponent from "../../components/drawerComponent/DrawerComponent";
 const Settings = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
+
+  const handleSettingsClick = () => {
+    setDrawerOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+  };
+
   return (
     <div className="w-full verflow-auto">
       <TopNav
@@ -22,6 +32,8 @@ const Settings = () => {
         searchQuery={searchQuery}
         onChange={handleInputChange}
       />
+          <DrawerComponent/>
+
     </div>
   );
 };

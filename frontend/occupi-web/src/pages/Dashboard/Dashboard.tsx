@@ -1,6 +1,7 @@
 import { TopNav } from "@components/index";
 import { useState } from "react";
 import { GraphContainer } from "@components/index";
+import {TabComponent } from "@components/index";
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,7 +14,7 @@ const Dashboard = () => {
     <div className="w-full overflow-auto">
 
         <div className="sticky top-0 z-10">
-
+        <TabComponent />
       <TopNav searchQuery={searchQuery} onChange={handleInputChange} />
         </div>
 
