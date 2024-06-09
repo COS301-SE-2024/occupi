@@ -1,8 +1,8 @@
 # Api Usage
 
-This page provides a detailed explanation of how to use the Occupi API. 
-The Occupi API is a RESTful API that allows you to interact with the Occupi platform programmatically. 
-The API provides endpoints for creating, reading, updating, and deleting resources. 
+This page provides a detailed explanation of how to use the Occupi API.
+The Occupi API is a RESTful API that allows you to interact with the Occupi platform programmatically.
+The API provides endpoints for creating, reading, updating, and deleting resources.
 The API also allows you to retrieve information about these resources.
 
 # Table of Contents
@@ -17,6 +17,10 @@ The API also allows you to retrieve information about these resources.
       - [Verify OTP](#verify-otp)
     - [Api](#api)
       - [Resources](#resources)
+      - [BookRoom](#BookRoom)
+      - [ViewBookings](#ViewBookings)
+      - [CancelBooking](#CancelBooking)
+      - [CheckIn](#CheckIn)
       - [Users](#users)
       - [Roles](#roles)
 
@@ -33,25 +37,22 @@ The ping endpoint is used to check if the API is up and running.
   `/ping`
 
 - **Method**
-  
-    `GET`
+
+  `GET`
 
 - **Success Response**
-  
-    - **Code:** 200
-    - **Content:** `{ "message": "pong -> I am alive and kicking" }`
+
+  - **Code:** 200
+  - **Content:** `{ "message": "pong -> I am alive and kicking" }`
 
 - **Error Response**
-    
-    - **Code:** 404
-    - **Content:** `{ "message": "Resource not found" }`
+  - **Code:** 404
+  - **Content:** `{ "message": "Resource not found" }`
 
-***Example json to send:***
+**_Example json to send:_**
 
 ```json copy
-{
-    
-}
+{}
 ```
 
 ## Authentication
@@ -65,99 +66,95 @@ The authentication endpoints are used to register, login, and verify users. Only
   `/auth/register`
 
 - **Method**
-  
-    `POST`
+
+  `POST`
 
 - **Success Response**
-    
-    - **Code:** 200
-    - **Content:** `{ "status":  200, "message": "Registration successful! Please check your email for the OTP to verify your account.", "data": {}, }`
 
- **Error Response**
-      
-    - **Code:** 400
-    - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Registration successful! Please check your email for the OTP to verify your account.", "data": {}, }`
 
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
 
 - **Error Response**
-        
-    - **Code:** 500
-    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
 
-***Example json to send:***
+**_Example json to send:_**
 
 ```json copy
 {
-    "email": "abcd@gmail.com",
-    "password": "123456",
+  "email": "abcd@gmail.com",
+  "password": "123456"
 }
 ```
 
 ### Login
 
 - **URL**
-  
-    `/auth/login`
+
+  `/auth/login`
 
 - **Method**
-    
-    `POST`
+
+  `POST`
 
 - **Success Response**
 
-    - **Code:** 200
-    - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
 
- **Error Response**
-      
-    - **Code:** 400
-    - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
 
 - **Error Response**
-        
-    - **Code:** 500
-    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
 
-***Example json to send:***
+**_Example json to send:_**
 
 ```json copy
 {
-    "email": "abcd@gmail.com",
-    "password": "123456",
+  "email": "abcd@gmail.com",
+  "password": "123456"
 }
 ```
 
 ### Verify OTP
 
 - **URL**
-  
-    `/auth/verify-otp`
+
+  `/auth/verify-otp`
 
 - **Method**
-    
-    `POST`
+
+  `POST`
 
 - **Success Response**
-    
-    - **Code:** 200
-    - **Content:** `{ "status":  200, "message": "OTP verified successfully!", "data": {}, }`
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "OTP verified successfully!", "data": {}, }`
 
 - **Error Response**
-      
-    - **Code:** 400
-    - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
 
 - **Error Response**
-        
-    - **Code:** 500
-    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
 
-***Example json to send:***
+**_Example json to send:_**
 
 ```json copy
 {
-    "email": "abcd@gmail.com",
-	"oTP":   "123456"
+  "email": "abcd@gmail.com",
+  "oTP": "123456"
 }
 ```
 
@@ -174,31 +171,240 @@ The resources endpoints are used to create, read, update, and delete resources.
   `/api/resources`
 
 - **Method**
-  
-    `GET`
+
+  `GET`
 
 - **Success Response**
-      
-    - **Code:** 200
-    - **Content:** `{ "message": "Resources fetched successfully" }`
+
+  - **Code:** 200
+  - **Content:** `{ "message": "Resources fetched successfully" }`
 
 - **Error Response**
 
-    - **Code:** 400
-    - **Content:** `{ "message": "Bad Request" }`
+  - **Code:** 400
+  - **Content:** `{ "message": "Bad Request" }`
 
 - **Error Response**
-        
-    - **Code:** 500
-    - **Content:** `{ "message": "Internal server error" }`
+  - **Code:** 500
+  - **Content:** `{ "message": "Internal server error" }`
 
-***Example json to send:***
+**_Example json to send:_**
+
+```json copy
+{}
+```
+
+### BookRoom
+
+This endpoint is used to book a room in the Occupi system. The client needs to provide the room ID,
+slot, a list of email addresses, the creator's email, and the floor number.
+Upon a successful booking, a unique booking ID is generated, and a confirmation email is sent to all specified recipients.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/book-room`
+
+- **Method**
+
+  `POST`
+
+- **Request Body**
+
+- **Content**
 
 ```json copy
 {
-    
+    "roomId": "string",
+    "slot": "integer",
+    "emails": ["string"],
+    "creator": "string",
+    "floorNo": "integer"
 }
 ```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "message": "Resources fetched successfully"
+                "data" : "Booking ID" }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "message": "Invalid request Payload",
+            "code" : "InvalidRequestPayloadCode",
+            "details: "Expected RoomID, Slot, Emails[], Creator, FloorNo" }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "message": "Failed to save booking",
+            "code": "InternalServerErrorCode",
+            "details": "Failed to save booking" }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "message": "Failed to send confirmation emails",
+            "code": "InternalServerErrorCode",
+            "details": "Failed to send confirmation emails" }`
+
+### ViewBookings
+
+This endpoint is used to view all bookings made by a user. The client needs to provide the user's email address.
+Upon a successful request, a list of all bookings made by the user is returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/view-bookings`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{  
+    "emails": "string",
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "message": "Bookings fetched successfully",
+                "data" : "List of bookings" }`
+
+**Error Response**
+    
+- **Code:** 400
+- **Content:** `{ "message": "Invalid request Payload",
+            "code" : "InvalidRequestPayloadCode",
+            "details: "Expected Email Address" }`  
+
+**Error Response**
+     
+- **Code:** 500
+- **Content:** `{ "message": "Failed to fetch bookings",
+            "code": "InternalServerErrorCode",
+            "details": "Failed to fetch bookings" }`
+
+### CancelBooking
+
+This endpoint is used to cancel a booking made by a user. 
+The client needs to provide the booking ID and the person who booked.
+Upon a successful request, the booking is canceled, and a confirmation email is sent to all recipients.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/cancel-booking`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{  
+    "bookingId": "string",
+    "creator": "string",
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "message": "Booking canceled successfully",
+                "data" : "nil" }`
+
+**Error Response**
+        
+- **Code:** 400
+- **Content:** `{ "message": "Invalid request Payload",
+                "code" : "InvalidRequestPayloadCode",
+                "details: "Expected Booking ID, Creator" }`
+
+**Error Response**
+            
+- **Code:** 500
+- **Content:** `{ "message": "Failed to cancel booking",
+                    "code": "InternalServerErrorCode",
+                    "details": "Failed to cancel booking" }`
+
+**Error Response**
+                    
+- **Code:** 500
+- **Content:** `{ "message": "Failed to send confirmation emails",
+                            "code": "InternalServerErrorCode",
+                            "details": "Failed to send confirmation emails" }`
+                              
+### CheckIn
+
+This endpoint is used to check-in a user who has booked a room.
+The client needs to provide the booking ID and their email.
+Upon a successful request, the user is checked in.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/check-in`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{  
+    "bookingId": "string",
+    "email": "string",
+    "roomId": "string",
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "message": "Checked in successfully",
+                "data" : "nil" }`
+
+**Error Response**
+            
+- **Code:** 400
+- **Content:** `{ "message": "Invalid request Payload",
+                "code" : "InvalidRequestPayloadCode",
+                "details: "Expected Booking ID, Email, RoomID" }`
+
+**Error Response**
+                        
+- **Code:** 500
+- **Content:** `{ "message": "Failed to check-in",
+                    "code": "InternalServerErrorCode",
+                    "details": "Failed to check-in" }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "message": "Failed to send confirmation emails",
+                    "code": "InternalServerErrorCode",
+                    "details": "Failed to send confirmation emails" }`  
+
+
+
+
+
 
 ### Users
 
