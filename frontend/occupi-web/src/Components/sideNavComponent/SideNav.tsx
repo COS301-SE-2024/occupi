@@ -1,8 +1,8 @@
 import { OccupiLogo, CloseDrawer, OpenDrawer, Grid, Logout, Bell, ColorSwatch, Home, PieChart, SettingsIcon, UserProfileGroup } from "@assets/index";
 import {SideNavBarButton} from "@components/index";
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 
 const sidenavvariants = {
@@ -51,6 +51,7 @@ const sidebarcontent = [
 
 const SideNav = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [isMinimized, setIsMinimized] = useState(false);
   const [selectedPanel, setSelectedPanel] = useState("Dashboard");
@@ -91,6 +92,22 @@ const SideNav = () => {
   function toggleSideNav() {
     setIsMinimized(!isMinimized);
   }
+
+  useEffect(() => {
+    const selectPanel = () => {
+        const pn: string = location.pathname;
+        if(pn.startsWith("/dashboard"))setSelectedPanel("Dashboard");
+        else if(pn.startsWith("/analysis"))setSelectedPanel("Analysis");
+        else if(pn.startsWith("/ai-model"))setSelectedPanel("AI model");
+        else if(pn.startsWith("/buildings"))setSelectedPanel("Buildings");
+        else if(pn.startsWith("/teams"))setSelectedPanel("Teams");
+        else if(pn.startsWith("/notifications"))setSelectedPanel("Notifications");
+        else if(pn.startsWith("/settings"))setSelectedPanel("Settings");
+        else ;
+    }
+
+    selectPanel();
+}, [location]);
 
 
   return (

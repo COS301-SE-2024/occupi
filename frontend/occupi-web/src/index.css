@@ -15,16 +15,14 @@
   --green-leaf: #AFF16C;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #0D0D0D;
-    --primary-40: rgba(10, 10, 10, 0.40);
-    --secondary: #252525;
-    --text-col: #FFFFFF;
-    --primary-alt: #FFFFFF;
-    --secondary-alt: #EBEBEB;
-    --text-col-alt: #0D0D0D;
-  }
+:root.dark {
+  --primary: #0D0D0D;
+  --primary-40: rgba(10, 10, 10, 0.40);
+  --secondary: #252525;
+  --text-col: #FFFFFF;
+  --primary-alt: #FFFFFF;
+  --secondary-alt: #EBEBEB;
+  --text-col-alt: #0D0D0D;
 }
 
 html{background: var(--primary); width: 100vw; overflow-x: hidden; height: 100vh; overflow: overlay;}

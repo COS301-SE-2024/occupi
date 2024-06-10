@@ -10,6 +10,7 @@ import TabComponent from "./tabComponent/TabComponent";
 import ColourCircle from "./colourCircle/ColourCircle";
 import Appearance from "./appearance/Appearance";
 import MenuItem from './drawerComponent/menuItem/MenuItem';
+import OverviewComponent from './OverviewComponent/OverviewComponent';
 export {
     DrawerComponent,
     GradientButton,
@@ -22,5 +23,6 @@ export {
     TabComponent,
     ColourCircle,
     Appearance,
-    MenuItem
+    MenuItem,
+    OverviewComponent
 }

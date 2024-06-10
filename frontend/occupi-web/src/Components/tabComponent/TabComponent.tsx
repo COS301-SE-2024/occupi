@@ -1,11 +1,16 @@
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 
-const TabComponent = () => {
+type TabComponentProps = {
+  setSelectedTab: (arg: string) => void;
+};
+
+const TabComponent = (props: TabComponentProps) => {
   const [activeTab, setActiveTab] = useState(1); // Set initial active tab
 
   const handleTabClick = (tabIndex: React.SetStateAction<number>) => {
     setActiveTab(tabIndex);
+    props.setSelectedTab(tabIndex === 1 ? "/overview" : tabIndex === 2 ? "/bookings" : "/visitations");
   };
 
   return (
