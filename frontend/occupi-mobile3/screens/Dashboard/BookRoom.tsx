@@ -54,6 +54,7 @@ const BookRoom = () => {
             fontSize={wp('4%')}
             type="text"
             returnKeyType="done"
+            color={textColor} 
           />
         </Input>
         <Text fontWeight="$bold" fontSize="$18" color={textColor}>Categories</Text>
