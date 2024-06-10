@@ -1,7 +1,8 @@
 import { React, useEffect, useState } from 'react';
-import { ScrollView, useColorScheme } from 'react-native';
-import { Icon, View, Text, Input, InputField, InputSlotButton, Button, ButtonText, Image } from '@gluestack-ui/themed';
+import { ScrollView, useColorScheme, TouchableOpacity } from 'react-native';
+import { Icon, View, Text, Input, InputField, InputSlotButton, Button, ButtonText, Image, Box } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { Octicons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../../components/NavBar';
 
@@ -17,6 +18,10 @@ const BookRoom = () => {
   const colorScheme = useColorScheme();
 
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+  const [layout, setLayout] = useState("row");
+  const toggleLayout = () => {
+    setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
+  };
   useEffect(() => {
     setIsDarkMode(colorScheme === 'dark');
   }, [colorScheme]);
@@ -43,22 +48,22 @@ const BookRoom = () => {
   const roomPairs = groupDataInPairs(data);
 
   return (
-    <View pt="$16" px="$5" style={{ flex: 1, backgroundColor }}>
+    <View pt="$20" style={{ flex: 1, backgroundColor }}>
       <View style={{ flexDirection: 'column', backgroundColor }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View px="$4" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text fontWeight="$bold" fontSize="$24" color={textColor}>Book</Text>
         </View>
-        <Input my="$6" w={wp('70%')} backgroundColor={cardBackgroundColor} borderRadius="$15" borderColor={cardBackgroundColor} h={hp('5%')}>
+        <Input mx="$4" my="$6" w={wp('70%')} backgroundColor={cardBackgroundColor} borderRadius="$15" borderColor={cardBackgroundColor} h={hp('5%')}>
           <InputField
             placeholder="Quick search for an office"
             fontSize={wp('4%')}
             type="text"
             returnKeyType="done"
-            color={textColor} 
+            color={textColor}
           />
         </Input>
-        <Text fontWeight="$bold" fontSize="$18" color={textColor}>Categories</Text>
-        <ScrollView horizontal style={{ marginTop: 20, paddingBottom: 20 }} showsHorizontalScrollIndicator={false}>
+        <Text px="$4" fontWeight="$bold" fontSize="$18" color={textColor}>Categories</Text>
+        <ScrollView horizontal style={{ marginTop: 20, paddingBottom: 20, left: 14 }} showsHorizontalScrollIndicator={false}>
           {['Focus', 'Chill', 'Ideas', 'Loud', 'Gamey', 'View'].map((category) => (
             <View
               key={category}
@@ -83,61 +88,120 @@ const BookRoom = () => {
             </View>
           ))}
         </ScrollView>
-        <Text fontWeight="$bold" fontSize="$18" color={textColor}>Rooms</Text>
+        <View flexDirection="$row" px="$4" justifyContent="$space-between" alignItems="$center">
+          <Text fontWeight="$bold" fontSize="$18" color={textColor}>Rooms</Text>
+          <TouchableOpacity onPress={toggleLayout}>
+            {layout === "row" ? (
+              <Box backgroundColor="$#ADFF2F" alignSelf="$center" p="$2" borderRadius="$12">
+                <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
+              </Box>
+            ) : (
+              <Box backgroundColor="$#ADFF2F" alignSelf="$center" p="$2" borderRadius="$12">
+                <Octicons name="rows" size={22} color="#2C2C2E" />
+              </Box>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
-      <ScrollView style={{ flex: 1, marginTop: 20 }} showsVerticalScrollIndicator={false}>
-        {roomPairs.map((pair, index) => (
-          <View
-            key={index}
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginBottom: 20,
-            }}
-          >
-            {pair.map((room) => (
-              <View style={{
-                flex: 1,
-                borderWidth: 1,
-                borderColor: cardBackgroundColor,
-                borderRadius: 12,
-                backgroundColor: cardBackgroundColor,
-                marginHorizontal: 4,
-              }}>
-                <Image
-                  w="$full"
-                  h="$24"
-                  alt="image"
-                  borderRadius="$10"
-                  source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-                />
-                <View
-                  key={room.title}
-                  style={{
-
-
-                    padding: 10,
-
-
-                  }}
-                >
-                  <View>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.title}</Text>
-                    <Text style={{ color: textColor }} fontSize="$12">{room.description}</Text>
-                    <Text my="$1">Closes at: {room.Closesat}</Text>
+      {layout === "grid" ? (
+        <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 13 }} showsVerticalScrollIndicator={false}>
+          {roomPairs.map((pair, index) => (
+            <View
+              key={index}
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 20,
+              }}
+            >
+              {pair.map((room) => (
+                <View style={{
+                  flex: 1,
+                  borderWidth: 1,
+                  borderColor: cardBackgroundColor,
+                  borderRadius: 12,
+                  backgroundColor: cardBackgroundColor,
+                  marginHorizontal: 4,
+                }}>
+                  <Image
+                    w="$full"
+                    h="$24"
+                    alt="image"
+                    borderRadius="$10"
+                    source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
+                  />
+                  <View
+                    key={room.title}
+                    style={{
+                      padding: 10,
+                    }}
+                  >
+                    <View>
+                      <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.title}</Text>
+                      <Text style={{ color: textColor }} fontSize="$12">{room.description}</Text>
+                      <Text my="$1">Closes at: {room.Closesat}</Text>
+                    </View>
+                    <View flexDirection="$row" alignItems="$center" justifyContent="space-between">
+                      <Button w={wp('27%')} h={hp('4%')} p="$0" borderRadius="$12" backgroundColor="greenyellow">
+                        <ButtonText color="dimgrey" fontSize="$10" fontWeight="$light">Available: now</ButtonText>
+                      </Button>
+                      <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
+                    </View>
                   </View>
-                  <View flexDirection="$row" alignItems="$center" justifyContent="space-between">
+                </View>
+              ))}
+            </View>
+          ))}
+        </ScrollView>
+      ) : (
+        <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
+          {data.map((room) => (
+            <View style={{
+              flex: 1,
+              borderWidth: 1,
+              borderColor: cardBackgroundColor,
+              borderRadius: 12,
+              height: 160,
+              backgroundColor: cardBackgroundColor,
+              marginVertical: 4,
+              flexDirection: "row"
+            }}>
+              <Image
+                w="$50%"
+                h="$full"
+                alt="image"
+                borderRadius="$10"
+                source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
+              />
+              <View
+                key={room.title}
+                w="$48"
+                style={{
+                  padding: 10,
+                  flexDirection: "column",
+                  justifyContent: "space-between"
+                }}
+              >
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.title}</Text>
+                <View>
+                  <Text style={{ color: textColor }} fontSize="$12">{room.description}</Text>
+                </View>
+                <View flexDirection="$column">
+                  <Text my="$1">Closes at: {room.Closesat}</Text>
+                  <View flexDirection="$row" alignItems="$center" justifyContent="space-between" pr="$2">
                     <Button w={wp('27%')} h={hp('4%')} p="$0" borderRadius="$12" backgroundColor="greenyellow">
                       <ButtonText color="dimgrey" fontSize="$10" fontWeight="$light">Available: now</ButtonText>
                     </Button>
                     <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
                   </View>
                 </View>
+
               </View>
-            ))}
-          </View>
-        ))}
-      </ScrollView>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+
       <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
     </View>
   );
