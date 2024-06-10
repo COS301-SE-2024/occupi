@@ -58,6 +58,7 @@ const BookRoom = () => {
             placeholder="Quick search for an office"
             fontSize={wp('4%')}
             type="text"
+            fontWeight="$light"
             returnKeyType="done"
             color={textColor}
           />
@@ -104,7 +105,7 @@ const BookRoom = () => {
         </View>
       </View>
       {layout === "grid" ? (
-        <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 13 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
           {roomPairs.map((pair, index) => (
             <View
               key={index}

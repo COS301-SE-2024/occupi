@@ -1,4 +1,4 @@
-import BookRoom from "../screens/Dashboard/BookRoom";
+import BookRoom from "../screens/Booking/BookRoom";
 
 export default function Home() {
     return (
