@@ -62,10 +62,10 @@ const LoginForm = (): JSX.Element => {
           <div className="w-full flex justify-between mt-5">
             <div className="flex items-center">
               <Checkbox id="rememberMeCheckbox" />
-              <p className="text-text_col_green_leaf cursor-pointer ml-2 text-text_col">Remember me</p>
+              <p className="text-text_col_green_leaf cursor-pointer ml-2">Remember me</p>
             </div>
 
-            <p className="text-text_col_green_leaf cursor-pointer text-text_col">Forgot Password?</p>
+            <p className="text-text_col_green_leaf cursor-pointer">Forgot Password?</p>
           </div>
           
           <div className="mt-5 w-full">

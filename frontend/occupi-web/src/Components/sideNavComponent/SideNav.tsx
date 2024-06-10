@@ -80,6 +80,9 @@ const SideNav = () => {
       }
       else if (arg === "Logout") {
         navigate('/');
+        //should not navigate to anything
+        //but rather should show a modal
+        //to confirm logout
       }
       
 
@@ -106,8 +109,9 @@ const SideNav = () => {
           </motion.div>
       </div>
 
-      {sidebarcontent.map((button_content) =>
+      {sidebarcontent.map((button_content, index) =>
         <SideNavBarButton 
+        key={index}
         icon={button_content.icon} 
         text={button_content.text} 
         isMinimized={isMinimized} 

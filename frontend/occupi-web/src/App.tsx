@@ -1,4 +1,5 @@
-import { LoginForm, OtpPage, Settings, Dashboard,Appearance} from "@pages/index";
+import { LoginForm, OtpPage, Settings, Dashboard} from "@pages/index";
+import {Appearance} from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -13,8 +14,9 @@ function App() {
           <Layout>
           <Routes>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/appearance" element={<Appearance />} />
+            <Route path="settings/*" element={<Settings />}>
+              <Route path="appearance" element={<Appearance />} />
+            </Route>
           </Routes>
         </Layout>}>
         </Route>

@@ -7,7 +7,7 @@ const Appearance = () => {
     <motion.div
       className="w-full p-4 rounded-lg text-white overflow-y-auto max-h-screen"
       initial={{ x: "100vw" }}
-      animate={{ x: 400 }}
+      animate={{ x: 0 }}
       transition={{ duration: 0.2, ease: "linear" }}
     >
     
@@ -54,7 +54,7 @@ const Appearance = () => {
         </div>
       </div>
 
-      <div className="w-[100vw] h-0.5 bg-gray-200 rounded-2xl my-4" />
+      <div className="w-full h-0.5 bg-gray-200 rounded-2xl my-4" />
 
 
 
@@ -101,7 +101,7 @@ const Appearance = () => {
         </div>
       </div>
 
-      <div className="w-[100vw] h-0.5 bg-gray-200 rounded-2xl my-4" />
+      <div className="w-full h-0.5 bg-gray-200 rounded-2xl my-4" />
     </motion.div>
   );
 };

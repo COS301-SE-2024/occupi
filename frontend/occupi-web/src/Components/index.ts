@@ -9,6 +9,7 @@ import GraphContainer from "./graphContainer/GraphContainer";
 import TabComponent from "./tabComponent/TabComponent";
 import ColourCircle from "./colourCircle/ColourCircle";
 import Appearance from "./appearance/Appearance";
+import MenuItem from './drawerComponent/menuItem/MenuItem';
 export {
     DrawerComponent,
     GradientButton,
@@ -20,5 +21,6 @@ export {
     GraphContainer,
     TabComponent,
     ColourCircle,
-    Appearance
+    Appearance,
+    MenuItem
 }

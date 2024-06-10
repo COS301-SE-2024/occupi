@@ -13,10 +13,7 @@ const Dashboard = () => {
   return (
     <div className="w-full overflow-auto">
 
-        <div className="sticky top-0 z-10">
-        <TabComponent />
-      <TopNav searchQuery={searchQuery} onChange={handleInputChange} />
-        </div>
+      <TopNav mainComponent={<TabComponent />} searchQuery={searchQuery} onChange={handleInputChange} />
 
       <div className="">
 
