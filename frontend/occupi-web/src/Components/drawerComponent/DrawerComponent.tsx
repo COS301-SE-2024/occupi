@@ -35,7 +35,7 @@ const DrawerComponent = () => {
         {showAppearance ? (
           <Appearance />
         ) : (
-          <div className="flex flex-col items-center ml-96 mt-16 ">
+          <div className="flex flex-col items-center ml-96 mt-16 transition transform hover:scale-105 duration-500">
             <span className=" font-serif font-semibold text-3xl">Please Select a Setting</span>
             <img
               src={SettingsImg}

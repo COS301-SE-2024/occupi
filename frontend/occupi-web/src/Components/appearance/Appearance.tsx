@@ -93,7 +93,7 @@ const Appearance = () => {
               <span className=" -mt-3">Midnight</span>
             </div>
             <div className="flex flex-col items-center">
-              <img src={Macbook3} alt="light" className="w-28 h-24 mt-6"  />
+              <img src={Macbook3} alt="light" className="w-28 h-24 mt-6 rounded-full"  />
               <span className="  -mt-3">System</span>
 
             </div>
