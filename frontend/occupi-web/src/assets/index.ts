@@ -22,9 +22,11 @@ import Pallete from './icons/Pallete';
 import Privacy from './icons/Privacy';
 import AlertIcon from './icons/AlertIcon';
 import HelpIcon from './icons/HelpIcon';
+import GraphCol from "./icons/GraphCol";
+import Cal from "./images/3dicons.png";
 export {
     loginpng, OccupiLogo, login_image, CheckSquareContained, CloseDrawer, OpenDrawer,
     Grid, PieChart, ColorSwatch, Home, UserProfileGroup, Bell, SettingsIcon, Logout,
     Loading,SettingsImg, Macbook1, Macbook2, Macbook3,
-    Userprofile, Pallete, Privacy, AlertIcon, HelpIcon
+    Userprofile, Pallete, Privacy, AlertIcon, HelpIcon, GraphCol, Cal
 }
