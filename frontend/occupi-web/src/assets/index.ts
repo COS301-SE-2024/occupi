@@ -24,9 +24,13 @@ import AlertIcon from './icons/AlertIcon';
 import HelpIcon from './icons/HelpIcon';
 import GraphCol from "./icons/GraphCol";
 import Cal from "./images/3dicons.png";
+import ChevronDown from './icons/ChevronDown';
+import ChevronLeft from './icons/ChevronLeft';
+import ChevronRight from './icons/ChevronRight';
 export {
     loginpng, OccupiLogo, login_image, CheckSquareContained, CloseDrawer, OpenDrawer,
     Grid, PieChart, ColorSwatch, Home, UserProfileGroup, Bell, SettingsIcon, Logout,
     Loading,SettingsImg, Macbook1, Macbook2, Macbook3,
-    Userprofile, Pallete, Privacy, AlertIcon, HelpIcon, GraphCol, Cal
+    Userprofile, Pallete, Privacy, AlertIcon, HelpIcon, GraphCol, Cal,
+    ChevronDown, ChevronLeft, ChevronRight
 }

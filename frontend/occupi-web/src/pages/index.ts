@@ -7,5 +7,5 @@ import Appearance from './appearance-page/Appearance';
 import OverView from '../components/bookings/Bookings';
 export {
     LoginForm, OtpPage, LandingPage, Settings,
-    Dashboard,Appearance ,OverView
+    Dashboard,Appearance
 }

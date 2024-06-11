@@ -2,13 +2,29 @@ import { LoginForm, OtpPage, Settings, Dashboard} from "@pages/index";
 import {Appearance, OverviewComponent} from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import {NextUIProvider} from "@nextui-org/react";
-
+import { useEffect, useState } from "react";
 
 function App() {
- 
+  // Initialize the theme state with system preference
+  const [theme, ] = useState(() => {
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    return savedTheme;
+  });
+
+  useEffect(() => {
+    const applyTheme = (theme: string ) => {
+      if (theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+      } else {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      }
+    };
+
+    applyTheme(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
   return (
-<NextUIProvider>
     <Router>
       <Routes>
         <Route path="/" element={<LoginForm />} />
@@ -34,8 +50,7 @@ function App() {
         </Layout>}>
         </Route>
       </Routes>
-    </Router> 
-</NextUIProvider>
+    </Router>
   )
 }
 
