@@ -10,7 +10,15 @@ import TabComponent from "./tabComponent/TabComponent";
 import ColourCircle from "./colourCircle/ColourCircle";
 import Appearance from "./appearance/Appearance";
 import MenuItem from './drawerComponent/menuItem/MenuItem';
-import OverviewComponent from './OverviewComponent/OverviewComponent';
+import Bookings from "./bookings/Bookings";
+import OverView from "./overView/OverView";
+import OverviewComponent from "./OverviewComponent/OverviewComponent";
+import ProfileComponent from "./ProfileComponent/ProfileComponent";
+import SearchBarComponent from "./searchBarComponent/SearchBar";
+import SideNav from "./sideNavComponent/SideNav";
+
+
+
 export {
     DrawerComponent,
     GradientButton,
@@ -24,5 +32,12 @@ export {
     ColourCircle,
     Appearance,
     MenuItem,
-    OverviewComponent
+    Bookings,
+    OverView,
+    OverviewComponent,
+    ProfileComponent,
+    SearchBarComponent,
+    SideNav,
+
+
 }

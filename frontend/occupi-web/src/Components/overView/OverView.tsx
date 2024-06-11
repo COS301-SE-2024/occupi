@@ -25,11 +25,11 @@ import {capitalize} from "../data/Utils";
 import { FaPlus, FaEllipsisV, FaChevronDown, FaSearch } from 'react-icons/fa';
 
 import { Key } from "@react-types/shared";
-
+import { TabComponent ,TopNav} from "@components/index";
 const statusColorMap: Record<string, ChipProps["color"]> = {
-  active: "success",
-  paused: "danger",
-  vacation: "warning",
+  IN: "success",
+  BOOKED: "warning",
+  OUT: "danger",
 };
 
 const INITIAL_VISIBLE_COLUMNS = ["name", "role", "status", "actions"];
@@ -175,6 +175,7 @@ export default function OverView() {
 
   const topContent = React.useMemo(() => {
     return (
+      
       <div className="flex flex-col gap-4">
         <div className="flex justify-between gap-3 items-end">
           <Input
@@ -229,7 +230,7 @@ export default function OverView() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button color="primary" endContent={<FaPlus/>}>
+            <Button className="btn btn-outline btn-primary" color="primary" endContent={<FaPlus/>}>
               Add New
             </Button>
           </div>
@@ -278,10 +279,10 @@ export default function OverView() {
           onChange={setPage}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
+          <Button  isDisabled={pages === 1} size="lg" variant="flat" onPress={onPreviousPage}>
             Previous
           </Button>
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
+          <Button isDisabled={pages === 1} size="lg" variant="flat" onPress={onNextPage}>
             Next
           </Button>
         </div>
