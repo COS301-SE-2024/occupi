@@ -42,7 +42,7 @@ const navigate = useNavigate();
 
       {/* {activeTab === 1 && <Dashboard />} */}
 
-      {activeTab === 2 && navigate("/overview")}
+      {activeTab === 2 && <>{navigate("/overview")}</>}
     </div>
   );
 };

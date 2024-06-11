@@ -1,6 +1,6 @@
 import { TopNav } from "@components/index";
 import { useState, useEffect } from "react";
-import { TabComponent } from "@components/index";
+import { TabComponent,GraphContainer } from "@components/index";
 import { Button } from "@nextui-org/react";
 import { FaArrowRight } from "react-icons/fa";
 import { FaChevronRight } from "react-icons/fa";
