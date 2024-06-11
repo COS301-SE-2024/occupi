@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { TabComponent,GraphContainer } from "@components/index";
 import { Button } from "@nextui-org/react";
 import { FaArrowRight } from "react-icons/fa";
-import { FaChevronRight } from "react-icons/fa";
 import { GraphCol } from "@assets/index";
 import { Cal } from "@assets/index";
 import { useNavigate, Outlet } from "react-router-dom";
@@ -27,7 +26,7 @@ const Dashboard = () => {
   return (
     <div className="w-full overflow-auto">
       <TopNav
-        mainComponent={<TabComponent />}
+        mainComponent={<TabComponent setSelectedTab={handleClick}/>}
         searchQuery={searchQuery}
         onChange={handleInputChange}
       />
