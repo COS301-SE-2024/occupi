@@ -1,4 +1,5 @@
-import { OccupiLogo, CloseDrawer, OpenDrawer, Grid, Logout, Bell, ColorSwatch, Home, PieChart, SettingsIcon, UserProfileGroup } from "@assets/index";
+import { ChevronDown, ChevronLeft, ChevronRight,
+   Grid, Logout, Bell, ColorSwatch, Home, PieChart, SettingsIcon, UserProfileGroup } from "@assets/index";
 import {SideNavBarButton} from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -111,19 +112,32 @@ const SideNav = () => {
 
 
   return (
-    <motion.div className="overflow-hidden border-r-[2px] border-r-gray_900 flex flex-col items-center"
+    <motion.div className="w-fit border-r-[2px] border-r-gray_900 flex flex-col items-center z-50"
       animate={isMinimized ? "closed" : "open"}
       variants={sidenavvariants}>
-      <div className={"flex flex-wrap items-center h-[65px] mb-[30px] " + (isMinimized ? "w-min mt-4" : "mt-4")}>
-          <div className={"w-[40px] h-[40px] " + (isMinimized ? "ml-2 mr-2" : "mr-2")}>
-            <OccupiLogo />
+      <div className={"flex flex-wrap items-center h-[110px] relative z-50 w-full "
+        + (isMinimized ? "justify-center" : "justify-between")}>
+        <motion.div className="flex items-center h-[110px]  w-fit cursor-pointer " whileTap={{scale: 0.98}}>
+          <div className={"w-[45px] h-[45px] rounded-full overflow-hidden " + (isMinimized ? "ml-auto mr-auto" : "ml-[1vw] mr-2")}>
+            <img src="https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon" alt="admin-profile"/>
           </div>
-          {!isMinimized && (<h2 className="text-text_col h-[24px] mt-[-10px] font-semibold text-2xl mr-2">Occupi</h2>)}
-          <motion.div className={"hover_buttons w-[40px] h-[40px] cursor-pointer flex justify-center items-center rounded-[8px] hover:bg-primary_alt " + (isMinimized ? "ml-2 mr-2 mt-2" : "")} 
-            onClick={toggleSideNav} whileTap={{scale: 0.97}}>
-              {!isMinimized && <CloseDrawer />}
-              {isMinimized && <OpenDrawer />}
-          </motion.div>
+          {!isMinimized && <h2 className="text-text_col">John doe</h2>}
+          {!isMinimized && <ChevronDown />}
+        </motion.div>
+        {
+          isMinimized ? 
+            <motion.div 
+              className="w-[20px] h-[40px] bg-secondary rounded-r-[10px] flex justify-center items-center cursor-pointer -right-5 absolute z-50"
+              whileTap={{scale: 0.98}} onClick={toggleSideNav}>
+              <ChevronRight />
+            </motion.div>
+            :
+            <motion.div 
+              className="w-[20px] h-[40px] bg-secondary rounded-l-[10px] flex justify-center items-center cursor-pointer"
+              whileTap={{scale: 0.98}} onClick={toggleSideNav}>
+              <ChevronLeft />
+            </motion.div>
+        }
       </div>
 
       {sidebarcontent.map((button_content, index) =>
