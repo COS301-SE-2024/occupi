@@ -3,7 +3,10 @@ import {Appearance, OverviewComponent} from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import {NextUIProvider} from "@nextui-org/react";
+
+
 function App() {
+ 
   return (
 <NextUIProvider>
     <Router>
@@ -19,6 +22,7 @@ function App() {
               <Route path="bookings" element={<OverviewComponent />} />{/**attach appropriate component */}
               <Route path="visitations" element={<OverviewComponent />} />{/**attach appropriate component */}
             </Route>
+           
             <Route path="settings/*" element={<Settings />}>
               <Route path="profile" element={<Appearance />} />{/**attach appropriate component */}
               <Route path="appearance" element={<Appearance />} />
