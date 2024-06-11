@@ -2,7 +2,6 @@ import { LoginForm, OtpPage, Settings, Dashboard} from "@pages/index";
 import {Appearance, OverviewComponent} from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import {NextUIProvider} from "@nextui-org/react";
 import { useEffect, useState } from "react";
 
 function App() {
@@ -26,7 +25,6 @@ function App() {
     localStorage.setItem('theme', theme);
   }, [theme]);
   return (
-<NextUIProvider>
     <Router>
       <Routes>
         <Route path="/" element={<LoginForm />} />
@@ -51,8 +49,7 @@ function App() {
         </Layout>}>
         </Route>
       </Routes>
-    </Router> 
-</NextUIProvider>
+    </Router>
   )
 }
 

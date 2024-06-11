@@ -41,5 +41,8 @@ module.exports = {
     darkMode: "class",
 
   },
-  plugins: [require("tailwindcss-animate"),nextui(),require('daisyui')],
+  plugins: [require("tailwindcss-animate"),nextui(),
+    //require('daisyui') -> daisy ui is messing with the styling of some components, like the scrollbars
+    // could you perhaps find a replacement for daisy ui? or try to find a fix for the issue?
+    ],
 }
