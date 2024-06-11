@@ -1,18 +1,18 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Macbook1, Macbook2, Macbook3 } from "@assets/index";
-
+import { GraphContainer } from "@components/index";
 const Appearance = () => {
   return (
     <motion.div
-      className="w-full p-4 rounded-lg text-white overflow-y-auto max-h-screen"
+      className="w-full h-[700px] p-4 rounded-lg text-white overflow-y-auto max-h-screen"
       initial={{ x: "100vw" }}
       animate={{ x: 0 }}
       transition={{ duration: 0.2, ease: "linear" }}
     >
     
 
-      <div className="w-full h-full relative gap-72 flex">
+      <div className="w-full h-32 relative gap-72 flex">
         <div>
           <div className="w-full h-9 text-neutral-950 text-base font-semibold font-['Inter'] leading-none">
             Accent colour
@@ -69,7 +69,7 @@ const Appearance = () => {
 
 
 
-      <div className="w-full h-full relative gap-80 flex mb-10">
+      <div className="w-full h-32 relative gap-80 flex mb-10">
         <div>
           <div className="w-full h-9 text-neutral-950 text-base font-semibold font-['Inter'] leading-none">
             Themes
@@ -102,6 +102,9 @@ const Appearance = () => {
       </div>
 
       <div className="w-full h-0.5 bg-gray-200 rounded-2xl my-4" />
+    
+
+
     </motion.div>
   );
 };
