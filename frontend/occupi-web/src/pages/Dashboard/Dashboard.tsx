@@ -1,19 +1,28 @@
 import { TopNav } from "@components/index";
-import { useState } from "react";
-import { GraphContainer } from "@components/index";
+import { useState, useEffect } from "react";
 import { TabComponent } from "@components/index";
 import { Button } from "@nextui-org/react";
 import { FaArrowRight } from "react-icons/fa";
 import { FaChevronRight } from "react-icons/fa";
 import { GraphCol } from "@assets/index";
 import { Cal } from "@assets/index";
+import { useNavigate, Outlet } from "react-router-dom";
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handleClick = (path: string) => {
+    navigate("/dashboard" + path);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
+
+  useEffect(() => {
+    handleClick("/overview");
+  }, [])
 
   return (
     <div className="w-full overflow-auto">
@@ -144,6 +153,7 @@ const Dashboard = () => {
           <GraphContainer width="40.063vw" height="40.063vw" />
         </div>
       </div>
+      <Outlet />
     </div>
   );
 };
