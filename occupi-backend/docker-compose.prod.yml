@@ -1,7 +1,10 @@
 services:
   occupi-backend-prod:
-    build: .
+    image: $DOCKER_USERNAME/occupi-backend:latest
     container_name: occupi-backend-prod
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
     env_file:
       - .prod.env
     environment:

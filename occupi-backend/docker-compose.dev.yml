@@ -2,6 +2,9 @@ services:
   occupi-backend-dev:
     image: $DOCKER_USERNAME/occupi-backend:latest-develop
     container_name: occupi-backend-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     env_file:
       - .dev.env
     environment:

@@ -8,6 +8,9 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
+# copy .prod.env file
+COPY .prod.env .env
+
 # Copy the source code into the container
 COPY . .
 
