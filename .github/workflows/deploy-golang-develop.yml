@@ -46,8 +46,7 @@ jobs:
         - name: Build and push Docker image
           uses: docker/build-push-action@v5
           with:
-            context: https://github.com/COS301-SE-2024/occupi/tree/develop/occupi-backend
-            file: Dockerfile.dev
+            context: occupi-backend
             platforms: linux/amd64,linux/arm64
             push: true
             tags: ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest-develop
