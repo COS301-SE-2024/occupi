@@ -1,10 +1,26 @@
+import "daisyui/dist/full.css";
 
-type ProfileComponentProps = {}
 
-const ProfileComponent = (props: ProfileComponentProps) => {
-    return (
-        <div>ProfileComponent</div>
-    )
-}
+type ProfileComponentProps = {
+  profileImage?: string;
+  email?: string;
+  name?: string;
+};
 
-export default ProfileComponent
+const ProfileComponent = ({
+  profileImage = "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg",
+  email = "defaultEmail@example.com",
+  name = "Janet Doey",
+}: ProfileComponentProps) => {
+  return (
+    <div>
+      <div className="avatar online">
+        <div className="w-24 rounded-full">
+          <img src={profileImage} alt="Profile" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfileComponent;
