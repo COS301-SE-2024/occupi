@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  occupi-backend-prod:
+    build: .
+    container_name: occupi-backend-prod
+    env_file:
+      - .env
+    environment:
+      - ENV=production
+    networks:
+      - webnet
+    labels:
+      - "traefik.http.routers.occupi-backend-prod.rule=Host(`occupi.tech`)"
+      - "traefik.http.services.occupi-backend-prod.loadbalancer.server.port=8080"
+
+networks:
+  webnet:
+    external: true

@@ -1,15 +1,16 @@
 name: Lint, Test and Build golang
 
 on:
-  pull_request:
-    branches: ["develop"]
+  push:
+    branches: ["master"]
     paths: [
       "occupi-backend/cmd/**",
       "occupi-backend/configs/**",
       "occupi-backend/pkg/**",
       "occupi-backend/.golangci.yml",
       "occupi-backend/tests/**",
-      ".github/workflows/lint-test-build-golang.yml"
+      ".github/workflows/lint-test-build-golang.yml",
+      ".github/workflows/deploy-golang-prod.yml"
     ]
 
   workflow_dispatch:
@@ -41,6 +42,7 @@ jobs:
         golangci-lint run
 
   test:
+    needs: lint
     name: Test
     runs-on: ubuntu-latest
 
@@ -63,6 +65,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
+    needs: test
     name: Build
     runs-on: ubuntu-latest
 
@@ -78,3 +81,53 @@ jobs:
     - name: Build the code
       run: |
         go build -v cmd/occupi-backend/main.go
+
+  build-push-docker:
+    needs: build
+    name: Build and Push Master Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest
+
+  deploy:
+    needs: build-push-docker
+    name: Deploy to Master
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: SSH to VM
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VM_IP }}
+        username: ${{ secrets.VM_USERNAME }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        script: |
+            cd /home/Y2KODELABS/occupi-backend
+            gpg --quiet --batch --yes --decrypt --passphrase=$GPG_PASSPHRASE --output .env .env.gpg
+            docker-compose -f docker-compose.traefik.yml up -d
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml up -d --build
+
