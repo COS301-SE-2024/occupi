@@ -39,6 +39,8 @@ export {
     ProfileComponent,
     SearchBarComponent,
     SideNav,
+    Line_Chart,
+    BarGraph
 
 
 }
