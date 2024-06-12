@@ -1,10 +1,9 @@
-import { React, useEffect, useState } from 'react';
-import { ScrollView, useColorScheme, TouchableOpacity } from 'react-native';
-import { Icon, View, Text, Input, InputField, InputSlotButton, Button, ButtonText, Image, Box } from '@gluestack-ui/themed';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { Octicons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, useColorScheme, TouchableOpacity, View, Text, Image } from 'react-native';
+import { Ionicons, Octicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import Navbar from '../../components/NavBar';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const groupDataInPairs = (data) => {
   const pairs = [];
@@ -15,6 +14,7 @@ const groupDataInPairs = (data) => {
 };
 
 const BookRoom = () => {
+  const router = useRouter();
   const colorScheme = useColorScheme();
 
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
@@ -48,58 +48,36 @@ const BookRoom = () => {
   const roomPairs = groupDataInPairs(data);
 
   return (
-    <View pt="$20" style={{ flex: 1, backgroundColor }}>
+    <View style={{ flex: 1, backgroundColor, paddingTop: 20 }}>
       <View style={{ flexDirection: 'column', backgroundColor }}>
-        <View px="$4" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text fontWeight="$bold" fontSize="$24" color={textColor}>Book</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
+          <Text style={{ fontWeight: 'bold', fontSize: 24, color: textColor }}>Book</Text>
         </View>
-        <Input mx="$4" my="$6" w={wp('70%')} backgroundColor={cardBackgroundColor} borderRadius="$15" borderColor={cardBackgroundColor} h={hp('5%')}>
-          <InputField
-            placeholder="Quick search for an office"
-            fontSize={wp('4%')}
-            type="text"
-            fontWeight="$light"
-            returnKeyType="done"
-            color={textColor}
-          />
-        </Input>
-        <Text px="$4" fontWeight="$bold" fontSize="$18" color={textColor}>Categories</Text>
-        <ScrollView horizontal style={{ marginTop: 20, paddingBottom: 20, left: 14 }} showsHorizontalScrollIndicator={false}>
+        <View style={{ marginHorizontal: 16, marginVertical: 24, width: wp('70%'), backgroundColor: cardBackgroundColor, borderRadius: 15, borderColor: cardBackgroundColor, height: hp('5%'), justifyContent: 'center', paddingHorizontal: 10 }}>
+          <Text style={{ fontSize: wp('4%'), color: textColor }}>Quick search for an office</Text>
+        </View>
+        <Text style={{ paddingHorizontal: 16, fontWeight: 'bold', fontSize: 18, color: textColor }}>Categories</Text>
+        <ScrollView horizontal style={{ marginTop: 20, paddingBottom: 20, paddingLeft: 14 }} showsHorizontalScrollIndicator={false}>
           {['Focus', 'Chill', 'Ideas', 'Loud', 'Gamey', 'View'].map((category) => (
-            <View
-              key={category}
-              style={{
-                alignItems: 'center',
-                marginRight: 15,
-              }}
-            >
-              <View
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                  backgroundColor: cardBackgroundColor,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Icon as={Ionicons} name="leaf-outline" size={24} color="black" />
+            <View key={category} style={{ alignItems: 'center', marginRight: 15 }}>
+              <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: cardBackgroundColor, justifyContent: 'center', alignItems: 'center' }}>
+                <Ionicons name="leaf-outline" size={24} color="black" />
               </View>
-              <Text color={textColor} mt="$2">{category}</Text>
+              <Text style={{ color: textColor, marginTop: 8 }}>{category}</Text>
             </View>
           ))}
         </ScrollView>
-        <View flexDirection="$row" px="$4" justifyContent="$space-between" alignItems="$center">
-          <Text fontWeight="$bold" fontSize="$18" color={textColor}>Rooms</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
+          <Text style={{ fontWeight: 'bold', fontSize: 18, color: textColor }}>Rooms</Text>
           <TouchableOpacity onPress={toggleLayout}>
             {layout === "row" ? (
-              <Box backgroundColor="$#ADFF2F" alignSelf="$center" p="$2" borderRadius="$12">
+              <View style={{ backgroundColor: '#ADFF2F', alignSelf: 'center', padding: 8, borderRadius: 12 }}>
                 <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
-              </Box>
+              </View>
             ) : (
-              <Box backgroundColor="$#ADFF2F" alignSelf="$center" p="$2" borderRadius="$12">
+              <View style={{ backgroundColor: '#ADFF2F', alignSelf: 'center', padding: 8, borderRadius: 12 }}>
                 <Octicons name="rows" size={22} color="#2C2C2E" />
-              </Box>
+              </View>
             )}
           </TouchableOpacity>
         </View>
@@ -107,102 +85,52 @@ const BookRoom = () => {
       {layout === "grid" ? (
         <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
           {roomPairs.map((pair, index) => (
-            <View
-              key={index}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginBottom: 20,
-              }}
-            >
-              {pair.map((room) => (
-                <View style={{
-                  flex: 1,
-                  borderWidth: 1,
-                  borderColor: cardBackgroundColor,
-                  borderRadius: 12,
-                  backgroundColor: cardBackgroundColor,
-                  marginHorizontal: 4,
-                }}>
-                  <Image
-                    w="$full"
-                    h="$24"
-                    alt="image"
-                    borderRadius="$10"
-                    source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-                  />
-                  <View
-                    key={room.title}
-                    style={{
-                      padding: 10,
-                    }}
-                  >
+            <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+              {pair.map((room, idx) => (
+                <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => router.push('OfficeDetails')}>
+                  <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                  <View style={{ padding: 10 }}>
                     <View>
                       <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.title}</Text>
-                      <Text style={{ color: textColor }} fontSize="$12">{room.description}</Text>
-                      <Text my="$1">Closes at: {room.Closesat}</Text>
+                      <Text style={{ color: textColor, fontSize: 12 }}>{room.description}</Text>
+                      <Text style={{ marginVertical: 4 }}>Closes at: {room.Closesat}</Text>
                     </View>
-                    <View flexDirection="$row" alignItems="$center" justifyContent="space-between">
-                      <Button w={wp('27%')} h={hp('4%')} p="$0" borderRadius="$12" backgroundColor="greenyellow">
-                        <ButtonText color="dimgrey" fontSize="$10" fontWeight="$light">Available: now</ButtonText>
-                      </Button>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <TouchableOpacity style={{ width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: 'greenyellow' }}>
+                        <Text style={{ color: 'dimgrey', fontSize: 10, fontWeight: '300' }}>Available: now</Text>
+                      </TouchableOpacity>
                       <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           ))}
         </ScrollView>
       ) : (
         <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
-          {data.map((room) => (
-            <View style={{
-              flex: 1,
-              borderWidth: 1,
-              borderColor: cardBackgroundColor,
-              borderRadius: 12,
-              height: 160,
-              backgroundColor: cardBackgroundColor,
-              marginVertical: 4,
-              flexDirection: "row"
-            }}>
-              <Image
-                w="$50%"
-                h="$full"
-                alt="image"
-                borderRadius="$10"
-                source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-              />
-              <View
-                key={room.title}
-                w="$48"
-                style={{
-                  padding: 10,
-                  flexDirection: "column",
-                  justifyContent: "space-between"
-                }}
-              >
+          {data.map((room, idx) => (
+            <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: 160 }} onPress={() => router.push('OfficeDetails')}>
+              <Image style={{ width: '50%', height: '100%', borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+              <View style={{ flex: 1, padding: 10, justifyContent: 'space-between' }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.title}</Text>
                 <View>
-                  <Text style={{ color: textColor }} fontSize="$12">{room.description}</Text>
+                  <Text style={{ color: textColor, fontSize: 12 }}>{room.description}</Text>
                 </View>
-                <View flexDirection="$column">
-                  <Text my="$1">Closes at: {room.Closesat}</Text>
-                  <View flexDirection="$row" alignItems="$center" justifyContent="space-between" pr="$2">
-                    <Button w={wp('27%')} h={hp('4%')} p="$0" borderRadius="$12" backgroundColor="greenyellow">
-                      <ButtonText color="dimgrey" fontSize="$10" fontWeight="$light">Available: now</ButtonText>
-                    </Button>
+                <View style={{ flexDirection: 'column' }}>
+                  <Text style={{ marginVertical: 4 }}>Closes at: {room.Closesat}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: 8 }}>
+                    <TouchableOpacity style={{ width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: 'greenyellow' }}>
+                      <Text style={{ color: 'dimgrey', fontSize: 10, fontWeight: '300' }}>Available: now</Text>
+                    </TouchableOpacity>
                     <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
                   </View>
                 </View>
-
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}
-
       <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
     </View>
   );
