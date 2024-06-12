@@ -27,7 +27,7 @@ const Dashboard = () => {
   return (
     <div className="w-full overflow-auto">
       <TopNav
-        mainComponent={<TabComponent />}
+        // mainComponent={<TabComponent />}
         searchQuery={searchQuery}
         onChange={handleInputChange}
       />
