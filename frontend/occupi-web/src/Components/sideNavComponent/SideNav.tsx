@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronLeft, ChevronRight,
-   Grid, Logout, Bell, ColorSwatch, Home, PieChart, SettingsIcon, UserProfileGroup } from "@assets/index";
+   Grid, Logout, Bell, ColorSwatch, Home, PieChart, SettingsIcon, UserProfileGroup,OccupiLogo } from "@assets/index";
 import {SideNavBarButton} from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -118,11 +118,11 @@ const SideNav = () => {
       <div className={"flex flex-wrap items-center h-[110px] relative z-50 w-full "
         + (isMinimized ? "justify-center" : "justify-between")}>
         <motion.div className="flex items-center h-[110px]  w-fit cursor-pointer " whileTap={{scale: 0.98}}>
-          <div className={"w-[45px] h-[45px] rounded-full overflow-hidden " + (isMinimized ? "ml-auto mr-auto" : "ml-[1vw] mr-2")}>
-            <img src="https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon" alt="admin-profile"/>
+        <div className={"w-[40px] h-[40px] " + (isMinimized ? "ml-2 mr-2" : "mr-2")}>
+            <OccupiLogo />
           </div>
-          {!isMinimized && <h2 className="text-text_col">John doe</h2>}
-          {!isMinimized && <ChevronDown />}
+          {!isMinimized && (<h2 className="text-text_col h-[24px] mt-[-10px] font-semibold text-2xl mr-2">Occupi</h2>)}
+          {/* {!isMinimized && <ChevronDown />} */}
         </motion.div>
         {
           isMinimized ? 
