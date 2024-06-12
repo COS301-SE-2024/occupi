@@ -24,19 +24,29 @@ jobs:
     name: Deploy to Develop
     runs-on: ubuntu-latest
 
+
     steps:
-    - name: SSH to VM
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.VM_IP }}
-        username: ${{ secrets.VM_USERNAME }}
-        key: ${{ secrets.VM_SSH_KEY }}
-        script: |
-            cd /home/Y2KODELABS/occupi-backend
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-            docker pull ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest
-            gpg --quiet --batch --yes --decrypt --passphrase=$GPG_PASSPHRASE --output .env .env.gpg
-            docker-compose -f docker-compose.traefik.yml up -d
-            docker-compose -f docker-compose.dev.yml pull
-            docker-compose -f docker-compose.dev.yml up -d --build
+        - name: Copy files to VM
+          uses: appleboy/scp-action@v0.1.5
+          with:
+            host: ${{ secrets.VM_IP }}
+            username: ${{ secrets.VM_USERNAME }}
+            key: ${{ secrets.VM_SSH_KEY }}
+            source: "occupi-backend/docker-compose.traefik.yml,occupi-backend/docker-compose.prod.yml,occupi-backend/.env.gpg"
+            target: "/home/Y2KODELABS/occupi-backend"
+
+        - name: SSH to VM
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.VM_IP }}
+            username: ${{ secrets.VM_USERNAME }}
+            key: ${{ secrets.VM_SSH_KEY }}
+            script: |
+                cd /home/Y2KODELABS/occupi-backend
+                echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+                docker pull ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest
+                gpg --quiet --batch --yes --decrypt --passphrase=$GPG_PASSPHRASE --output .env .env.gpg
+                docker-compose -f docker-compose.traefik.yml up -d
+                docker-compose -f docker-compose.dev.yml pull
+                docker-compose -f docker-compose.dev.yml up -d --build
 
