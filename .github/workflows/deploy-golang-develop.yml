@@ -46,7 +46,7 @@ jobs:
                 script: |
                     cd /home/Y2KODELABS/occupi-backend-dev/occupi-backend
                     echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-                    gpg --quiet --batch --yes --decrypt --passphrase=${{ secrets.GPG_PASSPHRASE }} --output .dev.env .env.gpg
+                    gpg --quiet --batch --yes --decrypt --passphrase=${{ secrets.GPG_PASSPHRASE }} --output .dev.env .dev.env.gpg
                     docker compose -f docker-compose.dev.yml pull
                     docker compose -f docker-compose.dev.yml up -d --build
 
