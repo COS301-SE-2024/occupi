@@ -26,13 +26,16 @@ jobs:
 
 
     steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
         - name: Copy files to VM
           uses: appleboy/scp-action@v0.1.5
           with:
             host: ${{ secrets.VM_IP }}
             username: ${{ secrets.VM_USERNAME }}
             key: ${{ secrets.VM_SSH_KEY }}
-            source: "docker-compose.traefik.yml,docker-compose.prod.yml,.env.gpg"
+            source: "occupi-backend/docker-compose.traefik.yml,occupi-backend/docker-compose.dev.yml,occupi-backend/.env.gpg"
             target: "/home/Y2KODELABS/occupi-backend"
 
         - name: SSH to VM
