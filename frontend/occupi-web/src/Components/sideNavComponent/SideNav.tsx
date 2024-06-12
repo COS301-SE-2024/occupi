@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronRight,
    Grid, Logout, Bell, ColorSwatch, Home, PieChart, SettingsIcon, UserProfileGroup,OccupiLogo } from "@assets/index";
-import {SideNavBarButton} from "@components/index";
+import {SideNavBarButton,ProfileComponent} from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -47,7 +47,10 @@ const sidebarcontent = [
   {
     icon: Logout,
     text: "Logout",
+
   },
+  
+
 ]
 
 const SideNav = () => {
@@ -149,6 +152,8 @@ const SideNav = () => {
         selected_panel={selectedPanel} 
         setSelectedPanelF={setSelectedPanelF} />
       )}
+      {/* <ProfileComponent /> */}
+
 
     </motion.div>
   );
