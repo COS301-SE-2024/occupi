@@ -67,7 +67,7 @@ jobs:
                     host: ${{ secrets.VM_IP }}
                     username: ${{ secrets.VM_USERNAME }}
                     key: ${{ secrets.VM_SSH_KEY }}
-                    source: "occupi-backend/docker-compose.dev.yml,occupi-backend/Dockerfile"
+                    source: "occupi-backend/docker-compose.dev.yml,occupi-backend/Dockerfile.dev"
                     target: "/home/Y2KODELABS/occupi-backend-dev"
 
             # SSH to VM and run commands
