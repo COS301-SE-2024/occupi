@@ -9,7 +9,7 @@ import * as MailComposer from 'expo-mail-composer';
 import * as Random from 'expo-random';
 import * as SecureStore from 'expo-secure-store';
 import GuestLayout from '../../layouts/GuestLayout';
-import Logo from '../Login/assets/images/Occupi/file.png';
+// import Logo from '../Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { AlertTriangle } from 'lucide-react-native';
@@ -168,7 +168,7 @@ const OTPVerification = () => {
            />
            )}
           
-          <GradientButton text="Resend OTP" />
+          {/* <GradientButton text="Resend OTP" /> */}
         </VStack>
         <AccountLink />
       </Box>
