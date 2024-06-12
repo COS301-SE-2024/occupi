@@ -2,6 +2,7 @@ package router
 
 import (
 	"encoding/gob"
+	"net/http"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
@@ -47,13 +48,15 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client) {
 
 	ping := router.Group("/ping")
 	{
-		ping.GET("", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"message": "pong -> I am alive and kicking"}) })
+		ping.GET("", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"message": "pong -> I am alive and kicking"}) })
 	}
 	api := router.Group("/api")
 	{
 		api.GET("/resource-auth", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FetchResourceAuth(ctx, appsession) }) // authenticated
 		api.GET("/book-room", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.BookRoom(ctx, appsession) })
-		api.GET("check-in", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CheckIn(ctx, appsession) })
+		api.GET("/check-in", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CheckIn(ctx, appsession) })
+		api.GET("cancel-booking", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CancelBooking(ctx, appsession) })
+		api.GET(("view-bookings"), middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewBookings(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{

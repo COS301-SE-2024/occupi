@@ -1,24 +1,24 @@
-import './App.css'
-import LoginForm from './pages/Login/LoginForm'
-import OtpPage from './pages/otp-page/OtpPage'
-import SideNav from './Components/sideNavComponent/SideNav'
-import LandingPage from './pages/landing-page/LandingPage'
-import TabComponent from './Components/tabComponent/TabComponent'
+import { LoginForm, OtpPage, Settings, Dashboard} from "@pages/index";
+import { Layout } from "@layouts/index";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
 function App() {
-
   return (
-    
-      <div>
-       {/* <LoginForm /> */}
-{/* <OtpComponent /> */}
-{/* <OtpPage /> */}
-{/* <SideNav /> */}
-<LandingPage />
-{/* <div className='ml-5'>
-<TabComponent />
-</div> */}
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginForm />} />
+        <Route path="/otp" element={<OtpPage />} />
 
-    </div>
+        <Route path="/*" element={
+          <Layout>
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </Layout>}>
+        </Route>
+      </Routes>
+    </Router> 
   )
 }
 

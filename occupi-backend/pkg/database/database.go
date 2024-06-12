@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -97,6 +98,76 @@ func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bo
 	return true, nil
 }
 
+// Retrieves bookings associated with a user
+func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models.Booking, error) {
+	// Get the bookings for the user
+	collection := db.Database("Occupi").Collection("RoomBooking")
+	filter := bson.M{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}}
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var bookings []models.Booking
+	for cursor.Next(ctx) {
+		var booking models.Booking
+		if err := cursor.Decode(&booking); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		bookings = append(bookings, booking)
+	}
+	return bookings, nil
+}
+
+// Confirms the user check-in by checking certain criteria
+func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) (bool, error) {
+	// Save the check-in to the database
+	collection := db.Database("Occupi").Collection("RoomBooking")
+
+	// Find the booking by bookingId, roomId, and check if the email is in the emails object
+	filter := bson.M{
+		"_id":    checkIn.BookingID,
+		"roomId": checkIn.RoomID,
+	}
+
+	// Find the booking
+	var booking models.Booking
+	err := collection.FindOne(context.TODO(), filter).Decode(&booking)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("Booking not found")
+			return false, errors.New("booking not found")
+		}
+		logrus.Error("Failed to find booking:", err)
+		return false, err
+	}
+	emailToCheck := checkIn.Email
+	for _, email := range booking.Emails {
+		if email == emailToCheck {
+			break
+		}
+		// If we finish the loop without finding the email
+		logrus.Error("Email not associated with the room")
+		return false, errors.New("email not associated with the room")
+	}
+
+	update := bson.M{
+		"$set": bson.M{"checkedIn": true},
+	}
+
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	var updatedBooking models.Booking
+	err = collection.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedBooking)
+	if err != nil {
+		logrus.Error("Failed to update booking:", err)
+		return false, err
+	}
+	return true, nil
+}
+
 // checks if email exists in database
 func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
 	// Check if the email exists in the database
@@ -104,6 +175,21 @@ func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+	return true
+}
+
+// checks if booking exists in database
+func BookingExists(ctx *gin.Context, db *mongo.Client, id string) bool {
+	// Check if the booking exists in the database
+	collection := db.Database("Occupi").Collection("RoomBooking")
+
+	filter := bson.M{"_id": id}
+	var existingbooking models.Booking
+	err := collection.FindOne(ctx, filter).Decode(&existingbooking)
 	if err != nil {
 		logrus.Error(err)
 		return false
@@ -250,6 +336,37 @@ func UpdateVerificationStatusTo(ctx *gin.Context, db *mongo.Client, email string
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// Confirms if a booking has been cancelled
+func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, id string, email string) (bool, error) {
+	// Save the check-in to the database
+	collection := db.Database("Occupi").Collection("RoomBooking")
+
+	// Find the booking by bookingId, roomId, and check if the email is in the emails object
+	filter := bson.M{
+		"_id":     id,
+		"creator": email}
+
+	// Find the booking
+	var localBooking models.Booking
+	err := collection.FindOne(context.TODO(), filter).Decode(&localBooking)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("Email not associated with the room")
+			return false, errors.New("email not associated with the room")
+		}
+		logrus.Error("Failed to find booking:", err)
+		return false, err
+	}
+
+	// Delete the booking
+	_, err = collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		logrus.Error("Failed to cancel booking:", err)
 		return false, err
 	}
 	return true, nil

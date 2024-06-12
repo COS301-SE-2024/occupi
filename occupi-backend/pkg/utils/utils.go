@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"sync"
 	"time"
 
 	"github.com/alexedwards/argon2id"
@@ -15,7 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 )
 
 // sets up the logger and configures it
@@ -77,31 +75,6 @@ func GenerateRandomState() (string, error) {
 	state := base64.StdEncoding.EncodeToString(b)
 
 	return state, nil
-}
-
-// sends multiple emails concurrently
-func SendMultipleEmailsConcurrently(emails map[string]string, subject, body string) []string {
-	// Use a WaitGroup to wait for all goroutines to complete
-	var wg sync.WaitGroup
-	var emailErrors []string
-	var mu sync.Mutex
-
-	for _, email := range emails {
-		wg.Add(1)
-		go func(email string) {
-			defer wg.Done()
-			if err := mail.SendMail(email, subject, body); err != nil {
-				mu.Lock()
-				emailErrors = append(emailErrors, email)
-				mu.Unlock()
-			}
-		}(email)
-	}
-
-	// Wait for all email sending goroutines to complete
-	wg.Wait()
-
-	return emailErrors
 }
 
 // sanitizes the given input
@@ -179,4 +152,9 @@ func CompareArgon2IDHash(password string, hashedPassword string) (bool, error) {
 		return false, err
 	}
 	return match, nil
+}
+
+func WillRemove() {
+	// This function is only here to make sure that the package is not empty
+	// and that the linter does not complain about it
 }

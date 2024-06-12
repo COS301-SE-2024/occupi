@@ -20,7 +20,10 @@ if "%1 %2" == "run dev" (
     docker-compose up
     exit /b 0
 ) else if "%1" == "test" (
-    go test ./tests/...
+    go test -v ./tests/...
+    exit /b 0
+) else if "%1 %2" == "test codecov" (
+    go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers ./tests/... -coverprofile=coverage.out
     exit /b 0
 ) else if "%1" == "lint" (
     golangci-lint run
@@ -45,6 +48,7 @@ echo   build prod        : go build cmd/occupi-backend/main.go
 echo   docker build      : docker-compose build
 echo   docker up         : docker-compose up
 echo   test              : go test ./tests/...
+echo   test codecov      : go test ./tests/... -race -coverprofile=coverage.out -covermode=atomic
 echo   lint              : golangci-lint run
 echo   help              : Show this help message
 exit /b 0

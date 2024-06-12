@@ -16,18 +16,19 @@ type User struct {
 
 // structure of booking
 type Booking struct {
-	ID        string            `json:"_id" bson:"_id,omitempty"`
-	OccupiID  int               `json:"occupiId" bson:"occupiId"`
-	BookingID int               `json:"bookingId" bson:"bookingId"`
-	RoomID    string            `json:"roomId" bson:"roomId"`
-	Slot      int               `json:"slot" bson:"slot"`
-	Emails    map[string]string `json:"emails" bson:"emails"`
-	CheckedIn bool              `json:"checkedIn" bson:"checkedIn"`
+	ID        string   `json:"_id" bson:"_id,omitempty"`
+	OccupiID  int      `json:"occupiId" bson:"occupiId,omitempty"`
+	RoomID    string   `json:"roomId" bson:"roomId"`
+	Slot      int      `json:"slot" bson:"slot"`
+	Emails    []string `json:"emails" bson:"emails"`
+	CheckedIn bool     `json:"checkedIn" bson:"checkedIn,omitempty"`
+	Creator   string   `json:"creator" bson:"creator"`
+	FloorNo   int      `json:"floorNo" bson:"floorNo"`
 }
 
 // structure of CheckIn
 type CheckIn struct {
-	BookingID int    `json:"bookingId" bson:"bookingId"`
+	BookingID string `json:"bookingId" bson:"bookingId"`
 	Email     string `json:"email" bson:"email"`
 	RoomID    string `json:"roomId" bson:"roomId"`
 }
@@ -37,4 +38,8 @@ type OTP struct {
 	Email      string    `json:"email" bson:"email"`
 	OTP        string    `json:"otp" bson:"otp"`
 	ExpireWhen time.Time `json:"expireWhen" bson:"expireWhen"`
+}
+
+type ViewBookings struct {
+	Email string `json:"email" bson:"email"`
 }

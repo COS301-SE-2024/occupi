@@ -1,13 +1,25 @@
-name: Test and Build golang
+name: Lint, Test and Build golang
 
 on:
+  push:
+    branches: ["develop"]
+    paths: [
+      "occupi-backend/cmd/**",
+      "occupi-backend/configs/**",
+      "occupi-backend/pkg/**",
+      "occupi-backend/.golangci.yml",
+      "occupi-backend/tests/**",
+      ".github/workflows/lint-test-build-golang.yml"
+    ]
   pull_request:
     branches: ["develop"]
     paths: [
       "occupi-backend/cmd/**",
       "occupi-backend/configs/**",
       "occupi-backend/pkg/**",
-      "occupi-backend/.golangci.yml"
+      "occupi-backend/.golangci.yml",
+      "occupi-backend/tests/**",
+      ".github/workflows/lint-test-build-golang.yml"
     ]
 
   workflow_dispatch:
@@ -53,7 +65,12 @@ jobs:
 
     - name: Run tests
       run: |
-        go test ./tests/...
+        go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers ./tests/... -coverprofile=coverage.out
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build

@@ -246,7 +246,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	subject := "Email Verification - Your One-Time Password (OTP)"
-	body := mail.FormatEmailVerificationBody(otp)
+	body := mail.FormatEmailVerificationBody(otp, requestUser.Email)
 
 	if err := mail.SendMail(requestUser.Email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -355,7 +355,7 @@ func ReverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 	}
 
 	subject := "Email Verification - Your One-Time Password (OTP)"
-	body := mail.FormatEmailVerificationBody(otp)
+	body := mail.FormatEmailVerificationBody(otp, email)
 
 	if err := mail.SendMail(email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
