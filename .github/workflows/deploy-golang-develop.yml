@@ -33,6 +33,9 @@ jobs:
         key: ${{ secrets.VM_SSH_KEY }}
         script: |
             cd /home/Y2KODELABS/occupi-backend
+            # pull docker image
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest
             gpg --quiet --batch --yes --decrypt --passphrase=$GPG_PASSPHRASE --output .env .env.gpg
             docker-compose -f docker-compose.traefik.yml up -d
             docker-compose -f docker-compose.dev.yml pull
