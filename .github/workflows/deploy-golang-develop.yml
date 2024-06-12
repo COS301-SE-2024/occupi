@@ -36,6 +36,7 @@ jobs:
                     source: "occupi-backend/docker-compose.dev.yml,occupi-backend/Dockerfile"
                     target: "/home/Y2KODELABS/occupi-backend-dev"
 
+            # SSH to VM and run commands
             - name: SSH to VM
               uses: appleboy/ssh-action@master
               with:
