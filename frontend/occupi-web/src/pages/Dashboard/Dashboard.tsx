@@ -76,10 +76,10 @@ const Dashboard = () => {
                     </Button>
                     <div className="w-6 h-6 justify-center items-center gap-6 flex" />
                   </div>
-                  <div className="left-[20px] top-[290px] absolute text-neutral-800 text-4xl font-semibold  leading-10">
+                  <div className="left-[20px] top-[290px] absolute text-text_col text-4xl font-semibold  leading-10">
                     50 people
                   </div>
-                  <div className="left-[20px] top-[25px] absolute opacity-70 text-neutral-800 text-base font-semibold  leading-none">
+                  <div className="left-[20px] top-[25px] absolute opacity-70 text-text_col  text-base font-semibold  leading-none">
                     Total bookings today
                   </div>
                   <div className="left-[20px] top-[345px] absolute">
@@ -88,7 +88,7 @@ const Dashboard = () => {
                       <span className="flex  text-teal-500 text-base font-semibold   leading-none">
                         1.8% <Uptrend  />
                       </span>
-                      <span className=" w-36  text-slate-900 text-base font-semibold  leading-none">
+                      <span className=" w-36  text-text_col text-base font-semibold  leading-none">
                         Up from yesterday
                       </span>
                     </div>
@@ -102,7 +102,7 @@ const Dashboard = () => {
             />
           </div>
 
-          <div className="flex w-60 h-8 text-neutral-950 text-3xl font-semibold leading-none mt-32 ml-14">
+          <div className="flex w-60 h-8 text-text_col text-3xl font-semibold leading-none mt-32 ml-14">
             Most Visitations <ChevronRight size={20} className="mt-2" />
           </div>
 
@@ -137,10 +137,10 @@ const Dashboard = () => {
                       </Button>
                       <div className="w-6 h-6 justify-center items-center gap-6 flex" />
                     </div>
-                    <div className="left-[20px] top-[290px] absolute text-neutral-800 text-4xl font-semibold  leading-10">
+                    <div className="left-[20px] top-[290px] absolute text-text_col  text-4xl font-semibold  leading-10">
                       50 people
                     </div>
-                    <div className="left-[20px] top-[25px] absolute opacity-70 text-neutral-800 text-base font-semibold  leading-none">
+                    <div className="left-[20px] top-[25px] absolute opacity-70 text-text_col  text-base font-semibold  leading-none">
                       Total visitations today
                     </div>
                     <div className="left-[20px] top-[345px] absolute">
