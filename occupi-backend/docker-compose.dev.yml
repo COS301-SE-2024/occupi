@@ -1,6 +1,6 @@
 services:
   occupi-backend-dev:
-    build: .
+    image: $DOCKER_USERNAME/occupi-backend:develop-latest
     container_name: occupi-backend-dev
     env_file:
       - .dev.env
