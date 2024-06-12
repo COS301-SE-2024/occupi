@@ -16,6 +16,8 @@ services:
     volumes:
       - /etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:/etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:ro
       - /etc/letsencrypt/live/dev.occupi.tech/privkey.pem:/etc/letsencrypt/live/dev.occupi.tech/privkey.pem:ro
+      - /etc/letsencrypt/live/occupi.tech/fullchain.pem:/etc/letsencrypt/live/occupi.tech/fullchain.pem:ro
+      - /etc/letsencrypt/live/occupi.tech/privkey.pem:/etc/letsencrypt/live/occupi.tech/privkey.pem:ro
 
 networks:
   webnet:

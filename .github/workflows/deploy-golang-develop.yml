@@ -44,6 +44,7 @@ jobs:
           run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .dev.env.gpg > .dev.env
     
+                
         - name: Build and push Docker image
           uses: docker/build-push-action@v5
           with:
