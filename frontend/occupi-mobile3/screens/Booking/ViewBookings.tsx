@@ -2,6 +2,7 @@ import { React, useEffect, useState } from 'react';
 import { ScrollView, useColorScheme, TouchableOpacity } from 'react-native';
 import { Icon, View, Text, Input, InputField, InputSlotButton, Button, ButtonText, Image, Box, ChevronDownIcon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { SimpleLineIcons } from '@expo/vector-icons';
 import { SelectList } from 'react-native-dropdown-select-list'
 import RNPickerSelect from 'react-native-picker-select';
 import { Octicons } from '@expo/vector-icons';
@@ -35,20 +36,20 @@ const ViewBookings = () => {
         { key: '2', value: 'Newest' },
     ]
     const data = [
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Time: '7pm', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
     ];
 
     const roomPairs = groupDataInPairs(data);
@@ -70,40 +71,40 @@ const ViewBookings = () => {
                 </Input>
                 <View flexDirection="$row" justifyContent="$space-between" alignItems="$center">
                     <View flexDirection="$row" alignItems="$center">
-                    <Text fontWeight="$bold" fontSize="$18" mr="$2" color={textColor}>Sort by:</Text>
-                    <View backgroundColor={cardBackgroundColor} borderRadius="$10" px="$2" alignItems="$center">
-                        <RNPickerSelect
-                            onValueChange={(value) => setSelectedSort(value)}
-                            items={[
-                                { label: 'Oldest', value: 'Oldest' },
-                                { label: 'Newest', value: 'Newest' },
-                            ]}
-                            placeholder={{ label: 'Latest', value: null }}
-                            backgroundColor={cardBackgroundColor}
-                            style={{
-                                inputIOS: {
-                                    placeholder: "Latest",
-                                    fontSize: 16,
-                                    paddingVertical: 8,
-                                    borderWidth: 1,
-                                    borderRadius: 10,
-                                    borderColor: cardBackgroundColor,
-                                    paddingRight: 30, // to ensure the text is never behind the icon
-                                    color: textColor
-                                },
-                                inputAndroid: {
-                                    borderWidth: 1,
-                                    borderRadius: 10,
-                                    borderColor: cardBackgroundColor,
-                                    paddingRight: 30, // to ensure the text is never behind the icon
-                                    color: textColor
-                                },
-                            }}
-                            Icon={() => {
-                                return <Icon as={ChevronDownIcon} color={textColor} m="$2" w="$4" h="$4" alignSelf="$center"/>;
-                            }}
-                        />
-                    </View>
+                        <Text fontWeight="$bold" fontSize="$18" mr="$2" color={textColor}>Sort by:</Text>
+                        <View backgroundColor={cardBackgroundColor} borderRadius="$10" px="$2" alignItems="$center">
+                            <RNPickerSelect
+                                onValueChange={(value) => setSelectedSort(value)}
+                                items={[
+                                    { label: 'Oldest', value: 'Oldest' },
+                                    { label: 'Newest', value: 'Newest' },
+                                ]}
+                                placeholder={{ label: 'Latest', value: null }}
+                                backgroundColor={cardBackgroundColor}
+                                style={{
+                                    inputIOS: {
+                                        placeholder: "Latest",
+                                        fontSize: 16,
+                                        paddingVertical: 8,
+                                        borderWidth: 1,
+                                        borderRadius: 10,
+                                        borderColor: cardBackgroundColor,
+                                        paddingRight: 30, // to ensure the text is never behind the icon
+                                        color: textColor
+                                    },
+                                    inputAndroid: {
+                                        borderWidth: 1,
+                                        borderRadius: 10,
+                                        borderColor: cardBackgroundColor,
+                                        paddingRight: 30, // to ensure the text is never behind the icon
+                                        color: textColor
+                                    },
+                                }}
+                                Icon={() => {
+                                    return <Icon as={ChevronDownIcon} color={textColor} m="$2" w="$4" h="$4" alignSelf="$center" />;
+                                }}
+                            />
+                        </View>
                     </View>
                     <TouchableOpacity onPress={toggleLayout}>
                         {layout === "row" ? (
@@ -154,13 +155,16 @@ const ViewBookings = () => {
                                         <View>
                                             <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.title}</Text>
                                             <Text style={{ color: textColor }} fontSize="$12">{room.description}</Text>
-                                            <Text my="$1">Closes at: {room.Time}</Text>
+                                            <Text my="$1">Your booking time:</Text>
+
                                         </View>
                                         <View flexDirection="$row" alignItems="$center" justifyContent="space-between">
-                                            <Button w={wp('27%')} h={hp('4%')} p="$0" borderRadius="$12" backgroundColor="greenyellow">
-                                                <ButtonText color="dimgrey" fontSize="$10" fontWeight="$light">Available: now</ButtonText>
-                                            </Button>
-                                            <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
+                                            <View>
+                                                <Text>{room.Date} at</Text>
+                                                <Text>{room.Time}</Text>
+                                            </View>
+
+                                            <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
                                         </View>
                                     </View>
                                 </View>
@@ -203,9 +207,12 @@ const ViewBookings = () => {
                                 </View>
                                 <View flexDirection="$column">
                                     <Text my="$1" fontWeight="$light" color={isDarkMode ? '#F3F3F3' : '#2C2C2E'}>Your booking time:</Text>
-                                    <View flexDirection="$row" alignItems="$center" justifyContent="space-between" pr="$2">
-                                        <Text >{room.Time}</Text>
-                                        <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
+                                    <View flexDirection="$row" alignItems="$center" justifyContent="space-between" pr="$4">
+                                        <View>
+                                            <Text>{room.Date} at</Text>
+                                            <Text>{room.Time}</Text>
+                                        </View>
+                                        <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
                                     </View>
                                 </View>
 

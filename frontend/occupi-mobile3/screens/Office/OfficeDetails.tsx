@@ -79,14 +79,14 @@ const OfficeDetails = () => {
       </View>
 
       {/* Image Section */}
-      <Carousel
+      {/* <Carousel
         data={images}
         renderItem={renderItem}
         sliderWidth={wp('100%')}
         itemWidth={wp('80%')}
         containerCustomStyle={{ marginTop: wp('5%') }}
         contentContainerCustomStyle={{ paddingLeft: wp('5%') }}
-      />
+      /> */}
 
       {/* Details Section */}
       <View style={{ padding: wp('5%') }}>

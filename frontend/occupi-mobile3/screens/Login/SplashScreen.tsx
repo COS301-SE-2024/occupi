@@ -112,9 +112,9 @@ const OnboardingScreen = ({ onFinish }) => {
     >
       <Center w="100%" flex={1}>
         <Box
-          maxWidth="508px"
+          // maxWidth="508px"
           w="100%"
-          minHeight="authcard"
+          // minHeight="authcard"
           justifyContent="center"
         >
           <HeaderLogo />
@@ -130,7 +130,7 @@ export default function SplashScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSelectedIndex(1); // Assuming Onboarding1 is at index 1
-      router.navigate('/onboarding1'); // Navigate to Onboarding1 screen
+      router.navigate('/home'); // Navigate to Onboarding1 screen
     }, 5000); // 8 seconds
 
     return () => clearTimeout(timer); // Clean up timer on component unmount

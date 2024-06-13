@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, Alert, TextInput } from 'react-native';
-import { VStack, Box, HStack, Image, FormControl, Input, Button, Heading, Toast, useToast, ToastTitle } from '@gluestack-ui/themed';
+import { TouchableOpacity, View, StyleSheet, Alert, TextInput } from 'react-native';
+import { VStack, Box, HStack, Image, FormControl, Input, Button, Heading, Toast, useToast, ToastTitle, Text, } from '@gluestack-ui/themed';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +9,7 @@ import * as MailComposer from 'expo-mail-composer';
 import * as Random from 'expo-random';
 import * as SecureStore from 'expo-secure-store';
 import GuestLayout from '../../layouts/GuestLayout';
-import Logo from '../Login/assets/images/Occupi/file.png';
+import Logo from './assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { AlertTriangle } from 'lucide-react-native';
@@ -209,7 +209,6 @@ const MainText = (email : string) => {
         >
           We have sent the OTP code to
           <Text
-            fontWeight="$bold"
             color="$black"
             sx={{
               _dark: {
@@ -219,7 +218,7 @@ const MainText = (email : string) => {
             fontSize={wp('5%')}
             fontWeight="$light"
           >
-            {' '+email.email}
+            {' '+email}
           </Text>
         </Text>
       </HStack>
@@ -237,7 +236,7 @@ function AccountLink() {
       }}
       mt="auto"
       space="xs"
-      alignItems="$center"
+      alignItems="center"
       justifyContent="center"
     >
       <Text

@@ -15,19 +15,19 @@ const NavBar = () => {
     <BlurView tint="light" pb={hp('3%')} backgroundColor={colorScheme === 'dark' ? 'black' : '#fff'} intensity={20} style={styles.container}>  
       <Button onPress={() => router.push('/home')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Home" flexDirection="column">
         <Feather name="home" size={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text numberOfLines={1} w={wp('10%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Home</Text>
+        <Text numberOfLines={1} w={wp('9%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Home</Text>
       </Button>
-      <Button onPress={() => router.push('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Search" flexDirection="column">
+      <Button onPress={() => router.push('/viewbookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Search" flexDirection="column">
         <Icon as={SearchIcon} w={hp('3%')} h={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text numberOfLines={1} w={wp('10%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Search</Text>
+        <Text numberOfLines={1} w={wp('20%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>My bookings</Text>
       </Button>
       <Button onPress={() => router.push('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Book" flexDirection="column">
         <Icon as={CalendarDaysIcon} w={hp('3%')} h={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text numberOfLines={1} w={wp('10%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Book</Text>
+        <Text numberOfLines={1} w={wp('7.4%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Book</Text>
       </Button>
       <Button onPress={() => router.push('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Notifications" flexDirection="column">
         <Icon as={BellIcon} w={hp('3%')} h={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text pl={wp('1%')} numberOfLines={1} w={wp('15%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Notifications</Text>
+        <Text pl={wp('1%')} numberOfLines={1} w={wp('20%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Notifications</Text>
       </Button>
       <Button onPress={() => router.push('/settings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Profile" flexDirection="column">
         <FontAwesome6 name="user" size={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />

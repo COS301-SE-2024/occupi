@@ -48,7 +48,7 @@ const BookRoom = () => {
   const roomPairs = groupDataInPairs(data);
 
   return (
-    <View style={{ flex: 1, backgroundColor, paddingTop: 20 }}>
+    <View style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
       <View style={{ flexDirection: 'column', backgroundColor }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
           <Text style={{ fontWeight: 'bold', fontSize: 24, color: textColor }}>Book</Text>
@@ -56,8 +56,8 @@ const BookRoom = () => {
         <View style={{ marginHorizontal: 16, marginVertical: 24, width: wp('70%'), backgroundColor: cardBackgroundColor, borderRadius: 15, borderColor: cardBackgroundColor, height: hp('5%'), justifyContent: 'center', paddingHorizontal: 10 }}>
           <Text style={{ fontSize: wp('4%'), color: textColor }}>Quick search for an office</Text>
         </View>
-        <Text style={{ paddingHorizontal: 16, fontWeight: 'bold', fontSize: 18, color: textColor }}>Categories</Text>
-        <ScrollView horizontal style={{ marginTop: 20, paddingBottom: 20, paddingLeft: 14 }} showsHorizontalScrollIndicator={false}>
+        {/* <Text style={{ paddingHorizontal: 16, fontWeight: 'bold', fontSize: 18, color: textColor }}>Categories</Text> */}
+        {/* <ScrollView horizontal style={{ marginTop: 20, paddingBottom: 20, paddingLeft: 14 }} showsHorizontalScrollIndicator={false}>
           {['Focus', 'Chill', 'Ideas', 'Loud', 'Gamey', 'View'].map((category) => (
             <View key={category} style={{ alignItems: 'center', marginRight: 15 }}>
               <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: cardBackgroundColor, justifyContent: 'center', alignItems: 'center' }}>
@@ -66,7 +66,7 @@ const BookRoom = () => {
               <Text style={{ color: textColor, marginTop: 8 }}>{category}</Text>
             </View>
           ))}
-        </ScrollView>
+        </ScrollView> */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
           <Text style={{ fontWeight: 'bold', fontSize: 18, color: textColor }}>Rooms</Text>
           <TouchableOpacity onPress={toggleLayout}>
@@ -87,7 +87,7 @@ const BookRoom = () => {
           {roomPairs.map((pair, index) => (
             <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
               {pair.map((room, idx) => (
-                <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => router.push('OfficeDetails')}>
+                <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => router.push('/office-details')}>
                   <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                   <View style={{ padding: 10 }}>
                     <View>
@@ -110,7 +110,7 @@ const BookRoom = () => {
       ) : (
         <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
           {data.map((room, idx) => (
-            <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: 160 }} onPress={() => router.push('OfficeDetails')}>
+            <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: 160 }} onPress={() => router.push('/office-details')}>
               <Image style={{ width: '50%', height: '100%', borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
               <View style={{ flex: 1, padding: 10, justifyContent: 'space-between' }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.title}</Text>

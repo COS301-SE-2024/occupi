@@ -9,7 +9,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
-import Barcode from 'react-native-barcode-builder';
+// import Barcode from 'react-native-barcode-builder';
 
 const BookingReceipt = () => {
   const [selectedIndex, setSelectedIndex] = useState(2);
@@ -150,7 +150,7 @@ const BookingReceipt = () => {
 
           {/* Barcode */}
           <View style={{ alignItems: 'center', padding: wp('5%') }}>
-            <Barcode value="ABC-abc-1234" format="CODE128" />
+            {/* <Barcode value="ABC-abc-1234" format="CODE128" /> */}
             <Text style={{ fontSize: wp('5%'), color: isDarkMode ? '#fff' : '#000' }}>ABC-abc-1234</Text>
           </View>
 
