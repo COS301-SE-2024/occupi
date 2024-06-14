@@ -23,11 +23,11 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/nginx:/etc/nginx:ro
       - /etc/letsencrypt/live/occupi.tech/fullchain.pem:/etc/letsencrypt/live/occupi.tech/fullchain.pem:ro
       - /etc/letsencrypt/live/occupi.tech/privkey.pem:/etc/letsencrypt/live/occupi.tech/privkey.pem:ro
     depends_on:
-      - occupi-backend-dev
+      - occupi-backend-prod
 
 networks:
   webnet:

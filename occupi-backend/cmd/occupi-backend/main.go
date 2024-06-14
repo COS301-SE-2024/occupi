@@ -54,6 +54,12 @@ func main() {
 		logrus.Fatal("Cert or Key file not found")
 	}
 
+	// logrus all env variables
+	logrus.Infof("Server running on port: %s", configs.GetPort())
+	logrus.Infof("Server running in %s mode", configs.GetGinRunMode())
+	logrus.Infof("Server running with cert file: %s", certFile)
+	logrus.Infof("Server running with key file: %s", keyFile)
+
 	// Listening on the port with TLS
 	if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
 		logrus.Fatal("Failed to run server: ", err)
