@@ -50,7 +50,7 @@ func main() {
 	keyFile := configs.GetKeyFileName()
 
 	// fatal error if the cert or key file is not found
-	if certFile == "CERT_FILE_NAME" || keyFile == "KEY_FILE_NAME" {
+	if certFile == "CERTIFICATE_FILE_PATH" || keyFile == "KEY_FILE_PATH" {
 		logrus.Fatal("Cert or Key file not found")
 	}
 
