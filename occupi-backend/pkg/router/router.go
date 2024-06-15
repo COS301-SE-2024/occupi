@@ -2,13 +2,12 @@ package router
 
 import (
 	"encoding/gob"
-	"time"
+	"net/http"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -36,24 +35,17 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client) {
 	router.Static("/app/dashboard", "./web/dashboard")
 	router.Static("/documentation", "./web/documentation")
 
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
-
 	ping := router.Group("/ping")
 	{
-		ping.GET("", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"message": "pong -> I am alive and kicking"}) })
+		ping.GET("", func(ctx *gin.Context) { ctx.JSON(http.StatusOK, gin.H{"message": "pong -> I am alive and kicking"}) })
 	}
 	api := router.Group("/api")
 	{
 		api.GET("/resource-auth", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FetchResourceAuth(ctx, appsession) }) // authenticated
 		api.GET("/book-room", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.BookRoom(ctx, appsession) })
-		api.GET("check-in", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CheckIn(ctx, appsession) })
+		api.GET("/check-in", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CheckIn(ctx, appsession) })
+		api.GET("cancel-booking", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CancelBooking(ctx, appsession) })
+		api.GET(("view-bookings"), middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewBookings(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{

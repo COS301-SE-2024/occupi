@@ -24,12 +24,6 @@ Please note that this project is released with a <a href="./CODE_OF_CONDUCT.md">
       - [Before Submitting an Enhancement](#before-submitting-an-enhancement)
       - [How Do I Submit a Good Enhancement Suggestion?](#how-do-i-submit-a-good-enhancement-suggestion)
     - [Your First Code Contribution](#your-first-code-contribution)
-      - [Frontend](#frontend)
-        - [Mobile](#mobile)
-        - [Web and Desktop](#web-and-desktop)
-        - [Landing page](#landing-page)
-      - [Backend](#backend)
-      - [AI model](#ai-model)
     - [Improving The Documentation](#improving-the-documentation)
   - [Attribution](#attribution)
 
@@ -99,6 +93,9 @@ This section guides you through submitting an enhancement suggestion for CONTRIB
 - Read the [documentation]() carefully and find out if the functionality is already covered, maybe by an individual configuration.
 - Perform a [search](/issues) to see if the enhancement has already been suggested. If it has, add a comment to the existing issue instead of opening a new one.
 - Find out whether your idea fits with the scope and aims of the project. It's up to you to make a strong case to convince the project's developers of the merits of this feature. Keep in mind that we want features that will be useful to the majority of our users and not just a small subset. If you're just targeting a minority of users, consider writing an add-on/plugin library.
+- Understand that we use trunk based development with short lived branches that get merged into develop. Here is a nice visual to help you understand
+![branching strategy](https://github.com/COS301-SE-2024/occupi/assets/93211335/10e3757f-0505-480c-bd4b-ca9366676b58)
+
 
 
 #### How Do I Submit a Good Enhancement Suggestion?
@@ -115,17 +112,11 @@ Enhancement suggestions are tracked as [GitHub issues](/issues).
 
 Choose a section you want to contribute to and navigate to the appropriate readme's
 
-#### Frontend
-
-##### Mobile
-
-##### Web and Desktop
-
-##### Landing page
-
-#### Backend
-
-#### AI model
+[Mobile](https://github.com/COS301-SE-2024/occupi/tree/develop/frontend/occupi-mobile3)
+[Web and Desktop](https://github.com/COS301-SE-2024/occupi/tree/develop/frontend/occupi-web)
+[Landing page](https://github.com/COS301-SE-2024/occupi/tree/develop/frontend/occupi)
+[Backend](https://github.com/COS301-SE-2024/occupi/tree/develop/occupi-backend)
+[AI model]()
 
 
 ### Improving The Documentation
