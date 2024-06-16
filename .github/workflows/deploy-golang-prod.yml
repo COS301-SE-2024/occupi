@@ -3,15 +3,7 @@ name: Lint, Test, Build and Deploy Prod golang
 on:
   push:
     branches: ["master"]
-    paths: [
-      "occupi-backend/cmd/**",
-      "occupi-backend/configs/**",
-      "occupi-backend/pkg/**",
-      "occupi-backend/.golangci.yml",
-      "occupi-backend/tests/**",
-      ".github/workflows/lint-test-build-golang.yml",
-      ".github/workflows/deploy-golang-prod.yml"
-    ]
+    paths: ["occupi-backend/**"]
 
   workflow_dispatch:
 
@@ -102,7 +94,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-  
+
+      - name: Decrypt env variables
+        run: |
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .prod.env.gpg > .prod.env
+                
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -110,24 +106,37 @@ jobs:
           file: occupi-backend/Dockerfile.prod
           platforms: linux/amd64,linux/arm64
           push: true
+          no-cache: true
           tags: ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest
 
   deploy:
     needs: build-push-docker
-    name: Deploy to Master
+    name: Deploy for Prod
     runs-on: ubuntu-latest
 
     steps:
-    - name: SSH to VM
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.VM_IP }}
-        username: ${{ secrets.VM_USERNAME }}
-        key: ${{ secrets.VM_SSH_KEY }}
-        script: |
-            cd /home/${{ secrets.VM_USERNAME }}/occupi-backend
-            gpg --quiet --batch --yes --decrypt --passphrase=$GPG_PASSPHRASE --output .env .env.gpg
-            docker-compose -f docker-compose.traefik.yml up -d
-            docker-compose -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.prod.yml up -d --build
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Copy files to VM
+        uses: appleboy/scp-action@v0.1.5
+        with:
+              host: ${{ secrets.VM_IP }}
+              username: ${{ secrets.VM_USERNAME }}
+              key: ${{ secrets.VM_SSH_KEY }}
+              source: "occupi-backend/docker-compose.prod.yml,occupi-backend/Dockerfile.prod"
+              target: "/home/${{ secrets.VM_USERNAME }}/occupi-backend-prod"
+
+      # SSH to VM and run commands
+      - name: SSH to VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+              cd /home/${{ secrets.VM_USERNAME }}/occupi-backend-prod/occupi-backend
+              echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml down
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml pull
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml up -d
