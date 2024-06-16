@@ -11,17 +11,6 @@ on:
       "occupi-backend/tests/**",
       ".github/workflows/lint-test-build-golang.yml"
     ]
-  
-  push:
-    branches: ["feat/actions/adding-env-variables-for-backend"]
-    paths: [
-      "occupi-backend/cmd/**",
-      "occupi-backend/configs/**",
-      "occupi-backend/pkg/**",
-      "occupi-backend/.golangci.yml",
-      "occupi-backend/tests/**",
-      ".github/workflows/lint-test-build-golang.yml"
-    ]
 
   workflow_dispatch:
 
