@@ -2,17 +2,23 @@ package tests
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	// "github.com/joho/godotenv"
 	// "github.com/stretchr/testify/assert"
 	// "github.com/stretchr/testify/mock"
@@ -141,13 +147,28 @@ func TestVerifyOTP_EmailNotRegistered(t *testing.T) {
 }*/
 
 func TestPingRoute(t *testing.T) {
-	// Create a new Gin router
-	r := gin.Default()
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
+	}
 
-	// Register the route
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "pong -> I am alive and kicking"})
-	})
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	ginRouter := gin.Default()
+
+	// adding rate limiting middleware
+	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	// Register routes
+	router.OccupiRouter(ginRouter, db)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("GET", "/ping", nil)
@@ -159,7 +180,7 @@ func TestPingRoute(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Serve the request
-	r.ServeHTTP(rr, req)
+	ginRouter.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
 	if status := rr.Code; status != http.StatusOK {
@@ -183,18 +204,30 @@ func TestPingRoute(t *testing.T) {
 }
 
 func TestRateLimit(t *testing.T) {
-	// Create a new Gin router
-	router := gin.Default()
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
+	}
 
-	// attach rate limit middleware
-	middleware.AttachRateLimitMiddleware(router)
+	// setup logger to log all server interactions
+	utils.SetupLogger()
 
-	// Register the route
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "pong -> I am alive and kicking"})
-	})
+	// connect to the database
+	db := database.ConnectToDatabase()
 
-	server := httptest.NewServer(router)
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	ginRouter := gin.Default()
+
+	// adding rate limiting middleware
+	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	// Register routes
+	router.OccupiRouter(ginRouter, db)
+
+	server := httptest.NewServer(ginRouter)
 	defer server.Close()
 
 	var wg sync.WaitGroup
@@ -230,18 +263,30 @@ func TestRateLimit(t *testing.T) {
 }
 
 func TestRateLimitWithMultipleIPs(t *testing.T) {
-	// Create a new Gin router
-	router := gin.Default()
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
+	}
 
-	// attach rate limit middleware
-	middleware.AttachRateLimitMiddleware(router)
+	// setup logger to log all server interactions
+	utils.SetupLogger()
 
-	// Register the route
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "pong -> I am alive and kicking"})
-	})
+	// connect to the database
+	db := database.ConnectToDatabase()
 
-	server := httptest.NewServer(router)
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	ginRouter := gin.Default()
+
+	// adding rate limiting middleware
+	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	// Register routes
+	router.OccupiRouter(ginRouter, db)
+
+	server := httptest.NewServer(ginRouter)
 	defer server.Close()
 
 	var wg sync.WaitGroup
@@ -320,26 +365,26 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 	assert.Equal(t, rateLimitedCountIP2, 0, "There should be no requests from IP2 that are rate limited")
 }
 
-/*
 func TestGetResource(t *testing.T) {
 	// Load environment variables from .env file
 	if err := godotenv.Load("../.env"); err != nil {
 		t.Fatal("Error loading .env file: ", err)
 	}
 
-	// Connect to the database
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
 	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
 
-	// create a new valid session for management of shared variables
-	appsession := models.New(nil, db)
-
 	// Register the route
-	r.GET("/api/resource", func(c *gin.Context) {
-		handlers.FetchResource(c, appsession)
-	})
+	router.OccupiRouter(r, db)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("GET", "/api/resource", nil)
@@ -354,8 +399,7 @@ func TestGetResource(t *testing.T) {
 	r.ServeHTTP(rr, req)
 
 	// Check the status code is what we expect.
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	if status := rr.Code; status != http.StatusNotFound {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusNotFound)
 	}
 }
-*/
