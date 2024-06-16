@@ -3,9 +3,9 @@
     "version": "0.0.1",
     "description": "Occupi documentation",
     "scripts": {
-        "dev": "APP_ENV=development next dev",
-        "build": "APP_ENV=production next build",
-        "start": "APP_ENV=production next start"
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start"
     },
     "dependencies": {
         "next": "^14.2.3", 
