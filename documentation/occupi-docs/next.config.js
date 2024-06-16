@@ -3,7 +3,7 @@ const withNextra = require('nextra')({
     themeConfig: './theme.config.jsx'
 })
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.APP_ENV === 'production';
 
 const prodConfig = {
   basePath: '/docs',
