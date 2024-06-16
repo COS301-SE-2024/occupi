@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,24 +7,35 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather, MaterialIcons } from "@expo/vector-icons";
-import { Radio, RadioGroup, RadioLabel, RadioIndicator, RadioIcon, VStack, CircleIcon, Icon, useColorMode } from "@gluestack-ui/themed";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
+import {
+  Radio,
+  RadioGroup,
+  RadioLabel,
+  RadioIndicator,
+  RadioIcon,
+  VStack,
+  CircleIcon,
+  Icon,
+  useColorMode,
+} from '@gluestack-ui/themed';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Appearance, useColorScheme } from 'react-native';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const COLORS = {
-  white: "#FFFFFF",
-  black: "#000000",
-  gray: "#BEBEBE",
-  primary: "#3366FF",
+  white: '#FFFFFF',
+  black: '#000000',
+  gray: '#BEBEBE',
+  primary: '#3366FF',
 };
 
 const FONTS = {
-  h3: { fontSize: 20, fontWeight: "bold" },
+  h3: { fontSize: 20, fontWeight: 'bold' },
   body3: { fontSize: 16 },
 };
 
@@ -34,17 +45,13 @@ const SIZES = {
   radius: 8,
 };
 
-
-
 const Profile = () => {
-
-  // this needs integration
   const [selectedGenderIndex, setSelectedGenderIndex] = useState(1);
-  const [name, setName] = useState("Sabrina Carpenter");
-  const [email, setEmail] = useState("u21546551@tuks.co.za");
-  const [employeeId, setEmployeeId] = useState("21546551");
-  const [phoneNumber, setPhoneNumber] = useState("011 101 1111");
-  const [pronouns, setPronouns] = useState("she/her");
+  const [name, setName] = useState('Sabrina Carpenter');
+  const [email, setEmail] = useState('sabrina@deloitte.co.za');
+  const [employeeId, setEmployeeId] = useState('31115087');
+  const [phoneNumber, setPhoneNumber] = useState('082 083 3988');
+  const [pronouns, setPronouns] = useState('she/her');
   const [date, setDate] = useState(new Date(2000, 6, 7));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const { colorMode, toggleColorMode } = useColorMode();
@@ -65,17 +72,29 @@ const Profile = () => {
 
   const onSave = () => {
     Alert.alert(
-      "Profile Saved",
-      `Name: ${name}\nDOB: ${date.toLocaleDateString()}\nGender: ${['Male', 'Female', 'N-Bin'][selectedGenderIndex]}\nEmail: ${email}\nEmployee ID: ${employeeId}\nPhone: ${phoneNumber}\nPronouns: ${pronouns}`
+      'Profile Saved',
+      `Name: ${name}\nDOB: ${date.toLocaleDateString()}\nGender: ${
+        ['Male', 'Female', 'N-Bin'][selectedGenderIndex]
+      }\nEmail: ${email}\nEmployee ID: ${employeeId}\nPhone: ${phoneNumber}\nPronouns: ${pronouns}`
     );
   };
 
   return (
-    <SafeAreaView style={colorScheme === 'dark' ? styles.containerdark : styles.containerlight}>
+    <SafeAreaView
+      style={colorScheme === 'dark' ? styles.containerdark : styles.containerlight}
+    >
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
-          <Icon as={Feather} name="chevron-left" size="30" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.push('/settings')} />
-          <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>My account</Text>
+          <Icon
+            as={Feather}
+            name="chevron-left"
+            size="30"
+            color={colorScheme === 'dark' ? 'white' : 'black'}
+            onPress={() => router.push('/settings')}
+          />
+          <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
+            My account
+          </Text>
           <MaterialIcons
             name="person-outline"
             size={24}
@@ -87,15 +106,19 @@ const Profile = () => {
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="Sabrina Carpenter"
-          placeholderTextColor={COLORS.gray}
           placeholder={name}
+          placeholderTextColor={COLORS.gray}
           onChangeText={setName}
         />
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Date of birth</Text>
-        <TouchableOpacity onPress={showDatePicker} style={colorScheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}>
-          <Text style={colorScheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>{date.toLocaleDateString()}</Text>
+        <TouchableOpacity
+          onPress={showDatePicker}
+          style={colorScheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}
+        >
+          <Text style={colorScheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>
+            {date.toLocaleDateString()}
+          </Text>
           <MaterialIcons name="calendar-today" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
         </TouchableOpacity>
         <DateTimePickerModal
@@ -106,30 +129,39 @@ const Profile = () => {
         />
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
-        {/* <RadioGroup
-          selectedIndex={selectedGenderIndex}
-          onChange={(index) => setSelectedGenderIndex(index)}
-          style={styles.radioGroup}
-        >
-          <RadioLabel>Male</RadioLabel>
-          <RadioLabel>Female</RadioLabel>
-          <RadioLabel>Non-Binary</RadioLabel>
-        </RadioGroup> */}
         <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
-          <VStack flexDirection="$row" justifyContent="$space-between" space="$2">
-            <Radio backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'} borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4">
+          <VStack flexDirection="row" justifyContent="space-between" space="$2">
+            <Radio
+              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              borderRadius="$15"
+              borderColor="#f2f2f2"
+              h={hp('5%')}
+              px="$4"
+            >
               <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
-            <Radio backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'} borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4">
+            <Radio
+              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              borderRadius="$15"
+              borderColor="#f2f2f2"
+              h={hp('5%')}
+              px="$4"
+            >
               <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Female</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
-            <Radio backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'} borderRadius="$15" borderColor="$#f2f2f2" h="$12" px="$4"> 
+            <Radio
+              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              borderRadius="$15"
+              borderColor="#f2f2f2"
+              h={hp('5%')}
+              px="$4"
+            >
               <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Other</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
@@ -138,31 +170,27 @@ const Profile = () => {
           </VStack>
         </RadioGroup>
 
-
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="**********@deloitte.co.za"
+          placeholder={email}
           placeholderTextColor={COLORS.gray}
-          // value={email}
           onChangeText={setEmail}
         />
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Employee ID</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="2******"
+          placeholder={employeeId}
           placeholderTextColor={COLORS.gray}
-          // placeholder={employeeId}
           onChangeText={setEmployeeId}
         />
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Number</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="011 *** ****"
+          placeholder={phoneNumber}
           placeholderTextColor={COLORS.gray}
-          // placeholder={phoneNumber}
           onChangeText={setPhoneNumber}
         />
 
@@ -171,14 +199,14 @@ const Profile = () => {
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder="she/her"
           placeholderTextColor={COLORS.gray}
-          placeholder={pronouns}
           onChangeText={setPronouns}
         />
 
         <TouchableOpacity style={styles.saveButton} onPress={onSave}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
             style={styles.saveButtonGradient}
           >
             <Text style={styles.saveButtonText}>Save</Text>
@@ -202,9 +230,9 @@ const styles = StyleSheet.create({
     padding: SIZES.padding,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: SIZES.padding,
   },
   icon: {
@@ -226,46 +254,46 @@ const styles = StyleSheet.create({
   inputdark: {
     height: 44,
     borderWidth: 1,
-    borderColor: "#5A5A5A",
+    borderColor: '#5A5A5A',
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     marginBottom: SIZES.padding,
     color: COLORS.white,
-    backgroundColor: "#5A5A5A"
+    backgroundColor: '#5A5A5A',
   },
   inputlight: {
     height: 44,
     borderWidth: 1,
-    borderColor: "#f2f2f2",
+    borderColor: '#f2f2f2',
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     marginBottom: SIZES.padding,
     color: COLORS.black,
-    backgroundColor: "#f2f2f2"
+    backgroundColor: '#f2f2f2',
   },
   dateInputContainerdark: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#5A5A5A",
+    borderColor: '#5A5A5A',
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     marginBottom: SIZES.padding,
     height: 44,
     color: COLORS.white,
-    backgroundColor: "#5A5A5A"
+    backgroundColor: '#5A5A5A',
   },
   dateInputContainerlight: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: "#f2f2f2",
+    borderColor: '#f2f2f2',
     borderRadius: SIZES.radius,
     paddingHorizontal: SIZES.padding,
     marginBottom: SIZES.padding,
     height: 44,
     color: COLORS.black,
-    backgroundColor: "#f2f2f2"
+    backgroundColor: '#f2f2f2',
   },
   textdark: {
     color: COLORS.white,
@@ -282,38 +310,25 @@ const styles = StyleSheet.create({
     color: COLORS.black,
   },
   radioGroup: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: SIZES.padding,
   },
-  radio: {
-    flex: 2,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: 'grey',
-    paddingHorizontal: SIZES.padding,
-    marginBottom: SIZES.padding,
-    borderRadius: SIZES.radius,
-    padding: 5,
-    margin: 10, // Add this line
-    backgroundColor: 'gray', // Add this line
-},
   saveButton: {
     height: 50,
     borderRadius: 15,
     marginTop: SIZES.padding,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   saveButtonGradient: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   saveButtonText: {
-    color: 'darkslategrey', // Change this line
+    color: 'darkslategrey',
     ...FONTS.h3,
-},
+  },
 });
 
 export default Profile;
