@@ -379,14 +379,18 @@ func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room
 	var cursor *mongo.Cursor
 	var err error
 
-	if floorNo == -1 {
+	findOptions := options.Find()
+	findOptions.SetLimit(10)       // Limit the results to 10
+	findOptions.SetSkip(int64(10)) // Skip the specified number of documents for pagination
+
+	if floorNo == 0 {
 		// Find all rooms
 		filter := bson.M{"floorNo": 0}
-		cursor, err = collection.Find(context.TODO(), filter)
+		cursor, err = collection.Find(context.TODO(), filter, findOptions)
 	} else {
 		// Find all rooms on the specified floor
 		filter := bson.M{"floorNo": floorNo}
-		cursor, err = collection.Find(context.TODO(), filter)
+		cursor, err = collection.Find(context.TODO(), filter, findOptions)
 	}
 
 	if err != nil {
