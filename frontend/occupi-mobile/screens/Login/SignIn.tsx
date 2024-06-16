@@ -46,7 +46,7 @@ import { Keyboard } from 'react-native';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { FingerprintIcon } from 'lucide-react-native';
 
-import { GoogleIcon, FacebookIcon } from './assets/Icons/Social';
+// import { GoogleIcon, FacebookIcon } from './assets/Icons/Social';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
