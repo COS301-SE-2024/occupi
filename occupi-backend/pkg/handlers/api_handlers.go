@@ -169,8 +169,8 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 		// If FloorNo is provided, filter by FloorNo
 		rooms, err = database.GetAllRooms(ctx, appsession.DB, room.FloorNo)
 	} else {
-		// If FloorNo is not provided, fetch all rooms
-		rooms, err = database.GetAllRooms(ctx, appsession.DB, -1) // Assuming 0 means no filter
+		// If FloorNo is not provided, fetch all rooms on the ground floor
+		rooms, err = database.GetAllRooms(ctx, appsession.DB, 0)
 	}
 
 	if err != nil {
