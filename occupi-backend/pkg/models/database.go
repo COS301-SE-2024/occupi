@@ -43,3 +43,12 @@ type OTP struct {
 type ViewBookings struct {
 	Email string `json:"email" bson:"email"`
 }
+
+type Room struct {
+	ID           string `json:"_id" bson:"_id,omitempty"`
+	RoomID       string `json:"roomId" bson:"roomId,omitempty"`
+	RoomNo       int    `json:"roomNo" bson:"roomNo,omitempty"`
+	FloorNo      int    `json:"floorNo" bson:"floorNo,omitempty"`
+	MinOccupancy int    `json:"minOccupancy" bson:"minOccupancy,omitempty"`
+	MaxOccupancy int    `json:"maxOccupancy" bson:"maxOccupancy,omitempty"`
+}
