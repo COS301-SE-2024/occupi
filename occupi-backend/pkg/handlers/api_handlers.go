@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"io"
 	"net/http"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
@@ -152,4 +154,29 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully checked in!", nil))
+}
+
+// View all available rooms
+func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
+	var room models.Room
+	if err := ctx.ShouldBindJSON(&room); err != nil && !errors.Is(err, io.EOF) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Floor No", nil))
+		return
+	}
+	var rooms []models.Room
+	var err error
+	if room.FloorNo != -1 {
+		// If FloorNo is provided, filter by FloorNo
+		rooms, err = database.GetAllRooms(ctx, appsession.DB, room.FloorNo)
+	} else {
+		// If FloorNo is not provided, fetch all rooms on the ground floor
+		rooms, err = database.GetAllRooms(ctx, appsession.DB, 0)
+	}
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get rooms", constants.InternalServerErrorCode, "Failed to get rooms", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched rooms!", rooms))
 }

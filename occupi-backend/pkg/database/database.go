@@ -371,3 +371,48 @@ func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, id string, email st
 	}
 	return true, nil
 }
+
+// Gets all rooms available for booking
+func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room, error) {
+	collection := db.Database("Occupi").Collection("Rooms")
+
+	var cursor *mongo.Cursor
+	var err error
+
+	findOptions := options.Find()
+	findOptions.SetLimit(10)       // Limit the results to 10
+	findOptions.SetSkip(int64(10)) // Skip the specified number of documents for pagination
+
+	if floorNo == 0 {
+		// Find all rooms
+		filter := bson.M{"floorNo": 0}
+		cursor, err = collection.Find(context.TODO(), filter, findOptions)
+	} else {
+		// Find all rooms on the specified floor
+		filter := bson.M{"floorNo": floorNo}
+		cursor, err = collection.Find(context.TODO(), filter, findOptions)
+	}
+
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var rooms []models.Room
+	for cursor.Next(context.TODO()) {
+		var room models.Room
+		if err := cursor.Decode(&room); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		rooms = append(rooms, room)
+	}
+
+	if err := cursor.Err(); err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	return rooms, nil
+}
