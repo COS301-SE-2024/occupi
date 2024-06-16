@@ -3,14 +3,7 @@ const withNextra = require('nextra')({
     themeConfig: './theme.config.jsx'
   })
 
-const isDev = process.env.NODE_ENV === 'development';
-
-const prodConfig = {
-  basePath: '/docs',
-  assetPrefix: '/docs/',
-};
-
-module.exports = withNextra(isDev ? {} : prodConfig);
+module.exports = withNextra({});
 
 // If you have other Next.js configurations, you can pass them as the parameter:
 // module.exports = withNextra({ /* other next.js config */ })
