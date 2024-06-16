@@ -1,16 +1,6 @@
 name: Lint, Test and Build golang
 
 on:
-  push:
-    branches: ["develop"]
-    paths: [
-      "occupi-backend/cmd/**",
-      "occupi-backend/configs/**",
-      "occupi-backend/pkg/**",
-      "occupi-backend/.golangci.yml",
-      "occupi-backend/tests/**",
-      ".github/workflows/lint-test-build-golang.yml"
-    ]
   pull_request:
     branches: ["develop"]
     paths: [

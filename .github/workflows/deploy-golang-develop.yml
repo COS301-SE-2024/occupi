@@ -1,0 +1,150 @@
+name: Lint, Test, Build and Deploy Dev golang
+
+on:
+  push:
+    branches: ["develop"]
+    paths: [
+      "occupi-backend/cmd/**",
+      "occupi-backend/configs/**",
+      "occupi-backend/pkg/**",
+      "occupi-backend/.golangci.yml",
+      "occupi-backend/.dev.env.gpg",
+      "occupi-backend/tests/**",
+      ".github/workflows/deploy-golang-develop.yml"
+    ]
+
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: occupi-backend
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'  # Specify the Go version you are using
+
+    - name: Install golangci-lint
+      run: |
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+    - name: Run golangci-lint
+      run: |
+        golangci-lint run
+
+  test:
+    needs: lint
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'  # Specify the Go version you are using
+
+    - name: Run tests
+      run: |
+        go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers ./tests/... -coverprofile=coverage.out
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  build-test:
+    needs: test
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'  # Specify the Go version you are using
+
+    - name: Build the code
+      run: |
+        go build -v cmd/occupi-backend/main.go
+
+  build-push-docker:
+    name: Build and Push Develop Docker Image
+    runs-on: ubuntu-latest
+    needs: build-test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Decrypt env variables
+      run: |
+            echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .dev.env.gpg > .dev.env
+            
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: occupi-backend
+        file: occupi-backend/Dockerfile.dev
+        platforms: linux/amd64,linux/arm64
+        push: true
+        no-cache: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest-develop
+
+  deploy:
+        name: Deploy for Develop
+        runs-on: ubuntu-latest
+        needs: build-push-docker
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Copy files to VM
+              uses: appleboy/scp-action@v0.1.5
+              with:
+                    host: ${{ secrets.VM_IP }}
+                    username: ${{ secrets.VM_USERNAME }}
+                    key: ${{ secrets.VM_SSH_KEY }}
+                    source: "occupi-backend/docker-compose.dev.yml,occupi-backend/Dockerfile.dev"
+                    target: "/home/${{ secrets.VM_USERNAME }}/occupi-backend-dev"
+
+            # SSH to VM and run commands
+            - name: SSH to VM
+              uses: appleboy/ssh-action@master
+              with:
+                host: ${{ secrets.VM_IP }}
+                username: ${{ secrets.VM_USERNAME }}
+                key: ${{ secrets.VM_SSH_KEY }}
+                script: |
+                    cd /home/${{ secrets.VM_USERNAME }}/occupi-backend-dev/occupi-backend
+                    echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+                    DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.dev.yml down
+                    DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.dev.yml pull
+                    DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.dev.yml up -d

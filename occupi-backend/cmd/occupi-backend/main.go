@@ -50,9 +50,15 @@ func main() {
 	keyFile := configs.GetKeyFileName()
 
 	// fatal error if the cert or key file is not found
-	if certFile == "CERT_FILE_NAME" || keyFile == "KEY_FILE_NAME" {
+	if certFile == "CERTIFICATE_FILE_PATH" || keyFile == "KEY_FILE_PATH" {
 		logrus.Fatal("Cert or Key file not found")
 	}
+
+	// logrus all env variables
+	logrus.Infof("Server running on port: %s", configs.GetPort())
+	logrus.Infof("Server running in %s mode", configs.GetGinRunMode())
+	logrus.Infof("Server running with cert file: %s", certFile)
+	logrus.Infof("Server running with key file: %s", keyFile)
 
 	// Listening on the port with TLS
 	if err := ginRouter.Run(":"+configs.GetPort()); err != nil {

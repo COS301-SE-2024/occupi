@@ -115,18 +115,18 @@ func GetSMTPHost() string {
 
 // gets the certificate file name as defined in the .env file
 func GetCertFileName() string {
-	certFileName := os.Getenv("CERT_FILE_NAME")
+	certFileName := os.Getenv("CERTIFICATE_FILE_PATH")
 	if certFileName == "" {
-		certFileName = "CERT_FILE_NAME"
+		certFileName = "CERTIFICATE_FILE_PATH"
 	}
 	return certFileName
 }
 
 // gets the key file name as defined in the .env file
 func GetKeyFileName() string {
-	keyFileName := os.Getenv("KEY_FILE_NAME")
+	keyFileName := os.Getenv("KEY_FILE_PATH")
 	if keyFileName == "" {
-		keyFileName = "KEY_FILE_NAME"
+		keyFileName = "KEY_FILE_PATH"
 	}
 	return keyFileName
 }
