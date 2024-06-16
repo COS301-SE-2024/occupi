@@ -5,8 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    env_file:
-      - .prod.env
     environment:
       - ENV=production
     networks:
