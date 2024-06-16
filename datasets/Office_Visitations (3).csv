@@ -1,0 +1,1001 @@
+uuid,Employee Name,Department,Visit_Date,Entry_time,Exit_time,Purpose of Visit,Day of Week
+66687e88fc13ae4e6e2344ea,Merrill Itscowics,Sales,2024-01-04,9:19,17:17,Work,Thursday
+66687e88fc13ae4e6e2344eb,Desdemona Landall,Business Development,2024-10-06,8:44,15:57,Meeting,Sunday
+66687e88fc13ae4e6e2344ec,Avram Duham,Product Management,2024-09-05,8:22,16:03,Client Visit,Thursday
+66687e88fc13ae4e6e2344ed,Avigdor Bogays,Training,2024-12-02,8:31,14:44,Work,Monday
+66687e88fc13ae4e6e2344ee,Heindrick Jaxon,Human Resources,2024-12-06,7:08,15:50,Work,Friday
+66687e88fc13ae4e6e2344ef,Rhoda Tottie,Legal,2024-12-03,9:57,15:30,Meeting,Tuesday
+66687e88fc13ae4e6e2344f0,Burch Sexcey,Product Management,2024-06-07,8:38,17:04,Training,Friday
+66687e88fc13ae4e6e2344f1,Gregoire Bachelor,Research and Development,2024-09-03,7:31,14:48,Meeting,Tuesday
+66687e88fc13ae4e6e2344f2,Aguie Robbins,Services,2024-07-04,7:13,16:21,Work,Thursday
+66687e88fc13ae4e6e2344f3,Alfred Wressell,Sales,2024-04-03,7:42,15:34,Client Visit,Wednesday
+66687e88fc13ae4e6e2344f4,Marcile Easom,Research and Development,2024-09-05,9:44,14:57,Client Visit,Thursday
+66687e88fc13ae4e6e2344f5,Otes Angless,Support,2024-10-07,6:02,17:24,Meeting,Monday
+66687e88fc13ae4e6e2344f6,Haily Flavelle,Human Resources,2024-11-07,6:51,17:36,Meeting,Thursday
+66687e88fc13ae4e6e2344f7,Sauveur Rudeforth,Legal,2024-08-03,6:30,15:44,Work,Saturday
+66687e88fc13ae4e6e2344f8,Royall Dillon,Legal,2024-11-06,6:37,17:29,Meeting,Wednesday
+66687e88fc13ae4e6e2344f9,Lamont Tavner,Support,2024-12-02,8:58,15:30,Meeting,Monday
+66687e88fc13ae4e6e2344fa,Killian Welden,Marketing,2024-01-01,8:28,14:31,Work,Monday
+66687e88fc13ae4e6e2344fb,Cass Boom,Research and Development,2024-01-04,8:50,16:08,Meeting,Thursday
+66687e88fc13ae4e6e2344fc,Cointon Cottill,Services,2024-01-02,9:38,17:56,Training,Tuesday
+66687e88fc13ae4e6e2344fd,Hilton Shimwell,Human Resources,2024-11-02,7:36,15:05,Work,Saturday
+66687e88fc13ae4e6e2344fe,Belle Penhalewick,Human Resources,2024-03-06,7:58,14:41,Meeting,Wednesday
+66687e88fc13ae4e6e2344ff,Klaus Scates,Services,2024-07-03,9:16,15:14,Work,Wednesday
+66687e88fc13ae4e6e234500,Ethyl Trevna,Legal,2024-01-04,8:06,16:55,Training,Thursday
+66687e88fc13ae4e6e234501,Sly Reaney,Product Management,2024-11-07,6:20,17:16,Meeting,Thursday
+66687e88fc13ae4e6e234502,Deidre Oldnall,Business Development,2024-09-05,8:45,14:06,Work,Thursday
+66687e88fc13ae4e6e234503,Roger Cutchee,Sales,2024-10-05,9:10,17:37,Work,Saturday
+66687e88fc13ae4e6e234504,Donia McClinton,Research and Development,2024-10-07,6:26,16:53,Client Visit,Monday
+66687e88fc13ae4e6e234505,Ernst Cossar,Product Management,2024-11-07,8:22,16:07,Work,Thursday
+66687e88fc13ae4e6e234506,Jamie Fawdrie,Human Resources,2024-11-07,6:43,16:45,Client Visit,Thursday
+66687e88fc13ae4e6e234507,Olympie Waller,Training,2024-12-05,7:54,15:53,Training,Thursday
+66687e88fc13ae4e6e234508,Gianna MacAlister,Business Development,2024-03-01,6:06,17:10,Work,Friday
+66687e88fc13ae4e6e234509,Mikael Glide,Marketing,2024-11-07,6:56,15:27,Work,Thursday
+66687e88fc13ae4e6e23450a,Petunia Skamal,Training,2024-02-05,8:27,17:56,Meeting,Monday
+66687e88fc13ae4e6e23450b,Dacie Candie,Business Development,2024-10-05,7:20,14:02,Training,Saturday
+66687e88fc13ae4e6e23450c,Minda Lemmens,Services,2024-10-04,7:31,16:03,Work,Friday
+66687e88fc13ae4e6e23450d,Bernardo Noweak,Services,2024-05-03,8:42,16:11,Work,Friday
+66687e88fc13ae4e6e23450e,Valene Jacobowitz,Product Management,2024-03-07,8:08,16:04,Client Visit,Thursday
+66687e88fc13ae4e6e23450f,Shaun Carefull,Engineering,2024-04-07,9:07,15:49,Work,Sunday
+66687e88fc13ae4e6e234510,Raddy Oganesian,Product Management,2024-04-03,9:36,17:35,Work,Wednesday
+66687e88fc13ae4e6e234511,Melvyn Holywell,Accounting,2024-01-07,9:44,14:06,Work,Sunday
+66687e88fc13ae4e6e234512,Eugenie Tapscott,Human Resources,2024-05-06,9:15,16:33,Work,Monday
+66687e88fc13ae4e6e234513,Leanna Test,Support,2024-05-01,7:38,14:57,Work,Wednesday
+66687e88fc13ae4e6e234514,Raphael O'Nolan,Training,2024-06-06,7:39,15:27,Work,Thursday
+66687e88fc13ae4e6e234515,Gizela McClinton,Marketing,2024-03-07,6:57,17:22,Training,Thursday
+66687e88fc13ae4e6e234516,Gwendolin Corradeschi,Legal,2024-03-06,9:26,17:52,Training,Wednesday
+66687e88fc13ae4e6e234517,Taddeo Lever,Services,2024-04-01,7:03,17:22,Training,Monday
+66687e88fc13ae4e6e234518,Kass Mulbry,Support,2024-01-06,9:45,16:03,Meeting,Saturday
+66687e88fc13ae4e6e234519,Conny Trimmill,Engineering,2024-01-02,7:57,14:56,Client Visit,Tuesday
+66687e88fc13ae4e6e23451a,Dana Hacquoil,Human Resources,2024-02-03,9:26,17:26,Training,Saturday
+66687e88fc13ae4e6e23451b,Katha Charer,Services,2024-10-01,8:57,15:25,Meeting,Tuesday
+66687e88fc13ae4e6e23451c,Danyette Videler,Sales,2024-07-06,7:46,14:17,Meeting,Saturday
+66687e88fc13ae4e6e23451d,Linn Rickersey,Training,2024-03-07,8:31,15:40,Training,Thursday
+66687e88fc13ae4e6e23451e,Shalna Godilington,Support,2024-11-05,8:14,16:16,Training,Tuesday
+66687e88fc13ae4e6e23451f,Thebault Giovanni,Marketing,2024-08-01,6:27,16:39,Training,Thursday
+66687e88fc13ae4e6e234520,Lorens Quye,Research and Development,2024-09-03,6:07,16:47,Meeting,Tuesday
+66687e88fc13ae4e6e234521,Rosalia Sabathe,Human Resources,2024-11-04,6:23,15:18,Work,Monday
+66687e88fc13ae4e6e234522,Jonis Dominichetti,Marketing,2024-01-03,7:19,16:10,Work,Wednesday
+66687e88fc13ae4e6e234523,Gasper Lemmers,Business Development,2024-06-05,6:33,17:35,Meeting,Wednesday
+66687e88fc13ae4e6e234524,Car Gaishson,Support,2024-04-01,7:43,15:40,Training,Monday
+66687e88fc13ae4e6e234525,Roderigo Casali,Accounting,2024-10-01,6:55,17:06,Meeting,Tuesday
+66687e88fc13ae4e6e234526,Hilly Edgar,Human Resources,2024-09-03,6:10,16:58,Training,Tuesday
+66687e88fc13ae4e6e234527,Debbie Iacobucci,Engineering,2024-05-07,8:53,17:07,Meeting,Tuesday
+66687e88fc13ae4e6e234528,Caterina Dami,Marketing,2024-12-04,9:48,15:37,Training,Wednesday
+66687e88fc13ae4e6e234529,Cad Plaunch,Research and Development,2024-09-04,9:03,14:16,Work,Wednesday
+66687e88fc13ae4e6e23452a,Etan Ceillier,Marketing,2024-10-04,7:44,17:25,Work,Friday
+66687e88fc13ae4e6e23452b,Starr Franzonello,Product Management,2024-07-04,8:13,14:03,Meeting,Thursday
+66687e88fc13ae4e6e23452c,Elicia Pinwell,Research and Development,2024-12-06,7:26,14:04,Meeting,Friday
+66687e88fc13ae4e6e23452d,Bendix Mattielli,Human Resources,2024-05-04,8:47,14:41,Work,Saturday
+66687e88fc13ae4e6e23452e,Jehu Mastrantone,Business Development,2024-02-06,7:26,17:10,Work,Tuesday
+66687e88fc13ae4e6e23452f,Shir Orsi,Research and Development,2024-06-07,6:38,16:54,Meeting,Friday
+66687e88fc13ae4e6e234530,Clerkclaude Pfleger,Human Resources,2024-01-07,7:58,16:16,Work,Sunday
+66687e88fc13ae4e6e234531,Luelle George,Engineering,2024-10-01,9:50,16:13,Work,Tuesday
+66687e88fc13ae4e6e234532,Mortie Rosewell,Research and Development,2024-08-02,8:26,17:05,Work,Friday
+66687e88fc13ae4e6e234533,Alick Sheppard,Legal,2024-05-05,6:52,15:32,Training,Sunday
+66687e88fc13ae4e6e234534,Eydie Gerant,Accounting,2024-12-06,7:00,14:10,Client Visit,Friday
+66687e88fc13ae4e6e234535,Evered Hanaby,Human Resources,2024-03-07,7:19,15:28,Work,Thursday
+66687e88fc13ae4e6e234536,Tristan Tickel,Research and Development,2024-10-03,7:25,16:46,Work,Thursday
+66687e88fc13ae4e6e234537,Loralie Cormode,Research and Development,2024-05-05,6:10,16:05,Work,Sunday
+66687e88fc13ae4e6e234538,Perla Andrzejowski,Business Development,2024-06-06,8:00,17:56,Client Visit,Thursday
+66687e88fc13ae4e6e234539,Winfield Weiner,Training,2024-10-02,7:23,16:38,Meeting,Wednesday
+66687e88fc13ae4e6e23453a,Nertie Biggs,Product Management,2024-02-06,8:06,16:21,Meeting,Tuesday
+66687e88fc13ae4e6e23453b,Geri Woolacott,Research and Development,2024-10-02,7:28,16:59,Work,Wednesday
+66687e88fc13ae4e6e23453c,Darlleen Reape,Support,2024-06-06,9:48,15:52,Training,Thursday
+66687e88fc13ae4e6e23453d,Gussi Clutton,Sales,2024-11-06,6:34,16:57,Work,Wednesday
+66687e88fc13ae4e6e23453e,Salaidh Barnes,Business Development,2024-09-04,8:58,16:59,Work,Wednesday
+66687e88fc13ae4e6e23453f,Barbara-anne Ladloe,Legal,2024-08-02,9:59,16:24,Training,Friday
+66687e88fc13ae4e6e234540,Araldo Blain,Support,2024-07-06,8:21,17:04,Training,Saturday
+66687e88fc13ae4e6e234541,Tabina Foulkes,Research and Development,2024-12-07,9:22,14:47,Training,Saturday
+66687e88fc13ae4e6e234542,Blondie Crippell,Product Management,2024-11-03,6:32,15:20,Meeting,Sunday
+66687e88fc13ae4e6e234543,Elias Jelfs,Product Management,2024-06-06,7:45,17:34,Training,Thursday
+66687e88fc13ae4e6e234544,Libby Baldinotti,Product Management,2024-01-01,8:20,16:31,Meeting,Monday
+66687e88fc13ae4e6e234545,Kiri Scarfe,Support,2024-11-07,8:17,17:24,Meeting,Thursday
+66687e88fc13ae4e6e234546,Fanechka Kubasek,Business Development,2024-02-04,8:43,15:31,Work,Sunday
+66687e88fc13ae4e6e234547,Malynda Gude,Marketing,2024-05-07,6:36,16:33,Meeting,Tuesday
+66687e88fc13ae4e6e234548,Wait Jeafferson,Support,2024-05-02,8:27,17:59,Meeting,Thursday
+66687e88fc13ae4e6e234549,Axel Farnworth,Human Resources,2024-04-05,6:31,14:26,Work,Friday
+66687e88fc13ae4e6e23454a,Lockwood Mace,Accounting,2024-04-02,7:43,15:54,Work,Tuesday
+66687e88fc13ae4e6e23454b,Mendy Melburg,Sales,2024-04-02,6:11,17:26,Work,Tuesday
+66687e88fc13ae4e6e23454c,Rosemonde Gapp,Legal,2024-03-07,6:49,16:27,Meeting,Thursday
+66687e88fc13ae4e6e23454d,Shep Realph,Research and Development,2024-10-01,6:03,16:58,Meeting,Tuesday
+66687e88fc13ae4e6e23454e,Corrie Spurrier,Training,2024-07-05,7:59,17:18,Training,Friday
+66687e88fc13ae4e6e23454f,Myrna Bilbrooke,Sales,2024-03-02,7:22,15:01,Meeting,Saturday
+66687e88fc13ae4e6e234550,Viole Weal,Services,2024-09-02,8:06,17:29,Client Visit,Monday
+66687e88fc13ae4e6e234551,Bobbe Dee,Research and Development,2024-06-05,7:57,14:50,Meeting,Wednesday
+66687e88fc13ae4e6e234552,Liva Minchinden,Human Resources,2024-11-04,6:10,14:43,Meeting,Monday
+66687e88fc13ae4e6e234553,Estevan Gurden,Business Development,2024-03-02,7:01,17:10,Work,Saturday
+66687e88fc13ae4e6e234554,Gayleen Sterrie,Support,2024-06-07,7:57,16:07,Work,Friday
+66687e88fc13ae4e6e234555,Ebenezer Grishakov,Human Resources,2024-07-03,7:31,14:10,Meeting,Wednesday
+66687e88fc13ae4e6e234556,Karoly Staden,Product Management,2024-08-06,6:04,16:34,Work,Tuesday
+66687e88fc13ae4e6e234557,Lindy Daice,Product Management,2024-08-07,7:40,17:38,Work,Wednesday
+66687e88fc13ae4e6e234558,Kayley Tedahl,Support,2024-05-05,9:00,16:32,Meeting,Sunday
+66687e88fc13ae4e6e234559,Stephie Brockhurst,Support,2024-10-03,9:17,15:58,Work,Thursday
+66687e88fc13ae4e6e23455a,Andreana Miles,Training,2024-08-04,7:25,14:46,Meeting,Sunday
+66687e88fc13ae4e6e23455b,Truda Bisco,Marketing,2024-02-02,6:43,14:37,Meeting,Friday
+66687e88fc13ae4e6e23455c,Lanae Todari,Research and Development,2024-03-06,9:00,16:09,Training,Wednesday
+66687e88fc13ae4e6e23455d,Grover Battelle,Product Management,2024-02-04,6:47,14:06,Meeting,Sunday
+66687e88fc13ae4e6e23455e,Kiri Punyer,Support,2024-05-01,9:42,14:31,Meeting,Wednesday
+66687e88fc13ae4e6e23455f,Holly Marsland,Business Development,2024-06-04,9:43,14:20,Training,Tuesday
+66687e88fc13ae4e6e234560,Drugi Phlippsen,Sales,2024-12-06,9:35,14:25,Work,Friday
+66687e88fc13ae4e6e234561,Terra Darnody,Legal,2024-08-04,6:21,16:44,Meeting,Sunday
+66687e88fc13ae4e6e234562,Ky Warrillow,Services,2024-12-03,6:56,14:07,Meeting,Tuesday
+66687e88fc13ae4e6e234563,Cecile Kattenhorn,Legal,2024-12-05,9:26,17:18,Work,Thursday
+66687e88fc13ae4e6e234564,Jannel St Quenin,Marketing,2024-06-07,7:04,16:31,Meeting,Friday
+66687e88fc13ae4e6e234565,Fletcher Condell,Legal,2024-12-01,7:05,17:56,Work,Sunday
+66687e88fc13ae4e6e234566,Tedra Di Roberto,Human Resources,2024-03-02,9:02,14:37,Client Visit,Saturday
+66687e88fc13ae4e6e234567,Melessa Frede,Support,2024-05-07,6:57,16:05,Client Visit,Tuesday
+66687e88fc13ae4e6e234568,Francine Goymer,Training,2024-05-07,9:00,15:08,Training,Tuesday
+66687e88fc13ae4e6e234569,Jocko Peasby,Engineering,2024-11-02,9:54,17:44,Meeting,Saturday
+66687e88fc13ae4e6e23456a,Bartram Ibberson,Accounting,2024-12-04,8:33,16:24,Work,Wednesday
+66687e88fc13ae4e6e23456b,Arnaldo Davion,Engineering,2024-04-03,9:17,16:41,Work,Wednesday
+66687e88fc13ae4e6e23456c,Susy Eustes,Accounting,2024-01-01,8:14,15:41,Training,Monday
+66687e88fc13ae4e6e23456d,Morna Mougin,Services,2024-07-03,8:10,16:46,Training,Wednesday
+66687e88fc13ae4e6e23456e,Christine Stratten,Support,2024-03-03,8:48,15:42,Training,Sunday
+66687e88fc13ae4e6e23456f,Tyson Kenny,Research and Development,2024-05-04,9:08,15:42,Meeting,Saturday
+66687e88fc13ae4e6e234570,Ermengarde Pearsey,Services,2024-12-05,8:22,14:41,Meeting,Thursday
+66687e88fc13ae4e6e234571,Phineas McPeeters,Training,2024-06-03,9:44,15:57,Work,Monday
+66687e88fc13ae4e6e234572,Rosalynd Fortnon,Legal,2024-07-02,8:22,15:42,Training,Tuesday
+66687e88fc13ae4e6e234573,Tybie McIlmurray,Engineering,2024-03-07,7:42,15:36,Meeting,Thursday
+66687e88fc13ae4e6e234574,Ayn Condliffe,Business Development,2024-10-07,9:45,17:49,Meeting,Monday
+66687e88fc13ae4e6e234575,Thornton Chamberlain,Sales,2024-05-07,8:22,17:32,Work,Tuesday
+66687e88fc13ae4e6e234576,Emmalyn Jobern,Human Resources,2024-07-04,7:08,15:59,Work,Thursday
+66687e88fc13ae4e6e234577,Skylar Skelbeck,Research and Development,2024-02-06,6:37,15:45,Meeting,Tuesday
+66687e88fc13ae4e6e234578,Meryl Petty,Sales,2024-09-03,7:26,15:10,Training,Tuesday
+66687e88fc13ae4e6e234579,Stephanie Begg,Business Development,2024-02-06,8:22,16:02,Work,Tuesday
+66687e88fc13ae4e6e23457a,Mimi Kincey,Accounting,2024-05-06,6:36,17:27,Meeting,Monday
+66687e88fc13ae4e6e23457b,Warden Dobbinson,Sales,2024-11-02,9:04,14:26,Training,Saturday
+66687e88fc13ae4e6e23457c,Jeramie Bugbee,Human Resources,2024-04-02,6:52,17:38,Work,Tuesday
+66687e88fc13ae4e6e23457d,Laural Gredden,Product Management,2024-10-03,7:29,14:29,Meeting,Thursday
+66687e88fc13ae4e6e23457e,Stinky Caughey,Sales,2024-12-03,9:56,17:17,Client Visit,Tuesday
+66687e88fc13ae4e6e23457f,Kay Tebbett,Engineering,2024-12-07,9:31,15:57,Work,Saturday
+66687e88fc13ae4e6e234580,Cordi Keaveny,Human Resources,2024-03-03,7:10,15:06,Work,Sunday
+66687e88fc13ae4e6e234581,Nikolos Wharby,Business Development,2024-01-03,6:55,16:53,Client Visit,Wednesday
+66687e88fc13ae4e6e234582,Dorthea Cearley,Engineering,2024-11-03,6:32,16:13,Work,Sunday
+66687e88fc13ae4e6e234583,Marlin Lezemere,Accounting,2024-04-06,8:55,17:30,Work,Saturday
+66687e88fc13ae4e6e234584,Ruthann Grunnell,Accounting,2024-01-06,6:31,14:57,Work,Saturday
+66687e88fc13ae4e6e234585,Cloris Winsome,Accounting,2024-03-06,9:18,16:30,Client Visit,Wednesday
+66687e88fc13ae4e6e234586,Tani Paik,Legal,2024-05-06,8:21,16:28,Work,Monday
+66687e88fc13ae4e6e234587,Marthena Forkan,Training,2024-05-07,6:22,17:39,Client Visit,Tuesday
+66687e88fc13ae4e6e234588,Carey Corsan,Engineering,2024-01-06,8:31,15:17,Meeting,Saturday
+66687e88fc13ae4e6e234589,Marylee Petrus,Product Management,2024-05-02,8:32,14:15,Work,Thursday
+66687e88fc13ae4e6e23458a,Aundrea Saunton,Services,2024-06-01,9:51,17:32,Client Visit,Saturday
+66687e88fc13ae4e6e23458b,Sherwin Hartly,Support,2024-11-05,9:05,16:43,Training,Tuesday
+66687e88fc13ae4e6e23458c,Wilhelmine Witts,Engineering,2024-03-03,7:07,16:24,Work,Sunday
+66687e88fc13ae4e6e23458d,Kayla Hafner,Human Resources,2024-06-06,7:57,14:38,Training,Thursday
+66687e88fc13ae4e6e23458e,Shermy Shuxsmith,Research and Development,2024-04-01,6:58,16:50,Work,Monday
+66687e88fc13ae4e6e23458f,Cece Guslon,Legal,2024-10-04,6:23,15:31,Client Visit,Friday
+66687e88fc13ae4e6e234590,Aurthur Kunz,Marketing,2024-01-04,6:56,14:12,Meeting,Thursday
+66687e88fc13ae4e6e234591,Coralyn Kroon,Engineering,2024-08-07,7:19,14:57,Meeting,Wednesday
+66687e88fc13ae4e6e234592,Dimitry Gillion,Marketing,2024-02-05,8:44,17:15,Training,Monday
+66687e88fc13ae4e6e234593,Hagan Iannetti,Legal,2024-05-05,8:17,16:59,Work,Sunday
+66687e88fc13ae4e6e234594,Donnajean Staker,Human Resources,2024-04-06,9:46,16:31,Meeting,Saturday
+66687e88fc13ae4e6e234595,Drucie Jekel,Support,2024-03-01,6:32,14:04,Meeting,Friday
+66687e88fc13ae4e6e234596,Marget Probert,Human Resources,2024-03-05,7:33,14:03,Work,Tuesday
+66687e88fc13ae4e6e234597,Shoshanna Turner,Human Resources,2024-06-01,8:28,14:40,Training,Saturday
+66687e88fc13ae4e6e234598,Normy Hickenbottom,Accounting,2024-12-05,6:07,15:02,Meeting,Thursday
+66687e88fc13ae4e6e234599,Terence Garforth,Research and Development,2024-10-02,9:43,16:16,Work,Wednesday
+66687e88fc13ae4e6e23459a,Darwin Finlay,Legal,2024-02-03,7:57,17:36,Work,Saturday
+66687e88fc13ae4e6e23459b,Moe Mason,Product Management,2024-08-05,9:37,17:12,Work,Monday
+66687e88fc13ae4e6e23459c,Kristy Tugman,Accounting,2024-11-05,9:34,15:58,Work,Tuesday
+66687e88fc13ae4e6e23459d,Teddy Feldbau,Support,2024-09-04,7:55,17:23,Meeting,Wednesday
+66687e88fc13ae4e6e23459e,Hillery Froom,Sales,2024-01-05,8:58,15:29,Training,Friday
+66687e88fc13ae4e6e23459f,Luca Rubertis,Sales,2024-01-07,6:00,17:02,Work,Sunday
+66687e88fc13ae4e6e2345a0,Gallard Slarke,Accounting,2024-10-04,9:18,15:25,Meeting,Friday
+66687e88fc13ae4e6e2345a1,Celestia Waszkiewicz,Training,2024-01-06,9:32,15:11,Training,Saturday
+66687e88fc13ae4e6e2345a2,Rosalinde Bradick,Product Management,2024-02-04,7:32,17:32,Work,Sunday
+66687e88fc13ae4e6e2345a3,Em Woollett,Research and Development,2024-05-05,8:57,16:17,Client Visit,Sunday
+66687e88fc13ae4e6e2345a4,Lela Stock,Business Development,2024-02-06,8:59,14:56,Meeting,Tuesday
+66687e88fc13ae4e6e2345a5,Lizzie Sallier,Marketing,2024-05-07,8:54,15:16,Work,Tuesday
+66687e88fc13ae4e6e2345a6,Benni Thormwell,Sales,2024-02-01,6:18,16:50,Work,Thursday
+66687e88fc13ae4e6e2345a7,Karim Fraine,Training,2024-03-04,9:10,17:36,Meeting,Monday
+66687e88fc13ae4e6e2345a8,Tomkin McCafferky,Support,2024-08-05,6:17,16:22,Meeting,Monday
+66687e88fc13ae4e6e2345a9,Cher Friedman,Accounting,2024-12-03,8:01,15:24,Client Visit,Tuesday
+66687e88fc13ae4e6e2345aa,Hogan Chewter,Support,2024-12-07,6:21,16:23,Meeting,Saturday
+66687e88fc13ae4e6e2345ab,Nolan Choulerton,Sales,2024-08-06,9:48,14:16,Meeting,Tuesday
+66687e88fc13ae4e6e2345ac,Christin Annatt,Support,2024-10-05,7:17,14:06,Meeting,Saturday
+66687e88fc13ae4e6e2345ad,Ashly Knowles,Research and Development,2024-02-05,7:14,14:24,Client Visit,Monday
+66687e88fc13ae4e6e2345ae,Lisha Honnan,Training,2024-10-02,9:47,15:45,Training,Wednesday
+66687e88fc13ae4e6e2345af,Danny Janku,Sales,2024-01-04,6:43,14:54,Work,Thursday
+66687e88fc13ae4e6e2345b0,Milka Karby,Engineering,2024-07-01,9:39,16:18,Meeting,Monday
+66687e88fc13ae4e6e2345b1,Mortimer Elves,Human Resources,2024-03-07,6:43,15:32,Work,Thursday
+66687e88fc13ae4e6e2345b2,Jada Roomes,Research and Development,2024-01-02,8:45,15:41,Work,Tuesday
+66687e88fc13ae4e6e2345b3,Joel Bruhnsen,Research and Development,2024-10-07,8:22,15:36,Training,Monday
+66687e88fc13ae4e6e2345b4,Rick Casa,Services,2024-01-03,6:21,14:14,Work,Wednesday
+66687e88fc13ae4e6e2345b5,Jackie Sailor,Business Development,2024-07-01,6:31,16:42,Meeting,Monday
+66687e88fc13ae4e6e2345b6,Pete Hardbattle,Research and Development,2024-08-05,7:21,15:54,Work,Monday
+66687e88fc13ae4e6e2345b7,Gerardo Poynser,Engineering,2024-02-02,9:26,17:09,Work,Friday
+66687e88fc13ae4e6e2345b8,Ophelie Dagleas,Marketing,2024-03-06,7:38,16:32,Work,Wednesday
+66687e88fc13ae4e6e2345b9,Gertrudis Grzeszczyk,Accounting,2024-01-05,8:14,14:40,Work,Friday
+66687e88fc13ae4e6e2345ba,Jervis Jenkerson,Legal,2024-08-02,7:34,16:29,Work,Friday
+66687e88fc13ae4e6e2345bb,Carissa Ghiron,Marketing,2024-09-04,8:11,16:46,Meeting,Wednesday
+66687e88fc13ae4e6e2345bc,Merl Harrad,Legal,2024-06-07,7:20,15:54,Meeting,Friday
+66687e88fc13ae4e6e2345bd,Ginelle Rubens,Engineering,2024-06-01,8:21,15:30,Training,Saturday
+66687e88fc13ae4e6e2345be,Minda Maccaig,Accounting,2024-05-01,7:30,16:26,Work,Wednesday
+66687e88fc13ae4e6e2345bf,Gusta Ledrun,Marketing,2024-09-06,6:28,17:01,Client Visit,Friday
+66687e88fc13ae4e6e2345c0,Dorian Matthewman,Support,2024-11-03,6:22,17:10,Work,Sunday
+66687e88fc13ae4e6e2345c1,Maressa Knightley,Services,2024-08-06,7:23,15:15,Work,Tuesday
+66687e88fc13ae4e6e2345c2,Joela Janaszkiewicz,Training,2024-01-02,6:02,16:10,Work,Tuesday
+66687e88fc13ae4e6e2345c3,Linzy Markham,Accounting,2024-11-02,6:59,16:11,Work,Saturday
+66687e88fc13ae4e6e2345c4,Hagen Echalie,Services,2024-07-06,6:04,16:56,Meeting,Saturday
+66687e88fc13ae4e6e2345c5,Derwin Fulun,Engineering,2024-12-06,8:53,17:53,Meeting,Friday
+66687e88fc13ae4e6e2345c6,Murdock Rosle,Sales,2024-08-05,6:15,17:43,Meeting,Monday
+66687e88fc13ae4e6e2345c7,Lock Ceaser,Legal,2024-02-05,9:32,14:02,Work,Monday
+66687e88fc13ae4e6e2345c8,Dunc Milligan,Sales,2024-08-06,9:37,15:10,Work,Tuesday
+66687e88fc13ae4e6e2345c9,Inesita Belfitt,Human Resources,2024-05-01,6:12,15:56,Training,Wednesday
+66687e88fc13ae4e6e2345ca,Ethan Calterone,Accounting,2024-08-06,8:56,16:53,Meeting,Tuesday
+66687e88fc13ae4e6e2345cb,Reinhold Witchell,Human Resources,2024-04-04,7:38,16:52,Meeting,Thursday
+66687e88fc13ae4e6e2345cc,Myrtie Kindred,Marketing,2024-06-05,6:51,17:27,Work,Wednesday
+66687e88fc13ae4e6e2345cd,Kaylyn Jurek,Legal,2024-07-02,9:43,15:19,Meeting,Tuesday
+66687e88fc13ae4e6e2345ce,Gran Henfre,Training,2024-05-07,8:13,14:17,Work,Tuesday
+66687e88fc13ae4e6e2345cf,Carleen Gosnay,Human Resources,2024-07-03,8:34,14:41,Training,Wednesday
+66687e88fc13ae4e6e2345d0,Thomas Eglaise,Product Management,2024-06-02,9:56,15:26,Meeting,Sunday
+66687e88fc13ae4e6e2345d1,Ebba Havock,Human Resources,2024-10-04,9:59,14:18,Client Visit,Friday
+66687e88fc13ae4e6e2345d2,Garvy Edbrooke,Accounting,2024-10-01,9:58,15:34,Client Visit,Tuesday
+66687e88fc13ae4e6e2345d3,Meredeth Bellenie,Support,2024-03-03,6:52,17:35,Client Visit,Sunday
+66687e88fc13ae4e6e2345d4,Lilith McClarence,Support,2024-01-04,6:41,14:02,Meeting,Thursday
+66687e88fc13ae4e6e2345d5,Myrwyn Duncombe,Research and Development,2024-08-02,8:18,17:46,Client Visit,Friday
+66687e88fc13ae4e6e2345d6,Gerianna Tranfield,Training,2024-06-07,7:59,14:32,Work,Friday
+66687e88fc13ae4e6e2345d7,Sheeree Dottridge,Training,2024-06-05,8:28,15:46,Work,Wednesday
+66687e88fc13ae4e6e2345d8,Didi Ottawell,Legal,2024-03-04,7:49,16:51,Meeting,Monday
+66687e88fc13ae4e6e2345d9,Wilek Coxhell,Support,2024-05-07,6:32,15:47,Meeting,Tuesday
+66687e88fc13ae4e6e2345da,Theodosia Leehane,Business Development,2024-09-07,6:56,15:49,Training,Saturday
+66687e88fc13ae4e6e2345db,Dolley Wivell,Training,2024-04-04,6:25,14:38,Meeting,Thursday
+66687e88fc13ae4e6e2345dc,Tommy Corrin,Human Resources,2024-02-04,6:12,15:48,Meeting,Sunday
+66687e88fc13ae4e6e2345dd,Ansell Jolliff,Training,2024-05-02,6:13,16:34,Work,Thursday
+66687e88fc13ae4e6e2345de,Krystyna Anscott,Research and Development,2024-07-03,9:50,17:21,Work,Wednesday
+66687e88fc13ae4e6e2345df,Hewett Keward,Support,2024-04-03,9:11,17:32,Meeting,Wednesday
+66687e88fc13ae4e6e2345e0,Andie Alderwick,Human Resources,2024-12-01,6:17,17:06,Work,Sunday
+66687e88fc13ae4e6e2345e1,Kenneth Elis,Services,2024-03-02,8:51,15:12,Client Visit,Saturday
+66687e88fc13ae4e6e2345e2,Perren Ram,Research and Development,2024-11-04,9:33,14:34,Meeting,Monday
+66687e88fc13ae4e6e2345e3,Shanda Routh,Sales,2024-12-05,6:04,15:56,Work,Thursday
+66687e88fc13ae4e6e2345e4,Arv Wimsett,Product Management,2024-12-07,9:37,16:54,Training,Saturday
+66687e88fc13ae4e6e2345e5,Kit Zumbusch,Research and Development,2024-06-01,9:00,17:22,Training,Saturday
+66687e88fc13ae4e6e2345e6,Arlie Jahnel,Sales,2024-04-04,6:17,16:06,Client Visit,Thursday
+66687e88fc13ae4e6e2345e7,Merola Patria,Product Management,2024-10-03,7:11,15:52,Training,Thursday
+66687e88fc13ae4e6e2345e8,Jolyn Menhci,Sales,2024-08-07,7:16,17:52,Work,Wednesday
+66687e88fc13ae4e6e2345e9,Storm Rodgier,Sales,2024-07-06,9:11,17:53,Meeting,Saturday
+66687e88fc13ae4e6e2345ea,Mariska Nortcliffe,Sales,2024-02-04,7:02,15:49,Training,Sunday
+66687e88fc13ae4e6e2345eb,Mannie Baytrop,Services,2024-12-07,8:14,15:43,Training,Saturday
+66687e88fc13ae4e6e2345ec,Paten Brogiotti,Business Development,2024-12-05,6:40,17:35,Work,Thursday
+66687e88fc13ae4e6e2345ed,Giavani Revans,Accounting,2024-04-02,8:39,14:42,Meeting,Tuesday
+66687e88fc13ae4e6e2345ee,Desiree Heeran,Human Resources,2024-08-04,9:02,17:23,Work,Sunday
+66687e88fc13ae4e6e2345ef,Adolpho Deniskevich,Accounting,2024-07-06,6:52,17:29,Training,Saturday
+66687e88fc13ae4e6e2345f0,Thibaut Commucci,Accounting,2024-07-07,8:01,14:07,Client Visit,Sunday
+66687e88fc13ae4e6e2345f1,Tess Dunning,Engineering,2024-08-03,9:08,15:41,Work,Saturday
+66687e88fc13ae4e6e2345f2,Cobb Latter,Human Resources,2024-11-05,6:38,15:54,Meeting,Tuesday
+66687e88fc13ae4e6e2345f3,Dieter Stailey,Research and Development,2024-01-05,6:57,14:25,Meeting,Friday
+66687e88fc13ae4e6e2345f4,Anastasie Sellman,Legal,2024-08-03,8:04,16:51,Work,Saturday
+66687e88fc13ae4e6e2345f5,Ruggiero Folker,Services,2024-12-05,8:34,15:44,Work,Thursday
+66687e88fc13ae4e6e2345f6,Scottie Tirkin,Research and Development,2024-10-05,8:57,15:01,Training,Saturday
+66687e88fc13ae4e6e2345f7,Cinderella Dearnaley,Sales,2024-08-01,6:22,17:30,Client Visit,Thursday
+66687e88fc13ae4e6e2345f8,Jolyn Auchterlony,Research and Development,2024-04-06,6:03,14:04,Work,Saturday
+66687e88fc13ae4e6e2345f9,Bernhard Bucky,Engineering,2024-07-06,8:05,14:07,Training,Saturday
+66687e88fc13ae4e6e2345fa,Clovis Seabon,Research and Development,2024-12-03,9:19,16:29,Work,Tuesday
+66687e88fc13ae4e6e2345fb,Alene Marl,Marketing,2024-03-02,7:23,14:05,Training,Saturday
+66687e88fc13ae4e6e2345fc,Jaymie Haston,Training,2024-10-01,9:22,16:27,Work,Tuesday
+66687e88fc13ae4e6e2345fd,Tansy Amoss,Product Management,2024-09-06,6:07,15:59,Client Visit,Friday
+66687e88fc13ae4e6e2345fe,Flemming Wimpenny,Training,2024-05-01,6:06,16:58,Work,Wednesday
+66687e88fc13ae4e6e2345ff,Juline Saylor,Training,2024-06-06,7:27,15:05,Meeting,Thursday
+66687e88fc13ae4e6e234600,Libby Blethin,Support,2024-10-04,7:00,17:51,Training,Friday
+66687e88fc13ae4e6e234601,Benjamin Northing,Accounting,2024-01-04,8:06,17:23,Meeting,Thursday
+66687e88fc13ae4e6e234602,Polly Jacobssen,Marketing,2024-05-05,7:32,15:10,Work,Sunday
+66687e88fc13ae4e6e234603,Deni Welfair,Human Resources,2024-05-03,7:34,14:07,Work,Friday
+66687e88fc13ae4e6e234604,Nadya Maccari,Business Development,2024-02-05,7:05,17:41,Work,Monday
+66687e88fc13ae4e6e234605,Arliene Fazakerley,Legal,2024-07-05,6:05,17:02,Meeting,Friday
+66687e88fc13ae4e6e234606,Levy Dionisetto,Legal,2024-06-05,8:16,14:38,Work,Wednesday
+66687e88fc13ae4e6e234607,Francklyn Merrywether,Accounting,2024-09-02,6:12,15:23,Training,Monday
+66687e88fc13ae4e6e234608,Norina Balden,Research and Development,2024-02-04,9:33,16:01,Meeting,Sunday
+66687e88fc13ae4e6e234609,Jasmine Boliver,Marketing,2024-09-04,7:45,16:26,Meeting,Wednesday
+66687e88fc13ae4e6e23460a,Axe Chittim,Accounting,2024-11-03,7:56,14:19,Work,Sunday
+66687e88fc13ae4e6e23460b,Harvey Derye-Barrett,Business Development,2024-02-06,8:00,16:57,Meeting,Tuesday
+66687e88fc13ae4e6e23460c,Laural Jellis,Research and Development,2024-07-07,6:50,15:32,Training,Sunday
+66687e88fc13ae4e6e23460d,Gerick Penzer,Research and Development,2024-11-07,6:22,17:06,Meeting,Thursday
+66687e88fc13ae4e6e23460e,Max Pumphreys,Support,2024-06-05,9:34,15:06,Work,Wednesday
+66687e88fc13ae4e6e23460f,Codie Casse,Training,2024-08-06,6:42,16:33,Work,Tuesday
+66687e88fc13ae4e6e234610,Elsi Triebner,Research and Development,2024-04-06,9:41,15:42,Work,Saturday
+66687e88fc13ae4e6e234611,Jasun Possa,Business Development,2024-11-04,6:13,15:00,Meeting,Monday
+66687e88fc13ae4e6e234612,Jayne Karlmann,Engineering,2024-12-03,7:52,14:18,Training,Tuesday
+66687e88fc13ae4e6e234613,Lisabeth Thorius,Legal,2024-09-06,9:13,17:35,Client Visit,Friday
+66687e88fc13ae4e6e234614,Idalina Cubbit,Training,2024-01-02,6:14,16:40,Work,Tuesday
+66687e88fc13ae4e6e234615,Orelle Barrand,Training,2024-06-05,9:48,14:17,Training,Wednesday
+66687e88fc13ae4e6e234616,Madelaine Toretta,Services,2024-06-03,6:23,14:40,Work,Monday
+66687e88fc13ae4e6e234617,Enriqueta Seilmann,Services,2024-08-02,6:55,16:58,Work,Friday
+66687e88fc13ae4e6e234618,Fawne de Copeman,Product Management,2024-02-04,7:13,17:38,Work,Sunday
+66687e88fc13ae4e6e234619,Elsworth Veque,Services,2024-06-02,8:34,15:19,Meeting,Sunday
+66687e88fc13ae4e6e23461a,Tommi Gomersal,Training,2024-03-01,6:30,17:51,Meeting,Friday
+66687e88fc13ae4e6e23461b,Lon Byrd,Research and Development,2024-12-07,7:48,14:47,Meeting,Saturday
+66687e88fc13ae4e6e23461c,Iggy Guinnane,Human Resources,2024-11-06,6:21,15:26,Work,Wednesday
+66687e88fc13ae4e6e23461d,Algernon Farnin,Research and Development,2024-01-05,8:26,15:11,Meeting,Friday
+66687e88fc13ae4e6e23461e,Renate Le Noir,Product Management,2024-12-05,7:36,17:36,Training,Thursday
+66687e88fc13ae4e6e23461f,Ravi Tethacot,Engineering,2024-01-04,8:09,16:04,Meeting,Thursday
+66687e88fc13ae4e6e234620,Dyanna Piggin,Business Development,2024-07-02,7:35,15:08,Meeting,Tuesday
+66687e88fc13ae4e6e234621,Johan Oslar,Accounting,2024-12-07,6:51,15:32,Work,Saturday
+66687e88fc13ae4e6e234622,Eadie Eliez,Engineering,2024-08-05,9:00,15:54,Meeting,Monday
+66687e88fc13ae4e6e234623,Nickola Kennerley,Research and Development,2024-08-03,6:55,17:31,Work,Saturday
+66687e88fc13ae4e6e234624,Colene Zorzetti,Product Management,2024-01-01,6:59,16:30,Work,Monday
+66687e88fc13ae4e6e234625,Claretta Plampeyn,Business Development,2024-12-06,8:50,16:06,Work,Friday
+66687e88fc13ae4e6e234626,Evvie O'Griffin,Accounting,2024-04-02,7:15,15:44,Meeting,Tuesday
+66687e88fc13ae4e6e234627,Charley Kennifick,Support,2024-06-05,6:52,17:15,Training,Wednesday
+66687e88fc13ae4e6e234628,Kizzee Jutson,Support,2024-11-05,9:53,16:17,Work,Tuesday
+66687e88fc13ae4e6e234629,Marwin McGaugey,Support,2024-10-02,8:28,14:54,Client Visit,Wednesday
+66687e88fc13ae4e6e23462a,Jeffrey McAughtry,Support,2024-05-07,9:44,17:05,Client Visit,Tuesday
+66687e88fc13ae4e6e23462b,Midge Iczokvitz,Training,2024-02-04,8:14,17:17,Work,Sunday
+66687e88fc13ae4e6e23462c,Koren Rimour,Legal,2024-06-02,9:29,16:28,Training,Sunday
+66687e88fc13ae4e6e23462d,Laureen Daveridge,Research and Development,2024-11-05,9:58,15:22,Work,Tuesday
+66687e88fc13ae4e6e23462e,Ganny Southcomb,Product Management,2024-06-01,9:02,17:22,Training,Saturday
+66687e88fc13ae4e6e23462f,Torr Hawkey,Accounting,2024-12-05,7:00,17:58,Work,Thursday
+66687e88fc13ae4e6e234630,Aigneis O'Dea,Human Resources,2024-12-06,8:15,16:47,Work,Friday
+66687e88fc13ae4e6e234631,Iosep Lampens,Services,2024-11-05,6:40,17:38,Client Visit,Tuesday
+66687e88fc13ae4e6e234632,Jodie Cattermull,Business Development,2024-01-03,7:36,17:39,Work,Wednesday
+66687e88fc13ae4e6e234633,Kelly Gawler,Engineering,2024-03-04,9:24,15:01,Meeting,Monday
+66687e88fc13ae4e6e234634,Vitia Furnell,Research and Development,2024-04-01,7:29,15:53,Meeting,Monday
+66687e88fc13ae4e6e234635,Wren Millington,Accounting,2024-05-04,9:56,17:59,Meeting,Saturday
+66687e88fc13ae4e6e234636,Marty Drayton,Product Management,2024-11-02,7:39,16:31,Work,Saturday
+66687e88fc13ae4e6e234637,Idelle Butterwick,Product Management,2024-03-04,7:43,16:45,Work,Monday
+66687e88fc13ae4e6e234638,Maximo Dog,Research and Development,2024-04-02,7:41,14:24,Work,Tuesday
+66687e88fc13ae4e6e234639,Constantia Calverd,Training,2024-09-06,7:23,15:45,Work,Friday
+66687e88fc13ae4e6e23463a,Myrta Livett,Product Management,2024-01-01,7:17,17:15,Training,Monday
+66687e88fc13ae4e6e23463b,Austin Abilowitz,Sales,2024-03-03,7:49,17:11,Work,Sunday
+66687e88fc13ae4e6e23463c,Kaia Elfes,Engineering,2024-05-04,8:10,16:36,Meeting,Saturday
+66687e88fc13ae4e6e23463d,Jenelle Climson,Legal,2024-10-02,7:11,17:57,Meeting,Wednesday
+66687e88fc13ae4e6e23463e,Oriana Seppey,Sales,2024-07-02,9:38,17:44,Training,Tuesday
+66687e88fc13ae4e6e23463f,Jeremiah Tremmil,Research and Development,2024-04-03,7:04,16:29,Training,Wednesday
+66687e88fc13ae4e6e234640,Shannan Mantrip,Support,2024-02-06,7:43,16:48,Training,Tuesday
+66687e88fc13ae4e6e234641,Pavia Pancoast,Human Resources,2024-07-05,7:33,15:20,Meeting,Friday
+66687e88fc13ae4e6e234642,Derrek Oldroyde,Sales,2024-03-06,8:42,15:56,Work,Wednesday
+66687e88fc13ae4e6e234643,Katusha Bulbeck,Marketing,2024-03-07,9:24,17:41,Work,Thursday
+66687e88fc13ae4e6e234644,Nealon Hardwell,Legal,2024-07-06,6:31,14:18,Meeting,Saturday
+66687e88fc13ae4e6e234645,Staci Ralton,Marketing,2024-10-06,6:37,16:25,Meeting,Sunday
+66687e88fc13ae4e6e234646,Cissiee Simonutti,Accounting,2024-04-04,9:24,15:43,Meeting,Thursday
+66687e88fc13ae4e6e234647,Olag Southernwood,Training,2024-09-03,6:37,16:29,Training,Tuesday
+66687e88fc13ae4e6e234648,Caddric Bartali,Legal,2024-05-07,6:29,14:25,Work,Tuesday
+66687e88fc13ae4e6e234649,Martynne Jantot,Marketing,2024-12-07,6:00,17:09,Work,Saturday
+66687e88fc13ae4e6e23464a,Aron Cockshott,Services,2024-01-05,9:10,14:20,Work,Friday
+66687e88fc13ae4e6e23464b,Nelly Marke,Sales,2024-01-02,6:47,16:49,Work,Tuesday
+66687e88fc13ae4e6e23464c,Astrix Gindghill,Business Development,2024-05-03,6:08,17:49,Client Visit,Friday
+66687e88fc13ae4e6e23464d,Sharia Skett,Engineering,2024-11-03,6:39,15:34,Meeting,Sunday
+66687e88fc13ae4e6e23464e,Frederik MacKonochie,Product Management,2024-02-03,7:33,17:14,Client Visit,Saturday
+66687e88fc13ae4e6e23464f,Kylynn Dive,Accounting,2024-03-05,7:57,15:21,Work,Tuesday
+66687e88fc13ae4e6e234650,Rozanne Andrzejowski,Services,2024-12-03,8:00,15:15,Work,Tuesday
+66687e88fc13ae4e6e234651,Colene O'Hern,Legal,2024-01-04,9:48,15:20,Meeting,Thursday
+66687e88fc13ae4e6e234652,Pierre Tomadoni,Research and Development,2024-06-06,9:40,14:22,Work,Thursday
+66687e88fc13ae4e6e234653,Carolee Cathro,Support,2024-05-01,6:31,15:42,Client Visit,Wednesday
+66687e88fc13ae4e6e234654,Elena Farrin,Marketing,2024-04-01,9:52,16:48,Meeting,Monday
+66687e88fc13ae4e6e234655,Clementius Diwell,Marketing,2024-04-04,7:29,16:11,Meeting,Thursday
+66687e88fc13ae4e6e234656,Karissa Piecha,Research and Development,2024-01-04,8:39,17:49,Client Visit,Thursday
+66687e88fc13ae4e6e234657,Bunni Avesque,Research and Development,2024-06-06,8:26,16:29,Client Visit,Thursday
+66687e88fc13ae4e6e234658,Benny Cavnor,Training,2024-01-04,6:13,17:30,Client Visit,Thursday
+66687e88fc13ae4e6e234659,Ethan De Minico,Business Development,2024-07-07,6:56,15:34,Client Visit,Sunday
+66687e88fc13ae4e6e23465a,Anallese Cooling,Training,2024-07-05,8:11,15:14,Training,Friday
+66687e88fc13ae4e6e23465b,Stephanus Hellard,Legal,2024-07-03,7:50,17:41,Work,Wednesday
+66687e88fc13ae4e6e23465c,Fancy Sales,Legal,2024-08-07,9:55,14:36,Work,Wednesday
+66687e88fc13ae4e6e23465d,Austine Pavek,Marketing,2024-07-01,7:19,16:45,Meeting,Monday
+66687e88fc13ae4e6e23465e,Tadeas Tysall,Research and Development,2024-06-01,8:18,17:02,Work,Saturday
+66687e88fc13ae4e6e23465f,Dud Puig,Research and Development,2024-09-05,8:09,14:30,Work,Thursday
+66687e88fc13ae4e6e234660,Chrisse Pendrick,Training,2024-06-04,8:04,15:48,Work,Tuesday
+66687e88fc13ae4e6e234661,Addie Edes,Product Management,2024-07-05,8:45,14:43,Work,Friday
+66687e88fc13ae4e6e234662,Hyatt Antoszczyk,Business Development,2024-07-07,6:54,16:15,Training,Sunday
+66687e88fc13ae4e6e234663,Ula Livsey,Marketing,2024-02-02,9:21,14:36,Meeting,Friday
+66687e88fc13ae4e6e234664,Farlie Gudge,Product Management,2024-08-02,9:09,17:20,Work,Friday
+66687e88fc13ae4e6e234665,Artair Finneran,Training,2024-09-05,6:53,17:08,Training,Thursday
+66687e88fc13ae4e6e234666,Sigismondo Aizikovich,Training,2024-11-06,6:50,15:57,Work,Wednesday
+66687e88fc13ae4e6e234667,Jenelle Kem,Services,2024-03-03,7:08,15:10,Meeting,Sunday
+66687e88fc13ae4e6e234668,Jo ann Lente,Product Management,2024-01-06,9:38,17:47,Training,Saturday
+66687e88fc13ae4e6e234669,Jodie Doran,Sales,2024-04-02,6:51,14:06,Meeting,Tuesday
+66687e88fc13ae4e6e23466a,Bibbie Howsan,Services,2024-03-06,8:58,16:12,Work,Wednesday
+66687e88fc13ae4e6e23466b,Issie Deeks,Marketing,2024-05-07,6:57,15:31,Training,Tuesday
+66687e88fc13ae4e6e23466c,Janessa Carnie,Sales,2024-07-05,6:14,16:52,Work,Friday
+66687e88fc13ae4e6e23466d,Loren Canfield,Engineering,2024-10-01,8:05,14:26,Training,Tuesday
+66687e88fc13ae4e6e23466e,Clarinda Rummins,Legal,2024-11-01,8:45,16:26,Work,Friday
+66687e88fc13ae4e6e23466f,Donella Markwick,Business Development,2024-12-04,9:28,17:36,Meeting,Wednesday
+66687e88fc13ae4e6e234670,Libby Wagnerin,Training,2024-10-06,9:45,15:19,Work,Sunday
+66687e88fc13ae4e6e234671,Salaidh Earey,Services,2024-04-06,7:26,14:18,Meeting,Saturday
+66687e88fc13ae4e6e234672,Rafaelia Dunnett,Services,2024-01-07,7:10,16:30,Work,Sunday
+66687e88fc13ae4e6e234673,Giles Ludvigsen,Marketing,2024-06-04,6:30,15:29,Training,Tuesday
+66687e88fc13ae4e6e234674,Courtnay Bewsy,Sales,2024-11-04,6:02,14:29,Training,Monday
+66687e88fc13ae4e6e234675,Ric Walsh,Services,2024-09-01,7:33,16:34,Training,Sunday
+66687e88fc13ae4e6e234676,Cullie Eaves,Product Management,2024-11-07,6:44,15:14,Meeting,Thursday
+66687e88fc13ae4e6e234677,Donica Verry,Support,2024-08-01,6:13,16:09,Client Visit,Thursday
+66687e88fc13ae4e6e234678,Gelya Pickring,Research and Development,2024-05-02,7:34,15:16,Meeting,Thursday
+66687e88fc13ae4e6e234679,Lemar Bent,Engineering,2024-04-02,7:45,15:55,Work,Tuesday
+66687e88fc13ae4e6e23467a,Phyllys Taylder,Accounting,2024-01-01,6:17,17:43,Work,Monday
+66687e88fc13ae4e6e23467b,Corabel Maken,Human Resources,2024-11-05,9:35,15:50,Work,Tuesday
+66687e88fc13ae4e6e23467c,Rudiger Glackin,Human Resources,2024-03-05,9:49,15:08,Training,Tuesday
+66687e88fc13ae4e6e23467d,Druci Ramirez,Accounting,2024-05-07,6:39,15:17,Work,Tuesday
+66687e88fc13ae4e6e23467e,Mella Cheevers,Engineering,2024-10-01,6:58,16:30,Work,Tuesday
+66687e88fc13ae4e6e23467f,Jaquelyn Mattam,Support,2024-05-07,7:39,14:07,Meeting,Tuesday
+66687e88fc13ae4e6e234680,Jaclin Pigdon,Product Management,2024-06-06,8:09,15:45,Work,Thursday
+66687e88fc13ae4e6e234681,Artie Coalburn,Engineering,2024-08-01,8:32,14:45,Work,Thursday
+66687e88fc13ae4e6e234682,Amberly Gadault,Research and Development,2024-11-01,8:17,17:47,Work,Friday
+66687e88fc13ae4e6e234683,Clari Prettyjohns,Training,2024-12-03,7:54,15:02,Training,Tuesday
+66687e88fc13ae4e6e234684,Alaster Spincke,Support,2024-06-03,6:26,15:33,Work,Monday
+66687e88fc13ae4e6e234685,Brady Bruckner,Research and Development,2024-12-06,7:31,16:18,Work,Friday
+66687e88fc13ae4e6e234686,Aline Mapham,Human Resources,2024-09-01,9:48,14:57,Work,Sunday
+66687e88fc13ae4e6e234687,Carl Cronkshaw,Human Resources,2024-01-07,9:26,17:56,Work,Sunday
+66687e88fc13ae4e6e234688,Vinny Wormstone,Business Development,2024-03-05,9:31,16:33,Meeting,Tuesday
+66687e88fc13ae4e6e234689,Bent Garett,Legal,2024-12-06,7:26,14:54,Work,Friday
+66687e88fc13ae4e6e23468a,Karlen Asquith,Training,2024-06-07,9:12,15:30,Work,Friday
+66687e88fc13ae4e6e23468b,Robbert McGiffie,Product Management,2024-06-04,6:55,16:48,Training,Tuesday
+66687e88fc13ae4e6e23468c,Bridgette Starmont,Marketing,2024-01-03,9:04,15:52,Meeting,Wednesday
+66687e88fc13ae4e6e23468d,Laetitia Hollingsbee,Sales,2024-02-07,7:14,17:49,Work,Wednesday
+66687e88fc13ae4e6e23468e,Lana Warrell,Accounting,2024-02-04,9:55,14:34,Work,Sunday
+66687e88fc13ae4e6e23468f,Lola Roz,Accounting,2024-02-02,7:39,15:10,Work,Friday
+66687e88fc13ae4e6e234690,Dniren Larwell,Human Resources,2024-01-06,8:03,16:43,Work,Saturday
+66687e88fc13ae4e6e234691,Brant Ghilardi,Accounting,2024-01-01,7:05,16:42,Work,Monday
+66687e88fc13ae4e6e234692,Richmond Ewart,Services,2024-03-05,7:24,17:58,Training,Tuesday
+66687e88fc13ae4e6e234693,Teressa Rubinek,Research and Development,2024-08-07,9:59,14:41,Meeting,Wednesday
+66687e88fc13ae4e6e234694,Kevina Trimbey,Services,2024-07-01,9:40,16:24,Work,Monday
+66687e88fc13ae4e6e234695,Darlene Veryard,Engineering,2024-12-02,6:01,16:53,Training,Monday
+66687e88fc13ae4e6e234696,Arda Jurek,Legal,2024-03-05,7:40,16:36,Training,Tuesday
+66687e88fc13ae4e6e234697,Demetre Tunney,Business Development,2024-05-06,9:10,17:37,Training,Monday
+66687e88fc13ae4e6e234698,Ansley Kaes,Accounting,2024-08-02,7:08,16:23,Work,Friday
+66687e88fc13ae4e6e234699,Sapphire Luparto,Research and Development,2024-04-01,7:06,16:52,Work,Monday
+66687e88fc13ae4e6e23469a,Zack Salway,Product Management,2024-05-05,8:47,17:54,Training,Sunday
+66687e88fc13ae4e6e23469b,Mallorie Derr,Business Development,2024-09-05,9:50,15:49,Meeting,Thursday
+66687e88fc13ae4e6e23469c,Berni Fanthom,Accounting,2024-01-02,7:21,17:24,Work,Tuesday
+66687e88fc13ae4e6e23469d,Nerita Hacket,Sales,2024-04-01,8:05,17:42,Meeting,Monday
+66687e88fc13ae4e6e23469e,Luke de Najera,Legal,2024-06-05,6:08,14:15,Training,Wednesday
+66687e88fc13ae4e6e23469f,Katlin Euels,Product Management,2024-03-03,8:36,16:34,Work,Sunday
+66687e88fc13ae4e6e2346a0,Zorine Lakenden,Services,2024-09-02,8:05,14:19,Work,Monday
+66687e88fc13ae4e6e2346a1,Romy Mariolle,Human Resources,2024-11-02,9:54,14:35,Work,Saturday
+66687e88fc13ae4e6e2346a2,Jackson Toffanelli,Services,2024-10-07,9:55,17:09,Meeting,Monday
+66687e88fc13ae4e6e2346a3,Husain Bracken,Support,2024-03-02,6:49,16:20,Client Visit,Saturday
+66687e88fc13ae4e6e2346a4,Deloria Darley,Training,2024-05-06,6:34,14:01,Meeting,Monday
+66687e88fc13ae4e6e2346a5,Alastair Sprowle,Accounting,2024-11-01,9:38,15:00,Work,Friday
+66687e88fc13ae4e6e2346a6,Ardeen Ede,Services,2024-07-01,8:58,15:19,Meeting,Monday
+66687e88fc13ae4e6e2346a7,Merla Solano,Product Management,2024-11-07,8:01,17:16,Work,Thursday
+66687e88fc13ae4e6e2346a8,Celinka Gillott,Business Development,2024-02-06,9:13,14:07,Client Visit,Tuesday
+66687e88fc13ae4e6e2346a9,Bartel Kupker,Support,2024-09-04,8:31,15:22,Meeting,Wednesday
+66687e88fc13ae4e6e2346aa,Zed Paoloni,Support,2024-08-07,6:11,16:53,Work,Wednesday
+66687e88fc13ae4e6e2346ab,Aurora Daily,Training,2024-10-05,7:48,17:49,Meeting,Saturday
+66687e88fc13ae4e6e2346ac,Shelly Farnfield,Product Management,2024-04-02,7:51,16:09,Training,Tuesday
+66687e88fc13ae4e6e2346ad,Sigrid Besantie,Engineering,2024-08-04,6:24,14:33,Work,Sunday
+66687e88fc13ae4e6e2346ae,Abagail Firebrace,Research and Development,2024-07-02,7:22,17:01,Client Visit,Tuesday
+66687e88fc13ae4e6e2346af,Madelyn Utton,Marketing,2024-09-07,6:18,17:36,Work,Saturday
+66687e88fc13ae4e6e2346b0,Norman Gutherson,Training,2024-12-06,9:43,17:07,Meeting,Friday
+66687e88fc13ae4e6e2346b1,Valina Djekic,Services,2024-04-03,6:24,16:16,Work,Wednesday
+66687e88fc13ae4e6e2346b2,Tiffany Dilston,Accounting,2024-10-01,9:33,14:10,Work,Tuesday
+66687e88fc13ae4e6e2346b3,Delainey Sandaver,Business Development,2024-09-02,8:25,16:42,Work,Monday
+66687e88fc13ae4e6e2346b4,Yovonnda Whitear,Research and Development,2024-03-06,7:20,16:07,Work,Wednesday
+66687e88fc13ae4e6e2346b5,Wilek Attwood,Marketing,2024-02-07,9:47,14:06,Training,Wednesday
+66687e88fc13ae4e6e2346b6,Rosanna Pasquale,Services,2024-01-05,7:56,16:04,Work,Friday
+66687e88fc13ae4e6e2346b7,Augusta Knee,Legal,2024-03-05,6:44,14:40,Work,Tuesday
+66687e88fc13ae4e6e2346b8,Noah Beinke,Marketing,2024-05-06,9:16,16:15,Work,Monday
+66687e88fc13ae4e6e2346b9,Morley Lornsen,Product Management,2024-04-07,6:08,15:14,Work,Sunday
+66687e88fc13ae4e6e2346ba,Winfield Cahey,Product Management,2024-08-04,8:51,16:37,Work,Sunday
+66687e88fc13ae4e6e2346bb,Agnesse Linsey,Sales,2024-10-05,9:41,16:03,Work,Saturday
+66687e88fc13ae4e6e2346bc,Liz Nussen,Marketing,2024-09-07,9:06,16:17,Meeting,Saturday
+66687e88fc13ae4e6e2346bd,Yetta Ipgrave,Services,2024-03-01,7:46,15:35,Work,Friday
+66687e88fc13ae4e6e2346be,Richmound McCanny,Accounting,2024-10-07,7:40,16:46,Work,Monday
+66687e88fc13ae4e6e2346bf,Cletis Faill,Accounting,2024-04-05,6:24,16:47,Training,Friday
+66687e88fc13ae4e6e2346c0,Johannah Brudenell,Support,2024-06-01,8:06,17:16,Training,Saturday
+66687e88fc13ae4e6e2346c1,Georg Downham,Services,2024-08-04,6:51,14:44,Training,Sunday
+66687e88fc13ae4e6e2346c2,Kristien Desaur,Product Management,2024-01-04,9:30,14:31,Work,Thursday
+66687e88fc13ae4e6e2346c3,Kienan Dabney,Accounting,2024-04-02,8:19,14:15,Training,Tuesday
+66687e88fc13ae4e6e2346c4,Chickie Omond,Legal,2024-11-04,6:33,16:30,Client Visit,Monday
+66687e88fc13ae4e6e2346c5,Tybie Tavernor,Engineering,2024-12-03,8:26,16:37,Work,Tuesday
+66687e88fc13ae4e6e2346c6,Normy Blacket,Accounting,2024-04-03,6:14,17:41,Work,Wednesday
+66687e88fc13ae4e6e2346c7,Fredrika Howselee,Business Development,2024-04-06,9:26,17:29,Meeting,Saturday
+66687e88fc13ae4e6e2346c8,Clerkclaude Chell,Legal,2024-06-05,8:12,16:49,Work,Wednesday
+66687e88fc13ae4e6e2346c9,Nancey Lalley,Human Resources,2024-07-07,8:13,16:02,Work,Sunday
+66687e88fc13ae4e6e2346ca,Shea Sloey,Support,2024-09-03,8:36,15:30,Meeting,Tuesday
+66687e88fc13ae4e6e2346cb,Berenice Quelch,Marketing,2024-02-01,7:24,17:52,Work,Thursday
+66687e88fc13ae4e6e2346cc,Kathi McEvon,Sales,2024-04-02,9:31,16:36,Work,Tuesday
+66687e88fc13ae4e6e2346cd,Brodie Alderson,Training,2024-10-05,8:16,15:43,Work,Saturday
+66687e88fc13ae4e6e2346ce,Lynn Janas,Legal,2024-11-04,7:08,14:08,Work,Monday
+66687e88fc13ae4e6e2346cf,Arri McLurg,Product Management,2024-06-07,7:07,14:24,Work,Friday
+66687e88fc13ae4e6e2346d0,Booth Attow,Training,2024-03-05,9:39,16:47,Meeting,Tuesday
+66687e88fc13ae4e6e2346d1,Shaylyn Neve,Sales,2024-09-06,6:53,15:34,Meeting,Friday
+66687e88fc13ae4e6e2346d2,Sapphira Faulkener,Sales,2024-11-03,7:48,16:20,Client Visit,Sunday
+66687e88fc13ae4e6e2346d3,Wallis Mart,Human Resources,2024-02-06,8:21,15:16,Work,Tuesday
+66687e88fc13ae4e6e2346d4,Lorant Hankin,Human Resources,2024-06-07,8:53,15:07,Meeting,Friday
+66687e88fc13ae4e6e2346d5,Christoph Dwelling,Research and Development,2024-05-06,7:47,15:47,Work,Monday
+66687e88fc13ae4e6e2346d6,Hulda Vinsen,Human Resources,2024-09-07,7:07,14:48,Work,Saturday
+66687e88fc13ae4e6e2346d7,Townsend Murra,Engineering,2024-07-07,8:02,16:51,Meeting,Sunday
+66687e88fc13ae4e6e2346d8,Melloney Gianelli,Marketing,2024-01-07,8:43,15:45,Meeting,Sunday
+66687e88fc13ae4e6e2346d9,Leontyne Sharples,Legal,2024-01-03,9:53,14:58,Work,Wednesday
+66687e88fc13ae4e6e2346da,Othelia Innis,Training,2024-04-03,6:57,17:38,Meeting,Wednesday
+66687e88fc13ae4e6e2346db,Kermy Jarrel,Engineering,2024-06-01,8:04,15:26,Work,Saturday
+66687e88fc13ae4e6e2346dc,Chick Graundisson,Legal,2024-05-01,7:31,17:02,Work,Wednesday
+66687e88fc13ae4e6e2346dd,Catherina Ailward,Legal,2024-12-06,8:59,17:20,Meeting,Friday
+66687e88fc13ae4e6e2346de,Rusty Jakubowsky,Marketing,2024-10-01,6:59,14:06,Work,Tuesday
+66687e88fc13ae4e6e2346df,Celle Whitcher,Support,2024-05-07,7:00,17:38,Training,Tuesday
+66687e88fc13ae4e6e2346e0,Angelia Lade,Research and Development,2024-04-03,7:57,16:23,Work,Wednesday
+66687e88fc13ae4e6e2346e1,Giacinta Gloster,Training,2024-06-02,7:30,17:12,Training,Sunday
+66687e88fc13ae4e6e2346e2,Ganny Mullaly,Sales,2024-04-01,8:51,15:26,Work,Monday
+66687e88fc13ae4e6e2346e3,Lita Knights,Product Management,2024-11-07,9:58,15:06,Work,Thursday
+66687e88fc13ae4e6e2346e4,Janetta Alman,Marketing,2024-03-02,6:21,16:46,Training,Saturday
+66687e88fc13ae4e6e2346e5,Husain Twinbrow,Human Resources,2024-06-03,6:51,17:27,Client Visit,Monday
+66687e88fc13ae4e6e2346e6,Alfredo Gheorghie,Support,2024-05-07,9:31,16:29,Meeting,Tuesday
+66687e88fc13ae4e6e2346e7,Domenico Poxson,Human Resources,2024-04-07,7:36,16:54,Meeting,Sunday
+66687e88fc13ae4e6e2346e8,Shirl Lisle,Training,2024-02-07,8:21,16:14,Meeting,Wednesday
+66687e88fc13ae4e6e2346e9,Mead California,Product Management,2024-03-05,6:34,17:27,Training,Tuesday
+66687e88fc13ae4e6e2346ea,Walther Fleeming,Research and Development,2024-08-04,9:28,17:02,Work,Sunday
+66687e88fc13ae4e6e2346eb,Jo Robilliard,Research and Development,2024-05-05,6:12,17:13,Client Visit,Sunday
+66687e88fc13ae4e6e2346ec,Melvyn Dobeson,Accounting,2024-07-02,6:35,15:16,Training,Tuesday
+66687e88fc13ae4e6e2346ed,Tiler Frie,Sales,2024-09-06,6:48,14:41,Meeting,Friday
+66687e88fc13ae4e6e2346ee,Caprice Blyde,Training,2024-08-04,8:49,17:46,Meeting,Sunday
+66687e88fc13ae4e6e2346ef,Donny Blenkiron,Research and Development,2024-12-07,6:59,17:49,Work,Saturday
+66687e88fc13ae4e6e2346f0,Kristel Gissop,Support,2024-05-06,8:53,16:54,Work,Monday
+66687e88fc13ae4e6e2346f1,Ginny Kimmons,Sales,2024-11-06,8:40,14:48,Meeting,Wednesday
+66687e88fc13ae4e6e2346f2,Sheree Vause,Services,2024-11-02,7:01,16:58,Work,Saturday
+66687e88fc13ae4e6e2346f3,Rhys Bosenworth,Sales,2024-07-05,8:51,14:48,Work,Friday
+66687e88fc13ae4e6e2346f4,Gray Mungan,Accounting,2024-10-04,8:03,17:10,Work,Friday
+66687e88fc13ae4e6e2346f5,Hilario Coppenhall,Human Resources,2024-09-03,7:04,15:18,Training,Tuesday
+66687e88fc13ae4e6e2346f6,Hilary Duffin,Research and Development,2024-10-01,9:07,15:25,Training,Tuesday
+66687e88fc13ae4e6e2346f7,Stirling Selman,Services,2024-11-06,7:54,17:47,Training,Wednesday
+66687e88fc13ae4e6e2346f8,Barbaraanne Portugal,Marketing,2024-11-05,6:19,17:45,Client Visit,Tuesday
+66687e88fc13ae4e6e2346f9,Sascha Petrazzi,Services,2024-11-05,7:56,14:09,Work,Tuesday
+66687e88fc13ae4e6e2346fa,Doralyn O'Dyvoy,Training,2024-02-05,8:58,16:48,Client Visit,Monday
+66687e88fc13ae4e6e2346fb,Katharina McKinless,Marketing,2024-04-06,7:24,14:30,Work,Saturday
+66687e88fc13ae4e6e2346fc,Timi Abbott,Business Development,2024-11-06,6:53,16:50,Meeting,Wednesday
+66687e88fc13ae4e6e2346fd,Philip Beedie,Engineering,2024-08-05,6:56,14:02,Client Visit,Monday
+66687e88fc13ae4e6e2346fe,Henrik Shilliday,Accounting,2024-02-01,6:21,14:14,Work,Thursday
+66687e88fc13ae4e6e2346ff,Maurizio Steffens,Services,2024-11-02,7:47,17:33,Work,Saturday
+66687e88fc13ae4e6e234700,Pacorro Flann,Product Management,2024-04-04,9:03,15:02,Work,Thursday
+66687e88fc13ae4e6e234701,Marsh Roots,Support,2024-11-07,7:41,17:26,Work,Thursday
+66687e88fc13ae4e6e234702,Constantino Doers,Research and Development,2024-02-07,9:29,17:51,Meeting,Wednesday
+66687e88fc13ae4e6e234703,Jedidiah Corthes,Human Resources,2024-07-04,9:16,17:02,Work,Thursday
+66687e88fc13ae4e6e234704,Misti McQuorkel,Human Resources,2024-06-02,7:16,14:37,Meeting,Sunday
+66687e88fc13ae4e6e234705,Patience McGraffin,Business Development,2024-03-07,6:08,14:48,Meeting,Thursday
+66687e88fc13ae4e6e234706,Reuven Sayle,Sales,2024-03-06,6:52,14:16,Work,Wednesday
+66687e88fc13ae4e6e234707,Patricio Ruseworth,Marketing,2024-07-07,7:43,15:40,Work,Sunday
+66687e88fc13ae4e6e234708,Spike Roddam,Research and Development,2024-07-01,7:42,14:33,Work,Monday
+66687e88fc13ae4e6e234709,Gustaf Hamp,Services,2024-09-04,9:51,16:32,Meeting,Wednesday
+66687e88fc13ae4e6e23470a,Lissy Gauden,Engineering,2024-09-05,6:03,15:03,Training,Thursday
+66687e88fc13ae4e6e23470b,Gae Brettle,Support,2024-09-03,9:13,16:17,Client Visit,Tuesday
+66687e88fc13ae4e6e23470c,Janey Iglesias,Services,2024-05-06,7:37,17:05,Meeting,Monday
+66687e88fc13ae4e6e23470d,Darelle Nickell,Product Management,2024-11-07,9:14,16:19,Work,Thursday
+66687e89fc13ae4e6e23470e,Kym Courcey,Services,2024-11-02,8:30,17:45,Training,Saturday
+66687e89fc13ae4e6e23470f,Gustavus Ellif,Marketing,2024-01-01,7:08,15:47,Work,Monday
+66687e89fc13ae4e6e234710,Jourdain Aujouanet,Sales,2024-02-06,6:21,15:18,Client Visit,Tuesday
+66687e89fc13ae4e6e234711,Sterling Bilverstone,Support,2024-06-07,6:08,16:04,Work,Friday
+66687e89fc13ae4e6e234712,Eadmund Ballentime,Business Development,2024-07-05,6:32,15:22,Work,Friday
+66687e89fc13ae4e6e234713,Yule Dawbery,Product Management,2024-07-01,6:41,15:27,Work,Monday
+66687e89fc13ae4e6e234714,Margalit Wolton,Human Resources,2024-11-04,6:50,16:42,Work,Monday
+66687e89fc13ae4e6e234715,Lorene Valance,Training,2024-11-03,9:14,16:31,Work,Sunday
+66687e89fc13ae4e6e234716,Lizzy Sommerfeld,Support,2024-06-02,7:29,16:05,Meeting,Sunday
+66687e89fc13ae4e6e234717,Fletcher Gresser,Human Resources,2024-07-01,8:22,15:23,Meeting,Monday
+66687e89fc13ae4e6e234718,Onofredo Milillo,Accounting,2024-12-07,6:52,15:28,Work,Saturday
+66687e89fc13ae4e6e234719,Marji Macek,Support,2024-08-03,8:20,14:24,Training,Saturday
+66687e89fc13ae4e6e23471a,Kira Leonarde,Product Management,2024-02-02,9:34,15:37,Meeting,Friday
+66687e89fc13ae4e6e23471b,Clea Marklow,Sales,2024-05-06,6:20,16:58,Training,Monday
+66687e89fc13ae4e6e23471c,Florinda Durn,Sales,2024-06-03,6:41,16:28,Work,Monday
+66687e89fc13ae4e6e23471d,Dawna McReedy,Accounting,2024-05-05,7:17,14:10,Work,Sunday
+66687e89fc13ae4e6e23471e,Sansone Heminsley,Legal,2024-11-07,9:53,17:01,Work,Thursday
+66687e89fc13ae4e6e23471f,Geneva De Mitris,Sales,2024-09-06,6:19,17:20,Meeting,Friday
+66687e89fc13ae4e6e234720,Anstice Pettie,Engineering,2024-06-07,6:12,15:05,Training,Friday
+66687e89fc13ae4e6e234721,Korrie Crowter,Business Development,2024-09-01,8:27,16:09,Work,Sunday
+66687e89fc13ae4e6e234722,Davie Scrowby,Human Resources,2024-06-03,9:22,16:56,Meeting,Monday
+66687e89fc13ae4e6e234723,Barth Cawthry,Business Development,2024-10-01,6:36,15:36,Work,Tuesday
+66687e89fc13ae4e6e234724,Merrili Nudd,Human Resources,2024-08-01,8:27,16:52,Meeting,Thursday
+66687e89fc13ae4e6e234725,Kathlin Common,Research and Development,2024-11-02,8:45,14:28,Meeting,Saturday
+66687e89fc13ae4e6e234726,Aubrie Matfin,Legal,2024-09-02,6:23,14:01,Work,Monday
+66687e89fc13ae4e6e234727,Cart Olivera,Accounting,2024-03-07,6:34,14:52,Meeting,Thursday
+66687e89fc13ae4e6e234728,Ezekiel Shankster,Support,2024-01-07,6:27,15:23,Work,Sunday
+66687e89fc13ae4e6e234729,Darrick Harmston,Services,2024-10-04,9:38,16:34,Training,Friday
+66687e89fc13ae4e6e23472a,Clement Larwood,Legal,2024-07-02,6:43,17:57,Training,Tuesday
+66687e89fc13ae4e6e23472b,Caldwell Gleeton,Engineering,2024-08-04,9:07,16:17,Client Visit,Sunday
+66687e89fc13ae4e6e23472c,Madalena Geraudel,Engineering,2024-09-01,9:24,14:47,Work,Sunday
+66687e89fc13ae4e6e23472d,Gloria Moran,Legal,2024-05-04,9:02,17:47,Training,Saturday
+66687e89fc13ae4e6e23472e,Bank Atterbury,Legal,2024-05-01,6:17,15:11,Work,Wednesday
+66687e89fc13ae4e6e23472f,Gates Cleaver,Accounting,2024-06-06,9:46,17:29,Client Visit,Thursday
+66687e89fc13ae4e6e234730,Iago Leverton,Research and Development,2024-11-02,8:37,14:28,Work,Saturday
+66687e89fc13ae4e6e234731,Erl Palin,Research and Development,2024-04-06,7:25,14:43,Meeting,Saturday
+66687e89fc13ae4e6e234732,Eryn Finnimore,Research and Development,2024-06-04,8:20,17:55,Work,Tuesday
+66687e89fc13ae4e6e234733,Austen Goodburn,Services,2024-07-05,7:58,15:19,Work,Friday
+66687e89fc13ae4e6e234734,Cilka Macia,Training,2024-08-01,9:09,17:42,Work,Thursday
+66687e89fc13ae4e6e234735,Sue Pannaman,Sales,2024-03-06,8:40,16:41,Meeting,Wednesday
+66687e89fc13ae4e6e234736,Deloria Morefield,Business Development,2024-11-05,6:46,16:39,Work,Tuesday
+66687e89fc13ae4e6e234737,Jelene Orneblow,Legal,2024-07-03,8:24,15:58,Work,Wednesday
+66687e89fc13ae4e6e234738,Anthia Hardey,Human Resources,2024-03-03,6:02,14:35,Training,Sunday
+66687e89fc13ae4e6e234739,Gwendolen Bearman,Sales,2024-05-03,8:24,15:45,Work,Friday
+66687e89fc13ae4e6e23473a,Lorry Rosen,Support,2024-09-01,8:09,17:41,Training,Sunday
+66687e89fc13ae4e6e23473b,Kermie Lewton,Research and Development,2024-09-04,7:43,16:01,Work,Wednesday
+66687e89fc13ae4e6e23473c,Meta McKerton,Business Development,2024-03-07,7:46,14:33,Meeting,Thursday
+66687e89fc13ae4e6e23473d,Isaak Bonds,Human Resources,2024-08-04,7:00,16:02,Client Visit,Sunday
+66687e89fc13ae4e6e23473e,Kimble Laing,Training,2024-12-02,9:04,14:53,Work,Monday
+66687e89fc13ae4e6e23473f,Cull Dioniso,Support,2024-06-07,6:50,16:38,Work,Friday
+66687e89fc13ae4e6e234740,Caspar McCluin,Marketing,2024-11-05,9:34,14:45,Work,Tuesday
+66687e89fc13ae4e6e234741,Sheri Gush,Research and Development,2024-09-05,9:25,16:43,Work,Thursday
+66687e89fc13ae4e6e234742,Martica Stronghill,Product Management,2024-07-03,7:51,16:12,Work,Wednesday
+66687e89fc13ae4e6e234743,Dasie Brauns,Training,2024-01-03,6:16,17:49,Meeting,Wednesday
+66687e89fc13ae4e6e234744,Bennett Mabone,Human Resources,2024-11-03,9:25,15:07,Meeting,Sunday
+66687e89fc13ae4e6e234745,Gabbey Crayke,Sales,2024-09-01,8:56,16:49,Work,Sunday
+66687e89fc13ae4e6e234746,Franny Silman,Business Development,2024-10-07,8:34,15:12,Work,Monday
+66687e89fc13ae4e6e234747,Petey Kilner,Product Management,2024-03-06,9:55,16:06,Work,Wednesday
+66687e89fc13ae4e6e234748,Brynn Abbatini,Support,2024-11-04,6:42,14:25,Work,Monday
+66687e89fc13ae4e6e234749,Dorita Illem,Support,2024-05-03,7:58,15:58,Meeting,Friday
+66687e89fc13ae4e6e23474a,Gasparo Leall,Sales,2024-01-03,7:23,14:50,Training,Wednesday
+66687e89fc13ae4e6e23474b,Wolfgang Dundin,Engineering,2024-08-04,6:34,15:44,Work,Sunday
+66687e89fc13ae4e6e23474c,Greggory Saulter,Engineering,2024-11-06,7:54,16:20,Work,Wednesday
+66687e89fc13ae4e6e23474d,Alane Absolon,Product Management,2024-01-06,7:32,15:20,Meeting,Saturday
+66687e89fc13ae4e6e23474e,Malena O'Gaven,Services,2024-08-01,9:57,14:59,Work,Thursday
+66687e89fc13ae4e6e23474f,Percy Gilligan,Human Resources,2024-12-05,6:51,14:00,Training,Thursday
+66687e89fc13ae4e6e234750,Cathryn Gerbi,Business Development,2024-09-05,8:56,17:04,Work,Thursday
+66687e89fc13ae4e6e234751,Sayre Haslam,Marketing,2024-03-06,7:05,17:12,Work,Wednesday
+66687e89fc13ae4e6e234752,Far Maro,Accounting,2024-10-01,8:58,14:09,Training,Tuesday
+66687e89fc13ae4e6e234753,Bronny Streeter,Human Resources,2024-03-01,8:31,16:02,Meeting,Friday
+66687e89fc13ae4e6e234754,Shawnee Waye,Accounting,2024-07-02,6:04,17:29,Work,Tuesday
+66687e89fc13ae4e6e234755,Zechariah Dodgshon,Legal,2024-04-02,6:02,16:22,Work,Tuesday
+66687e89fc13ae4e6e234756,Tyrus FitzGeorge,Training,2024-01-02,6:04,16:26,Work,Tuesday
+66687e89fc13ae4e6e234757,Allister Hendrikse,Research and Development,2024-05-01,7:45,17:53,Work,Wednesday
+66687e89fc13ae4e6e234758,Bryan Ingarfill,Legal,2024-03-05,6:23,14:03,Work,Tuesday
+66687e89fc13ae4e6e234759,Ahmed Ruggiero,Human Resources,2024-03-07,9:10,15:11,Meeting,Thursday
+66687e89fc13ae4e6e23475a,Hayward Bicker,Services,2024-12-03,9:51,17:08,Work,Tuesday
+66687e89fc13ae4e6e23475b,Horst Dufoure,Sales,2024-02-05,7:03,15:10,Work,Monday
+66687e89fc13ae4e6e23475c,Klarrisa Quested,Human Resources,2024-02-06,6:02,14:11,Work,Tuesday
+66687e89fc13ae4e6e23475d,Lyndell Sacaze,Accounting,2024-04-06,8:21,14:38,Work,Saturday
+66687e89fc13ae4e6e23475e,Gladys Bletcher,Accounting,2024-01-05,8:37,15:40,Meeting,Friday
+66687e89fc13ae4e6e23475f,Klarika Verdun,Business Development,2024-06-05,7:33,14:47,Meeting,Wednesday
+66687e89fc13ae4e6e234760,Nahum Tamlett,Engineering,2024-12-02,8:48,17:08,Work,Monday
+66687e89fc13ae4e6e234761,Merrile Sevier,Research and Development,2024-10-06,9:46,16:06,Training,Sunday
+66687e89fc13ae4e6e234762,Christophe Top,Marketing,2024-02-03,6:59,15:02,Meeting,Saturday
+66687e89fc13ae4e6e234763,Lanie Cominetti,Services,2024-06-04,7:59,16:14,Work,Tuesday
+66687e89fc13ae4e6e234764,Georgiana Simnor,Support,2024-02-07,6:09,16:57,Work,Wednesday
+66687e89fc13ae4e6e234765,Jess Benting,Training,2024-06-05,8:43,15:11,Training,Wednesday
+66687e89fc13ae4e6e234766,Dot Hayselden,Sales,2024-05-04,9:39,14:56,Work,Saturday
+66687e89fc13ae4e6e234767,Antoine Matuszewski,Business Development,2024-01-01,8:58,15:36,Work,Monday
+66687e89fc13ae4e6e234768,Ernst Duncanson,Human Resources,2024-01-02,6:27,16:53,Work,Tuesday
+66687e89fc13ae4e6e234769,Cindy Moreno,Services,2024-02-06,6:15,16:19,Meeting,Tuesday
+66687e89fc13ae4e6e23476a,Angelica Park,Accounting,2024-10-06,6:19,17:58,Work,Sunday
+66687e89fc13ae4e6e23476b,Corinne Gallichan,Legal,2024-05-02,9:55,14:08,Client Visit,Thursday
+66687e89fc13ae4e6e23476c,Minta Bishop,Engineering,2024-07-07,6:06,17:15,Meeting,Sunday
+66687e89fc13ae4e6e23476d,Ly Baroche,Research and Development,2024-06-01,8:37,16:35,Work,Saturday
+66687e89fc13ae4e6e23476e,Graeme Ivushkin,Product Management,2024-09-02,8:51,14:30,Training,Monday
+66687e89fc13ae4e6e23476f,Bernie Casterton,Support,2024-02-01,7:56,14:36,Client Visit,Thursday
+66687e89fc13ae4e6e234770,Camilla Bruinsma,Engineering,2024-01-01,8:06,14:09,Work,Monday
+66687e89fc13ae4e6e234771,Dinnie Di Lucia,Support,2024-08-03,9:01,17:30,Work,Saturday
+66687e89fc13ae4e6e234772,Dilly Leadbetter,Engineering,2024-09-02,9:05,14:17,Meeting,Monday
+66687e89fc13ae4e6e234773,Wilone Bonin,Business Development,2024-02-02,9:45,16:42,Meeting,Friday
+66687e89fc13ae4e6e234774,Cherey Corrington,Services,2024-05-05,7:44,15:53,Training,Sunday
+66687e89fc13ae4e6e234775,Damon Shelp,Human Resources,2024-07-06,9:20,16:10,Work,Saturday
+66687e89fc13ae4e6e234776,Aida Corsor,Sales,2024-04-02,8:11,14:38,Meeting,Tuesday
+66687e89fc13ae4e6e234777,Tomaso McQuade,Business Development,2024-12-02,6:29,17:58,Work,Monday
+66687e89fc13ae4e6e234778,Tiebout Vaney,Support,2024-08-04,8:57,15:30,Meeting,Sunday
+66687e89fc13ae4e6e234779,Shelby Jagson,Marketing,2024-01-01,9:36,17:15,Work,Monday
+66687e89fc13ae4e6e23477a,Erminia Lush,Sales,2024-05-03,9:40,14:57,Meeting,Friday
+66687e89fc13ae4e6e23477b,Buckie Venour,Marketing,2024-06-02,9:48,17:29,Work,Sunday
+66687e89fc13ae4e6e23477c,Chelsy Wooldridge,Training,2024-05-06,8:31,14:58,Work,Monday
+66687e89fc13ae4e6e23477d,Dorene Gainsboro,Sales,2024-08-07,7:44,16:27,Client Visit,Wednesday
+66687e89fc13ae4e6e23477e,Darill Farlham,Product Management,2024-04-07,6:55,17:38,Work,Sunday
+66687e89fc13ae4e6e23477f,Jerry Wragg,Legal,2024-11-04,6:30,16:16,Work,Monday
+66687e89fc13ae4e6e234780,Benedetta Oaker,Engineering,2024-05-03,9:45,15:53,Training,Friday
+66687e89fc13ae4e6e234781,Benito Sturman,Training,2024-07-02,7:42,14:25,Meeting,Tuesday
+66687e89fc13ae4e6e234782,Melonie Creegan,Product Management,2024-07-07,7:25,15:04,Work,Sunday
+66687e89fc13ae4e6e234783,Debee Kleinerman,Research and Development,2024-04-05,6:11,16:19,Meeting,Friday
+66687e89fc13ae4e6e234784,Flint Stewart,Accounting,2024-06-04,8:46,15:14,Work,Tuesday
+66687e89fc13ae4e6e234785,Jemima Chillcot,Legal,2024-07-02,7:52,15:44,Work,Tuesday
+66687e89fc13ae4e6e234786,Nell Gelly,Training,2024-05-03,7:25,17:33,Training,Friday
+66687e89fc13ae4e6e234787,Latrina Eteen,Business Development,2024-10-07,8:19,16:45,Work,Monday
+66687e89fc13ae4e6e234788,Reeta Meryett,Marketing,2024-06-02,7:01,14:08,Work,Sunday
+66687e89fc13ae4e6e234789,Marcia Ferreri,Human Resources,2024-11-07,7:02,17:23,Work,Thursday
+66687e89fc13ae4e6e23478a,Kennith Crippin,Research and Development,2024-07-01,8:46,15:15,Work,Monday
+66687e89fc13ae4e6e23478b,Bay Lohde,Engineering,2024-10-03,7:50,17:56,Work,Thursday
+66687e89fc13ae4e6e23478c,Eloisa Creech,Engineering,2024-12-07,6:12,16:53,Client Visit,Saturday
+66687e89fc13ae4e6e23478d,Maynard Morforth,Engineering,2024-06-04,7:20,14:50,Work,Tuesday
+66687e89fc13ae4e6e23478e,Marne Ugoni,Product Management,2024-09-07,7:32,15:52,Client Visit,Saturday
+66687e89fc13ae4e6e23478f,Elsinore Ekins,Services,2024-11-05,8:21,14:54,Work,Tuesday
+66687e89fc13ae4e6e234790,Olly Barney,Business Development,2024-03-01,7:31,17:36,Work,Friday
+66687e89fc13ae4e6e234791,Sax Peat,Services,2024-04-03,7:17,14:37,Training,Wednesday
+66687e89fc13ae4e6e234792,Carlotta Petrecz,Accounting,2024-09-02,6:17,16:46,Work,Monday
+66687e89fc13ae4e6e234793,Bartolemo Luparti,Services,2024-10-04,6:10,17:33,Meeting,Friday
+66687e89fc13ae4e6e234794,Gates St Angel,Engineering,2024-01-02,6:31,14:47,Work,Tuesday
+66687e89fc13ae4e6e234795,Hana Muro,Business Development,2024-08-07,9:39,15:23,Meeting,Wednesday
+66687e89fc13ae4e6e234796,Nancie Lehon,Sales,2024-06-07,6:55,14:03,Meeting,Friday
+66687e89fc13ae4e6e234797,Maddy Jeste,Research and Development,2024-04-01,7:19,15:00,Meeting,Monday
+66687e89fc13ae4e6e234798,Talia Kingsnod,Sales,2024-07-01,6:27,15:06,Client Visit,Monday
+66687e89fc13ae4e6e234799,Vera Sampson,Research and Development,2024-06-06,6:50,15:36,Work,Thursday
+66687e89fc13ae4e6e23479a,Hort Teale,Sales,2024-07-04,7:43,14:41,Training,Thursday
+66687e89fc13ae4e6e23479b,Lay Jacques,Research and Development,2024-03-03,7:51,16:39,Work,Sunday
+66687e89fc13ae4e6e23479c,Janeen Leyband,Sales,2024-11-06,9:50,17:35,Work,Wednesday
+66687e89fc13ae4e6e23479d,Silvio Crandon,Services,2024-12-04,6:23,16:03,Work,Wednesday
+66687e89fc13ae4e6e23479e,Faustine Mongin,Sales,2024-04-07,6:19,17:53,Meeting,Sunday
+66687e89fc13ae4e6e23479f,Ayn Georgeau,Legal,2024-12-02,6:56,14:58,Training,Monday
+66687e89fc13ae4e6e2347a0,Lorelle Bassham,Accounting,2024-12-07,7:23,15:56,Client Visit,Saturday
+66687e89fc13ae4e6e2347a1,Jeff De Ferraris,Support,2024-12-07,6:37,14:19,Meeting,Saturday
+66687e89fc13ae4e6e2347a2,Tammy Macvain,Engineering,2024-11-07,6:02,17:40,Work,Thursday
+66687e89fc13ae4e6e2347a3,Wendye Sapseed,Services,2024-05-06,8:28,14:38,Training,Monday
+66687e89fc13ae4e6e2347a4,Viviyan Scoble,Sales,2024-03-05,6:31,14:06,Work,Tuesday
+66687e89fc13ae4e6e2347a5,Welbie Pescud,Engineering,2024-03-05,6:37,14:49,Work,Tuesday
+66687e89fc13ae4e6e2347a6,Alyosha Greatbach,Support,2024-08-05,7:00,17:57,Training,Monday
+66687e89fc13ae4e6e2347a7,Dotti Lowis,Marketing,2024-10-03,6:27,16:46,Work,Thursday
+66687e89fc13ae4e6e2347a8,Iseabal Denniston,Sales,2024-04-04,9:20,16:18,Work,Thursday
+66687e89fc13ae4e6e2347a9,Walton Fear,Support,2024-01-06,9:53,14:11,Work,Saturday
+66687e89fc13ae4e6e2347aa,Marcelia McKeurton,Legal,2024-05-02,7:47,16:51,Client Visit,Thursday
+66687e89fc13ae4e6e2347ab,Blanche Fobidge,Product Management,2024-10-03,6:07,16:19,Work,Thursday
+66687e89fc13ae4e6e2347ac,Coraline Bugge,Product Management,2024-07-03,7:20,17:24,Meeting,Wednesday
+66687e89fc13ae4e6e2347ad,Vanna Burman,Training,2024-05-07,9:38,15:28,Work,Tuesday
+66687e89fc13ae4e6e2347ae,Flory Gibbett,Legal,2024-11-07,6:07,15:26,Work,Thursday
+66687e89fc13ae4e6e2347af,Layton Vian,Engineering,2024-05-02,7:35,15:42,Meeting,Thursday
+66687e89fc13ae4e6e2347b0,Rebe Tetlow,Training,2024-02-05,6:41,15:54,Work,Monday
+66687e89fc13ae4e6e2347b1,Randall Mattschas,Legal,2024-12-05,7:51,17:36,Work,Thursday
+66687e89fc13ae4e6e2347b2,Kayla Spooner,Product Management,2024-06-05,9:41,14:57,Training,Wednesday
+66687e89fc13ae4e6e2347b3,Billie Giraudou,Engineering,2024-05-06,9:54,17:18,Meeting,Monday
+66687e89fc13ae4e6e2347b4,Ronda Marsden,Research and Development,2024-04-05,9:34,15:01,Meeting,Friday
+66687e89fc13ae4e6e2347b5,Goldina Pattenden,Business Development,2024-04-07,6:45,16:06,Client Visit,Sunday
+66687e89fc13ae4e6e2347b6,Reube Wheeldon,Human Resources,2024-11-02,9:29,17:12,Work,Saturday
+66687e89fc13ae4e6e2347b7,Prinz Heggadon,Product Management,2024-06-04,6:55,17:18,Work,Tuesday
+66687e89fc13ae4e6e2347b8,Weston Copner,Support,2024-06-01,8:01,15:13,Work,Saturday
+66687e89fc13ae4e6e2347b9,Port Fayter,Accounting,2024-12-01,8:53,17:18,Work,Sunday
+66687e89fc13ae4e6e2347ba,Prue Higounet,Support,2024-05-04,7:40,14:58,Work,Saturday
+66687e89fc13ae4e6e2347bb,Antin McEnhill,Support,2024-06-05,7:23,14:48,Work,Wednesday
+66687e89fc13ae4e6e2347bc,Maryjo Risbrough,Marketing,2024-12-03,6:09,16:07,Work,Tuesday
+66687e89fc13ae4e6e2347bd,Dexter Loges,Legal,2024-02-04,6:08,16:58,Work,Sunday
+66687e89fc13ae4e6e2347be,Pearla Depka,Support,2024-04-02,9:36,15:01,Training,Tuesday
+66687e89fc13ae4e6e2347bf,Martica Fickling,Human Resources,2024-07-05,7:22,16:31,Meeting,Friday
+66687e89fc13ae4e6e2347c0,Nerte Annell,Services,2024-05-04,9:55,17:27,Training,Saturday
+66687e89fc13ae4e6e2347c1,Jesus Blader,Support,2024-07-02,7:23,14:57,Work,Tuesday
+66687e89fc13ae4e6e2347c2,Winifield MacKartan,Research and Development,2024-02-02,8:30,16:13,Work,Friday
+66687e89fc13ae4e6e2347c3,Whitaker Chrstine,Legal,2024-01-04,8:07,17:55,Work,Thursday
+66687e89fc13ae4e6e2347c4,Patsy Gehringer,Human Resources,2024-09-02,6:27,17:27,Training,Monday
+66687e89fc13ae4e6e2347c5,Consalve Canto,Legal,2024-08-07,8:09,15:15,Work,Wednesday
+66687e89fc13ae4e6e2347c6,Arney Curman,Accounting,2024-09-06,6:28,17:04,Work,Friday
+66687e89fc13ae4e6e2347c7,Tawnya Hughs,Services,2024-01-01,7:29,16:59,Work,Monday
+66687e89fc13ae4e6e2347c8,Griffin Alleyne,Business Development,2024-02-07,6:35,17:06,Client Visit,Wednesday
+66687e89fc13ae4e6e2347c9,Sheryl Wallentin,Human Resources,2024-09-03,8:36,14:01,Meeting,Tuesday
+66687e89fc13ae4e6e2347ca,Vinita Tiddy,Human Resources,2024-12-02,6:46,16:36,Work,Monday
+66687e89fc13ae4e6e2347cb,Noreen Hassall,Marketing,2024-08-06,8:19,15:33,Work,Tuesday
+66687e89fc13ae4e6e2347cc,Eleanora Feldhammer,Support,2024-04-03,8:38,14:40,Work,Wednesday
+66687e89fc13ae4e6e2347cd,Bellina Thynn,Training,2024-06-05,6:52,14:10,Meeting,Wednesday
+66687e89fc13ae4e6e2347ce,Dasha Cowthart,Marketing,2024-01-01,9:48,14:07,Work,Monday
+66687e89fc13ae4e6e2347cf,Carey Revitt,Product Management,2024-07-02,7:53,16:52,Client Visit,Tuesday
+66687e89fc13ae4e6e2347d0,Franklin Gorstidge,Sales,2024-01-05,8:22,16:48,Training,Friday
+66687e89fc13ae4e6e2347d1,Costa Ruddiforth,Legal,2024-03-07,7:47,14:31,Work,Thursday
+66687e89fc13ae4e6e2347d2,Jobi Abisetti,Engineering,2024-07-07,8:07,14:25,Work,Sunday
+66687e89fc13ae4e6e2347d3,Belita Jorgesen,Marketing,2024-01-05,8:54,14:22,Client Visit,Friday
+66687e89fc13ae4e6e2347d4,Mirabel Clunan,Marketing,2024-05-07,7:08,17:49,Training,Tuesday
+66687e89fc13ae4e6e2347d5,Fabe Rugge,Research and Development,2024-07-01,7:22,17:55,Work,Monday
+66687e89fc13ae4e6e2347d6,Lucretia Redington,Accounting,2024-12-03,6:50,14:00,Training,Tuesday
+66687e89fc13ae4e6e2347d7,Cicily Burberow,Accounting,2024-05-07,7:52,14:59,Work,Tuesday
+66687e89fc13ae4e6e2347d8,Mariska Smails,Sales,2024-09-04,8:39,15:18,Work,Wednesday
+66687e89fc13ae4e6e2347d9,Larine Boutcher,Legal,2024-08-04,9:53,16:29,Work,Sunday
+66687e89fc13ae4e6e2347da,Alisa Corneliussen,Legal,2024-10-02,8:20,16:26,Training,Wednesday
+66687e89fc13ae4e6e2347db,Chaddie Bayless,Support,2024-10-04,9:35,17:56,Work,Friday
+66687e89fc13ae4e6e2347dc,Otis Findon,Engineering,2024-09-04,6:58,15:35,Training,Wednesday
+66687e89fc13ae4e6e2347dd,Sander Thomassin,Accounting,2024-08-04,9:21,17:20,Training,Sunday
+66687e89fc13ae4e6e2347de,Yale Clitheroe,Sales,2024-03-07,8:07,15:19,Training,Thursday
+66687e89fc13ae4e6e2347df,Ky Stiebler,Sales,2024-06-01,9:09,17:21,Training,Saturday
+66687e89fc13ae4e6e2347e0,Wilow Hanhart,Legal,2024-03-06,8:19,14:59,Work,Wednesday
+66687e89fc13ae4e6e2347e1,Lisette Pendrigh,Engineering,2024-09-06,6:45,16:57,Client Visit,Friday
+66687e89fc13ae4e6e2347e2,Briana Panyer,Legal,2024-06-02,9:35,17:05,Training,Sunday
+66687e89fc13ae4e6e2347e3,Fanny Summergill,Human Resources,2024-09-07,9:43,14:35,Work,Saturday
+66687e89fc13ae4e6e2347e4,Lavina Lundon,Services,2024-02-03,9:18,14:59,Training,Saturday
+66687e89fc13ae4e6e2347e5,Nathanael Sargint,Support,2024-07-05,7:38,16:27,Work,Friday
+66687e89fc13ae4e6e2347e6,Sarajane Benbough,Engineering,2024-04-05,7:14,15:14,Meeting,Friday
+66687e89fc13ae4e6e2347e7,Kerianne Springle,Sales,2024-04-06,7:20,14:05,Work,Saturday
+66687e89fc13ae4e6e2347e8,Marsiella Verney,Legal,2024-08-04,7:19,14:48,Meeting,Sunday
+66687e89fc13ae4e6e2347e9,Darill Yggo,Legal,2024-11-01,6:43,16:37,Work,Friday
+66687e89fc13ae4e6e2347ea,Judas Cavilla,Engineering,2024-09-01,9:54,17:59,Work,Sunday
+66687e89fc13ae4e6e2347eb,Beltran Mattosoff,Business Development,2024-04-03,6:36,17:01,Training,Wednesday
+66687e89fc13ae4e6e2347ec,Robinson Lailey,Sales,2024-01-04,8:09,17:35,Work,Thursday
+66687e89fc13ae4e6e2347ed,Vitia Beddows,Business Development,2024-05-04,8:38,16:02,Work,Saturday
+66687e89fc13ae4e6e2347ee,Christalle Vahl,Human Resources,2024-08-03,7:35,15:20,Meeting,Saturday
+66687e89fc13ae4e6e2347ef,Perla Whetson,Legal,2024-06-04,9:31,16:04,Meeting,Tuesday
+66687e89fc13ae4e6e2347f0,Sheryl McCourt,Sales,2024-11-03,8:43,17:06,Training,Sunday
+66687e89fc13ae4e6e2347f1,Leisha Partridge,Research and Development,2024-02-05,7:32,17:17,Work,Monday
+66687e89fc13ae4e6e2347f2,Maddy Bleckly,Support,2024-01-07,9:09,17:47,Work,Sunday
+66687e89fc13ae4e6e2347f3,Noll MacKnockiter,Sales,2024-02-04,6:24,16:15,Meeting,Sunday
+66687e89fc13ae4e6e2347f4,Leah Liversidge,Business Development,2024-04-01,9:29,15:56,Training,Monday
+66687e89fc13ae4e6e2347f5,Rem Spadotto,Training,2024-09-04,9:49,16:06,Work,Wednesday
+66687e89fc13ae4e6e2347f6,Benedick Flament,Marketing,2024-12-03,7:33,17:49,Work,Tuesday
+66687e89fc13ae4e6e2347f7,Rosina Lough,Marketing,2024-12-02,9:37,16:52,Work,Monday
+66687e89fc13ae4e6e2347f8,Brannon Burdus,Support,2024-02-04,9:13,14:17,Work,Sunday
+66687e89fc13ae4e6e2347f9,Georges Bowstead,Training,2024-02-04,7:22,16:46,Meeting,Sunday
+66687e89fc13ae4e6e2347fa,Jerrie Commin,Legal,2024-07-01,6:19,16:32,Meeting,Monday
+66687e89fc13ae4e6e2347fb,Wolfgang Bordes,Support,2024-05-06,7:42,16:20,Work,Monday
+66687e89fc13ae4e6e2347fc,Susy Corder,Engineering,2024-03-03,6:44,14:13,Meeting,Sunday
+66687e89fc13ae4e6e2347fd,Tine Cometti,Accounting,2024-01-04,7:24,16:20,Training,Thursday
+66687e89fc13ae4e6e2347fe,Trevor Tolcharde,Business Development,2024-11-06,6:04,15:28,Work,Wednesday
+66687e89fc13ae4e6e2347ff,Louie Hammel,Product Management,2024-02-03,9:10,16:17,Meeting,Saturday
+66687e89fc13ae4e6e234800,Lee Wrinch,Human Resources,2024-12-01,9:18,16:54,Meeting,Sunday
+66687e89fc13ae4e6e234801,Mace Maisey,Human Resources,2024-08-02,9:04,15:07,Work,Friday
+66687e89fc13ae4e6e234802,Shaun Checkley,Legal,2024-05-02,8:55,15:09,Work,Thursday
+66687e89fc13ae4e6e234803,Bo Bastie,Product Management,2024-10-03,7:54,14:43,Work,Thursday
+66687e89fc13ae4e6e234804,Vita Nacci,Training,2024-03-02,7:19,15:12,Meeting,Saturday
+66687e89fc13ae4e6e234805,Denni Holdron,Support,2024-07-05,6:14,14:32,Work,Friday
+66687e89fc13ae4e6e234806,Avictor Rodrigo,Training,2024-03-04,6:02,14:46,Training,Monday
+66687e89fc13ae4e6e234807,Donny Forsaith,Research and Development,2024-03-07,6:03,15:57,Training,Thursday
+66687e89fc13ae4e6e234808,Eugen Chadbourn,Services,2024-10-02,8:09,16:54,Meeting,Wednesday
+66687e89fc13ae4e6e234809,Wyatan Sowle,Engineering,2024-02-02,8:58,16:21,Work,Friday
+66687e89fc13ae4e6e23480a,Julianne Carreck,Accounting,2024-10-06,8:12,14:01,Meeting,Sunday
+66687e89fc13ae4e6e23480b,Ludwig Mohring,Sales,2024-10-04,9:59,15:22,Client Visit,Friday
+66687e89fc13ae4e6e23480c,Otha Trobey,Product Management,2024-08-03,7:19,17:46,Work,Saturday
+66687e89fc13ae4e6e23480d,Diane Ayshford,Research and Development,2024-05-05,9:00,17:25,Work,Sunday
+66687e89fc13ae4e6e23480e,Anthony Seignior,Marketing,2024-07-06,9:23,16:59,Client Visit,Saturday
+66687e89fc13ae4e6e23480f,Tracie Dimmne,Support,2024-05-03,9:54,17:06,Work,Friday
+66687e89fc13ae4e6e234810,Warren Hovie,Training,2024-04-06,9:22,15:10,Training,Saturday
+66687e89fc13ae4e6e234811,Jsandye Cutting,Legal,2024-05-06,9:51,17:04,Meeting,Monday
+66687e89fc13ae4e6e234812,Aryn Wasson,Sales,2024-09-04,6:43,16:43,Work,Wednesday
+66687e89fc13ae4e6e234813,Hubie Gouldstone,Research and Development,2024-12-02,9:55,14:19,Work,Monday
+66687e89fc13ae4e6e234814,Jon Elby,Research and Development,2024-09-04,9:02,16:43,Work,Wednesday
+66687e89fc13ae4e6e234815,Javier Eddowes,Legal,2024-03-07,7:44,15:19,Work,Thursday
+66687e89fc13ae4e6e234816,Kirby Ginner,Legal,2024-03-06,9:15,14:26,Training,Wednesday
+66687e89fc13ae4e6e234817,Abramo Raoul,Business Development,2024-09-02,6:26,17:32,Training,Monday
+66687e89fc13ae4e6e234818,Alene Gladman,Services,2024-06-02,9:43,17:38,Meeting,Sunday
+66687e89fc13ae4e6e234819,Ryann Binny,Accounting,2024-12-06,7:37,14:23,Work,Friday
+66687e89fc13ae4e6e23481a,Yulma Kornas,Legal,2024-07-07,8:48,15:03,Meeting,Sunday
+66687e89fc13ae4e6e23481b,Addie Crichmere,Human Resources,2024-12-06,8:54,14:24,Work,Friday
+66687e89fc13ae4e6e23481c,Bernie Aronstein,Support,2024-03-01,6:14,14:47,Meeting,Friday
+66687e89fc13ae4e6e23481d,Kath Gentreau,Human Resources,2024-12-04,8:08,14:11,Work,Wednesday
+66687e89fc13ae4e6e23481e,Jeralee Buckthought,Training,2024-06-01,6:30,14:45,Meeting,Saturday
+66687e89fc13ae4e6e23481f,Annmaria Varley,Marketing,2024-09-02,6:17,16:51,Work,Monday
+66687e89fc13ae4e6e234820,Micki Krzyzaniak,Engineering,2024-12-07,8:04,14:44,Work,Saturday
+66687e89fc13ae4e6e234821,Elston Kynder,Human Resources,2024-05-01,7:52,16:10,Meeting,Wednesday
+66687e89fc13ae4e6e234822,Kevan Kuschel,Marketing,2024-12-01,6:54,17:18,Meeting,Sunday
+66687e89fc13ae4e6e234823,Pavel Tackley,Product Management,2024-05-06,9:13,16:50,Client Visit,Monday
+66687e89fc13ae4e6e234824,Tracy Gaitung,Research and Development,2024-11-05,7:34,15:26,Work,Tuesday
+66687e89fc13ae4e6e234825,Garwin Paoletti,Marketing,2024-11-04,7:16,17:21,Training,Monday
+66687e89fc13ae4e6e234826,Christopher Bracher,Accounting,2024-02-02,7:24,16:34,Work,Friday
+66687e89fc13ae4e6e234827,Annis Baroux,Support,2024-02-06,8:42,14:30,Work,Tuesday
+66687e89fc13ae4e6e234828,Cissiee Capenor,Business Development,2024-11-01,7:54,16:20,Work,Friday
+66687e89fc13ae4e6e234829,Holli Geleman,Business Development,2024-09-07,9:03,15:29,Meeting,Saturday
+66687e89fc13ae4e6e23482a,Theo Lusgdin,Research and Development,2024-10-07,9:04,16:24,Work,Monday
+66687e89fc13ae4e6e23482b,Curran Allebone,Sales,2024-08-07,9:03,17:29,Client Visit,Wednesday
+66687e89fc13ae4e6e23482c,Hildagarde Gollin,Accounting,2024-04-03,8:16,17:53,Work,Wednesday
+66687e89fc13ae4e6e23482d,Zena Daelman,Research and Development,2024-02-02,6:54,17:04,Work,Friday
+66687e89fc13ae4e6e23482e,Haze Levine,Human Resources,2024-03-02,6:12,14:03,Meeting,Saturday
+66687e89fc13ae4e6e23482f,Shawn Bouttell,Engineering,2024-11-06,7:23,14:10,Work,Wednesday
+66687e89fc13ae4e6e234830,Shanda Crankhorn,Sales,2024-10-07,9:10,16:05,Client Visit,Monday
+66687e89fc13ae4e6e234831,Margy MacQuist,Sales,2024-11-02,8:50,16:26,Meeting,Saturday
+66687e89fc13ae4e6e234832,Kariotta Krollman,Services,2024-10-06,7:09,14:45,Training,Sunday
+66687e89fc13ae4e6e234833,Maryanna Brewse,Marketing,2024-07-04,7:12,16:16,Meeting,Thursday
+66687e89fc13ae4e6e234834,Lilian Spellecy,Legal,2024-09-07,9:35,14:26,Work,Saturday
+66687e89fc13ae4e6e234835,Rory Inker,Services,2024-03-06,6:48,15:45,Client Visit,Wednesday
+66687e89fc13ae4e6e234836,Keefer Greenly,Sales,2024-04-06,9:54,16:00,Meeting,Saturday
+66687e89fc13ae4e6e234837,Carrol Yosifov,Services,2024-08-02,6:43,16:23,Meeting,Friday
+66687e89fc13ae4e6e234838,Helyn Danielsohn,Business Development,2024-03-07,9:07,15:12,Meeting,Thursday
+66687e89fc13ae4e6e234839,Loretta Potbury,Product Management,2024-01-05,6:59,14:49,Meeting,Friday
+66687e89fc13ae4e6e23483a,Malvina Gennings,Product Management,2024-08-04,6:51,16:02,Work,Sunday
+66687e89fc13ae4e6e23483b,Oliver Setter,Human Resources,2024-03-06,9:02,14:50,Training,Wednesday
+66687e89fc13ae4e6e23483c,Selig Rosenberger,Support,2024-07-04,7:40,17:36,Work,Thursday
+66687e89fc13ae4e6e23483d,Manya Cowan,Marketing,2024-12-04,7:36,16:55,Work,Wednesday
+66687e89fc13ae4e6e23483e,Stanly Ingilson,Support,2024-06-06,8:33,14:55,Work,Thursday
+66687e89fc13ae4e6e23483f,Carrissa MacDavitt,Accounting,2024-11-04,9:08,14:29,Meeting,Monday
+66687e89fc13ae4e6e234840,Connor Stevens,Business Development,2024-02-04,7:58,14:27,Training,Sunday
+66687e89fc13ae4e6e234841,Kim Kliement,Research and Development,2024-05-05,6:00,17:25,Meeting,Sunday
+66687e89fc13ae4e6e234842,Bern Stops,Research and Development,2024-01-05,9:29,16:43,Client Visit,Friday
+66687e89fc13ae4e6e234843,Dunc Robertz,Business Development,2024-10-04,6:38,17:36,Work,Friday
+66687e89fc13ae4e6e234844,Anne-marie Caton,Support,2024-06-04,7:58,17:08,Meeting,Tuesday
+66687e89fc13ae4e6e234845,Bram Hillam,Legal,2024-12-01,9:21,16:02,Training,Sunday
+66687e89fc13ae4e6e234846,Veda Ridpath,Training,2024-11-07,9:10,14:21,Meeting,Thursday
+66687e89fc13ae4e6e234847,Paige Gaitskill,Sales,2024-07-04,6:25,14:26,Meeting,Thursday
+66687e89fc13ae4e6e234848,Dione Mattusevich,Legal,2024-04-07,7:27,16:24,Training,Sunday
+66687e89fc13ae4e6e234849,Hashim Soigoux,Support,2024-07-04,6:33,16:09,Work,Thursday
+66687e89fc13ae4e6e23484a,Bennie Raulston,Services,2024-04-04,9:29,16:25,Work,Thursday
+66687e89fc13ae4e6e23484b,Barn de Keep,Human Resources,2024-06-04,6:22,15:27,Training,Tuesday
+66687e89fc13ae4e6e23484c,Ringo Bellin,Marketing,2024-04-02,7:47,14:35,Meeting,Tuesday
+66687e89fc13ae4e6e23484d,Barron Probbing,Support,2024-04-02,6:59,16:55,Work,Tuesday
+66687e89fc13ae4e6e23484e,Flinn O'Glessane,Legal,2024-06-06,9:39,15:51,Training,Thursday
+66687e89fc13ae4e6e23484f,Jeremie Bedbrough,Accounting,2024-07-07,6:20,16:00,Training,Sunday
+66687e89fc13ae4e6e234850,Adel Qusklay,Product Management,2024-02-03,9:00,17:37,Work,Saturday
+66687e89fc13ae4e6e234851,Hester Heddan,Research and Development,2024-11-06,9:12,17:08,Meeting,Wednesday
+66687e89fc13ae4e6e234852,Konrad Vasyukhnov,Services,2024-04-04,9:37,17:25,Training,Thursday
+66687e89fc13ae4e6e234853,Isabel Tolley,Human Resources,2024-10-03,9:02,15:26,Training,Thursday
+66687e89fc13ae4e6e234854,Bessie Becket,Human Resources,2024-04-04,6:45,14:31,Meeting,Thursday
+66687e89fc13ae4e6e234855,Otes Bould,Support,2024-07-02,7:55,15:10,Meeting,Tuesday
+66687e89fc13ae4e6e234856,Cherise Willbourne,Services,2024-11-03,6:42,15:32,Work,Sunday
+66687e89fc13ae4e6e234857,Weber Tagg,Accounting,2024-10-06,7:19,14:31,Meeting,Sunday
+66687e89fc13ae4e6e234858,Reena Pawnsford,Research and Development,2024-01-06,6:33,15:24,Client Visit,Saturday
+66687e89fc13ae4e6e234859,Mel Harroll,Services,2024-09-03,9:04,16:37,Training,Tuesday
+66687e89fc13ae4e6e23485a,Michal Udie,Research and Development,2024-01-06,7:43,17:27,Training,Saturday
+66687e89fc13ae4e6e23485b,Thorny Lerner,Support,2024-08-06,9:57,15:16,Training,Tuesday
+66687e89fc13ae4e6e23485c,Granny Cabane,Services,2024-12-01,9:10,15:06,Work,Sunday
+66687e89fc13ae4e6e23485d,Tabb Jakubovits,Support,2024-01-06,6:50,14:02,Meeting,Saturday
+66687e89fc13ae4e6e23485e,Kristen Sherr,Services,2024-02-04,7:50,14:20,Client Visit,Sunday
+66687e89fc13ae4e6e23485f,Wyatan Bedder,Marketing,2024-08-04,6:00,17:33,Work,Sunday
+66687e89fc13ae4e6e234860,Ettore Foxhall,Legal,2024-01-05,7:45,17:57,Meeting,Friday
+66687e89fc13ae4e6e234861,Babara Whittet,Business Development,2024-11-02,6:24,15:12,Client Visit,Saturday
+66687e89fc13ae4e6e234862,Catlaina Children,Services,2024-05-03,6:59,17:51,Training,Friday
+66687e89fc13ae4e6e234863,Kinny Crocken,Training,2024-11-04,9:31,17:54,Work,Monday
+66687e89fc13ae4e6e234864,Heloise Thornber,Training,2024-08-04,9:04,14:44,Work,Sunday
+66687e89fc13ae4e6e234865,Tiphany Dyke,Marketing,2024-06-05,7:11,17:02,Meeting,Wednesday
+66687e89fc13ae4e6e234866,Lock Gerger,Support,2024-02-05,8:17,14:17,Work,Monday
+66687e89fc13ae4e6e234867,Merwyn Elvins,Business Development,2024-06-04,6:56,17:41,Work,Tuesday
+66687e89fc13ae4e6e234868,Ondrea Kempstone,Product Management,2024-04-06,9:46,17:00,Meeting,Saturday
+66687e89fc13ae4e6e234869,Lemmie Akaster,Marketing,2024-05-03,9:22,17:14,Meeting,Friday
+66687e89fc13ae4e6e23486a,Inessa Bovingdon,Marketing,2024-10-01,8:30,17:47,Meeting,Tuesday
+66687e89fc13ae4e6e23486b,Marita Peasnone,Accounting,2024-11-03,6:51,16:21,Meeting,Sunday
+66687e89fc13ae4e6e23486c,Marika Edmand,Research and Development,2024-06-02,9:18,17:29,Work,Sunday
+66687e89fc13ae4e6e23486d,Caye De Bernardis,Marketing,2024-09-02,9:01,16:49,Training,Monday
+66687e89fc13ae4e6e23486e,Webb Guido,Engineering,2024-05-02,9:52,14:58,Work,Thursday
+66687e89fc13ae4e6e23486f,Aaren Avent,Product Management,2024-07-04,9:35,17:38,Training,Thursday
+66687e89fc13ae4e6e234870,Queenie Morrice,Business Development,2024-08-06,7:14,14:07,Work,Tuesday
+66687e89fc13ae4e6e234871,Jephthah Coulbeck,Accounting,2024-07-05,6:23,17:50,Work,Friday
+66687e89fc13ae4e6e234872,Berte Reagan,Human Resources,2024-03-07,9:24,14:39,Meeting,Thursday
+66687e89fc13ae4e6e234873,Robbyn Langstone,Training,2024-10-07,7:05,17:23,Meeting,Monday
+66687e89fc13ae4e6e234874,Katine Somerton,Marketing,2024-12-02,8:59,14:03,Training,Monday
+66687e89fc13ae4e6e234875,Keven Critch,Sales,2024-01-02,7:20,16:50,Training,Tuesday
+66687e89fc13ae4e6e234876,Bryant Blaiklock,Legal,2024-02-07,6:24,17:38,Training,Wednesday
+66687e89fc13ae4e6e234877,Alexina Filipov,Accounting,2024-10-06,9:02,15:17,Meeting,Sunday
+66687e89fc13ae4e6e234878,Roddy Duker,Engineering,2024-07-04,9:29,17:20,Meeting,Thursday
+66687e89fc13ae4e6e234879,Joey Normanvill,Accounting,2024-11-06,7:02,17:25,Work,Wednesday
+66687e89fc13ae4e6e23487a,Marthena Draco,Business Development,2024-01-06,6:01,14:53,Client Visit,Saturday
+66687e89fc13ae4e6e23487b,Dulce Tollerton,Accounting,2024-08-03,8:13,16:11,Work,Saturday
+66687e89fc13ae4e6e23487c,Carlo Stoppard,Human Resources,2024-07-04,6:27,15:41,Work,Thursday
+66687e89fc13ae4e6e23487d,Phaedra Beyn,Sales,2024-05-04,8:29,17:55,Work,Saturday
+66687e89fc13ae4e6e23487e,Kynthia Woodburne,Business Development,2024-05-06,7:27,16:36,Meeting,Monday
+66687e89fc13ae4e6e23487f,Mufinella Karpets,Marketing,2024-11-05,7:16,16:06,Work,Tuesday
+66687e89fc13ae4e6e234880,Calv Veronique,Product Management,2024-09-03,9:42,14:34,Meeting,Tuesday
+66687e89fc13ae4e6e234881,Odelia Pietruszewicz,Human Resources,2024-05-05,7:18,15:47,Meeting,Sunday
+66687e89fc13ae4e6e234882,Annmaria D'Aeth,Human Resources,2024-06-01,6:22,17:31,Work,Saturday
+66687e89fc13ae4e6e234883,Alane Seiler,Legal,2024-06-02,6:40,16:51,Training,Sunday
+66687e89fc13ae4e6e234884,Sol Gladdis,Accounting,2024-01-07,6:04,14:08,Meeting,Sunday
+66687e89fc13ae4e6e234885,Ruby Gaddie,Legal,2024-03-01,6:41,17:36,Meeting,Friday
+66687e89fc13ae4e6e234886,Skip Cancellario,Research and Development,2024-08-03,9:23,14:12,Work,Saturday
+66687e89fc13ae4e6e234887,Kikelia Starcks,Engineering,2024-05-06,9:20,17:05,Meeting,Monday
+66687e89fc13ae4e6e234888,Thedric Minchinton,Product Management,2024-01-02,8:04,15:27,Work,Tuesday
+66687e89fc13ae4e6e234889,Othella McLoney,Accounting,2024-10-07,9:13,17:02,Work,Monday
+66687e89fc13ae4e6e23488a,Zorana Melmeth,Research and Development,2024-06-06,9:10,14:19,Work,Thursday
+66687e89fc13ae4e6e23488b,Muhammad Shannon,Business Development,2024-11-03,7:16,15:48,Work,Sunday
+66687e89fc13ae4e6e23488c,Stephine Nappin,Support,2024-12-06,9:02,14:09,Training,Friday
+66687e89fc13ae4e6e23488d,Edwina Hookes,Engineering,2024-01-07,9:46,15:42,Training,Sunday
+66687e89fc13ae4e6e23488e,Pansy McPaik,Sales,2024-04-02,9:39,16:07,Meeting,Tuesday
+66687e89fc13ae4e6e23488f,Nickie Lain,Accounting,2024-04-04,6:06,17:28,Training,Thursday
+66687e89fc13ae4e6e234890,Sylvia Hallibone,Human Resources,2024-10-04,8:32,17:22,Training,Friday
+66687e89fc13ae4e6e234891,Sara Wolfendell,Human Resources,2024-01-01,9:40,17:16,Meeting,Monday
+66687e89fc13ae4e6e234892,Nikki Blaiklock,Product Management,2024-07-02,6:14,16:52,Client Visit,Tuesday
+66687e89fc13ae4e6e234893,Garrik Schonfeld,Marketing,2024-09-01,7:12,15:19,Work,Sunday
+66687e89fc13ae4e6e234894,Florri Parmiter,Training,2024-07-07,7:15,14:27,Work,Sunday
+66687e89fc13ae4e6e234895,Alaric Benez,Legal,2024-06-04,8:34,17:32,Client Visit,Tuesday
+66687e89fc13ae4e6e234896,Zsa zsa Franceschi,Engineering,2024-09-04,7:30,15:49,Work,Wednesday
+66687e89fc13ae4e6e234897,Skipton Legon,Human Resources,2024-10-07,6:33,16:20,Meeting,Monday
+66687e89fc13ae4e6e234898,Ashley Vasyukhichev,Accounting,2024-06-02,7:45,14:11,Meeting,Sunday
+66687e89fc13ae4e6e234899,Flori Gilhooly,Product Management,2024-05-05,8:02,14:53,Work,Sunday
+66687e89fc13ae4e6e23489a,Wynn Oertzen,Accounting,2024-11-02,6:41,15:50,Work,Saturday
+66687e89fc13ae4e6e23489b,Grethel Cheetham,Product Management,2024-09-02,9:51,16:17,Work,Monday
+66687e89fc13ae4e6e23489c,Garret Frostick,Marketing,2024-06-07,8:16,16:56,Meeting,Friday
+66687e89fc13ae4e6e23489d,Isabelle Arboine,Human Resources,2024-03-01,9:14,17:21,Training,Friday
+66687e89fc13ae4e6e23489e,Lucais Haet,Legal,2024-10-01,6:19,15:25,Work,Tuesday
+66687e89fc13ae4e6e23489f,Salvatore Kleint,Human Resources,2024-01-06,6:09,17:13,Training,Saturday
+66687e89fc13ae4e6e2348a0,Bentley Proughten,Marketing,2024-01-04,8:35,14:11,Training,Thursday
+66687e89fc13ae4e6e2348a1,Carlyle Glasson,Human Resources,2024-10-03,7:24,17:11,Client Visit,Thursday
+66687e89fc13ae4e6e2348a2,Bart Delagnes,Business Development,2024-01-04,7:06,17:45,Meeting,Thursday
+66687e89fc13ae4e6e2348a3,Morly Sorrel,Product Management,2024-09-03,8:47,15:20,Meeting,Tuesday
+66687e89fc13ae4e6e2348a4,Letti Gummoe,Support,2024-04-01,8:08,15:41,Work,Monday
+66687e89fc13ae4e6e2348a5,Artemis Bartozzi,Engineering,2024-05-04,9:13,14:57,Training,Saturday
+66687e89fc13ae4e6e2348a6,Linc Delve,Sales,2024-08-07,6:35,14:08,Meeting,Wednesday
+66687e89fc13ae4e6e2348a7,Nickolaus Innocenti,Services,2024-05-02,9:32,15:58,Client Visit,Thursday
+66687e89fc13ae4e6e2348a8,Gracie Fiske,Sales,2024-07-06,9:51,16:28,Meeting,Saturday
+66687e89fc13ae4e6e2348a9,Donetta Dutnall,Product Management,2024-09-07,6:06,16:52,Work,Saturday
+66687e89fc13ae4e6e2348aa,Tannie Punt,Engineering,2024-09-01,7:21,16:43,Meeting,Sunday
+66687e89fc13ae4e6e2348ab,Tessi Maseres,Sales,2024-09-01,7:48,15:45,Work,Sunday
+66687e89fc13ae4e6e2348ac,Rafferty Ryhorovich,Support,2024-11-04,6:25,15:15,Work,Monday
+66687e89fc13ae4e6e2348ad,Cory Tearney,Product Management,2024-04-03,7:58,14:30,Meeting,Wednesday
+66687e89fc13ae4e6e2348ae,Zechariah Caldeiro,Marketing,2024-12-05,8:16,17:52,Work,Thursday
+66687e89fc13ae4e6e2348af,Ross Bozworth,Services,2024-08-02,8:55,15:25,Work,Friday
+66687e89fc13ae4e6e2348b0,De witt Whewill,Product Management,2024-02-01,7:27,17:26,Meeting,Thursday
+66687e89fc13ae4e6e2348b1,Carmela Jessup,Legal,2024-03-01,8:28,14:37,Work,Friday
+66687e89fc13ae4e6e2348b2,Demeter Raccio,Business Development,2024-11-02,7:35,14:18,Meeting,Saturday
+66687e89fc13ae4e6e2348b3,Lindsey Lickess,Business Development,2024-12-04,6:10,17:45,Training,Wednesday
+66687e89fc13ae4e6e2348b4,Paco Yurenin,Research and Development,2024-06-05,7:45,14:22,Training,Wednesday
+66687e89fc13ae4e6e2348b5,Chucho Wybrew,Legal,2024-05-07,8:42,15:13,Meeting,Tuesday
+66687e89fc13ae4e6e2348b6,Burnard Goodlett,Accounting,2024-11-05,7:42,14:27,Training,Tuesday
+66687e89fc13ae4e6e2348b7,Rodolphe Aylward,Business Development,2024-04-01,8:42,17:20,Training,Monday
+66687e89fc13ae4e6e2348b8,Edvard Derobert,Engineering,2024-02-05,8:24,16:06,Work,Monday
+66687e89fc13ae4e6e2348b9,Starr Fooks,Product Management,2024-09-01,6:49,16:33,Work,Sunday
+66687e89fc13ae4e6e2348ba,Miguela Measham,Research and Development,2024-10-04,6:48,17:56,Meeting,Friday
+66687e89fc13ae4e6e2348bb,Lovell Puckring,Support,2024-11-02,8:20,14:13,Work,Saturday
+66687e89fc13ae4e6e2348bc,Wendie D'Souza,Accounting,2024-08-04,6:42,15:15,Work,Sunday
+66687e89fc13ae4e6e2348bd,Meyer Seamen,Product Management,2024-08-01,8:09,17:44,Meeting,Thursday
+66687e89fc13ae4e6e2348be,Orv Mead,Services,2024-07-07,6:36,15:05,Training,Sunday
+66687e89fc13ae4e6e2348bf,Anson Sturge,Research and Development,2024-07-02,8:09,14:58,Meeting,Tuesday
+66687e89fc13ae4e6e2348c0,Penrod Fawdry,Engineering,2024-05-04,8:26,15:18,Meeting,Saturday
+66687e89fc13ae4e6e2348c1,Lorraine Toopin,Support,2024-08-04,6:57,15:16,Training,Sunday
+66687e89fc13ae4e6e2348c2,Sutherland Ranby,Accounting,2024-04-05,8:58,17:48,Work,Friday
+66687e89fc13ae4e6e2348c3,Alia Eddie,Support,2024-09-04,8:10,15:14,Client Visit,Wednesday
+66687e89fc13ae4e6e2348c4,Kingston Bebb,Research and Development,2024-10-04,9:08,16:13,Meeting,Friday
+66687e89fc13ae4e6e2348c5,Melita Capnerhurst,Sales,2024-11-01,8:05,16:04,Training,Friday
+66687e89fc13ae4e6e2348c6,Ursuline Kinny,Product Management,2024-07-03,6:41,15:39,Work,Wednesday
+66687e89fc13ae4e6e2348c7,Anthe Fabb,Engineering,2024-10-06,7:28,17:38,Work,Sunday
+66687e89fc13ae4e6e2348c8,Elsie Avraam,Accounting,2024-10-06,6:54,16:59,Client Visit,Sunday
+66687e89fc13ae4e6e2348c9,Jackie Tuffey,Legal,2024-10-03,8:46,15:19,Meeting,Thursday
+66687e89fc13ae4e6e2348ca,Madlen Northam,Engineering,2024-08-02,6:02,14:00,Meeting,Friday
+66687e89fc13ae4e6e2348cb,Anselm Sorrel,Product Management,2024-07-05,6:13,14:29,Training,Friday
+66687e89fc13ae4e6e2348cc,Matteo Madine,Support,2024-04-07,9:34,14:45,Meeting,Sunday
+66687e89fc13ae4e6e2348cd,Rosaleen Duxbarry,Training,2024-10-07,8:22,14:46,Meeting,Monday
+66687e89fc13ae4e6e2348ce,Emmie Creed,Sales,2024-05-01,6:12,16:10,Meeting,Wednesday
+66687e89fc13ae4e6e2348cf,Homer Thackston,Training,2024-03-01,8:37,16:19,Work,Friday
+66687e89fc13ae4e6e2348d0,Read MacGaffey,Engineering,2024-03-01,9:05,15:51,Meeting,Friday
+66687e89fc13ae4e6e2348d1,Rutherford Remmer,Accounting,2024-03-04,8:39,14:43,Work,Monday
