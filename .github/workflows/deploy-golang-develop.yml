@@ -54,6 +54,18 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'  # Specify the Go version you are using
+    
+    - name: Decrypt env variables
+      run: |
+              echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .env.gpg > .env
+                  
+    - name: Decrypt key file
+      run: |
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 key.pem.gpg > key.pem
+  
+    - name: Decrypt cert file
+      run: |
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 cert.pem.gpg > cert.pem
 
     - name: Run tests
       run: |
@@ -114,7 +126,6 @@ jobs:
         file: occupi-backend/Dockerfile.dev
         platforms: linux/amd64,linux/arm64
         push: true
-        no-cache: true
         tags: ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest-develop
 
   deploy:

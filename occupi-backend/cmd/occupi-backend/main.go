@@ -61,7 +61,7 @@ func main() {
 	logrus.Infof("Server running with key file: %s", keyFile)
 
 	// Listening on the port with TLS
-	if err := ginRouter.Run(":"+configs.GetPort()); err != nil {
+	if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
 		logrus.Fatal("Failed to run server: ", err)
 	}
 }
