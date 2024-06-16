@@ -17,18 +17,6 @@ services:
       - /etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:/etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:ro
       - /etc/letsencrypt/live/dev.occupi.tech/privkey.pem:/etc/letsencrypt/live/dev.occupi.tech/privkey.pem:ro
 
-  nginx:
-    image: nginx:latest
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /etc/nginx:/etc/nginx:ro
-      - /etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:/etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:ro
-      - /etc/letsencrypt/live/dev.occupi.tech/privkey.pem:/etc/letsencrypt/live/dev.occupi.tech/privkey.pem:ro
-    depends_on:
-      - occupi-backend-dev
-
 networks:
   webnet:
     external: true
