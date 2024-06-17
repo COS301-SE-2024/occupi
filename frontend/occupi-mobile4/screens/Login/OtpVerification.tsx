@@ -74,7 +74,7 @@ const OTPVerification = () => {
     console.log(pin);
     setLoading(true);
     try {
-      const response = await fetch('http://10.0.0.160:8080/auth/verify-otp', {
+      const response = await fetch('https://dev.occupi.tech/auth/verify-otp', {
         method: 'POST',
         headers: {
           Accept: 'application/json',

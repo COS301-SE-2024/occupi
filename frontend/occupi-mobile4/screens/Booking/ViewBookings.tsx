@@ -1,5 +1,6 @@
 import { React, useEffect, useState } from 'react';
-import { ScrollView, useColorScheme, TouchableOpacity } from 'react-native';
+import { MenuView } from '@react-native-menu/menu';
+import { ScrollView, useColorScheme, TouchableOpacity, Platform } from 'react-native';
 import { Icon, View, Text, Input, InputField, InputSlotButton, Button, ButtonText, Image, Box, ChevronDownIcon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SimpleLineIcons } from '@expo/vector-icons';
@@ -220,6 +221,79 @@ const ViewBookings = () => {
                     ))}
                 </ScrollView>
             )}
+            <View>
+      <MenuView
+        title="Menu Title"
+        onPressAction={({ nativeEvent }) => {
+          console.warn(JSON.stringify(nativeEvent));
+        }}
+        actions={[
+          {
+            id: 'add',
+            title: 'Add',
+            titleColor: '#2367A2',
+            image: Platform.select({
+              ios: 'plus',
+              android: 'ic_menu_add',
+            }),
+            imageColor: '#2367A2',
+            subactions: [
+              {
+                id: 'nested1',
+                title: 'Nested action',
+                titleColor: 'rgba(250,180,100,0.5)',
+                subtitle: 'State is mixed',
+                image: Platform.select({
+                  ios: 'heart.fill',
+                  android: 'ic_menu_today',
+                }),
+                imageColor: 'rgba(100,200,250,0.3)',
+                state: 'mixed',
+              },
+              {
+                id: 'nestedDestructive',
+                title: 'Destructive Action',
+                attributes: {
+                  destructive: true,
+                },
+                image: Platform.select({
+                  ios: 'trash',
+                  android: 'ic_menu_delete',
+                }),
+              },
+            ],
+          },
+          {
+            id: 'share',
+            title: 'Share Action',
+            titleColor: '#46F289',
+            subtitle: 'Share action on SNS',
+            image: Platform.select({
+              ios: 'square.and.arrow.up',
+              android: 'ic_menu_share',
+            }),
+            imageColor: '#46F289',
+            state: 'on',
+          },
+          {
+            id: 'destructive',
+            title: 'Destructive Action',
+            attributes: {
+              destructive: true,
+            },
+            image: Platform.select({
+              ios: 'trash',
+              android: 'ic_menu_delete',
+            }),
+          },
+        ]}
+        shouldOpenOnLongPress={false}
+      >
+        <View>
+          <Text>Test</Text>
+        </View>
+      </MenuView>
+    </View>
 
             <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
         </View>

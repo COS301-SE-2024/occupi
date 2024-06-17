@@ -1,16 +1,12 @@
 import React, { useState, useRef } from 'react';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import {
-  Button,
   Checkbox,
   Image,
   HStack,
   VStack,
   Text,
-  View,
   Link,
-  Divider,
-  Icon,
   Center,
   FormControl,
   Box,
@@ -20,7 +16,6 @@ import {
   FormControlErrorIcon,
   FormControlErrorText,
   InputIcon,
-  FormControlHelper,
   Toast,
   ToastTitle,
   useToast,
@@ -132,7 +127,7 @@ const SignUpForm = () => {
       setPwMatched(true);
       setLoading(true);
       try {
-        const response = await fetch('http://10.0.0.160:8080/auth/register', {
+        const response = await fetch('https://dev.occupi.tech/auth/register', {
           method: 'POST',
           headers: {
             Accept: 'application/json',

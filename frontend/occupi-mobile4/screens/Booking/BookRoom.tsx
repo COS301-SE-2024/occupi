@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, useColorScheme, TouchableOpacity, View, Text, Image } from 'react-native';
 import { Ionicons, Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Toast,
+  ToastTitle,
+  useToast
+} from '@gluestack-ui/themed';
+
 import Navbar from '../../components/NavBar';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
@@ -16,7 +21,7 @@ const groupDataInPairs = (data) => {
 const BookRoom = () => {
   const router = useRouter();
   const colorScheme = useColorScheme();
-
+  const toast = useToast();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [layout, setLayout] = useState("row");
   const toggleLayout = () => {
@@ -25,9 +30,54 @@ const BookRoom = () => {
   useEffect(() => {
     setIsDarkMode(colorScheme === 'dark');
   }, [colorScheme]);
+
+  useEffect(() => {
+    const fetchAllRooms = async () => {
+      try {
+        const response = await fetch('https://dev.occupi.tech/api/view-rooms', {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          credentials: "include"
+        });
+        const data = await response.json();
+        if (response.ok) {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        } else {
+          // console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+    fetchAllRooms();
+  }, []); 
+
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
   const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
+
   const data = [
     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
