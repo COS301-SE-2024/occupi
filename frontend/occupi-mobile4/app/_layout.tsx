@@ -44,9 +44,9 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding1" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding2" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding3" options={{ headerShown: false }} />
-        {/* <Stack.Screen name="profile" options={{ headerShown: false }} /> */}
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
-        {/* <Stack.Screen name="settings" options={{ headerShown: false }} /> */}
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
         <Stack.Screen name="office-details" options={{ headerShown: false }} />
         <Stack.Screen name="booking-receipt" options={{ headerShown: false }} />
         <Stack.Screen name="booking-details" options={{ headerShown: false }} />
