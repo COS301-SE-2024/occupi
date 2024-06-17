@@ -11,7 +11,7 @@
 ![Codecov](https://img.shields.io/codecov/c/github/COS301-SE-2024/occupi?style=flat-square)
 ![GitHub License](https://img.shields.io/github/license/COS301-SE-2024/occupi?style=flat-square)
 ![GitHub repo size](https://img.shields.io/github/repo-size/COS301-SE-2024/occupi?style=flat-square)
-![Docs website](https://img.shields.io/website?url=https%3A%2F%2Fcos301-se-2024.github.io%2Foccupi%2F&style=flat-square)
+![Docs Website](https://img.shields.io/website?url=https%3A%2F%2Fdocs.occupi.tech&style=flat-square)
 ![GitHub Repo stars](https://img.shields.io/github/stars/COS301-SE-2024/occupi?style=flat-square)
 [![codecov](https://codecov.io/gh/COS301-SE-2024/occupi/graph/badge.svg?token=71QPCD9NNP)](https://codecov.io/gh/COS301-SE-2024/occupi)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/COS301-SE-2024/occupi?style=flat-square)
@@ -20,12 +20,12 @@
 
 <p align="center">
 
-![Deploy Landing page](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
 ![Deploy Docs](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
-![Deploy api](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-develop.yml/badge.svg)
-![Lint Test and Build Golang](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-golang.yml/badge.svg)
-![Lint Test and Build Occupi-Web](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-web.yml/badge.svg)
+![Deploy Landing page](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
 ![Lint Test Occupi-mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/test-mobile.yml/badge.svg)
+![Lint Test and Build Golang](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-golang.yml/badge.svg)
+![Deploy api](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-develop.yml/badge.svg)
+![Lint Test and Build Occupi-Web](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-web.yml/badge.svg)
 
 </p>
 
@@ -103,8 +103,8 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 # Meet the team behind occupi
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
   <tr>
-    <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="/images/kamo.png" width="250" >
+    <td style="vertical-align: top; width:auto; border: 0; padding: 10px; width: 250px;">
+      <img src="/images/kamo.png">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Kamo</b></h2>
@@ -120,8 +120,8 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
     </td>
   </tr>
   <tr>
-    <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="/images/carey.png" width="250" >
+    <td style="vertical-align: top; width:auto; border: 0; padding: 10px; width: 250px;">
+      <img src="/images/carey.png">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Carey</b></h2>
@@ -137,8 +137,8 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
     </td>
   </tr>
   <tr>
-    <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="/images/michael.png" width="250" >
+    <td style="vertical-align: top; width:auto; border: 0; padding: 10px; width: 250px;">
+      <img src="/images/michael.png">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
@@ -154,8 +154,8 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
     </td>
   </tr>
   <tr>
-    <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="/images/tinashe.png" width="250" >
+    <td style="vertical-align: top; width:auto; border: 0; padding: 10px; width: 250px;">
+      <img src="/images/tinashe.png">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Tinashe</b></h2>
@@ -171,8 +171,8 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
     </td>
   </tr>
   <tr>
-    <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="/images/retha.png" width="250" >
+    <td style="vertical-align: top; width:auto; border: 0; padding: 10px; width: 250px;">
+      <img src="/images/retha.png">
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Reta</b></h2>
