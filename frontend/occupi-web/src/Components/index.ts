@@ -16,7 +16,8 @@ import OverviewComponent from "./OverviewComponent/OverviewComponent";
 import ProfileComponent from "./ProfileComponent/ProfileComponent";
 import SearchBarComponent from "./searchBarComponent/SearchBar";
 import SideNav from "./sideNavComponent/SideNav";
-
+import Line_Chart from "./linechart/Line_Chart";
+import BarGraph from "./barGraph/BarGraph";
 
 
 export {
@@ -38,6 +39,6 @@ export {
     ProfileComponent,
     SearchBarComponent,
     SideNav,
-
-
+    Line_Chart,
+    BarGraph
 }
