@@ -1,36 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Keyboard } from 'react-native';
+import { StyleSheet, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, View, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
 import {
-  Center,
-  Button,
-  FormControl,
+ FormControl,
   HStack,
   Input,
   Text,
   VStack,
-  Link,
   useToast,
   Toast,
   Box,
   CheckIcon,
   Checkbox,
-  Icon,
   ToastTitle,
   InputField,
   FormControlError,
   FormControlErrorIcon,
   FormControlErrorText,
   InputIcon,
-  FormControlHelper,
   CheckboxIndicator,
   CheckboxIcon,
   CheckboxLabel,
-  ButtonText,
   Image,
   Heading,
   LinkText,

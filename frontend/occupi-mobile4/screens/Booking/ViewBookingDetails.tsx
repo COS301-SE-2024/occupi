@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Icon, ScrollView, View, Text, Input, InputField, Button, ButtonText, Image, Box, ChevronDownIcon } from '@gluestack-ui/themed';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import React from 'react';
+import { Icon, ScrollView, View, Text, Image } from '@gluestack-ui/themed';
+import { Feather } from '@expo/vector-icons';
 import { useColorScheme, StyleSheet } from 'react-native';
 import PagerView from 'react-native-pager-view';
 

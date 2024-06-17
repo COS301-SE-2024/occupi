@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import {
   Checkbox,
@@ -7,7 +7,6 @@ import {
   VStack,
   Text,
   Link,
-  Center,
   FormControl,
   Box,
   LinkText,
@@ -19,14 +18,11 @@ import {
   Toast,
   ToastTitle,
   useToast,
-  ButtonIcon,
   CheckboxIndicator,
   CheckboxIcon,
   CheckboxLabel,
   CheckIcon,
-  ButtonText,
   Heading,
-  ArrowLeftIcon,
   InputField,
   InputSlot,
   FormControlLabel,
@@ -37,23 +33,14 @@ import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard, StyleSheet, Alert, Animated } from 'react-native';
+import { Keyboard, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 // import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
 import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
-import { styled } from '@gluestack-style/react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-const StyledImage = styled(Image, {
-  props: {
-    style: {
-      height: wp('10%'),
-      width: wp('80%'),
-    },
-  },
-});
 const isEmployeeIdFocused = false;
 const signUpSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
@@ -83,27 +70,6 @@ const signUpSchema = z.object({
 
 type SignUpSchemaType = z.infer<typeof signUpSchema>;
 
-function SideContainerWeb() {
-  return (
-    <Center
-      bg="$primary500"
-      flex={1}
-      sx={{
-        _dark: {
-          bg: '$primary500',
-        },
-      }}
-    >
-      <StyledImage
-        h="$10"
-        w="$80"
-        alt="gluestack-ui Pro"
-        resizeMode="contain"
-      // source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
-      />
-    </Center>
-  );
-}
 
 const SignUpForm = () => {
   const {
@@ -114,17 +80,12 @@ const SignUpForm = () => {
   } = useForm<SignUpSchemaType>({
     resolver: zodResolver(signUpSchema),
   });
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
-  const [pwMatched, setPwMatched] = useState(false);
+  const isEmailFocused = useState(false);
   const toast = useToast();
-  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const spinValue = useRef(new Animated.Value(0)).current;
 
   const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
-      setPwMatched(true);
       setLoading(true);
       try {
         const response = await fetch('https://dev.occupi.tech/auth/register', {

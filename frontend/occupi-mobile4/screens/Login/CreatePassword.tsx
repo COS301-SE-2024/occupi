@@ -3,18 +3,14 @@ import {
   VStack,
   Box,
   HStack,
-  Icon,
   Text,
-  Button,
   Image,
   Center,
-  ArrowLeftIcon,
   FormControl,
   Heading,
   FormControlHelperText,
   EyeIcon,
   EyeOffIcon,
-  ButtonText,
   Input,
   useToast,
   Toast,
@@ -31,6 +27,7 @@ import {
   FormControlLabelText,
 } from '@gluestack-ui/themed';
 import { AlertTriangle } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Logo from './assets/images/Occupi/file.png';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';

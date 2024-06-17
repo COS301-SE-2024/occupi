@@ -2,33 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Box,
-  Image,
   Center,
-  Heading,
 } from '@gluestack-ui/themed';
-import { styled } from '@gluestack-style/react';
 import { ViewPager } from '@ui-kitten/components';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
-const StyledImage = styled(Image, {
-  '@sm': {
-    props: {
-      style: {
-        height: 40,
-        width: 320,
-      },
-    },
-  },
-  '@md': {
-    props: {
-      style: {
-        height: 141,
-        width: 275,
-      },
-    },
-  },
-});
 
 function HeaderLogo() {
   const spinValue = useRef(new Animated.Value(0)).current;
@@ -87,7 +65,6 @@ function HeaderLogo() {
 }
 
 const OnboardingScreen = ({ onFinish }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
 
   return (
     <LinearGradient

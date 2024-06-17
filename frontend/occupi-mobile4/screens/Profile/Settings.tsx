@@ -6,18 +6,16 @@ import {
   Box,
   Center,
   Icon,
-  Heading,
   Switch,
   Divider,
   Pressable,
-  useColorMode,
 } from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';
-import { Appearance, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const Settings = () => {
@@ -33,10 +31,6 @@ const Settings = () => {
 
   const toggleNotifications = () => {
     setNotificationsEnabled(!notificationsEnabled);
-  };
-
-  const toggleColorMode = () => {
-    colorScheme = !colorScheme;
   };
 
   const handleNavigate = (screen) => {

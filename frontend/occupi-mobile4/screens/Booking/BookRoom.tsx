@@ -72,7 +72,7 @@ const BookRoom = () => {
       }
     };
     fetchAllRooms();
-  }, []); 
+  }, [toast]); 
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';

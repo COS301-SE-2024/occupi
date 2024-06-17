@@ -1,6 +1,6 @@
 import { React, useEffect, useState } from 'react';
-import { ScrollView, useColorScheme, TouchableOpacity, Platform } from 'react-native';
-import { Icon, View, Text, Input, InputField, InputSlotButton, Button, ButtonText, Image, Box, ChevronDownIcon } from '@gluestack-ui/themed';
+import { ScrollView, useColorScheme, TouchableOpacity } from 'react-native';
+import { Icon, View, Text, Input, InputField, Image, Box, ChevronDownIcon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SimpleLineIcons } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
@@ -20,7 +20,7 @@ const ViewBookings = () => {
     const colorScheme = useColorScheme();
     const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
     const [layout, setLayout] = useState("row");
-    const [selectedSort, setSelectedSort] = useState("");
+    const [selectedSort, setSelectedSort] = useState("newest");
     const toggleLayout = () => {
         setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
     };
@@ -30,10 +30,6 @@ const ViewBookings = () => {
     const backgroundColor = isDarkMode ? 'black' : 'white';
     const textColor = isDarkMode ? 'white' : 'black';
     const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
-    const sort = [
-        { key: '1', value: 'Oldest', },
-        { key: '2', value: 'Newest' },
-    ]
     const data = [
         { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
         { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
@@ -220,80 +216,6 @@ const ViewBookings = () => {
                     ))}
                 </ScrollView>
             )}
-            <View>
-      <MenuView
-        title="Menu Title"
-        onPressAction={({ nativeEvent }) => {
-          console.warn(JSON.stringify(nativeEvent));
-        }}
-        actions={[
-          {
-            id: 'add',
-            title: 'Add',
-            titleColor: '#2367A2',
-            image: Platform.select({
-              ios: 'plus',
-              android: 'ic_menu_add',
-            }),
-            imageColor: '#2367A2',
-            subactions: [
-              {
-                id: 'nested1',
-                title: 'Nested action',
-                titleColor: 'rgba(250,180,100,0.5)',
-                subtitle: 'State is mixed',
-                image: Platform.select({
-                  ios: 'heart.fill',
-                  android: 'ic_menu_today',
-                }),
-                imageColor: 'rgba(100,200,250,0.3)',
-                state: 'mixed',
-              },
-              {
-                id: 'nestedDestructive',
-                title: 'Destructive Action',
-                attributes: {
-                  destructive: true,
-                },
-                image: Platform.select({
-                  ios: 'trash',
-                  android: 'ic_menu_delete',
-                }),
-              },
-            ],
-          },
-          {
-            id: 'share',
-            title: 'Share Action',
-            titleColor: '#46F289',
-            subtitle: 'Share action on SNS',
-            image: Platform.select({
-              ios: 'square.and.arrow.up',
-              android: 'ic_menu_share',
-            }),
-            imageColor: '#46F289',
-            state: 'on',
-          },
-          {
-            id: 'destructive',
-            title: 'Destructive Action',
-            attributes: {
-              destructive: true,
-            },
-            image: Platform.select({
-              ios: 'trash',
-              android: 'ic_menu_delete',
-            }),
-          },
-        ]}
-        shouldOpenOnLongPress={false}
-      >
-        <View>
-          <Text>Test</Text>
-        </View>
-      </MenuView>
-    </View>
-
             <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
         </View>
     );

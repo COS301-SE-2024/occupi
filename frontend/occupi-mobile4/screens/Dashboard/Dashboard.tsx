@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar, useColorScheme } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
-  StyleSheet,
   Text,
   View,
   Image,
@@ -12,10 +11,8 @@ import {
   ToastTitle,
   Button,
   ButtonText,
-  Icon,
-  ArrowRightIcon,
 } from '@gluestack-ui/themed';
-import { router } from 'expo-router';
+// import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const Dashboard = () => {
