@@ -36,6 +36,7 @@ module.exports = {
         red_salmon: 'var(--red-salmon)',
         gray_900: 'var(--tertiary)',
         primary_alt: 'var(--primary-alt)',
+        secondary: 'var(--secondary)',
       },
     },
     darkMode: "class",
