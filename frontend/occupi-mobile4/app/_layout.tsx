@@ -50,6 +50,7 @@ export default function RootLayout() {
         <Stack.Screen name="office-details" options={{ headerShown: false }} />
         <Stack.Screen name="booking-receipt" options={{ headerShown: false }} />
         <Stack.Screen name="booking-details" options={{ headerShown: false }} />
+        <Stack.Screen name="viewbookingdetails" options={{ headerShown: false }} />
       </Stack>
     </GluestackUIProvider>
   );
