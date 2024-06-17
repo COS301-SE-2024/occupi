@@ -21,6 +21,16 @@ func PingHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "pong -> I am alive and kicking", nil))
 }
 
+// PingHanlderAuth is a simple handler for testing if the server is up and running but requires authentication
+func PingHandlerAuth(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "pong -> I am alive and kicking and you are auth'd", nil))
+}
+
+// PingHandlerAdmin is a simple handler for testing if the server is up and running but requires admin authentication
+func PingHandlerAdmin(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "pong -> I am alive and kicking and you are an admin", nil))
+}
+
 // handler for fetching test resource from /api/resource. Formats and returns json response
 func FetchResource(ctx *gin.Context, appsession *models.AppSession) {
 	data := database.GetAllData(appsession.DB)

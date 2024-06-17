@@ -24,6 +24,14 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client) {
 	{
 		ping.GET("", func(ctx *gin.Context) { handlers.PingHandler(ctx) })
 	}
+	pingAuth := router.Group("/ping-auth")
+	{
+		pingAuth.GET("", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.PingHandlerAuth(ctx) })
+	}
+	pingAdmin := router.Group("/ping-admin")
+	{
+		pingAdmin.GET("", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.PingHandlerAdmin(ctx) })
+	}
 	api := router.Group("/api")
 	{
 		// resource-auth serves as an example for adding authentication to a route, remove when not needed
