@@ -21,10 +21,11 @@
 <p align="center">
 
 ![Deploy Landing page](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
-![Deploy Docs site to Pages](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
+![Deploy Docs](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
+![Deploy api](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-develop.yml/badge.svg)
 ![Lint Test and Build Golang](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-golang.yml/badge.svg)
 ![Lint Test and Build Occupi-Web](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-web.yml/badge.svg)
-![Test Occupi-mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/test-mobile.yml/badge.svg)
+![Lint Test Occupi-mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/test-mobile.yml/badge.svg)
 
 </p>
 
@@ -47,23 +48,23 @@
 # Documentation
 
 <p align="center">
-  Our documentation is hosted <a href="https://cos301-se-2024.github.io/occupi/">occupi-docs</a>
+  Our documentation is hosted <a href="https://docs.occupi.tech">occupi-docs</a>
 </p>
 
 <p align="center">
 
 ### Software Requirements Specification
-[Document](null)
+[Document](https://docs.occupi.tech/srs)
 
 ### Architecture Document
 [Diagram](null) <br>
-[Document](null)
+[Document](https://docs.occupi.tech/architecture)
 
 ### Deployment Diagram
-[Deployment](null)
+[Deployment](https://docs.occupi.tech/deployment)
 
 ### Coding standards
-[Go coding Standards](https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards)
+[Go coding Standards](https://docs.occupi.tech/coding-standards/go-coding-standards)
 
 </p>
 
@@ -71,14 +72,14 @@
 
 Occupi is a cross-platform app. This means that it is available on mobile, desktop and on the web.
 - If you would like to access the desktop app under the <a href="https://github.com/COS301-SE-2024/occupi/releases">releases tab</a>
-- If you would like to access the web app, please access <a href="https://occupi.tech/">occupi-web</a>
+- If you would like to access the web app, please access <a href="https://app.occupi.tech/">occupi-web</a>
 - If you would like to access the mobile app, please search for it on either google play store or apples app store. Or simply click the icons below to be taken to their respective download pages.
 
 <p align="center">
-<a href="https://play.google.com/store/apps">
+<a href="https://www.apple.com/app-store/">
   <img height=60 src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg">
 </a>
-<a href="https://www.apple.com/app-store/">
+<a href="https://play.google.com/store/apps">
   <img  height=60 src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg">
 </a>
 </p>
@@ -103,14 +104,14 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://github.com/COS301-SE-2024/occupi/blob/update/ReadMe/Images/Kamo.jpg" width="250" >
+      <img src="/images/kamo.png" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Kamo</b></h2>
       <b style="font-size: 16px;">Project Manager, Fullstack Engineer</b><br>
       Kamo is a skilled software developer with a strong focus on database engineering and architecture. He is proficient in both front-end and back-end development, making him a well-rounded contributor to any team.
       <br><br>
-      <a href="" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
+      <a href="https://github.com/KamogeloMoeketse" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>
       </a>
       <a href="https://www.linkedin.com/in/kamogelo-moeketse-a49351211/" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
@@ -120,14 +121,14 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://github.com/COS301-SE-2024/occupi/blob/update/ReadMe/Images/IMG_9675_1.jpg" width="250" >
+      <img src="/images/carey.png" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Carey</b></h2>
       <b style="font-size: 16px;">Frontend Engineer, UI Engineer, Business Analyst, Testing Engineer</b><br>
       Carey has a solid understanding of business principles, business analysis and systems analysis with a strong support for technology-centered strategies that promote interactive learning and easier access to resources for independent study.
       <br><br>
-      <a href="" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
+      <a href="https://github.com/u21631532" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>
       </a>
       <a href="https://www.linkedin.com/in/cmokou/" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
@@ -137,7 +138,7 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://media.licdn.com/dms/image/D5603AQFQe_-7uDZnoQ/profile-displayphoto-shrink_200_200/0/1713336084104?e=1721260800&v=beta&t=jr5CPSDMKJzZ615eYgNbsx-QR9j1GNOKtrMu9DjWLAI" width="250" >
+      <img src="/images/michael.png" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Michael</b></h2>
@@ -154,14 +155,14 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://github.com/COS301-SE-2024/occupi/blob/update/ReadMe/Images/img.prof.jpg" width="250" >
+      <img src="/images/tinashe.png" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Tinashe</b></h2>
       <b style="font-size: 16px;">Frontend Engineer, UI engineer, Business Analyst, Testing Engineer</b><br>
       Tinashe is a BSc Computer Science Major and Multimedia Minor student with a keen interest in UI/UX design and Human Computer Interaction. She loves learning and tackling new challenges. Her resilience makes her an asset in any team.
       <br><br>
-      <a href="" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
+      <a href="https://github.com/Tinashe-Austin" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>
       </a>
       <a href="http://www.linkedin.com/in/tinashe-austin" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
@@ -171,14 +172,14 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
   </tr>
   <tr>
     <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-      <img src="https://github.com/COS301-SE-2024/occupi/blob/update/ReadMe/Images/WhatsApp%20Image%202024-06-03%20at%2013.12.54_a03fd102.jpg" width="250" >
+      <img src="/images/retha.png" width="250" >
     </td>
     <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
       <h2><b style="font-size: 18px;">Reta</b></h2>
       <b style="font-size: 16px;">Fullstack Engineer</b><br>
       Rethakgetse has a comprehensive skill set that spans both frontend and backend development, making him a well-rounded software developer. He is driven by a passion for problem-solving and a desire to make a tangible impact. He embraces the limitless possibilities offered by technology and is committed to leveraging his skills to develop transformative applications that address pressing industry needs, enhance operational efficiency, and improve customer satisfaction.
       <br><br>
-      <a href="" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
+      <a href="https://github.com/Rethakgetse-Manaka" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
         <img src="https://skillicons.dev/icons?i=github"/>
       </a>
       <a href="http://www.linkedin.com/in/rethakgetse-manaka-7847bb227" style="text-decoration: none; margin-right: 10px; display: inline-block; vertical-align: middle;">
@@ -195,10 +196,11 @@ Please have a look at <a href="SECURITY.md">SECURITY.md</a> file to find out how
 //stub
 
 # Sponsors and Stakeholders
-
-<a href="https://github.com/COS301-SE-2024/occupi/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=COS301-SE-2024/occupi" />
-</a>
+<p align="center">
+  <a href="https://github.com/COS301-SE-2024/occupi/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=COS301-SE-2024/occupi" />
+  </a>
+</p>
 <br>
 <br>
 <br>
