@@ -31,7 +31,7 @@ elif [ "$1" = "docker" ] && [ "$2" = "up" ]; then
 elif [ "$1" = "test" ]; then
     go test -v ./tests/...
 elif [ "$1" = "test" ] && [ "$2" = "codecov" ]; then
-    go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers ./tests/... -coverprofile=coverage.out
+    go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
 elif [ "$1" = "lint" ]; then
     golangci-lint run
 elif [ "$1" = "help" ] || [ -z "$1" ]; then

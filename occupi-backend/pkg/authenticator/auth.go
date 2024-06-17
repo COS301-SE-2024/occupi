@@ -31,7 +31,7 @@ func GenerateToken(email string, role string) (string, time.Time, error) {
 	tokenString, err := token.SignedString([]byte(configs.GetJWTSecret()))
 	if err != nil {
 		logrus.Error("Error generating token: ", err)
-		return "", expirationTime, errors.New("Error generating token")
+		return "", expirationTime, errors.New("error generating token")
 	}
 
 	return tokenString, expirationTime, nil
@@ -46,12 +46,12 @@ func ValidateToken(tokenString string) (*Claims, error) {
 
 	if err != nil {
 		logrus.Error("Error validating token: ", err)
-		return nil, errors.New("Error validating token")
+		return nil, errors.New("error validating token")
 	}
 
 	if !token.Valid {
 		logrus.Error("Token is invalid")
-		return nil, errors.New("Token is invalid")
+		return nil, errors.New("token is invalid")
 	}
 
 	return claims, nil

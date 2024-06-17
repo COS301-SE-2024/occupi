@@ -4,7 +4,10 @@ import (
 	"net/http"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
@@ -17,11 +20,13 @@ import (
 func ProtectedRoute(ctx *gin.Context) {
 	tokenStr, err := ctx.Cookie("token")
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"status":  http.StatusUnauthorized,
-			"message": "Bad Request",
-			"error":   "User not authorized",
-		})
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User not authorized",
+				nil))
 		ctx.Abort()
 		return
 	}
@@ -29,11 +34,13 @@ func ProtectedRoute(ctx *gin.Context) {
 	claims, err := authenticator.ValidateToken(tokenStr)
 
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"status":  http.StatusUnauthorized,
-			"message": "Bad Request",
-			"error":   "User not authorized",
-		})
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User not authorized",
+				nil))
 		ctx.Abort()
 		return
 	}
@@ -41,7 +48,12 @@ func ProtectedRoute(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	session.Set("email", claims.Email)
 	session.Set("role", claims.Role)
-	session.Save()
+	if err := session.Save(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		ctx.Abort()
+		return
+	}
 	ctx.Next()
 }
 
@@ -53,11 +65,13 @@ func UnProtectedRoute(ctx *gin.Context) {
 		_, err := authenticator.ValidateToken(tokenStr)
 
 		if err == nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
-				"status":  http.StatusUnauthorized,
-				"message": "Bad Request",
-				"error":   "User already authenticated",
-			})
+			ctx.JSON(http.StatusUnauthorized,
+				utils.ErrorResponse(
+					http.StatusUnauthorized,
+					"Bad Request",
+					constants.InvalidAuthCode,
+					"User already authorized",
+					nil))
 			ctx.Abort()
 			return
 		}
@@ -71,12 +85,14 @@ func UnProtectedRoute(ctx *gin.Context) {
 func AdminRoute(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	role := session.Get("role")
-	if role != "admin" {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"status":  http.StatusUnauthorized,
-			"message": "Bad Request",
-			"error":   "User not authorized to access admin route",
-		})
+	if role != constants.Admin {
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User not authorized to access admin route",
+				nil))
 		ctx.Abort()
 		return
 	}

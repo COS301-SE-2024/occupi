@@ -67,7 +67,7 @@ jobs:
 
     - name: Run tests
       run: |
-        go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers ./tests/... -coverprofile=coverage.out
+        go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1

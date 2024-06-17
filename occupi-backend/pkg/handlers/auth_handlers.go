@@ -111,7 +111,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	}
 
 	// check if the user is an admin
-	if role == "admin" {
+	if role == constants.Admin {
 		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession.DB, requestUser.Email)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -139,15 +139,15 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	}
 
 	if due {
-		ReverifyUsersEmail(ctx, appsession, requestUser.Email)
+		reverifyUsersEmail(ctx, appsession, requestUser.Email)
 		return
 	}
 
 	// generate a jwt token for the user
 	var token string
 	var expirationTime time.Time
-	if role == "admin" {
-		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, "admin")
+	if role == constants.Admin {
+		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, constants.Admin)
 	} else {
 		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, "user")
 	}
@@ -161,12 +161,16 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	// set the jwt token in the cookie
 	session := sessions.Default(ctx)
 	session.Set("email", requestUser.Email)
-	if role == "admin" {
-		session.Set("role", "admin")
+	if role == constants.Admin {
+		session.Set("role", constants.Admin)
 	} else {
-		session.Set("role", "basic")
+		session.Set("role", constants.Basic)
 	}
-	session.Save()
+	if err := session.Save(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
 	ctx.SetCookie("token", token, int(expirationTime.Unix()), "/", "", false, true)
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(
@@ -349,7 +353,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 // handler for reverifying a users email address
-func ReverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
+func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
 	// generate a random otp for the user and send email
 	otp, err := utils.GenerateOTP()
 	if err != nil {
@@ -389,7 +393,11 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 func Logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	session.Clear()
-	session.Save()
+	if err := session.Save(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
 
 	ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(

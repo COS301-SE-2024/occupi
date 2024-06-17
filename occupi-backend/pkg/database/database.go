@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/sirupsen/logrus"
@@ -204,7 +205,7 @@ func AddUser(ctx *gin.Context, db *mongo.Client, user models.RequestUser) (bool,
 		OccupiID:             utils.GenerateEmployeeID(),
 		Password:             user.Password,
 		Email:                user.Email,
-		Role:                 "basic",
+		Role:                 constants.Basic,
 		OnSite:               true,
 		IsVerified:           false,
 		NextVerificationDate: time.Now(), // this will be updated once the email is verified
@@ -428,5 +429,5 @@ func CheckIfUserIsAdmin(ctx *gin.Context, db *mongo.Client, email string) (bool,
 		logrus.Error(err)
 		return false, err
 	}
-	return user.Role == "admin", nil
+	return user.Role == constants.Admin, nil
 }

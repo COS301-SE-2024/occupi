@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -39,7 +40,7 @@ func TestProtectedRoute(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, db)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", "basic")
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -76,7 +77,7 @@ func TestAdminRoute(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, db)
 
-	token, _, _ := authenticator.GenerateToken("admin@example.com", "admin")
+	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -119,7 +120,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Equal(t, "{\"error\":\"User not authorized\",\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
 func TestUnauthorizedAdminAccess(t *testing.T) {
@@ -143,7 +144,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, db)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", "basic")
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -152,5 +153,5 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Equal(t, "{\"error\":\"User not authorized to access admin route\",\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized to access admin route\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
