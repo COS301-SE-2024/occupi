@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +19,7 @@ func TestGenerateToken(t *testing.T) {
 	}
 
 	email := "test@example.com"
-	role := "admin"
+	role := constants.Admin
 	tokenString, expirationTime, err := authenticator.GenerateToken(email, role)
 
 	require.NoError(t, err)
@@ -40,7 +41,7 @@ func TestValidateToken(t *testing.T) {
 	}
 
 	email := "test@example.com"
-	role := "admin"
+	role := constants.Admin
 	tokenString, _, err := authenticator.GenerateToken(email, role)
 
 	require.NoError(t, err)
