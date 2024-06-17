@@ -28,51 +28,51 @@ const BookRoom = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
   };
   useEffect(() => {
-    setIsDarkMode(colorScheme === 'dark');
+    setIsDarkMode(colorScheme === 'dark');  
   }, [colorScheme]);
 
-  useEffect(() => {
-    const fetchAllRooms = async () => {
-      try {
-        const response = await fetch('https://dev.occupi.tech/api/view-rooms', {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          credentials: "include"
-        });
-        const data = await response.json();
-        if (response.ok) {
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="success">
-                  <ToastTitle>{data.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-        } else {
-          // console.log(data);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>{data.error}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    };
-    fetchAllRooms();
-  }, [toast]); 
+  // useEffect(() => {
+  //   const fetchAllRooms = async () => {
+  //     try {
+  //       const response = await fetch('http://10.0.0.160:8080/api/view-rooms', {
+  //         method: 'GET',
+  //         headers: {
+  //           Accept: 'application/json',
+  //           'Content-Type': 'application/json'
+  //         },
+  //         credentials: "include"
+  //       });
+  //       const data = await response.json();
+  //       if (response.ok) {
+  //         toast.show({
+  //           placement: 'top',
+  //           render: ({ id }) => {
+  //             return (
+  //               <Toast nativeID={id} variant="accent" action="success">
+  //                 <ToastTitle>{data.message}</ToastTitle>
+  //               </Toast>
+  //             );
+  //           },
+  //         });
+  //       } else {
+  //         // console.log(data);
+  //         toast.show({
+  //           placement: 'top',
+  //           render: ({ id }) => {
+  //             return (
+  //               <Toast nativeID={id} variant="accent" action="error">
+  //                 <ToastTitle>{data.error}</ToastTitle>
+  //               </Toast>
+  //             );
+  //           },
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error('Error:', error);
+  //     }
+  //   };
+  //   fetchAllRooms();
+  // }, [toast]); 
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
