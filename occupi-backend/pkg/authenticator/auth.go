@@ -1,55 +1,58 @@
 package authenticator
 
 import (
-	"context"
 	"errors"
+	"time"
 
-	"github.com/coreos/go-oidc/v3/oidc"
-	"golang.org/x/oauth2"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 )
 
-// Authenticator is used to authenticate our users.
-type Authenticator struct {
-	*oidc.Provider
-	oauth2.Config
+type Claims struct {
+	Email string `json:"email"`
+	Role  string `json:"role"`
+	jwt.StandardClaims
 }
 
-// New instantiates the *Authenticator.
-func New() (*Authenticator, error) {
-	provider, err := oidc.NewProvider(
-		context.Background(),
-		"https://"+configs.GetAuth0Domain()+"/",
-	)
+// GenerateToken generates a JWT token for the user
+func GenerateToken(email string, role string) (string, time.Time, error) {
+	expirationTime := time.Now().Add(5 * time.Minute)
+	claims := &Claims{
+		Email: email,
+		Role:  role,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(configs.GetJWTSecret()))
 	if err != nil {
-		return nil, err
+		logrus.Error("Error generating token: ", err)
+		return "", expirationTime, errors.New("Error generating token")
 	}
 
-	conf := oauth2.Config{
-		ClientID:     configs.GetAuth0ClientID(),
-		ClientSecret: configs.GetAuth0ClientSecret(),
-		RedirectURL:  configs.GetAuth0CallbackURL(),
-		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "profile"},
-	}
-
-	return &Authenticator{
-		Provider: provider,
-		Config:   conf,
-	}, nil
+	return tokenString, expirationTime, nil
 }
 
-// VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.
-func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, error) {
-	rawIDToken, ok := token.Extra("id_token").(string)
-	if !ok {
-		return nil, errors.New("no id_token field in oauth2 token")
+// ValidateToken validates the JWT token
+func ValidateToken(tokenString string) (*Claims, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(configs.GetJWTSecret()), nil
+	})
+
+	if err != nil {
+		logrus.Error("Error validating token: ", err)
+		return nil, errors.New("Error validating token")
 	}
 
-	oidcConfig := &oidc.Config{
-		ClientID: a.ClientID,
+	if !token.Valid {
+		logrus.Error("Token is invalid")
+		return nil, errors.New("Token is invalid")
 	}
 
-	return a.Verifier(oidcConfig).Verify(ctx, rawIDToken)
+	return claims, nil
 }

@@ -16,26 +16,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// PingHandler is a simple handler for testing if the server is up and running
+func PingHandler(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "pong -> I am alive and kicking", nil))
+}
+
 // handler for fetching test resource from /api/resource. Formats and returns json response
 func FetchResource(ctx *gin.Context, appsession *models.AppSession) {
 	data := database.GetAllData(appsession.DB)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":  http.StatusOK,
-		"message": "Data fetched successfully",
-		"data":    data,
-	})
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Data fetched successfully", data))
 }
 
 // handler for fetching test resource from /api/resource. Formats and returns json response
 func FetchResourceAuth(ctx *gin.Context, appsession *models.AppSession) {
 	data := database.GetAllData(appsession.DB)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"status":  http.StatusOK,
-		"message": "Data fetched successfully and authenticated",
-		"data":    data,
-	})
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Data fetched successfully", data))
 }
 
 // BookRoom handles booking a room and sends a confirmation email

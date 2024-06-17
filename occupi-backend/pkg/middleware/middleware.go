@@ -3,47 +3,85 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gin-contrib/sessions"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/gin-gonic/gin"
 	"github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
+
+	"github.com/gin-contrib/sessions"
 )
 
 // ProtectedRoute is a middleware that checks if
 // the user has already been authenticated previously.
 func ProtectedRoute(ctx *gin.Context) {
-	if sessions.Default(ctx).Get("profile") == nil {
-		// If the user is not authenticated, return a 401 Unauthorized response
+	tokenStr, err := ctx.Cookie("token")
+	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"status":  http.StatusUnauthorized,
 			"message": "Bad Request",
-			"error":   "User not authenticated",
+			"error":   "User not authorized",
 		})
-		// Add the following so that the next() doesn't get called
 		ctx.Abort()
 		return
-	} else {
-		ctx.Next()
 	}
+
+	claims, err := authenticator.ValidateToken(tokenStr)
+
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"status":  http.StatusUnauthorized,
+			"message": "Bad Request",
+			"error":   "User not authorized",
+		})
+		ctx.Abort()
+		return
+	}
+
+	session := sessions.Default(ctx)
+	session.Set("email", claims.Email)
+	session.Set("role", claims.Role)
+	session.Save()
+	ctx.Next()
 }
 
 // ProtectedRoute is a middleware that checks if
 // the user has not been authenticated previously.
 func UnProtectedRoute(ctx *gin.Context) {
-	if sessions.Default(ctx).Get("profile") != nil {
-		// If the user is authenticated, return a 401 Unauthorized response
+	tokenStr, err := ctx.Cookie("token")
+	if err == nil {
+		_, err := authenticator.ValidateToken(tokenStr)
+
+		if err == nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"status":  http.StatusUnauthorized,
+				"message": "Bad Request",
+				"error":   "User already authenticated",
+			})
+			ctx.Abort()
+			return
+		}
+	}
+
+	ctx.Next()
+}
+
+// AdminRoute is a middleware that checks if
+// the user has the admin role.
+func AdminRoute(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	role := session.Get("role")
+	if role != "admin" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"status":  http.StatusUnauthorized,
 			"message": "Bad Request",
-			"error":   "User already authenticated",
+			"error":   "User not authorized to access admin route",
 		})
-		// Add the following so that the next() doesn't get called
 		ctx.Abort()
 		return
-	} else {
-		ctx.Next()
 	}
+
+	ctx.Next()
 }
 
 // AttachRateLimitMiddleware attaches the rate limit middleware to the router.
