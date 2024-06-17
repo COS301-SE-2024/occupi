@@ -1,13 +1,15 @@
 import pandas as pd
-import tensorflow as tf
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import tensorflow as tf
 from tensorflow.keras import Sequential #type: ignore
 from tensorflow.keras.layers import Dense, Dropout #type: ignore
 from tensorflow.keras.callbacks import EarlyStopping #type: ignore
 from tensorflow.keras.optimizers import Adam #type: ignore
+import xgboost as xgb
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import seaborn as sns
 from keras_tuner import Hyperband
 
@@ -19,6 +21,14 @@ attendance_data = pd.read_csv(file_path)
 attendance_data['Day_of_Week'] = pd.Categorical(attendance_data['Day_of_Week'], 
                                                 categories=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
                                                 ordered=True)
+
+# Extract more date features
+attendance_data['Date'] = pd.to_datetime(attendance_data['Date'])
+attendance_data['Month'] = attendance_data['Date'].dt.month
+attendance_data['Week'] = attendance_data['Date'].dt.isocalendar().week
+attendance_data['Quarter'] = attendance_data['Date'].dt.quarter
+attendance_data['Day_of_Month'] = attendance_data['Date'].dt.day
+attendance_data['Is_Weekend'] = attendance_data['Day_of_Week'].isin(['Saturday', 'Sunday']).astype(int)
 
 # Create a scatter plot
 plt.figure(figsize=(12, 6))
@@ -36,24 +46,29 @@ day_of_week_encoded_df = pd.DataFrame(day_of_week_encoded, columns=onehot_encode
 # Concatenate the encoded columns to the dataframe
 attendance_data = pd.concat([attendance_data, day_of_week_encoded_df], axis=1)
 
-# Define feature (Day_of_Week encoded columns) and target (Number_Attended)
-X = day_of_week_encoded_df
+# Define features and target
+features = ['Month', 'Week', 'Quarter', 'Day_of_Month', 'Is_Weekend'] + list(onehot_encoder.get_feature_names_out(['Day_of_Week']))
+X = attendance_data[features]
 y = attendance_data['Number_Attended']
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+# Initial train-test split
+X_train_full, X_test, y_train_full, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Standardize the feature variables (not strictly necessary for one-hot encoded data, but can be helpful for neural networks)
+# Standardize the feature variables
 scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
+X_train_full_scaled = scaler.fit_transform(X_train_full)
 X_test_scaled = scaler.transform(X_test)
+
+# Convert scaled data back to DataFrame to retain column names for XGBoost
+X_train_full_scaled = pd.DataFrame(X_train_full_scaled, columns=features)
+X_test_scaled = pd.DataFrame(X_test_scaled, columns=features)
 
 # Define the model-building function with number of layers as a tunable hyperparameter
 def build_model(hp):
     model = Sequential()
-    model.add(Dense(units=hp.Int('units_1', min_value=32, max_value=512, step=32), activation='relu', input_shape=(X_train_scaled.shape[1],)))
+    model.add(Dense(units=hp.Int('units_1', min_value=32, max_value=512, step=32), activation='relu', input_shape=(X_train_full_scaled.shape[1],)))
     model.add(Dropout(rate=hp.Float('dropout_1', min_value=0.0, max_value=0.7, step=0.1)))
-    for i in range(hp.Int('num_layers', 2, 25)):
+    for i in range(hp.Int('num_layers', 2, 10)):
         model.add(Dense(units=hp.Int(f'units_{i}', min_value=32, max_value=512, step=32), activation='relu'))
         model.add(Dropout(rate=hp.Float(f'dropout_{i}', min_value=0.0, max_value=0.7, step=0.1)))
     
@@ -76,66 +91,94 @@ tuner = Hyperband(
     project_name='attendance'
 )
 
-# Run the hyperparameter search
-tuner.search(X_train_scaled, y_train, epochs=100, validation_split=0.2, callbacks=[EarlyStopping(monitor='val_loss', patience=10)])
+# K-Fold Cross-Validation on the training set
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+fold = 1
 
-# Get the best hyperparameters
-best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+mse_scores = []
+mae_scores = []
+r2_scores = []
 
-# Print the best hyperparameters
-print(f"""
-The optimal number of units in the first densely connected layer is {best_hps.get('units_1')}.
-The optimal number of units in the second densely connected layer is {best_hps.get('units_2')}.
-The optimal number of units in the third densely connected layer is {best_hps.get('units_3')}.
-The optimal dropout rate for the first layer is {best_hps.get('dropout_1')}.
-The optimal dropout rate for the second layer is {best_hps.get('dropout_2')}.
-""")
+for train_index, val_index in kf.split(X_train_full_scaled):
+    print(f"Training fold {fold}...")
+    
+    X_train, X_val = X_train_full_scaled.iloc[train_index], X_train_full_scaled.iloc[val_index]
+    y_train, y_val = y_train_full.iloc[train_index], y_train_full.iloc[val_index]
+    
+    # Run the hyperparameter search on the training data
+    tuner.search(X_train, y_train, epochs=100, validation_split=0.2, callbacks=[EarlyStopping(monitor='val_loss', patience=10)])
+    
+    # Get the best hyperparameters
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    
+    # Build the model with the best hyperparameters
+    model = build_model(best_hps)
+    
+    # Use early stopping to avoid overfitting
+    early_stopping = EarlyStopping(monitor='val_loss', patience=72, restore_best_weights=True)
+    
+    # Train the model
+    history = model.fit(X_train, y_train, epochs=100, batch_size=75, validation_split=0.25, callbacks=[early_stopping], verbose=0)
+    
+    # Evaluate the model
+    predictions = model.predict(X_val).flatten()
+    
+    mse = mean_squared_error(y_val, predictions)
+    mae = mean_absolute_error(y_val, predictions)
+    r2 = r2_score(y_val, predictions)
+    
+    mse_scores.append(mse)
+    mae_scores.append(mae)
+    r2_scores.append(r2)
+    
+    print(f"Fold {fold} - MSE: {mse}, MAE: {mae}, R2: {r2}")
+    fold += 1
 
-# Use early stopping to avoid overfitting
-early_stopping = EarlyStopping(monitor='val_loss', patience=60, restore_best_weights=True)
+# Calculate the average scores from cross-validation
+average_mse = np.mean(mse_scores)
+average_mae = np.mean(mae_scores)
+average_r2 = np.mean(r2_scores)
 
-# Train the model
+print(f"Average MSE: {average_mse}")
+print(f"Average MAE: {average_mae}")
+print(f"Average R2: {average_r2}")
+
+# Train the final model on the full training set with the best hyperparameters
 model = build_model(best_hps)
-history = model.fit(X_train_scaled, y_train, epochs=250, batch_size=175, validation_split=0.25, callbacks=[early_stopping])
+early_stopping = EarlyStopping(monitor='val_loss', patience=72, restore_best_weights=True)
+history = model.fit(X_train_full_scaled, y_train_full, epochs=350, batch_size=50, validation_split=0.25, callbacks=[early_stopping], verbose=0)
 
-# Evaluate the model
-test_loss = model.evaluate(X_test_scaled, y_test)
-print(f"Test loss: {test_loss}")
+# Evaluate the model on the test set
+test_predictions = model.predict(X_test_scaled).flatten()
 
-# Make predictions
-predictions = model.predict(X_test_scaled)
+# Calculate the metrics on the test set
+test_mse = mean_squared_error(y_test, test_predictions)
+test_mae = mean_absolute_error(y_test, test_predictions)
+test_r2 = r2_score(y_test, test_predictions)
 
-# Convert the predictions to a 1D array
-predictions = predictions.flatten()
+print(f"Test MSE: {test_mse}")
+print(f"Test MAE: {test_mae}")
+print(f"Test R2: {test_r2}")
 
-# Get the original day of the week for the test set
-days_of_week_test = attendance_data.loc[y_test.index, 'Day_of_Week']
-
-# Plot the true values vs predicted values
+# Plot the true values vs predicted values for the test set
 plt.figure(figsize=(10, 6))
-plt.scatter(y_test, predictions, alpha=0.5)
+plt.scatter(y_test, test_predictions, alpha=0.5)
 plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)
 plt.xlabel('True Values')
 plt.ylabel('Predicted Values')
 plt.title('True Values vs Predicted Values')
 plt.show()
 
-# Calculate the metrics
-mse = mean_squared_error(y_test, predictions)
-mae = mean_absolute_error(y_test, predictions)
-r2 = r2_score(y_test, predictions)
-
-print(f"Mean Squared Error (MSE): {mse}")
-print(f"Mean Absolute Error (MAE): {mae}")
-print(f"R-squared (R²): {r2}")
-
 # Create a table of true and predicted values with the day of the week
+days_of_week_test = attendance_data.loc[y_test.index, 'Day_of_Week']
 results_df = pd.DataFrame({
     'Day of Week': days_of_week_test,
     'True Values': y_test,
-    'Predicted Values': predictions
+    'Predicted Values': test_predictions
 })
 
 # Display the first few rows of the table
 print(results_df.head())
 
+# Save the model
+model.save('attendance_model.keras')
