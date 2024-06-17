@@ -150,34 +150,18 @@ func GetTrustedProxies() []string {
 	return []string{""}
 }
 
-func GetAuth0Domain() string {
-	auth0Domain := os.Getenv("AUTH0_DOMAIN")
-	if auth0Domain == "" {
-		auth0Domain = ""
+func GetJWTSecret() string {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "JWT_SECRET"
 	}
-	return auth0Domain
+	return secret
 }
 
-func GetAuth0ClientID() string {
-	auth0ClientID := os.Getenv("AUTH0_CLIENT_ID")
-	if auth0ClientID == "" {
-		auth0ClientID = ""
+func GetSessionSecret() string {
+	secret := os.Getenv("SESSION_SECRET")
+	if secret == "" {
+		secret = "SESSION_SECRET"
 	}
-	return auth0ClientID
-}
-
-func GetAuth0ClientSecret() string {
-	auth0ClientSecret := os.Getenv("AUTH0_CLIENT_SECRET")
-	if auth0ClientSecret == "" {
-		auth0ClientSecret = ""
-	}
-	return auth0ClientSecret
-}
-
-func GetAuth0CallbackURL() string {
-	auth0CallbackURL := os.Getenv("AUTH0_CALLBACK_URL")
-	if auth0CallbackURL == "" {
-		auth0CallbackURL = ""
-	}
-	return auth0CallbackURL
+	return secret
 }
