@@ -1,6 +1,6 @@
-import { ChevronDown, ChevronLeft, ChevronRight,
-   Grid, Logout, Bell, ColorSwatch, Home, PieChart, SettingsIcon, UserProfileGroup,OccupiLogo } from "@assets/index";
-import {SideNavBarButton,ProfileComponent} from "@components/index";
+import { ChevronLeft, ChevronRight,
+   Grid, ColorSwatch, Home, PieChart, UserProfileGroup,OccupiLogo } from "@assets/index";
+import {SideNavBarButton} from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -35,22 +35,7 @@ const sidebarcontent = [
   {
     icon: UserProfileGroup,
     text: "Teams",
-  },
-  {
-    icon: Bell,
-    text: "Notifications",
-  },
-  {
-    icon: SettingsIcon,
-    text: "Settings",
-  },
-  {
-    icon: Logout,
-    text: "Logout",
-
-  },
-  
-
+  }
 ]
 
 const SideNav = () => {
@@ -89,8 +74,6 @@ const SideNav = () => {
         //but rather should show a modal
         //to confirm logout
       }
-      
-
   }
 
   function toggleSideNav() {
@@ -115,17 +98,16 @@ const SideNav = () => {
 
 
   return (
-    <motion.div className="w-fit border-r-[2px] border-r-gray_900 flex flex-col items-center z-50"
+    <motion.div className="w-fit border-r-[2px] border-r-secondary flex flex-col items-center z-50"
       animate={isMinimized ? "closed" : "open"}
       variants={sidenavvariants}>
       <div className={"flex flex-wrap items-center h-[110px] relative z-50 w-full "
         + (isMinimized ? "justify-center" : "justify-between")}>
         <motion.div className="flex items-center h-[110px]  w-fit cursor-pointer " whileTap={{scale: 0.98}}>
-        <div className={"w-[40px] h-[40px] " + (isMinimized ? "ml-2 mr-2" : "mr-2")}>
+        <div className="w-[40px] h-[40px] ml-2 mr-2">
             <OccupiLogo />
           </div>
           {!isMinimized && (<h2 className="text-text_col h-[24px] mt-[-10px] font-semibold text-2xl mr-2">Occupi</h2>)}
-          {/* {!isMinimized && <ChevronDown />} */}
         </motion.div>
         {
           isMinimized ? 
@@ -152,9 +134,6 @@ const SideNav = () => {
         selected_panel={selectedPanel} 
         setSelectedPanelF={setSelectedPanelF} />
       )}
-      {/* <ProfileComponent /> */}
-
-
     </motion.div>
   );
 };
