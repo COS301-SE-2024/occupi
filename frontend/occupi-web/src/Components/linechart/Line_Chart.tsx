@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer 
 } from "recharts";
 
 const data = [
@@ -57,7 +58,9 @@ const data = [
 
 export default function Line_Chart() {
   return (
-    <LineChart width={850} height={400} data={data}>
+    <ResponsiveContainer width="100%" height={500}>
+
+    <LineChart  data={data}>
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="name" padding={{ left: 30, right: 30 }} />
       <YAxis />
@@ -71,5 +74,7 @@ export default function Line_Chart() {
         activeDot={{ r: 8 }}
       />
     </LineChart>
+    </ResponsiveContainer>
+
   );
 }
