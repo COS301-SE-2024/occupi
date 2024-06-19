@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
@@ -149,7 +150,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	if role == constants.Admin {
 		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, constants.Admin)
 	} else {
-		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, "user")
+		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, constants.Basic)
 	}
 
 	if err != nil {
@@ -389,7 +390,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	// this will contain reset password logic
 }
 
-// handler for logging out a user on occupi /auth/logout TODO: complete implementation
+// handler for logging out a user
 func Logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	session.Clear()
@@ -399,7 +400,15 @@ func Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
+	// List of domains to clear cookies from
+	domains := configs.GetOccupiDomains()
+
+	// Iterate over each domain and clear the "token" and "occupi-sessions-store" cookies
+	for _, domain := range domains {
+		ctx.SetCookie("token", "", -1, "/", domain, false, true)
+		ctx.SetCookie("occupi-sessions-store", "", -1, "/", domain, false, true)
+	}
+
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(
 		http.StatusOK,
 		"Logged out successfully!",
