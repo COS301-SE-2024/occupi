@@ -14,7 +14,7 @@ import seaborn as sns
 from keras_tuner import Hyperband
 
 # Load the dataset
-file_path = 'datasets/Attendance_data.csv'
+file_path = 'datasets/Attendance_data(1).csv'
 attendance_data = pd.read_csv(file_path)
 
 # Ensure 'Day_of_Week' is treated as a categorical variable
