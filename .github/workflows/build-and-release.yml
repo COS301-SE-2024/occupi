@@ -7,11 +7,11 @@ on:
 
 jobs:
     build-backend-binary:
-        name: Build Backend Binary for Windows, Linux and MacOS
-        runs-on: [ubuntu-latest, windows-latest, macos-latest]
+        name: Build Backend Binary
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Set up Go
               uses: actions/setup-go@v2
@@ -20,20 +20,32 @@ jobs:
 
             - name: Build Backend Binary
               run: |
-                go build -o occupi-backend ./occupi-backend/cmd/main.go
+                go build -o occupi-backend ./occupi-backend/cmd/occupi-backend/main.go
+
+            - name: Archive Backend Binary
+              run: |
+                mkdir -p dist
+                mv occupi-backend/occupi-backend dist/occupi-backend
+                zip -r dist/occupi-backend.zip dist/occupi-backend
+
+            - name: Upload Backend Binary
+              uses: actions/upload-artifact@v2
+              with:
+                name: occupi-backend
+                path: dist/occupi-backend.zip
 
 
     build-expo-app:
-        name: Build Expo App
-        runs-on: ubuntu-latest
+        name: Build Expo App for Android and iOS
+        runs-on: [ubuntu-latest, macos-latest]
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Set up Node.js
               uses: actions/setup-node@v2
               with:
-                node-version: '14'
+                node-version: '20'
 
             - name: Install Expo CLI
               run: |
@@ -44,18 +56,29 @@ jobs:
                 cd occupi-frontend
                 npm install
 
-            - name: Build Expo App
+            - name: Build Expo App for native platforms
               run: |
-                cd occupi-frontend
-                expo build:web
+                cd occupi-frontend/occupi-mobile
+                expo build
+            
+            - name: Archive Expo App for Android and iOS
+              run: |
+                mkdir -p dist
+                mv occupi-frontend/occupi-mobile/dist dist/occupi-mobile
+                zip -r dist/occupi-mobile.zip dist/occupi-mobile
 
+            - name: Upload Expo App for Android and iOS
+              uses: actions/upload-artifact@v2
+              with:
+                name: occupi-mobile
+                path: dist/occupi-backend.zip
 
     build-vite-app:
         name: Build Vite App
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Set up Node.js
               uses: actions/setup-node@v2
@@ -81,7 +104,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Set up Rust
               uses: actions/setup-rust@v1
@@ -103,7 +126,7 @@ jobs:
         needs: [build-backend-binary, build-expo-app, build-vite-app, build-tauri-app]
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
 
             - name: Set up Node.js
               uses: actions/setup-node@v2
