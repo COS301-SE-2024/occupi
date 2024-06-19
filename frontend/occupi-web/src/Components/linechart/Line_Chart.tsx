@@ -1,14 +1,14 @@
 import "./styles.css";
 import React from "react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer 
+  ResponsiveContainer,
 } from "recharts";
 
 const data = [
@@ -21,60 +21,57 @@ const data = [
   {
     name: "Tuesday",
 
-    attendees: 1398,
-    amt: 2210,
+    attendees: 398,
+    amt: 210,
   },
   {
     name: "Wed",
 
-    attendees: 9800,
+    attendees: 4800,
     amt: 2290,
   },
   {
     name: "Thur",
 
     attendees: 3908,
-    amt: 2000,
+    amt: 200,
   },
   {
     name: "Friday",
 
-    attendees: 4800,
-    amt: 2181,
+    attendees: 400,
+    amt: 1181,
   },
   {
     name: "Sat",
 
-    attendees: 3800,
+    attendees: 800,
     amt: 2500,
   },
   {
     name: "Sunday",
 
     attendees: 4300,
-    amt: 2100,
+    amt: 100,
   },
 ];
-
-export default function Line_Chart() {
+export default function App() {
   return (
-    <ResponsiveContainer width="100%" height={500}>
-
-    <LineChart  data={data}>
+    <ResponsiveContainer width="100%" height="100%">
+    <AreaChart data={data}>
+      <defs>
+        <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(161, 255, 67, 0.25)" stopOpacity={1}/>
+          <stop offset="100%" stopColor="rgba(161, 255, 67, 0.00)" stopOpacity={1}/>
+        </linearGradient>
+      </defs>
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" padding={{ left: 30, right: 30 }} />
+      <XAxis dataKey="name" />
       <YAxis />
       <Tooltip />
       <Legend />
-      <Line
-        type="monotone"
-        dataKey="attendees"
-        stroke="#8884d8"
-        fill=" #8884d8 "
-        activeDot={{ r: 8 }}
-      />
-    </LineChart>
-    </ResponsiveContainer>
-
+      <Area type="monotone" dataKey="amt" stroke="#A1FF43" fill="url(#colorUv) "  strokeWidth={3}/>
+    </AreaChart>
+  </ResponsiveContainer>
   );
 }

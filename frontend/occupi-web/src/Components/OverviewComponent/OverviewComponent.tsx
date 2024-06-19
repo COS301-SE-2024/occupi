@@ -7,7 +7,7 @@ import { FaArrowRight } from "react-icons/fa";
 
 const OverviewComponent = () => {
     return (
-        <div>
+        <div className=" ">
             <div className="flex flex-col mt-6 gap-2 w-11/12 mr-auto ml-auto">
                 <div className="w-24 h-6 text-text_col text-xl font-extralight leading-snug">
                 Hi Tina 👋
@@ -23,7 +23,7 @@ const OverviewComponent = () => {
             </div>
 
             <div className=" w-11/12 mr-auto ml-auto">
-                <div className="flex gap-10 mt-10">
+                <div className="lg:flex md:flex-row sm:flex-row gap-10 mt-10">
                     <GraphContainer
                     width="55vw"
                     height="500px"
@@ -76,7 +76,7 @@ const OverviewComponent = () => {
                 Most Visitations <ChevronRight size={24} className="mt-2" />
             </motion.div>
 
-          <div className="flex mt-5 gap-10">
+          <div className="lg:flex md:flex-row sm:flex-row mt-5 gap-10">
             <div className="mt-20 ml-14 ">
               <GraphContainer
                 width="55vw"

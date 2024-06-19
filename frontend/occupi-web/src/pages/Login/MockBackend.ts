@@ -39,7 +39,7 @@ export const mockAuthenticateWithCredential = async () => {
 
       }
     ],
-    userVerification: "required",
+    userVerification: "preferred",
     timeout: 60000
   };
   return credentialRequestOptions;
