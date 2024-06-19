@@ -14,6 +14,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
@@ -160,9 +163,6 @@ func TestPingRoute(t *testing.T) {
 
 	// Create a Gin router
 	ginRouter := gin.Default()
-
-	// adding rate limiting middleware
-	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
 	router.OccupiRouter(ginRouter, db)
@@ -360,4 +360,200 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 
 	// Assertions for IP2
 	assert.Equal(t, rateLimitedCountIP2, 0, "There should be no requests from IP2 that are rate limited")
+}
+
+func TestInvalidLogoutHandler(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	ginRouter := gin.Default()
+
+	// Register routes
+	router.OccupiRouter(ginRouter, db)
+
+	// Create a request to pass to the handler
+	req, err := http.NewRequest("POST", "/auth/logout", nil)
+	if err != nil {
+		t.Fatal("Error creating request: ", err)
+	}
+
+	// Record the HTTP response
+	rr := httptest.NewRecorder()
+
+	// Serve the request
+	ginRouter.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect
+	if status := rr.Code; status != http.StatusUnauthorized {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+	}
+}
+
+func TestValidLogoutHandler(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	ginRouter := gin.Default()
+
+	// Register routes
+	router.OccupiRouter(ginRouter, db)
+
+	// Create a request to pass to the handler
+	req, err := http.NewRequest("POST", "/auth/logout", nil)
+	if err != nil {
+		t.Fatal("Error creating request: ", err)
+	}
+
+	// Set up cookies for the request, "token" and "occupi-sessions-store"
+	token, _, err := authenticator.GenerateToken("example@gmail.com", constants.Basic)
+	if err != nil {
+		t.Fatal("Error generating token: ", err)
+	}
+	cookie1 := http.Cookie{
+		Name:  "token",
+		Value: token,
+	}
+	req.AddCookie(&cookie1)
+
+	// Record the HTTP response
+	rr := httptest.NewRecorder()
+
+	// Serve the request
+	ginRouter.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// ensure that protected route cannot be accessed like ping-auth
+	req, err = http.NewRequest("GET", "/ping-auth", nil)
+
+	if err != nil {
+		t.Fatal("Error creating request: ", err)
+	}
+
+	// record the HTTP response
+	rr = httptest.NewRecorder()
+
+	// serve the request
+	ginRouter.ServeHTTP(rr, req)
+
+	// check the status code is what we expect
+	if status := rr.Code; status != http.StatusUnauthorized {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+	}
+}
+
+func TestValidLogoutHandlerFromDomains(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	ginRouter := gin.Default()
+
+	// Register routes
+	router.OccupiRouter(ginRouter, db)
+
+	// read domains
+	domains := configs.GetOccupiDomains()
+
+	// use a wait group to handle concurrency
+	var wg sync.WaitGroup
+
+	for _, domain := range domains {
+		wg.Add(1)
+
+		go func(domain string) {
+			defer wg.Done()
+
+			// Create a request to pass to the handler
+			req, err := http.NewRequest("POST", "/auth/logout", nil)
+			if err != nil {
+				t.Errorf("Error creating request: %v", err)
+				return
+			}
+
+			// set the domain
+			req.Host = domain
+
+			// Set up cookies for the request, "token" and "occupi-sessions-store"
+			token, _, err := authenticator.GenerateToken("example@gmail.com", constants.Basic)
+			if err != nil {
+				t.Errorf("Error generating token: %s", err)
+			}
+			cookie1 := http.Cookie{
+				Name:  "token",
+				Value: token,
+			}
+			req.AddCookie(&cookie1)
+
+			// Record the HTTP response
+			rr := httptest.NewRecorder()
+
+			// Serve the request
+			ginRouter.ServeHTTP(rr, req)
+
+			// Check the status code is what we expect
+			if status := rr.Code; status != http.StatusOK {
+				t.Errorf("handler returned wrong status code for domain %s: got %v want %v", domain, status, http.StatusOK)
+			}
+
+			// ensure that protected route cannot be accessed like ping-auth
+			req, err = http.NewRequest("GET", "/ping-auth", nil)
+
+			if err != nil {
+				t.Errorf("Error creating request: %s", err)
+			}
+
+			// record the HTTP response
+			rr = httptest.NewRecorder()
+
+			// serve the request
+			ginRouter.ServeHTTP(rr, req)
+
+			// check the status code is what we expect
+			if status := rr.Code; status != http.StatusUnauthorized {
+				t.Errorf("handler returned wrong status code: got %v want %v for domain: %s", status, http.StatusUnauthorized, domain)
+			}
+		}(domain)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
 }
