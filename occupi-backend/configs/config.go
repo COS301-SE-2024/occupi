@@ -165,3 +165,12 @@ func GetSessionSecret() string {
 	}
 	return secret
 }
+
+func GetOccupiDomains() []string {
+	domains := os.Getenv("OCCUPI_DOMAINS")
+	if domains != "" {
+		domainList := strings.Split(domains, ",")
+		return domainList
+	}
+	return []string{""}
+}
