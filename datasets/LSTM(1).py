@@ -93,8 +93,8 @@ print(f"Test loss: {loss}")
 predictions = model.predict(testX)
 
 # Inverse transform the predictions and the true values
-predicted_values = scaler.inverse_transform(predictions)
-true_values = scaler.inverse_transform(testY.reshape(-1, testY.shape[1]))
+predicted_values = scaler.inverse_transform(predictions.reshape(-1, predictions.shape[2]))
+true_values = scaler.inverse_transform(testY.reshape(-1, testY.shape[2]))
 
 # Print the first few predictions and true values
 print(predicted_values[:5])
@@ -110,25 +110,36 @@ plt.title('LSTM Predictions vs Actual')
 plt.legend()
 plt.show()
 
-# Predict attendance for a specific day of the week (e.g., Monday)
-day_of_week = 1  # Monday
-specific_day_data = df[df['Day_of_Week'] == day_of_week]
+# Predict attendance for each day of the week
+days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+predictions_per_day = []
 
-# Prepare the input sequence for prediction
-scaled_specific_day_data = scaler.transform(specific_day_data)
-X_specific_day, _ = create_sequences(scaled_specific_day_data, seq_length)
+for day in range(1, 8):  # Days of the week 1-7 (Monday-Sunday)
+    specific_day_data = df[df['Day_of_Week'] == day]
+    
+    if specific_day_data.empty:
+        continue
+    
+    scaled_specific_day_data = scaler.transform(specific_day_data)
+    X_specific_day, _ = create_sequences(scaled_specific_day_data, seq_length)
+    
+    if X_specific_day.size == 0:
+        continue
+    
+    predictions_specific_day = model.predict(X_specific_day)
+    predicted_values_specific_day = scaler.inverse_transform(predictions_specific_day.reshape(-1, predictions_specific_day.shape[2]))
+    
+    # Average prediction for the specific day
+    average_prediction = predicted_values_specific_day[:, 0].mean()
+    
+    predictions_per_day.append({
+        "Day": days_of_week[day - 1],
+        "Predicted Attendance": average_prediction
+    })
 
-# Make predictions for the specific day
-predictions_specific_day = model.predict(X_specific_day)
+# Create a DataFrame for the predictions
+df_predictions = pd.DataFrame(predictions_per_day)
+print(df_predictions)
 
-# Inverse transform the predictions
-predicted_values_specific_day = scaler.inverse_transform(predictions_specific_day)
-
-# Plot predicted values for the specific day
-plt.figure(figsize=(14, 7))
-plt.plot(specific_day_data.index[seq_length:], predicted_values_specific_day[:, 0], color='red', label='Predicted')
-plt.xlabel('Date')
-plt.ylabel('Attendance')
-plt.title('Predicted Attendance for Specific Day of the Week (Monday)')
-plt.legend()
-plt.show()
+# Save to CSV if needed
+df_predictions.to_csv("predicted_attendance_per_day.csv", index=False)
