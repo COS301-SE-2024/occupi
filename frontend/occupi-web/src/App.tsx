@@ -1,5 +1,5 @@
 import { LoginForm, OtpPage, Settings, Dashboard,Analysis} from "@pages/index";
-import {Appearance, OverviewComponent} from "@components/index";
+import {Appearance, OverviewComponent,BookingComponent} from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from "react";
@@ -35,7 +35,7 @@ function App() {
           <Routes>
             <Route path="dashboard/*" element={<Dashboard />} >
               <Route path="overview" element={<OverviewComponent />} />
-              <Route path="bookings" element={<OverviewComponent />} />{/**attach appropriate component */}
+              <Route path="bookings" element={<BookingComponent />} />{/**attach appropriate component */}
               <Route path="visitations" element={<OverviewComponent />} />{/**attach appropriate component */}
               <Route path="analysis" element={<Analysis/>} />{}
             </Route>
