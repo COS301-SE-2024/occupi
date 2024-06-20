@@ -1,0 +1,15 @@
+services:
+  occupi-web-prod:
+    image: $DOCKER_USERNAME/occupi-web:latest
+    container_name: occupi-web-prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    external: true
