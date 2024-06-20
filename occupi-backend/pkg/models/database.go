@@ -51,4 +51,6 @@ type Room struct {
 	FloorNo      int    `json:"floorNo" bson:"floorNo,omitempty"`
 	MinOccupancy int    `json:"minOccupancy" bson:"minOccupancy,omitempty"`
 	MaxOccupancy int    `json:"maxOccupancy" bson:"maxOccupancy,omitempty"`
+	Description  string `json:"description" bson:"description,omitempty"`
+	RoomName     string `json:"roomName" bson:"roomName,omitempty"`
 }
