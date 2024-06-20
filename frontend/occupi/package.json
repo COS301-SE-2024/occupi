@@ -1,11 +1,12 @@
 {
-  "name": "mailgo",
-  "version": "0.1.0",
+  "name": "occupi",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "export": "next export",
     "lint": "next lint"
   },
   "dependencies": {
