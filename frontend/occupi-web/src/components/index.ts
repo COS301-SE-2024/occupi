@@ -18,6 +18,7 @@ import SearchBarComponent from "./searchBarComponent/SearchBar";
 import SideNav from "./sideNavComponent/SideNav";
 import Line_Chart from "./linechart/Line_Chart";
 import BarGraph from "./barGraph/BarGraph";
+import BookingComponent from "./bookingComponent/BookingComponent";
 
 
 export {
@@ -40,5 +41,6 @@ export {
     SearchBarComponent,
     SideNav,
     Line_Chart,
-    BarGraph
+    BarGraph,
+    BookingComponent
 }

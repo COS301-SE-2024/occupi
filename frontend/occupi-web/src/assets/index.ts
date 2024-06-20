@@ -34,12 +34,14 @@ import {SearchIcon} from "./icons/SearchIcon";
 import {VerticalDotsIcon} from "./icons/VerticalDotsIcon";
 import {PlusIcon} from "./icons/PlusIcon";
 import ChevronDownIcon from "./icons/ChevronDown";
-
+import {EditIcon} from "./icons/EditIcon";
+import {EyeIcon} from "./icons/EyeIcon";
+import {DeleteIcon} from "./icons/DeleteIcon";
 
 export {
     loginpng, OccupiLogo, login_image, CheckSquareContained, CloseDrawer, OpenDrawer,
     Grid, PieChart, ColorSwatch, Home, UserProfileGroup, Bell, SettingsIcon, Logout,
     Loading,SettingsImg, Macbook1, Macbook2, Macbook3,
     Userprofile, Pallete, Privacy, AlertIcon, HelpIcon, GraphCol, Cal,
-    ChevronDown, ChevronLeft, ChevronRight, Bf, Uptrend, DownTrend, SearchIcon,ChevronDownIcon,PlusIcon,VerticalDotsIcon
+    ChevronDown, ChevronLeft, ChevronRight, Bf, Uptrend, DownTrend, SearchIcon,ChevronDownIcon,PlusIcon,VerticalDotsIcon,EditIcon,EyeIcon,DeleteIcon
 }
