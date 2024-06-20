@@ -13,6 +13,7 @@ import {
   Octicons,
   Feather
 } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams  } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import CalendarPicker from "react-native-calendar-picker";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,6 +33,17 @@ type RootStackParamList = {
   BookingDetails: undefined;
 };
 
+interface Room {
+  _id: string;
+  roomName: string;
+  roomId: string;
+  roomNo: number;
+  floorNo: number;
+  minOccupancy: number;
+  maxOccupancy: number;
+  description: string;
+}
+
 const images = [
   {
     uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/Modern-Office-Interior-with-Open-Floor-Plan-1024x683.jpeg',
@@ -48,6 +60,10 @@ const OfficeDetails = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
+  const roomParams = useLocalSearchParams();
+  const roomData = roomParams.roomData;
+  const roomData2 = JSON.parse(roomData);
+  console.log(roomData2);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [availableSlots, setAvailableSlots] = useState({});
   useEffect(() => {
@@ -58,6 +74,8 @@ const OfficeDetails = () => {
   const handleCheckAvailability = () => {
     setModalVisible(true);
   };
+
+  
 
   const renderItem = ({ item }: { item: { uri: string } }) => (
     <View style={{ borderRadius: wp('5%'), overflow: 'hidden' }}>
@@ -73,8 +91,9 @@ const OfficeDetails = () => {
     <>
       {/* Top Section */}
       <View pt="$16" backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: wp('5%') }}>
-        <Icon right="$4" as={Feather} name="chevron-left" size="40" color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text right="$8" fontWeight="$bold" fontSize="$22" style={{ color: isDarkMode ? '#fff' : '#000' }}>The HDMI room</Text>
+        <Icon right="$4" as={Feather} name="chevron-left" size="40" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
+
+        <Text right="$8" fontWeight="$bold" fontSize="$22" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
         <View alignItems="$center" flexDirection="$row" w="$24" justifyContent="$space-between">
           <View rounded="$full" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} p="$2">
             <Feather name="heart" size={24} color={isDarkMode ? '#fff' : '#000'} />
@@ -85,7 +104,7 @@ const OfficeDetails = () => {
         </View>
       </View >
       <ScrollView style={{ backgroundColor: isDarkMode ? '#000' : '#fff' }}>
-        <View height="$5/6" mt="$4" mb="$8">
+        <View height="$96" mt="$4" mb="$8">
           <PagerView style={styles.container} initialPage={0}>
             <View style={styles.page} key="1">
               <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
@@ -99,7 +118,7 @@ const OfficeDetails = () => {
           </PagerView>
         </View>
         <View style={{ padding: wp('5%') }}>
-          <Text fontSize="$24" fontWeight="$bold" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>The HDMI Room</Text>
+          <Text fontSize="$24" fontWeight="$bold" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
           <View alignItems="center" flexDirection="row">
             <Ionicons name="wifi" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Fast   </Text>
             <MaterialCommunityIcons name="television" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> OLED   </Text>
@@ -137,12 +156,12 @@ const OfficeDetails = () => {
         <View px="$5">
           <Text fontSize="$24" fontWeight="$bold" style={{ color: isDarkMode ? '#fff' : '#000' }}>Description</Text>
           <Text fontSize="$16" style={{ color: isDarkMode ? '#fff' : '#000' }}>
-            Lorem ipsum dolor sit amet consectetur. Ut lectus rutrum imperdiet enim consectetur egestas sem. Est tellus id nulla morbi. Nibh nulla ut diam morbi cras viverra vivamus risus scelerisque.
+            {roomData2.description}
           </Text>
         </View>
 
         {/* Check Availability Button */}
-        <TouchableOpacity bottom="$0" style={{ margin: wp('5%')}} onPress={handleCheckAvailability}>
+        <TouchableOpacity bottom="$0" style={{ margin: wp('5%')}} onPress={(handleCheckAvailability)}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
             start={{ x: 0, y: 0 }}
