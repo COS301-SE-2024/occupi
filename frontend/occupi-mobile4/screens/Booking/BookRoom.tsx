@@ -27,51 +27,47 @@ const BookRoom = () => {
   const toggleLayout = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
   };
-  useEffect(() => {
-    setIsDarkMode(colorScheme === 'dark');  
-  }, [colorScheme]);
+  
 
   // useEffect(() => {
-  //   const fetchAllRooms = async () => {
-  //     try {
-  //       const response = await fetch('http://10.0.0.160:8080/api/view-rooms', {
-  //         method: 'GET',
-  //         headers: {
-  //           Accept: 'application/json',
-  //           'Content-Type': 'application/json'
-  //         },
-  //         credentials: "include"
-  //       });
-  //       const data = await response.json();
-  //       if (response.ok) {
-  //         toast.show({
-  //           placement: 'top',
-  //           render: ({ id }) => {
-  //             return (
-  //               <Toast nativeID={id} variant="accent" action="success">
-  //                 <ToastTitle>{data.message}</ToastTitle>
-  //               </Toast>
-  //             );
-  //           },
-  //         });
-  //       } else {
-  //         // console.log(data);
-  //         toast.show({
-  //           placement: 'top',
-  //           render: ({ id }) => {
-  //             return (
-  //               <Toast nativeID={id} variant="accent" action="error">
-  //                 <ToastTitle>{data.error}</ToastTitle>
-  //               </Toast>
-  //             );
-  //           },
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error('Error:', error);
-  //     }
-  //   };
-  //   fetchAllRooms();
+    const fetchAllRooms = async () => {
+      console.log("heree");
+      try {
+        const response = await fetch('http://192.168.0.2:8080/api/view-rooms')
+        const data = await response.json();
+        console.log(data);
+        if (response.ok) {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        } else {
+          console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+
+    useEffect(() => {
+      setIsDarkMode(colorScheme === 'dark');  
+    }, [colorScheme]);
   // }, [toast]); 
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
@@ -137,7 +133,7 @@ const BookRoom = () => {
           {roomPairs.map((pair, index) => (
             <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
               {pair.map((room, idx) => (
-                <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => router.push('/office-details')}>
+                <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => fetchAllRooms()}>
                   <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                   <View style={{ padding: 10 }}>
                     <View>

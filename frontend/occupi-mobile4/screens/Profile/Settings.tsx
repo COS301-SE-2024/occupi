@@ -9,6 +9,9 @@ import {
   Switch,
   Divider,
   Pressable,
+  useToast,
+  Toast,
+ToastTitle,
 } from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,6 +24,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [name, setName] = useState('Sabrina Carpenter');
+  const toast = useToast();
   const navigation = useNavigation();
   let colorScheme = useColorScheme();
 
@@ -29,25 +33,54 @@ const Settings = () => {
     router.push('/profile');
   };
 
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('https://dev.occupi.tech/auth/logout', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({}),
+        credentials: "include"
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log(data);
+        toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="success">
+                    <ToastTitle>{data.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
+        router.push('/login');
+      } else {
+        toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="error">
+                    <ToastTitle>{data.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
   const toggleNotifications = () => {
     setNotificationsEnabled(!notificationsEnabled);
   };
 
   const handleNavigate = (screen) => {
     navigation.navigate(screen);
-  };
-
-  const handleLogout = () => {
-    Alert.alert('Log out', 'Are you sure you want to log out?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'OK',
-        onPress: () => handleNavigate('login'),
-      },
-    ]);
   };
 
   const data = [
@@ -73,7 +106,7 @@ const Settings = () => {
     { title: 'Terms and Policies', description: 'View terms and policies', iconName: 'file-text', onPress: () => handleNavigate('TermsPoliciesScreen') },
     { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
     { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
-    { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: handleLogout },
+    { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
     { title: 'About and Help', description: '', iconName: 'info', onPress: () => handleNavigate('AboutHelpScreen') },
   ];
 

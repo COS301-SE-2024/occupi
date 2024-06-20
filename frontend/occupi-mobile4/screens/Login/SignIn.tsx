@@ -3,10 +3,11 @@ import { StyleSheet, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
+import CookieManager from '@react-native-cookies/cookies';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
 import {
- FormControl,
+  FormControl,
   HStack,
   Input,
   Text,
@@ -153,37 +154,43 @@ const SignInForm = () => {
         },
         body: JSON.stringify({
           email: _data.email,
-          password:_data.password
+          password: _data.password
         }),
         credentials: "include"
       });
       const data = await response.json();
+      const cookies = response.headers.get('Accept');
+      // CookieManager.get('https://dev.occupi.tech')
+      //   .then((cookies) => {
+      //     console.log('CookieManager.get =>', cookies);
+      //   });
+      console.log(cookies);
       if (response.ok) {
         setLoading(false);
         toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="success">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
         router.push('/home');
       } else {
         setLoading(false);
-        // console.log(data);
+        console.log(data);
         toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="error">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
       }
     } catch (error) {
       console.error('Error:', error);
