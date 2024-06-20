@@ -1,26 +1,24 @@
 import React from "react";
 import {IconSvgProps} from "../../components/data/types";
 
-export const PlusIcon = ({size = 24, width, height, ...props}: IconSvgProps) => (
+export const ChevronDownIcon = ({strokeWidth = 1.5, ...otherProps}: IconSvgProps) => (
   <svg
     aria-hidden="true"
     fill="none"
     focusable="false"
-    height={size || height}
+    height="1em"
     role="presentation"
     viewBox="0 0 24 24"
-    width={size || width}
-    {...props}
+    width="1em"
+    {...otherProps}
   >
-    <g
-      fill="none"
+    <path
+      d="m19.92 8.95-6.52 6.52c-.77.77-2.03.77-2.8 0L4.08 8.95"
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth={1.5}
-    >
-      <path d="M6 12h12" />
-      <path d="M12 18V6" />
-    </g>
+      strokeMiterlimit={10}
+      strokeWidth={strokeWidth}
+    />
   </svg>
 );
