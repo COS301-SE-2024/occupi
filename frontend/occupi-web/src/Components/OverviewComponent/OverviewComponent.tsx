@@ -35,7 +35,6 @@ const OverviewComponent = () => {
                     height="500px"
                     mainComponent={
                         <div className="w-72 h-96 relative">
-                        <div className=" left-0 top-0 absolute rounded-2xl border-2 " />
                         <div className="w-64 px-7 py-2 left-[20px] top-[389px] absolute rounded-lg justify-center items-center gap-2.5 inline-flex">
                             <Button className="text-white text-sm w-96 font-medium  leading-normal bg-black mt-10">
                             See more
@@ -99,7 +98,6 @@ const OverviewComponent = () => {
                 height="500px"
                 mainComponent={
                   <div className="w-72 h-96 relative">
-                    <div className=" left-0 top-0 absolute rounded-2xl border-2 " />
                     <div className="w-64 px-7 py-2 left-[20px] top-[389px] absolute rounded-lg justify-center items-center gap-2.5 inline-flex">
                       <Button className="text-white text-sm w-96 font-medium  leading-normal bg-black mt-10">
                         See more

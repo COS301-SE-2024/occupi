@@ -8,10 +8,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 const sidenavvariants = {
   open: {
-    width: "16.5vw",
+    width: "300px",
   },
   closed: {
     width: "5vw",
+    minWidth: "50px", // Set a minimum width when the side panel is closed
+
   }
 }
 
@@ -42,8 +44,23 @@ const SideNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(window.innerWidth < 1000);
   const [selectedPanel, setSelectedPanel] = useState("Dashboard");
+
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMinimized(window.innerWidth < 1000);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Clean up event listener on unmount
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
 
   function setSelectedPanelF(arg: string){
       setSelectedPanel(arg);

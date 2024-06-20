@@ -23,7 +23,6 @@ import {
   Tooltip
 } from "@nextui-org/react";
 import {PlusIcon} from "@assets/index";
-import {VerticalDotsIcon} from "@assets/index";
 import {SearchIcon} from "@assets/index";
 import {ChevronDownIcon,EyeIcon,DeleteIcon,EditIcon} from "@assets/index";
 import {columns, users, statusOptions} from "../data/Data";
@@ -112,8 +111,8 @@ export default function App() {
         );
       case "role":
         return (
-          <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">{cellValue}</p>
+          <div className="flex  flex-col">
+            <p className="text-bold text-small text-text_col capitalize">{cellValue}</p>
             <p className="text-bold text-tiny capitalize text-default-400">{user.team}</p>
           </div>
         );
@@ -185,7 +184,7 @@ export default function App() {
         <div className="flex justify-between gap-3 items-end">
           <Input
             isClearable
-            className="w-full sm:max-w-[44%]"
+            className="w-full sm:max-w-[44%] border-none"
             placeholder="Search by name..."
             startContent={<SearchIcon />}
             value={filterValue}
@@ -235,7 +234,7 @@ export default function App() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button color="primary" endContent={<PlusIcon />}>
+            <Button  endContent={<PlusIcon />} className=" bg-primary_alt text-text_col_alt">
               Add New
             </Button>
           </div>
@@ -302,6 +301,7 @@ export default function App() {
     transition={{ duration: 0.2 }}
 >
     <Table
+    
       aria-label="Example table with custom cells, pagination and sorting"
       isHeaderSticky
       bottomContent={bottomContent}
