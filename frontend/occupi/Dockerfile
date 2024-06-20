@@ -1,23 +1,21 @@
-# Use the official bun image as a base
-FROM oven/bun:latest
+# Use an official Node.js runtime as a parent image
+FROM node:20-alpine
 
-# Set the current working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# copy bun.lockb package.json 
-COPY bun.lockb package.json ./
+# Copy the package.json and package-lock.json and install dependencies
+COPY package.json package-lock.json ./
+RUN npm install
 
-# install dependencies
-RUN bun install
-
-# copy the source code into the container
+# Copy the rest of the application code
 COPY . .
 
-# Build the next.js application
-RUN bun run build
+# Build the Next.js application
+RUN npm run build
 
 # Expose the port the app runs on
 EXPOSE 5000
 
-# Command to run the executable
-CMD ["bun", "start"]
+# Start the application
+CMD ["npm", "start"]
