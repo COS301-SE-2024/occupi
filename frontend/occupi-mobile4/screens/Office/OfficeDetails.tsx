@@ -164,7 +164,7 @@ const OfficeDetails = () => {
         >
           <View style={{ margin: wp('5%'), backgroundColor: isDarkMode ? '#333' : '#fff', borderRadius: wp('5%'), padding: wp('8%'), alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: hp('0.25%') }, shadowOpacity: 0.25, shadowRadius: hp('0.5%'), elevation: 5 }}>
             <Text style={{ fontSize: wp('6%'), color: isDarkMode ? '#fff' : '#000', marginBottom: hp('2%') }}>Available slots</Text>
-            <CalendarPicker />
+            {/* <CalendarPicker /> */}
             <View style={{ marginTop: hp('2%'), width: '100%' }}>
               {Object.keys(availableSlots).map(date => (
                 availableSlots[date].map((slot, index) => (
