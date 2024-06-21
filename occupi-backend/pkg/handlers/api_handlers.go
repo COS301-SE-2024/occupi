@@ -58,7 +58,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
-	booking.OccupiID = 1
+	booking.OccupiID = utils.GenerateBookingID()
 	booking.CheckedIn = false
 
 	// Save the booking to the database
@@ -70,7 +70,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Prepare the email content
 	subject := "Booking Confirmation - Occupi"
-	body := mail.FormatBookingEmailBody(booking.ID, booking.RoomID, booking.Slot)
+	body := mail.FormatBookingEmailBodyForBooker(booking.ID, booking.RoomID, booking.Slot, booking.Emails)
 
 	// Send the confirmation email concurrently to all recipients
 	emailErrors := mail.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
@@ -85,14 +85,15 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 // ViewBookings handles the retrieval of all bookings for a user
 func ViewBookings(ctx *gin.Context, appsession *models.AppSession) {
-	var userBooking models.User
-	if err := ctx.ShouldBindJSON(&userBooking); err != nil {
+	// Extract the email query parameter
+	email := ctx.Query("email")
+	if email == "" {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Email Address", nil))
 		return
 	}
 
 	// Get all bookings for the userBooking
-	bookings, err := database.GetUserBookings(ctx, appsession.DB, userBooking.Email)
+	bookings, err := database.GetUserBookings(ctx, appsession.DB, email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get bookings", constants.InternalServerErrorCode, "Failed to get bookings", nil))
 		return
