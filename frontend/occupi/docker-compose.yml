@@ -1,0 +1,15 @@
+services:
+  occupi:
+    image: $DOCKER_USERNAME/occupi:latest
+    container_name: occupi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:3000"
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    external: true

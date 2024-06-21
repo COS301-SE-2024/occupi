@@ -14,7 +14,8 @@ import {
   ChevronDownIcon,
   Feather
 } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams  } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -63,6 +64,7 @@ const OfficeDetails = () => {
   const [date, setDate] = useState(new Date(2000, 6, 7));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [slot, setSlot] = useState(1);
+  const [userEmail, setUserEmail] = useState('');
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
@@ -74,6 +76,7 @@ const OfficeDetails = () => {
   useEffect(() => {
     // Load the available slots from the JSON file
     setAvailableSlots(slotsData.slots);
+    getData();
   }, []);
 
   const handleCheckAvailability = () => {
@@ -95,6 +98,26 @@ const OfficeDetails = () => {
     hideDatePicker();
   };
 
+  const storeData = async (value) => {
+    try {
+      await AsyncStorage.setItem('email', value);
+    } catch (e) {
+      // saving error
+    }
+  };
+
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('email');
+      // console.log(value);
+      setUserEmail(value);
+    } catch (e) {
+      // error reading value
+    }
+  };
+
+  // storeData('kamogelomoeketse@gmail.com');
+
   const renderItem = ({ item }: { item: { uri: string } }) => (
     <View style={{ borderRadius: wp('5%'), overflow: 'hidden' }}>
       <Image source={{ uri: item.uri }} style={{ width: '100%', height: hp('30%') }} />
@@ -104,6 +127,9 @@ const OfficeDetails = () => {
   const handleSlotClick = () => {
     navigation.navigate('/booking-details');
   };
+
+  console.log(roomData2.roomId);
+  console.log(userEmail);
 
   return (
     <>
@@ -178,51 +204,51 @@ const OfficeDetails = () => {
           </Text>
         </View>
         <View mx="$4">
-      <RNPickerSelect
-        onValueChange={(value) => setSlot(value)}
-        items={[
-          { label: '07:00 - 08:00', value: '1' },
-          { label: '08:00 - 09:00', value: '2' },
-          { label: '09:00 - 10:00', value: '3' },
-          { label: '10:00 - 11:00', value: '4' },
-          { label: '11:00 - 12:00', value: '5' },
-          { label: '12:00 - 13:00', value: '6' },
-          { label: '13:00 - 14:00', value: '7' },
-          { label: '14:00 - 15:00', value: '8' },
-          { label: '15:00 - 16:00', value: '9' },
-          { label: '16:00 - 17:00', value: '10' }
-        ]}
-        placeholder={{ label: 'Select a slot', value: null, color: 'black' }}
-        style={{
-          inputIOS: {
-            fontSize: 16,
-            paddingVertical: 12,
-            marginVertical: 12,
-            paddingHorizontal: 16,
-            borderWidth: 1,
-            borderColor: 'lightgrey',
-            borderRadius: 10,
-            color: isDarkMode ? '#fff' : '#000',
-            paddingRight: 30, // to ensure the text is never behind the icon
-          },
-          inputAndroid: {
-            fontSize: 16,
-            paddingVertical: 8,
-            paddingHorizontal: 16,
-            borderWidth: 1,
-            borderColor: 'lightgrey',
-            borderRadius: 4,
-            color: isDarkMode ? '#fff' : '#000',
-            paddingRight: 30, // to ensure the text is never behind the icon
-          },
-        }}
-        Icon={() => {
-          return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center"/>;
-        }}
-      />
-    </View>
+          <RNPickerSelect
+            onValueChange={(value) => setSlot(value)}
+            items={[
+              { label: '07:00 - 08:00', value: '1' },
+              { label: '08:00 - 09:00', value: '2' },
+              { label: '09:00 - 10:00', value: '3' },
+              { label: '10:00 - 11:00', value: '4' },
+              { label: '11:00 - 12:00', value: '5' },
+              { label: '12:00 - 13:00', value: '6' },
+              { label: '13:00 - 14:00', value: '7' },
+              { label: '14:00 - 15:00', value: '8' },
+              { label: '15:00 - 16:00', value: '9' },
+              { label: '16:00 - 17:00', value: '10' }
+            ]}
+            placeholder={{ label: 'Select a slot', value: null, color: 'black' }}
+            style={{
+              inputIOS: {
+                fontSize: 16,
+                paddingVertical: 12,
+                marginVertical: 12,
+                paddingHorizontal: 16,
+                borderWidth: 1,
+                borderColor: 'lightgrey',
+                borderRadius: 10,
+                color: isDarkMode ? '#fff' : '#000',
+                paddingRight: 30, // to ensure the text is never behind the icon
+              },
+              inputAndroid: {
+                fontSize: 16,
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                borderWidth: 1,
+                borderColor: 'lightgrey',
+                borderRadius: 4,
+                color: isDarkMode ? '#fff' : '#000',
+                paddingRight: 30, // to ensure the text is never behind the icon
+              },
+            }}
+            Icon={() => {
+              return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center" />;
+            }}
+          />
+        </View>
         {/* Check Availability Button */}
-        <TouchableOpacity bottom="$0" style={{ margin: wp('5%')}} onPress={() => router.push('/booking-details')}>
+        <TouchableOpacity bottom="$0" style={{ margin: wp('5%') }} onPress={() => router.push({pathname:'/booking-details', params: {email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData}})}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
             start={{ x: 0, y: 0 }}
@@ -230,15 +256,15 @@ const OfficeDetails = () => {
             style={{ padding: wp('4%'), alignItems: 'center', borderRadius: 18 }}
           >
             <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirm}
-          onCancel={hideDatePicker}
-        />
+              isVisible={isDatePickerVisible}
+              mode="date"
+              onConfirm={handleConfirm}
+              onCancel={hideDatePicker}
+            />
             <Text color={isDarkMode ? '#000' : '#fff'} fontSize="$16" style={{ fontSize: wp('4%') }}>Check availability</Text>
           </LinearGradient>
         </TouchableOpacity>
-        
+
 
         {/* Modal for Calendar */}
         <Modal
