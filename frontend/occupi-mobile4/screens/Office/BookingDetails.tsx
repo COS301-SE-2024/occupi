@@ -8,16 +8,18 @@ import {
   FlatList,
   SafeAreaView,
   useColorScheme,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import * as LocalAuthentication from "expo-local-authentication";
 
 const BookingDetails = () => {
   const navigation = useNavigation();
   const [currentStep, setCurrentStep] = useState(0);
   const [attendees, setAttendees] = useState([]);
-  const [email, setEmail] = useState(["kkk@gmail.com"]);
+  const [email, setEmail] = useState("");
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -26,7 +28,7 @@ const BookingDetails = () => {
   const addAttendee = () => {
     if (email && !attendees.includes(email)) {
       setAttendees([...attendees, email]);
-      setEmail()
+      setEmail("");
     }
   };
 
@@ -120,6 +122,33 @@ const BookingDetails = () => {
       ))}
     </View>
   );
+
+  const handleBiometricAuth = async () => {
+    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+    if (!hasHardware || !isEnrolled) {
+      Alert.alert(
+        "Biometric Authentication not available",
+        "Your device does not support biometric authentication or it is not set up. Please use your PIN to confirm the booking."
+      );
+      return;
+    }
+
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Confirm your booking",
+      fallbackLabel: "Use PIN",
+    });
+
+    if (result.success) {
+      setCurrentStep(1);
+    } else {
+      Alert.alert(
+        "Authentication failed",
+        "Biometric authentication failed. Please try again."
+      );
+    }
+  };
 
   return (
     <SafeAreaView
@@ -281,7 +310,7 @@ const BookingDetails = () => {
           </View>
           <TouchableOpacity
             style={{ margin: 15, borderRadius: 25 }}
-            onPress={() => setCurrentStep(1)}
+            onPress={handleBiometricAuth}
           >
             <LinearGradient
               colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
