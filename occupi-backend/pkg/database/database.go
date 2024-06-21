@@ -110,7 +110,6 @@ func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-
 	var bookings []models.Booking
 	for cursor.Next(ctx) {
 		var booking models.Booking
@@ -118,6 +117,7 @@ func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models
 			logrus.Error(err)
 			return nil, err
 		}
+		fmt.Println("Here")
 		bookings = append(bookings, booking)
 	}
 	return bookings, nil
@@ -379,6 +379,10 @@ func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room
 
 	var cursor *mongo.Cursor
 	var err error
+
+	// findOptions := options.Find()
+	// findOptions.SetLimit(10)       // Limit the results to 10
+	// findOptions.SetSkip(int64(10)) // Skip the specified number of documents for pagination
 
 	if floorNo == 0 {
 		// Find all rooms
