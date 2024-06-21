@@ -11,12 +11,14 @@ import {
   MaterialIcons,
   MaterialCommunityIcons,
   Octicons,
+  ChevronDownIcon,
   Feather
 } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams  } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
-import CalendarPicker from "react-native-calendar-picker";
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import RNPickerSelect from 'react-native-picker-select';
 import { Icon, ScrollView, View, Text, Image } from '@gluestack-ui/themed';
 import {
   widthPercentageToDP as wp,
@@ -58,12 +60,15 @@ const images = [
 
 const OfficeDetails = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [date, setDate] = useState(new Date(2000, 6, 7));
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [slot, setSlot] = useState(1);
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
   const roomParams = useLocalSearchParams();
   const roomData = roomParams.roomData;
   const roomData2 = JSON.parse(roomData);
-  console.log(roomData2);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [availableSlots, setAvailableSlots] = useState({});
   useEffect(() => {
@@ -75,7 +80,20 @@ const OfficeDetails = () => {
     setModalVisible(true);
   };
 
-  
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (selectedDate) => {
+    setDate(selectedDate);
+    // setDate(selectedDate.toLocaleDateString());
+    // console.log(date.toLocaleDateString());
+    hideDatePicker();
+  };
 
   const renderItem = ({ item }: { item: { uri: string } }) => (
     <View style={{ borderRadius: wp('5%'), overflow: 'hidden' }}>
@@ -122,7 +140,7 @@ const OfficeDetails = () => {
           <View alignItems="center" flexDirection="row">
             <Ionicons name="wifi" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Fast   </Text>
             <MaterialCommunityIcons name="television" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> OLED   </Text>
-            <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> 5 People   </Text>
+            <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> {roomData2.minOccupancy} - {roomData2.maxOccupancy}   </Text>
             <Feather name="layers" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Floor 7   </Text>
           </View>
         </View>
@@ -159,18 +177,68 @@ const OfficeDetails = () => {
             {roomData2.description}
           </Text>
         </View>
-
+        <View mx="$4">
+      <RNPickerSelect
+        onValueChange={(value) => setSlot(value)}
+        items={[
+          { label: '07:00 - 08:00', value: '1' },
+          { label: '08:00 - 09:00', value: '2' },
+          { label: '09:00 - 10:00', value: '3' },
+          { label: '10:00 - 11:00', value: '4' },
+          { label: '11:00 - 12:00', value: '5' },
+          { label: '12:00 - 13:00', value: '6' },
+          { label: '13:00 - 14:00', value: '7' },
+          { label: '14:00 - 15:00', value: '8' },
+          { label: '15:00 - 16:00', value: '9' },
+          { label: '16:00 - 17:00', value: '10' }
+        ]}
+        placeholder={{ label: 'Select a slot', value: null, color: 'black' }}
+        style={{
+          inputIOS: {
+            fontSize: 16,
+            paddingVertical: 12,
+            marginVertical: 12,
+            paddingHorizontal: 16,
+            borderWidth: 1,
+            borderColor: 'lightgrey',
+            borderRadius: 10,
+            color: isDarkMode ? '#fff' : '#000',
+            paddingRight: 30, // to ensure the text is never behind the icon
+          },
+          inputAndroid: {
+            fontSize: 16,
+            paddingVertical: 8,
+            paddingHorizontal: 16,
+            borderWidth: 1,
+            borderColor: 'lightgrey',
+            borderRadius: 4,
+            color: isDarkMode ? '#fff' : '#000',
+            paddingRight: 30, // to ensure the text is never behind the icon
+          },
+        }}
+        Icon={() => {
+          return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center"/>;
+        }}
+      />
+    </View>
         {/* Check Availability Button */}
-        <TouchableOpacity bottom="$0" style={{ margin: wp('5%')}} onPress={(handleCheckAvailability)}>
+        <TouchableOpacity bottom="$0" style={{ margin: wp('5%')}} onPress={() => router.push('/booking-details')}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{ padding: wp('4%'), alignItems: 'center', borderRadius: 18 }}
           >
+            <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+        />
             <Text color={isDarkMode ? '#000' : '#fff'} fontSize="$16" style={{ fontSize: wp('4%') }}>Check availability</Text>
           </LinearGradient>
         </TouchableOpacity>
+        
 
         {/* Modal for Calendar */}
         <Modal
