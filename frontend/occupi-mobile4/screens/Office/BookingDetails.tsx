@@ -29,12 +29,12 @@ const BookingDetails = () => {
   const colorScheme = useColorScheme();
   const toast = useToast();
   const router = useRouter();
-  const roomParams = useLocalSearchParams();
-  const creatorEmail = roomParams.email;
-  const slot = roomParams.slot;
-  const roomId = roomParams.roomId;
-  const floorNo = roomParams.floorNo;
-  const roomData = JSON.parse(roomParams.roomData);
+  // const roomParams = useLocalSearchParams();
+  // const creatorEmail = roomParams.email;
+  // const slot = roomParams.slot;
+  // const roomId = roomParams.roomId;
+  // const floorNo = roomParams.floorNo;
+  // const roomData = JSON.parse(roomParams.roomData);
   const isDark = colorScheme === "dark";
   // console.log(creatorEmail + slot + roomId + floorNo);
   // console.log(roomData);
@@ -278,7 +278,7 @@ const BookingDetails = () => {
                 color: isDark ? "#fff" : "#000",
               }}
             >
-              {roomData.roomName}
+              {/* {roomData.roomName} */}
             </Text>
             <View
               style={{
@@ -327,7 +327,7 @@ const BookingDetails = () => {
                   color: isDark ? "#fff" : "#000",
                 }}
               >
-                {roomData.minOccupancy} - {roomData.maxOccupancy}
+                {/* {roomData.minOccupancy} - {roomData.maxOccupancy} */}
               </Text>
               <Ionicons
                 name="business-outline"
@@ -341,7 +341,7 @@ const BookingDetails = () => {
                   color: isDark ? "#fff" : "#000",
                 }}
               >
-                Floor {roomData.floorNo}
+                {/* Floor {roomData.floorNo} */}
               </Text>
             </View>
             <View

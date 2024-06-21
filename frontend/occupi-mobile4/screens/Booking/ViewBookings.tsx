@@ -280,7 +280,6 @@ const ViewBookings = () => {
                                                 <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize="$15"> Attendees: {room.emails.length}</Text>
                                             </View>
                                             <Text my="$1">Your booking time:</Text>
-
                                         </View>
                                         <View flexDirection="$row" alignItems="$center" justifyContent="space-between">
                                             <View>
