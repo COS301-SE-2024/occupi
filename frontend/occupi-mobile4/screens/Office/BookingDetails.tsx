@@ -59,6 +59,7 @@ const BookingDetails = () => {
       "roomId": roomParams.roomId,
       "slot": parseInt(roomParams.slot, 10),
       "emails" : attendees,
+      "roomName" : roomData.roomName,
       "creator" : creatorEmail,
       "floorNo" : parseInt(roomParams.floorNo, 10)
     };
