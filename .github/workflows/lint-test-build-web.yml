@@ -42,7 +42,7 @@ jobs:
           bun-version: latest # or "latest", "canary", <sha>
 
       - name: Test with Jest
-        run: bun run test
+        run: bun test --coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
