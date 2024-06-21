@@ -124,32 +124,31 @@ const BookingDetails = () => {
   );
 
   const handleBiometricAuth = async () => {
-  const hasHardware = await LocalAuthentication.hasHardwareAsync();
-  const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    const hasHardware = await LocalAuthentication.hasHardwareAsync();
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
-  if (!hasHardware || !isEnrolled) {
-    Alert.alert(
-      "Biometric Authentication not available",
-      "Your device does not support biometric authentication or it is not set up. Please set up Face ID or Touch ID to use this feature."
-    );
-    return;
-  }
+    if (!hasHardware || !isEnrolled) {
+      Alert.alert(
+        "Biometric Authentication not available",
+        "Your device does not support biometric authentication or it is not set up. Please use your PIN to confirm the booking."
+      );
+      return;
+    }
 
-  const result = await LocalAuthentication.authenticateAsync({
-    promptMessage: "Confirm your booking with Face ID or Touch ID",
-    disableDeviceFallback: true,
-    cancelLabel: "Cancel",
-  });
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Confirm your booking",
+      fallbackLabel: "Use PIN",
+    });
 
-  if (result.success) {
-    setCurrentStep(1);
-  } else {
-    Alert.alert(
-      "Authentication failed",
-      "Biometric authentication failed. Please try again."
-    );
-  }
-};
+    if (result.success) {
+      setCurrentStep(1);
+    } else {
+      Alert.alert(
+        "Authentication failed",
+        "Biometric authentication failed. Please try again."
+      );
+    }
+  };
 
   return (
     <SafeAreaView
