@@ -15,7 +15,10 @@ func TestGenEmpID(t *testing.T) {
 	empID := utils.GenerateEmployeeID()
 	t.Logf("Generated Employee ID: %s", empID)
 }
-
+func TestGenBookID(t *testing.T) {
+	BookID := utils.ID()
+	t.Logf("Generated Employee ID: %s", BookID)
+}
 func TestSanitizeInput(t *testing.T) {
 	tests := []struct {
 		name     string
