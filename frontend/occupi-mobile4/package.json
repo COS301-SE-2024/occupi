@@ -21,6 +21,7 @@
     "@gluestack-ui/config": "^1.1.18",
     "@gluestack-ui/themed": "^1.1.30",
     "@hookform/resolvers": "^3.6.0",
+    "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-cookies/cookies": "^6.2.1",
     "@react-native-picker/picker": "^2.7.7",
     "@react-native-segmented-control/segmented-control": "^2.5.2",

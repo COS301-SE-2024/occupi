@@ -10,9 +10,15 @@ import {
   useColorScheme,
   Alert,
 } from "react-native";
+import {
+  useToast,
+  Toast,
+  ToastTitle
+} from '@gluestack-ui/themed';
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as LocalAuthentication from "expo-local-authentication";
 
 const BookingDetails = () => {
@@ -21,7 +27,18 @@ const BookingDetails = () => {
   const [attendees, setAttendees] = useState([]);
   const [email, setEmail] = useState("");
   const colorScheme = useColorScheme();
+  const toast = useToast();
+  const router = useRouter();
+  const roomParams = useLocalSearchParams();
+  const creatorEmail = roomParams.email;
+  const slot = roomParams.slot;
+  const roomId = roomParams.roomId;
+  const floorNo = roomParams.floorNo;
+  const roomData = JSON.parse(roomParams.roomData);
   const isDark = colorScheme === "dark";
+  // console.log(creatorEmail + slot + roomId + floorNo);
+  // console.log(roomData);
+  console.log(attendees);
 
   const steps = ["Booking details", "Invite attendees", "Receipt"];
 
@@ -36,6 +53,65 @@ const BookingDetails = () => {
     setAttendees(attendees.filter((email) => email !== emailToRemove));
   };
 
+  const onSubmit = async () => {
+    
+    const body = {
+      "roomId": roomParams.roomId,
+      "slot": parseInt(roomParams.slot, 10),
+      "emails" : attendees,
+      "creator" : creatorEmail,
+      "floorNo" : parseInt(roomParams.floorNo, 10)
+    };
+    console.log(body);
+    try {
+      const response = await fetch('https://dev.occupi.tech/api/book-room', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
+        credentials: "include"
+      });
+      const data = await response.json();
+      const cookies = response.headers.get('Accept');
+      // CookieManager.get('https://dev.occupi.tech')
+      //   .then((cookies) => {
+      //     console.log('CookieManager.get =>', cookies);
+      //   });
+      console.log(cookies);
+      if (response.ok) {
+        setCurrentStep(2)
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+      } else {
+        console.log(data);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      // setResponse('An error occurred');
+    }
+    // }, 3000);
+  };
+
   const renderAttendee = ({ item }) => (
     <View
       style={{
@@ -43,7 +119,7 @@ const BookingDetails = () => {
         alignItems: "center",
         padding: 10,
         margin: 5,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: isDark ? '#2C2C2E' : '#F3F3F3',
         borderRadius: 20
       }}
     >
@@ -73,37 +149,37 @@ const BookingDetails = () => {
     >
       {steps.map((step, index) => (
         <React.Fragment key={index}>
-            <View style={{
-                alignItems: 'center'
-            }}>
+          <View style={{
+            alignItems: 'center'
+          }}>
             <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              width: 20,
-              height: 20,
-              borderRadius: 10,
-              backgroundColor: index <= currentStep ? "greenyellow" : (isDark ? "#333" : "#E0E0E0"),
-            }}
-          >
-            
-          </View>
-          <Text
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                backgroundColor: index <= currentStep ? "greenyellow" : (isDark ? "#333" : "#E0E0E0"),
+              }}
+            >
+
+            </View>
+            <Text
               style={{
                 color:
                   currentStep === index
                     ? "greenyellow"
                     : isDark
-                    ? "#fff"
-                    : "#000",
+                      ? "#fff"
+                      : "#000",
                 fontWeight: "bold",
                 textAlign: "center",
               }}
             >
               {step}
             </Text>
-            </View>
-         
+          </View>
+
           {index < steps.length - 1 && (
             <View
               style={{
@@ -112,8 +188,8 @@ const BookingDetails = () => {
                   currentStep >= index + 1
                     ? "greenyellow"
                     : isDark
-                    ? "#333"
-                    : "#E0E0E0",
+                      ? "#333"
+                      : "#E0E0E0",
                 flex: 1,
               }}
             />
@@ -201,7 +277,7 @@ const BookingDetails = () => {
                 color: isDark ? "#fff" : "#000",
               }}
             >
-              The HDMI room
+              {roomData.roomName}
             </Text>
             <View
               style={{
@@ -250,7 +326,7 @@ const BookingDetails = () => {
                   color: isDark ? "#fff" : "#000",
                 }}
               >
-                5 people
+                {roomData.minOccupancy} - {roomData.maxOccupancy}
               </Text>
               <Ionicons
                 name="business-outline"
@@ -264,7 +340,7 @@ const BookingDetails = () => {
                   color: isDark ? "#fff" : "#000",
                 }}
               >
-                Floor 7
+                Floor {roomData.floorNo}
               </Text>
             </View>
             <View
@@ -320,12 +396,12 @@ const BookingDetails = () => {
               style={{
                 padding: 15,
                 alignItems: "center",
-                borderRadius: 25,
+                borderRadius: 15,
               }}
             >
               <Text
                 style={{
-                  color: "#fff",
+                  color: isDark ? "#000" : "#fff",
                   fontSize: 16,
                   fontWeight: "bold",
                 }}
@@ -380,7 +456,7 @@ const BookingDetails = () => {
             These employees will receive emails
           </Text>
 
-          
+
           <FlatList
             data={attendees}
             renderItem={renderAttendee}
@@ -389,14 +465,14 @@ const BookingDetails = () => {
               marginHorizontal: 15,
               borderRadius: 10,
 
-              
+
             }}
           />
 
 
           <TouchableOpacity
             style={{ margin: 15, borderRadius: 25 }}
-            onPress={() => setCurrentStep(2)}
+            onPress={() => onSubmit()}
           >
             <LinearGradient
               colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}

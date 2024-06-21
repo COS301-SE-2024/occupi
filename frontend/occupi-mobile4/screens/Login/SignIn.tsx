@@ -38,7 +38,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 
@@ -83,6 +83,14 @@ const SignInForm = () => {
     const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
     setBiometricAvailable(isBiometricAvailable);
     console.log('Biometric hardware available:', isBiometricAvailable);
+  };
+
+  const storeData = async (value) => {
+    try {
+      await AsyncStorage.setItem('email', value);
+    } catch (e) {
+      // saving error
+    }
   };
 
   const handleBiometricSignIn = async () => {
@@ -167,6 +175,7 @@ const SignInForm = () => {
       console.log(cookies);
       if (response.ok) {
         setLoading(false);
+        storeData(_data.email);
         toast.show({
           placement: 'top',
           render: ({ id }) => {
