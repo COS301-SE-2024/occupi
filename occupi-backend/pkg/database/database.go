@@ -110,7 +110,6 @@ func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-
 	var bookings []models.Booking
 	for cursor.Next(ctx) {
 		var booking models.Booking
@@ -118,6 +117,7 @@ func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models
 			logrus.Error(err)
 			return nil, err
 		}
+		fmt.Println("Here")
 		bookings = append(bookings, booking)
 	}
 	return bookings, nil

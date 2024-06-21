@@ -21,7 +21,7 @@ func FormatBookingEmailBody(bookingID string, roomID string, slot int) string {
 }
 
 // formats booking email body to send person who booked
-func FormatBookingEmailBodyForBooker(bookingID int, roomID string, slot int, attendees map[string]string) string {
+func FormatBookingEmailBodyForBooker(bookingID string, roomID string, slot int, attendees []string) string {
 	listOfAttendees := "<ul>"
 	for _, email := range attendees {
 		listOfAttendees += "<li>" + email + "</li>"
@@ -33,7 +33,7 @@ func FormatBookingEmailBodyForBooker(bookingID int, roomID string, slot int, att
 			<p>Dear booker,</p>
 			<p>
 				You have successfully booked an office space. Here are the booking details:<br><br>
-				<b>Booking ID:</b> ` + strconv.Itoa(bookingID) + `<br>
+				<b>Booking ID:</b> ` + bookingID + `<br>
 				<b>Room ID:</b> ` + roomID + `<br>
 				<b>Slot:</b> ` + strconv.Itoa(slot) + `<br><br>
 				<b>Attendees:</b>` + listOfAttendees + `<br><br>
@@ -45,13 +45,13 @@ func FormatBookingEmailBodyForBooker(bookingID int, roomID string, slot int, att
 }
 
 // formats booking email body to send attendees
-func FormatBookingEmailBodyForAttendees(bookingID int, roomID string, slot int, email string) string {
+func FormatBookingEmailBodyForAttendees(bookingID string, roomID string, slot int, email string) string {
 	return appendHeader("Booking") + `
 		<div class="content">
 			<p>Dear attendees,</p>
 			<p>
 				` + email + ` has booked an office space and invited you to join. Here are the booking details:<br><br>
-				<b>Booking ID:</b> ` + strconv.Itoa(bookingID) + `<br>
+				<b>Booking ID:</b> ` + bookingID + `<br>
 				<b>Room ID:</b> ` + roomID + `<br>
 				<b>Slot:</b> ` + strconv.Itoa(slot) + `<br><br>
 				If you have any questions, feel free to contact us.<br><br>

@@ -70,7 +70,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Prepare the email content
 	subject := "Booking Confirmation - Occupi"
-	body := mail.FormatBookingEmailBody(booking.ID, booking.RoomID, booking.Slot)
+	body := mail.FormatBookingEmailBodyForBooker(booking.ID, booking.RoomID, booking.Slot, booking.Emails)
 
 	// Send the confirmation email concurrently to all recipients
 	emailErrors := mail.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
