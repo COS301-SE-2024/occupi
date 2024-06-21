@@ -6,7 +6,7 @@ import {
     MaterialCommunityIcons,
     Octicons
 } from '@expo/vector-icons';
-import { useColorScheme, StyleSheet } from 'react-native';
+import { useColorScheme, StyleSheet, TouchableOpacity } from 'react-native';
 import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
@@ -30,7 +30,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
                 <Icon as={Feather} name="chevron-left" size="40" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()}/>
                 <Text fontWeight="$bold" fontSize="$16" left="$10" color={colorScheme === 'dark' ? 'white' : 'black'}>{room.roomName}</Text>
             </View>
-            <ScrollView>
+            <ScrollView contentContainerStyle={{ paddingBottom: 40 }} style={{ paddingBottom: 20, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
                 <View height="$4/5" my="$4">
                     <PagerView style={styles.container} initialPage={0}>
                         <View style={styles.page} key="1">
@@ -65,7 +65,16 @@ const ViewBookingDetails = (bookingId, roomName) => {
                     <Text mt="$4" mb="$1" fontSize="$16" fontWeight="$bold" color={colorScheme === 'dark' ? 'white' : 'black'}>Description</Text>
                     <Text fontSize="$14" color={colorScheme === 'dark' ? 'white' : 'black'}>Lorem ipsum dolor sit amet consectetur. Ut lectus rutrum imperdiet enim consectetur egestas sem. Est tellus id nulla morbi. Nibh nulla at diam morbi cras viverra vivamus risus scelerisque. Tempus urna habitant ultrices id ac sed interdum viverra. Integer auctor eget tincidunt lobortis semper. Morbi vel diam risus porta ac hendrerit semper nec aliquet. Ut at euismod sit sapien pretium diam. Sem consectetur molestie nentesque et ultricies tempor.  nunc amet. Elementum dictumst tellus vel pharetra sed ac condimentum nisi.</Text>
                 </View>
+                <TouchableOpacity>
+                    <View backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$10"> 
+                        <Text>ViewBooking</Text>
+                    </View>
+                </TouchableOpacity>
+                
             </ScrollView>
+            <View h="$10">
+                <Text>ViewBooking</Text>
+                </View>
         </View>
     )
 }
