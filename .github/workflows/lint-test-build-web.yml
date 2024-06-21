@@ -44,6 +44,11 @@ jobs:
       - name: Test with Jest
         run: bun run test
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   # Build job
   build:
     runs-on: ubuntu-latest
