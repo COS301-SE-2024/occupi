@@ -13,6 +13,7 @@ import Navbar from '../../components/NavBar';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const groupDataInPairs = (data) => {
+  if (!data) return [];
   const pairs = [];
   for (let i = 0; i < data.length; i += 2) {
     pairs.push(data.slice(i, i + 2));
@@ -37,11 +38,10 @@ const BookRoom = () => {
   const toast = useToast();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [layout, setLayout] = useState("row");
-  const [roomData, setRoomData] = useState([]);
+  const [roomData, setRoomData] = useState<Room[]>([]);
   const toggleLayout = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
   };
-
 
   useEffect(() => {
     const fetchAllRooms = async () => {
@@ -49,8 +49,8 @@ const BookRoom = () => {
       try {
         const response = await fetch('https://dev.occupi.tech/api/view-rooms')
         const data = await response.json();
-        setRoomData(data.data);
         if (response.ok) {
+          setRoomData(data.data || []); // Ensure data is an array
           toast.show({
             placement: 'top',
             render: ({ id }) => {
@@ -68,7 +68,7 @@ const BookRoom = () => {
             render: ({ id }) => {
               return (
                 <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>{data.error}</ToastTitle>
+                  <ToastTitle>{data.error.message}</ToastTitle>
                 </Toast>
               );
             },
@@ -76,40 +76,30 @@ const BookRoom = () => {
         }
       } catch (error) {
         console.error('Error:', error);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>Network Error: {error.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
       }
     };
     fetchAllRooms();
-  },
-    []);
+  }, []);
 
   useEffect(() => {
     setIsDarkMode(colorScheme === 'dark');
   }, [colorScheme]);
-  // }, [toast]); 
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
   const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
 
-  const data = [
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-    { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Closesat: '7pm', available: true },
-  ];
-
   const roomPairs = groupDataInPairs(roomData);
-  // console.log(roomData);
 
   return (
     <View style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
@@ -139,8 +129,8 @@ const BookRoom = () => {
         <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
           {roomPairs.map((pair, index) => (
             <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-              {pair.map((room: Room, idx) => (
-                <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room)}}) }>
+              {pair.map((room, idx) => (
+                <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room) } })}>
                   <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                   <View style={{ padding: 10 }}>
                     <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
@@ -168,8 +158,8 @@ const BookRoom = () => {
         </ScrollView>
       ) : (
         <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
-          {roomData.map((room: Room, idx) => (
-            <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: 160 }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room)}})}>
+          {roomData.map((room, idx) => (
+            <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: 160 }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room) } })}>
               <Image style={{ width: '50%', height: '100%', borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
               <View style={{ flex: 1, padding: 10, justifyContent: 'space-between' }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
