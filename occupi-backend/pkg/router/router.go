@@ -42,7 +42,7 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client) {
 		api.POST("/book-room", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.BookRoom(ctx, appsession) })
 		api.POST("/check-in", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CheckIn(ctx, appsession) })
 		api.POST("/cancel-booking", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CancelBooking(ctx, appsession) })
-		api.GET(("/view-bookings"), middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ViewBookings(ctx, appsession) })
+		api.GET(("/view-bookings"), middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewBookings(ctx, appsession) })
 		api.GET("/view-rooms", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewRooms(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
