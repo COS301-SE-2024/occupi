@@ -1,10 +1,10 @@
 import { ChevronLeft, ChevronRight,
-   Grid, ColorSwatch, Home, PieChart, UserProfileGroup,OccupiLogo } from "@assets/index";
+   Grid, ColorSwatch, Home, PieChart, UserProfileGroup,OccupiLogo,Report } from "@assets/index";
 import {SideNavBarButton} from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import FaFileReport  from 'react-icons/fa';
 
 const sidenavvariants = {
   open: {
@@ -37,6 +37,10 @@ const sidebarcontent = [
   {
     icon: UserProfileGroup,
     text: "Teams",
+  },
+  {
+    icon: UserProfileGroup,
+    text: "Reports",
   }
 ]
 
