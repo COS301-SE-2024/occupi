@@ -29,7 +29,7 @@ const Settings = () => {
         mainComponent={
           <div className="text-text_col font-semibold text-2xl ml-5">
             Settings
-          <span className="block text-sm text-text_col_tertiary">
+            <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
             Manage your profile, appearance, and what data is shared with us
           </span>
         </div>

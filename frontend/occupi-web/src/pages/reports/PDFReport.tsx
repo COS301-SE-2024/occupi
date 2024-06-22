@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Document,
   Page,
@@ -7,32 +7,32 @@ import {
   StyleSheet,
   PDFViewer,
   Image,
-} from '@react-pdf/renderer';
-import { TopNav } from '@components/index';
-import { occupiLogo } from '@assets/index';
+} from "@react-pdf/renderer";
+import { TopNav } from "@components/index";
+import { occupiLogo } from "@assets/index";
 
 // Sample data
 const occupancyData = [
-  { month: 'January', occupancy: 60 },
-  { month: 'February', occupancy: 70 },
-  { month: 'March', occupancy: 75 },
-  { month: 'April', occupancy: 80 },
-  { month: 'May', occupancy: 85 },
-  { month: 'June', occupancy: 90 },
+  { month: "January", occupancy: 60 },
+  { month: "February", occupancy: 70 },
+  { month: "March", occupancy: 75 },
+  { month: "April", occupancy: 80 },
+  { month: "May", occupancy: 85 },
+  { month: "June", occupancy: 90 },
 ];
 
 // Create styles
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "column",
+    backgroundColor: "#FFFFFF",
     padding: 30,
   },
   header: {
     padding: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderBottom: '2 solid black',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottom: "2 solid black",
     marginBottom: 20,
   },
   logo: {
@@ -41,8 +41,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    textAlign: 'right',
-    textTransform: 'uppercase',
+    textAlign: "right",
+    textTransform: "uppercase",
   },
   section: {
     marginVertical: 10,
@@ -50,37 +50,37 @@ const styles = StyleSheet.create({
   paragraph: {
     marginVertical: 10,
     fontSize: 12,
-    textAlign: 'justify',
+    textAlign: "justify",
   },
   table: {
-    display: 'flex',
-    width: 'auto',
-    borderStyle: 'solid',
+    display: "flex",
+    width: "auto",
+    borderStyle: "solid",
     borderWidth: 1,
     borderRightWidth: 0,
     borderBottomWidth: 0,
     marginBottom: 10,
   },
   tableRow: {
-    flexDirection: 'row',
-    backgroundColor: '#f2f2f2',
+    flexDirection: "row",
+    backgroundColor: "#f2f2f2",
   },
   tableCol: {
-    width: '50%',
-    borderStyle: 'solid',
+    width: "50%",
+    borderStyle: "solid",
     borderWidth: 1,
     borderLeftWidth: 0,
     borderTopWidth: 0,
     padding: 8,
   },
   pageNumber: {
-    position: 'absolute',
+    position: "absolute",
     fontSize: 12,
     bottom: 30,
     left: 0,
     right: 0,
-    textAlign: 'center',
-    color: 'grey',
+    textAlign: "center",
+    color: "grey",
   },
 });
 
@@ -89,24 +89,37 @@ const summaryText = `The report analyzes monthly office occupancy trends from Ja
 
 // Mock additional data for the report
 const additionalData = [
-  { category: 'Total Floors', value: 5 },
-  { category: 'Total Meeting Rooms', value: 12 },
-  { category: 'Average Desk Utilization', value: '75%' },
+  { category: "Total Floors", value: 5 },
+  { category: "Total Meeting Rooms", value: 12 },
+  { category: "Average Desk Utilization", value: "75%" },
 ];
 
 // Create Document Component
 function BasicDocument() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleInputChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
+  const handleInputChange = (e: {
+    target: { value: React.SetStateAction<string> };
+  }) => {
     setSearchQuery(e.target.value);
   };
 
   return (
     <div className="w-full overflow-auto">
-      <TopNav searchQuery={searchQuery} onChange={handleInputChange} />
+      <TopNav
+        mainComponent={
+          <div className="text-text_col font-semibold text-2xl ml-5">
+            Reports
+            <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
+              Generate and download reports for Analysis
+            </span>
+          </div>
+        }
+        searchQuery={searchQuery}
+        onChange={handleInputChange}
+      />
 
-      <PDFViewer style={{ width: '100%', height: '100vh' }}>
+      <PDFViewer style={{ width: "100%", height: "100vh" }}>
         <Document>
           <Page size="A4" style={styles.page}>
             <View style={styles.header}>
@@ -119,7 +132,9 @@ function BasicDocument() {
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.paragraph}>Monthly Office Occupancy Table</Text>
+              <Text style={styles.paragraph}>
+                Monthly Office Occupancy Table
+              </Text>
               <View style={styles.table}>
                 <View style={styles.tableRow}>
                   <View style={styles.tableCol}>
