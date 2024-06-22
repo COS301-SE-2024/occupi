@@ -39,6 +39,8 @@ function App() {
               <Route path="visitations" element={<PDFReport />} />{/**attach appropriate component */}
               <Route path="analysis" element={<Analysis/>} />{}
             </Route>
+            <Route path="reports" element={<PDFReport />} />{/**attach appropriate component */}
+
            
             <Route path="settings/*" element={<Settings />}>
               <Route path="profile" element={<Appearance />} />{/**attach appropriate component */}

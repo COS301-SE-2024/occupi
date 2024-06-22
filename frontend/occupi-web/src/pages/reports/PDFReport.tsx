@@ -12,6 +12,11 @@ import {
     Line
   } from "@react-pdf/renderer";
   import { occupiLogo } from "@assets/index";
+  import {
+    TabComponent,
+  } from "@components/index";
+  import { TopNav } from "@components/index";
+import { useState, useEffect } from "react";
   
   // Create styles
   const styles = StyleSheet.create({
@@ -84,7 +89,18 @@ import {
   
   // Create Document Component
   function BasicDocument() {
+    const [searchQuery, setSearchQuery] = useState("");
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+    };
+
     return (
+      <div className="w-full overflow-auto">
+      <TopNav
+        searchQuery={searchQuery}
+        onChange={handleInputChange}
+      />
+      
       <PDFViewer style={styles.viewer}>
         <Document>
           <Page size="A4" style={styles.page}>
@@ -158,6 +174,7 @@ import {
           </Page>
         </Document>
       </PDFViewer>
+    </div>
     );
   }
   

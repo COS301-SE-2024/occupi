@@ -95,6 +95,9 @@ const SideNav = () => {
         //but rather should show a modal
         //to confirm logout
       }
+      else if (arg === "Reports") {
+        navigate('/reports');
+      }
   }
 
   function toggleSideNav() {
@@ -111,6 +114,7 @@ const SideNav = () => {
         else if(pn.startsWith("/teams"))setSelectedPanel("Teams");
         else if(pn.startsWith("/notifications"))setSelectedPanel("Notifications");
         else if(pn.startsWith("/settings"))setSelectedPanel("Settings");
+        else if(pn.startsWith("/reports"))setSelectedPanel("Reports");
         else ;
     }
 
