@@ -106,7 +106,7 @@ function BasicDocument() {
     <div className="w-full overflow-auto">
       <TopNav searchQuery={searchQuery} onChange={handleInputChange} />
 
-      <PDFViewer style={{ width: '100vw', height: '100vh' }}>
+      <PDFViewer style={{ width: '100%', height: '100vh' }}>
         <Document>
           <Page size="A4" style={styles.page}>
             <View style={styles.header}>
