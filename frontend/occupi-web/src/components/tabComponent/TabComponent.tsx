@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import React, { useState } from "react";
-import {OverView,Bookings} from "@components/index";
-import { useNavigate } from "react-router-dom";
+
 
 
 type TabComponentProps = {

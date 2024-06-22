@@ -319,7 +319,7 @@ export default function Bookings() {
         )}
     </TableHeader>
     <TableBody emptyContent={"No users found"} items={sortedItems}>
-        {(item: { id: number; name: string; role: string; team: string; status: string; age: string; avatar: string; email: string; }) => (
+        {(item: { id: number; name: string; role: string; team: string; status: string; age: string; avatar: string; email: string; bookings: number; }) => (
             <TableRow key={item.id}>
                 {(columnKey: React.Key) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
             </TableRow>
