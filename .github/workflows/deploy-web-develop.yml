@@ -1,4 +1,4 @@
-name: Deploy Web site to Live site
+name: Deploy Develop Dashboard
 
 on:
   push:
@@ -77,7 +77,7 @@ jobs:
                       host: ${{ secrets.VM_IP }}
                       username: ${{ secrets.VM_USERNAME }}
                       key: ${{ secrets.VM_SSH_KEY }}
-                      source: "frontend/occupi-web-dev/docker-compose.yml,frontend/occupi-web/Dockerfile.dev"
+                      source: "frontend/occupi-web-dev/docker-compose.dev.yml,frontend/occupi-web/Dockerfile.dev"
                       target: "/home/${{ secrets.VM_USERNAME }}/occupi-web-dev"
   
               # SSH to VM and run commands

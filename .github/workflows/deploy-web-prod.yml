@@ -1,4 +1,4 @@
-name: Deploy Web site to Live site
+name: Deploy Prod Dashboard
 
 on:
   push:
