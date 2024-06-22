@@ -53,12 +53,6 @@ func TestValidateToken(t *testing.T) {
 	require.NotNil(t, claims)
 	assert.Equal(t, email, claims.Email)
 	assert.Equal(t, role, claims.Role)
-
-	// Test with an invalid token
-	invalidTokenString := "invalid_token"
-	claims, err = authenticator.ValidateToken(invalidTokenString)
-	require.Error(t, err)
-	assert.Nil(t, claims)
 }
 
 func TestValidateTokenExpired(t *testing.T) {
@@ -80,6 +74,19 @@ func TestValidateTokenExpired(t *testing.T) {
 
 	// Validate the token
 	claims, err := authenticator.ValidateToken(tokenString)
+	require.Error(t, err)
+	assert.Nil(t, claims)
+}
+
+func TestInvalidToken(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// Test with an invalid token
+	invalidTokenString := "invalid_token"
+	claims, err := authenticator.ValidateToken(invalidTokenString)
 	require.Error(t, err)
 	assert.Nil(t, claims)
 }
