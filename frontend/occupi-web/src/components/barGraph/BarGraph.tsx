@@ -1,5 +1,7 @@
+import { Button } from "@nextui-org/react";
+import html2canvas from "html2canvas";
 import "./styles.css";
-import React from "react";
+import React, { useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -57,8 +59,31 @@ const data = [
 ];
 
 export default function App() {
+
+  const chartRef = useRef<HTMLDivElement | null>(null);
+
+  const handleDownload = () => {
+    if (chartRef.current) {
+      html2canvas(chartRef.current).then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const downloadLink = document.createElement("a");
+        downloadLink.href = imgData;
+        downloadLink.download = "chart.png";
+        downloadLink.click();
+      });
+    }
+  };
+
+
+
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <div>
+    
+    <div ref={chartRef} style={{ width: "100%", height: 400 }}>
+
+    <Button className=" -mt-10 mb-5 ml-3 bg-primary_alt text-text_col_alt"  onClick={handleDownload}>Download Chart</Button>
+
+    <ResponsiveContainer width="100%" height={390}>
 
     <BarChart
       data={data}
@@ -78,5 +103,7 @@ export default function App() {
       <Bar dataKey="Today" fill="#AFF16C" radius={[6, 6, 0, 0]} />
     </BarChart>
     </ResponsiveContainer>
+    </div>
+    </div>
   );
 }

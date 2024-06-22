@@ -36,14 +36,14 @@ const OverviewComponent = () => {
                     mainComponent={
                         <div className="w-72 h-96 relative">
                         <div className="w-64 px-7 py-2 left-[20px] top-[389px] absolute rounded-lg justify-center items-center gap-2.5 inline-flex">
-                            <Button className="text-white text-sm w-96 font-medium  leading-normal bg-black mt-10">
+                            <Button className="bg-primary_alt text-text_col_alt text-sm w-96 font-medium  leading-normal  mt-10">
                             See more
                             <FaArrowRight className="ml-2" />
                             </Button>
                             <div className="w-6 h-6 justify-center items-center gap-6 flex" />
                         </div>
                         <div className="left-[20px] top-[290px] absolute text-text_col text-4xl font-semibold  leading-10">
-                            50 people
+                            143 people
                         </div>
                         <div className="left-[20px] top-[25px] absolute opacity-70 text-text_col  text-base font-semibold  leading-none">
                             Total bookings today
@@ -52,7 +52,7 @@ const OverviewComponent = () => {
                             <div className="w-10 h-6 left-0 top-0 absolute"></div>
                             <div className=" flex flex-row  top-[20px] absolute">
                             <span className="flex  text-teal-500 text-base font-semibold   leading-none">
-                                1.8% <Uptrend  />
+                            <Uptrend  /> 1.8% 
                             </span>
                             <span className=" w-36  text-text_col text-base font-semibold  leading-none">
                                 Up from yesterday
@@ -99,14 +99,14 @@ const OverviewComponent = () => {
                 mainComponent={
                   <div className="w-72 h-96 relative">
                     <div className="w-64 px-7 py-2 left-[20px] top-[389px] absolute rounded-lg justify-center items-center gap-2.5 inline-flex">
-                      <Button className="text-white text-sm w-96 font-medium  leading-normal bg-black mt-10">
+                      <Button className="bg-primary_alt text-text_col_alt text-sm w-96 font-medium  leading-normal mt-10">
                         See more
                         <FaArrowRight className="ml-2" />
                       </Button>
                       <div className="w-6 h-6 justify-center items-center gap-6 flex" />
                     </div>
                     <div className="left-[20px] top-[290px] absolute text-text_col  text-4xl font-semibold  leading-10">
-                      50 people
+                      79 people
                     </div>
                     <div className="left-[20px] top-[25px] absolute opacity-70 text-text_col  text-base font-semibold  leading-none">
                       Total visitations today
@@ -115,7 +115,7 @@ const OverviewComponent = () => {
                       <div className="w-10 h-6 left-0 top-0 absolute"></div>
                       <div className=" flex flex-row top-[20px] absolute">
                         <span className="flex text-text_col_red_salmon text-base font-semibold leading-none">
-                          4.3% <DownTrend />
+                        <DownTrend />4.3% 
                         </span>
                         <span className=" w-40  text-text_col text-base font-semibold  leading-none">
                           Down from yesterday
