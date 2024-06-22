@@ -127,14 +127,16 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	token2, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
 
 	w1 := httptest.NewRecorder()
-	req1, _ := http.NewRequest("GET", "/ping-auth", nil)
-	req1.AddCookie(&http.Cookie{Name: "token", Value: token2})
+
+	// clear previous cookie
+	req.Header.Del("Cookie")
+	req.AddCookie(&http.Cookie{Name: "token", Value: token2})
 
 	// make second request with different email and token
-	r.ServeHTTP(w1, req1)
+	r.ServeHTTP(w1, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w1.Code)
-	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Inalid auth session\"},\"message\":\"Bad Request\",\"status\":401}", w1.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid auth session\"},\"message\":\"Bad Request\",\"status\":401}", w1.Body.String())
 }
 
 func TestAdminRoute(t *testing.T) {
