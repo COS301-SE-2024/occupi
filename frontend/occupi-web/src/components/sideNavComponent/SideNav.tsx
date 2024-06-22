@@ -4,7 +4,6 @@ import {SideNavBarButton} from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import FaFileReport  from 'react-icons/fa';
 
 const sidenavvariants = {
   open: {
@@ -39,7 +38,7 @@ const sidebarcontent = [
     text: "Teams",
   },
   {
-    icon: UserProfileGroup,
+    icon: Report,
     text: "Reports",
   }
 ]
