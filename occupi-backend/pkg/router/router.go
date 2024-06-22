@@ -25,6 +25,10 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client) {
 	{
 		ping.GET("", func(ctx *gin.Context) { handlers.PingHandler(ctx) })
 	}
+	pingOpen := router.Group("/ping-open")
+	{
+		pingOpen.GET("", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.PingHandlerOpen(ctx) })
+	}
 	pingAuth := router.Group("/ping-auth")
 	{
 		pingAuth.GET("", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.PingHandlerAuth(ctx) })

@@ -56,6 +56,89 @@ func TestProtectedRoute(t *testing.T) {
 	)
 }
 
+func TestProtectedRouteInvalidToken(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: "invalid-token"})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+}
+
+func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	// make first request with this token and email and let session be created
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+
+	token2, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
+
+	w1 := httptest.NewRecorder()
+
+	// clear previous cookie
+	req.Header.Del("Cookie")
+	req.AddCookie(&http.Cookie{Name: "token", Value: token2})
+
+	// make second request with different email and token
+	r.ServeHTTP(w1, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w1.Code)
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid auth session\"},\"message\":\"Bad Request\",\"status\":401}", w1.Body.String())
+}
+
 func TestAdminRoute(t *testing.T) {
 	// Load environment variables from .env file
 	if err := godotenv.Load("../.env"); err != nil {
@@ -154,4 +237,121 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized to access admin route\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+}
+
+func TestAccessUnprotectedRoute(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-open", nil)
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are not auth'd, only non-auth'd users can access this endpoint\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+}
+
+func TestAccessUnprotectedRouteWithToken(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-open", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User already authorized\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+}
+
+func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+
+	w1 := httptest.NewRecorder()
+	req1, _ := http.NewRequest("GET", "/ping-open", nil)
+	req1.AddCookie(&http.Cookie{Name: "token", Value: "invalid-token"})
+
+	r.ServeHTTP(w1, req1)
+
+	assert.Equal(t, http.StatusOK, w1.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are not auth'd, only non-auth'd users can access this endpoint\",\"status\":200}",
+		strings.ReplaceAll(w1.Body.String(), "-\\u003e", "->"),
+	)
 }

@@ -21,7 +21,11 @@ func PingHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "pong -> I am alive and kicking", nil))
 }
 
-// PingHanlderAuth is a simple handler for testing if the server is up and running but requires authentication
+func PingHandlerOpen(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "pong -> I am alive and kicking and you are not auth'd, only non-auth'd users can access this endpoint", nil))
+}
+
+// PingHandlerAuth is a simple handler for testing if the server is up and running but requires authentication
 func PingHandlerAuth(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "pong -> I am alive and kicking and you are auth'd", nil))
 }

@@ -65,7 +65,7 @@ func ProtectedRoute(ctx *gin.Context) {
 				http.StatusUnauthorized,
 				"Bad Request",
 				constants.InvalidAuthCode,
-				"Inalid auth session",
+				"Invalid auth session",
 				nil))
 		ctx.Abort()
 		return
