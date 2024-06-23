@@ -129,6 +129,128 @@ func TestViewBookingsHandler(t *testing.T) {
 		})
 	}
 }
+func TestBookRoom(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+
+	// Store the cookies from the login response
+	cookies := req.Cookies()
+
+	// Define test cases
+	testCases := []struct {
+		name               string
+		payload            string
+		expectedStatusCode int
+		expectedMessage    string
+		expectedData       gin.H
+	}{
+		{
+			name: "Valid Request",
+			payload: `{
+				"roomId": "12345",
+				"Slot": 1,
+				"Emails": ["test@example.com"],
+				"Creator": "test@example.com",
+				"FloorNo": 1
+			}`,
+			expectedStatusCode: http.StatusOK,
+			expectedMessage:    "Successfully booked!",
+			expectedData:       gin.H{"id": "some_generated_id"}, // The exact value will be replaced dynamically
+		},
+		{
+			name: "Invalid Request Payload",
+			payload: `{
+				"RoomID": "",
+				"Slot": "",
+				"Emails": [],
+				"Creator": "",
+				"FloorNo": 0
+			}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedMessage:    "Invalid request payload",
+			expectedData:       nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a request to pass to the handler
+			req, err := http.NewRequest("POST", "/api/book-room", strings.NewReader(tc.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Add the stored cookies to the request
+			for _, cookie := range cookies {
+				req.AddCookie(cookie)
+			}
+
+			// Create a response recorder to record the response
+			rr := httptest.NewRecorder()
+
+			// Serve the request
+			r.ServeHTTP(rr, req)
+
+			// Check the status code is what we expect
+			assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
+
+			// Define the expected response
+			expectedResponse := gin.H{
+				"message": tc.expectedMessage,
+				"status":  float64(tc.expectedStatusCode),
+				"data":    tc.expectedData,
+			}
+
+			// Unmarshal the actual response
+			var actualResponse gin.H
+			if err := json.Unmarshal(rr.Body.Bytes(), &actualResponse); err != nil {
+				t.Fatalf("could not unmarshal response: %v", err)
+			}
+
+			// Check the response message and status
+			assert.Equal(t, expectedResponse["message"], actualResponse["message"], "handler returned unexpected message")
+			assert.Equal(t, expectedResponse["status"], actualResponse["status"], "handler returned unexpected status")
+
+			// For successful booking, check if the ID is generated
+			if tc.expectedStatusCode == http.StatusOK {
+				assert.NotEmpty(t, actualResponse["data"], "booking ID should not be empty")
+			}
+		})
+	}
+}
+
 func TestPingRoute(t *testing.T) {
 	// Load environment variables from .env file
 	if err := godotenv.Load("../.env"); err != nil {
