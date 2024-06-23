@@ -1,5 +1,5 @@
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, User} from "@nextui-org/react";
-import { Logout, Bell, SettingsIcon } from "@assets/index";
+import { Logout, Bell, SettingsIcon ,Faq} from "@assets/index";
 import { useNavigate } from "react-router-dom";
 
 type TopNavProps = {
@@ -51,7 +51,7 @@ const TopNav = (props: TopNavProps) => {
                     </DropdownItem>
                     <DropdownItem key="/notifications" shortcut="⌘N" startContent={<Bell />}>Notifications</DropdownItem>
                     <DropdownItem key="/settings" shortcut="⌘S" startContent={<SettingsIcon />}>Settings</DropdownItem>
-                    <DropdownItem key="/help_and_feedback" shortcut="⌘H" startContent={<Bell />}>Help & Feedback</DropdownItem>
+                    <DropdownItem key="/faq" shortcut="⌘H" startContent={<Faq />}>Help/FAQ</DropdownItem>
                     <DropdownItem key="/logout" color="danger" startContent={<Logout />}>Logout</DropdownItem>
                   </DropdownMenu>
                 </Dropdown>

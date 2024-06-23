@@ -1,27 +1,17 @@
-// /// <reference lib="dom" />
-// import { test, expect, mock } from 'bun:test';
-// import { render, fireEvent } from '@testing-library/react';
-// import GradientButton from '../gradientButtonComponent/gradientButton'; // Adjust the import based on your file structure
+import { expect, test, describe } from "bun:test";
+import { render, screen, fireEvent } from "@testing-library/react";
+import {GradientButton} from "@components/index";
 
-// test('GradientButton should render text correctly', () => {
-//   const { getByText } = render(<GradientButton Text="Click Me" isClickable={true} clickEvent={() => {}} />);
-//   const buttonElement = getByText("Click Me");
-//   expect(buttonElement).toBeTruthy();
-// });
+describe("GradientButton Tests", () => {
+  test("renders the button with the correct text", () => {
+    render(<GradientButton isLoading={false} Text="Auth" isClickable={true} clickEvent={() => {}} />);
+    expect(screen.getByText("Auth")).toBeTruthy();
+  });
 
 
-// test('GradientButton should call clickEvent when clicked and clickable', () => {
-//   const clickEventMock = mock(() => {});
-//   const { getByText } = render(<GradientButton Text="Click Me" isClickable={true} clickEvent={clickEventMock} />);
-//   const buttonElement = getByText("Click Me");
-//   fireEvent.click(buttonElement);
-//   expect(clickEventMock).toHaveBeenCalled();
-// });
-
-// test('GradientButton should not call clickEvent when not clickable', () => {
-//   const clickEventMock = mock(() => {});
-//   const { getByText } = render(<GradientButton Text="Click Me" isClickable={false} clickEvent={clickEventMock} />);
-//   const buttonElement = getByText("Click Me");
-//   fireEvent.click(buttonElement);
-//   expect(clickEventMock).not.toHaveBeenCalled();
-// });
+  test("displays loading component when isLoading is true", () => {
+    render(<GradientButton isLoading={true} Text="Loading" isClickable={true} clickEvent={() => {}} />);
+    expect(screen.getByText("Loading")).toBeTruthy();
+    // This assumes that the Loading component renders something identifiable in the DOM, adjust as necessary.
+  });
+});

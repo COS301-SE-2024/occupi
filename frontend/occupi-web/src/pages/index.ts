@@ -8,7 +8,8 @@ import OverView from '../components/bookings/Bookings';
 import Analysis from './analysis/Analysis';
 import PDFReport from './reports/PDFReport';
 import Visitation from './visitations/Visitations';
+import Faq from './faq/Faq';
 export {
     LoginForm, OtpPage, LandingPage, Settings,
-    Dashboard,Appearance, OverView, Analysis, PDFReport, Visitation
+    Dashboard,Appearance, OverView, Analysis, PDFReport, Visitation, Faq
 }

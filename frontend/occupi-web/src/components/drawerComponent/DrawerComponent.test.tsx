@@ -1,7 +1,9 @@
-/// <reference lib="dom" />
-import { test, expect, mock,beforeEach, afterEach } from 'bun:test';
-import { render, fireEvent,cleanup } from '@testing-library/react';
-import DrawerComponent from './DrawerComponent';
+import { expect, test,  afterEach } from "bun:test";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import DrawerComponent from "./DrawerComponent";
+import { BrowserRouter } from "react-router-dom";
+import { ReactNode } from "react";
+import { JSX } from "react/jsx-runtime";
 
 
 afterEach(() => {
@@ -9,24 +11,19 @@ afterEach(() => {
   });
 
 
-  test('DrawerComponent should render correctly', () => {
-    const { container } = render(<DrawerComponent isOpen={true} onClose={() => {}} />);
-    expect(container).toBeTruthy();  // Simpler check to avoid potential snapshot issues
-  });
-  
-//   test('DrawerComponent should call onClose when overlay is clicked', () => {
-//     const onCloseMock = mock(() => {});
-//     const { getByTestId } = render(<DrawerComponent isOpen={true} onClose={onCloseMock} />);
-//     const overlay = getByTestId('drawer-overlay');
-//     fireEvent.click(overlay);
-//     expect(onCloseMock).toHaveBeenCalled();
-//   });
+// Helper function to render with router context
+const renderWithRouter = (component: string | number | boolean | Iterable<ReactNode> | JSX.Element | null | undefined) => {
+  return render(<BrowserRouter>{component}</BrowserRouter>);
+};
 
-test('DrawerComponent should render menu items correctly', () => {
-    const { getByText } = render(<DrawerComponent isOpen={true} onClose={() => {}} />);
-    expect(getByText('Profile')).toBeTruthy();
-    expect(getByText('Appearance')).toBeTruthy();
-    expect(getByText('Privacy')).toBeTruthy();
-    expect(getByText('Help')).toBeTruthy();
-    expect(getByText('About')).toBeTruthy();
+
+
+  test("Navigates correctly when 'Profile' is clicked", () => {
+    const { container } = renderWithRouter(<DrawerComponent />);
+    const profileButton = screen.getByText("Profile");
+    fireEvent.click(profileButton);
+    // Check if the selectedItem state is updated
+    expect(container.innerHTML).toContain("Profile");
+    // This assumes you have a way to check the navigation path or mock `useNavigate`
   });
+

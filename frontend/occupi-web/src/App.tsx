@@ -1,4 +1,4 @@
-import { LoginForm, OtpPage, Settings, Dashboard,Analysis,Visitation} from "@pages/index";
+import { LoginForm, OtpPage, Settings, Dashboard,Analysis,Visitation,Faq} from "@pages/index";
 import {Appearance, OverviewComponent,BookingComponent,PDFReport} from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -40,7 +40,7 @@ function App() {
               <Route path="analysis" element={<Analysis/>} />{}
             </Route>
             <Route path="reports" element={<PDFReport />} />{/**attach appropriate component */}
-
+            <Route path="faq" element={ <Faq/> } />{/**attach appropriate component */}
            
             <Route path="settings/*" element={<Settings />}>
               <Route path="profile" element={<Appearance />} />{/**attach appropriate component */}

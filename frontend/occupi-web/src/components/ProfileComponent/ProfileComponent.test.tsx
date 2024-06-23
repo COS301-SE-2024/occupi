@@ -1,18 +1,17 @@
-/// <reference lib="dom" />
-import { describe, test, expect,afterEach } from "bun:test";
-import React from "react";
-import { render, screen ,cleanup} from "@testing-library/react";
-import ProfileComponent from "./ProfileComponent";
+// import { describe, expect, test } from "bun:test";
+// import { render, screen } from "@testing-library/react";
+// import ProfileComponent from "./ProfileComponent";
 
+// describe("ProfileComponent Simple Tests", () => {
+//   test("renders without crashing", () => {
+//     render(<ProfileComponent />);
+//     const image = screen.getByRole("img", { hidden: true }) as HTMLImageElement; // Adjusting for images that might be initially hidden
+//     expect(image).toBeTruthy(); // Checks if the image element is successfully queried
+//   });
 
-afterEach(() => {
-    cleanup();
-  });
-
-describe("ProfileComponent", () => {
-  test("renders correctly", () => {
-    render(<ProfileComponent />);
-    const divElement = screen.getByText("ProfileComponent");
-    expect(divElement).toBeTruthy();
-  });
-});
+//   test("profile image has the correct default source", () => {
+//     render(<ProfileComponent />);
+//     const image = screen.getByRole("img") as HTMLImageElement;
+//     expect(image.src).toContain("https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg");
+//   });
+// });

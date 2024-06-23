@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight,
-   Grid, ColorSwatch, Home, PieChart, UserProfileGroup,OccupiLogo,Report } from "@assets/index";
+   Grid, ColorSwatch, Home, PieChart, UserProfileGroup,OccupiLogo,Report ,Faq} from "@assets/index";
 import {SideNavBarButton} from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -40,7 +40,11 @@ const sidebarcontent = [
   {
     icon: Report,
     text: "Reports",
-  }
+  },
+  // {
+  //   icon: Faq,
+  //   text: "Help",
+  // }
 ]
 
 const SideNav = () => {
@@ -96,6 +100,9 @@ const SideNav = () => {
       }
       else if (arg === "Reports") {
         navigate('/reports');
+      }
+      else if (arg === "Help") {
+        navigate('/faq');
       }
   }
 
