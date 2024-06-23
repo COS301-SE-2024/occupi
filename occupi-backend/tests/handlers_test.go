@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -24,128 +25,110 @@ import (
 	// "github.com/stretchr/testify/mock"
 )
 
-/*
-// Mock for utils.GenerateOTP
-type MockUtils struct {
-	mock.Mock
+func TestViewBookingsHandler(t *testing.T) {
+	// Load environment variables from .env file
+	if err := godotenv.Load("../.env"); err != nil {
+		t.Fatal("Error loading .env file: ", err)
+	}
+
+	// setup logger to log all server interactions
+	utils.SetupLogger()
+
+	// connect to the database
+	db := database.ConnectToDatabase()
+
+	// set gin run mode
+	gin.SetMode("test")
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+
+	// Store the cookies from the login response
+	cookies := req.Cookies()
+
+	// Define test cases
+	testCases := []struct {
+		name               string
+		email              string
+		expectedStatusCode float64
+		expectedMessage    string
+		expectedBookings   int
+	}{
+		{
+			name:               "Valid Request",
+			email:              "test.example@gmail.com",
+			expectedStatusCode: float64(http.StatusOK),
+			expectedMessage:    "Successfully fetched bookings!",
+			expectedBookings:   2,
+		},
+		{
+			name:               "Invalid Request",
+			email:              "",
+			expectedStatusCode: float64(http.StatusBadRequest),
+			expectedMessage:    "Invalid request payload",
+			expectedBookings:   0,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a request to pass to the handler
+			req, err := http.NewRequest("GET", "/api/view-bookings?email="+tc.email, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Add the stored cookies to the request
+			for _, cookie := range cookies {
+				req.AddCookie(cookie)
+			}
+
+			// Create a response recorder to record the response
+			rr := httptest.NewRecorder()
+
+			// Serve the request
+			r.ServeHTTP(rr, req)
+
+			// Check the status code is what we expect
+			assert.Equal(t, tc.expectedStatusCode, float64(rr.Code), "handler returned wrong status code")
+
+			// Define the expected response
+			expectedResponse := gin.H{
+				"message": tc.expectedMessage,
+				"data":    make([]map[string]interface{}, tc.expectedBookings), // Adjust expected data length
+				"status":  tc.expectedStatusCode,
+			}
+
+			// Unmarshal the actual response
+			var actualResponse gin.H
+			if err := json.Unmarshal(rr.Body.Bytes(), &actualResponse); err != nil {
+				t.Fatalf("could not unmarshal response: %v", err)
+			}
+
+			// Compare the responses
+			assert.Equal(t, expectedResponse["message"], actualResponse["message"], "handler returned unexpected message")
+			assert.Equal(t, expectedResponse["status"], actualResponse["status"], "handler returned unexpected status")
+		})
+	}
 }
-
-// GenerateOTP simulates the generation of a One Time Password (OTP) for testing purposes.
-func (m *MockUtils) GenerateOTP() (string, error) {
-	args := m.Called()
-	return args.String(0), args.Error(1)
-}
-
-// Mock for mail.SendMail
-type MockMail struct {
-	mock.Mock
-}
-
-// SendMail simulates the sending of an email for testing purposes.
-func (m *MockMail) SendMail(to, subject, body string) error {
-	args := m.Called(to, subject, body)
-	return args.Error(0)
-}
-
-// TestRegister tests the user registration endpoint.
-func TestRegister(t *testing.T) {
-	mockUtils := new(MockUtils)
-	mockMail := new(MockMail)
-
-	// Mock the GenerateOTP method to return a specific OTP.
-	mockUtils.On("GenerateOTP").Return("123456", nil)
-	// Mock the SendMail method to simulate sending an email.
-	mockMail.On("SendMail", "test@example.com", "Your OTP for Email Verification", "Your OTP is: 123456").Return(nil)
-
-	// Create a new HTTP request to register a user.
-	reqBody := `{"email":"test@example.com"}`
-	req, err := http.NewRequest("POST", "/register", bytes.NewBufferString(reqBody))
-	assert.NoError(t, err)
-
-	// Record the HTTP response.
-	rr := httptest.NewRecorder()
-	// Create the handler with mocked dependencies.
-	handler := handlers.Register(mockUtils.GenerateOTP, mockMail.SendMail)
-	handler.ServeHTTP(rr, req)
-
-	// Assert the response status code.
-	assert.Equal(t, http.StatusOK, rr.Code)
-	// Assert that the mocked methods were called as expected.
-	mockUtils.AssertExpectations(t)
-	mockMail.AssertExpectations(t)
-
-	// Decode and verify the response body.
-	var response map[string]string
-	err = json.NewDecoder(rr.Body).Decode(&response)
-	assert.NoError(t, err)
-	assert.Equal(t, "Registration successful! Please check your email for the OTP to verify your account.", response["message"])
-}
-
-// TestVerifyOTP tests the OTP verification endpoint.
-func TestVerifyOTP(t *testing.T) {
-	// Add a test user with a known OTP.
-	handlers.Users["test@example.com"] = models.User{Email: "test@example.com", Token: "123456"}
-
-	// Create a new HTTP request to verify OTP.
-	reqBody := `{"email":"test@example.com", "otp":"123456"}`
-	req, err := http.NewRequest("POST", "/verify-otp", bytes.NewBufferString(reqBody))
-	assert.NoError(t, err)
-
-	// Record the HTTP response.
-	rr := httptest.NewRecorder()
-	// Create the handler.
-	handler := http.HandlerFunc(handlers.VerifyOTP)
-	handler.ServeHTTP(rr, req)
-
-	// Assert the response status code.
-	assert.Equal(t, http.StatusOK, rr.Code)
-
-	// Decode and verify the response body.
-	var response map[string]string
-	err = json.NewDecoder(rr.Body).Decode(&response)
-	assert.NoError(t, err)
-	assert.Equal(t, "Email verified successfully!", response["message"])
-}
-
-// TestVerifyOTP_InvalidOTP tests OTP verification with an invalid OTP.
-func TestVerifyOTP_InvalidOTP(t *testing.T) {
-	// Add a test user with a known OTP.
-	handlers.Users["test@example.com"] = models.User{Email: "test@example.com", Token: "123456"}
-
-	// Create a new HTTP request with an incorrect OTP.
-	reqBody := `{"email":"test@example.com", "otp":"654321"}`
-	req, err := http.NewRequest("POST", "/verify-otp", bytes.NewBufferString(reqBody))
-	assert.NoError(t, err)
-
-	// Record the HTTP response.
-	rr := httptest.NewRecorder()
-	// Create the handler.
-	handler := http.HandlerFunc(handlers.VerifyOTP)
-	handler.ServeHTTP(rr, req)
-
-	// Assert the response status code.
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
-}
-
-
-// TestVerifyOTP_EmailNotRegistered tests OTP verification for an unregistered email.
-func TestVerifyOTP_EmailNotRegistered(t *testing.T) {
-	// Create a new HTTP request with an unregistered email.
-	reqBody := `{"email":"notregistered@example.com", "otp":"123456"}`
-	req, err := http.NewRequest("POST", "/verify-otp", bytes.NewBufferString(reqBody))
-	assert.NoError(t, err)
-
-	// Record the HTTP response.
-	rr := httptest.NewRecorder()
-	// Create the handler.
-	handler := http.HandlerFunc(handlers.VerifyOTP)
-	handler.ServeHTTP(rr, req)
-
-	// Assert the response status code.
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
-
-}*/
-
 func TestPingRoute(t *testing.T) {
 	// Load environment variables from .env file
 	if err := godotenv.Load("../.env"); err != nil {

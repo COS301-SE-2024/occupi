@@ -117,7 +117,6 @@ func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models
 			logrus.Error(err)
 			return nil, err
 		}
-		fmt.Println("Here")
 		bookings = append(bookings, booking)
 	}
 	return bookings, nil
