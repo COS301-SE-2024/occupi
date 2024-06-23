@@ -8,7 +8,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -59,19 +58,19 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected RoomID,Slot,Emails[],Creator,FloorNo ", nil))
 		return
 	}
-	// Initialize the validator
-	validate := validator.New()
+	// // Initialize the validator
+	// validate := validator.New()
 
-	// Validate the booking struct
-	if err := validate.Struct(booking); err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		errorDetails := make(gin.H)
-		for _, validationError := range validationErrors {
-			errorDetails[validationError.Field()] = validationError.Tag()
-		}
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Validation failed", constants.InvalidRequestPayloadCode, "Validation errors occurred", errorDetails))
-		return
-	}
+	// // Validate the booking struct
+	// if err := validate.Struct(booking); err != nil {
+	// 	validationErrors := err.(validator.ValidationErrors)
+	// 	errorDetails := make(gin.H)
+	// 	for _, validationError := range validationErrors {
+	// 		errorDetails[validationError.Field()] = validationError.Tag()
+	// 	}
+	// 	ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Validation failed", constants.InvalidRequestPayloadCode, "Validation errors occurred", errorDetails))
+	// 	return
+	// }
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
 	booking.OccupiID = utils.GenerateBookingID()
