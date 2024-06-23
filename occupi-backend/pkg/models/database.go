@@ -19,10 +19,10 @@ type Booking struct {
 	ID        string    `json:"_id" bson:"_id,omitempty"`
 	OccupiID  string    `json:"occupiId" bson:"occupiId,omitempty"`
 	RoomID    string    `json:"roomId" bson:"roomId"`
-	RoomName  string    `json:"roomName" bson:"roomName,omitempty"`
+	RoomName  string    `json:"roomName" bson:"roomName"`
 	Slot      int       `json:"slot" bson:"slot"`
 	Emails    []string  `json:"emails" bson:"emails"`
-	CheckedIn bool      `json:"checkedIn" bson:"checkedIn,omitempty"`
+	CheckedIn bool      `json:"checkedIn" bson:"checkedIn"`
 	Creator   string    `json:"creator" bson:"creator"`
 	FloorNo   int       `json:"floorNo" bson:"floorNo"`
 	Date      time.Time `json:"date" bson:"date,omitempty"`
@@ -33,7 +33,7 @@ type Booking struct {
 // structure of CheckIn
 type CheckIn struct {
 	BookingID string `json:"bookingId" bson:"bookingId"`
-	Email     string `json:"email" bson:"email"`
+	Creator   string `json:"creator" bson:"creator"`
 	RoomID    string `json:"roomId" bson:"roomId"`
 }
 

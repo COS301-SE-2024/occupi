@@ -148,7 +148,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	var checkIn models.CheckIn
 
 	if err := ctx.ShouldBindJSON(&checkIn); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Booking ID, Room ID, and Email Address", nil))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Booking ID, Room ID, and Creator Email Address", nil))
 		return
 	}
 
