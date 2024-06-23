@@ -18,13 +18,13 @@ type User struct {
 type Booking struct {
 	ID        string    `json:"_id" bson:"_id,omitempty"`
 	OccupiID  string    `json:"occupiId" bson:"occupiId,omitempty"`
-	RoomID    string    `json:"roomId" bson:"roomId"`
-	RoomName  string    `json:"roomName" bson:"roomName"`
-	Slot      int       `json:"slot" bson:"slot"`
-	Emails    []string  `json:"emails" bson:"emails"`
+	RoomID    string    `json:"roomId" bson:"roomId" validate:"required"`
+	RoomName  string    `json:"roomName" bson:"roomName" validate:"required"`
+	Slot      int       `json:"slot" bson:"slot" validate:"required,min=1"`
+	Emails    []string  `json:"emails" bson:"emails" validate:"required,dive,email"`
 	CheckedIn bool      `json:"checkedIn" bson:"checkedIn"`
-	Creator   string    `json:"creator" bson:"creator"`
-	FloorNo   int       `json:"floorNo" bson:"floorNo"`
+	Creator   string    `json:"creator" bson:"creator" validate:"required,email"`
+	FloorNo   int       `json:"floorNo" bson:"floorNo" validate:"required"`
 	Date      time.Time `json:"date" bson:"date,omitempty"`
 	Start     time.Time `json:"start" bson:"start,omitempty"`
 	End       time.Time `json:"end" bson:"end,omitempty"`
