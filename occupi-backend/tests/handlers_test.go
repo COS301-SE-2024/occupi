@@ -1,11 +1,11 @@
 package tests
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -20,7 +20,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	// "github.com/stretchr/testify/mock"
@@ -29,7 +28,7 @@ import (
 func TestViewBookingsHandler(t *testing.T) {
 	// Load environment variables from .env file
 	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
+		t.Fatal("Error loading .env file: ", err)
 	}
 
 	// setup logger to log all server interactions
@@ -42,33 +41,28 @@ func TestViewBookingsHandler(t *testing.T) {
 	gin.SetMode("test")
 
 	// Create a Gin router
-	ginRouter := gin.Default()
+	r := gin.Default()
 
-	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	// Register the route
+	router.OccupiRouter(r, db)
 
-	// Create a request user
-	loginPayload := models.RequestUser{
-		Email:    "rethakgetse11@gmail.com",
-		Password: "Dycroc911$",
-	}
-	// Marshal the payload into JSON
-	jsonPayload, err := json.Marshal(loginPayload)
-	if err != nil {
-		t.Fatalf("Error marshaling login payload: %v", err)
-	}
-	// Simulate login
-	req, err := http.NewRequest("POST", "/auth/login", bytes.NewBuffer(jsonPayload))
-	if err != nil {
-		t.Fatal(fmt.Printf("Error creating login request: %v", err))
-	}
-	req.Header.Set("Content-Type", "application/json")
-	rr := httptest.NewRecorder()
-	ginRouter.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusOK, rr.Code, "login handler returned wrong status code")
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
 
 	// Store the cookies from the login response
-	cookies := rr.Result().Cookies()
+	cookies := req.Cookies()
 
 	// Define test cases
 	testCases := []struct {
@@ -111,7 +105,7 @@ func TestViewBookingsHandler(t *testing.T) {
 			rr := httptest.NewRecorder()
 
 			// Serve the request
-			ginRouter.ServeHTTP(rr, req)
+			r.ServeHTTP(rr, req)
 
 			// Check the status code is what we expect
 			assert.Equal(t, tc.expectedStatusCode, float64(rr.Code), "handler returned wrong status code")
