@@ -144,19 +144,3 @@ func AttachRateLimitMiddleware(ginRouter *gin.Engine) {
 	// Apply the middleware to the router
 	ginRouter.Use(middleware)
 }
-
-// MockAuthMiddleware simulates an authenticated user for testing purposes
-func MockAuthMiddleware() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		_, err := ctx.Cookie("token")
-		if err == nil {
-			// Simulate adding a user to the context
-			ctx.Set("user", map[string]interface{}{
-				"id":    "test-user-id",
-				"email": "test@example.com",
-				"role":  "user",
-			})
-		}
-		ctx.Next()
-	}
-}
