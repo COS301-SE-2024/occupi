@@ -128,10 +128,11 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 	// Save the check-in to the database
 	collection := db.Database("Occupi").Collection("RoomBooking")
 
-	// Find the booking by bookingId, roomId, and check if the email is in the emails object
+	// Find the booking by bookingId, roomId, and creator
 	filter := bson.M{
-		"_id":    checkIn.BookingID,
-		"roomId": checkIn.RoomID,
+		"_id":     checkIn.BookingID,
+		"roomId":  checkIn.RoomID,
+		"creator": checkIn.Creator,
 	}
 
 	// Find the booking
@@ -144,15 +145,6 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 		}
 		logrus.Error("Failed to find booking:", err)
 		return false, err
-	}
-	emailToCheck := checkIn.Email
-	for _, email := range booking.Emails {
-		if email == emailToCheck {
-			break
-		}
-		// If we finish the loop without finding the email
-		logrus.Error("Email not associated with the room")
-		return false, errors.New("email not associated with the room")
 	}
 
 	update := bson.M{
