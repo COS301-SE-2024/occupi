@@ -550,7 +550,7 @@ const BookingDetails = () => {
               color: isDark ? "#fff" : "#000",
             }}
           > */}
-          <View style={{ width: 365, height:500, borderWidth: 1, paddingBottom: 10, borderColor: cardBackgroundColor, paddingBottom:50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
+          <View style={{ width: 365, height:500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom:50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
             <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
             <Text fontSize="$24" fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000' }}>HDMI Room</Text>
             <View px="$3" alignItems="center" flexDirection="row">
