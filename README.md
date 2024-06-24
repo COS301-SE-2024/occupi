@@ -22,7 +22,7 @@
 
 ![Deploy Docs](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
 ![Deploy Landing page](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
-![Lint Test Occupi-mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/test-mobile.yml/badge.svg)
+![Lint Test Occupi-mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-mobile.yml/badge.svg)
 ![Lint Test and Build Golang](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-golang.yml/badge.svg)
 ![Deploy api](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-develop.yml/badge.svg)
 ![Lint Test and Build Occupi-Web](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-web.yml/badge.svg)
