@@ -4,7 +4,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"fmt"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
@@ -186,7 +185,6 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get rooms", constants.InternalServerErrorCode, "Failed to get rooms", nil))
 		return
 	}
-	fmt.Println(rooms);
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched rooms!", rooms))
 }
