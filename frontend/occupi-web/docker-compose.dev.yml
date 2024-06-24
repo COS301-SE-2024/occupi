@@ -1,0 +1,15 @@
+services:
+  occupi-web-dev:
+    image: $DOCKER_USERNAME/occupi-web:latest-develop
+    container_name: occupi-web-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4001:4000"
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    external: true

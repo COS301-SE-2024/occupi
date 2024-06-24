@@ -25,6 +25,9 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest # or "latest", "canary", <sha>
+        
+      - name: Install dependencies with Bun
+        run: bun install
 
       - name: Lint with ESLint
         run: bun run lint
@@ -41,8 +44,16 @@ jobs:
         with:
           bun-version: latest # or "latest", "canary", <sha>
 
+      - name: Install dependencies with Bun
+        run: bun install
+
       - name: Test with Jest
-        run: bun run test
+        run: bun test --coverage
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   # Build job
   build:
