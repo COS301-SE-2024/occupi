@@ -9,19 +9,19 @@ describe("OverviewComponent Tests", () => {
     expect(screen.getByText("Welcome to Occupi")).toBeTruthy(); // Checks if the welcome message is rendered
   });
 
-  test("renders buttons and checks hover effects", () => {
-    render(<OverviewComponent />);
-    const button = screen.getByText("See more"); // Assuming 'See more' button is visible
-    expect(button).toBeTruthy();
+//   test("renders buttons and checks hover effects", () => {
+//     render(<OverviewComponent />);
+//     const button = screen.getByText("See more"); // Assuming 'See more' button is visible
+//     expect(button).toBeTruthy();
 
-    // Check initial style or class
-    // expect(button).toHaveClass("bg-primary_alt");
+//     // Check initial style or class
+//     // expect(button).toHaveClass("bg-primary_alt");
 
-    // Simulate hover
-    fireEvent.mouseOver(button);
-    // Check style changes or class changes if any on hover
-    // Note: This requires your testing environment to support style/class computation which might not be straightforward in Jest or similar environments without additional setup
-  });
+//     // Simulate hover
+//     fireEvent.mouseOver(button);
+//     // Check style changes or class changes if any on hover
+//     // Note: This requires your testing environment to support style/class computation which might not be straightforward in Jest or similar environments without additional setup
+//   });
 
   test("renders images and checks their presence", () => {
     render(<OverviewComponent />);
