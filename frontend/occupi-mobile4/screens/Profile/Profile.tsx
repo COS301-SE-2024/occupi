@@ -19,12 +19,11 @@ import {
   VStack,
   CircleIcon,
   Icon,
-  useColorMode,
 } from '@gluestack-ui/themed';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Appearance, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const COLORS = {
@@ -54,7 +53,6 @@ const Profile = () => {
   const [pronouns, setPronouns] = useState('she/her');
   const [date, setDate] = useState(new Date(2000, 6, 7));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const { colorMode, toggleColorMode } = useColorMode();
   let colorScheme = useColorScheme();
 
   const showDatePicker = () => {

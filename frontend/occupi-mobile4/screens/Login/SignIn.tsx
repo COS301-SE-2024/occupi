@@ -1,36 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Keyboard } from 'react-native';
+import { StyleSheet, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
+import CookieManager from '@react-native-cookies/cookies';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, View, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
 import {
-  Center,
-  Button,
   FormControl,
   HStack,
   Input,
   Text,
   VStack,
-  Link,
   useToast,
   Toast,
   Box,
   CheckIcon,
   Checkbox,
-  Icon,
   ToastTitle,
   InputField,
   FormControlError,
   FormControlErrorIcon,
   FormControlErrorText,
   InputIcon,
-  FormControlHelper,
   CheckboxIndicator,
   CheckboxIcon,
   CheckboxLabel,
-  ButtonText,
   Image,
   Heading,
   LinkText,
@@ -43,7 +38,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 
@@ -88,6 +83,14 @@ const SignInForm = () => {
     const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
     setBiometricAvailable(isBiometricAvailable);
     console.log('Biometric hardware available:', isBiometricAvailable);
+  };
+
+  const storeData = async (value) => {
+    try {
+      await AsyncStorage.setItem('email', value);
+    } catch (e) {
+      // saving error
+    }
   };
 
   const handleBiometricSignIn = async () => {
@@ -151,7 +154,7 @@ const SignInForm = () => {
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
     try {
-      const response = await fetch('http://10.0.0.160:8080/auth/login', {
+      const response = await fetch('https://dev.occupi.tech/auth/login', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -159,37 +162,44 @@ const SignInForm = () => {
         },
         body: JSON.stringify({
           email: _data.email,
-          password:_data.password
+          password: _data.password
         }),
         credentials: "include"
       });
       const data = await response.json();
+      const cookies = response.headers.get('Accept');
+      // CookieManager.get('https://dev.occupi.tech')
+      //   .then((cookies) => {
+      //     console.log('CookieManager.get =>', cookies);
+      //   });
+      console.log(cookies);
       if (response.ok) {
         setLoading(false);
+        storeData(_data.email);
         toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="success">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
         router.push('/home');
       } else {
         setLoading(false);
-        // console.log(data);
+        console.log(data);
         toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="error">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
       }
     } catch (error) {
       console.error('Error:', error);

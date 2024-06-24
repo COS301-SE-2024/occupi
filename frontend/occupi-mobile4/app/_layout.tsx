@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { Appearance, useColorScheme as rnUseColorScheme } from 'react-native';
+import { useColorScheme as rnUseColorScheme } from 'react-native';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
-import { GluestackUIProvider, Text } from "@gluestack-ui/themed";
+import { GluestackUIProvider } from "@gluestack-ui/themed";
 import { config } from "@gluestack-ui/config"; // Optional if you want to use default theme
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -50,6 +50,8 @@ export default function RootLayout() {
         <Stack.Screen name="office-details" options={{ headerShown: false }} />
         <Stack.Screen name="booking-receipt" options={{ headerShown: false }} />
         <Stack.Screen name="booking-details" options={{ headerShown: false }} />
+        <Stack.Screen name="viewbookingdetails" options={{ headerShown: false }} />
+        <Stack.Screen name="faqpage" options={{ headerShown: false }} />
       </Stack>
     </GluestackUIProvider>
   );

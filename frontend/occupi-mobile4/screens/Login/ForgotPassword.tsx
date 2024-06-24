@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-  Button,
   FormControl,
   HStack,
   Input,
@@ -16,7 +15,6 @@ import {
   FormControlError,
   FormControlErrorIcon,
   FormControlErrorText,
-  ButtonText,
   Image,
   ChevronLeftIcon,
   Heading,
@@ -67,62 +65,6 @@ function SideContainerWeb() {
   );
 }
 
-function MobileScreenImage() {
-  return (
-    <Center
-      px="$4"
-      mb={-0.5}
-      sx={{
-        '@base': {
-          _light: { bg: '$backgroundLight0' },
-          _dark: { bg: '$backgroundDark800' },
-        },
-        '$md': {
-          py: '$48',
-          px: '$12',
-          _light: { bg: '$primary500' },
-          _dark: { bg: '$primary700' },
-        },
-      }}
-    >
-      <Image
-        alt="logo"
-        sx={{
-          '@base': {
-            _light: { display: 'flex' },
-            _dark: { display: 'none' },
-            mt: '$12',
-          },
-          '$md': {
-            _light: { display: 'none' },
-            _dark: { display: 'none' },
-          },
-        }}
-        source={require('./assets/images/forgotPassword_mobile_light.png')}
-        h="$40"
-        w="$48"
-        resizeMode="contain"
-        alignSelf="center"
-      />
-      <Image
-        alt="logo"
-        sx={{
-          '@base': {
-            _light: { display: 'none' },
-            _dark: { display: 'flex' },
-          },
-          '$md': { display: 'none' },
-        }}
-        source={require('./assets/images/forgotPassword_mobile_dark.png')}
-        h="$40"
-        w="$48"
-        resizeMode="contain"
-        alignSelf="center"
-      />
-    </Center>
-  );
-}
-
 export default function ForgotPassword() {
   const {
     control,
@@ -132,8 +74,6 @@ export default function ForgotPassword() {
   } = useForm<SignUpSchemaType>({
     resolver: zodResolver(forgotPasswordSchema),
   });
-
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
 
   const toast = useToast();
   const navigation = useNavigation();

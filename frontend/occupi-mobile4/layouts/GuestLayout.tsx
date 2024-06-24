@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, StatusBar, ScrollView, VStack } from '@gluestack-ui/themed';
+import { Box, ScrollView, VStack } from '@gluestack-ui/themed';
 
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';

@@ -6,23 +6,25 @@ import {
   Box,
   Center,
   Icon,
-  Heading,
   Switch,
   Divider,
   Pressable,
-  useColorMode,
+  useToast,
+  Toast,
+ToastTitle,
 } from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';
-import { Appearance, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [name, setName] = useState('Sabrina Carpenter');
+  const toast = useToast();
   const navigation = useNavigation();
   let colorScheme = useColorScheme();
 
@@ -31,29 +33,54 @@ const Settings = () => {
     router.push('/profile');
   };
 
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('https://dev.occupi.tech/auth/logout', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({}),
+        credentials: "include"
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log(data);
+        toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="success">
+                    <ToastTitle>{data.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
+        router.push('/login');
+      } else {
+        toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="error">
+                    <ToastTitle>{data.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
   const toggleNotifications = () => {
     setNotificationsEnabled(!notificationsEnabled);
   };
 
-  const toggleColorMode = () => {
-    colorScheme = !colorScheme;
-  };
-
   const handleNavigate = (screen) => {
     navigation.navigate(screen);
-  };
-
-  const handleLogout = () => {
-    Alert.alert('Log out', 'Are you sure you want to log out?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'OK',
-        onPress: () => handleNavigate('login'),
-      },
-    ]);
   };
 
   const data = [
@@ -79,8 +106,8 @@ const Settings = () => {
     { title: 'Terms and Policies', description: 'View terms and policies', iconName: 'file-text', onPress: () => handleNavigate('TermsPoliciesScreen') },
     { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
     { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
-    { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: handleLogout },
-    { title: 'About and Help', description: '', iconName: 'info', onPress: () => handleNavigate('AboutHelpScreen') },
+    { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
+    { title: 'About and Help', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
   ];
 
   const renderListItem = ({ item }) => (
@@ -123,7 +150,7 @@ const Settings = () => {
           </Box>
         </Box>
         <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
-        <VStack space={4}>
+        <VStack space={4} marginBottom={80}>
           {data.map((item, index) => (
             <View key={index}>
               {renderListItem({ item })}
