@@ -16,19 +16,24 @@ type User struct {
 
 // structure of booking
 type Booking struct {
-	ID        string            `json:"_id" bson:"_id,omitempty"`
-	OccupiID  int               `json:"occupiId" bson:"occupiId"`
-	BookingID int               `json:"bookingId" bson:"bookingId"`
-	RoomID    string            `json:"roomId" bson:"roomId"`
-	Slot      int               `json:"slot" bson:"slot"`
-	Emails    map[string]string `json:"emails" bson:"emails"`
-	CheckedIn bool              `json:"checkedIn" bson:"checkedIn"`
+	ID        string    `json:"_id" bson:"_id,omitempty"`
+	OccupiID  string    `json:"occupiId" bson:"occupiId,omitempty"`
+	RoomID    string    `json:"roomId" bson:"roomId" validate:"required"`
+	RoomName  string    `json:"roomName" bson:"roomName" validate:"required"`
+	Slot      int       `json:"slot" bson:"slot" validate:"required,min=1"`
+	Emails    []string  `json:"emails" bson:"emails" validate:"required,dive,email"`
+	CheckedIn bool      `json:"checkedIn" bson:"checkedIn"`
+	Creator   string    `json:"creator" bson:"creator" validate:"required,email"`
+	FloorNo   int       `json:"floorNo" bson:"floorNo" validate:"required"`
+	Date      time.Time `json:"date" bson:"date,omitempty"`
+	Start     time.Time `json:"start" bson:"start,omitempty"`
+	End       time.Time `json:"end" bson:"end,omitempty"`
 }
 
 // structure of CheckIn
 type CheckIn struct {
-	BookingID int    `json:"bookingId" bson:"bookingId"`
-	Email     string `json:"email" bson:"email"`
+	BookingID string `json:"bookingId" bson:"bookingId"`
+	Creator   string `json:"creator" bson:"creator"`
 	RoomID    string `json:"roomId" bson:"roomId"`
 }
 
@@ -37,4 +42,19 @@ type OTP struct {
 	Email      string    `json:"email" bson:"email"`
 	OTP        string    `json:"otp" bson:"otp"`
 	ExpireWhen time.Time `json:"expireWhen" bson:"expireWhen"`
+}
+
+type ViewBookings struct {
+	Email string `json:"email" bson:"email"`
+}
+
+type Room struct {
+	ID           string `json:"_id" bson:"_id,omitempty"`
+	RoomID       string `json:"roomId" bson:"roomId,omitempty"`
+	RoomNo       int    `json:"roomNo" bson:"roomNo,omitempty"`
+	FloorNo      int    `json:"floorNo" bson:"floorNo,omitempty"`
+	MinOccupancy int    `json:"minOccupancy" bson:"minOccupancy,omitempty"`
+	MaxOccupancy int    `json:"maxOccupancy" bson:"maxOccupancy,omitempty"`
+	Description  string `json:"description" bson:"description,omitempty"`
+	RoomName     string `json:"roomName" bson:"roomName,omitempty"`
 }

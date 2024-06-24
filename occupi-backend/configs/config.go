@@ -115,18 +115,18 @@ func GetSMTPHost() string {
 
 // gets the certificate file name as defined in the .env file
 func GetCertFileName() string {
-	certFileName := os.Getenv("CERT_FILE_NAME")
+	certFileName := os.Getenv("CERTIFICATE_FILE_PATH")
 	if certFileName == "" {
-		certFileName = "CERT_FILE_NAME"
+		certFileName = "CERTIFICATE_FILE_PATH"
 	}
 	return certFileName
 }
 
 // gets the key file name as defined in the .env file
 func GetKeyFileName() string {
-	keyFileName := os.Getenv("KEY_FILE_NAME")
+	keyFileName := os.Getenv("KEY_FILE_PATH")
 	if keyFileName == "" {
-		keyFileName = "KEY_FILE_NAME"
+		keyFileName = "KEY_FILE_PATH"
 	}
 	return keyFileName
 }
@@ -150,34 +150,27 @@ func GetTrustedProxies() []string {
 	return []string{""}
 }
 
-func GetAuth0Domain() string {
-	auth0Domain := os.Getenv("AUTH0_DOMAIN")
-	if auth0Domain == "" {
-		auth0Domain = ""
+func GetJWTSecret() string {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "JWT_SECRET"
 	}
-	return auth0Domain
+	return secret
 }
 
-func GetAuth0ClientID() string {
-	auth0ClientID := os.Getenv("AUTH0_CLIENT_ID")
-	if auth0ClientID == "" {
-		auth0ClientID = ""
+func GetSessionSecret() string {
+	secret := os.Getenv("SESSION_SECRET")
+	if secret == "" {
+		secret = "SESSION_SECRET"
 	}
-	return auth0ClientID
+	return secret
 }
 
-func GetAuth0ClientSecret() string {
-	auth0ClientSecret := os.Getenv("AUTH0_CLIENT_SECRET")
-	if auth0ClientSecret == "" {
-		auth0ClientSecret = ""
+func GetOccupiDomains() []string {
+	domains := os.Getenv("OCCUPI_DOMAINS")
+	if domains != "" {
+		domainList := strings.Split(domains, ",")
+		return domainList
 	}
-	return auth0ClientSecret
-}
-
-func GetAuth0CallbackURL() string {
-	auth0CallbackURL := os.Getenv("AUTH0_CALLBACK_URL")
-	if auth0CallbackURL == "" {
-		auth0CallbackURL = ""
-	}
-	return auth0CallbackURL
+	return []string{""}
 }

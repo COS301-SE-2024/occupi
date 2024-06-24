@@ -9,6 +9,7 @@ on:
       "occupi-backend/pkg/**",
       "occupi-backend/.golangci.yml",
       "occupi-backend/tests/**",
+      ".github/workflows/lint-test-build-golang.yml"
     ]
 
   workflow_dispatch:
@@ -51,10 +52,22 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'  # Specify the Go version you are using
+    
+    - name: Decrypt env variables
+      run: |
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .env.gpg > .env
+                
+    - name: Decrypt key file
+      run: |
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 key.pem.gpg > key.pem
+
+    - name: Decrypt cert file
+      run: |
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 cert.pem.gpg > cert.pem
 
     - name: Run tests
       run: |
-        go test ./tests/... -race -coverprofile=coverage.out -covermode=atomic
+        go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1

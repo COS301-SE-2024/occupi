@@ -1,0 +1,20 @@
+services:
+  occupi-backend-dev:
+    image: $DOCKER_USERNAME/occupi-backend:latest-develop
+    container_name: occupi-backend-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      - ENV=development
+    networks:
+      - webnet
+    ports:
+      - "8081:8081"
+    volumes:
+      - /etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:/etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:ro
+      - /etc/letsencrypt/live/dev.occupi.tech/privkey.pem:/etc/letsencrypt/live/dev.occupi.tech/privkey.pem:ro
+
+networks:
+  webnet:
+    external: true

@@ -15,7 +15,10 @@ func TestGenEmpID(t *testing.T) {
 	empID := utils.GenerateEmployeeID()
 	t.Logf("Generated Employee ID: %s", empID)
 }
-
+func TestGenBookID(t *testing.T) {
+	BookID := utils.GenerateBookingID()
+	t.Logf("Generated Booking ID: %s", BookID)
+}
 func TestSanitizeInput(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -375,4 +378,25 @@ func TestErrorResponseWithMeta(t *testing.T) {
 
 	response := utils.ErrorResponseWithMeta(http.StatusBadRequest, "Bad Request", "INVALID_INPUT", "Invalid input provided", gin.H{"field": "value"}, gin.H{"request_id": "12345"})
 	assert.Equal(t, expected, response)
+}
+
+// TestGenerateOTP tests the GenerateOTP function
+func TestGenerateOTP(t *testing.T) {
+	otp, err := utils.GenerateOTP()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if len(otp) != 6 {
+		t.Fatalf("Expected OTP to be 6 digits long, got %v", len(otp))
+	}
+
+	// Check if all characters in OTP are digits
+	for _, char := range otp {
+		if char < '0' || char > '9' {
+			t.Fatalf("Expected OTP to contain only digits, got %v", otp)
+		}
+	}
+
+	t.Logf("Generated OTP: %s", otp)
 }
