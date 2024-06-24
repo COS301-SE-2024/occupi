@@ -19,62 +19,10 @@ import {
 } from '@expo/vector-icons';
 import { useColorScheme, StyleSheet, TouchableOpacity } from 'react-native';
 import {
-    widthPercentageToDP as wp,
-    heightPercentageToDP as hp,
+    widthPercentageToDP as wp
 } from 'react-native-responsive-screen';
 import PagerView from 'react-native-pager-view';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-
-const getTimeForSlot = (slot) => {
-    let startTime, endTime;
-    switch (slot) {
-        case 1:
-            startTime = '07:00';
-            endTime = '08:00';
-            break;
-        case 2:
-            startTime = '08:00';
-            endTime = '09:00';
-            break;
-        case 3:
-            startTime = '09:00';
-            endTime = '10:00';
-            break;
-        case 4:
-            startTime = '10:00';
-            endTime = '11:00';
-            break;
-        case 5:
-            startTime = '11:00';
-            endTime = '12:00';
-            break;
-        case 6:
-            startTime = '12:00';
-            endTime = '13:00';
-            break;
-        case 7:
-            startTime = '13:00';
-            endTime = '14:00';
-            break;
-        case 8:
-            startTime = '14:00';
-            endTime = '15:00';
-            break;
-        case 9:
-            startTime = '15:00';
-            endTime = '16:00';
-            break;
-        case 10:
-            startTime = '16:00';
-            endTime = '17:00';
-            break;
-        default:
-            startTime = 'Invalid slot';
-            endTime = 'Invalid slot';
-    }
-    return { startTime, endTime };
-};
-
 
 
 const ViewBookingDetails = (bookingId, roomName) => {
@@ -108,7 +56,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
             });
             const data = await response.json();
             console.log(data);
-            const cookies = response.headers.get('Accept');
+            // const cookies = response.headers.get('Accept');
             //   console.log(cookies);
             if (response.ok) {
                 setCheckedIn(true);
@@ -158,7 +106,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
             });
             const data = await response.json();
             console.log(data);
-            const cookies = response.headers.get('Accept');
+            // const cookies = response.headers.get('Accept');
             //   console.log(cookies);
             if (response.ok) {
                 toast.show({

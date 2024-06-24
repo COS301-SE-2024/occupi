@@ -9,8 +9,6 @@ import {
 } from 'react-native';
 import {
   Ionicons,
-  FontAwesome,
-  MaterialIcons,
   MaterialCommunityIcons,
   Octicons,
   ChevronDownIcon,
@@ -18,7 +16,6 @@ import {
 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Calendar } from 'react-native-calendars';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import RNPickerSelect from 'react-native-picker-select';
@@ -31,7 +28,6 @@ import {
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Theme } from 'react-native-calendars/src/types';
 import slotsData from './availableSlots.json';
-import PagerView from 'react-native-pager-view';
 import { PageIndicator } from 'react-native-page-indicator';
 
 
@@ -39,34 +35,34 @@ type RootStackParamList = {
   BookingDetails: undefined;
 };
 
-interface Room {
-  _id: string;
-  roomName: string;
-  roomId: string;
-  roomNo: number;
-  floorNo: number;
-  minOccupancy: number;
-  maxOccupancy: number;
-  description: string;
-}
+// interface Room {
+//   _id: string;
+//   roomName: string;
+//   roomId: string;
+//   roomNo: number;
+//   floorNo: number;
+//   minOccupancy: number;
+//   maxOccupancy: number;
+//   description: string;
+// }
 
-const images = [
-  {
-    uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/Modern-Office-Interior-with-Open-Floor-Plan-1024x683.jpeg',
-  },
-  {
-    uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/modern-office-design-for-a-large-conference-room-1024x838.jpeg',
-  },
-  {
-    uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/Industrial-style-office-interior-design-Sonia-C-1024x683.jpg',
-  },
-];
+// const images = [
+//   {
+//     uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/Modern-Office-Interior-with-Open-Floor-Plan-1024x683.jpeg',
+//   },
+//   {
+//     uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/modern-office-design-for-a-large-conference-room-1024x838.jpeg',
+//   },
+//   {
+//     uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/Industrial-style-office-interior-design-Sonia-C-1024x683.jpg',
+//   },
+// ];
 
 const pages = ['Page 1', 'Page 2', 'Page 3'];
 
 const OfficeDetails = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [date, setDate] = useState(new Date(2000, 6, 7));
+  // const [date, setDate] = useState(new Date(2000, 6, 7));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [slot, setSlot] = useState(1);
   const [userEmail, setUserEmail] = useState('');
@@ -79,7 +75,7 @@ const OfficeDetails = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [availableSlots, setAvailableSlots] = useState({});
   const scrollX = useRef(new Animated.Value(0)).current;
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const animatedCurrent = useRef(Animated.divide(scrollX, width)).current;
   useEffect(() => {
     // Load the available slots from the JSON file
@@ -87,32 +83,32 @@ const OfficeDetails = () => {
     getData();
   }, []);
 
-  const handleCheckAvailability = () => {
-    setModalVisible(true);
-  };
+  // const handleCheckAvailability = () => {
+  //   setModalVisible(true);
+  // };
 
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
+  // const showDatePicker = () => {
+  //   setDatePickerVisibility(true);
+  // };
 
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
 
   const handleConfirm = (selectedDate) => {
-    setDate(selectedDate);
+    // setDate(selectedDate);
     // setDate(selectedDate.toLocaleDateString());
     // console.log(date.toLocaleDateString());
     hideDatePicker();
   };
 
-  const storeData = async (value) => {
-    try {
-      await AsyncStorage.setItem('email', value);
-    } catch (e) {
-      // saving error
-    }
-  };
+  // const storeData = async (value) => {
+  //   try {
+  //     await AsyncStorage.setItem('email', value);
+  //   } catch (e) {
+  //     // saving error
+  //   }
+  // };
 
   const getData = async () => {
     try {
@@ -121,16 +117,17 @@ const OfficeDetails = () => {
       setUserEmail(value);
     } catch (e) {
       // error reading value
+      console.log(e);
     }
   };
 
   // storeData('kamogelomoeketse@gmail.com');
 
-  const renderItem = ({ item }: { item: { uri: string } }) => (
-    <View style={{ borderRadius: wp('5%'), overflow: 'hidden' }}>
-      <Image source={{ uri: item.uri }} style={{ width: '100%', height: hp('30%') }} />
-    </View>
-  );
+  // const renderItem = ({ item }: { item: { uri: string } }) => (
+  //   <View style={{ borderRadius: wp('5%'), overflow: 'hidden' }}>
+  //     <Image source={{ uri: item.uri }} style={{ width: '100%', height: hp('30%') }} />
+  //   </View>
+  // );
 
   const handleSlotClick = () => {
     navigation.navigate('/booking-details');

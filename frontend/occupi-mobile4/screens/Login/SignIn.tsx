@@ -3,7 +3,7 @@ import { StyleSheet, Keyboard } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
-import CookieManager from '@react-native-cookies/cookies';
+// import CookieManager from '@react-native-cookies/cookies';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
 import {
@@ -64,11 +64,10 @@ const SignInForm = () => {
     control,
     formState: { errors },
     handleSubmit,
-    reset,
   } = useForm<SignInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const isEmailFocused = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
@@ -90,6 +89,7 @@ const SignInForm = () => {
       await AsyncStorage.setItem('email', value);
     } catch (e) {
       // saving error
+      console.log(e);
     }
   };
 

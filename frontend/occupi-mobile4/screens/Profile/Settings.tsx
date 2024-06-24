@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, Text, Image, ScrollView } from 'react-native';
 import {
   VStack,
   HStack,
@@ -19,7 +19,7 @@ import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';
 import { useColorScheme } from 'react-native';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
