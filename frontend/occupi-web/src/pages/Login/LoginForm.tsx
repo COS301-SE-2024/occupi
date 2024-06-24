@@ -48,6 +48,7 @@ const LoginForm = (): JSX.Element => {
       if (assertion) {
         console.log('Authentication successful:', assertion);
         // Handle success (e.g., login successful, navigate to dashboard)
+        navigate("/dashboard/overview");
       }
       setIsLoading(false);
     } catch (error) {

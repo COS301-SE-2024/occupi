@@ -1,6 +1,5 @@
-import { expect, test, beforeEach, afterEach } from 'bun:test';
+import { expect, test,  afterEach } from 'bun:test';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import App from '../../App'; // Adjust the import path to where your App component is located
 
 // beforeEach(() => {
 //     // Render the App component before each test
