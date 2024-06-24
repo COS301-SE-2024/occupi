@@ -44,6 +44,9 @@ jobs:
         with:
           bun-version: latest # or "latest", "canary", <sha>
 
+      - name: Install dependencies with Bun
+        run: bun install
+
       - name: Test with Jest
         run: bun test --coverage
 
