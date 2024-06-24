@@ -1,27 +1,27 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, StyleSheet, TextInput } from 'react-native';
 import { VStack, Box, HStack, Image, Heading, Toast, useToast, ToastTitle, Text, } from '@gluestack-ui/themed';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+// import { useForm } from 'react-hook-form';
+// import { z } from 'zod';
+// import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useLocalSearchParams  } from 'expo-router';
 import Logo from './assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const OTPSchema = z.object({
-  OTP: z.string().min(6, 'OTP must be at least 6 characters in length'),
-});
+// const OTPSchema = z.object({
+//   OTP: z.string().min(6, 'OTP must be at least 6 characters in length'),
+// });
 
-type OTPSchemaType = z.infer<typeof OTPSchema>;
+// type OTPSchemaType = z.infer<typeof OTPSchema>;
 
 const OTPVerification = () => {
   const emailParams = useLocalSearchParams();
   const email = emailParams.email ? String(emailParams.email) : '';
   // const email = 'kamo@gmail.com';
   const [remainingTime, setRemainingTime] = useState(60); // 1 minute
-  const [otpSent, setOtpSent] = useState(false);
+  const otpSent = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -44,14 +44,14 @@ const OTPVerification = () => {
     };
   }, [remainingTime, otpSent]);
 
-  const {
-    control,
-    formState: { errors },
-    handleSubmit,
-    reset,
-  } = useForm<OTPSchemaType>({
-    resolver: zodResolver(OTPSchema),
-  });
+  // const {
+  //   control,
+  //   formState: { errors },
+  //   handleSubmit,
+  //   reset,
+  // } = useForm<OTPSchemaType>({
+  //   resolver: zodResolver(OTPSchema),
+  // });
 
   
 

@@ -76,7 +76,6 @@ const SignUpForm = () => {
     control,
     formState: { errors },
     handleSubmit,
-    reset,
   } = useForm<SignUpSchemaType>({
     resolver: zodResolver(signUpSchema),
   });

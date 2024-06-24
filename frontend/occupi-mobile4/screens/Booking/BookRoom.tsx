@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, useColorScheme, TouchableOpacity, Text, Image } from 'react-native';
 import { Ionicons, Octicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import {
   Toast,
   ToastTitle,
@@ -89,7 +89,7 @@ const BookRoom = () => {
       }
     };
     fetchAllRooms();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     setIsDarkMode(colorScheme === 'dark');

@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest --watchAll",
+    "test": "jest",
     "lint": "expo lint"
   },
   "jest": {
@@ -26,6 +26,7 @@
     "@react-native-picker/picker": "^2.7.7",
     "@react-native-segmented-control/segmented-control": "^2.5.2",
     "@react-navigation/native": "^6.1.17",
+    "@testing-library/react-native": "^12.5.1",
     "@ui-kitten/components": "^5.3.1",
     "date-fns": "^3.6.0",
     "expo": "~51.0.14",

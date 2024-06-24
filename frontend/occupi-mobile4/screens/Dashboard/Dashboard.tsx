@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, useColorScheme, Dimensions } from 'react-native';
+import { StatusBar, useColorScheme } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
   Text,
@@ -13,17 +13,12 @@ import {
   ButtonText,
 } from '@gluestack-ui/themed';
 import {
-  LineChart,
-  BarChart,
-  PieChart,
-  ProgressChart,
-  ContributionGraph,
-  StackedBarChart
+  LineChart
 } from "react-native-chart-kit";
 import { FontAwesome6 } from '@expo/vector-icons';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { number } from 'zod';
+// import { number } from 'zod';
 
 const getRandomNumber = () => {
   return Math.floor(Math.random() * 20)+300; 
@@ -48,7 +43,7 @@ const Dashboard = () => {
     // console.log(numbers);
     setIsDarkMode(colorScheme === 'dark');
     return () => clearInterval(intervalId);
-  }, []);
+  }, [colorScheme]);
   
   const checkIn = () => {
     if (checkedIn === false) {

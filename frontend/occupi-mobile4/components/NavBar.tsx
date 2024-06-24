@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { Text, Button, Icon, SearchIcon, CalendarDaysIcon, BellIcon } from '@gluestack-ui/themed';
+import { Text, Button, Icon, CalendarDaysIcon, BellIcon } from '@gluestack-ui/themed';
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';

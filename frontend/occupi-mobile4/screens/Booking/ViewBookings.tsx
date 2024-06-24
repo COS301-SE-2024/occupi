@@ -93,9 +93,8 @@ const ViewBookings = () => {
     const [layout, setLayout] = useState("row");
     const toast = useToast();
     const [roomData, setRoomData] = useState<Room[]>([]);
-    const [selectedSort, setSelectedSort] = useState("newest");
-    const [email, setEmail] = useState('kamogelomoeketse@gmail.com');
-    const slot = 3; // Example slot value
+    // const [selectedSort, setSelectedSort] = useState("newest");
+    // const [email, setEmail] = useState('kamogelomoeketse@gmail.com');
     const router = useRouter();
     
     const toggleLayout = () => {
@@ -107,22 +106,22 @@ const ViewBookings = () => {
     const backgroundColor = isDarkMode ? 'black' : 'white';
     const textColor = isDarkMode ? 'white' : 'black';
     const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
-    const data = [
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-        { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    ];
+    // const data = [
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
+    // ];
 
     useEffect(() => {
         const fetchAllRooms = async () => {
@@ -176,7 +175,7 @@ const ViewBookings = () => {
             }
         };
         fetchAllRooms();
-    }, []);
+    }, [toast]);
 
     const roomPairs = groupDataInPairs(roomData);
 

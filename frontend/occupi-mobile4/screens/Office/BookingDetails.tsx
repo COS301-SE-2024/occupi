@@ -543,78 +543,80 @@ const BookingDetails = () => {
       )}
 
       {currentStep === 2 && (
-        <ScrollView style={{ paddingHorizontal: 15, flex:1 }}>
+        <View style={{ paddingHorizontal: 15, flex: 1 }}>
           {/* <Text
             style={{
               fontSize: 16,
               color: isDark ? "#fff" : "#000",
             }}
           > */}
-            <TouchableOpacity style={{ width: 365, borderWidth: 1, paddingBottom:10, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
-              <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
-              <Text fontSize="$24" fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000' }}>HDMI Room</Text>
-              <View px="$3" alignItems="center" flexDirection="row">
-                <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Fast   </Text>
-                <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
-                <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
-                <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
+          <View style={{ width: 365, height:500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom:50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
+            <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+            <Text fontSize="$24" fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000' }}>HDMI Room</Text>
+            <View px="$3" alignItems="center" flexDirection="row">
+              <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Fast   </Text>
+              <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
+              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
+              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
+            </View>
+            <View px="$3" flexDirection="$row" justifyContent="$space-around">
+              <View alignItems="$center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$yellowgreen" borderRadius="$10">
+                <Text color={isDark ? '#000' : '#fff'}>Check in: {startTime}</Text>
               </View>
-              <View px="$3" flexDirection="$row" justifyContent="$space-around">
-                <View alignItems="$center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$yellowgreen" borderRadius="$10">
-                  <Text color={isDark ? '#000' : '#fff'}>Check in: {startTime}</Text>
-                </View>
-                <View alignItems="$center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$#FF5F5F" borderRadius="$10">
-                  <Text color={isDark ? '#000' : '#fff'}>Check out: {endTime}</Text>
-                </View>
+              <View alignItems="$center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$#FF5F5F" borderRadius="$10">
+                <Text color={isDark ? '#000' : '#fff'}>Check out: {endTime}</Text>
               </View>
-              <View mt="$1" flexDirection="$row" alignItems="$center" right="$6">
-                <Box backgroundColor={isDark ? '#000' : '#fff'} right="$" h="$10" borderRadius="$20" w="$10" />
-                <Text color={isDark ? '#000' : '#fff'}>----------------------------------------------</Text>
-                <Box backgroundColor={isDark ? '#000' : '#fff'} left="$" h="$10" borderRadius="$20" w="$10" />
+            </View>
+            <View mt="$1" flexDirection="$row" alignItems="$center" right="$6">
+              <Box backgroundColor={isDark ? '#000' : '#fff'} right="$" h="$10" borderRadius="$20" w="$10" />
+              <Text color={isDark ? '#000' : '#fff'}>----------------------------------------------</Text>
+              <Box backgroundColor={isDark ? '#000' : '#fff'} left="$" h="$10" borderRadius="$20" w="$10" />
+            </View>
+            <View px="$4" py="$2">
+              <View flexDirection="$row" alignItems="$center">
+                <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} />
+                <Text color={isDark ? '#fff' : '#000'} fontSize="$20"> Attendees:</Text>
               </View>
-              <View px="$4" py="$2">
-                <View flexDirection="$row" alignItems="$center">
-                  <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} />
-                  <Text color={isDark ? '#fff' : '#000'} fontSize="$20"> Attendees:</Text>
-                </View>
+              <ScrollView style={{height:70}}>
                 {attendees.map((email, idx) => (
                   <Text color={isDark ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                 ))}
-              </View>
-              <TouchableOpacity
-                style={{ margin: 15, borderRadius: 25 }}
+              </ScrollView>
+            </View>
+            <TouchableOpacity
+              style={{ margin: 15, borderRadius: 25 }}
+            >
+              <LinearGradient
+                colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
+                locations={[0.02, 0.31, 0.67, 0.97]}
+                start={[0, 1]}
+                end={[1, 0]}
+                style={{
+                  padding: 15,
+                  alignItems: "center",
+                  borderRadius: 15,
+                }}
               >
-                <LinearGradient
-                  colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
-                  locations={[0.02, 0.31, 0.67, 0.97]}
-                  start={[0, 1]}
-                  end={[1, 0]}
+                <Text
                   style={{
-                    padding: 15,
-                    alignItems: "center",
-                    borderRadius: 15,
+                    color: isDark ? "#000" : "#fff",
+                    fontSize: 16,
+                    fontWeight: "bold",
                   }}
                 >
-                  <Text
-                    style={{
-                      color: isDark ? "#000" : "#fff",
-                      fontSize: 16,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Download PDF
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-
+                  Download PDF
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
+
+          </View>
           {/* </Text> */}
           <TouchableOpacity style={{ paddingHorizontal: 0, marginBottom: 50 }} onPress={() => router.push('/home')}>
             <View flexDirection="$row" mt="$8" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDark ? '#2C2C2E' : '#F3F3F3'} h="$11">
               <Text fontWeight="$bold" color="black">Home</Text>
             </View>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       )}
     </SafeAreaView>
   );
