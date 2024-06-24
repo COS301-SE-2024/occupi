@@ -51,16 +51,16 @@ const BookRoom = () => {
         const data = await response.json();
         if (response.ok) {
           setRoomData(data.data || []); // Ensure data is an array
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="success">
-                  <ToastTitle>{data.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
+          // toast.show({
+          //   placement: 'top',
+          //   render: ({ id }) => {
+          //     return (
+          //       <Toast nativeID={id} variant="accent" action="success">
+          //         <ToastTitle>{data.message}</ToastTitle>
+          //       </Toast>
+          //     );
+          //   },
+          // });
         } else {
           console.log(data);
           toast.show({
@@ -107,7 +107,7 @@ const BookRoom = () => {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
           <Text style={{ fontWeight: 'bold', fontSize: 24, color: textColor }}>Book</Text>
         </View>
-        <View style={{ marginHorizontal: 16, marginVertical: 24, width: wp('70%'), backgroundColor: cardBackgroundColor, borderRadius: 15, borderColor: cardBackgroundColor, height: hp('5%'), justifyContent: 'center', paddingHorizontal: 10 }}>
+        <View style={{ marginHorizontal: 16, marginVertical: 24, width: wp('92%'), backgroundColor: cardBackgroundColor, borderRadius: 15, borderColor: cardBackgroundColor, height: hp('5%'), justifyContent: 'center', paddingHorizontal: 10 }}>
           <Text style={{ fontSize: wp('4%'), color: textColor }}>Quick search for an office</Text>
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
@@ -126,7 +126,7 @@ const BookRoom = () => {
         </View>
       </View>
       {layout === "grid" ? (
-        <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11, marginBottom:84 }} showsVerticalScrollIndicator={false}>
           {roomPairs.map((pair, index) => (
             <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
               {pair.map((room, idx) => (
@@ -138,7 +138,7 @@ const BookRoom = () => {
                       <Text style={{ color: textColor, fontSize: 12 }}>
                         {room.description.length > 20 ? `${room.description.substring(0, 40)}...` : room.description}
                       </Text>
-                      <Text style={{ color: textColor, fontWeight: 'bold', fontSize: 12, paddingVertical: 3 }}>Floor: {room.floorNo}</Text>
+                      <Text style={{ color: textColor, fontWeight: 'bold', fontSize: 12, paddingVertical: 3 }}>Floor: {room.floorNo === 0 ? 'G' : room.floorNo}</Text>
                       <View flexDirection="$row" alignItems="$center">
                         <Octicons name="people" size={18} color={isDarkMode ? '#fff' : '#000'} />
                         <Text style={{ color: isDarkMode ? '#fff' : '#000' }}> {room.minOccupancy} - {room.maxOccupancy}</Text>
@@ -157,7 +157,7 @@ const BookRoom = () => {
           ))}
         </ScrollView>
       ) : (
-        <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11, marginBottom:84 }} showsVerticalScrollIndicator={false}>
           {roomData.map((room, idx) => (
             <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: 160 }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room) } })}>
               <Image style={{ width: '50%', height: '100%', borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
@@ -167,7 +167,7 @@ const BookRoom = () => {
                   <Text style={{ color: textColor, fontSize: 12 }}>
                     {room.description.length > 20 ? `${room.description.substring(0, 68)}...` : room.description}
                   </Text>
-                  <Text style={{ color: textColor, fontWeight: 'bold', fontSize: 12, paddingVertical: 3 }}>Floor: {room.floorNo}</Text>
+                  <Text style={{ color: textColor, fontWeight: 'bold', fontSize: 12, paddingVertical: 3 }}>Floor: {room.floorNo === 0 ? "G" : room.floorNo}</Text>
                   <View flexDirection="$row" alignItems="$center">
                     <Octicons name="people" size={18} color={isDarkMode ? '#fff' : '#000'} />
                     <Text style={{ color: isDarkMode ? '#fff' : '#000' }}> {room.minOccupancy} - {room.maxOccupancy}</Text>

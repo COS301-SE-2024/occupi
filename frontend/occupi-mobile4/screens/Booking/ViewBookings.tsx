@@ -82,6 +82,11 @@ const getTimeForSlot = (slot) => {
     return { startTime, endTime };
 };
 
+const slotToTime = (slot : number) => {
+    const { startTime, endTime } = getTimeForSlot(slot);
+    return `${startTime} - ${endTime}`
+}
+
 const ViewBookings = () => {
     const colorScheme = useColorScheme();
     const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
@@ -92,7 +97,7 @@ const ViewBookings = () => {
     const [email, setEmail] = useState('kamogelomoeketse@gmail.com');
     const slot = 3; // Example slot value
     const router = useRouter();
-    const { startTime, endTime } = getTimeForSlot(slot);
+    
     const toggleLayout = () => {
         setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
     };
@@ -133,16 +138,16 @@ const ViewBookings = () => {
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
                     console.log(data);
-                    toast.show({
-                        placement: 'top',
-                        render: ({ id }) => {
-                            return (
-                                <Toast nativeID={id} variant="accent" action="success">
-                                    <ToastTitle>{data.message}</ToastTitle>
-                                </Toast>
-                            );
-                        },
-                    });
+                    // toast.show({
+                    //     placement: 'top',
+                    //     render: ({ id }) => {
+                    //         return (
+                    //             <Toast nativeID={id} variant="accent" action="success">
+                    //                 <ToastTitle>{data.message}</ToastTitle>
+                    //             </Toast>
+                    //         );
+                    //     },
+                    // });
                 } else {
                     console.log(data);
                     toast.show({
@@ -222,7 +227,7 @@ const ViewBookings = () => {
                                     },
                                 }}
                                 Icon={() => {
-                                    return <Icon as={ChevronDownIcon} color={textColor} m="$2" w="$4" h="$4" alignSelf="$center" />;
+                                    return <Icon as={ChevronDownIcon} color={textColor} mt="$2.5" alignSelf="$center" />;
                                 }}
                             />
                         </View>
@@ -241,10 +246,10 @@ const ViewBookings = () => {
                 </View>
             </View>
             {layout === "grid" ? (
-                <ScrollView style={{ flex: 1, marginTop: 10 }} showsVerticalScrollIndicator={false}>
+                <ScrollView style={{ flex: 1, marginTop: 10, marginBottom:84 }} showsVerticalScrollIndicator={false}>
                     {roomPairs.map((pair, index) => (
                         <View
-                            key={index}
+                            // key={index}
                             style={{
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
@@ -252,8 +257,10 @@ const ViewBookings = () => {
                             }}
                         >
                             {pair.map((room) => (
-                                <TouchableOpacity style={{
-                                    // flex: 1,
+                                <TouchableOpacity 
+                                onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
+                                style={{
+                                    flex: 1,
                                     borderWidth: 1,
                                     borderColor: cardBackgroundColor,
                                     borderRadius: 12,
@@ -269,7 +276,7 @@ const ViewBookings = () => {
                                         source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
                                     />
                                     <View
-                                        key={room.title}
+                                        // key={room.title}
                                         style={{
                                             padding: 10,
                                         }}
@@ -284,7 +291,7 @@ const ViewBookings = () => {
                                         <View flexDirection="$row" alignItems="$center" justifyContent="space-between">
                                             <View>
                                                 <Text my="$1" fontSize="$14" fontWeight="$light" color={textColor}>{new Date().toDateString()}</Text>
-                                                <Text>{startTime} - {endTime}</Text>
+                                                <Text>{slotToTime(room.slot)}</Text>
                                             </View>
 
                                             <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
@@ -296,7 +303,7 @@ const ViewBookings = () => {
                     ))}
                 </ScrollView>
             ) : (
-                <ScrollView style={{ flex: 1, marginTop: 10 }} showsVerticalScrollIndicator={false}>
+                <ScrollView style={{ flex: 1, marginTop: 10, marginBottom:84 }} showsVerticalScrollIndicator={false}>
                     {roomData.map((room) => (
                         <TouchableOpacity 
                         onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
@@ -319,7 +326,7 @@ const ViewBookings = () => {
                                 source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
                             />
                             <View
-                                key={room.title}
+                                // key={room.title}
                                 w="$48"
                                 style={{
                                     padding: 10,
@@ -336,7 +343,7 @@ const ViewBookings = () => {
                                     <View flexDirection="$row" alignItems="$center" justifyContent="space-between" pr="$4">
                                         <View>
                                             <Text my="$1" fontSize="$14" fontWeight="$light" color={textColor}>{new Date().toDateString()}</Text>
-                                            <Text>{startTime} - {endTime}</Text>
+                                            <Text>{slotToTime(room.slot)}</Text>
                                         </View>
                                         <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
                                     </View>

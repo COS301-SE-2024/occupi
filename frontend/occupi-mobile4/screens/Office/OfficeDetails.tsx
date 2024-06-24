@@ -1,9 +1,11 @@
-import React, { useState, useEffect, Component } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   TouchableOpacity,
   Modal,
   useColorScheme,
-  StyleSheet
+  StyleSheet,
+  Animated,
+  useWindowDimensions
 } from 'react-native';
 import {
   Ionicons,
@@ -30,6 +32,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Theme } from 'react-native-calendars/src/types';
 import slotsData from './availableSlots.json';
 import PagerView from 'react-native-pager-view';
+import { PageIndicator } from 'react-native-page-indicator';
 
 
 type RootStackParamList = {
@@ -59,6 +62,8 @@ const images = [
   },
 ];
 
+const pages = ['Page 1', 'Page 2', 'Page 3'];
+
 const OfficeDetails = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [date, setDate] = useState(new Date(2000, 6, 7));
@@ -73,6 +78,9 @@ const OfficeDetails = () => {
   const roomData2 = JSON.parse(roomData);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [availableSlots, setAvailableSlots] = useState({});
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const { width, height } = useWindowDimensions();
+  const animatedCurrent = useRef(Animated.divide(scrollX, width)).current;
   useEffect(() => {
     // Load the available slots from the JSON file
     setAvailableSlots(slotsData.slots);
@@ -128,7 +136,7 @@ const OfficeDetails = () => {
     navigation.navigate('/booking-details');
   };
 
-  console.log(roomData2.roomId);
+  console.log(roomData2);
   console.log(userEmail);
 
   return (
@@ -149,7 +157,7 @@ const OfficeDetails = () => {
       </View >
       <ScrollView style={{ backgroundColor: isDarkMode ? '#000' : '#fff' }}>
         <View height="$96" mt="$4" mb="$8">
-          <PagerView style={styles.container} initialPage={0}>
+          {/* <PagerView style={styles.container} initialPage={0}>
             <View style={styles.page} key="1">
               <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
             </View>
@@ -159,7 +167,34 @@ const OfficeDetails = () => {
             <View style={styles.page} key="3">
               <Image alt="slide3" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
             </View>
-          </PagerView>
+          </PagerView> */}
+          <View style={styles.root}>
+            <Animated.ScrollView
+              horizontal={true}
+              pagingEnabled={true}
+              showsHorizontalScrollIndicator={false}
+              onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
+                useNativeDriver: true,
+              })}
+            >
+              {pages.map((page, index) => (
+                <View key={index} style={[styles.page], { width }}>
+                  <View style={styles.page} key="1">
+                    <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                  </View>
+                  <View style={styles.page} key="2">
+                    <Image alt="slide2" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                  </View>
+                  <View style={styles.page} key="3">
+                    <Image alt="slide3" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                  </View>
+                </View>
+              ))}
+            </Animated.ScrollView>
+            <View style={styles.pageIndicator}>
+              <PageIndicator count={pages.length} color={"yellowgreen"} current={animatedCurrent} />
+            </View>
+          </View>
         </View>
         <View style={{ padding: wp('5%') }}>
           <Text fontSize="$24" fontWeight="$bold" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
@@ -167,7 +202,7 @@ const OfficeDetails = () => {
             <Ionicons name="wifi" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Fast   </Text>
             <MaterialCommunityIcons name="television" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> OLED   </Text>
             <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> {roomData2.minOccupancy} - {roomData2.maxOccupancy}   </Text>
-            <Feather name="layers" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Floor 7   </Text>
+            <Feather name="layers" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Floor: {roomData2.floorNo === 0 ? 'G' : roomData2.floorNo}</Text>
           </View>
         </View>
 
@@ -218,7 +253,7 @@ const OfficeDetails = () => {
               { label: '15:00 - 16:00', value: '9' },
               { label: '16:00 - 17:00', value: '10' }
             ]}
-            placeholder={{ label: 'Select a slot', value: null, color: 'black' }}
+            placeholder={{ label: 'Select a slot', value: null, color: isDarkMode ? '#fff' : '#000' }}
             style={{
               inputIOS: {
                 fontSize: 16,
@@ -248,7 +283,7 @@ const OfficeDetails = () => {
           />
         </View>
         {/* Check Availability Button */}
-        <TouchableOpacity bottom="$0" style={{ margin: wp('5%') }} onPress={() => router.push({pathname:'/booking-details', params: {email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData}})}>
+        <TouchableOpacity bottom="$0" style={{ margin: wp('5%') }} onPress={() => router.push({ pathname: '/booking-details', params: { email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData } })}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
             start={{ x: 0, y: 0 }}
@@ -261,7 +296,7 @@ const OfficeDetails = () => {
               onConfirm={handleConfirm}
               onCancel={hideDatePicker}
             />
-            <Text color={isDarkMode ? '#000' : '#fff'} fontSize="$16" style={{ fontSize: wp('4%') }}>Check availability</Text>
+            <Text color={isDarkMode ? '#000' : '#fff'} fontSize="$16" fontWeight="$bold">Check availability</Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -311,6 +346,15 @@ const styles = StyleSheet.create({
   page: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  pageIndicator: {
+    left: 20,
+    right: 20,
+    // bottom: 50,
+    // position: 'absolute',
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

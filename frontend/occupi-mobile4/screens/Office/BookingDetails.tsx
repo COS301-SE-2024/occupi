@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   useColorScheme,
   Alert,
+  ScrollView
 } from "react-native";
 import {
   View,
@@ -21,25 +22,81 @@ import { Ionicons, Feather, MaterialCommunityIcons, Octicons } from "@expo/vecto
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
+
+const getTimeForSlot = (slot) => {
+  console.log(slot);
+  let startTime, endTime;
+  switch (slot) {
+    case 1:
+      startTime = '07:00';
+      endTime = '08:00';
+      break;
+    case 2:
+      startTime = '08:00';
+      endTime = '09:00';
+      break;
+    case 3:
+      startTime = '09:00';
+      endTime = '10:00';
+      break;
+    case 4:
+      startTime = '10:00';
+      endTime = '11:00';
+      break;
+    case 5:
+      startTime = '11:00';
+      endTime = '12:00';
+      break;
+    case 6:
+      startTime = '12:00';
+      endTime = '13:00';
+      break;
+    case 7:
+      startTime = '13:00';
+      endTime = '14:00';
+      break;
+    case 8:
+      startTime = '14:00';
+      endTime = '15:00';
+      break;
+    case 9:
+      startTime = '15:00';
+      endTime = '16:00';
+      break;
+    case 10:
+      startTime = '16:00';
+      endTime = '17:00';
+      break;
+    default:
+      startTime = 'Invalid slot';
+      endTime = 'Invalid slot';
+  }
+  return { startTime, endTime };
+};
 
 const BookingDetails = () => {
   const navigation = useNavigation();
-  const [currentStep, setCurrentStep] = useState(2);
-  const [attendees, setAttendees] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0);
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
   const colorScheme = useColorScheme();
   const toast = useToast();
   const router = useRouter();
-  // const roomParams = useLocalSearchParams();
-  // const creatorEmail = roomParams.email;
-  // const slot = roomParams.slot;
-  // const roomId = roomParams.roomId;
-  // const floorNo = roomParams.floorNo;
-  // const roomData = JSON.parse(roomParams.roomData);
+  const roomParams = useLocalSearchParams();
+  const creatorEmail = roomParams.email;
+  const slot = roomParams.slot || 0;
+  const { startTime, endTime } = getTimeForSlot(Number(roomParams.slot));
+  const roomId = roomParams.roomId;
+  const floorNo = roomParams.floorNo;
+  const roomData = JSON.parse(roomParams.roomData);
   const isDark = colorScheme === "dark";
-  // console.log(creatorEmail + slot + roomId + floorNo);
-  // console.log(roomData);
+  console.log(creatorEmail + slot + roomId + floorNo);
+  console.log(roomData);
+  console.log("slot: " + slot);
+  console.log(startTime);
+  const [attendees, setAttendees] = useState([creatorEmail]);
   console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
 
@@ -68,6 +125,7 @@ const BookingDetails = () => {
     };
     console.log(body);
     try {
+      setLoading(true);
       const response = await fetch('https://dev.occupi.tech/api/book-room', {
         method: 'POST',
         headers: {
@@ -78,6 +136,7 @@ const BookingDetails = () => {
         credentials: "include"
       });
       const data = await response.json();
+      console.log(data);
       const cookies = response.headers.get('Accept');
       // CookieManager.get('https://dev.occupi.tech')
       //   .then((cookies) => {
@@ -85,7 +144,8 @@ const BookingDetails = () => {
       //   });
       console.log(cookies);
       if (response.ok) {
-        setCurrentStep(2)
+        setCurrentStep(2);
+        setLoading(false);
         toast.show({
           placement: 'top',
           render: ({ id }) => {
@@ -98,6 +158,7 @@ const BookingDetails = () => {
         });
       } else {
         console.log(data);
+        setLoading(false);
         toast.show({
           placement: 'top',
           render: ({ id }) => {
@@ -251,7 +312,7 @@ const BookingDetails = () => {
           style={{
             fontSize: 18,
             fontWeight: "bold",
-            marginLeft: 80,
+            marginLeft: 90,
             color: isDark ? "#fff" : "#000",
           }}
         >
@@ -267,7 +328,7 @@ const BookingDetails = () => {
             source={{
               uri: "https://fancyhouse-design.com/wp-content/uploads/2023/11/With-a-backdrop-of-Dubais-cityscape-the-office-interior-design-is-as-dynamic-as-it-is-luxurious..jpg",
             }}
-            style={{ width: "100%", height: 150, borderRadius: 20 }}
+            style={{ width: "100%", height: 400, borderRadius: 20 }}
           />
           <View style={{ padding: 15 }}>
             <Text
@@ -277,7 +338,7 @@ const BookingDetails = () => {
                 color: isDark ? "#fff" : "#000",
               }}
             >
-              {/* {roomData.roomName} */}
+              {roomData.roomName}
             </Text>
             <View
               style={{
@@ -286,62 +347,11 @@ const BookingDetails = () => {
                 marginTop: 10,
               }}
             >
-              <Ionicons
-                name="flash-outline"
-                size={16}
-                color={isDark ? "#fff" : "#000"}
-              />
-              <Text
-                style={{
-                  marginRight: 10,
-                  marginLeft: 2,
-                  color: isDark ? "#fff" : "#000",
-                }}
-              >
-                Fast
-              </Text>
-              <Ionicons
-                name="tv-outline"
-                size={16}
-                color={isDark ? "#fff" : "#000"}
-              />
-              <Text
-                style={{
-                  marginRight: 10,
-                  marginLeft: 2,
-                  color: isDark ? "#fff" : "#000",
-                }}
-              >
-                OLED
-              </Text>
-              <Ionicons
-                name="people-outline"
-                size={16}
-                color={isDark ? "#fff" : "#000"}
-              />
-              <Text
-                style={{
-                  marginRight: 10,
-                  marginLeft: 2,
-                  color: isDark ? "#fff" : "#000",
-                }}
-              >
-                {/* {roomData.minOccupancy} - {roomData.maxOccupancy} */}
-              </Text>
-              <Ionicons
-                name="business-outline"
-                size={16}
-                color={isDark ? "#fff" : "#000"}
-              />
-              <Text
-                style={{
-                  marginRight: 10,
-                  marginLeft: 2,
-                  color: isDark ? "#fff" : "#000",
-                }}
-              >
-                {/* Floor {roomData.floorNo} */}
-              </Text>
+              <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> Fast   </Text>
+              <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
+              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
+              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> Floor: {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
+
             </View>
             <View
               style={{
@@ -363,7 +373,7 @@ const BookingDetails = () => {
                     color: isDark ? "#fff" : "#000",
                   }}
                 >
-                  Check in: 07:30
+                  Check in: {startTime}
                 </Text>
               </View>
               <View
@@ -379,7 +389,7 @@ const BookingDetails = () => {
                     color: isDark ? "#fff" : "#000",
                   }}
                 >
-                  Check out: 10:30
+                  Check out: {endTime}
                 </Text>
               </View>
             </View>
@@ -421,7 +431,7 @@ const BookingDetails = () => {
                 flex: 1,
                 borderWidth: 1,
                 borderColor: isDark ? "#333" : "#E0E0E0",
-                borderRadius: 25,
+                borderRadius: 12,
                 padding: 10,
                 marginRight: 10,
                 color: isDark ? "#fff" : "#000",
@@ -437,7 +447,7 @@ const BookingDetails = () => {
                 backgroundColor: "greenyellow",
                 width: 40,
                 height: 40,
-                borderRadius: 20,
+                borderRadius: 12,
                 justifyContent: "center",
                 alignItems: "center",
               }}
@@ -469,9 +479,8 @@ const BookingDetails = () => {
             }}
           />
 
-
-          <TouchableOpacity
-            style={{ margin: 15, borderRadius: 25 }}
+          {!loading ? (<TouchableOpacity
+            style={{ margin: 15, borderRadius: 15 }}
             onPress={() => onSubmit()}
           >
             <LinearGradient
@@ -482,12 +491,12 @@ const BookingDetails = () => {
               style={{
                 padding: 15,
                 alignItems: "center",
-                borderRadius: 25,
+                borderRadius: 15,
               }}
             >
               <Text
                 style={{
-                  color: "#fff",
+                  color: isDark ? '#000' : '#fff',
                   fontSize: 16,
                   fontWeight: "bold",
                 }}
@@ -496,7 +505,30 @@ const BookingDetails = () => {
               </Text>
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setCurrentStep(2)}>
+          ) : (
+            <TouchableOpacity
+              style={{ margin: 15, borderRadius: 15 }}
+              onPress={() => onSubmit()}
+            >
+              <LinearGradient
+                colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
+                locations={[0.02, 0.31, 0.67, 0.97]}
+                start={[0, 1]}
+                end={[1, 0]}
+                style={{
+                  padding: 15,
+                  alignItems: "center",
+                  borderRadius: 15,
+                }}
+              >
+                <View>
+                  <ActivityIndicator size="small" color="#000" />
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity onPress={() => onSubmit()}>
             <Text
               style={{
                 color: "greenyellow",
@@ -511,28 +543,28 @@ const BookingDetails = () => {
       )}
 
       {currentStep === 2 && (
-        <View style={{ padding: 15 }}>
-          <Text
+        <ScrollView style={{ paddingHorizontal: 15, flex:1 }}>
+          {/* <Text
             style={{
               fontSize: 16,
               color: isDark ? "#fff" : "#000",
             }}
-          >
-            <TouchableOpacity style={{ width: 365, height: 500, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
+          > */}
+            <TouchableOpacity style={{ width: 365, borderWidth: 1, paddingBottom:10, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
               <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
               <Text fontSize="$24" fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000' }}>HDMI Room</Text>
               <View px="$3" alignItems="center" flexDirection="row">
                 <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Fast   </Text>
                 <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
-                <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> 3-5 </Text>
-                <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor 7   </Text>
+                <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
+                <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
               </View>
               <View px="$3" flexDirection="$row" justifyContent="$space-around">
                 <View alignItems="$center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$yellowgreen" borderRadius="$10">
-                  <Text color={isDark ? '#000' : '#fff'}>Check in: 07:30</Text>
+                  <Text color={isDark ? '#000' : '#fff'}>Check in: {startTime}</Text>
                 </View>
                 <View alignItems="$center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$#FF5F5F" borderRadius="$10">
-                  <Text color={isDark ? '#000' : '#fff'}>Check out: 08:30</Text>
+                  <Text color={isDark ? '#000' : '#fff'}>Check out: {endTime}</Text>
                 </View>
               </View>
               <View mt="$1" flexDirection="$row" alignItems="$center" right="$6">
@@ -540,9 +572,49 @@ const BookingDetails = () => {
                 <Text color={isDark ? '#000' : '#fff'}>----------------------------------------------</Text>
                 <Box backgroundColor={isDark ? '#000' : '#fff'} left="$" h="$10" borderRadius="$20" w="$10" />
               </View>
+              <View px="$4" py="$2">
+                <View flexDirection="$row" alignItems="$center">
+                  <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} />
+                  <Text color={isDark ? '#fff' : '#000'} fontSize="$20"> Attendees:</Text>
+                </View>
+                {attendees.map((email, idx) => (
+                  <Text color={isDark ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
+                ))}
+              </View>
+              <TouchableOpacity
+                style={{ margin: 15, borderRadius: 25 }}
+              >
+                <LinearGradient
+                  colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
+                  locations={[0.02, 0.31, 0.67, 0.97]}
+                  start={[0, 1]}
+                  end={[1, 0]}
+                  style={{
+                    padding: 15,
+                    alignItems: "center",
+                    borderRadius: 15,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: isDark ? "#000" : "#fff",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Download PDF
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
             </TouchableOpacity>
-          </Text>
-        </View>
+          {/* </Text> */}
+          <TouchableOpacity style={{ paddingHorizontal: 0, marginBottom: 50 }} onPress={() => router.push('/home')}>
+            <View flexDirection="$row" mt="$8" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDark ? '#2C2C2E' : '#F3F3F3'} h="$11">
+              <Text fontWeight="$bold" color="black">Home</Text>
+            </View>
+          </TouchableOpacity>
+        </ScrollView>
       )}
     </SafeAreaView>
   );

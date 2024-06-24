@@ -26,7 +26,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { number } from 'zod';
 
 const getRandomNumber = () => {
-  return Math.floor(Math.random() * 100); // Random number between 100 and 500
+  return Math.floor(Math.random() * 20)+300; 
 };
 
 const Dashboard = () => {
@@ -44,7 +44,7 @@ const Dashboard = () => {
         const newNumbers = [getRandomNumber(), ...prevNumbers.slice(0, 14)];
         return newNumbers;
       });
-    }, 300);
+    }, 3000);
     // console.log(numbers);
     setIsDarkMode(colorScheme === 'dark');
     return () => clearInterval(intervalId);
@@ -130,7 +130,7 @@ const Dashboard = () => {
         withInnerLines={true}
         withOuterLines={false}
         withVerticalLines={false}
-        fromZero={true}
+        // fromZero={true}
           data={{
             labels: ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"],
             datasets: [

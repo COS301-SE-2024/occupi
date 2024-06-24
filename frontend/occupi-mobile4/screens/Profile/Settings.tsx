@@ -107,7 +107,7 @@ const Settings = () => {
     { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
     { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
     { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
-    { title: 'About and Help', description: '', iconName: 'info', onPress: () => handleNavigate('AboutHelpScreen') },
+    { title: 'About and Help', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
   ];
 
   const renderListItem = ({ item }) => (
@@ -150,7 +150,7 @@ const Settings = () => {
           </Box>
         </Box>
         <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
-        <VStack space={4}>
+        <VStack space={4} marginBottom={80}>
           {data.map((item, index) => (
             <View key={index}>
               {renderListItem({ item })}
