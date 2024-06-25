@@ -13,17 +13,11 @@ if "%1 %2" == "run dev" (
 ) else if "%1 %2" == "build prod" (
     go build cmd/occupi-backend/main.go
     exit /b 0
-) else if "%1 %2" == "docker build" (
-    docker-compose build
-    exit /b 0
-) else if "%1 %2" == "docker up" (
-    docker-compose up
-    exit /b 0
 ) else if "%1" == "test" (
-    go test -v ./tests/...
+    go run pkg/database/seed.go && go test -v ./tests/...
     exit /b 0
 ) else if "%1 %2" == "test codecov" (
-    go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
+    go run pkg/database/seed.go && go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
     exit /b 0
 ) else if "%1" == "lint" (
     golangci-lint run
@@ -45,8 +39,6 @@ echo   run dev           : go run -v cmd/occupi-backend/main.go
 echo   run prod          : go run cmd/occupi-backend/main.go
 echo   build dev         : go build -v cmd/occupi-backend/main.go
 echo   build prod        : go build cmd/occupi-backend/main.go
-echo   docker build      : docker-compose build
-echo   docker up         : docker-compose up
 echo   test              : go test ./tests/...
 echo   test codecov      : go test ./tests/... -race -coverprofile=coverage.out -covermode=atomic
 echo   lint              : golangci-lint run

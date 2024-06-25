@@ -44,6 +44,17 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
+    services:
+      mongo:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ping: 1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -55,7 +66,7 @@ jobs:
     
     - name: Decrypt env variables
       run: |
-                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .env.gpg > .env
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .test.env.gpg > .test.env
                 
     - name: Decrypt key file
       run: |
@@ -64,6 +75,9 @@ jobs:
     - name: Decrypt cert file
       run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 cert.pem.gpg > cert.pem
+
+    - name: Seed MongoDB
+      run: go run pkg/database/seed.go
 
     - name: Run tests
       run: |

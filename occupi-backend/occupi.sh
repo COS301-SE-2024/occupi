@@ -8,8 +8,6 @@ print_help() {
     echo "  run prod          -> go run cmd/occupi-backend/main.go"
     echo "  build dev         -> go build -v cmd/occupi-backend/main.go"
     echo "  build prod        -> go build cmd/occupi-backend/main.go"
-    echo "  docker build      -> docker-compose build"
-    echo "  docker up         -> docker-compose up"
     echo "  test              -> go test ./tests/..."
     echo "  test codecov      -> go test ./tests/... -race -coverprofile=coverage.out -covermode=atomic"
     echo "  lint              -> golangci-lint run"
@@ -24,14 +22,10 @@ elif [ "$1" = "build" ] && [ "$2" = "dev" ]; then
     go build -v cmd/occupi-backend/main.go
 elif [ "$1" = "build" ] && [ "$2" = "prod" ]; then
     go build cmd/occupi-backend/main.go
-elif [ "$1" = "docker" ] && [ "$2" = "build" ]; then
-    docker-compose build
-elif [ "$1" = "docker" ] && [ "$2" = "up" ]; then
-    docker-compose up
 elif [ "$1" = "test" ]; then
-    go test -v ./tests/...
+    go run pkg/database/seed.go && go test -v ./tests/...
 elif [ "$1" = "test" ] && [ "$2" = "codecov" ]; then
-    go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
+    go run pkg/database/seed.go && go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
 elif [ "$1" = "lint" ]; then
     golangci-lint run
 elif [ "$1" = "help" ] || [ -z "$1" ]; then
