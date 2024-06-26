@@ -62,7 +62,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
-	booking.OccupiID = utils.GenerateBookingID()
+	booking.OccupiId = utils.GenerateBookingID()
 	booking.CheckedIn = false
 
 	// Save the booking to the database
@@ -84,7 +84,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 func ViewBookings(ctx *gin.Context, appsession *models.AppSession) {
 	// Extract the email query parameter
 	email := ctx.Query("email")
-	if email == "" {
+	if email == "" || !utils.ValidateEmail(email) {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Email Address", nil))
 		return
 	}
@@ -102,7 +102,7 @@ func ViewBookings(ctx *gin.Context, appsession *models.AppSession) {
 // Cancel booking handles the cancellation of a booking
 func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	var booking models.Booking
-	if err := ctx.ShouldBindJSON(&booking); err != nil {
+	if err := ctx.ShouldBindJSON(&booking); err != nil || booking.ID == "" || booking.Creator == "" {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Booking ID, Room ID, and Email Address", nil))
 		return
 	}
@@ -134,12 +134,12 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	var checkIn models.CheckIn
 
 	if err := ctx.ShouldBindJSON(&checkIn); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Booking ID, Room ID, and Creator Email Address", nil))
+		HandleValidationErrors(ctx, err)
 		return
 	}
 
 	// Check if the booking exists
-	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingID)
+	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingId)
 	if !exists {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to find booking", constants.InternalServerErrorCode, "Failed to find booking", nil))
 		return
@@ -180,7 +180,6 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 // Helper function to handle validation of requests
-// request validation error handler
 func HandleValidationErrors(ctx *gin.Context, err error) {
 	var ve validator.ValidationErrors
 	if errors.As(err, &ve) {

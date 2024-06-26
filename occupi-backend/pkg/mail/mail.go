@@ -58,11 +58,11 @@ func SendMultipleEmailsConcurrently(emails []string, subject, body string, creat
 func SendBookingEmails(booking models.Booking) error {
 	// Prepare the email content
 	creatorSubject := "Booking Confirmation - Occupi"
-	creatorBody := FormatBookingEmailBodyForBooker(booking.ID, booking.RoomID, booking.Slot, booking.Emails, booking.Creator)
+	creatorBody := FormatBookingEmailBodyForBooker(booking.ID, booking.RoomId, booking.Slot, booking.Emails, booking.Creator)
 
 	// Prepare the email content for attendees
 	attendeesSubject := "You're invited to a Booking - Occupi"
-	attendeesBody := FormatBookingEmailBodyForAttendees(booking.ID, booking.RoomID, booking.Slot, booking.Creator)
+	attendeesBody := FormatBookingEmailBodyForAttendees(booking.ID, booking.RoomId, booking.Slot, booking.Creator)
 
 	var attendees []string
 	for _, email := range booking.Emails {
@@ -89,11 +89,11 @@ func SendBookingEmails(booking models.Booking) error {
 func SendCancellationEmails(booking models.Booking) error {
 	// Prepare the email content
 	creatorSubject := "Booking Cancelled - Occupi"
-	creatorBody := FormatCancellationEmailBodyForBooker(booking.ID, booking.RoomID, booking.Slot, booking.Creator)
+	creatorBody := FormatCancellationEmailBodyForBooker(booking.ID, booking.RoomId, booking.Slot, booking.Creator)
 
 	// Prepare the email content for attendees
 	attendeesSubject := "Booking Cancelled - Occupi"
-	attendeesBody := FormatCancellationEmailBodyForAttendees(booking.ID, booking.RoomID, booking.Slot, booking.Creator)
+	attendeesBody := FormatCancellationEmailBodyForAttendees(booking.ID, booking.RoomId, booking.Slot, booking.Creator)
 
 	var attendees []string
 	for _, email := range booking.Emails {
