@@ -37,25 +37,25 @@ func SeedMockDatabase(mockdatafilepath string) {
 	}
 
 	// Insert data into each collection
-	var otpsDocuments []interface{}
+	otpsDocuments := make([]interface{}, 0, len(mockDatabase.OTPS))
 	for _, otps := range mockDatabase.OTPS {
 		otpsDocuments = append(otpsDocuments, otps)
 	}
 	insertData(db.Database(configs.GetMongoDBName()).Collection("OTPS"), otpsDocuments)
 
-	var BookingsDocuments []interface{}
+	BookingsDocuments := make([]interface{}, 0, len(mockDatabase.Bookings))
 	for _, roomBooking := range mockDatabase.Bookings {
 		BookingsDocuments = append(BookingsDocuments, roomBooking)
 	}
 	insertData(db.Database(configs.GetMongoDBName()).Collection("RoomBooking"), BookingsDocuments)
 
-	var roomsDocuments []interface{}
+	roomsDocuments := make([]interface{}, 0, len(mockDatabase.Rooms))
 	for _, rooms := range mockDatabase.Rooms {
 		roomsDocuments = append(roomsDocuments, rooms)
 	}
 	insertData(db.Database(configs.GetMongoDBName()).Collection("Rooms"), roomsDocuments)
 
-	var usersDocuments []interface{}
+	usersDocuments := make([]interface{}, 0, len(mockDatabase.Users))
 	for _, users := range mockDatabase.Users {
 		usersDocuments = append(usersDocuments, users)
 	}
@@ -70,15 +70,17 @@ func insertData(collection *mongo.Collection, documents []interface{}) {
 	if err != nil {
 		log.Fatalf("Failed to count documents: %v", err)
 	}
-	if count == 0 && len(documents) > 0 {
+
+	switch {
+	case count == 0 && len(documents) > 0:
 		_, err := collection.InsertMany(context.Background(), documents)
 		if err != nil {
 			log.Fatalf("Failed to insert documents into %s collection: %v", collection.Name(), err)
 		}
 		log.Printf("Successfully seeded data into %s collection\n", collection.Name())
-	} else if len(documents) == 0 {
+	case len(documents) == 0:
 		log.Printf("No documents to insert into %s skipping seeding\n", collection.Name())
-	} else {
+	default:
 		log.Printf("Collection %s already has %d documents, skipping seeding\n", collection.Name(), count)
 	}
 }
