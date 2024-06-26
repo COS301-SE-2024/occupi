@@ -17,7 +17,7 @@ type User struct {
 // structure of booking
 type Booking struct {
 	ID        string    `json:"_id" bson:"_id,omitempty"`
-	OccupiId  string    `json:"occupiId" bson:"occupiId,omitempty"`
+	OccupiID  string    `json:"occupiId" bson:"occupiId,omitempty"`
 	RoomId    string    `json:"roomId" bson:"roomId" binding:"required"`
 	RoomName  string    `json:"roomName" bson:"roomName" binding:"required"`
 	Slot      int       `json:"slot" bson:"slot" binding:"required,min=1"`
@@ -32,9 +32,9 @@ type Booking struct {
 
 // structure of CheckIn
 type CheckIn struct {
-	BookingId string `json:"bookingId" bson:"bookingId binding:"required"`
+	BookingID string `json:"bookingId" bson:"bookingId" binding:"required"`
 	Creator   string `json:"creator" bson:"creator" binding:"required,email"`
-	RoomId    string `json:"roomId" bson:"roomId" binding:"required"`
+	RoomID    string `json:"roomId" bson:"roomId" binding:"required"`
 }
 
 type OTP struct {

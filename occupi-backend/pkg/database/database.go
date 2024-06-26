@@ -134,8 +134,8 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 
 	// Find the booking by bookingId, roomId, and creator
 	filter := bson.M{
-		"_id":     checkIn.BookingId,
-		"roomId":  checkIn.RoomId,
+		"_id":     checkIn.BookingID,
+		"roomId":  checkIn.RoomID,
 		"creator": checkIn.Creator,
 	}
 
