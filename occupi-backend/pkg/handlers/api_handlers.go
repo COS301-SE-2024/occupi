@@ -62,7 +62,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
-	booking.OccupiId = utils.GenerateBookingID()
+	booking.OccupiID = utils.GenerateBookingID()
 	booking.CheckedIn = false
 
 	// Save the booking to the database
@@ -139,7 +139,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Check if the booking exists
-	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingId)
+	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingID)
 	if !exists {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to find booking", constants.InternalServerErrorCode, "Failed to find booking", nil))
 		return
