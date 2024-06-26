@@ -8,3 +8,5 @@ const InternalServerErrorCode = "INTERNAL_SERVER_ERROR"
 const UnAuthorizedCode = "UNAUTHORIZED"
 const Admin = "admin"
 const Basic = "basic"
+
+const AdminDBAccessOption = "authSource=admin"

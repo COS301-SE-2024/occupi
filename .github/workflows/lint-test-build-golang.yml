@@ -59,6 +59,29 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Wait for MongoDB to be ready
+      run: |
+        for i in {1..30}; do
+          if mongosh --eval 'db.adminCommand({ping: 1})' ${{ secrets.MONGO_DB_TEST_URL }}; then
+            echo "MongoDB is up"
+            break
+          fi
+          echo "Waiting for MongoDB to be ready..."
+          sleep 2
+        done
+
+    - name: Create MongoDB User
+      run: |
+        mongosh ${{ secrets.MONGO_DB_TEST_URL }}/admin --eval '
+          db.createUser({
+            user: ${{ secrets.MONGO_DB_TEST_USERNAME }},
+            pwd: ${{ secrets.MONGO_DB_TEST_PASSWORD }},
+            roles: [
+              { role: "readWrite", db: ${{ secrets.MONGO_DB_TEST_DB }} }
+            ]
+          });
+        '
+
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
@@ -68,17 +91,6 @@ jobs:
       run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .test.env.gpg > .test.env
                 
-    - name: Decrypt key file
-      run: |
-                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 key.pem.gpg > key.pem
-
-    - name: Decrypt cert file
-      run: |
-                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 cert.pem.gpg > cert.pem
-
-    - name: Seed MongoDB
-      run: go run pkg/database/seed.go
-
     - name: Run tests
       run: |
         go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out

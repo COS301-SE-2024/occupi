@@ -20,7 +20,7 @@ import (
 )
 
 // attempts to and establishes a connection with the remote mongodb database
-func ConnectToDatabase() *mongo.Client {
+func ConnectToDatabase(args ...string) *mongo.Client {
 	// MongoDB connection parameters
 	username := configs.GetMongoDBUsername()
 	password := configs.GetMongoDBPassword()
@@ -32,7 +32,12 @@ func ConnectToDatabase() *mongo.Client {
 	escapedPassword := url.QueryEscape(password)
 
 	// Construct the connection URI
-	uri := fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
+	var uri string
+	if len(args) > 0 {
+		uri = fmt.Sprintf("%s://%s:%s@%s/%s?%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName, args[0])
+	} else {
+		uri = fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
+	}
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)
@@ -40,13 +45,13 @@ func ConnectToDatabase() *mongo.Client {
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 
 	// Check the connection
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 
 	logrus.Info("Connected to MongoDB!")

@@ -23,9 +23,9 @@ elif [ "$1" = "build" ] && [ "$2" = "dev" ]; then
 elif [ "$1" = "build" ] && [ "$2" = "prod" ]; then
     go build cmd/occupi-backend/main.go
 elif [ "$1" = "test" ]; then
-    go run pkg/database/seed.go && go test -v ./tests/...
+    go test -v ./tests/...
 elif [ "$1" = "test" ] && [ "$2" = "codecov" ]; then
-    go run pkg/database/seed.go && go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
+    go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
 elif [ "$1" = "lint" ]; then
     golangci-lint run
 elif [ "$1" = "help" ] || [ -z "$1" ]; then

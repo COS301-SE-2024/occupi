@@ -2,45 +2,66 @@ package database
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
 
-type Item struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+type MockDatabase struct {
+	OTPS     []models.OTP     `json:"otps"`
+	Bookings []models.Booking `json:"bookings"`
+	Rooms    []models.Room    `json:"rooms"`
+	Users    []models.User    `json:"users"`
 }
 
-func main() {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		log.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
+func SeedMockDatabase(mockdatafilepath string) {
 	// connect to the database
-	db := ConnectToDatabase()
-	collectionName := "your_collection"
+	db := ConnectToDatabase(constants.AdminDBAccessOption)
 
-	collection := db.Database(configs.GetMongoDBName()).Collection(collectionName)
-
-	data, err := ioutil.ReadFile("path/to/your/test_data.json")
+	// Read the JSON file
+	data, err := os.ReadFile(mockdatafilepath)
 	if err != nil {
 		log.Fatalf("Failed to read JSON file: %v", err)
 	}
 
-	fmt.Println("Successfully seeded test data into MongoDB")
+	// Parse the JSON file
+	var mockDatabase MockDatabase
+	if err := bson.UnmarshalExtJSON(data, true, &mockDatabase); err != nil {
+		log.Fatalf("Failed to unmarshal JSON data: %v", err)
+	}
+
+	// Insert data into each collection
+	var otpsDocuments []interface{}
+	for _, otps := range mockDatabase.OTPS {
+		otpsDocuments = append(otpsDocuments, otps)
+	}
+	insertData(db.Database(configs.GetMongoDBName()).Collection("OTPS"), otpsDocuments)
+
+	var BookingsDocuments []interface{}
+	for _, roomBooking := range mockDatabase.Bookings {
+		BookingsDocuments = append(BookingsDocuments, roomBooking)
+	}
+	insertData(db.Database(configs.GetMongoDBName()).Collection("RoomBooking"), BookingsDocuments)
+
+	var roomsDocuments []interface{}
+	for _, rooms := range mockDatabase.Rooms {
+		roomsDocuments = append(roomsDocuments, rooms)
+	}
+	insertData(db.Database(configs.GetMongoDBName()).Collection("Rooms"), roomsDocuments)
+
+	var usersDocuments []interface{}
+	for _, users := range mockDatabase.Users {
+		usersDocuments = append(usersDocuments, users)
+	}
+	insertData(db.Database(configs.GetMongoDBName()).Collection("Users"), usersDocuments)
+
+	log.Println("Successfully seeded test data into MongoDB")
 }
 
 // Function to insert data if the collection is empty
@@ -49,13 +70,15 @@ func insertData(collection *mongo.Collection, documents []interface{}) {
 	if err != nil {
 		log.Fatalf("Failed to count documents: %v", err)
 	}
-	if count == 0 {
+	if count == 0 && len(documents) > 0 {
 		_, err := collection.InsertMany(context.Background(), documents)
 		if err != nil {
 			log.Fatalf("Failed to insert documents into %s collection: %v", collection.Name(), err)
 		}
-		fmt.Printf("Successfully seeded data into %s collection\n", collection.Name())
+		log.Printf("Successfully seeded data into %s collection\n", collection.Name())
+	} else if len(documents) == 0 {
+		log.Printf("No documents to insert into %s skipping seeding\n", collection.Name())
 	} else {
-		fmt.Printf("Collection %s already has %d documents, skipping seeding\n", collection.Name(), count)
+		log.Printf("Collection %s already has %d documents, skipping seeding\n", collection.Name(), count)
 	}
 }
