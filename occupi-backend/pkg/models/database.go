@@ -18,13 +18,13 @@ type User struct {
 type Booking struct {
 	ID        string    `json:"_id" bson:"_id,omitempty"`
 	OccupiID  string    `json:"occupiId" bson:"occupiId,omitempty"`
-	RoomID    string    `json:"roomId" bson:"roomId" validate:"required"`
-	RoomName  string    `json:"roomName" bson:"roomName" validate:"required"`
-	Slot      int       `json:"slot" bson:"slot" validate:"required,min=1"`
-	Emails    []string  `json:"emails" bson:"emails" validate:"required,dive,email"`
+	RoomID    string    `json:"roomId" bson:"roomId" binding:"required"`
+	RoomName  string    `json:"roomName" bson:"roomName" binding:"required"`
+	Slot      int       `json:"slot" bson:"slot" binding:"required,min=1"`
+	Emails    []string  `json:"emails" bson:"emails" binding:"required,dive,email"`
 	CheckedIn bool      `json:"checkedIn" bson:"checkedIn"`
-	Creator   string    `json:"creator" bson:"creator" validate:"required,email"`
-	FloorNo   int       `json:"floorNo" bson:"floorNo" validate:"required"`
+	Creator   string    `json:"creator" bson:"creator" binding:"required,email"`
+	FloorNo   int       `json:"floorNo" bson:"floorNo" binding:"required"`
 	Date      time.Time `json:"date" bson:"date,omitempty"`
 	Start     time.Time `json:"start" bson:"start,omitempty"`
 	End       time.Time `json:"end" bson:"end,omitempty"`
