@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/alexedwards/argon2id"
@@ -163,4 +164,12 @@ func CompareArgon2IDHash(password string, hashedPassword string) (bool, error) {
 		return false, err
 	}
 	return match, nil
+}
+
+// Helper function to lower first case of a string
+func LowercaseFirstLetter(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToLower(string(s[0])) + s[1:]
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -55,7 +56,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	//link: https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards#response-and-error-handling
 	var booking models.Booking
 	if err := ctx.ShouldBindJSON(&booking); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected RoomID,Slot,Emails[],Creator,FloorNo ", nil))
+		HandleValidationErrors(ctx, err)
 		return
 	}
 
@@ -176,4 +177,20 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched rooms!", rooms))
+}
+
+// Helper function to handle validation of requests
+// request validation error handler
+func HandleValidationErrors(ctx *gin.Context, err error) {
+	var ve validator.ValidationErrors
+	if errors.As(err, &ve) {
+		out := make([]models.ErrorMsg, len(ve))
+		for i, err := range ve {
+			out[i] = models.ErrorMsg{
+				Field:   utils.LowercaseFirstLetter(err.Field()),
+				Message: models.GetErrorMsg(err),
+			}
+		}
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid request payload", gin.H{"errors": out}))
+	}
 }
