@@ -58,19 +58,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected RoomID,Slot,Emails[],Creator,FloorNo ", nil))
 		return
 	}
-	// // Initialize the validator
-	// validate := validator.New()
 
-	// // Validate the booking struct
-	// if err := validate.Struct(booking); err != nil {
-	// 	validationErrors := err.(validator.ValidationErrors)
-	// 	errorDetails := make(gin.H)
-	// 	for _, validationError := range validationErrors {
-	// 		errorDetails[validationError.Field()] = validationError.Tag()
-	// 	}
-	// 	ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Validation failed", constants.InvalidRequestPayloadCode, "Validation errors occurred", errorDetails))
-	// 	return
-	// }
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
 	booking.OccupiID = utils.GenerateBookingID()
@@ -83,15 +71,8 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// Prepare the email content
-	subject := "Booking Confirmation - Occupi"
-	body := mail.FormatBookingEmailBodyForBooker(booking.ID, booking.RoomID, booking.Slot, booking.Emails)
-
-	// Send the confirmation email concurrently to all recipients
-	emailErrors := mail.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
-
-	if len(emailErrors) > 0 {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send confirmation email", constants.InternalServerErrorCode, "Failed to send confirmation email", nil))
+	if err := mail.SendBookingEmails(booking); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send booking email", constants.InternalServerErrorCode, "Failed to send booking email", nil))
 		return
 	}
 
@@ -139,15 +120,8 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// Prepare the email content
-	subject := "Booking Cancelled - Occupi"
-	body := mail.FormatBookingEmailBody(booking.ID, booking.RoomID, booking.Slot)
-
-	// Send the confirmation email concurrently to all recipients
-	emailErrors := mail.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
-
-	if len(emailErrors) > 0 {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send cancellation email", constants.InternalServerErrorCode, "Failed to send cancellation email", nil))
+	if err := mail.SendCancellationEmails(booking); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "An error occured", constants.InternalServerErrorCode, "Failed to send booking email", nil))
 		return
 	}
 
