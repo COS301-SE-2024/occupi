@@ -122,7 +122,7 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	if err := mail.SendCancellationEmails(booking); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "An error occured", constants.InternalServerErrorCode, "Failed to send booking email", nil))
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "An error occurred", constants.InternalServerErrorCode, "Failed to send booking email", nil))
 		return
 	}
 

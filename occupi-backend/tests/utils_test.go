@@ -400,3 +400,23 @@ func TestGenerateOTP(t *testing.T) {
 
 	t.Logf("Generated OTP: %s", otp)
 }
+func TestLowercaseFirstLetter(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"Hello", "hello"},
+		{"world", "world"},
+		{"Golang", "golang"},
+		{"", ""},
+		{"A", "a"},
+		{"ABC", "aBC"},
+	}
+
+	for _, test := range tests {
+		result := utils.LowercaseFirstLetter(test.input)
+		if result != test.expected {
+			t.Errorf("LowercaseFirstLetter(%q) = %q; expected %q", test.input, result, test.expected)
+		}
+	}
+}
