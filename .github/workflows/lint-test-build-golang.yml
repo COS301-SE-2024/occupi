@@ -79,13 +79,17 @@ jobs:
         done
 
     - name: Create MongoDB User
+      env:
+        MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_DB_TEST_USERNAME }}
+        MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_DB_TEST_PASSWORD }}
+        MONGO_INITDB_DATABASE: ${{ secrets.MONGO_DB_TEST_DB }}
       run: |
         mongosh ${{ secrets.MONGO_DB_TEST_URL }}/admin --eval '
           db.createUser({
-            user: ${{ secrets.MONGO_DB_TEST_USERNAME }},
-            pwd: ${{ secrets.MONGO_DB_TEST_PASSWORD }},
+            user: '${MONGO_INITDB_ROOT_USERNAME}',
+            pwd: '${MONGO_INITDB_ROOT_PASSWORD}',
             roles: [
-              { role: "readWrite", db: ${{ secrets.MONGO_DB_TEST_DB }} }
+              { role: "readWrite", db: '${MONGO_INITDB_DATABASE}' }
             ]
           });
         '
