@@ -6,33 +6,24 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	// "github.com/stretchr/testify/mock"
 )
 
 func TestProtectedRoute(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -57,19 +48,11 @@ func TestProtectedRoute(t *testing.T) {
 }
 
 func TestProtectedRouteInvalidToken(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -88,19 +71,11 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 }
 
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -140,19 +115,11 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 }
 
 func TestAdminRoute(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -177,19 +144,11 @@ func TestAdminRoute(t *testing.T) {
 }
 
 func TestUnauthorizedAccess(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -207,19 +166,11 @@ func TestUnauthorizedAccess(t *testing.T) {
 }
 
 func TestUnauthorizedAdminAccess(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -240,19 +191,11 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 }
 
 func TestAccessUnprotectedRoute(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -274,19 +217,11 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 }
 
 func TestAccessUnprotectedRouteWithToken(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -307,19 +242,11 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 }
 
 func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()

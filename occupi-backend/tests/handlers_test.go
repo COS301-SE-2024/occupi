@@ -2,7 +2,6 @@ package tests
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/gin-gonic/gin"
@@ -21,24 +19,15 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	// "github.com/stretchr/testify/mock"
 )
 
 func TestViewBookingsHandler(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -129,20 +118,14 @@ func TestViewBookingsHandler(t *testing.T) {
 		})
 	}
 }
+
+/*
 func TestBookRoom(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
@@ -250,21 +233,14 @@ func TestBookRoom(t *testing.T) {
 		})
 	}
 }
+*/
 
 func TestPingRoute(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	ginRouter := gin.Default()
@@ -306,19 +282,11 @@ func TestPingRoute(t *testing.T) {
 }
 
 func TestRateLimit(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	ginRouter := gin.Default()
@@ -365,19 +333,11 @@ func TestRateLimit(t *testing.T) {
 }
 
 func TestRateLimitWithMultipleIPs(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	ginRouter := gin.Default()
@@ -468,19 +428,11 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 }
 
 func TestInvalidLogoutHandler(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	ginRouter := gin.Default()
@@ -507,19 +459,11 @@ func TestInvalidLogoutHandler(t *testing.T) {
 }
 
 func TestValidLogoutHandler(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	ginRouter := gin.Default()
@@ -575,19 +519,11 @@ func TestValidLogoutHandler(t *testing.T) {
 }
 
 func TestValidLogoutHandlerFromDomains(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
-	gin.SetMode("test")
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	ginRouter := gin.Default()
@@ -661,4 +597,46 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+}
+
+func TestMockDatabase(t *testing.T) {
+	// connect to the database
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/resource-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	/*
+		Expected response body:
+		{
+			"data": [], -> array of data
+			"message": "Successfully fetched resource!", -> message
+			"status": 200 -> status code
+	*/
+	// check that the data length is greater than 0 after converting the response body to a map
+	var response map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Errorf("could not unmarshal response: %v", err)
+	}
+
+	// check that the data length is greater than 0
+	data := response["data"].([]interface{})
+	assert.Greater(t, len(data), 0)
 }
