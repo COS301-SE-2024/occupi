@@ -1,5 +1,5 @@
-import { React, useEffect, useState } from 'react';
-import { ScrollView, useColorScheme, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { ScrollView, useColorScheme, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native';
 import {
     Icon, View, Text, Input, InputField, Image, Box, ChevronDownIcon, Toast,
     ToastTitle,
@@ -83,7 +83,7 @@ const getTimeForSlot = (slot) => {
     return { startTime, endTime };
 };
 
-const slotToTime = (slot : number) => {
+const slotToTime = (slot: number) => {
     const { startTime, endTime } = getTimeForSlot(slot);
     return `${startTime} - ${endTime}`
 }
@@ -97,7 +97,67 @@ const ViewBookings = () => {
     // const [selectedSort, setSelectedSort] = useState("newest");
     // const [email, setEmail] = useState('kamogelomoeketse@gmail.com');
     const router = useRouter();
-    
+    const [refreshing, setRefreshing] = useState(false);
+
+
+    const onRefresh = React.useCallback(() => {
+        const fetchAllRooms = async () => {
+            console.log("heree");
+            try {
+                const response = await fetch(`https://dev.occupi.tech/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setRoomData(data.data || []); // Ensure data is an array
+                    console.log(data);
+                    // toast.show({
+                    //     placement: 'top',
+                    //     render: ({ id }) => {
+                    //         return (
+                    //             <Toast nativeID={id} variant="accent" action="success">
+                    //                 <ToastTitle>{data.message}</ToastTitle>
+                    //             </Toast>
+                    //         );
+                    //     },
+                    // });
+                } else {
+                    console.log(data);
+                    toast.show({
+                        placement: 'top',
+                        render: ({ id }) => {
+                            return (
+                                <Toast nativeID={id} variant="accent" action="error">
+                                    <ToastTitle>{data.error.message}</ToastTitle>
+                                </Toast>
+                            );
+                        },
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                toast.show({
+                    placement: 'top',
+                    render: ({ id }) => {
+                        return (
+                            <Toast nativeID={id} variant="accent" action="error">
+                                <ToastTitle>Network Error: {error.message}</ToastTitle>
+                            </Toast>
+                        );
+                    },
+                });
+            }
+        };
+        setRefreshing(true);
+        setTimeout(() => {
+            setRefreshing(false);
+            fetchAllRooms();
+        }, 2000);
+    }, [toast]);
+
     const toggleLayout = () => {
         setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
     };
@@ -230,7 +290,7 @@ const ViewBookings = () => {
                                         color: textColor
                                     },
                                 }}
-                                
+
                             />
                         </View>
                     </View>
@@ -248,7 +308,13 @@ const ViewBookings = () => {
                 </View>
             </View>
             {layout === "grid" ? (
-                <ScrollView style={{ flex: 1, marginTop: 10, marginBottom:84 }} showsVerticalScrollIndicator={false}>
+                <ScrollView
+                    style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                >
                     {roomPairs.map((pair, index) => (
                         <View
                             key={index}
@@ -259,17 +325,17 @@ const ViewBookings = () => {
                             }}
                         >
                             {pair.map((room) => (
-                                <TouchableOpacity 
-                                onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
-                                style={{
-                                    flex: 1,
-                                    borderWidth: 1,
-                                    borderColor: cardBackgroundColor,
-                                    borderRadius: 12,
-                                    backgroundColor: cardBackgroundColor,
-                                    marginHorizontal: 4,
-                                    width: '45%'
-                                }}>
+                                <TouchableOpacity
+                                    onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
+                                    style={{
+                                        flex: 1,
+                                        borderWidth: 1,
+                                        borderColor: cardBackgroundColor,
+                                        borderRadius: 12,
+                                        backgroundColor: cardBackgroundColor,
+                                        marginHorizontal: 4,
+                                        width: '45%'
+                                    }}>
                                     <Image
                                         w="$full"
                                         h="$24"
@@ -305,21 +371,27 @@ const ViewBookings = () => {
                     ))}
                 </ScrollView>
             ) : (
-                <ScrollView style={{ flex: 1, marginTop: 10, marginBottom:84 }} showsVerticalScrollIndicator={false}>
+                <ScrollView
+                    style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                >
                     {roomData.map((room) => (
-                        <TouchableOpacity 
-                        onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
-                        style={{
-                            flex: 1,
-                            borderWidth: 1,
-                            borderColor: cardBackgroundColor,
-                            borderRadius: 12,
-                            height: 160,
-                            backgroundColor: cardBackgroundColor,
-                            marginVertical: 4,
-                            flexDirection: "row"
-                            
-                        }}>
+                        <TouchableOpacity
+                            onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
+                            style={{
+                                flex: 1,
+                                borderWidth: 1,
+                                borderColor: cardBackgroundColor,
+                                borderRadius: 12,
+                                height: 160,
+                                backgroundColor: cardBackgroundColor,
+                                marginVertical: 4,
+                                flexDirection: "row"
+
+                            }}>
                             <Image
                                 width={"50%"}
                                 h="$full"
@@ -360,5 +432,17 @@ const ViewBookings = () => {
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    scrollView: {
+        flex: 1,
+        backgroundColor: 'pink',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});
 
 export default ViewBookings;
