@@ -50,7 +50,7 @@ type ViewBookings struct {
 
 type Room struct {
 	ID           string `json:"_id" bson:"_id,omitempty"`
-	RoomId       string `json:"roomId" bson:"roomId,omitempty"`
+	RoomID       string `json:"roomId" bson:"roomId,omitempty"`
 	RoomNo       int    `json:"roomNo" bson:"roomNo,omitempty"`
 	FloorNo      int    `json:"floorNo" bson:"floorNo,omitempty"`
 	MinOccupancy int    `json:"minOccupancy" bson:"minOccupancy,omitempty"`
