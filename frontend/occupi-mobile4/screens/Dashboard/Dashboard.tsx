@@ -29,10 +29,7 @@ const Dashboard = () => {
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [checkedIn, setCheckedIn] = useState(false);
-  const toast = useToast();
-
-
-
+  const toast = useToast()
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers(prevNumbers => {
