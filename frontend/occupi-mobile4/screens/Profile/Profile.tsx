@@ -86,7 +86,7 @@ const Profile = () => {
           <Icon
             as={Feather}
             name="chevron-left"
-            size="30"
+            size="xl"
             color={colorScheme === 'dark' ? 'white' : 'black'}
             onPress={() => router.push('/settings')}
           />
@@ -131,7 +131,7 @@ const Profile = () => {
           <VStack flexDirection="row" justifyContent="space-between" space="$2">
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
-              borderRadius="$15"
+              borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
@@ -143,7 +143,7 @@ const Profile = () => {
             </Radio>
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
-              borderRadius="$15"
+              borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
@@ -155,7 +155,7 @@ const Profile = () => {
             </Radio>
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
-              borderRadius="$15"
+              borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"

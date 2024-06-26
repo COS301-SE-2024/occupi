@@ -30,6 +30,7 @@ interface Room {
     minOccupancy: number;
     maxOccupancy: number;
     description: string;
+    emails: string[];
 }
 
 const getTimeForSlot = (slot) => {
@@ -180,12 +181,12 @@ const ViewBookings = () => {
     const roomPairs = groupDataInPairs(roomData);
 
     return (
-        <View px="$4" pt="$20" style={{ flex: 1, backgroundColor }}>
+        <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
             <View style={{ flexDirection: 'column', backgroundColor }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text fontWeight="$bold" fontSize="$24" color={textColor}>My bookings</Text>
+                    <Text fontWeight="$bold" fontSize={24} color={textColor}>My bookings</Text>
                 </View>
-                <Input my="$6" w="$full" backgroundColor={cardBackgroundColor} borderRadius="$15" borderColor={cardBackgroundColor} h={hp('5%')}>
+                <Input my="$6" w="$full" backgroundColor={cardBackgroundColor} borderRadius="$xl" borderColor={cardBackgroundColor} h={hp('5%')}>
                     <InputField
                         placeholder="Quick search for an office"
                         fontSize={wp('4%')}
@@ -194,10 +195,10 @@ const ViewBookings = () => {
                         color={textColor}
                     />
                 </Input>
-                <View flexDirection="$row" justifyContent="$space-between" alignItems="$center">
-                    <View flexDirection="$row" alignItems="$center">
-                        <Text fontWeight="$bold" fontSize="$18" mr="$2" color={textColor}>Sort by:</Text>
-                        <View backgroundColor={cardBackgroundColor} borderRadius="$10" px="$2" alignItems="$center">
+                <View flexDirection="row" justifyContent="space-between" alignItems="center">
+                    <View flexDirection="row" alignItems="center">
+                        <Text fontWeight="$bold" fontSize={18} mr="$2" color={textColor}>Sort by:</Text>
+                        <View backgroundColor={cardBackgroundColor} borderRadius="$lg" px="$2" alignItems="center">
                             <RNPickerSelect
                                 onValueChange={(value) => setSelectedSort(value)}
                                 items={[
@@ -205,10 +206,9 @@ const ViewBookings = () => {
                                     { label: 'Newest', value: 'Newest' },
                                 ]}
                                 placeholder={{ label: 'Latest', value: null }}
-                                backgroundColor={cardBackgroundColor}
+                                // backgroundColor={cardBackgroundColor}
                                 style={{
                                     inputIOS: {
-                                        placeholder: "Latest",
                                         fontSize: 16,
                                         paddingVertical: 8,
                                         borderWidth: 1,
@@ -218,26 +218,29 @@ const ViewBookings = () => {
                                         color: textColor
                                     },
                                     inputAndroid: {
+                                        alignItems: "center",
+                                        width: 130,
+                                        height: 60,
+                                        fontSize: 10,
+                                        // paddingVertical: 4,
                                         borderWidth: 1,
                                         borderRadius: 10,
                                         borderColor: cardBackgroundColor,
-                                        paddingRight: 30, // to ensure the text is never behind the icon
+                                        padding: 0, // to ensure the text is never behind the icon
                                         color: textColor
                                     },
                                 }}
-                                Icon={() => {
-                                    return <Icon as={ChevronDownIcon} color={textColor} mt="$2.5" alignSelf="$center" />;
-                                }}
+                                
                             />
                         </View>
                     </View>
                     <TouchableOpacity onPress={toggleLayout}>
                         {layout === "row" ? (
-                            <Box backgroundColor="$#ADFF2F" alignSelf="$center" p="$2" borderRadius="$12">
+                            <Box backgroundColor="$#ADFF2F" alignSelf="center" p="$2" borderRadius="$lg">
                                 <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
                             </Box>
                         ) : (
-                            <Box backgroundColor="$#ADFF2F" alignSelf="$center" p="$2" borderRadius="$12">
+                            <Box backgroundColor="$#ADFF2F" alignSelf="center" p="$2" borderRadius="$lg">
                                 <Octicons name="rows" size={22} color="#2C2C2E" />
                             </Box>
                         )}
@@ -248,7 +251,7 @@ const ViewBookings = () => {
                 <ScrollView style={{ flex: 1, marginTop: 10, marginBottom:84 }} showsVerticalScrollIndicator={false}>
                     {roomPairs.map((pair, index) => (
                         <View
-                            // key={index}
+                            key={index}
                             style={{
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
@@ -271,7 +274,7 @@ const ViewBookings = () => {
                                         w="$full"
                                         h="$24"
                                         alt="image"
-                                        borderRadius="$10"
+                                        borderRadius={10}
                                         source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
                                     />
                                     <View
@@ -282,14 +285,14 @@ const ViewBookings = () => {
                                     >
                                         <View>
                                             <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
-                                            <View flexDirection="$row" alignItems="$center">
-                                                <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize="$15"> Attendees: {room.emails.length}</Text>
+                                            <View flexDirection="row" alignItems="center">
+                                                <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
                                             </View>
-                                            <Text my="$1">Your booking time:</Text>
+                                            <Text color={isDarkMode ? '#fff' : '#000'} fontWeight="$light" my="$1">Your booking time:</Text>
                                         </View>
-                                        <View flexDirection="$row" alignItems="$center" justifyContent="space-between">
+                                        <View flexDirection="row" alignItems="center" justifyContent="space-between">
                                             <View>
-                                                <Text my="$1" fontSize="$14" fontWeight="$light" color={textColor}>{new Date().toDateString()}</Text>
+                                                <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{new Date().toDateString()}</Text>
                                                 <Text>{slotToTime(room.slot)}</Text>
                                             </View>
 
@@ -318,10 +321,10 @@ const ViewBookings = () => {
                             
                         }}>
                             <Image
-                                w="$50%"
+                                width={"50%"}
                                 h="$full"
                                 alt="image"
-                                borderRadius="$10"
+                                borderRadius={10}
                                 source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
                             />
                             <View
@@ -334,14 +337,14 @@ const ViewBookings = () => {
                                 }}
                             >
                                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
-                                <View flexDirection="$row" alignItems="$center">
-                                    <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize="$15"> Attendees: {room.emails.length}</Text>
+                                <View flexDirection="row" alignItems="center">
+                                    <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
                                 </View>
-                                <View flexDirection="$column">
-                                    <Text my="$1" fontWeight="$light" color={isDarkMode ? '#F3F3F3' : '#2C2C2E'}>Your booking time:</Text>
-                                    <View flexDirection="$row" alignItems="$center" justifyContent="space-between" pr="$4">
+                                <View flexDirection="column">
+                                    <Text my="$1" fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}>Your booking time:</Text>
+                                    <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
                                         <View>
-                                            <Text my="$1" fontSize="$14" fontWeight="$light" color={textColor}>{new Date().toDateString()}</Text>
+                                            <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{new Date().toDateString()}</Text>
                                             <Text>{slotToTime(room.slot)}</Text>
                                         </View>
                                         <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />

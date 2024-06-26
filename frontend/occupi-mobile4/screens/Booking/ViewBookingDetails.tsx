@@ -64,7 +64,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={id} variant="accent" action="success">
+                            <Toast nativeID={String(id)}  variant="accent" action="success">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
@@ -76,7 +76,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={id} variant="accent" action="error">
+                            <Toast nativeID={String(id)}  variant="accent" action="error">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
@@ -113,7 +113,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={id} variant="accent" action="success">
+                            <Toast nativeID={String(id)}  variant="accent" action="success">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
@@ -126,7 +126,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={id} variant="accent" action="error">
+                            <Toast nativeID={String(id)}  variant="accent" action="error">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );

@@ -106,7 +106,7 @@ const SignUpForm = () => {
             placement: 'top',
             render: ({ id }) => {
               return (
-                <Toast nativeID={id} variant="accent" action="success">
+                <Toast nativeID={String(id)} variant="accent" action="success">
                   <ToastTitle>{data.message}</ToastTitle>
                 </Toast>
               );
@@ -120,7 +120,7 @@ const SignUpForm = () => {
             placement: 'top',
             render: ({ id }) => {
               return (
-                <Toast nativeID={id} variant="accent" action="error">
+                <Toast nativeID={String(id)} variant="accent" action="error">
                   <ToastTitle>{data.error.message}</ToastTitle>
                 </Toast>
               );
@@ -136,7 +136,7 @@ const SignUpForm = () => {
         placement: 'bottom right',
         render: ({ id }) => {
           return (
-            <Toast nativeID={id} action="error">
+            <Toast nativeID={String(id)} action="error">
               <ToastTitle>Passwords do not match</ToastTitle>
             </Toast>
           );
@@ -217,7 +217,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Email"
                   fontSize={wp('4%')}
@@ -262,7 +262,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Employee ID"
                   fontSize={wp('4%')}
@@ -305,7 +305,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   fontSize={wp('4%')}
                   placeholder="Password"
@@ -352,7 +352,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Confirm Password"
                   fontSize={wp('4%')}
