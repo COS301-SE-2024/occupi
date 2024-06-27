@@ -1,16 +1,58 @@
 package configs
 
 import (
-	"os"
+	"log"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
-// define configs in this file
+const (
+	MONGODB_USERNAME      = "MONGODB_USERNAME"
+	MONGODB_PASSWORD      = "MONGODB_PASSWORD"
+	MONGODB_CLUSTERURI    = "MONGODB_CLUSTERURI"
+	MONGODB_DBNAME        = "MONGODB_DBNAME"
+	MONGODB_START_URI     = "MONGODB_START_URI"
+	PORT                  = "PORT"
+	LOG_FILE_NAME         = "LOG_FILE_NAME"
+	SMTP_HOST             = "SMTP_HOST"
+	SMTP_PORT             = "SMTP_PORT"
+	SMTP_PASSWORD         = "SMTP_PASSWORD"
+	SYSTEM_EMAIL          = "SYSTEM_EMAIL"
+	CERTIFICATE_FILE_PATH = "CERTIFICATE_FILE_PATH"
+	KEY_FILE_PATH         = "KEY_FILE_PATH"
+	GIN_RUN_MODE          = "GIN_RUN_MODE"
+	TRUSTED_PROXIES       = "TRUSTED_PROXIES"
+	JWT_SECRET            = "JWT_SECRET"
+	SESSION_SECRET        = "SESSION_SECRET"
+	OCCUPI_DOMAINS        = "OCCUPI_DOMAINS"
+	ENV                   = "ENV"
+)
+
+// init viper
+func InitViper(envtype *string, configpath ...string) {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	if len(configpath) > 0 {
+		viper.AddConfigPath(configpath[0])
+	} else {
+		viper.AddConfigPath("./configs")
+	}
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file: %s", err)
+	}
+
+	// Merge environment-specific config
+	viper.SetConfigName(*envtype)
+	if err := viper.MergeInConfig(); err != nil {
+		log.Fatalf("Error merging config file: %s", err)
+	}
+}
 
 // gets the port to start the server on as defined in the .env file
 func GetPort() string {
-	port := os.Getenv("PORT")
+	port := viper.GetString(PORT)
 	if port == "" {
 		port = "PORT"
 	}
@@ -19,7 +61,7 @@ func GetPort() string {
 
 // gets the mongodb username as defined in the .env file
 func GetMongoDBUsername() string {
-	username := os.Getenv("MONGODB_USERNAME")
+	username := viper.GetString(MONGODB_USERNAME)
 	if username == "" {
 		username = "MONGODB_USERNAME"
 	}
@@ -28,7 +70,7 @@ func GetMongoDBUsername() string {
 
 // gets the mongodb password as defined in the .env file
 func GetMongoDBPassword() string {
-	password := os.Getenv("MONGODB_PASSWORD")
+	password := viper.GetString(MONGODB_PASSWORD)
 	if password == "" {
 		password = "MONGODB_PASSWORD"
 	}
@@ -37,7 +79,7 @@ func GetMongoDBPassword() string {
 
 // gets the mongodb cluster uri as defined in the .env file
 func GetMongoDBCLUSTERURI() string {
-	uri := os.Getenv("MONGODB_CLUSTERURI")
+	uri := viper.GetString(MONGODB_CLUSTERURI)
 	if uri == "" {
 		uri = "MONGODB_CLUSTERURI"
 	}
@@ -46,7 +88,7 @@ func GetMongoDBCLUSTERURI() string {
 
 // gets the mongodb name as defined in the .env file
 func GetMongoDBName() string {
-	name := os.Getenv("MONGODB_DBNAME")
+	name := viper.GetString(MONGODB_DBNAME)
 	if name == "" {
 		name = "MONGODB_DBNAME"
 	}
@@ -55,7 +97,7 @@ func GetMongoDBName() string {
 
 // gets the mongodb start uri as defined in the .env file
 func GetMongoDBStartURI() string {
-	startURI := os.Getenv("MONGODB_START_URI")
+	startURI := viper.GetString(MONGODB_START_URI)
 	if startURI == "" {
 		startURI = "MONGODB_START_URI"
 	}
@@ -63,7 +105,7 @@ func GetMongoDBStartURI() string {
 }
 
 func GetLogFileName() string {
-	logFileName := os.Getenv("LOG_FILE_NAME")
+	logFileName := viper.GetString(LOG_FILE_NAME)
 	if logFileName == "" {
 		logFileName = "LOG_FILE_NAME"
 	}
@@ -72,7 +114,7 @@ func GetLogFileName() string {
 
 // gets the system email as defined in the .env file
 func GetSystemEmail() string {
-	email := os.Getenv("SYSTEM_EMAIL")
+	email := viper.GetString(SYSTEM_EMAIL)
 	if email == "" {
 		email = ""
 	}
@@ -82,7 +124,7 @@ func GetSystemEmail() string {
 // GetSMTPPort retrieves the SMTP port from the environment and converts it to an integer.
 // If the environment variable is not set, it returns the default port 587.
 func GetSMTPPort() int {
-	port := os.Getenv("SMTP_PORT")
+	port := viper.GetString(SMTP_PORT)
 	if port == "" {
 		return 587
 	}
@@ -97,7 +139,7 @@ func GetSMTPPort() int {
 
 // gets the smtp password as defined in the .env file
 func GetSMTPPassword() string {
-	password := os.Getenv("SMTP_PASSWORD")
+	password := viper.GetString(SMTP_PASSWORD)
 	if password == "" {
 		password = ""
 	}
@@ -106,7 +148,7 @@ func GetSMTPPassword() string {
 
 // gets the smtp host as defined in the .env file
 func GetSMTPHost() string {
-	host := os.Getenv("SMTP_HOST")
+	host := viper.GetString(SMTP_HOST)
 	if host == "" {
 		host = "smtp.gmail.com"
 	}
@@ -115,7 +157,7 @@ func GetSMTPHost() string {
 
 // gets the certificate file name as defined in the .env file
 func GetCertFileName() string {
-	certFileName := os.Getenv("CERTIFICATE_FILE_PATH")
+	certFileName := viper.GetString(CERTIFICATE_FILE_PATH)
 	if certFileName == "" {
 		certFileName = "CERTIFICATE_FILE_PATH"
 	}
@@ -124,7 +166,7 @@ func GetCertFileName() string {
 
 // gets the key file name as defined in the .env file
 func GetKeyFileName() string {
-	keyFileName := os.Getenv("KEY_FILE_PATH")
+	keyFileName := viper.GetString(KEY_FILE_PATH)
 	if keyFileName == "" {
 		keyFileName = "KEY_FILE_PATH"
 	}
@@ -133,7 +175,7 @@ func GetKeyFileName() string {
 
 // gets gins run mode as defined in the .env file
 func GetGinRunMode() string {
-	ginRunMode := os.Getenv("GIN_RUN_MODE")
+	ginRunMode := viper.GetString(GIN_RUN_MODE)
 	if ginRunMode == "" {
 		ginRunMode = "debug"
 	}
@@ -142,7 +184,7 @@ func GetGinRunMode() string {
 
 // gets list of trusted proxies as defined in the .env file
 func GetTrustedProxies() []string {
-	trustedProxies := os.Getenv("TRUSTED_PROXIES")
+	trustedProxies := viper.GetString(TRUSTED_PROXIES)
 	if trustedProxies != "" {
 		proxyList := strings.Split(trustedProxies, ",")
 		return proxyList
@@ -151,7 +193,7 @@ func GetTrustedProxies() []string {
 }
 
 func GetJWTSecret() string {
-	secret := os.Getenv("JWT_SECRET")
+	secret := viper.GetString(JWT_SECRET)
 	if secret == "" {
 		secret = "JWT_SECRET"
 	}
@@ -159,7 +201,7 @@ func GetJWTSecret() string {
 }
 
 func GetSessionSecret() string {
-	secret := os.Getenv("SESSION_SECRET")
+	secret := viper.GetString(SESSION_SECRET)
 	if secret == "" {
 		secret = "SESSION_SECRET"
 	}
@@ -167,10 +209,18 @@ func GetSessionSecret() string {
 }
 
 func GetOccupiDomains() []string {
-	domains := os.Getenv("OCCUPI_DOMAINS")
+	domains := viper.GetString(OCCUPI_DOMAINS)
 	if domains != "" {
 		domainList := strings.Split(domains, ",")
 		return domainList
 	}
 	return []string{""}
+}
+
+func GetEnv() string {
+	env := viper.GetString(ENV)
+	if env == "" {
+		env = "ENV"
+	}
+	return env
 }

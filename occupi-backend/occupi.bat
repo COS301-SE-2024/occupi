@@ -2,16 +2,16 @@
 setlocal
 
 if "%1 %2" == "run dev" (
-    go run -v cmd/occupi-backend/main.go
+    go run -v cmd/occupi-backend/main.go -env=dev.localhost
     exit /b 0
 ) else if "%1 %2" == "run prod" (
-    go run cmd/occupi-backend/main.go
+    go run cmd/occupi-backend/main.go -env=dev.localhost
     exit /b 0
 ) else if "%1 %2" == "build dev" (
-    go build -v cmd/occupi-backend/main.go
+    go build -v cmd/occupi-backend/main.go -env=dev.localhost
     exit /b 0
 ) else if "%1 %2" == "build prod" (
-    go build cmd/occupi-backend/main.go
+    go build cmd/occupi-backend/main.go -env=dev.localhost
     exit /b 0
 ) else if "%1" == "test" (
     go test -v ./tests/...
@@ -35,10 +35,10 @@ if "%1 %2" == "run dev" (
 echo Usage: occupi.bat {command}
 echo.
 echo Available commands:
-echo   run dev           : go run -v cmd/occupi-backend/main.go
-echo   run prod          : go run cmd/occupi-backend/main.go
-echo   build dev         : go build -v cmd/occupi-backend/main.go
-echo   build prod        : go build cmd/occupi-backend/main.go
+echo   run dev           : go run -v cmd/occupi-backend/main.go -env=dev.localhost
+echo   run prod          : go run cmd/occupi-backend/main.go -env=dev.localhost
+echo   build dev         : go build -v cmd/occupi-backend/main.go -env=dev.localhost
+echo   build prod        : go build cmd/occupi-backend/main.go -env=dev.localhost
 echo   test              : go test ./tests/...
 echo   test codecov      : go test ./tests/... -race -coverprofile=coverage.out -covermode=atomic
 echo   lint              : golangci-lint run
