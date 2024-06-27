@@ -1,10 +1,12 @@
 import 'react-native-gesture-handler/jestSetup';
 
 jest.mock('react-native-reanimated', () => {
-  const Reanimated = require('react-native-reanimated/mock');
-  Reanimated.default.call = () => {};
-  return Reanimated;
-});
+    const Reanimated = require('react-native-reanimated/mock');
+    Reanimated.default.call = () => {};
+    return Reanimated;
+  });
+  
+  jest.mock('react-native-gesture-handler', () => {});
 
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
@@ -35,7 +37,7 @@ jest.mock('react-native-safe-area-context', () => ({
     SafeAreaProvider: ({ children }) => children,
     useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
   }));
-  
+
 jest.mock('expo-blur', () => {
   const React = require('react');
   const MockBlurView = (props) => {
@@ -65,3 +67,11 @@ jest.mock('@gluestack-ui/themed', () => ({
       show: jest.fn(),
     }),
   }));
+
+  jest.mock('react-native', () => {
+    const RN = jest.requireActual('react-native');
+    RN.NativeModules.StatusBarManager = {
+      getHeight: jest.fn(),
+    };
+    return RN;
+  });
