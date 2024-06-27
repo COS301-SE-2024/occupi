@@ -7,3 +7,25 @@ jest.mock('react-native-reanimated', () => {
 });
 
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
+
+jest.mock('@expo/vector-icons', () => {
+    const React = require('react');
+    const PropTypes = require('prop-types');
+  
+    const MockIcon = (props) => {
+      return React.createElement('svg', {
+        ...props,
+        children: props.children || 'icon',
+      });
+    };
+  
+    MockIcon.propTypes = {
+      name: PropTypes.string,
+    };
+  
+    return {
+      Ionicons: MockIcon,
+      Octicons: MockIcon,
+    };
+  });
+  
