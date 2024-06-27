@@ -172,7 +172,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 		logrus.Error(err)
 		return
 	}
-	ctx.SetCookie("token", token, int(expirationTime.Unix()), "/", "", false, true)
+	ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(
 		http.StatusOK,
