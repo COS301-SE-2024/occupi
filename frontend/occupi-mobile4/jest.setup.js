@@ -26,6 +26,8 @@ jest.mock('@expo/vector-icons', () => {
   return {
     Ionicons: MockIcon,
     Octicons: MockIcon,
+    Feather: MockIcon,
+    FontAwesome6: MockIcon,
   };
 });
 
@@ -46,19 +48,15 @@ jest.mock('react-native-responsive-screen', () => {
   };
 });
 
-jest.mock('expo-router', () => {
-  return {
-    useRouter: jest.fn(() => ({
+jest.mock('expo-router', () => ({
+    useRouter: () => ({
       push: jest.fn(),
-    })),
-  };
-});
+    }),
+  }));
 
-jest.mock('@gluestack-ui/themed', () => {
-  return {
+jest.mock('@gluestack-ui/themed', () => ({
     ...jest.requireActual('@gluestack-ui/themed'),
-    useToast: jest.fn().mockReturnValue({
+    useToast: () => ({
       show: jest.fn(),
     }),
-  };
-});
+  }));
