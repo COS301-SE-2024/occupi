@@ -99,9 +99,13 @@ jobs:
       with:
         go-version: '1.21'  # Specify the Go version you are using
     
-    - name: Decrypt env variables
+    - name: Decrypt defualt variables
       run: |
-                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .test.env.gpg > .test.env
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/config.yaml.gpg > configs/config.yaml
+
+    - name: Decrypt test variables
+      run: |
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/test.yaml.gpg > configs/test.yaml
                 
     - name: Run tests
       run: |

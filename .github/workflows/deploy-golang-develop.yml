@@ -58,10 +58,14 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Decrypt env variables
+    - name: Decrypt defualt variables
       run: |
-            echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .dev.env.gpg > .dev.env
-            
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/config.yaml.gpg > configs/config.yaml
+  
+    - name: Decrypt test variables
+      run: |
+                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/dev.deployed.yaml.gpg > configs/dev.deployed.yaml
+                
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
