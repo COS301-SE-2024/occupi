@@ -13,12 +13,12 @@ const (
 	MongodbPassword     = "MONGODB_PASSWORD"
 	MongodbClusteruri   = "MONGODB_CLUSTERURI"
 	MongodbDbname       = "MONGODB_DBNAME"
-	MongodbStartUri     = "MONGODB_START_URI"
+	MongodbStartURI     = "MONGODB_START_URI"
 	Port                = "PORT"
 	LogFileName         = "LOG_FILE_NAME"
-	SmtpHost            = "SMTP_HOST"
-	SmtpPort            = "SMTP_PORT"
-	SmtpPassword        = "SMTP_PASSWORD"
+	SMTPHost            = "SMTP_HOST"
+	SMTPPort            = "SMTP_PORT"
+	SMTPPassword        = "SMTP_PASSWORD"
 	SystemEmail         = "SYSTEM_EMAIL"
 	CertificateFilePath = "CERTIFICATE_FILE_PATH"
 	KeyFilePath         = "KEY_FILE_PATH"
@@ -97,7 +97,7 @@ func GetMongoDBName() string {
 
 // gets the mongodb start uri as defined in the config.yaml file
 func GetMongoDBStartURI() string {
-	startURI := viper.GetString(MongodbStartUri)
+	startURI := viper.GetString(MongodbStartURI)
 	if startURI == "" {
 		startURI = "MONGODB_START_URI"
 	}
@@ -125,7 +125,7 @@ func GetSystemEmail() string {
 // GetSMTPPort retrieves the SMTP port from the environment and converts it to an integer.
 // If the environment variable is not set, it returns the default port 587.
 func GetSMTPPort() int {
-	port := viper.GetString(SmtpPort)
+	port := viper.GetString(SMTPPort)
 	if port == "" {
 		return 587
 	}
@@ -140,7 +140,7 @@ func GetSMTPPort() int {
 
 // gets the smtp password as defined in the config.yaml file
 func GetSMTPPassword() string {
-	password := viper.GetString(SmtpPassword)
+	password := viper.GetString(SMTPPassword)
 	if password == "" {
 		password = ""
 	}
@@ -149,7 +149,7 @@ func GetSMTPPassword() string {
 
 // gets the smtp host as defined in the config.yaml file
 func GetSMTPHost() string {
-	host := viper.GetString(SmtpHost)
+	host := viper.GetString(SMTPHost)
 	if host == "" {
 		host = "smtp.gmail.com"
 	}
