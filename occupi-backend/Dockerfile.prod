@@ -8,14 +8,11 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
-# copy .prod.env file
-COPY .prod.env .env
-
 # Copy the source code into the container
 COPY . .
 
 # Build the Go application
-RUN go build -o occupi-backend ./cmd/occupi-backend
+RUN go build -o occupi-backend ./cmd/occupi-backend -env=prod
 
 # Expose the port the app runs on
 EXPOSE 8080

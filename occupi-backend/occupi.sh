@@ -4,10 +4,10 @@ print_help() {
     echo "Usage: $0 {command}"
     echo ""
     echo "Available commands:"
-    echo "  run dev           -> go run -v cmd/occupi-backend/main.go"
-    echo "  run prod          -> go run cmd/occupi-backend/main.go"
-    echo "  build dev         -> go build -v cmd/occupi-backend/main.go"
-    echo "  build prod        -> go build cmd/occupi-backend/main.go"
+    echo "  run dev           -> go run -v cmd/occupi-backend/main.go -env=dev.localhost"
+    echo "  run prod          -> go run cmd/occupi-backend/main.go -env=dev.localhost"
+    echo "  build dev         -> go build -v cmd/occupi-backend/main.go -env=dev.localhost"
+    echo "  build prod        -> go build cmd/occupi-backend/main.go -env=dev.localhost"
     echo "  test              -> go test ./tests/..."
     echo "  test codecov      -> go test ./tests/... -race -coverprofile=coverage.out -covermode=atomic"
     echo "  lint              -> golangci-lint run"
@@ -15,13 +15,13 @@ print_help() {
 }
 
 if [ "$1" = "run" ] && [ "$2" = "dev" ]; then
-    go run -v cmd/occupi-backend/main.go
+    go run -v cmd/occupi-backend/main.go -env=dev.localhost
 elif [ "$1" = "run" ] && [ "$2" = "prod" ]; then
-    go run cmd/occupi-backend/main.go
+    go run cmd/occupi-backend/main.go -env=dev.localhost
 elif [ "$1" = "build" ] && [ "$2" = "dev" ]; then
-    go build -v cmd/occupi-backend/main.go
+    go build -v cmd/occupi-backend/main.go -env=dev.localhost
 elif [ "$1" = "build" ] && [ "$2" = "prod" ]; then
-    go build cmd/occupi-backend/main.go
+    go build cmd/occupi-backend/main.go -env=dev.localhost
 elif [ "$1" = "test" ]; then
     go test -v ./tests/...
 elif [ "$1" = "test" ] && [ "$2" = "codecov" ]; then
