@@ -56,7 +56,7 @@ func main() {
 	logrus.Infof("Server running with key file: %s", keyFile)
 
 	// Listening on the port with TLS if env is prod or dev.deployed
-	if configs.GetEnv() == "prod" || configs.GetEnv() == "dev.deployed" {
+	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
 		if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
 			logrus.Fatal("Failed to run server: ", err)
 		}
