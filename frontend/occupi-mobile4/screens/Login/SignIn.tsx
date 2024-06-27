@@ -114,7 +114,7 @@ const SignInForm = () => {
             placement: 'top',
             render: ({ id }) => {
               return (
-                <Toast nativeID={id} variant="accent" action="error">
+                <Toast nativeID={String(id)} variant="accent" action="error">
                   <ToastTitle>Biometric authentication failed</ToastTitle>
                   {result.error && <Text>{result.error.message}</Text>}
                 </Toast>
@@ -128,7 +128,7 @@ const SignInForm = () => {
           placement: 'top',
           render: ({ id }) => {
             return (
-              <Toast nativeID={id} variant="accent" action="error">
+              <Toast nativeID={String(id)} variant="accent" action="error">
                 <ToastTitle>Biometric authentication error</ToastTitle>
                 <Text>{error.message}</Text>
               </Toast>
@@ -142,7 +142,7 @@ const SignInForm = () => {
         placement: 'top',
         render: ({ id }) => {
           return (
-            <Toast nativeID={id} variant="accent" action="error">
+            <Toast nativeID={String(id)} variant="accent" action="error">
               <ToastTitle>Biometric authentication not available</ToastTitle>
             </Toast>
           );
@@ -180,7 +180,7 @@ const SignInForm = () => {
           placement: 'top',
           render: ({ id }) => {
             return (
-              <Toast nativeID={id} variant="accent" action="success">
+              <Toast nativeID={String(id)} variant="accent" action="success">
                 <ToastTitle>{data.message}</ToastTitle>
               </Toast>
             );
@@ -194,7 +194,7 @@ const SignInForm = () => {
           placement: 'top',
           render: ({ id }) => {
             return (
-              <Toast nativeID={id} variant="accent" action="error">
+              <Toast nativeID={String(id)} variant="accent" action="error">
                 <ToastTitle>{data.message}</ToastTitle>
               </Toast>
             );
@@ -283,7 +283,7 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h={hp('7%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%')}>
                 <InputField
                   fontSize="$md"
                   placeholder="john.doe@gmail.com"
@@ -324,7 +324,7 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h={hp('7%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%')}>
                 <InputField
                   fontSize="$sm"
                   placeholder="Enter your password"
