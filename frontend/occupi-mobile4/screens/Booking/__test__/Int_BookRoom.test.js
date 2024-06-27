@@ -2,20 +2,6 @@ import React from 'react';
 import { render, waitFor, fireEvent, act, screen } from '@testing-library/react-native';
 import BookRoom from '../BookRoom'; // Adjust this path if necessary
 
-// Mock the necessary dependencies
-jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-  }),
-}));
-
-jest.mock('@gluestack-ui/themed', () => ({
-  ...jest.requireActual('@gluestack-ui/themed'),
-  useToast: () => ({
-    show: jest.fn(),
-  }),
-}));
-
 // Mock the fetch function
 global.fetch = jest.fn(() =>
   Promise.resolve({
