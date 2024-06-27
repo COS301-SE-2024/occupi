@@ -38,3 +38,27 @@ jest.mock('expo-blur', () => {
     BlurView: MockBlurView,
   };
 });
+
+jest.mock('react-native-responsive-screen', () => {
+  return {
+    widthPercentageToDP: jest.fn((value) => value),
+    heightPercentageToDP: jest.fn((value) => value),
+  };
+});
+
+jest.mock('expo-router', () => {
+  return {
+    useRouter: jest.fn(() => ({
+      push: jest.fn(),
+    })),
+  };
+});
+
+jest.mock('@gluestack-ui/themed', () => {
+  return {
+    ...jest.requireActual('@gluestack-ui/themed'),
+    useToast: jest.fn().mockReturnValue({
+      show: jest.fn(),
+    }),
+  };
+});
