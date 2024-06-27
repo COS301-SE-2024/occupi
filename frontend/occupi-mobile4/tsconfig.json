@@ -9,9 +9,11 @@
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+  "**/*.ts",
+  "**/*.tsx",
+  ".expo/types/**/*.ts",
+  "expo-env.d.ts",
+  "screens/Booking/__test__/Int_BookRoom.test.tsx",
+  "screens/Booking/__test__/Int_BookRoom.test.js"
+]
 }
