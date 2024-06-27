@@ -45,6 +45,10 @@ beforeEach(() => {
   jest.spyOn(require('expo-router'), 'useRouter').mockReturnValue({
     push: mockPush,
   });
+
+  jest.spyOn(require('@gluestack-ui/themed'), 'useToast').mockReturnValue({
+    show: jest.fn(),
+  });
 });
 
 afterEach(() => {
@@ -54,7 +58,11 @@ afterEach(() => {
 describe('BookRoom Component', () => {
   it('renders correctly and fetches room data', async () => {
     await act(async () => {
-      render(<BookRoom />);
+      render(
+        <SafeAreaProvider>
+          <BookRoom />
+        </SafeAreaProvider>
+      );
     });
 
     await waitFor(() => {
@@ -63,11 +71,16 @@ describe('BookRoom Component', () => {
       expect(screen.getByText('Room 2')).toBeTruthy();
     });
 
+    expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith('https://dev.occupi.tech/api/view-rooms');
   });
 
   it('toggles layout correctly', async () => {
-    const { getByTestId } = render(<BookRoom />);
+    const { getByTestId } = render(
+      <SafeAreaProvider>
+        <BookRoom />
+      </SafeAreaProvider>
+    );
 
     const toggleButton = getByTestId('layout-toggle');
     fireEvent.press(toggleButton);
@@ -85,7 +98,10 @@ describe('BookRoom Component', () => {
 
   it('shows toast on fetch error', async () => {
     global.fetch.mockImplementationOnce(() =>
-      Promise.reject(new Error('Fetch error'))
+      Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ error: { message: 'Fetch error' } }),
+      })
     );
 
     render(
@@ -98,9 +114,10 @@ describe('BookRoom Component', () => {
       expect(screen.getByTestId('book-header')).toBeTruthy();
     });
 
+    expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith('https://dev.occupi.tech/api/view-rooms');
     await waitFor(() => {
-      expect(require('@gluestack-ui/themed').useToast().show).toHaveBeenCalled();
+      expect(require('@gluestack-ui/themed').useToast().show).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -135,7 +152,11 @@ describe('BookRoom Component', () => {
       })
     );
 
-    const { getByText } = render(<BookRoom />);
+    const { getByText } = render(
+      <SafeAreaProvider>
+        <BookRoom />
+      </SafeAreaProvider>
+    );
 
     await waitFor(() => {
       expect(getByText('Room 1')).toBeTruthy();
@@ -146,7 +167,7 @@ describe('BookRoom Component', () => {
   it('navigates to office details on room press', async () => {
     global.fetch.mockImplementationOnce(() =>
       Promise.resolve({
-        ok: true,
+ok: true,
         json: () => Promise.resolve({
           data: [
             {
@@ -164,12 +185,17 @@ describe('BookRoom Component', () => {
       })
     );
 
-    const { getByText } = render(<BookRoom />);
+    const { getByText } = render(
+      <SafeAreaProvider>
+        <BookRoom />
+      </SafeAreaProvider>
+    );
     await waitFor(() => {
       expect(getByText('Room 1')).toBeTruthy();
     });
 
     fireEvent.press(getByText('Room 1'));
+    expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/office-details',
       params: { roomData: JSON.stringify({
