@@ -167,7 +167,6 @@ jest.mock('react-native', () => {
     },
   };
 });
-
 jest.mock('react-native', () => {
     const RN = jest.requireActual('react-native');
     return {
@@ -187,9 +186,19 @@ jest.mock('react-native', () => {
         ...RN.StyleSheet,
         create: (styles) => styles,
       },
+      Dimensions: {
+        get: jest.fn().mockReturnValue({
+          width: 375,
+          height: 667,
+          scale: 1,
+          fontScale: 1,
+        }),
+        set: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      },
     };
   });
-
   jest.mock('react-native/Libraries/Settings/Settings', () => ({
     get: jest.fn(),
     set: jest.fn(),
@@ -201,4 +210,12 @@ jest.mock('react-native', () => {
       get: jest.fn(),
       set: jest.fn(),
     })),
+  }));
+
+  jest.mock('react-native/Libraries/Utilities/PixelRatio', () => ({
+    get: jest.fn(() => 1),
+    getFontScale: jest.fn(() => 1),
+    getPixelSizeForLayoutSize: jest.fn(size => size),
+    roundToNearestPixel: jest.fn(size => size),
+    startDetecting: jest.fn(),
   }));
