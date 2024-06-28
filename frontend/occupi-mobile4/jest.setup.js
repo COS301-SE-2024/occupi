@@ -19,6 +19,33 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    Dimensions: {
+      get: jest.fn().mockReturnValue({ width: 360, height: 640 }),
+      set: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    },
+    NativeModules: {
+      ...RN.NativeModules,
+      SettingsManager: {
+        settings: { AppleLocale: 'en_US' },
+        get: jest.fn(),
+        set: jest.fn(),
+      },
+      StatusBarManager: {
+        getHeight: jest.fn(),
+      },
+    },
+    StyleSheet: {
+      ...RN.StyleSheet,
+      create: (styles) => styles,
+    },
+  };
+});
 jest.mock('react-native-gesture-handler', () => {
   const View = require('react-native/Libraries/Components/View/View');
   return {
