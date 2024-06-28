@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
@@ -419,6 +420,53 @@ func TestLowercaseFirstLetter(t *testing.T) {
 		if result != test.expected {
 			t.Errorf("LowercaseFirstLetter(%q) = %q; expected %q", test.input, result, test.expected)
 		}
+	}
+}
+
+func TestValidateJSON(t *testing.T) {
+	tests := []struct {
+		name         string
+		data         map[string]interface{}
+		expectedType reflect.Type
+		expectError  bool
+		errorMessage string
+	}{
+		{
+			name: "Valid JSON",
+			data: map[string]interface{}{
+				"floorNo": "1",
+			},
+			expectedType: reflect.TypeOf(models.RoomRequest{}),
+			expectError:  false,
+		},
+		{
+			name:         "Missing required field",
+			data:         map[string]interface{}{},
+			expectedType: reflect.TypeOf(models.RoomRequest{}),
+			expectError:  true,
+			errorMessage: "missing required field: floorNo",
+		},
+		{
+			name: "Incorrect type",
+			data: map[string]interface{}{
+				"floorNo": 123,
+			},
+			expectedType: reflect.TypeOf(models.RoomRequest{}),
+			expectError:  true,
+			errorMessage: "field floorNo is of incorrect type",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := utils.ValidateJSON(tt.data, tt.expectedType)
+			if (err != nil) != tt.expectError {
+				t.Errorf("ValidateJSON() error = %v, expectError %v", err, tt.expectError)
+			}
+			if tt.expectError && err.Error() != tt.errorMessage {
+				t.Errorf("ValidateJSON() error = %v, errorMessage %v", err.Error(), tt.errorMessage)
+			}
+		})
 	}
 }
 
