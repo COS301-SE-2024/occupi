@@ -145,3 +145,14 @@ jest.mock('@react-native-async-storage/async-storage', () => require('@react-nat
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
 }));
+
+jest.mock('react-native', () => {
+    const RN = jest.requireActual('react-native');
+    return {
+      ...RN,
+      StyleSheet: {
+        ...RN.StyleSheet,
+        create: (styles) => styles,
+      },
+    };
+  });
