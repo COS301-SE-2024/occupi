@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -172,4 +173,52 @@ func LowercaseFirstLetter(s string) string {
 		return s
 	}
 	return strings.ToLower(string(s[0])) + s[1:]
+}
+
+func TypeCheck(value interface{}, expectedType reflect.Type) bool {
+	valueType := reflect.TypeOf(value)
+
+	// Handle pointer types by dereferencing
+	if expectedType.Kind() == reflect.Ptr {
+		expectedType = expectedType.Elem()
+		if value == nil {
+			return true
+		}
+	}
+
+	// Handle pointer types by dereferencing
+	if valueType != nil && valueType.Kind() == reflect.Ptr {
+		valueType = valueType.Elem()
+	}
+
+	if expectedType.Kind() == reflect.Ptr {
+		expectedType = expectedType.Elem()
+	}
+
+	return valueType == expectedType
+}
+
+func ValidateJSON(data map[string]interface{}, expectedType reflect.Type) error {
+	for i := 0; i < expectedType.NumField(); i++ {
+		field := expectedType.Field(i)
+		jsonTag := field.Tag.Get("json")
+		validateTag := field.Tag.Get("binding")
+
+		// Check if the JSON field exists
+		value, exists := data[jsonTag]
+		if !exists {
+			if validateTag == "required" {
+				logrus.Error("missing required field: ", jsonTag)
+				return fmt.Errorf("missing required field: %s", jsonTag)
+			}
+			continue
+		}
+
+		// Check the field type
+		if !TypeCheck(value, field.Type) {
+			logrus.Error("field ", jsonTag, " is of incorrect type")
+			return fmt.Errorf("field %s is of incorrect type", jsonTag)
+		}
+	}
+	return nil
 }

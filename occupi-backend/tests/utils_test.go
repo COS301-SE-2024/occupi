@@ -2,6 +2,7 @@ package tests
 
 import (
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -418,5 +419,36 @@ func TestLowercaseFirstLetter(t *testing.T) {
 		if result != test.expected {
 			t.Errorf("LowercaseFirstLetter(%q) = %q; expected %q", test.input, result, test.expected)
 		}
+	}
+}
+
+func TestTypeCheck(t *testing.T) {
+	tests := []struct {
+		name         string
+		value        interface{}
+		expectedType reflect.Type
+		expected     bool
+	}{
+		{"Match int", 42, reflect.TypeOf(42), true},
+		{"Match string", "hello", reflect.TypeOf("hello"), true},
+		{"Match float", 3.14, reflect.TypeOf(3.14), true},
+		{"Mismatch int", "42", reflect.TypeOf(42), false},
+		{"Mismatch string", 42, reflect.TypeOf("hello"), false},
+		{"Pointer match", new(int), reflect.TypeOf(new(int)), true},
+		{"Pointer mismatch", new(string), reflect.TypeOf(new(int)), false},
+		{"Nil pointer", nil, reflect.TypeOf((*int)(nil)), true},
+		{"Non-nil pointer match", new(int), reflect.TypeOf((*int)(nil)), true},
+		{"Nil non-pointer", nil, reflect.TypeOf(42), false},
+		{"Pointer to int", new(int), reflect.TypeOf(int(0)), true},
+		{"Pointer to string", new(string), reflect.TypeOf(""), true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.TypeCheck(tt.value, tt.expectedType)
+			if result != tt.expected {
+				t.Errorf("typeCheck(%v, %v) = %v; want %v", tt.value, tt.expectedType, result, tt.expected)
+			}
+		})
 	}
 }

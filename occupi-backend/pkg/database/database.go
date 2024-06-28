@@ -365,8 +365,8 @@ func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, id string, email st
 }
 
 // Gets all rooms available for booking
-func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room, error) {
-	collection := db.Database("Occupi").Collection("Rooms")
+func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo string) ([]models.Room, error) {
+	collection := db.Database("Occupi").Collection("RoomsV2")
 
 	var cursor *mongo.Cursor
 	var err error
@@ -375,17 +375,10 @@ func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room
 	// findOptions.SetLimit(10)       // Limit the results to 10
 	// findOptions.SetSkip(int64(10)) // Skip the specified number of documents for pagination
 
-	if floorNo == 0 {
-		// Find all rooms
-		filter := bson.M{"floorNo": 0}
-		// cursor, err = collection.Find(context.TODO(), filter, findOptions)
-		cursor, err = collection.Find(context.TODO(), filter)
-	} else {
-		// Find all rooms on the specified floor
-		filter := bson.M{"floorNo": floorNo}
-		// cursor, err = collection.Find(context.TODO(), filter, findOptions)
-		cursor, err = collection.Find(context.TODO(), filter)
-	}
+	// Find all rooms on the specified floor
+	filter := bson.M{"floorNo": floorNo}
+	// cursor, err = collection.Find(context.TODO(), filter, findOptions)
+	cursor, err = collection.Find(context.TODO(), filter)
 
 	if err != nil {
 		logrus.Error(err)

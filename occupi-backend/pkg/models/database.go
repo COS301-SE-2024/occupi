@@ -18,16 +18,26 @@ type User struct {
 type Booking struct {
 	ID        string    `json:"_id" bson:"_id,omitempty"`
 	OccupiID  string    `json:"occupiId" bson:"occupiId,omitempty"`
-	RoomId    string    `json:"roomId" bson:"roomId" binding:"required"`
+	RoomID    string    `json:"roomId" bson:"roomId" binding:"required"`
 	RoomName  string    `json:"roomName" bson:"roomName" binding:"required"`
-	Slot      int       `json:"slot" bson:"slot" binding:"required,min=1"`
 	Emails    []string  `json:"emails" bson:"emails" binding:"required,dive,email"`
 	CheckedIn bool      `json:"checkedIn" bson:"checkedIn"`
 	Creator   string    `json:"creator" bson:"creator" binding:"required,email"`
-	FloorNo   int       `json:"floorNo" bson:"floorNo" binding:"required"`
-	Date      time.Time `json:"date" bson:"date,omitempty"`
-	Start     time.Time `json:"start" bson:"start,omitempty"`
-	End       time.Time `json:"end" bson:"end,omitempty"`
+	FloorNo   string    `json:"floorNo" bson:"floorNo" binding:"required"`
+	Date      time.Time `json:"date" bson:"date" binding:"required"`
+	Start     time.Time `json:"start" bson:"start" binding:"required"`
+	End       time.Time `json:"end" bson:"end" binding:"required"`
+}
+type Cancel struct {
+	ID       string    `json:"_id" bson:"_id,omitempty"`
+	RoomID   string    `json:"roomId" bson:"roomId" binding:"required"`
+	RoomName string    `json:"roomName" bson:"roomName" binding:"required"`
+	Emails   []string  `json:"emails" bson:"emails" binding:"required,dive,email"`
+	Creator  string    `json:"creator" bson:"creator" binding:"required,email"`
+	FloorNo  string    `json:"floorNo" bson:"floorNo" binding:"required"`
+	Date     time.Time `json:"date" bson:"date" binding:"required"`
+	Start    time.Time `json:"start" bson:"start" binding:"required"`
+	End      time.Time `json:"end" bson:"end" binding:"required"`
 }
 
 // structure of CheckIn
@@ -51,10 +61,14 @@ type ViewBookings struct {
 type Room struct {
 	ID           string `json:"_id" bson:"_id,omitempty"`
 	RoomID       string `json:"roomId" bson:"roomId,omitempty"`
-	RoomNo       int    `json:"roomNo" bson:"roomNo,omitempty"`
-	FloorNo      int    `json:"floorNo" bson:"floorNo,omitempty"`
+	RoomNo       string `json:"roomNo" bson:"roomNo,omitempty"`
+	FloorNo      string `json:"floorNo" bson:"floorNo" binding:"required"`
 	MinOccupancy int    `json:"minOccupancy" bson:"minOccupancy,omitempty"`
-	MaxOccupancy int    `json:"maxOccupancy" bson:"maxOccupancy,omitempty"`
-	Description  string `json:"description" bson:"description,omitempty"`
-	RoomName     string `json:"roomName" bson:"roomName,omitempty"`
+	MaxOccupancy int    `json:"maxOccupancy" bson:"maxOccupancy"`
+	Description  string `json:"description" bson:"description"`
+	RoomName     string `json:"roomName" bson:"roomName"`
+}
+
+type RoomRequest struct {
+	FloorNo string `json:"floorNo" bson:"floorNo" binding:"required"`
 }
