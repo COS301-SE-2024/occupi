@@ -1,19 +1,18 @@
 import 'react-native-gesture-handler/jestSetup';
 
-// Mock the GestureHandlerRootView component
-jest.mock('react-native-gesture-handler', () => {
-  const actualGestureHandler = jest.requireActual('react-native-gesture-handler');
-  return {
-    ...actualGestureHandler,
-    GestureHandlerRootView: (props) => <div {...props} />,
-  };
-});
+jest.mock('@react-navigation/stack', () => {
+    return {
+      createStackNavigator: jest.fn(() => ({
+        Navigator: 'Navigator',
+        Screen: 'Screen',
+      })),
+    };
+  });
 
-
-// Mocking react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => {
   const View = require('react-native/Libraries/Components/View/View');
   return {
+    GestureHandlerRootView: View,
     Swipeable: View,
     DrawerLayout: View,
     State: {},
@@ -33,18 +32,15 @@ jest.mock('react-native-gesture-handler', () => {
     PanGestureHandler: View,
     PinchGestureHandler: View,
     RotationGestureHandler: View,
-    /* Buttons */
     RawButton: View,
     BaseButton: View,
     RectButton: View,
     BorderlessButton: View,
-    /* Other */
     FlatList: View,
     gestureHandlerRootHOC: jest.fn(),
     Directions: {},
   };
 });
-
 
 jest.mock('react-native-reanimated', () => {
     const Reanimated = require('react-native-reanimated/mock');
