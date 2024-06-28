@@ -121,22 +121,39 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
 }));
 
+
+
 jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    NativeModules: {
-      ...RN.NativeModules,
-      SettingsManager: {
-        settings: {},
+    const RN = jest.requireActual('react-native');
+    return {
+      ...RN,
+      NativeModules: {
+        ...RN.NativeModules,
+        SettingsManager: {
+          settings: {},
+          get: jest.fn(),
+          set: jest.fn(),
+        },
+        StatusBarManager: {
+          getHeight: jest.fn(),
+        },
       },
-      StatusBarManager: {
-        getHeight: jest.fn(),
+      StyleSheet: {
+        ...RN.StyleSheet,
+        create: (styles) => styles,
       },
-    },
-    StyleSheet: {
-      ...RN.StyleSheet,
-      create: (styles) => styles,
-    },
-  };
-});
+    };
+  });
+
+  jest.mock('react-native/Libraries/Settings/Settings', () => ({
+    get: jest.fn(),
+    set: jest.fn(),
+  }));
+
+  jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
+    getEnforcing: jest.fn(() => ({
+      getConstants: () => ({}),
+      get: jest.fn(),
+      set: jest.fn(),
+    })),
+  }));
