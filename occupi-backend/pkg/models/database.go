@@ -44,7 +44,6 @@ type Cancel struct {
 type CheckIn struct {
 	BookingID string `json:"bookingId" bson:"bookingId" binding:"required"`
 	Creator   string `json:"creator" bson:"creator" binding:"required,email"`
-	RoomID    string `json:"roomId" bson:"roomId" binding:"required"`
 }
 
 type OTP struct {

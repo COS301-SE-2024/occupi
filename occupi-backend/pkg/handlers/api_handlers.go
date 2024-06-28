@@ -137,14 +137,14 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Check if the booking exists
-	exists := database.BookingExists(ctx, appsession.DB, cancel.ID)
+	exists := database.BookingExists(ctx, appsession.DB, cancel.BookingID)
 	if !exists {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
 		return
 	}
 
 	// Confirm the cancellation to the database
-	_, err = database.ConfirmCancellation(ctx, appsession.DB, cancel.ID, cancel.Creator)
+	_, err = database.ConfirmCancellation(ctx, appsession.DB, cancel.BookingID, cancel.Creator)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel booking", constants.InternalServerErrorCode, "Failed to cancel booking", nil))
 		return
@@ -169,7 +169,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	// Validate JSON
 	validatedData, err := utils.ValidateJSON(checkInRequest, reflect.TypeOf(models.CheckIn{}))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, err.Error(), constants.BadRequestCode, err.Error(), nil))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
 		return
 	}
 
@@ -184,7 +184,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	// Check if the booking exists
 	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingID)
 	if !exists {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(404, "Failed to find booking", constants.InternalServerErrorCode, "Failed to find booking", nil))
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
 		return
 	}
 

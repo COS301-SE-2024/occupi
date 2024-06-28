@@ -121,13 +121,13 @@ func TestViewBookingsHandler(t *testing.T) {
 	}
 }
 
-func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) error {
+func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (map[string]interface{}, error) {
 	req, err := http.NewRequest("POST", "/api/book-room", bytes.NewBuffer([]byte(payload)))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
 
+	req.Header.Set("Content-Type", "application/json")
 	// Add the stored cookies to the request
 	for _, cookie := range cookies {
 		req.AddCookie(cookie)
@@ -137,11 +137,18 @@ func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) er
 	r.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
-		return fmt.Errorf("expected status 200 but got %d", rr.Code)
+		return nil, fmt.Errorf("expected status 200 but got %d", rr.Code)
 	}
 
-	return nil
+	var response map[string]interface{}
+	err = json.Unmarshal(rr.Body.Bytes(), &response)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal response: %v", err)
+	}
+
+	return response, nil
 }
+
 func TestCancelBooking(t *testing.T) {
 	// Connect to the test database
 	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -181,28 +188,14 @@ func TestCancelBooking(t *testing.T) {
 		payload            string
 		expectedStatusCode int
 		expectedMessage    string
-		setupFunc          func()
+		setupFunc          func() string // Return booking ID for valid setup
 	}{
 		{
 			name: "Valid Request",
 			payload: `{
-                "_id": "5f8f8f8f8f8f8f8f8f8f8f8",
-				"roomId": "12345",
-				"emails": ["test@example.com"],
-				"creator": "test@example.com",
-				"floorNo": "1",
-				"roomName": "Test Room",
-				"date": "2024-07-01T09:00:00Z",
-				"start": "2024-07-01T09:00:00Z",
-				"end": "2024-07-01T10:00:00Z"
-            }`,
-			expectedStatusCode: http.StatusOK,
-			expectedMessage:    "Successfully cancelled booking!",
-			setupFunc: func() {
-				// Insert a booking to be cancelled using the helper function
-				bookingPayload := `{
-					"_id": "5f8f8f8f8f8f8f8f8f8f8f8",
-                    "roomId": "12345",
+                	"bookingId": "mock_id",
+					"creator": "test@example.com",
+					"roomId": "12345",
                     "emails": ["test@example.com"],
                     "creator": "test@example.com",
                     "floorNo": "1",
@@ -210,12 +203,26 @@ func TestCancelBooking(t *testing.T) {
                     "date": "2024-07-01T09:00:00Z",
                     "start": "2024-07-01T09:00:00Z",
                     "end": "2024-07-01T10:00:00Z"
+            }`,
+			expectedStatusCode: http.StatusOK,
+			expectedMessage:    "Successfully cancelled booking!",
+			setupFunc: func() string {
+				// Insert a booking to be cancelled using the helper function
+				bookingPayload := `{
+                    "roomId": "12345",
+					"emails": ["test@example.com"],
+					"creator": "test@example.com",
+					"floorNo": "1",
+					"roomName": "Test Room",
+					"date": "2024-07-01T00:00:00Z",
+					"start": "2024-07-01T09:00:00Z",
+					"end": "2024-07-01T10:00:00Z"
                 }`
-
-				err := createMockBooking(r, bookingPayload, cookies)
+				response, err := createMockBooking(r, bookingPayload, cookies)
 				if err != nil {
 					t.Fatalf("could not create mock booking: %v", err)
 				}
+				return response["data"].(string) // Assuming "data" contains the booking ID
 			},
 		},
 		{
@@ -226,25 +233,37 @@ func TestCancelBooking(t *testing.T) {
             }`,
 			expectedStatusCode: http.StatusBadRequest,
 			expectedMessage:    "Invalid request payload",
-			setupFunc:          func() {},
+			setupFunc:          func() string { return "" },
 		},
 		{
 			name: "Booking Not Found",
 			payload: `{
-                "id": "nonexistent",
-                "creator": "test@example.com",
-				"roomId": "12345"
+                "bookingId": "nonexistent",
+				"creator": "test@example.com",
+				"roomId": "12345",
+				"emails": ["test@example.com"],
+				"creator": "test@example.com",
+				"floorNo": "1",
+				"roomName": "Test Room",
+				"date": "2024-07-01T09:00:00Z",
+				"start": "2024-07-01T09:00:00Z",
+				"end": "2024-07-01T10:00:00Z"
             }`,
 			expectedStatusCode: http.StatusNotFound,
 			expectedMessage:    "Booking not found",
-			setupFunc:          func() {},
+			setupFunc:          func() string { return "" },
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Setup the test case
-			tc.setupFunc()
+			// Setup the test case and get the booking ID if applicable
+			bookingID := tc.setupFunc()
+
+			// Replace the mock_id placeholder in the payload with the actual booking ID
+			if bookingID != "" {
+				tc.payload = strings.Replace(tc.payload, "mock_id", bookingID, 1)
+			}
 
 			// Create a request to pass to the handler
 			req, err := http.NewRequest("POST", "/api/cancel-booking", bytes.NewBuffer([]byte(tc.payload)))
@@ -277,6 +296,7 @@ func TestCancelBooking(t *testing.T) {
 		})
 	}
 }
+
 func TestBookRoom(t *testing.T) {
 	// Connect to the test database
 	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -387,7 +407,137 @@ func TestBookRoom(t *testing.T) {
 		})
 	}
 }
+func TestCheckIn(t *testing.T) {
+	// Connect to the test database
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
+	// Set Gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	// Generate a token
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	// Ping-auth test to ensure everything is set up correctly
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+
+	// Store the cookies from the login response
+	cookies := req.Cookies()
+
+	// Define test cases
+	testCases := []struct {
+		name               string
+		payload            string
+		expectedStatusCode int
+		expectedMessage    string
+		setupFunc          func() string // Return booking ID for valid setup
+	}{
+		{
+			name: "Valid Request",
+			payload: `{
+				"bookingId": "mock_id",
+				"creator": "test@example.com"
+			}`,
+			expectedStatusCode: http.StatusOK,
+			expectedMessage:    "Successfully checked in!",
+			setupFunc: func() string {
+				// Insert a booking to be cancelled using the helper function
+				bookingPayload := `{
+                    "roomId": "12345",
+					"emails": ["test@example.com"],
+					"creator": "test@example.com",
+					"floorNo": "1",
+					"roomName": "Test Room",
+					"date": "2024-07-01T00:00:00Z",
+					"start": "2024-07-01T09:00:00Z",
+					"end": "2024-07-01T10:00:00Z"
+                }`
+				response, err := createMockBooking(r, bookingPayload, cookies)
+				if err != nil {
+					t.Fatalf("could not create mock booking: %v", err)
+				}
+				return response["data"].(string) // Assuming "data" contains the booking ID
+			},
+		},
+		{
+			name: "Invalid Request Payload",
+			payload: `{
+				"bookingID": "",
+				"creator": "test@example.com"
+			}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedMessage:    "Invalid request payload",
+			setupFunc:          func() string { return "" },
+		},
+		{
+			name: "Booking Not Found",
+			payload: `{
+				"bookingId": "nonexistent",
+				"creator": "test@example.com"
+			}`,
+			expectedStatusCode: http.StatusNotFound,
+			expectedMessage:    "Booking not found",
+			setupFunc:          func() string { return "" },
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup the test case and get the booking ID if applicable
+			bookingID := tc.setupFunc()
+
+			// Replace the mock_id placeholder in the payload with the actual booking ID
+			if bookingID != "" {
+				tc.payload = strings.Replace(tc.payload, "mock_id", bookingID, 1)
+			}
+
+			// Create a request to pass to the handler
+			req, err := http.NewRequest("POST", "/api/check-in", bytes.NewBuffer([]byte(tc.payload)))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Add the stored cookies to the request
+			for _, cookie := range cookies {
+				req.AddCookie(cookie)
+			}
+
+			// Create a response recorder to record the response
+			rr := httptest.NewRecorder()
+
+			// Serve the request
+			r.ServeHTTP(rr, req)
+
+			// Check the status code is what we expect
+			assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
+
+			// Check the response message
+			var actualResponse map[string]interface{}
+			err = json.Unmarshal(rr.Body.Bytes(), &actualResponse)
+			if err != nil {
+				t.Fatalf("could not unmarshal response: %v", err)
+			}
+
+			assert.Equal(t, tc.expectedMessage, actualResponse["message"], "handler returned unexpected message")
+		})
+	}
+}
 func TestPingRoute(t *testing.T) {
 	// connect to the database
 	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
