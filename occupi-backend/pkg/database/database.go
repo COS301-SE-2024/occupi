@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -17,46 +16,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-// attempts to and establishes a connection with the remote mongodb database
-func ConnectToDatabase(args ...string) *mongo.Client {
-	// MongoDB connection parameters
-	username := configs.GetMongoDBUsername()
-	password := configs.GetMongoDBPassword()
-	clusterURI := configs.GetMongoDBCLUSTERURI()
-	dbName := configs.GetMongoDBName()
-	mongoDBStartURI := configs.GetMongoDBStartURI()
-
-	// Escape the special characters in the password
-	escapedPassword := url.QueryEscape(password)
-
-	// Construct the connection URI
-	var uri string
-	if len(args) > 0 {
-		uri = fmt.Sprintf("%s://%s:%s@%s/%s?%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName, args[0])
-	} else {
-		uri = fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
-	}
-
-	// Set client options
-	clientOptions := options.Client().ApplyURI(uri)
-
-	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	// Check the connection
-	err = client.Ping(context.TODO(), nil)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	logrus.Info("Connected to MongoDB!")
-
-	return client
-}
 
 // returns all data from the mongo database
 func GetAllData(db *mongo.Client) []bson.M {
