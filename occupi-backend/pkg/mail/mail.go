@@ -89,11 +89,11 @@ func SendBookingEmails(booking models.Booking) error {
 func SendCancellationEmails(cancel models.Cancel) error {
 	// Prepare the email content
 	creatorSubject := "Booking Cancelled - Occupi"
-	creatorBody := FormatCancellationEmailBodyForBooker(cancel.ID, cancel.RoomID, 0, cancel.Creator)
+	creatorBody := FormatCancellationEmailBodyForBooker(cancel.BookingID, cancel.RoomID, 0, cancel.Creator)
 
 	// Prepare the email content for attendees
 	attendeesSubject := "Booking Cancelled - Occupi"
-	attendeesBody := FormatCancellationEmailBodyForAttendees(cancel.ID, cancel.RoomID, 0, cancel.Creator)
+	attendeesBody := FormatCancellationEmailBodyForAttendees(cancel.BookingID, cancel.RoomID, 0, cancel.Creator)
 
 	var attendees []string
 	for _, email := range cancel.Emails {

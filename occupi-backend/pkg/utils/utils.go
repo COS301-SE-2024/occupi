@@ -235,12 +235,6 @@ func ValidateJSON(data map[string]interface{}, expectedType reflect.Type) (map[s
 			continue
 		}
 
-		// Check the field type
-		if !TypeCheck(value, field.Type) {
-			logrus.Error("field ", jsonTag, " is of incorrect type")
-			return nil, fmt.Errorf("field %s is of incorrect type", jsonTag)
-		}
-
 		// Parse date/time strings to time.Time
 		if field.Type == reflect.TypeOf(time.Time{}) {
 			parsedTime, err := time.Parse(time.RFC3339, value.(string))
@@ -252,6 +246,13 @@ func ValidateJSON(data map[string]interface{}, expectedType reflect.Type) (map[s
 		} else {
 			validatedData[jsonTag] = value
 		}
+
+		// Check the field type
+		if !TypeCheck(value, field.Type) {
+			logrus.Error("field ", jsonTag, " is of incorrect type")
+			return nil, fmt.Errorf("field %s is of incorrect type", jsonTag)
+		}
+
 	}
 	return validatedData, nil
 }

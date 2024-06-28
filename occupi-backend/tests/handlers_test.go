@@ -1,9 +1,12 @@
 package tests
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -21,224 +24,369 @@ import (
 	// "github.com/stretchr/testify/mock"
 )
 
-// func TestViewBookingsHandler(t *testing.T) {
-// 	// Load environment variables from .env file
-// 	if err := godotenv.Load("../.env"); err != nil {
-// 		t.Fatal("Error loading .env file: ", err)
-// 	}
+func TestViewBookingsHandler(t *testing.T) {
+	// connect to the database
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
-// 	// setup logger to log all server interactions
-// 	utils.SetupLogger()
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
 
-// 	// connect to the database
-// 	db := database.ConnectToDatabase()
+	// Create a Gin router
+	r := gin.Default()
 
-// set gin run mode
-// gin.SetMode("test")
+	// Register the route
+	router.OccupiRouter(r, db)
 
-// 	// Create a Gin router
-// 	r := gin.Default()
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
-// 	// Register the route
-// 	router.OccupiRouter(r, db)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
 
-// 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	r.ServeHTTP(w, req)
 
-// 	w := httptest.NewRecorder()
-// 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
-// 	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
 
-// 	r.ServeHTTP(w, req)
+	// Store the cookies from the login response
+	cookies := req.Cookies()
 
-// 	assert.Equal(t, http.StatusOK, w.Code)
-// 	assert.Equal(
-// 		t,
-// 		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
-// 		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
-// 	)
+	// Define test cases
+	testCases := []struct {
+		name               string
+		email              string
+		expectedStatusCode float64
+		expectedMessage    string
+		expectedBookings   int
+	}{
+		{
+			name:               "Valid Request",
+			email:              "test.example@gmail.com",
+			expectedStatusCode: float64(http.StatusOK),
+			expectedMessage:    "Successfully fetched bookings!",
+			expectedBookings:   2,
+		},
+		{
+			name:               "Invalid Request",
+			email:              "",
+			expectedStatusCode: float64(http.StatusBadRequest),
+			expectedMessage:    "Invalid request payload",
+			expectedBookings:   0,
+		},
+	}
 
-// 	// Store the cookies from the login response
-// 	cookies := req.Cookies()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a request to pass to the handler
+			req, err := http.NewRequest("GET", "/api/view-bookings?email="+tc.email, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-// 	// Define test cases
-// 	testCases := []struct {
-// 		name               string
-// 		email              string
-// 		expectedStatusCode float64
-// 		expectedMessage    string
-// 		expectedBookings   int
-// 	}{
-// 		{
-// 			name:               "Valid Request",
-// 			email:              "test.example@gmail.com",
-// 			expectedStatusCode: float64(http.StatusOK),
-// 			expectedMessage:    "Successfully fetched bookings!",
-// 			expectedBookings:   2,
-// 		},
-// 		{
-// 			name:               "Invalid Request",
-// 			email:              "",
-// 			expectedStatusCode: float64(http.StatusBadRequest),
-// 			expectedMessage:    "Invalid request payload",
-// 			expectedBookings:   0,
-// 		},
-// 	}
+			// Add the stored cookies to the request
+			for _, cookie := range cookies {
+				req.AddCookie(cookie)
+			}
 
-// 	for _, tc := range testCases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			// Create a request to pass to the handler
-// 			req, err := http.NewRequest("GET", "/api/view-bookings?email="+tc.email, nil)
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			}
+			// Create a response recorder to record the response
+			rr := httptest.NewRecorder()
 
-// 			// Add the stored cookies to the request
-// 			for _, cookie := range cookies {
-// 				req.AddCookie(cookie)
-// 			}
+			// Serve the request
+			r.ServeHTTP(rr, req)
 
-// 			// Create a response recorder to record the response
-// 			rr := httptest.NewRecorder()
+			// Check the status code is what we expect
+			assert.Equal(t, tc.expectedStatusCode, float64(rr.Code), "handler returned wrong status code")
 
-// 			// Serve the request
-// 			r.ServeHTTP(rr, req)
+			// Define the expected response
+			expectedResponse := gin.H{
+				"message": tc.expectedMessage,
+				"data":    make([]map[string]interface{}, tc.expectedBookings), // Adjust expected data length
+				"status":  tc.expectedStatusCode,
+			}
 
-// 			// Check the status code is what we expect
-// 			assert.Equal(t, tc.expectedStatusCode, float64(rr.Code), "handler returned wrong status code")
+			// Unmarshal the actual response
+			var actualResponse gin.H
+			if err := json.Unmarshal(rr.Body.Bytes(), &actualResponse); err != nil {
+				t.Fatalf("could not unmarshal response: %v", err)
+			}
 
-// 			// Define the expected response
-// 			expectedResponse := gin.H{
-// 				"message": tc.expectedMessage,
-// 				"data":    make([]map[string]interface{}, tc.expectedBookings), // Adjust expected data length
-// 				"status":  tc.expectedStatusCode,
-// 			}
+			// Compare the responses
+			assert.Equal(t, expectedResponse["message"], actualResponse["message"], "handler returned unexpected message")
+			assert.Equal(t, expectedResponse["status"], actualResponse["status"], "handler returned unexpected status")
+		})
+	}
+}
 
-// 			// Unmarshal the actual response
-// 			var actualResponse gin.H
-// 			if err := json.Unmarshal(rr.Body.Bytes(), &actualResponse); err != nil {
-// 				t.Fatalf("could not unmarshal response: %v", err)
-// 			}
+func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) error {
+	req, err := http.NewRequest("POST", "/api/book-room", bytes.NewBuffer([]byte(payload)))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
 
-// 			// Compare the responses
-// 			assert.Equal(t, expectedResponse["message"], actualResponse["message"], "handler returned unexpected message")
-// 			assert.Equal(t, expectedResponse["status"], actualResponse["status"], "handler returned unexpected status")
-// 		})
-// 	}
-// }
+	// Add the stored cookies to the request
+	for _, cookie := range cookies {
+		req.AddCookie(cookie)
+	}
 
-// func TestBookRoom(t *testing.T) {
-// 	// Load environment variables from .env file
-// 	if err := godotenv.Load("../.env"); err != nil {
-// 		t.Fatal("Error loading .env file: ", err)
-// 	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
 
-// 	// Setup logger to log all server interactions
-// 	utils.SetupLogger()
+	if rr.Code != http.StatusOK {
+		return fmt.Errorf("expected status 200 but got %d", rr.Code)
+	}
 
-// 	// Connect to the database
-// 	db := database.ConnectToDatabase()
+	return nil
+}
+func TestCancelBooking(t *testing.T) {
+	// Connect to the test database
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
-// set gin run mode
-// gin.SetMode("test")
+	// Set Gin run mode
+	gin.SetMode(configs.GetGinRunMode())
 
-// 	// Create a Gin router
-// 	r := gin.Default()
+	// Create a Gin router
+	r := gin.Default()
 
-// 	// Register the route
-// 	router.OccupiRouter(r, db)
+	// Register the route
+	router.OccupiRouter(r, db)
 
-// 	// Generate a token
-// 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	// Generate a token
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
-// 	// Ping-auth test to ensure everything is set up correctly
-// 	w := httptest.NewRecorder()
-// 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
-// 	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+	// Ping-auth test to ensure everything is set up correctly
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
 
-// 	r.ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
-// 	assert.Equal(t, http.StatusOK, w.Code)
-// 	assert.Equal(
-// 		t,
-// 		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
-// 		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
-// 	)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
 
-// 	// Store the cookies from the login response
-// 	cookies := req.Cookies()
+	// Store the cookies from the login response
+	cookies := req.Cookies()
 
-// 	// Define test cases
-// 	testCases := []struct {
-// 		name               string
-// 		payload            string
-// 		expectedStatusCode int
-// 		expectedMessage    string
-// 	}{
-// 		{
-// 			name: "Valid Request",
-// 			payload: `{
-// 				"roomID": "12345",
-// 				"Slot": 1,
-// 				"Emails": ["test@example.com"],
-// 				"Creator": "test@example.com",
-// 				"FloorNo": 1,
-// 				"roomName": "Test Room"
-// 			}`,
-// 			expectedStatusCode: http.StatusOK,
-// 			expectedMessage:    "Successfully booked!",
-// 		},
-// 		{
-// 			name: "Invalid Request Payload",
-// 			payload: `{
-// 				"roomID": "",
-// 				"Slot": "",
-// 				"Emails": [],
-// 				"Creator": "",
-// 				"FloorNo": 0
-// 			}`,
-// 			expectedStatusCode: http.StatusBadRequest,
-// 			expectedMessage:    "Invalid request payload",
-// 		},
-// 	}
+	// Define test cases
+	testCases := []struct {
+		name               string
+		payload            string
+		expectedStatusCode int
+		expectedMessage    string
+		setupFunc          func()
+	}{
+		{
+			name: "Valid Request",
+			payload: `{
+                "_id": "5f8f8f8f8f8f8f8f8f8f8f8",
+				"roomId": "12345",
+				"emails": ["test@example.com"],
+				"creator": "test@example.com",
+				"floorNo": "1",
+				"roomName": "Test Room",
+				"date": "2024-07-01T09:00:00Z",
+				"start": "2024-07-01T09:00:00Z",
+				"end": "2024-07-01T10:00:00Z"
+            }`,
+			expectedStatusCode: http.StatusOK,
+			expectedMessage:    "Successfully cancelled booking!",
+			setupFunc: func() {
+				// Insert a booking to be cancelled using the helper function
+				bookingPayload := `{
+					"_id": "5f8f8f8f8f8f8f8f8f8f8f8",
+                    "roomId": "12345",
+                    "emails": ["test@example.com"],
+                    "creator": "test@example.com",
+                    "floorNo": "1",
+                    "roomName": "Test Room",
+                    "date": "2024-07-01T09:00:00Z",
+                    "start": "2024-07-01T09:00:00Z",
+                    "end": "2024-07-01T10:00:00Z"
+                }`
 
-// 	for _, tc := range testCases {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			// Create a request to pass to the handler
-// 			req, err := http.NewRequest("POST", "/api/book-room", bytes.NewBuffer([]byte(tc.payload)))
-// 			if err != nil {
-// 				t.Fatal(err)
-// 			}
+				err := createMockBooking(r, bookingPayload, cookies)
+				if err != nil {
+					t.Fatalf("could not create mock booking: %v", err)
+				}
+			},
+		},
+		{
+			name: "Invalid Request Payload",
+			payload: `{
+                "id": "",
+                "creator": ""
+            }`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedMessage:    "Invalid request payload",
+			setupFunc:          func() {},
+		},
+		{
+			name: "Booking Not Found",
+			payload: `{
+                "id": "nonexistent",
+                "creator": "test@example.com",
+				"roomId": "12345"
+            }`,
+			expectedStatusCode: http.StatusNotFound,
+			expectedMessage:    "Booking not found",
+			setupFunc:          func() {},
+		},
+	}
 
-// 			// Add the stored cookies to the request
-// 			for _, cookie := range cookies {
-// 				req.AddCookie(cookie)
-// 			}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup the test case
+			tc.setupFunc()
 
-// 			// Create a response recorder to record the response
-// 			rr := httptest.NewRecorder()
+			// Create a request to pass to the handler
+			req, err := http.NewRequest("POST", "/api/cancel-booking", bytes.NewBuffer([]byte(tc.payload)))
+			if err != nil {
+				t.Fatal(err)
+			}
 
-// 			// Serve the request
-// 			r.ServeHTTP(rr, req)
+			// Add the stored cookies to the request
+			for _, cookie := range cookies {
+				req.AddCookie(cookie)
+			}
 
-// 			// Check the status code is what we expect
-// 			assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
+			// Create a response recorder to record the response
+			rr := httptest.NewRecorder()
 
-// 			// Check the response message
-// 			var actualResponse map[string]interface{}
-// 			err = json.Unmarshal(rr.Body.Bytes(), &actualResponse)
-// 			if err != nil {
-// 				t.Fatalf("could not unmarshal response: %v", err)
-// 			}
+			// Serve the request
+			r.ServeHTTP(rr, req)
 
-// 			assert.Equal(t, tc.expectedMessage, actualResponse["message"], "handler returned unexpected message")
+			// Check the status code is what we expect
+			assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
 
-// 			// For successful booking, check if the ID is generated
-// 			if tc.expectedStatusCode == http.StatusOK {
-// 				assert.NotEmpty(t, actualResponse["data"], "booking ID should not be empty")
-// 			}
-// 		})
-// 	}
-// }
+			// Check the response message
+			var actualResponse map[string]interface{}
+			err = json.Unmarshal(rr.Body.Bytes(), &actualResponse)
+			if err != nil {
+				t.Fatalf("could not unmarshal response: %v", err)
+			}
+
+			assert.Equal(t, tc.expectedMessage, actualResponse["message"], "handler returned unexpected message")
+		})
+	}
+}
+func TestBookRoom(t *testing.T) {
+	// Connect to the test database
+	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+
+	// Set Gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db)
+
+	// Generate a token
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	// Ping-auth test to ensure everything is set up correctly
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+
+	// Store the cookies from the login response
+	cookies := req.Cookies()
+
+	// Define test cases
+	testCases := []struct {
+		name               string
+		payload            string
+		expectedStatusCode int
+		expectedMessage    string
+	}{
+		{
+			name: "Valid Request",
+			payload: `{
+				"roomId": "12345",
+				"emails": ["test@example.com"],
+				"creator": "test@example.com",
+				"floorNo": "1",
+				"roomName": "Test Room",
+				"date": "2024-07-01T00:00:00Z",
+				"start": "2024-07-01T09:00:00Z",
+				"end": "2024-07-01T10:00:00Z"
+			}`,
+			expectedStatusCode: http.StatusOK,
+			expectedMessage:    "Successfully booked!",
+		},
+		{
+			name: "Invalid Request Payload",
+			payload: `{
+				"roomId": "",
+				"emails": [],
+				"creator": "",
+				"floorNo": "0",
+				"roomName": "",
+				"date": "",
+				"start": "",
+				"end": ""
+			}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedMessage:    "Invalid request payload",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a request to pass to the handler
+			req, err := http.NewRequest("POST", "/api/book-room", bytes.NewBuffer([]byte(tc.payload)))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// Add the stored cookies to the request
+			for _, cookie := range cookies {
+				req.AddCookie(cookie)
+			}
+
+			// Create a response recorder to record the response
+			rr := httptest.NewRecorder()
+
+			// Serve the request
+			r.ServeHTTP(rr, req)
+
+			// Check the status code is what we expect
+			assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
+
+			// Check the response message
+			var actualResponse map[string]interface{}
+			err = json.Unmarshal(rr.Body.Bytes(), &actualResponse)
+			if err != nil {
+				t.Fatalf("could not unmarshal response: %v", err)
+			}
+
+			assert.Equal(t, tc.expectedMessage, actualResponse["message"], "handler returned unexpected message")
+
+			// For successful booking, check if the ID is generated
+			if tc.expectedStatusCode == http.StatusOK {
+				assert.NotEmpty(t, actualResponse["data"], "booking ID should not be empty")
+			}
+		})
+	}
+}
 
 func TestPingRoute(t *testing.T) {
 	// connect to the database

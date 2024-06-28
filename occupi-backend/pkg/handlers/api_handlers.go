@@ -63,7 +63,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	// Validate JSON
 	validatedData, err := utils.ValidateJSON(bookingRequest, reflect.TypeOf(models.Booking{}))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, err.Error(), constants.BadRequestCode, err.Error(), nil))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
 		return
 	}
 
@@ -124,7 +124,7 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	// Validate JSON
 	validatedData, err := utils.ValidateJSON(cancelRequest, reflect.TypeOf(models.Cancel{}))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, err.Error(), constants.BadRequestCode, err.Error(), nil))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
 		return
 	}
 

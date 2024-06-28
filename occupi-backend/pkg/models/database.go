@@ -29,15 +29,15 @@ type Booking struct {
 	End       time.Time `json:"end" bson:"end" binding:"required"`
 }
 type Cancel struct {
-	ID       string    `json:"_id" bson:"_id,omitempty"`
-	RoomID   string    `json:"roomId" bson:"roomId" binding:"required"`
-	RoomName string    `json:"roomName" bson:"roomName" binding:"required"`
-	Emails   []string  `json:"emails" bson:"emails" binding:"required,dive,email"`
-	Creator  string    `json:"creator" bson:"creator" binding:"required,email"`
-	FloorNo  string    `json:"floorNo" bson:"floorNo" binding:"required"`
-	Date     time.Time `json:"date" bson:"date" binding:"required"`
-	Start    time.Time `json:"start" bson:"start" binding:"required"`
-	End      time.Time `json:"end" bson:"end" binding:"required"`
+	BookingID string    `json:"bookingId" bson:"bookingId" binding:"required"`
+	RoomID    string    `json:"roomId" bson:"roomId" binding:"required"`
+	RoomName  string    `json:"roomName" bson:"roomName" binding:"required"`
+	Emails    []string  `json:"emails" bson:"emails" binding:"required,dive,email"`
+	Creator   string    `json:"creator" bson:"creator" binding:"required,email"`
+	FloorNo   string    `json:"floorNo" bson:"floorNo" binding:"required"`
+	Date      time.Time `json:"date" bson:"date" binding:"required"`
+	Start     time.Time `json:"start" bson:"start" binding:"required"`
+	End       time.Time `json:"end" bson:"end" binding:"required"`
 }
 
 // structure of CheckIn
