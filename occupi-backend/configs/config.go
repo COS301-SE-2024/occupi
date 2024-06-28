@@ -28,6 +28,7 @@ const (
 	SessionSecret       = "SESSION_SECRET"
 	OccupiDomains       = "OCCUPI_DOMAINS"
 	Env                 = "ENV"
+	OtpExpiration       = "OTP_EXPIRATION"
 )
 
 // init viper
@@ -228,4 +229,13 @@ func GetEnv() string {
 		env = "ENV"
 	}
 	return env
+}
+
+// gets the OTP expiration time as defined in the config.yaml file in seconds
+func GetOTPExpiration() int {
+	expiration := viper.GetInt(OtpExpiration)
+	if expiration == 0 {
+		expiration = 600
+	}
+	return expiration
 }

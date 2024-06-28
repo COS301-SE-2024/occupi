@@ -238,6 +238,67 @@ func TestValidateOTP(t *testing.T) {
 	}
 }
 
+func TestValidateEmployeeID(t *testing.T) {
+	tests := []struct {
+		name     string
+		empID    string
+		expected bool
+	}{
+		{
+			name:     "Valid Employee ID",
+			empID:    "OCCUPI20240000",
+			expected: true,
+		},
+		{
+			name:     "Too short",
+			empID:    "OCCUPI123",
+			expected: false,
+		},
+		{
+			name:     "Invalid prefix",
+			empID:    "OCCUPY20240000",
+			expected: false,
+		},
+		{
+			name:     "Invalid suffix",
+			empID:    "OCCUPI2024000",
+			expected: false,
+		},
+		{
+			name:     "Non-numeric characters",
+			empID:    "OCCUPI2024A000",
+			expected: false,
+		},
+		{
+			name:     "Empty string",
+			empID:    "",
+			expected: false,
+		},
+		{
+			name:     "Alphanumeric Employee ID",
+			empID:    "OCCUPI2024A00",
+			expected: false,
+		},
+		{
+			name:     "Employee ID with special characters",
+			empID:    "OCCUPI2024@000",
+			expected: false,
+		},
+		{
+			name:     "Whitespace in Employee ID",
+			empID:    "OCCUPI2024 000",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ValidateEmployeeID(tt.empID)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestArgon2IDHash(t *testing.T) {
 	tests := []struct {
 		name     string

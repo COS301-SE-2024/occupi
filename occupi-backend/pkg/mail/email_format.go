@@ -78,6 +78,23 @@ func FormatEmailVerificationBody(otp string, email string) string {
 		</div>` + appendFooter()
 }
 
+// formats re - verification email body
+func FormatReVerificationEmailBody(otp string, email string) string {
+	return appendHeader("Re-verification") + `
+		<div class="content">
+			<p>Dear ` + email + `,</p>
+			<p>
+				Thank you for using Occupi. <br><br>
+				To verify your email address, please use the following One-Time Password (OTP):<br>
+				OTP: <b>` + otp + `</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + appendFooter()
+}
+
 func appendHeader(title string) string {
 	return `
 	<!DOCTYPE html>

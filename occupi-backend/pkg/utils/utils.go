@@ -64,6 +64,13 @@ func GenerateEmployeeID() string {
 	return employeeID
 }
 
+// Function to validate a given employee ID with the structure OCCUPIYYYYXXXX where YYYY is year and XXXX is a 4-digit number
+func ValidateEmployeeID(employeeID string) bool {
+	// Regex pattern for employee ID validation
+	var employeeIDRegex = regexp.MustCompile(`^OCCUPI\d{4}\d{4}$`)
+	return employeeIDRegex.MatchString(employeeID)
+}
+
 // Function to generate an employee ID with the structure OCCUPIYYYYXXXX
 func GenerateBookingID() string {
 	currentYear := time.Now().Year()

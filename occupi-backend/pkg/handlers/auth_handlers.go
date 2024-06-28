@@ -25,7 +25,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and password fields",
+			"Expected email and password fields or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
@@ -33,6 +33,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	// sanitize user password and email
 	requestUser.Email = utils.SanitizeInput(requestUser.Email)
 	requestUser.Password = utils.SanitizeInput(requestUser.Password)
+	requestUser.EmployeeID = utils.SanitizeInput(requestUser.EmployeeID)
 
 	// validate email
 	if !utils.ValidateEmail(requestUser.Email) {
@@ -52,6 +53,17 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 			"Invalid password",
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
+			nil))
+		return
+	}
+
+	// validate employee id if it exists
+	if requestUser.EmployeeID != "" {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Unexpected payload field",
+			constants.InvalidRequestPayloadCode,
+			"Unexpected employee ID found in request payload, this field is not required for login",
 			nil))
 		return
 	}
@@ -188,7 +200,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and password fields",
+			"Expected at least email and password fields with optional emloyee_id or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
@@ -196,6 +208,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	// sanitize user password and email
 	requestUser.Email = utils.SanitizeInput(requestUser.Email)
 	requestUser.Password = utils.SanitizeInput(requestUser.Password)
+	requestUser.EmployeeID = utils.SanitizeInput(requestUser.EmployeeID)
 
 	// validate email
 	if !utils.ValidateEmail(requestUser.Email) {
@@ -217,6 +230,19 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 			"Password does neet meet requirements",
 			nil))
 		return
+	}
+
+	// validate employee id if it exists
+	if requestUser.EmployeeID != "" && !utils.ValidateEmployeeID(requestUser.EmployeeID) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid employee ID",
+			constants.InvalidRequestPayloadCode,
+			"Employee ID does not meet requirements",
+			nil))
+		return
+	} else if requestUser.EmployeeID == "" {
+		requestUser.EmployeeID = utils.GenerateEmployeeID()
 	}
 
 	// check if a user already exists in the database with such an email
@@ -284,7 +310,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and otp fields",
+			"Expected email and otp fields or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
@@ -316,19 +342,28 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// check if the otp is in the database
-	exists, err := database.OTPExists(ctx, appsession.DB, userotp.Email, userotp.OTP)
+	valid, err := database.OTPExists(ctx, appsession.DB, userotp.Email, userotp.OTP)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
 	}
 
-	if !exists {
+	if !valid {
+		// otp expired or invalid
+		_, err := database.DeleteOTP(ctx, appsession.DB, userotp.Email, userotp.OTP)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
+			return
+		}
+
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid OTP",
 			constants.InvalidAuthCode,
-			"Email not registered, otp expired or invalid",
+			"Otp expired or invalid",
 			nil))
 		return
 	}
@@ -370,8 +405,8 @@ func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 		return
 	}
 
-	subject := "Email Verification - Your One-Time Password (OTP)"
-	body := mail.FormatEmailVerificationBody(otp, email)
+	subject := "Email Reverification - Your One-Time Password (OTP)"
+	body := mail.FormatReVerificationEmailBody(otp, email)
 
 	if err := mail.SendMail(email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
