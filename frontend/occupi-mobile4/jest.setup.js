@@ -121,7 +121,25 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
 }));
 
-
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...RN,
+    NativeModules: {
+      ...RN.NativeModules,
+      SettingsManager: {
+        settings: {},
+      },
+      StatusBarManager: {
+        getHeight: jest.fn(),
+      },
+    },
+    StyleSheet: {
+      ...RN.StyleSheet,
+      create: (styles) => styles,
+    },
+  };
+});
 
 jest.mock('react-native', () => {
     const RN = jest.requireActual('react-native');
