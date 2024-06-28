@@ -460,8 +460,8 @@ func TestCheckIn(t *testing.T) {
 				// Insert a booking to be cancelled using the helper function
 				bookingPayload := `{
                     "roomId": "12345",
-					"emails": ["test@example.com"],
-					"creator": "test@example.com",
+					"emails": ["test2@example.com"],
+					"creator": "test2@example.com",
 					"floorNo": "1",
 					"roomName": "Test Room",
 					"date": "2024-07-01T00:00:00Z",
@@ -479,7 +479,7 @@ func TestCheckIn(t *testing.T) {
 			name: "Invalid Request Payload",
 			payload: `{
 				"bookingID": "",
-				"creator": "test@example.com"
+				"creator": "test2@example.com"
 			}`,
 			expectedStatusCode: http.StatusBadRequest,
 			expectedMessage:    "Invalid request payload",
@@ -489,7 +489,7 @@ func TestCheckIn(t *testing.T) {
 			name: "Booking Not Found",
 			payload: `{
 				"bookingId": "nonexistent",
-				"creator": "test@example.com"
+				"creator": "test2@example.com"
 			}`,
 			expectedStatusCode: http.StatusNotFound,
 			expectedMessage:    "Booking not found",

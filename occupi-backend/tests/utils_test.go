@@ -477,7 +477,7 @@ func TestValidateJSON(t *testing.T) {
 			},
 			expectedType: reflect.TypeOf(SampleStruct{}),
 			expectError:  true,
-			errorMessage: "field field3 is of incorrect type",
+			errorMessage: "field field3 is of incorrect format",
 		},
 	}
 
