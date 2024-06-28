@@ -452,7 +452,7 @@ func TestCheckIn(t *testing.T) {
 			name: "Valid Request",
 			payload: `{
 				"bookingId": "mock_id",
-				"creator": "test@example.com"
+				"creator": "test2@example.com"
 			}`,
 			expectedStatusCode: http.StatusOK,
 			expectedMessage:    "Successfully checked in!",
