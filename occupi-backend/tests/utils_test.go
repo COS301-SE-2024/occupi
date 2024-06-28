@@ -458,6 +458,17 @@ func TestValidateJSON(t *testing.T) {
 			errorMessage: "missing required field: field1",
 		},
 		{
+			name: "Invalid type for field",
+			data: map[string]interface{}{
+				"field1": "value1",
+				"field2": "not-an-int",
+				"field3": "2024-07-01T09:00:00Z",
+			},
+			expectedType: reflect.TypeOf(SampleStruct{}),
+			expectError:  true,
+			errorMessage: "field field2 is of incorrect type",
+		},
+		{
 			name: "Invalid time format",
 			data: map[string]interface{}{
 				"field1": "value1",
