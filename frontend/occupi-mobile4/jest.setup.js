@@ -1,5 +1,15 @@
 import 'react-native-gesture-handler/jestSetup';
 
+// Mock the GestureHandlerRootView component
+jest.mock('react-native-gesture-handler', () => {
+  const actualGestureHandler = jest.requireActual('react-native-gesture-handler');
+  return {
+    ...actualGestureHandler,
+    GestureHandlerRootView: (props) => <div {...props} />,
+  };
+});
+
+
 // Mocking react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => {
   const View = require('react-native/Libraries/Components/View/View');
