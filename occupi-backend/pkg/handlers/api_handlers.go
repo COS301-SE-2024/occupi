@@ -104,7 +104,7 @@ func ViewBookings(ctx *gin.Context, appsession *models.AppSession) {
 	// Get all bookings for the userBooking
 	bookings, err := database.GetUserBookings(ctx, appsession.DB, email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get bookings", constants.InternalServerErrorCode, "Failed to get bookings", nil))
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get bookings", constants.InternalServerErrorCode, "Failed to get bookings", nil))
 		return
 	}
 
@@ -175,7 +175,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	// Check if the booking exists
 	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingID)
 	if !exists {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to find booking", constants.InternalServerErrorCode, "Failed to find booking", nil))
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(404, "Failed to find booking", constants.InternalServerErrorCode, "Failed to find booking", nil))
 		return
 	}
 
