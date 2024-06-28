@@ -70,7 +70,10 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	// Convert validated data to Booking struct
 	var booking models.Booking
 	bookingBytes, _ := json.Marshal(validatedData)
-	json.Unmarshal(bookingBytes, &booking)
+	if err := json.Unmarshal(bookingBytes, &booking); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to book", constants.InternalServerErrorCode, "Failed to check in", nil))
+		return
+	}
 
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
@@ -128,7 +131,10 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	// Convert validated JSON to Cancel struct
 	var cancel models.Cancel
 	cancelBytes, _ := json.Marshal(validatedData)
-	json.Unmarshal(cancelBytes, &cancel)
+	if err := json.Unmarshal(cancelBytes, &cancel); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel", constants.InternalServerErrorCode, "Failed to check in", nil))
+		return
+	}
 
 	// Check if the booking exists
 	exists := database.BookingExists(ctx, appsession.DB, cancel.ID)
@@ -170,7 +176,10 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	// Convert validated JSON to CheckIn struct
 	var checkIn models.CheckIn
 	checkInBytes, _ := json.Marshal(validatedData)
-	json.Unmarshal(checkInBytes, &checkIn)
+	if err := json.Unmarshal(checkInBytes, &checkIn); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to check in", constants.InternalServerErrorCode, "Failed to check in", nil))
+		return
+	}
 
 	// Check if the booking exists
 	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingID)
@@ -206,7 +215,10 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Convert validated JSON to RoomRequest struct
 	roomBytes, _ := json.Marshal(validatedData)
-	json.Unmarshal(roomBytes, &room)
+	if err := json.Unmarshal(roomBytes, &room); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get room", constants.InternalServerErrorCode, "Failed to check in", nil))
+		return
+	}
 
 	var floorNo string
 	if room.FloorNo == "" {
