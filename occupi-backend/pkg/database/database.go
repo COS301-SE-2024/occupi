@@ -10,7 +10,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -198,7 +197,7 @@ func BookingExists(ctx *gin.Context, db *mongo.Client, id string) bool {
 func AddUser(ctx *gin.Context, db *mongo.Client, user models.RequestUser) (bool, error) {
 	// convert to user struct
 	userStruct := models.User{
-		OccupiID:             utils.GenerateEmployeeID(),
+		OccupiID:             user.EmployeeID,
 		Password:             user.Password,
 		Email:                user.Email,
 		Role:                 constants.Basic,
@@ -223,7 +222,7 @@ func AddOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool,
 	otpStruct := models.OTP{
 		Email:      email,
 		OTP:        otp,
-		ExpireWhen: time.Now().Add(time.Minute * 10),
+		ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetOTPExpiration())),
 	}
 	_, err := collection.InsertOne(ctx, otpStruct)
 	if err != nil {
@@ -243,6 +242,10 @@ func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) (bo
 	if err != nil {
 		logrus.Error(err)
 		return false, err
+	}
+	// Check if the OTP has expired
+	if time.Now().After(otpStruct.ExpireWhen) {
+		return false, nil
 	}
 	return true, nil
 }
