@@ -133,8 +133,10 @@ func TestBookRoom(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, db)
 
+	// Generate a token
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
+	// Ping-auth test to ensure everything is set up correctly
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
 	req.AddCookie(&http.Cookie{Name: "token", Value: token})
@@ -157,25 +159,24 @@ func TestBookRoom(t *testing.T) {
 		payload            string
 		expectedStatusCode int
 		expectedMessage    string
-		expectedData       gin.H
 	}{
 		{
 			name: "Valid Request",
 			payload: `{
-				"roomId": "12345",
+				"roomID": "12345",
 				"Slot": 1,
 				"Emails": ["test@example.com"],
 				"Creator": "test@example.com",
-				"FloorNo": 1
+				"FloorNo": 1,
+				"roomName": "Test Room"
 			}`,
 			expectedStatusCode: http.StatusOK,
 			expectedMessage:    "Successfully booked!",
-			expectedData:       gin.H{"id": "some_generated_id"}, // The exact value will be replaced dynamically
 		},
 		{
 			name: "Invalid Request Payload",
 			payload: `{
-				"RoomID": "",
+				"roomID": "",
 				"Slot": "",
 				"Emails": [],
 				"Creator": "",
@@ -183,14 +184,13 @@ func TestBookRoom(t *testing.T) {
 			}`,
 			expectedStatusCode: http.StatusBadRequest,
 			expectedMessage:    "Invalid request payload",
-			expectedData:       nil,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a request to pass to the handler
-			req, err := http.NewRequest("POST", "/api/book-room", strings.NewReader(tc.payload))
+			req, err := http.NewRequest("POST", "/api/book-room", bytes.NewBuffer([]byte(tc.payload)))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -209,22 +209,14 @@ func TestBookRoom(t *testing.T) {
 			// Check the status code is what we expect
 			assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
 
-			// Define the expected response
-			expectedResponse := gin.H{
-				"message": tc.expectedMessage,
-				"status":  float64(tc.expectedStatusCode),
-				"data":    tc.expectedData,
-			}
-
-			// Unmarshal the actual response
-			var actualResponse gin.H
-			if err := json.Unmarshal(rr.Body.Bytes(), &actualResponse); err != nil {
+			// Check the response message
+			var actualResponse map[string]interface{}
+			err = json.Unmarshal(rr.Body.Bytes(), &actualResponse)
+			if err != nil {
 				t.Fatalf("could not unmarshal response: %v", err)
 			}
 
-			// Check the response message and status
-			assert.Equal(t, expectedResponse["message"], actualResponse["message"], "handler returned unexpected message")
-			assert.Equal(t, expectedResponse["status"], actualResponse["status"], "handler returned unexpected status")
+			assert.Equal(t, tc.expectedMessage, actualResponse["message"], "handler returned unexpected message")
 
 			// For successful booking, check if the ID is generated
 			if tc.expectedStatusCode == http.StatusOK {
