@@ -501,17 +501,35 @@ func TestTypeCheck(t *testing.T) {
 		expectedType reflect.Type
 		expected     bool
 	}{
+		// Basic types
 		{"Match int", 42, reflect.TypeOf(42), true},
 		{"Match string", "hello", reflect.TypeOf("hello"), true},
 		{"Match float", 3.14, reflect.TypeOf(3.14), true},
 		{"Mismatch int", "42", reflect.TypeOf(42), false},
 		{"Mismatch string", 42, reflect.TypeOf("hello"), false},
+
+		// Pointer types
 		{"Pointer match", new(int), reflect.TypeOf(new(int)), true},
 		{"Pointer mismatch", new(string), reflect.TypeOf(new(int)), false},
 		{"Nil pointer", nil, reflect.TypeOf((*int)(nil)), true},
 		{"Non-nil pointer match", new(int), reflect.TypeOf((*int)(nil)), true},
 		{"Nil non-pointer", nil, reflect.TypeOf(42), false},
+
+		// Time type
 		{"Time type valid RFC3339", "2024-07-01T09:00:00Z", reflect.TypeOf(time.Time{}), true},
+		{"Time type invalid RFC3339", "not-a-date", reflect.TypeOf(time.Time{}), false},
+
+		// Slices and arrays
+		{"Match slice int", []int{1, 2, 3}, reflect.TypeOf([]int{}), true},
+		{"Match array int", [3]int{1, 2, 3}, reflect.TypeOf([3]int{}), true},
+		{"Mismatch slice int", []string{"1", "2", "3"}, reflect.TypeOf([]int{}), false},
+		{"Mismatch array int", [3]string{"1", "2", "3"}, reflect.TypeOf([3]int{}), false},
+		{"Empty slice", []int{}, reflect.TypeOf([]int{}), true},
+		{"Empty array", [0]int{}, reflect.TypeOf([0]int{}), true},
+
+		// Nested slices/arrays
+		{"Match nested slice int", [][]int{{1, 2}, {3, 4}}, reflect.TypeOf([][]int{}), true},
+		{"Mismatch nested slice int", [][]string{{"1", "2"}, {"3", "4"}}, reflect.TypeOf([][]int{}), false},
 	}
 
 	for _, tt := range tests {
