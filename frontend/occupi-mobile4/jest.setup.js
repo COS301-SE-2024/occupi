@@ -23,12 +23,6 @@ jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
     ...RN,
-    Dimensions: {
-      get: jest.fn().mockReturnValue({ width: 360, height: 640 }),
-      set: jest.fn(),
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-    },
     NativeModules: {
       ...RN.NativeModules,
       SettingsManager: {
@@ -43,9 +37,45 @@ jest.mock('react-native', () => {
     StyleSheet: {
       ...RN.StyleSheet,
       create: (styles) => styles,
+      hairlineWidth: 1,
+    },
+    Dimensions: {
+      get: jest.fn((dim) => {
+        switch (dim) {
+          case 'window':
+            return { width: 375, height: 667, scale: 1, fontScale: 1 };
+          case 'screen':
+            return { width: 375, height: 667, scale: 1, fontScale: 1 };
+          default:
+            return { width: 375, height: 667, scale: 1, fontScale: 1 };
+        }
+      }),
+      set: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      screen: {
+        width: 375,
+        height: 667,
+        scale: 1,
+        fontScale: 1,
+      },
+      window: {
+        width: 375,
+        height: 667,
+        scale: 1,
+        fontScale: 1,
+      },
+    },
+    PixelRatio: {
+      get: jest.fn(() => 1),
+      getFontScale: jest.fn(() => 1),
+      getPixelSizeForLayoutSize: jest.fn(size => size),
+      roundToNearestPixel: jest.fn(size => size),
+      startDetecting: jest.fn(),
     },
   };
 });
+
 jest.mock('react-native-gesture-handler', () => {
   const View = require('react-native/Libraries/Components/View/View');
   return {
@@ -148,74 +178,15 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
 }));
 
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    NativeModules: {
-      ...RN.NativeModules,
-      SettingsManager: {
-        settings: {},
-      },
-      StatusBarManager: {
-        getHeight: jest.fn(),
-      },
-    },
-    StyleSheet: {
-      ...RN.StyleSheet,
-      create: (styles) => styles,
-    },
-  };
-});
-jest.mock('react-native', () => {
-    const RN = jest.requireActual('react-native');
-    return {
-      ...RN,
-      NativeModules: {
-        ...RN.NativeModules,
-        SettingsManager: {
-          settings: {},
-          get: jest.fn(),
-          set: jest.fn(),
-        },
-        StatusBarManager: {
-          getHeight: jest.fn(),
-        },
-      },
-      StyleSheet: {
-        ...RN.StyleSheet,
-        create: (styles) => styles,
-      },
-      Dimensions: {
-        get: jest.fn().mockReturnValue({
-          width: 375,
-          height: 667,
-          scale: 1,
-          fontScale: 1,
-        }),
-        set: jest.fn(),
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-      },
-    };
-  });
-  jest.mock('react-native/Libraries/Settings/Settings', () => ({
+jest.mock('react-native/Libraries/Settings/Settings', () => ({
+  get: jest.fn(),
+  set: jest.fn(),
+}));
+
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
+  getEnforcing: jest.fn(() => ({
+    getConstants: () => ({}),
     get: jest.fn(),
     set: jest.fn(),
-  }));
-
-  jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
-    getEnforcing: jest.fn(() => ({
-      getConstants: () => ({}),
-      get: jest.fn(),
-      set: jest.fn(),
-    })),
-  }));
-
-  jest.mock('react-native/Libraries/Utilities/PixelRatio', () => ({
-    get: jest.fn(() => 1),
-    getFontScale: jest.fn(() => 1),
-    getPixelSizeForLayoutSize: jest.fn(size => size),
-    roundToNearestPixel: jest.fn(size => size),
-    startDetecting: jest.fn(),
-  }));
+  })),
+}));
