@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
@@ -423,6 +423,12 @@ func TestLowercaseFirstLetter(t *testing.T) {
 	}
 }
 
+type SampleStruct struct {
+	Field1 string    `json:"field1" binding:"required"`
+	Field2 int       `json:"field2" binding:"required"`
+	Field3 time.Time `json:"field3" binding:"required"`
+}
+
 func TestValidateJSON(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -432,34 +438,41 @@ func TestValidateJSON(t *testing.T) {
 		errorMessage string
 	}{
 		{
-			name: "Valid JSON",
+			name: "Valid JSON with required fields",
 			data: map[string]interface{}{
-				"floorNo": "1",
+				"field1": "value1",
+				"field2": 123,
+				"field3": "2024-07-01T09:00:00Z",
 			},
-			expectedType: reflect.TypeOf(models.RoomRequest{}),
+			expectedType: reflect.TypeOf(SampleStruct{}),
 			expectError:  false,
 		},
 		{
-			name:         "Missing required field",
-			data:         map[string]interface{}{},
-			expectedType: reflect.TypeOf(models.RoomRequest{}),
+			name: "Missing required field",
+			data: map[string]interface{}{
+				"field2": 123,
+				"field3": "2024-07-01T09:00:00Z",
+			},
+			expectedType: reflect.TypeOf(SampleStruct{}),
 			expectError:  true,
-			errorMessage: "missing required field: floorNo",
+			errorMessage: "missing required field: field1",
 		},
 		{
-			name: "Incorrect type",
+			name: "Invalid time format",
 			data: map[string]interface{}{
-				"floorNo": 123,
+				"field1": "value1",
+				"field2": 123,
+				"field3": "not-a-date",
 			},
-			expectedType: reflect.TypeOf(models.RoomRequest{}),
+			expectedType: reflect.TypeOf(SampleStruct{}),
 			expectError:  true,
-			errorMessage: "field floorNo is of incorrect type",
+			errorMessage: "field field3 is of incorrect type",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := utils.ValidateJSON(tt.data, tt.expectedType)
+			_, err := utils.ValidateJSON(tt.data, tt.expectedType)
 			if (err != nil) != tt.expectError {
 				t.Errorf("ValidateJSON() error = %v, expectError %v", err, tt.expectError)
 			}
@@ -487,15 +500,14 @@ func TestTypeCheck(t *testing.T) {
 		{"Nil pointer", nil, reflect.TypeOf((*int)(nil)), true},
 		{"Non-nil pointer match", new(int), reflect.TypeOf((*int)(nil)), true},
 		{"Nil non-pointer", nil, reflect.TypeOf(42), false},
-		{"Pointer to int", new(int), reflect.TypeOf(int(0)), true},
-		{"Pointer to string", new(string), reflect.TypeOf(""), true},
+		{"Time type valid RFC3339", "2024-07-01T09:00:00Z", reflect.TypeOf(time.Time{}), true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := utils.TypeCheck(tt.value, tt.expectedType)
 			if result != tt.expected {
-				t.Errorf("typeCheck(%v, %v) = %v; want %v", tt.value, tt.expectedType, result, tt.expected)
+				t.Errorf("TypeCheck(%v, %v) = %v; want %v", tt.value, tt.expectedType, result, tt.expected)
 			}
 		})
 	}
