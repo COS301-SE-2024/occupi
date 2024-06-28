@@ -33,8 +33,8 @@ import (
 // 	// connect to the database
 // 	db := database.ConnectToDatabase()
 
-// 	// set gin run mode
-// 	gin.SetMode(configs.GetGinRunMode())
+// set gin run mode
+// gin.SetMode("test")
 
 // 	// Create a Gin router
 // 	r := gin.Default()
@@ -138,8 +138,8 @@ import (
 // 	// Connect to the database
 // 	db := database.ConnectToDatabase()
 
-// Set Gin run mode
-// gin.SetMode(gin.TestMode)
+// set gin run mode
+// gin.SetMode("test")
 
 // 	// Create a Gin router
 // 	r := gin.Default()
