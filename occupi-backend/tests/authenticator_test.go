@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/stretchr/testify/assert"
