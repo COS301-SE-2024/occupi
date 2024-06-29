@@ -34,10 +34,11 @@ const Onboarding2 = () => {
           style={styles.image}
         />
         <Heading style={styles.heading}>Day to day Occupancy analysis</Heading>
-        <Text style={styles.text}>
-          Uses historical data to provide day to day analysis and statistics 
-        </Text>
+        <Text testID="onboarding2-text" style={styles.text}>
+  Uses historical data to provide day to day analysis and statistics 
+</Text>
         <GradientButton
+         testID="onboarding2-next"
           onPress={() => router.push('/onboarding3')}
           text="Next"
         />
