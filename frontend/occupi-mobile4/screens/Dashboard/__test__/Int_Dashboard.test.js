@@ -1,17 +1,17 @@
 import React from 'react';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import renderer, { act } from 'react-test-renderer';
 import Dashboard from '../Dashboard';
-import NavBar from '../../components/NavBar';
+import NavBar from '../../../components/NavBar';
 import { router } from 'expo-router';
 
 // Mock dependencies
 jest.mock('expo-router', () => ({
-    router: {
-      replace: jest.fn(),
-      push: jest.fn(),
-      navigate: jest.fn(),
-    },
-  }));
+  router: {
+    replace: jest.fn(),
+    push: jest.fn(),
+    navigate: jest.fn(),
+  },
+}));
 
 jest.mock('react-native-chart-kit', () => ({
   LineChart: () => null,
@@ -28,9 +28,10 @@ jest.mock('expo-blur', () => ({
   BlurView: 'BlurView',
 }));
 
+jest.useFakeTimers();
 describe('Dashboard Integration Tests', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -38,69 +39,89 @@ describe('Dashboard Integration Tests', () => {
   });
 
   it('renders Dashboard and NavBar without crashing', () => {
-    const { getByText, getAllByText } = render(<Dashboard />);
-    
-    expect(getByText('Hi Sabrina 👋')).toBeTruthy();
-    expect(getByText('Welcome to Occupi')).toBeTruthy();
-    expect(getByText('Check in')).toBeTruthy();
-    expect(getByText('Occupancy levels')).toBeTruthy();
-    
+    const tree = renderer.create(<Dashboard />);
+    const instance = tree.root;
+
+    expect(instance.findByProps({ children: 'Hi Sabrina 👋' })).toBeTruthy();
+    expect(instance.findByProps({ children: 'Welcome to Occupi' })).toBeTruthy();
+    expect(instance.findByProps({ children: 'Check in' })).toBeTruthy();
+    expect(instance.findByProps({ children: 'Occupancy levels' })).toBeTruthy();
+
     // NavBar items
-    expect(getAllByText('Home')).toBeTruthy();
-    expect(getAllByText('My bookings')).toBeTruthy();
-    expect(getAllByText('Book')).toBeTruthy();
-    expect(getAllByText('Notifications')).toBeTruthy();
-    expect(getAllByText('Profile')).toBeTruthy();
+    const navTree = renderer.create(<NavBar />);
+    const navInstance = navTree.root;
+    expect(navInstance.findByProps({ children: 'Home' })).toBeTruthy();
+    expect(navInstance.findByProps({ children: 'My bookings' })).toBeTruthy();
+    expect(navInstance.findByProps({ children: 'Book' })).toBeTruthy();
+    expect(navInstance.findByProps({ children: 'Notifications' })).toBeTruthy();
+    expect(navInstance.findByProps({ children: 'Profile' })).toBeTruthy();
   });
 
-  it('updates occupancy data periodically', async () => {
-    const { getAllByText } = render(<Dashboard />);
-    
-    const initialOccupancy = getAllByText(/\d+/)[0].props.children;
-    
+  it('updates occupancy data periodically', () => {
+    const tree = renderer.create(<Dashboard />);
+    const instance = tree.root;
+
+    const initialOccupancy = instance.findAllByProps({ testID: 'occupancy-data' })[0].props.children;
+
     act(() => {
       jest.advanceTimersByTime(3000);
     });
-    
-    await waitFor(() => {
-      const updatedOccupancy = getAllByText(/\d+/)[0].props.children;
-      expect(updatedOccupancy).not.toBe(initialOccupancy);
-    });
+
+    const updatedOccupancy = instance.findAllByProps({ testID: 'occupancy-data' })[0].props.children;
+    expect(updatedOccupancy).not.toBe(initialOccupancy);
   });
 
-  it('toggles check-in status and shows toast', async () => {
-    const { getByText } = render(<Dashboard />);
-    
-    const checkInButton = getByText('Check in');
-    fireEvent.press(checkInButton);
-    
-    await waitFor(() => {
-      expect(getByText('Check out')).toBeTruthy();
+  it('toggles check-in status and shows toast', () => {
+    const tree = renderer.create(<Dashboard />);
+    const instance = tree.root;
+
+    const checkInButton = instance.findByProps({ children: 'Check in' });
+    act(() => {
+      checkInButton.props.onPress();
     });
-    
-    fireEvent.press(getByText('Check out'));
-    
-    await waitFor(() => {
-      expect(getByText('Check in')).toBeTruthy();
+
+    expect(instance.findByProps({ children: 'Check out' })).toBeTruthy();
+
+    const checkOutButton = instance.findByProps({ children: 'Check out' });
+    act(() => {
+      checkOutButton.props.onPress();
     });
+
+    expect(instance.findByProps({ children: 'Check in' })).toBeTruthy();
   });
 
   it('navigates to different screens when NavBar buttons are pressed', () => {
-    const { getByText } = render(<NavBar />);
-    
-    fireEvent.press(getByText('Home'));
+    const tree = renderer.create(<NavBar />);
+    const instance = tree.root;
+
+    const homeButton = instance.findByProps({ children: 'Home' });
+    act(() => {
+      homeButton.props.onPress();
+    });
     expect(router.push).toHaveBeenCalledWith('/home');
-    
-    fireEvent.press(getByText('My bookings'));
+
+    const bookingsButton = instance.findByProps({ children: 'My bookings' });
+    act(() => {
+      bookingsButton.props.onPress();
+    });
     expect(router.push).toHaveBeenCalledWith('/viewbookings');
-    
-    fireEvent.press(getByText('Book'));
+
+    const bookButton = instance.findByProps({ children: 'Book' });
+    act(() => {
+      bookButton.props.onPress();
+    });
     expect(router.push).toHaveBeenCalledWith('/bookings');
-    
-    fireEvent.press(getByText('Notifications'));
+
+    const notificationsButton = instance.findByProps({ children: 'Notifications' });
+    act(() => {
+      notificationsButton.props.onPress();
+    });
     expect(router.push).toHaveBeenCalledWith('/bookings');
-    
-    fireEvent.press(getByText('Profile'));
+
+    const profileButton = instance.findByProps({ children: 'Profile' });
+    act(() => {
+      profileButton.props.onPress();
+    });
     expect(router.push).toHaveBeenCalledWith('/settings');
   });
 });
