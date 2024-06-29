@@ -152,7 +152,7 @@ func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (m
 }
 
 // SetupTestEnvironment initializes the test environment and returns the router and cookies
-func SetupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
+func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	// Connect to the test database
 	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
@@ -188,10 +188,43 @@ func SetupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	return r, cookies
 }
 
+// Helper function to send a request and verify the response
+func sendRequestAndVerifyResponse(t *testing.T, r *gin.Engine, method, url string, payload string, cookies []*http.Cookie, expectedStatusCode int, expectedMessage string) {
+	// Create a request to pass to the handler
+	req, err := http.NewRequest(method, url, bytes.NewBuffer([]byte(payload)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	// Add the stored cookies to the request
+	for _, cookie := range cookies {
+		req.AddCookie(cookie)
+	}
+
+	// Create a response recorder to record the response
+	rr := httptest.NewRecorder()
+
+	// Serve the request
+	r.ServeHTTP(rr, req)
+
+	// Check the status code is what we expect
+	assert.Equal(t, expectedStatusCode, rr.Code, "handler returned wrong status code")
+
+	// Check the response message
+	var actualResponse map[string]interface{}
+	err = json.Unmarshal(rr.Body.Bytes(), &actualResponse)
+	if err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+
+	assert.Equal(t, expectedMessage, actualResponse["message"], "handler returned unexpected message")
+}
+
 // Tests the CancelBooking handler
 func TestCancelBooking(t *testing.T) {
 	// Setup the test environment
-	r, cookies := SetupTestEnvironment(t)
+	r, cookies := setupTestEnvironment(t)
 
 	// Define test cases
 	testCases := []struct {
@@ -276,34 +309,7 @@ func TestCancelBooking(t *testing.T) {
 				tc.payload = strings.Replace(tc.payload, "mock_id", bookingID, 1)
 			}
 
-			// Create a request to pass to the handler
-			req, err := http.NewRequest("POST", "/api/cancel-booking", bytes.NewBuffer([]byte(tc.payload)))
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			// Add the stored cookies to the request
-			for _, cookie := range cookies {
-				req.AddCookie(cookie)
-			}
-
-			// Create a response recorder to record the response
-			rr := httptest.NewRecorder()
-
-			// Serve the request
-			r.ServeHTTP(rr, req)
-
-			// Check the status code is what we expect
-			assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
-
-			// Check the response message
-			var actualResponse map[string]interface{}
-			err = json.Unmarshal(rr.Body.Bytes(), &actualResponse)
-			if err != nil {
-				t.Fatalf("could not unmarshal response: %v", err)
-			}
-
-			assert.Equal(t, tc.expectedMessage, actualResponse["message"], "handler returned unexpected message")
+			sendRequestAndVerifyResponse(t, r, "POST", "/api/cancel-booking", tc.payload, cookies, tc.expectedStatusCode, tc.expectedMessage)
 		})
 	}
 }
@@ -422,37 +428,8 @@ func TestBookRoom(t *testing.T) {
 
 // Tests CheckIn handler
 func TestCheckIn(t *testing.T) {
-	// Connect to the test database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
-
-	// Set Gin run mode
-	gin.SetMode(configs.GetGinRunMode())
-
-	// Create a Gin router
-	r := gin.Default()
-
-	// Register the route
-	router.OccupiRouter(r, db)
-
-	// Generate a token
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
-
-	// Ping-auth test to ensure everything is set up correctly
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/ping-auth", nil)
-	req.AddCookie(&http.Cookie{Name: "token", Value: token})
-
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(
-		t,
-		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
-		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
-	)
-
-	// Store the cookies from the login response
-	cookies := req.Cookies()
+	// Setup the test environment
+	r, cookies := setupTestEnvironment(t)
 
 	// Define test cases
 	testCases := []struct {
@@ -521,34 +498,7 @@ func TestCheckIn(t *testing.T) {
 				tc.payload = strings.Replace(tc.payload, "mock_id", bookingID, 1)
 			}
 
-			// Create a request to pass to the handler
-			req, err := http.NewRequest("POST", "/api/check-in", bytes.NewBuffer([]byte(tc.payload)))
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			// Add the stored cookies to the request
-			for _, cookie := range cookies {
-				req.AddCookie(cookie)
-			}
-
-			// Create a response recorder to record the response
-			rr := httptest.NewRecorder()
-
-			// Serve the request
-			r.ServeHTTP(rr, req)
-
-			// Check the status code is what we expect
-			assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
-
-			// Check the response message
-			var actualResponse map[string]interface{}
-			err = json.Unmarshal(rr.Body.Bytes(), &actualResponse)
-			if err != nil {
-				t.Fatalf("could not unmarshal response: %v", err)
-			}
-
-			assert.Equal(t, tc.expectedMessage, actualResponse["message"], "handler returned unexpected message")
+			sendRequestAndVerifyResponse(t, r, "POST", "/api/check-in", tc.payload, cookies, tc.expectedStatusCode, tc.expectedMessage)
 		})
 	}
 }
