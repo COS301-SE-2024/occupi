@@ -1,5 +1,5 @@
-import React from 'react';
 import renderer, { act } from 'react-test-renderer';
+import React from 'react';
 import SplashScreen from '../SplashScreen';
 import Onboarding1 from '../Onboarding1';
 import Onboarding2 from '../Onboarding2';
@@ -33,7 +33,7 @@ describe('App Navigation Flow', () => {
 
   it('should have correct text in components', () => {
     const splashscreen = renderer.create(<SplashScreen />);
-    expect(splashscreen.root.findByProps({ testID: 'splashscreen-text' }).props.children).toBe('source={require("../../screens/Login/assets/images/Occupi/occupi-white-trans.png")}');
+    expect(splashscreen.root.findByProps({ testID: 'splashscreen-text' }).props.source).toBe(require('../../screens/Login/assets/images/Occupi/occupi-white-trans.png'));
 
     const onboarding1 = renderer.create(<Onboarding1 />);
     expect(onboarding1.root.findByProps({ testID: 'onboarding1-text' }).props.children).toBe('Predictive AI to help you plan when you go to the office better');
