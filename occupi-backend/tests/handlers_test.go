@@ -24,6 +24,7 @@ import (
 	// "github.com/stretchr/testify/mock"
 )
 
+// Tests the ViewBookings handler
 func TestViewBookingsHandler(t *testing.T) {
 	// connect to the database
 	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -121,6 +122,7 @@ func TestViewBookingsHandler(t *testing.T) {
 	}
 }
 
+// Helper function to create a mock booking for testing
 func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (map[string]interface{}, error) {
 	req, err := http.NewRequest("POST", "/api/book-room", bytes.NewBuffer([]byte(payload)))
 	if err != nil {
@@ -149,7 +151,8 @@ func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (m
 	return response, nil
 }
 
-func TestCancelBooking(t *testing.T) {
+// SetupTestEnvironment initializes the test environment and returns the router and cookies
+func SetupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	// Connect to the test database
 	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
 
@@ -181,6 +184,14 @@ func TestCancelBooking(t *testing.T) {
 
 	// Store the cookies from the login response
 	cookies := req.Cookies()
+
+	return r, cookies
+}
+
+// Tests the CancelBooking handler
+func TestCancelBooking(t *testing.T) {
+	// Setup the test environment
+	r, cookies := SetupTestEnvironment(t)
 
 	// Define test cases
 	testCases := []struct {
@@ -297,6 +308,7 @@ func TestCancelBooking(t *testing.T) {
 	}
 }
 
+// Tests the BookRoom handler
 func TestBookRoom(t *testing.T) {
 	// Connect to the test database
 	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -407,6 +419,8 @@ func TestBookRoom(t *testing.T) {
 		})
 	}
 }
+
+// Tests CheckIn handler
 func TestCheckIn(t *testing.T) {
 	// Connect to the test database
 	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
