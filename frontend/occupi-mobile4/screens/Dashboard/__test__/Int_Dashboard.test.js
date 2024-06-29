@@ -29,6 +29,7 @@ jest.mock('expo-blur', () => ({
 }));
 
 jest.useFakeTimers();
+
 describe('Dashboard Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
