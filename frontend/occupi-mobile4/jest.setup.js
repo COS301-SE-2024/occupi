@@ -72,6 +72,10 @@ jest.mock('react-native', () => {
       getPixelSizeForLayoutSize: jest.fn((size) => size * 2),
       roundToNearestPixel: jest.fn((size) => Math.round(size)),
     },
+    NativeEventEmitter: jest.fn().mockImplementation(() => ({
+      addListener: jest.fn(),
+      removeListeners: jest.fn(),
+    })),
   };
 });
 
@@ -173,6 +177,7 @@ jest.mock('@gluestack-ui/themed', () => ({
 }));
 
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
+
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
 }));
@@ -183,17 +188,17 @@ jest.mock('react-native/Libraries/Settings/Settings', () => ({
 }));
 
 jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
-    get: jest.fn(() => ({
-      getConstants: () => ({}),
-      get: jest.fn(),
-      set: jest.fn(),
-    })),
-    getEnforcing: jest.fn(() => ({
-      getConstants: () => ({}),
-      get: jest.fn(),
-      set: jest.fn(),
-    })),
-  }));
+  get: jest.fn(() => ({
+    getConstants: () => ({}),
+    get: jest.fn(),
+    set: jest.fn(),
+  })),
+  getEnforcing: jest.fn(() => ({
+    getConstants: () => ({}),
+    get: jest.fn(),
+    set: jest.fn(),
+  })),
+}));
 
 jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
   get: jest.fn().mockReturnValue({
