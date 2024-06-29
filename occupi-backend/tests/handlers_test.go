@@ -302,11 +302,11 @@ func TestCancelBooking(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setup the test case and get the booking ID if applicable
-			bookingID := tc.setupFunc()
+			id := tc.setupFunc()
 
 			// Replace the mock_id placeholder in the payload with the actual booking ID
-			if bookingID != "" {
-				tc.payload = strings.Replace(tc.payload, "mock_id", bookingID, 1)
+			if id != "" {
+				tc.payload = strings.Replace(tc.payload, "mock_id", id, 1)
 			}
 
 			sendRequestAndVerifyResponse(t, r, "POST", "/api/cancel-booking", tc.payload, cookies, tc.expectedStatusCode, tc.expectedMessage)
@@ -316,37 +316,8 @@ func TestCancelBooking(t *testing.T) {
 
 // Tests the BookRoom handler
 func TestBookRoom(t *testing.T) {
-	// Connect to the test database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
-
-	// Set Gin run mode
-	gin.SetMode(configs.GetGinRunMode())
-
-	// Create a Gin router
-	r := gin.Default()
-
-	// Register the route
-	router.OccupiRouter(r, db)
-
-	// Generate a token
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
-
-	// Ping-auth test to ensure everything is set up correctly
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/ping-auth", nil)
-	req.AddCookie(&http.Cookie{Name: "token", Value: token})
-
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(
-		t,
-		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
-		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
-	)
-
-	// Store the cookies from the login response
-	cookies := req.Cookies()
+	// Setup the test environment
+	r, cookies := setupTestEnvironment(t)
 
 	// Define test cases
 	testCases := []struct {
