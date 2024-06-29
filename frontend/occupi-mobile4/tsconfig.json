@@ -1,6 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "types": ["jest", "react-test-renderer"],
     "strict": true,
     "paths": {
       "@/*": [
