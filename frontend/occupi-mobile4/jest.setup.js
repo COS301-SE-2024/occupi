@@ -183,12 +183,17 @@ jest.mock('react-native/Libraries/Settings/Settings', () => ({
 }));
 
 jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
-  getEnforcing: jest.fn(() => ({
-    getConstants: () => ({}),
-    get: jest.fn(),
-    set: jest.fn(),
-  })),
-}));
+    get: jest.fn(() => ({
+      getConstants: () => ({}),
+      get: jest.fn(),
+      set: jest.fn(),
+    })),
+    getEnforcing: jest.fn(() => ({
+      getConstants: () => ({}),
+      get: jest.fn(),
+      set: jest.fn(),
+    })),
+  }));
 
 jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
   get: jest.fn().mockReturnValue({
