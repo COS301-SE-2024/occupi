@@ -95,7 +95,7 @@ const Dashboard = () => {
       <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius="$20" />
       <View display="flex" flexDirection="row" rowGap="$4" mt="$1" justifyContent="space-between">
         <Card flexDirection="$row" justifyContent="$center" alignItems="$center" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$20" >
-          <Text color={textColor} fontSize="$5xl">{numbers[0]}</Text>
+          <Text testID="occupancy-data" color={textColor} fontSize="$5xl">{numbers[0]}</Text>
           <View flexDirection="$column">
           <View flexDirection="$row" alignItems="$center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="$yellowgreen"> {numbers[0]/10+5}%</Text></View>
           </View>
