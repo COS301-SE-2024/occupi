@@ -32,9 +32,18 @@ global.fetch = jest.fn(() =>
 
 jest.useFakeTimers();
 
-describe('App Navigation from Welcome', () => {
+describe('App Navigation Flow from Welcome Page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('should render components without crashing', () => {
+    const components = [Welcome, SignIn, SignUp, OTPVerification, CreatePassword, ForgotPassword];
+
+    components.forEach(Component => {
+      const tree = renderer.create(<Component />).toJSON();
+      expect(tree).toBeTruthy();
+    });
   });
 
   it('should navigate to login when Login button is pressed', () => {
