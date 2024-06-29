@@ -122,6 +122,14 @@ func TestViewBookingsHandler(t *testing.T) {
 	}
 }
 
+type testCase struct {
+	name               string
+	payload            string
+	expectedStatusCode int
+	expectedMessage    string
+	setupFunc          func() string // Return booking ID for valid setup
+}
+
 // Helper function to create a mock booking for testing
 func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (map[string]interface{}, error) {
 	req, err := http.NewRequest("POST", "/api/book-room", bytes.NewBuffer([]byte(payload)))
@@ -219,6 +227,57 @@ func sendRequestAndVerifyResponse(t *testing.T, r *gin.Engine, method, url strin
 	}
 
 	assert.Equal(t, expectedMessage, actualResponse["message"], "handler returned unexpected message")
+}
+func getSharedTestCases(r *gin.Engine, cookies []*http.Cookie) []testCase {
+	return []testCase{
+		{
+			name: "Valid Request",
+			payload: `{
+				"bookingId": "mock_id",
+				"creator": "test@example.com"
+			}`,
+			expectedStatusCode: http.StatusOK,
+			expectedMessage:    "Successfully checked in!",
+			setupFunc: func() string {
+				// Insert a booking to be cancelled using the helper function
+				bookingPayload := `{
+					"roomId": "12345",
+					"emails": ["test@example.com"],
+					"creator": "test@example.com",
+					"floorNo": "1",
+					"roomName": "Test Room",
+					"date": "2024-07-01T00:00:00Z",
+					"start": "2024-07-01T09:00:00Z",
+					"end": "2024-07-01T10:00:00Z"
+				}`
+				response, err := createMockBooking(r, bookingPayload, cookies)
+				if err != nil {
+					panic(fmt.Sprintf("could not create mock booking: %v", err))
+				}
+				return response["data"].(string) // Assuming "data" contains the booking ID
+			},
+		},
+		{
+			name: "Invalid Request Payload",
+			payload: `{
+				"bookingID": "",
+				"creator": "test@example.com"
+			}`,
+			expectedStatusCode: http.StatusBadRequest,
+			expectedMessage:    "Invalid request payload",
+			setupFunc:          func() string { return "" },
+		},
+		{
+			name: "Booking Not Found",
+			payload: `{
+				"bookingId": "nonexistent",
+				"creator": "test@example.com"
+			}`,
+			expectedStatusCode: http.StatusNotFound,
+			expectedMessage:    "Booking not found",
+			setupFunc:          func() string { return "" },
+		},
+	}
 }
 
 // Tests the CancelBooking handler
@@ -403,61 +462,7 @@ func TestCheckIn(t *testing.T) {
 	r, cookies := setupTestEnvironment(t)
 
 	// Define test cases
-	testCases := []struct {
-		name               string
-		payload            string
-		expectedStatusCode int
-		expectedMessage    string
-		setupFunc          func() string // Return booking ID for valid setup
-	}{
-		{
-			name: "Valid Request",
-			payload: `{
-				"bookingId": "mock_id",
-				"creator": "test2@example.com"
-			}`,
-			expectedStatusCode: http.StatusOK,
-			expectedMessage:    "Successfully checked in!",
-			setupFunc: func() string {
-				// Insert a booking to be cancelled using the helper function
-				bookingPayload := `{
-                    "roomId": "12345",
-					"emails": ["test2@example.com"],
-					"creator": "test2@example.com",
-					"floorNo": "1",
-					"roomName": "Test Room",
-					"date": "2024-07-01T00:00:00Z",
-					"start": "2024-07-01T09:00:00Z",
-					"end": "2024-07-01T10:00:00Z"
-                }`
-				response, err := createMockBooking(r, bookingPayload, cookies)
-				if err != nil {
-					t.Fatalf("could not create mock booking: %v", err)
-				}
-				return response["data"].(string) // Assuming "data" contains the booking ID
-			},
-		},
-		{
-			name: "Invalid Request Payload",
-			payload: `{
-				"bookingID": "",
-				"creator": "test2@example.com"
-			}`,
-			expectedStatusCode: http.StatusBadRequest,
-			expectedMessage:    "Invalid request payload",
-			setupFunc:          func() string { return "" },
-		},
-		{
-			name: "Booking Not Found",
-			payload: `{
-				"bookingId": "nonexistent",
-				"creator": "test2@example.com"
-			}`,
-			expectedStatusCode: http.StatusNotFound,
-			expectedMessage:    "Booking not found",
-			setupFunc:          func() string { return "" },
-		},
-	}
+	testCases := getSharedTestCases(r, cookies)
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
