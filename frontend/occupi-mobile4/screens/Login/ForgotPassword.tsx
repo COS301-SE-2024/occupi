@@ -239,6 +239,7 @@ export default function ForgotPassword() {
                     fontSize={wp('4%')}
                     h={hp('5%')}
                     placeholder="Email"
+                    testID="email-input"
                     type="text"
                     value={value}
                     onChangeText={onChange}
@@ -260,6 +261,7 @@ export default function ForgotPassword() {
           <GradientButton
             onPress={handleSubmit(onSubmit)}
             text="Send OTP"
+            testID="forgot-password-submit"
           />
         </Box>
       </VStack>
