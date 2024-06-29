@@ -1,3 +1,7 @@
+import React from 'react';
+import renderer from 'react-test-renderer';
+import SplashScreen from './screens/Login/SplashScreen';
+
 global.setImmediate = global.setImmediate || ((fn, ...args) => global.setTimeout(fn, 0, ...args));
 import 'react-native-gesture-handler/jestSetup';
 
@@ -10,6 +14,7 @@ it('should render SplashScreen and navigate after timeout', () => {
   jest.runAllTimers();
 
   // Add assertions for navigation here
+
 });
 
 jest.mock('react-native-reanimated', () => {
@@ -32,6 +37,8 @@ jest.mock('expo-linear-gradient', () => {
 
 jest.mock('expo-router', () => ({
   router: {
+    navigate: jest.fn(),
+    push: jest.fn(),
     replace: jest.fn(),
   },
 }));
