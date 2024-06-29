@@ -1,4 +1,4 @@
-// import 'react-native-gesture-handler/jestSetup';
+import 'react-native-gesture-handler/jestSetup';
 
 jest.mock('@react-navigation/stack', () => {
   return {
@@ -189,3 +189,62 @@ jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
     set: jest.fn(),
   })),
 }));
+
+jest.mock('react-native', () => {
+    const RN = jest.requireActual('react-native');
+    return {
+      ...RN,
+      Dimensions: {
+        get: jest.fn().mockReturnValue({
+          width: 375,
+          height: 667,
+          scale: 1,
+          fontScale: 1,
+        }),
+        set: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        screen: {
+          width: 375,
+          height: 667,
+          scale: 1,
+          fontScale: 1,
+        },
+      },
+
+      jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
+        get: jest.fn().mockReturnValue({
+          width: 375,
+          height: 667,
+          scale: 1,
+          fontScale: 1,
+        }),
+        set: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        screen: {
+          width: 375,
+          height: 667,
+          scale: 1,
+          fontScale: 1,
+        },
+      }));
+
+
+      jest.mock('react-native/Libraries/Utilities/PixelRatio', () => ({
+        get: jest.fn(() => 1),
+        getFontScale: jest.fn(() => 1),
+        getPixelSizeForLayoutSize: jest.fn(size => size),
+        roundToNearestPixel: jest.fn(size => size),
+        startDetecting: jest.fn(),
+      }));
+
+      jest.mock('react-native/Libraries/StyleSheet/StyleSheet', () => ({
+        create: jest.fn(styles => styles),
+        hairlineWidth: 1,
+        absoluteFill: {},
+        absoluteFillObject: {},
+        flatten: jest.fn(),
+        compose: jest.fn(),
+        roundToNearestPixel: jest.fn(value => value),
+      }));
