@@ -1,10 +1,12 @@
 // __mocks__/gluestack-ui-themed.js
 
+import React from 'react';
+
 const mockComponent = (name) => {
-    return function(props) {
-      return React.createElement(name, props, props.children);
-    };
+  return function(props) {
+    return React.createElement(name, props, props.children);
   };
+};
   
   module.exports = {
     Box: mockComponent('Box'),
@@ -20,5 +22,5 @@ const mockComponent = (name) => {
     Spinner: mockComponent('Spinner'),
     ScrollView: mockComponent('ScrollView'),
     FlatList: mockComponent('FlatList'),
-    
+
   };
