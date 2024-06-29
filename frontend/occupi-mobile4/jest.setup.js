@@ -1,5 +1,6 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
+import '@testing-library/jest-native/extend-expect';
 import SplashScreen from './screens/Login/SplashScreen';
 
 global.setImmediate = global.setImmediate || ((fn, ...args) => global.setTimeout(fn, 0, ...args));
@@ -15,13 +16,19 @@ it('should render SplashScreen and navigate after timeout', () => {
 
   // Add assertions for navigation here
 
-});
-
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = require('react-native-reanimated/mock');
-  Reanimated.default.call = () => {};
-  return Reanimated;
-});
+}); // Increase timeout to 30 seconds
+jest.mock('expo-font');
+jest.mock('expo-asset');
+jest.mock('expo-constants', () => ({
+  manifest: { extra: { apiUrl: 'https://api.example.com' } },
+}));
+jest.mock('@react-navigation/native', () => {
+    return {
+      useNavigation: () => ({
+        navigate: jest.fn(),
+      }),
+    };
+  });
 
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
@@ -52,8 +59,9 @@ jest.mock('@ui-kitten/components', () => ({
   ViewPager: 'ViewPager',
 }));
   
-  jest.mock('react-native-reanimated', () => {
+jest.mock('react-native-reanimated', () => {
     const Reanimated = require('react-native-reanimated/mock');
     Reanimated.default.call = () => {};
     return Reanimated;
-  });
+});
+
