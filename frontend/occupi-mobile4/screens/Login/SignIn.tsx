@@ -226,7 +226,8 @@ const SignInForm = () => {
       end={[1, 0]}
       style={styles.buttonContainer}
     >
-      <Heading style={styles.buttonText} onPress={onPress}>
+      <Heading 
+      style={styles.buttonText} onPress={onPress}>
         {text}
       </Heading>
     </LinearGradient>
@@ -293,6 +294,7 @@ const SignInForm = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
+                  testID='email-input'
                 />
               </Input>
             )}
@@ -334,6 +336,7 @@ const SignInForm = () => {
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
                   type={showPassword ? 'text' : 'password'}
+                  testID='password-input'
                 />
                 <InputSlot onPress={handleState} pr="$3">
                   <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -387,11 +390,14 @@ const SignInForm = () => {
         <GradientButton
           onPress={handleSubmit(onSubmit)}
           text="Verifying..."
+          testID="login-submit"
         />
       ) : (
         <GradientButton
           onPress={handleSubmit(onSubmit)}
           text="Login"
+          testID="login-submit"
+         
         />
       )}
       {/* <PostRequestExample/> */}
@@ -458,7 +464,7 @@ const Main = () => {
           New to Occupi?
         </Text>
         <StyledExpoRouterLink href="/signup">
-          <LinkText color="yellowgreen" fontSize={wp('4%')}>Register</LinkText>
+          <LinkText  color="yellowgreen" fontSize={wp('4%')}>Register</LinkText>
         </StyledExpoRouterLink>
       </HStack>
     </Box>
