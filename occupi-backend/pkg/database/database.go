@@ -373,7 +373,7 @@ func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, id string, email st
 
 // Gets all rooms available for booking
 func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo string) ([]models.Room, error) {
-	collection := db.Database("Occupi").Collection("RoomsV2")
+	collection := db.Database("Occupi").Collection("Rooms")
 
 	var cursor *mongo.Cursor
 	var err error
