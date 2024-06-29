@@ -133,9 +133,9 @@ describe('App Navigation Flow from Welcome Page', () => {
       signUpButton.props.onPress();
     });
 
-    await act(async () => {
-      jest.runAllTimers();
-    });
+   await act(async () => {
+        jest.runOnlyPendingTimers();
+      });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/signup', expect.any(Object));
     // expect(router.push).toHaveBeenCalledWith('/otp-verification');
@@ -151,9 +151,9 @@ describe('App Navigation Flow from Welcome Page', () => {
       otpButton.props.onPress();
     });
 
-    await act(async () => {
-      jest.runAllTimers();
-    });
+   await act(async () => {
+        jest.runOnlyPendingTimers();
+      });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/verify-otp', expect.any(Object));
     // expect(router.push).toHaveBeenCalledWith('/create-password');
@@ -171,9 +171,9 @@ describe('App Navigation Flow from Welcome Page', () => {
       createPasswordButton.props.onPress();
     });
 
-    await act(async () => {
-      jest.runAllTimers();
-    });
+   await act(async () => {
+        jest.runOnlyPendingTimers();
+      });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/create-password', expect.any(Object));
     // expect(router.push).toHaveBeenCalledWith('/login');
@@ -189,9 +189,9 @@ describe('App Navigation Flow from Welcome Page', () => {
       forgotPasswordButton.props.onPress();
     });
 
-    await act(async () => {
-      jest.runAllTimers();
-    });
+   await act(async () => {
+        jest.runOnlyPendingTimers();
+      });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/forgot-password', expect.any(Object));
     // expect(router.push).toHaveBeenCalledWith('/otp-verification');
