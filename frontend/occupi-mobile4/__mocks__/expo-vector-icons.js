@@ -1,3 +1,4 @@
+import React from 'react';
 // __mocks__/expo-vector-icons.js
 const mockIcon = () => 'Icon';
 export const Feather = mockIcon;
