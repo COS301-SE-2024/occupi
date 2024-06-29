@@ -1,4 +1,4 @@
-import 'react-native-gesture-handler/jestSetup';
+// import 'react-native-gesture-handler/jestSetup';
 
 jest.mock('@react-navigation/stack', () => {
   return {
@@ -40,38 +40,37 @@ jest.mock('react-native', () => {
       hairlineWidth: 1,
     },
     Dimensions: {
-      get: jest.fn((dim) => {
+      get: jest.fn().mockImplementation((dim) => {
         switch (dim) {
           case 'window':
-            return { width: 375, height: 667, scale: 1, fontScale: 1 };
+            return { width: 360, height: 640, scale: 2, fontScale: 2 };
           case 'screen':
-            return { width: 375, height: 667, scale: 1, fontScale: 1 };
+            return { width: 360, height: 640, scale: 2, fontScale: 2 };
           default:
-            return { width: 375, height: 667, scale: 1, fontScale: 1 };
+            return { width: 360, height: 640, scale: 2, fontScale: 2 };
         }
       }),
       set: jest.fn(),
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
       screen: {
-        width: 375,
-        height: 667,
-        scale: 1,
-        fontScale: 1,
+        width: 360,
+        height: 640,
+        scale: 2,
+        fontScale: 2,
       },
       window: {
-        width: 375,
-        height: 667,
-        scale: 1,
-        fontScale: 1,
+        width: 360,
+        height: 640,
+        scale: 2,
+        fontScale: 2,
       },
     },
     PixelRatio: {
-      get: jest.fn(() => 1),
-      getFontScale: jest.fn(() => 1),
-      getPixelSizeForLayoutSize: jest.fn(size => size),
-      roundToNearestPixel: jest.fn(size => size),
-      startDetecting: jest.fn(),
+      get: jest.fn(() => 2),
+      getFontScale: jest.fn(() => 2),
+      getPixelSizeForLayoutSize: jest.fn((size) => size * 2),
+      roundToNearestPixel: jest.fn((size) => Math.round(size)),
     },
   };
 });
