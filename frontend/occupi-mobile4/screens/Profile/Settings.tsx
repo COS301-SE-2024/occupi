@@ -45,31 +45,31 @@ const Settings = () => {
         credentials: "include"
       });
       const data = await response.json();
-      if (response.ok) {
-        console.log(data);
-        toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={String(id)} variant="accent" action="success">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
-        router.push('/login');
-      } else {
-        toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={String(id)} variant="accent" action="error">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
-      }
+      // if (response.ok) {
+      //   console.log(data);
+      //   toast.show({
+      //         placement: 'top',
+      //         render: ({ id }) => {
+      //           return (
+      //             <Toast nativeID={String(id)} variant="accent" action="success">
+      //               <ToastTitle>{data.message}</ToastTitle>
+      //             </Toast>
+      //           );
+      //         },
+      //       });
+        router.replace('/login');
+      // } else {
+      //   toast.show({
+      //         placement: 'top',
+      //         render: ({ id }) => {
+      //           return (
+      //             <Toast nativeID={String(id)} variant="accent" action="error">
+      //               <ToastTitle>{data.message}</ToastTitle>
+      //             </Toast>
+      //           );
+      //         },
+      //       });
+      // }
     } catch (error) {
       console.error('Error:', error);
     }
