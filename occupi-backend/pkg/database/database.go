@@ -43,9 +43,7 @@ func GetAllData(db *mongo.Client) []bson.M {
 		users = append(users, user)
 	}
 
-	if err := cursor.Err(); err != nil {
-		logrus.Error(fmt.Printf("Cursor error: %v", err))
-	}
+	// Return the users
 
 	return users
 }
