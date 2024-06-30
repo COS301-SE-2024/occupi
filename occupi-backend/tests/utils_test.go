@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
@@ -598,6 +599,133 @@ func TestTypeCheck(t *testing.T) {
 			result := utils.TypeCheck(tt.value, tt.expectedType)
 			if result != tt.expected {
 				t.Errorf("TypeCheck(%v, %v) = %v; want %v", tt.value, tt.expectedType, result, tt.expected)
+			}
+		})
+	}
+}
+
+// TestGetErrorMsg uses actual validation failures to generate FieldError objects.
+func TestGetErrorMsg(t *testing.T) {
+	validate := validator.New()
+	type TestStruct struct {
+		Username string `validate:"required"`
+		Email    string `validate:"required,email"`
+		Age      int    `validate:"min=18"`
+	}
+
+	// Instance of TestStruct that will fail validation for different reasons.
+	testInstance := TestStruct{
+		Username: "",             // Will trigger "required" validation for Username.
+		Email:    "not-an-email", // Will trigger "email" validation for Email.
+		Age:      16,             // Will trigger "min" validation for Age.
+	}
+
+	err := validate.Struct(testInstance)
+	assert.NotNil(t, err)
+
+	// Assuming err is of type validator.ValidationErrors, which implements the error interface.
+	validationErrors := err.(validator.ValidationErrors)
+
+	for _, fe := range validationErrors {
+		t.Run("Field: "+fe.Field(), func(t *testing.T) {
+			result := utils.GetErrorMsg(fe)
+			switch fe.Field() {
+			case "Username":
+				assert.Equal(t, "The username field is required", result)
+			case "Email":
+				assert.Equal(t, "The Email field must be a valid email address", result)
+			case "Age":
+				assert.Equal(t, "The Age field must be greater than 18", result)
+			default:
+				t.Errorf("Unhandled field: %s", fe.Field())
+			}
+		})
+	}
+
+	// Instance of TestStruct that will pass validation.
+	testInstance = TestStruct{
+		Username: "john.doe",
+		Email:    "john.doe@gmail.com",
+		Age:      21,
+	}
+
+	err = validate.Struct(testInstance)
+	assert.Nil(t, err)
+
+	// No errors should be returned.
+	assert.Empty(t, err)
+
+	// Instance of Teststruct that will fail as username is not valid
+	testInstance = TestStruct{
+		Username: "",
+		Email:    "john.doe@gmail.com",
+		Age:      21,
+	}
+
+	err = validate.Struct(testInstance)
+	assert.NotNil(t, err)
+
+	// Assuming err is of type validator.ValidationErrors, which implements the error interface.
+	validationErrors = err.(validator.ValidationErrors)
+
+	for _, fe := range validationErrors {
+		t.Run("Field: "+fe.Field(), func(t *testing.T) {
+			result := utils.GetErrorMsg(fe)
+			switch fe.Field() {
+			case "Username":
+				assert.Equal(t, "The username field is required", result)
+			default:
+				t.Errorf("Unhandled field: %s", fe.Field())
+			}
+		})
+	}
+
+	// Instance of Teststruct that will fail as email is not valid
+	testInstance = TestStruct{
+		Username: "john.doe",
+		Email:    "john.doe",
+		Age:      21,
+	}
+
+	err = validate.Struct(testInstance)
+	assert.NotNil(t, err)
+
+	// Assuming err is of type validator.ValidationErrors, which implements the error interface.
+	validationErrors = err.(validator.ValidationErrors)
+
+	for _, fe := range validationErrors {
+		t.Run("Field: "+fe.Field(), func(t *testing.T) {
+			result := utils.GetErrorMsg(fe)
+			switch fe.Field() {
+			case "Email":
+				assert.Equal(t, "The Email field must be a valid email address", result)
+			default:
+				t.Errorf("Unhandled field: %s", fe.Field())
+			}
+		})
+	}
+
+	// Instance of Teststruct that will fail as age is not valid
+	testInstance = TestStruct{
+		Username: "john.doe",
+		Email:    "john.doe@gmail.com",
+		Age:      16,
+	}
+
+	err = validate.Struct(testInstance)
+	assert.NotNil(t, err)
+
+	// Assuming err is of type validator.ValidationErrors, which implements the error interface.
+	validationErrors = err.(validator.ValidationErrors)
+
+	for _, fe := range validationErrors {
+		t.Run("Field: "+fe.Field(), func(t *testing.T) {
+			result := utils.GetErrorMsg(fe)
+			switch fe.Field() {
+			case "Age":
+				assert.Equal(t, "The Age field must be greater than 18", result)
+			default:
+				t.Errorf("Unhandled field: %s", fe.Field())
 			}
 		})
 	}
