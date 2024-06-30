@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/go-playground/validator"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
@@ -262,4 +263,16 @@ func ValidateJSON(data map[string]interface{}, expectedType reflect.Type) (map[s
 
 	}
 	return validatedData, nil
+}
+
+func GetErrorMsg(fe validator.FieldError) string {
+	switch fe.Tag() {
+	case "required":
+		return "The " + LowercaseFirstLetter(fe.Field()) + " field is required"
+	case "email":
+		return "The " + fe.Field() + " field must be a valid email address"
+	case "min":
+		return "The " + fe.Field() + " field must be greater than " + fe.Param()
+	}
+	return "The " + fe.Field() + " field is invalid"
 }

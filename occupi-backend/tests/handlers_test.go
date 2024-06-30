@@ -18,7 +18,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	// "github.com/stretchr/testify/mock"
@@ -27,7 +26,7 @@ import (
 // Tests the ViewBookings handler
 func TestViewBookingsHandler(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -162,7 +161,7 @@ func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (m
 // SetupTestEnvironment initializes the test environment and returns the router and cookies
 func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	// Connect to the test database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// Set Gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -480,7 +479,7 @@ func TestCheckIn(t *testing.T) {
 }
 func TestPingRoute(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -526,7 +525,7 @@ func TestPingRoute(t *testing.T) {
 
 func TestRateLimit(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -577,7 +576,7 @@ func TestRateLimit(t *testing.T) {
 
 func TestRateLimitWithMultipleIPs(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -672,7 +671,7 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 
 func TestInvalidLogoutHandler(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -703,7 +702,7 @@ func TestInvalidLogoutHandler(t *testing.T) {
 
 func TestValidLogoutHandler(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -763,7 +762,7 @@ func TestValidLogoutHandler(t *testing.T) {
 
 func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -844,7 +843,7 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 
 func TestMockDatabase(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
