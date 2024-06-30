@@ -229,7 +229,7 @@ const OfficeDetails = () => {
         </View> */}
 
         {/* Description */}
-        <View px="$5">
+        <View testID="office-data" px="$5">
           <Text fontSize="$24" fontWeight="$bold" style={{ color: isDarkMode ? '#fff' : '#000' }}>Description</Text>
           <Text fontSize="$16" style={{ color: isDarkMode ? '#fff' : '#000' }}>
             {roomData2.description}
@@ -280,7 +280,7 @@ const OfficeDetails = () => {
           />
         </View>
         {/* Check Availability Button */}
-        <TouchableOpacity bottom="$0" style={{ margin: wp('5%') }} onPress={() => router.push({ pathname: '/booking-details', params: { email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData } })}>
+        <TouchableOpacity testID="booking-link"  bottom="$0" style={{ margin: wp('5%') }} onPress={() => router.push({ pathname: '/booking-details', params: { email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData } })}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
             start={{ x: 0, y: 0 }}
@@ -307,7 +307,7 @@ const OfficeDetails = () => {
             setModalVisible(!modalVisible);
           }}
         >
-          <View style={{ margin: wp('5%'), backgroundColor: isDarkMode ? '#333' : '#fff', borderRadius: wp('5%'), padding: wp('8%'), alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: hp('0.25%') }, shadowOpacity: 0.25, shadowRadius: hp('0.5%'), elevation: 5 }}>
+          <View testID="office-data" style={{ margin: wp('5%'), backgroundColor: isDarkMode ? '#333' : '#fff', borderRadius: wp('5%'), padding: wp('8%'), alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: hp('0.25%') }, shadowOpacity: 0.25, shadowRadius: hp('0.5%'), elevation: 5 }}>
             <Text style={{ fontSize: wp('6%'), color: isDarkMode ? '#fff' : '#000', marginBottom: hp('2%') }}>Available slots</Text>
             {/* <CalendarPicker /> */}
             <View style={{ marginTop: hp('2%'), width: '100%' }}>
