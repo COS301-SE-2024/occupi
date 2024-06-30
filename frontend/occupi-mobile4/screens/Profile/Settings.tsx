@@ -107,7 +107,7 @@ const Settings = () => {
     { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
     { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
     { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
-    { title: 'About and Help', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
+    { title: 'About and Help', description: '', iconName: 'info', onPress: () => router.push('faqpage'), testID="faq-link" },
   ];
 
   const renderListItem = ({ item }) => (
