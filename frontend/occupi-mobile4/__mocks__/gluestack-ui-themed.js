@@ -24,3 +24,17 @@ const mockComponent = (name) => {
     FlatList: mockComponent('FlatList'),
 
   };
+
+  module.exports = {
+    Text: 'Text',
+    View: 'View',
+    Image: 'Image',
+    Card: 'Card',
+    Toast: 'Toast',
+    useToast: () => ({
+      show: jest.fn(),
+    }),
+    ToastTitle: 'ToastTitle',
+    Button: 'Button',
+    ButtonText: 'ButtonText',
+  };
