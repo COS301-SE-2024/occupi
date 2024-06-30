@@ -15,6 +15,6 @@
   ".expo/types/**/*.ts",
   "expo-env.d.ts",
   "screens/Booking/__test__/Int_BookRoom.test.tsx",
-  "screens/Booking/__test__/Int_BookRoom.test.js"
+  "screens/Booking/__test__/Int_Booking.test.js"
 ]
 }
