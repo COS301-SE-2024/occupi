@@ -64,7 +64,12 @@ func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bo
 func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models.Booking, error) {
 	// Get the bookings for the user
 	collection := db.Database("Occupi").Collection("RoomBooking")
-	filter := bson.M{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}}
+	filter := bson.M{
+		"$or": []bson.M{
+			{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}},
+			{"creator": email},
+		},
+	}
 	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		logrus.Error(err)
