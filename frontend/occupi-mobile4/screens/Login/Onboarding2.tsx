@@ -38,7 +38,7 @@ const Onboarding2 = () => {
           Uses historical data to provide day to day analysis and statistics 
         </Text>
         <GradientButton
-          onPress={() => router.push('/onboarding3')}
+          onPress={() => router.replace('/onboarding3')}
           text="Next"
         />
       </Center>

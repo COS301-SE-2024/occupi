@@ -38,7 +38,7 @@ const Onboarding1 = () => {
           Predictive AI to help you plan when you go to the office better
         </Text>
         <GradientButton
-          onPress={() => router.push('/onboarding2')}
+          onPress={() => router.replace('/onboarding2')}
           text="Next"
         />
       </Center>

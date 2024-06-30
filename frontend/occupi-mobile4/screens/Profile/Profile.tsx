@@ -88,7 +88,7 @@ const Profile = () => {
             name="chevron-left"
             size="xl"
             color={colorScheme === 'dark' ? 'white' : 'black'}
-            onPress={() => router.push('/settings')}
+            onPress={() => router.back()}
           />
           <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
             My account
