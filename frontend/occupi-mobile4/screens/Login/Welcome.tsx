@@ -36,7 +36,7 @@ const Welcome = () => {
         <Heading style={styles.heading}>Log in. Let's Plan.</Heading>
         <Text style={styles.subHeading}>Predict. Plan. Perfect.</Text>
         <GradientButton
-          onPress={() => router.push('/login')}
+          onPress={() => router.replace('/login')}
           text="Login"
         />
         <Text style={styles.registerText} onPress={() => router.push('/signup')}>Register</Text>

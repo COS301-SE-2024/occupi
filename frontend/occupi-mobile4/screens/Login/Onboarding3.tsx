@@ -38,7 +38,7 @@ const Onboarding3 = () => {
           Provides real time updates for occupancy and capacity 
         </Text>
         <GradientButton
-          onPress={() => router.push('/welcome')}
+          onPress={() => router.replace('/welcome')}
           text="Next"
         />
       </Center>

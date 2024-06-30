@@ -13,23 +13,23 @@ const NavBar = () => {
   const styles = getStyles(colorScheme);
   return (
     <BlurView tint="light" pb={hp('3%')} backgroundColor={colorScheme === 'dark' ? 'black' : '#fff'} intensity={20} style={styles.container}>
-      <Button onPress={() => router.push('/home')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Home" flexDirection="column">
+      <Button onPress={() => router.replace('/home')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Home" flexDirection="column">
         <Feather name="home" size={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
         <Text numberOfLines={1} w={wp('9%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Home</Text>
       </Button>
-      <Button onPress={() => router.push('/viewbookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Search" flexDirection="column">
+      <Button onPress={() => router.replace('/viewbookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Search" flexDirection="column">
         <Ionicons name="receipt-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#000'} />
         <Text numberOfLines={1} w={wp('19%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>My bookings</Text>
       </Button>
-      <Button onPress={() => router.push('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Book" flexDirection="column">
+      <Button onPress={() => router.replace('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Book" flexDirection="column">
         <Icon as={CalendarDaysIcon} w={hp('3%')} h={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
         <Text numberOfLines={1} w={wp('7.4%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Book</Text>
       </Button>
-      <Button onPress={() => router.push('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Notifications" flexDirection="column">
+      <Button onPress={() => router.replace('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Notifications" flexDirection="column">
         <Icon as={BellIcon} w={hp('3%')} h={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
         <Text pl={wp('1%')} numberOfLines={1} w={wp('20%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Notifications</Text>
       </Button>
-      <Button onPress={() => router.push('/settings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Profile" flexDirection="column">
+      <Button onPress={() => router.replace('/settings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Profile" flexDirection="column">
         <FontAwesome6 name="user" size={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
         <Text pl={wp('1%')} numberOfLines={1} w={wp('12%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Profile</Text>
       </Button>
