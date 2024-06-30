@@ -88,6 +88,7 @@ const Profile = () => {
             name="chevron-left"
             size="30"
             color={colorScheme === 'dark' ? 'white' : 'black'}
+            testID="settings-link"
             onPress={() => router.push('/settings')}
           />
           <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
