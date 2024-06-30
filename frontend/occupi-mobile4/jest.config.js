@@ -1,27 +1,18 @@
 module.exports = {
-  preset: 'react-native',
-  setupFilesAfterEnv: ['./jest.setup.js', 'react-native-gesture-handler/jestSetup'],
+  preset: 'jest-expo',
+  setupFilesAfterEnv: ['./jest.setup.js'],
   transformIgnorePatterns: [
-    'node_modules/(?!(jest-)?@?react-native|@react-native-community|@react-navigation|@ui-kitten|@gluestack-ui|expo-blur|expo-linear-gradient|expo-router|@expo|expo-font|react-native-chart-kit|expo|@expo-google-fonts)/',
+    'node_modules/(?!(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui|expo-blur|expo-linear-gradient|expo-router|react-native-chart-kit)'
   ],
-  transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { configFile: './babel.config.js' }],
-    '^.+\\.(png|jpg|jpeg|svg)$': 'jest-transform-stub',
-  },
   moduleNameMapper: {
+    '^react-native$': 'react-native-web',
     '^@/(.*)$': '<rootDir>/$1',
-    '^react-native$': require.resolve('react-native'),
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/fileMock.js',
-    '^react$': require.resolve('react'),
-    '^@expo/vector-icons$': '<rootDir>/__mocks__/expo-vector-icons.js',
+    '^react-native-chart-kit$': '<rootDir>/__mocks__/react-native-chart-kit.js',
     '^@gluestack-ui/themed$': '<rootDir>/__mocks__/gluestack-ui-themed.js',
-    '^.+\\.svg$': 'jest-svg-transformer',
-
+    '^@expo/vector-icons$': '<rootDir>/__mocks__/expo-vector-icons.js',
   },
   testEnvironment: 'jsdom',
-  testMatch: [
-    '**/__tests__/**/*.js?(x)',
-    '**/?(*.)(spec|test).js?(x)'
-  ],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
+  },
 };
