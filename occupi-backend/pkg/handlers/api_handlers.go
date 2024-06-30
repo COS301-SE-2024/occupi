@@ -245,7 +245,7 @@ func HandleValidationErrors(ctx *gin.Context, err error) {
 		for i, err := range ve {
 			out[i] = models.ErrorMsg{
 				Field:   utils.LowercaseFirstLetter(err.Field()),
-				Message: models.GetErrorMsg(err),
+				Message: utils.GetErrorMsg(err),
 			}
 		}
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid request payload", gin.H{"errors": out}))

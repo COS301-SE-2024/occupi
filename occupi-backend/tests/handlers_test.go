@@ -161,7 +161,7 @@ func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (m
 // SetupTestEnvironment initializes the test environment and returns the router and cookies
 func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	// Connect to the test database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// Set Gin run mode
 	gin.SetMode(configs.GetGinRunMode())
