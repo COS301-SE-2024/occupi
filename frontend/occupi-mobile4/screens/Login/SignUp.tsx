@@ -27,16 +27,15 @@ import {
   InputSlot,
   FormControlLabel,
   FormControlLabelText,
+  View
 } from '@gluestack-ui/themed';
-
+import GradientButton from '@/components/GradientButton';
 import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Keyboard } from 'react-native';
 // import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
-import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -115,7 +114,6 @@ const SignUpForm = () => {
           router.push({pathname:'/verify-otp', params: { email: _data.email}});
         } else {
           setLoading(false);
-          // console.log(data);
           toast.show({
             placement: 'top',
             render: ({ id }) => {
@@ -161,36 +159,6 @@ const SignUpForm = () => {
       return !showState;
     });
   };
-
-  const GradientButton = ({ onPress, text }) => (
-    <LinearGradient
-      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-      locations={[0.02, 0.31, 0.67, 0.97]}
-      start={[0, 1]}
-      end={[1, 0]}
-      style={styles.buttonContainer}
-    >
-      <Heading style={styles.buttonText} onPress={onPress}>
-        {text}
-      </Heading>
-    </LinearGradient>
-  );
-
-  const styles = StyleSheet.create({
-    buttonContainer: {
-      borderRadius: 15,
-      marginTop: hp('2%'),
-      alignSelf: 'center',
-      width: wp('90%'),
-      height: hp('6%'),
-    },
-    buttonText: {
-      color: 'black',
-      fontSize: wp('4%'),
-      textAlign: 'center',
-      lineHeight: hp('6%'),
-    }
-  });
 
   return (
     <>
@@ -516,6 +484,7 @@ function SignUpFormComponent() {
           alignItems="center"
           justifyContent="center"
           mt="$5"
+          mb="$8"
         >
           <Text
             color="$textLight500"
@@ -529,7 +498,7 @@ function SignUpFormComponent() {
             Have an account?
           </Text>
 
-          <StyledExpoRouterLink href="/login">
+          <StyledExpoRouterLink replace href="/login">
             <LinkText color="yellowgreen" fontSize="$sm">Login</LinkText>
           </StyledExpoRouterLink>
         </HStack>
@@ -540,7 +509,7 @@ function SignUpFormComponent() {
 
 export default function SignUp() {
   return (
-    <GuestLayout>
+    <View flex="$1" pt="$12" backgroundColor='white'>
       <Box
         sx={{
           '@md': {
@@ -555,6 +524,6 @@ export default function SignUp() {
       <Box flex={1}>
         <SignUpFormComponent />
       </Box>
-    </GuestLayout>
+    </View>
   );
 }
