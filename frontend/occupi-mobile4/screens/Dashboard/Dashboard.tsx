@@ -71,48 +71,48 @@ const Dashboard = () => {
   const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
 
   return (
-    <View pt="$16" px="$4" flex={1} flexDirection="column" backgroundColor={backgroundColor}>
+    <View pt="16" px="4" flex={1} flexDirection="column" backgroundColor={backgroundColor}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <View flexDirection="row" justifyContent="space-between">
         <View>
-          <Text fontSize={wp('5%')} fontWeight="$light" color={textColor}>
+          <Text fontSize={wp('5%')} fontWeight="light" color={textColor}>
             Hi Sabrina 👋
           </Text>
-          <Text mt="$4" fontSize={wp('6%')} fontWeight="$bold" color={textColor}>
+          <Text mt="4" fontSize={wp('6%')} fontWeight="bold" color={textColor}>
             Welcome to Occupi
           </Text>
         </View>
         <Image
           alt="logo"
-          p="$10"
+          p="10"
           source={require('../../screens/Login/assets/images/Occupi/file.png')}
           style={{ width: wp('8%'), height: wp('8%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
         />
       </View>
-      <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius="$xl" />
-      <View display="flex" flexDirection="row" rowGap="$4" mt="$1" justifyContent="space-between">
-        <Card flexDirection="row" justifyContent="center" alignItems="center" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$xl" >
-          <Text color={textColor} fontSize="$5xl">{numbers[0]}</Text>
+      <Card size="lg" variant="elevated" mt="4" w="full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius="xl" />
+      <View display="flex" flexDirection="row" rowGap="4" mt="1" justifyContent="space-between">
+        <Card flexDirection="row" justifyContent="center" alignItems="center" variant="elevated" mt="4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="xl" >
+          <Text color={textColor} fontSize="5xl">{numbers[0]}</Text>
           <View flexDirection="column">
-          <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="$yellowgreen"> {numbers[0]/10+5}%</Text></View>
+          <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0]/10+5}%</Text></View>
           </View>
         </Card>
-        <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$xl" />
+        <Card size="lg" variant="elevated" mt="4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="xl" />
       </View>
-      <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
+      <View flexDirection="row" justifyContent="flex-end" mt="6" mb="4" h="8" alignItems="center">
         {checkedIn ? (
-          <Button w={wp('36%')} borderRadius="$md" backgroundColor="lightblue" onPress={checkIn}>
+          <Button w={wp('36%')} borderRadius="md" backgroundColor="lightblue" onPress={checkIn}>
             <ButtonText color="dimgrey">Check out</ButtonText>
           </Button>
         ) : (
-          <Button w={wp('36%')} borderRadius="$md" backgroundColor="greenyellow" onPress={checkIn}>
+          <Button w={wp('36%')} borderRadius="md" backgroundColor="greenyellow" onPress={checkIn}>
             <ButtonText color="dimgrey">Check in</ButtonText>
           </Button>
         )}
       </View>
       {/* <Image
         alt="logo"
-        p="$10"
+        p="10"
         source={require('./assets/graph.png')}
         style={{ width: wp('100%'), height: hp('31%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
       /> */}
@@ -149,13 +149,13 @@ const Dashboard = () => {
           }}
           width={370} // from react-native
           height={220}
-          // yAxisLabel="$"
+          // yAxisLabel=""
           // yAxisSuffix="k"
           yAxisInterval={1} // optional, defaults to 1
           chartConfig={{
             backgroundColor: "white",
-            backgroundGradientFrom: "yellowgreen",
-            backgroundGradientTo: "cyan",
+            // backgroundGradientFrom: "yellowgreen",
+            // backgroundGradientTo: "cyan",
             decimalPlaces: 0, // optional, defaults to 2dp
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
