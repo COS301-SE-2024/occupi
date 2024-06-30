@@ -132,7 +132,7 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	var cancel models.Cancel
 	cancelBytes, _ := json.Marshal(validatedData)
 	if err := json.Unmarshal(cancelBytes, &cancel); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel", constants.InternalServerErrorCode, "Failed to check in", nil))
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel", constants.InternalServerErrorCode, "Failed to cancel", nil))
 		return
 	}
 
