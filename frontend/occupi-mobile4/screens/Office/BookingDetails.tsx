@@ -323,7 +323,7 @@ const BookingDetails = () => {
       <StepIndicator />
 
       {currentStep === 0 && (
-        <View>
+        <View testID="booking-data">
           <Image
             source={{
               uri: "https://fancyhouse-design.com/wp-content/uploads/2023/11/With-a-backdrop-of-Dubais-cityscape-the-office-interior-design-is-as-dynamic-as-it-is-luxurious..jpg",
@@ -395,6 +395,7 @@ const BookingDetails = () => {
             </View>
           </View>
           <TouchableOpacity
+          testID="booking-link"
             style={{ margin: 15, borderRadius: 25 }}
             onPress={handleBiometricAuth}
           >
@@ -424,7 +425,7 @@ const BookingDetails = () => {
       )}
 
       {currentStep === 1 && (
-        <View style={{ flex: 1 }}>
+        <View testID="booking-data" style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", margin: 15 }}>
             <TextInput
               style={{
@@ -480,6 +481,7 @@ const BookingDetails = () => {
           />
 
           {!loading ? (<TouchableOpacity
+          testID="booking-link"
             style={{ margin: 15, borderRadius: 15 }}
             onPress={() => onSubmit()}
           >
@@ -507,6 +509,7 @@ const BookingDetails = () => {
           </TouchableOpacity>
           ) : (
             <TouchableOpacity
+            testID="booking-link"
               style={{ margin: 15, borderRadius: 15 }}
               onPress={() => onSubmit()}
             >
@@ -543,7 +546,7 @@ const BookingDetails = () => {
       )}
 
       {currentStep === 2 && (
-        <View style={{ paddingHorizontal: 15, flex: 1 }}>
+        <View testID="booking-data" style={{ paddingHorizontal: 15, flex: 1 }}>
           {/* <Text
             style={{
               fontSize: 16,
