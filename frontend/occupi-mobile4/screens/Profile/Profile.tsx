@@ -21,10 +21,10 @@ import {
   Icon,
 } from '@gluestack-ui/themed';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import GradientButton from '@/components/GradientButton';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -200,16 +200,10 @@ const Profile = () => {
           onChangeText={setPronouns}
         />
 
-        <TouchableOpacity style={styles.saveButton} onPress={onSave}>
-          <LinearGradient
-            colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.saveButtonGradient}
-          >
-            <Text style={styles.saveButtonText}>Save</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <GradientButton
+          onPress={onSave}
+          text="Save"
+        />
       </ScrollView>
     </SafeAreaView>
   );

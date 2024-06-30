@@ -24,6 +24,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
+import GradientButton from '@/components/GradientButton';
 
 const getTimeForSlot = (slot) => {
   console.log(slot);
@@ -395,32 +396,10 @@ const BookingDetails = () => {
               </View>
             </View>
           </View>
-          <TouchableOpacity
-            style={{ margin: 15, borderRadius: 25 }}
-            onPress={handleBiometricAuth}
-          >
-            <LinearGradient
-              colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
-              locations={[0.02, 0.31, 0.67, 0.97]}
-              start={[0, 1]}
-              end={[1, 0]}
-              style={{
-                padding: 15,
-                alignItems: "center",
-                borderRadius: 15,
-              }}
-            >
-              <Text
-                style={{
-                  color: isDark ? "#000" : "#fff",
-                  fontSize: 16,
-                  fontWeight: "bold",
-                }}
-              >
-                Confirm booking
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          <GradientButton
+            onPress={() => handleBiometricAuth()}
+            text="Confirm booking"
+          />
         </View>
       )}
 
@@ -480,32 +459,11 @@ const BookingDetails = () => {
             }}
           />
 
-          {!loading ? (<TouchableOpacity
-            style={{ margin: 15, borderRadius: 15 }}
-            onPress={() => onSubmit()}
-          >
-            <LinearGradient
-              colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
-              locations={[0.02, 0.31, 0.67, 0.97]}
-              start={[0, 1]}
-              end={[1, 0]}
-              style={{
-                padding: 15,
-                alignItems: "center",
-                borderRadius: 15,
-              }}
-            >
-              <Text
-                style={{
-                  color: isDark ? '#000' : '#fff',
-                  fontSize: 16,
-                  fontWeight: "bold",
-                }}
-              >
-                Send invites
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          {!loading ? (
+            <GradientButton
+              onPress={() => onSubmit()}
+              text="Send invites" 
+            />
           ) : (
             <TouchableOpacity
               style={{ margin: 15, borderRadius: 15 }}
