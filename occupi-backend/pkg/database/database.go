@@ -10,7 +10,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,7 +19,7 @@ import (
 )
 
 // attempts to and establishes a connection with the remote mongodb database
-func ConnectToDatabase() *mongo.Client {
+func ConnectToDatabase(args ...string) *mongo.Client {
 	// MongoDB connection parameters
 	username := configs.GetMongoDBUsername()
 	password := configs.GetMongoDBPassword()
@@ -32,7 +31,12 @@ func ConnectToDatabase() *mongo.Client {
 	escapedPassword := url.QueryEscape(password)
 
 	// Construct the connection URI
-	uri := fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
+	var uri string
+	if len(args) > 0 {
+		uri = fmt.Sprintf("%s://%s:%s@%s/%s?%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName, args[0])
+	} else {
+		uri = fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
+	}
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)
@@ -40,13 +44,13 @@ func ConnectToDatabase() *mongo.Client {
 	// Connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 
 	// Check the connection
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Fatal(err)
 	}
 
 	logrus.Info("Connected to MongoDB!")
@@ -130,7 +134,6 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 	// Find the booking by bookingId, roomId, and creator
 	filter := bson.M{
 		"_id":     checkIn.BookingID,
-		"roomId":  checkIn.RoomID,
 		"creator": checkIn.Creator,
 	}
 
@@ -193,7 +196,7 @@ func BookingExists(ctx *gin.Context, db *mongo.Client, id string) bool {
 func AddUser(ctx *gin.Context, db *mongo.Client, user models.RequestUser) (bool, error) {
 	// convert to user struct
 	userStruct := models.User{
-		OccupiID:             utils.GenerateEmployeeID(),
+		OccupiID:             user.EmployeeID,
 		Password:             user.Password,
 		Email:                user.Email,
 		Role:                 constants.Basic,
@@ -218,7 +221,7 @@ func AddOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool,
 	otpStruct := models.OTP{
 		Email:      email,
 		OTP:        otp,
-		ExpireWhen: time.Now().Add(time.Minute * 10),
+		ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetOTPExpiration())),
 	}
 	_, err := collection.InsertOne(ctx, otpStruct)
 	if err != nil {
@@ -238,6 +241,10 @@ func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) (bo
 	if err != nil {
 		logrus.Error(err)
 		return false, err
+	}
+	// Check if the OTP has expired
+	if time.Now().After(otpStruct.ExpireWhen) {
+		return false, nil
 	}
 	return true, nil
 }
@@ -365,7 +372,7 @@ func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, id string, email st
 }
 
 // Gets all rooms available for booking
-func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room, error) {
+func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo string) ([]models.Room, error) {
 	collection := db.Database("Occupi").Collection("Rooms")
 
 	var cursor *mongo.Cursor
@@ -375,17 +382,10 @@ func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room
 	// findOptions.SetLimit(10)       // Limit the results to 10
 	// findOptions.SetSkip(int64(10)) // Skip the specified number of documents for pagination
 
-	if floorNo == 0 {
-		// Find all rooms
-		filter := bson.M{"floorNo": 0}
-		// cursor, err = collection.Find(context.TODO(), filter, findOptions)
-		cursor, err = collection.Find(context.TODO(), filter)
-	} else {
-		// Find all rooms on the specified floor
-		filter := bson.M{"floorNo": floorNo}
-		// cursor, err = collection.Find(context.TODO(), filter, findOptions)
-		cursor, err = collection.Find(context.TODO(), filter)
-	}
+	// Find all rooms on the specified floor
+	filter := bson.M{"floorNo": floorNo}
+	// cursor, err = collection.Find(context.TODO(), filter, findOptions)
+	cursor, err = collection.Find(context.TODO(), filter)
 
 	if err != nil {
 		logrus.Error(err)

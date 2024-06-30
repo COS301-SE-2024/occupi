@@ -58,12 +58,12 @@ const OTPVerification = () => {
   const onSubmit = async () => {
     console.log(email);
     const pin = otp.join('');
-    const Count = otp.filter((value) => value !== '').length;
-    if (Count < 6) {
-      setValidationError('OTP must be at least 6 characters in length');
-      return;
-    }
-    setValidationError(null);
+    // const Count = otp.filter((value) => value !== '').length;
+    // if (Count < 6) {
+    //   setValidationError('OTP must be at least 6 characters in length');
+    //   return;
+    // }
+    // setValidationError(null);
     console.log(pin);
     setLoading(true);
     try {
@@ -86,13 +86,13 @@ const OTPVerification = () => {
               placement: 'top',
               render: ({ id }) => {
                 return (
-                  <Toast nativeID={id} variant="accent" action="success">
+                  <Toast nativeID={String(id)} variant="accent" action="success">
                     <ToastTitle>{data.message}</ToastTitle>
                   </Toast>
                 );
               },
             });
-        router.push('/home');
+        router.push('/login');
       } else {
         setLoading(false);
         // console.log(data);
@@ -100,7 +100,7 @@ const OTPVerification = () => {
               placement: 'top',
               render: ({ id }) => {
                 return (
-                  <Toast nativeID={id} variant="accent" action="error">
+                  <Toast nativeID={String(id)} variant="accent" action="error">
                     <ToastTitle>{data.message}</ToastTitle>
                   </Toast>
                 );
@@ -211,7 +211,7 @@ const MainText = (email : string) => {
             fontSize={wp('5%')}
             fontWeight="$light"
           >
-            {' '+email}
+            {' '+String(email)}
           </Text>
         </Text>
       </HStack>

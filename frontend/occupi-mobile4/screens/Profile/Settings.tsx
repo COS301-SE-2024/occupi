@@ -45,31 +45,31 @@ const Settings = () => {
         credentials: "include"
       });
       const data = await response.json();
-      if (response.ok) {
-        console.log(data);
-        toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="success">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
-        router.push('/login');
-      } else {
-        toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="error">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
-      }
+      // if (response.ok) {
+      //   console.log(data);
+      //   toast.show({
+      //         placement: 'top',
+      //         render: ({ id }) => {
+      //           return (
+      //             <Toast nativeID={String(id)} variant="accent" action="success">
+      //               <ToastTitle>{data.message}</ToastTitle>
+      //             </Toast>
+      //           );
+      //         },
+      //       });
+        router.replace('/login');
+      // } else {
+      //   toast.show({
+      //         placement: 'top',
+      //         render: ({ id }) => {
+      //           return (
+      //             <Toast nativeID={String(id)} variant="accent" action="error">
+      //               <ToastTitle>{data.message}</ToastTitle>
+      //             </Toast>
+      //           );
+      //         },
+      //       });
+      // }
     } catch (error) {
       console.error('Error:', error);
     }
@@ -125,7 +125,7 @@ const Settings = () => {
             <Text style={[styles.description, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
           </VStack>
         </View>
-        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="30" color={colorScheme === 'dark' ? 'white' : 'black'} />}
+        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="lg" color={colorScheme === 'dark' ? 'white' : 'black'} />}
       </HStack>
     </Pressable>
   );
@@ -142,7 +142,7 @@ const Settings = () => {
             <Icon as={MaterialIcons} name="camera-alt" size="md" color={colorScheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
           </Center>
           <Box style={styles.profileInfo}>
-            <HStack space={2} alignItems="center">
+            <HStack space="xs" alignItems="center">
               <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
               {/* <Icon as={Feather} name="edit" size="sm" color={colorScheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
             </HStack>
@@ -150,7 +150,7 @@ const Settings = () => {
           </Box>
         </Box>
         <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
-        <VStack space={4} marginBottom={80}>
+        <VStack space="2xs" marginBottom={80}>
           {data.map((item, index) => (
             <View key={index}>
               {renderListItem({ item })}

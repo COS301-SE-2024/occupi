@@ -1,5 +1,4 @@
 import React from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   Image,
   Center,
@@ -9,20 +8,7 @@ import {
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
-const GradientButton = ({ onPress, text }) => (
-  <LinearGradient
-    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-    locations={[0.02, 0.31, 0.67, 0.97]}
-    start={[0, 1]}
-    end={[1, 0]}
-    style={styles.buttonContainer}
-  >
-    <Heading style={styles.buttonText} onPress={onPress}>
-      {text}
-    </Heading>
-  </LinearGradient>
-);
+import GradientButton from '@/components/GradientButton';
 
 const Welcome = () => {
   return (
@@ -36,7 +22,7 @@ const Welcome = () => {
         <Heading style={styles.heading}>Log in. Let's Plan.</Heading>
         <Text style={styles.subHeading}>Predict. Plan. Perfect.</Text>
         <GradientButton
-          onPress={() => router.push('/login')}
+          onPress={() => router.replace('/login')}
           text="Login"
         />
         <Text style={styles.registerText} onPress={() => router.push('/signup')}>Register</Text>
@@ -74,19 +60,6 @@ const styles = StyleSheet.create({
     padding: wp('4%'),
     fontWeight: '300',
     marginBottom: hp('6%'),
-  },
-  buttonContainer: {
-    borderRadius: 15,
-    marginTop: hp('2%'),
-    alignSelf: 'center',
-    width: wp('90%'),
-    height: hp('6%'),
-  },
-  buttonText: {
-    color: 'black',
-    fontSize: wp('4%'),
-    textAlign: 'center',
-    lineHeight: hp('6%'),
   },
   registerText: {
     fontWeight: 'bold',

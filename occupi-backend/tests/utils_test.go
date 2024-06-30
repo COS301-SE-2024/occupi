@@ -2,7 +2,9 @@ package tests
 
 import (
 	"net/http"
+	"reflect"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -238,6 +240,67 @@ func TestValidateOTP(t *testing.T) {
 	}
 }
 
+func TestValidateEmployeeID(t *testing.T) {
+	tests := []struct {
+		name     string
+		empID    string
+		expected bool
+	}{
+		{
+			name:     "Valid Employee ID",
+			empID:    "OCCUPI20240000",
+			expected: true,
+		},
+		{
+			name:     "Too short",
+			empID:    "OCCUPI123",
+			expected: false,
+		},
+		{
+			name:     "Invalid prefix",
+			empID:    "OCCUPY20240000",
+			expected: false,
+		},
+		{
+			name:     "Invalid suffix",
+			empID:    "OCCUPI2024000",
+			expected: false,
+		},
+		{
+			name:     "Non-numeric characters",
+			empID:    "OCCUPI2024A000",
+			expected: false,
+		},
+		{
+			name:     "Empty string",
+			empID:    "",
+			expected: false,
+		},
+		{
+			name:     "Alphanumeric Employee ID",
+			empID:    "OCCUPI2024A00",
+			expected: false,
+		},
+		{
+			name:     "Employee ID with special characters",
+			empID:    "OCCUPI2024@000",
+			expected: false,
+		},
+		{
+			name:     "Whitespace in Employee ID",
+			empID:    "OCCUPI2024 000",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ValidateEmployeeID(tt.empID)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestArgon2IDHash(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -399,4 +462,143 @@ func TestGenerateOTP(t *testing.T) {
 	}
 
 	t.Logf("Generated OTP: %s", otp)
+}
+func TestLowercaseFirstLetter(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"Hello", "hello"},
+		{"world", "world"},
+		{"Golang", "golang"},
+		{"", ""},
+		{"A", "a"},
+		{"ABC", "aBC"},
+	}
+
+	for _, test := range tests {
+		result := utils.LowercaseFirstLetter(test.input)
+		if result != test.expected {
+			t.Errorf("LowercaseFirstLetter(%q) = %q; expected %q", test.input, result, test.expected)
+		}
+	}
+}
+
+type SampleStruct struct {
+	Field1 string    `json:"field1" binding:"required"`
+	Field2 int       `json:"field2" binding:"required"`
+	Field3 time.Time `json:"field3" binding:"required"`
+}
+
+func TestValidateJSON(t *testing.T) {
+	tests := []struct {
+		name         string
+		data         map[string]interface{}
+		expectedType reflect.Type
+		expectError  bool
+		errorMessage string
+	}{
+		{
+			name: "Valid JSON with required fields",
+			data: map[string]interface{}{
+				"field1": "value1",
+				"field2": 123,
+				"field3": "2024-07-01T09:00:00Z",
+			},
+			expectedType: reflect.TypeOf(SampleStruct{}),
+			expectError:  false,
+		},
+		{
+			name: "Missing required field",
+			data: map[string]interface{}{
+				"field2": 123,
+				"field3": "2024-07-01T09:00:00Z",
+			},
+			expectedType: reflect.TypeOf(SampleStruct{}),
+			expectError:  true,
+			errorMessage: "missing required field: field1",
+		},
+		{
+			name: "Invalid type for field",
+			data: map[string]interface{}{
+				"field1": "value1",
+				"field2": "not-an-int",
+				"field3": "2024-07-01T09:00:00Z",
+			},
+			expectedType: reflect.TypeOf(SampleStruct{}),
+			expectError:  true,
+			errorMessage: "field field2 is of incorrect type",
+		},
+		{
+			name: "Invalid time format",
+			data: map[string]interface{}{
+				"field1": "value1",
+				"field2": 123,
+				"field3": "not-a-date",
+			},
+			expectedType: reflect.TypeOf(SampleStruct{}),
+			expectError:  true,
+			errorMessage: "field field3 is of incorrect format",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := utils.ValidateJSON(tt.data, tt.expectedType)
+			if (err != nil) != tt.expectError {
+				t.Errorf("ValidateJSON() error = %v, expectError %v", err, tt.expectError)
+			}
+			if tt.expectError && err.Error() != tt.errorMessage {
+				t.Errorf("ValidateJSON() error = %v, errorMessage %v", err.Error(), tt.errorMessage)
+			}
+		})
+	}
+}
+
+func TestTypeCheck(t *testing.T) {
+	tests := []struct {
+		name         string
+		value        interface{}
+		expectedType reflect.Type
+		expected     bool
+	}{
+		// Basic types
+		{"Match int", 42, reflect.TypeOf(42), true},
+		{"Match string", "hello", reflect.TypeOf("hello"), true},
+		{"Match float", 3.14, reflect.TypeOf(3.14), true},
+		{"Mismatch int", "42", reflect.TypeOf(42), false},
+		{"Mismatch string", 42, reflect.TypeOf("hello"), false},
+
+		// Pointer types
+		{"Pointer match", new(int), reflect.TypeOf(new(int)), true},
+		{"Pointer mismatch", new(string), reflect.TypeOf(new(int)), false},
+		{"Nil pointer", nil, reflect.TypeOf((*int)(nil)), true},
+		{"Non-nil pointer match", new(int), reflect.TypeOf((*int)(nil)), true},
+		{"Nil non-pointer", nil, reflect.TypeOf(42), false},
+
+		// Time type
+		{"Time type valid RFC3339", "2024-07-01T09:00:00Z", reflect.TypeOf(time.Time{}), true},
+		{"Time type invalid RFC3339", "not-a-date", reflect.TypeOf(time.Time{}), false},
+
+		// Slices and arrays
+		{"Match slice int", []int{1, 2, 3}, reflect.TypeOf([]int{}), true},
+		{"Match array int", [3]int{1, 2, 3}, reflect.TypeOf([3]int{}), true},
+		{"Mismatch slice int", []string{"1", "2", "3"}, reflect.TypeOf([]int{}), false},
+		{"Mismatch array int", [3]string{"1", "2", "3"}, reflect.TypeOf([3]int{}), false},
+		{"Empty slice", []int{}, reflect.TypeOf([]int{}), true},
+		{"Empty array", [0]int{}, reflect.TypeOf([0]int{}), true},
+
+		// Nested slices/arrays
+		{"Match nested slice int", [][]int{{1, 2}, {3, 4}}, reflect.TypeOf([][]int{}), true},
+		{"Mismatch nested slice int", [][]string{{"1", "2"}, {"3", "4"}}, reflect.TypeOf([][]int{}), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.TypeCheck(tt.value, tt.expectedType)
+			if result != tt.expected {
+				t.Errorf("TypeCheck(%v, %v) = %v; want %v", tt.value, tt.expectedType, result, tt.expected)
+			}
+		})
+	}
 }

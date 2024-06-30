@@ -17,7 +17,7 @@ import {
     EvilIcons,
     MaterialIcons
 } from '@expo/vector-icons';
-import { useColorScheme, StyleSheet, TouchableOpacity } from 'react-native';
+import { useColorScheme, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import {
     widthPercentageToDP as wp
 } from 'react-native-responsive-screen';
@@ -33,6 +33,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
     const room = JSON.parse(roomData);
     const router = useRouter();
     const [checkedIn, setCheckedIn] = useState(room.checkedIn);
+    const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
     console.log("HERE:" + roomData);
     console.log(checkedIn);
@@ -43,6 +44,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
             "creator": room.creator,
             "roomId": room.roomId
         };
+        setIsLoading(true);
         console.log(body);
         try {
             const response = await fetch('https://dev.occupi.tech/api/check-in', {
@@ -64,19 +66,21 @@ const ViewBookingDetails = (bookingId, roomName) => {
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={id} variant="accent" action="success">
+                            <Toast nativeID={String(id)} variant="accent" action="success">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
                     },
                 });
+                setIsLoading(false);
             } else {
+                setIsLoading(false);
                 console.log(data);
                 toast.show({
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={id} variant="accent" action="error">
+                            <Toast nativeID={String(id)} variant="accent" action="error">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
@@ -93,6 +97,7 @@ const ViewBookingDetails = (bookingId, roomName) => {
             "_id": room._id,
             "creator": room.creator,
         };
+        setIsLoading(true);
         console.log(body);
         try {
             const response = await fetch('https://dev.occupi.tech/api/cancel-booking', {
@@ -113,20 +118,22 @@ const ViewBookingDetails = (bookingId, roomName) => {
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={id} variant="accent" action="success">
+                            <Toast nativeID={String(id)} variant="accent" action="success">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
                     },
                 });
+                setIsLoading(false);
                 router.push("/home");
             } else {
+                setIsLoading(false);
                 console.log(data);
                 toast.show({
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={id} variant="accent" action="error">
+                            <Toast nativeID={String(id)} variant="accent" action="error">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
@@ -184,25 +191,46 @@ const ViewBookingDetails = (bookingId, roomName) => {
                         <Ionicons name="receipt-outline" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$bold" color={isDarkMode ? '#fff' : '#000'}> ViewBooking</Text>
                     </View>
                 </TouchableOpacity>
-                {!checkedIn ? (
-                    <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
+                {isLoading ? (
+                    <TouchableOpacity style={{ paddingHorizontal: 15 }} >
                         <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                            <Feather name="check-square" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$bold" color={isDarkMode ? '#fff' : '#000'}> Check in</Text>
+                            <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
                         </View>
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
+                    !checkedIn ? (
+                        <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
+                            <View flexDirection="row" my="2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                <Feather name="check-square" size={24} color={isDarkMode ? '#fff' : '#000'} />
+                                <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check in</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
+                            <View flexDirection="row" my="2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                <MaterialIcons name="logout" size={24} color={isDarkMode ? '#fff' : '#000'} />
+                                <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check out</Text>
+                            </View>
+                        </TouchableOpacity>
+                    )
+                )}
+
+
+                {!isLoading ? (
+                    <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
                         <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                        <MaterialIcons name="logout" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$bold" color={isDarkMode ? '#fff' : '#000'}> Check out</Text>
+                            <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="maroon">Delete Booking</Text>
+                        </View>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity style={{ paddingHorizontal: 15 }} >
+                        <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                            <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
                         </View>
                     </TouchableOpacity>
                 )}
 
-                <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
-                    <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                        <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="maroon">Delete Booking</Text>
-                    </View>
-                </TouchableOpacity>
+
             </ScrollView>
         </View>
     )

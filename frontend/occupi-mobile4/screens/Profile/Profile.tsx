@@ -21,10 +21,10 @@ import {
   Icon,
 } from '@gluestack-ui/themed';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import GradientButton from '@/components/GradientButton';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -86,9 +86,9 @@ const Profile = () => {
           <Icon
             as={Feather}
             name="chevron-left"
-            size="30"
+            size="xl"
             color={colorScheme === 'dark' ? 'white' : 'black'}
-            onPress={() => router.push('/settings')}
+            onPress={() => router.back()}
           />
           <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
             My account
@@ -131,7 +131,7 @@ const Profile = () => {
           <VStack flexDirection="row" justifyContent="space-between" space="$2">
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
-              borderRadius="$15"
+              borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
@@ -143,7 +143,7 @@ const Profile = () => {
             </Radio>
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
-              borderRadius="$15"
+              borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
@@ -155,7 +155,7 @@ const Profile = () => {
             </Radio>
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
-              borderRadius="$15"
+              borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
@@ -200,16 +200,10 @@ const Profile = () => {
           onChangeText={setPronouns}
         />
 
-        <TouchableOpacity style={styles.saveButton} onPress={onSave}>
-          <LinearGradient
-            colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.saveButtonGradient}
-          >
-            <Text style={styles.saveButtonText}>Save</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <GradientButton
+          onPress={onSave}
+          text="Save"
+        />
       </ScrollView>
     </SafeAreaView>
   );

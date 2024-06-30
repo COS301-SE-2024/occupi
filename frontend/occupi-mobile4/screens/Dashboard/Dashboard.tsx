@@ -48,7 +48,7 @@ const Dashboard = () => {
       toast.show({
         placement: 'top',
         render: ({ id }) => (
-          <Toast nativeID={id} variant="accent" action="info">
+          <Toast nativeID={String(id)} variant="accent" action="info">
             <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
           </Toast>
         ),
@@ -58,7 +58,7 @@ const Dashboard = () => {
       toast.show({
         placement: 'top',
         render: ({ id }) => (
-          <Toast nativeID={id} variant="accent" action="info">
+          <Toast nativeID={String(id)} variant="accent" action="info">
             <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
           </Toast>
         ),
@@ -71,7 +71,7 @@ const Dashboard = () => {
   const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
 
   return (
-    <View pt="$16" px="$4" flex="$1" flexDirection="column" backgroundColor={backgroundColor}>
+    <View pt="$16" px="$4" flex={1} flexDirection="column" backgroundColor={backgroundColor}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <View flexDirection="row" justifyContent="space-between">
         <View>
@@ -89,23 +89,23 @@ const Dashboard = () => {
           style={{ width: wp('8%'), height: wp('8%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
         />
       </View>
-      <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius="$20" />
+      <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius="$xl" />
       <View display="flex" flexDirection="row" rowGap="$4" mt="$1" justifyContent="space-between">
-        <Card flexDirection="$row" justifyContent="$center" alignItems="$center" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$20" >
+        <Card flexDirection="row" justifyContent="center" alignItems="center" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$xl" >
           <Text color={textColor} fontSize="$5xl">{numbers[0]}</Text>
-          <View flexDirection="$column">
-          <View flexDirection="$row" alignItems="$center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="$yellowgreen"> {numbers[0]/10+5}%</Text></View>
+          <View flexDirection="column">
+          <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="$yellowgreen"> {numbers[0]/10+5}%</Text></View>
           </View>
         </Card>
-        <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$20" />
+        <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$xl" />
       </View>
       <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
         {checkedIn ? (
-          <Button w={wp('36%')} borderRadius="$12" backgroundColor="lightblue" onPress={checkIn}>
+          <Button w={wp('36%')} borderRadius="$md" backgroundColor="lightblue" onPress={checkIn}>
             <ButtonText color="dimgrey">Check out</ButtonText>
           </Button>
         ) : (
-          <Button w={wp('36%')} borderRadius="$12" backgroundColor="greenyellow" onPress={checkIn}>
+          <Button w={wp('36%')} borderRadius="$md" backgroundColor="greenyellow" onPress={checkIn}>
             <ButtonText color="dimgrey">Check in</ButtonText>
           </Button>
         )}
