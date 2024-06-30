@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, useColorScheme } from 'react-native';
 import { View, Text, Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionContent } from '@gluestack-ui/themed';
+import { router } from 'expo-router';
 
 const FAQPage = () => {
   const colorScheme = useColorScheme();
@@ -156,6 +157,10 @@ const FAQPage = () => {
           </View>
         ))}
       </Accordion>
+      {/* Add testID to an element that triggers navigation, for example: */}
+      <Text testID="profile-link" style={{ color: isDarkMode ? 'white' : 'black' }} onPress={() => router.push('/profile')}>
+        Go to Profile
+      </Text>
     </ScrollView>
   );
 };
