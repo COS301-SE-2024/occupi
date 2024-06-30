@@ -10,7 +10,7 @@ import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-const GradientButton = ({ onPress, text }) => (
+const GradientButton = ({ onClick, text, testID  }) => (
   <LinearGradient
     colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
     locations={[0.02, 0.31, 0.67, 0.97]}
@@ -18,7 +18,7 @@ const GradientButton = ({ onPress, text }) => (
     end={[1, 0]}
     style={styles.buttonContainer}
   >
-    <Heading style={styles.buttonText} onPress={onPress}>
+    <Heading style={styles.buttonText} onClick={onClick} testID={testID}>
       {text}
     </Heading>
   </LinearGradient>
@@ -36,12 +36,12 @@ const Welcome = () => {
         <Heading style={styles.heading}>Log in. Let's Plan.</Heading>
         <Text testID="welcome-text" style={styles.subHeading}>Predict. Plan. Perfect.</Text>
         <GradientButton
-          onPress={() => router.push('/login')}
+          onClick={() => router.push('/login')}
           text="Login"
           testID="login-button"
           
         />
-        <Text testID="register-text" style={styles.registerText} onPress={() => router.push('/signup')}>Register</Text>
+        <Text testID="register-text" style={styles.registerText} onClick={() => router.push('/signup')}>Register</Text>
       </Center>
     </View>
   );
