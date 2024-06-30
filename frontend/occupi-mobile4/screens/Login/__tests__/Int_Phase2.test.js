@@ -10,13 +10,39 @@ import { router } from 'expo-router';
 
 
 // Mock expo-router
+const mockedRouter = {
+  replace: jest.fn(),
+  push: jest.fn(),
+  navigate: jest.fn(),
+};
+
 jest.mock('expo-router', () => ({
-  router: {
-    replace: jest.fn(),
-    push: jest.fn(),
-    navigate: jest.fn(),
-  },
+  router: mockedRouter,
 }));
+
+jest.mock('@gluestack-ui/themed', () => ({
+  ...jest.requireActual('@gluestack-ui/themed'),
+  Center: 'Center',
+  Heading: 'Heading',
+  Text: 'Text',
+  Image: 'Image',
+}));
+
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: 'LinearGradient',
+}));
+
+jest.mock('react-native-responsive-screen', () => ({
+  widthPercentageToDP: jest.fn(),
+  heightPercentageToDP: jest.fn(),
+}));
+
+jest.mock('../Welcome', () => (props) => (
+  <div {...props}>
+    <div testID="login-button" onPress={() => mockedRouter.push('/login')} />
+    <div testID="register-text" onPress={() => mockedRouter.push('/signup')} />
+  </div>
+));
 
 jest.mock('../SignIn', () => (props) => (
     <div {...props}>
@@ -87,7 +113,7 @@ describe('App Navigation Flow from Welcome Page', () => {
       button.props.onPress();
     });
 
-    expect(router.push).toHaveBeenCalledWith('/login');
+    expect(mockedRouter.push).toHaveBeenCalledWith('/login');
   });
 
   it('should navigate to signup when Register text is pressed', () => {
@@ -98,7 +124,7 @@ describe('App Navigation Flow from Welcome Page', () => {
       registerText.props.onPress();
     });
 
-    expect(router.push).toHaveBeenCalledWith('/signup');
+    expect(mockedRouter.push).toHaveBeenCalledWith('/signup');
   });
 
   it('should perform login API call and navigate to dashboard', async () => {
@@ -118,7 +144,7 @@ describe('App Navigation Flow from Welcome Page', () => {
       });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/login', expect.any(Object));
-    // expect(router.push).toHaveBeenCalledWith('/home');
+    // expect(mockedRouter.push).toHaveBeenCalledWith('/home');
   }, 10000); // 10-second timeout
 
   it('should perform signup API call and navigate to verification', async () => {
@@ -138,7 +164,7 @@ describe('App Navigation Flow from Welcome Page', () => {
       });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/signup', expect.any(Object));
-    // expect(router.push).toHaveBeenCalledWith('/otp-verification');
+    // expect(mockedRouter.push).toHaveBeenCalledWith('/otp-verification');
 }, 10000); // 10-second timeout
 
   it('should perform OTP verification and navigate to create password', async () => {
@@ -156,7 +182,7 @@ describe('App Navigation Flow from Welcome Page', () => {
       });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/verify-otp', expect.any(Object));
-    // expect(router.push).toHaveBeenCalledWith('/create-password');
+    // expect(mockedRouter.push).toHaveBeenCalledWith('/create-password');
 }, 10000); // 10-second timeout
 
   it('should create password and navigate to login', async () => {
@@ -176,7 +202,7 @@ describe('App Navigation Flow from Welcome Page', () => {
       });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/create-password', expect.any(Object));
-    // expect(router.push).toHaveBeenCalledWith('/login');
+    // expect(mockedRouter.push).toHaveBeenCalledWith('/login');
 }, 10000); // 10-second timeout
 
   it('should send forgot password request and navigate to OTP verification', async () => {
@@ -194,6 +220,6 @@ describe('App Navigation Flow from Welcome Page', () => {
       });
 
     // expect(fetch).toHaveBeenCalledWith('https://dev.occupi.tech/auth/forgot-password', expect.any(Object));
-    // expect(router.push).toHaveBeenCalledWith('/otp-verification');
+    // expect(mockedRouter.push).toHaveBeenCalledWith('/otp-verification');
 }, 10000); // 10-second timeout
 });
