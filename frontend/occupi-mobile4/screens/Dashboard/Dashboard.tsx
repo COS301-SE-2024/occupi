@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
-import Navbar from '../../components/NavBar';
+import React, { useEffect, useState } from "react";
+import { StatusBar, useColorScheme } from "react-native";
+import Navbar from "../../components/NavBar";
 import {
   Text,
   View,
@@ -11,45 +11,46 @@ import {
   ToastTitle,
   Button,
   ButtonText,
-} from '@gluestack-ui/themed';
-import {
-  LineChart
-} from "react-native-chart-kit";
-import { FontAwesome6 } from '@expo/vector-icons';
+} from "@gluestack-ui/themed";
+import { LineChart } from "react-native-chart-kit";
+import { FontAwesome6 } from "@expo/vector-icons";
 // import { router } from 'expo-router';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
-  return Math.floor(Math.random() * 20)+300; 
+  return Math.floor(Math.random() * 20) + 300;
 };
 
 const Dashboard = () => {
   const colorScheme = useColorScheme();
-  const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
-  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+  const [numbers, setNumbers] = useState(
+    Array.from({ length: 15 }, getRandomNumber)
+  );
+  const [isDarkMode, setIsDarkMode] = useState(colorScheme === "dark");
   const [checkedIn, setCheckedIn] = useState(false);
   const toast = useToast();
 
-
-
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setNumbers(prevNumbers => {
+      setNumbers((prevNumbers) => {
         const newNumbers = [getRandomNumber(), ...prevNumbers.slice(0, 14)];
         return newNumbers;
       });
     }, 3000);
     // console.log(numbers);
-    setIsDarkMode(colorScheme === 'dark');
+    setIsDarkMode(colorScheme === "dark");
     return () => clearInterval(intervalId);
   }, [colorScheme]);
-  
+
   const checkIn = () => {
     if (checkedIn === false) {
       setCheckedIn(true);
       toast.show({
-        placement: 'top',
+        placement: "top",
         render: ({ id }) => (
           <Toast nativeID={id} variant="accent" action="info">
             <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
@@ -59,7 +60,7 @@ const Dashboard = () => {
     } else {
       setCheckedIn(false);
       toast.show({
-        placement: 'top',
+        placement: "top",
         render: ({ id }) => (
           <Toast nativeID={id} variant="accent" action="info">
             <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
@@ -69,46 +70,119 @@ const Dashboard = () => {
     }
   };
 
-  const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
-  const textColor = isDarkMode ? 'white' : 'black';
-  const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
+  const backgroundColor = isDarkMode ? "#1C1C1E" : "white";
+  const textColor = isDarkMode ? "white" : "black";
+  const cardBackgroundColor = isDarkMode ? "#2C2C2E" : "#F3F3F3";
 
   return (
-    <View pt="$16" px="$4" flex="$1" flexDirection="column" backgroundColor={backgroundColor}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+    <View
+      pt="$16"
+      px="$4"
+      flex="$1"
+      flexDirection="column"
+      backgroundColor={backgroundColor}
+    >
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
       <View flexDirection="row" justifyContent="space-between">
         <View>
-          <Text fontSize={wp('5%')} fontWeight="$light" color={textColor}>
+          <Text fontSize={wp("5%")} fontWeight="$light" color={textColor}>
             Hi Sabrina 👋
           </Text>
-          <Text mt="$4" fontSize={wp('6%')} fontWeight="$bold" color={textColor}>
+          <Text
+            mt="$4"
+            fontSize={wp("6%")}
+            fontWeight="$bold"
+            color={textColor}
+          >
             Welcome to Occupi
           </Text>
         </View>
         <Image
           alt="logo"
           p="$10"
-          source={require('../../screens/Login/assets/images/Occupi/file.png')}
-          style={{ width: wp('8%'), height: wp('8%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
+          source={require("../../screens/Login/assets/images/Occupi/file.png")}
+          style={{
+            width: wp("8%"),
+            height: wp("8%"),
+            flexDirection: "column",
+            tintColor: isDarkMode ? "white" : "black",
+          }}
         />
       </View>
-      <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius="$20" />
-      <View display="flex" flexDirection="row" rowGap="$4" mt="$1" justifyContent="space-between">
-        <Card flexDirection="$row" justifyContent="$center" alignItems="$center" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$20" >
-          <Text testID="occupancy-data" color={textColor} fontSize="$5xl">{numbers[0]}</Text>
+      <Card
+        size="lg"
+        variant="elevated"
+        mt="$4"
+        w="$full"
+        h={hp("15%")}
+        backgroundColor={cardBackgroundColor}
+        borderRadius="$20"
+      />
+      <View
+        display="flex"
+        flexDirection="row"
+        rowGap="$4"
+        mt="$1"
+        justifyContent="space-between"
+      >
+        <Card
+          flexDirection="$row"
+          justifyContent="$center"
+          alignItems="$center"
+          variant="elevated"
+          mt="$4"
+          style={{ width: wp("45%"), height: hp("12%") }}
+          backgroundColor={cardBackgroundColor}
+          borderRadius="$20"
+        >
+          <Text testID="occupancy-data" color={textColor} fontSize="$5xl">
+            {numbers[0]}
+          </Text>
           <View flexDirection="$column">
-          <View flexDirection="$row" alignItems="$center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="$yellowgreen"> {numbers[0]/10+5}%</Text></View>
+            <View flexDirection="$row" alignItems="$center">
+              <FontAwesome6
+                name="arrow-trend-up"
+                size={24}
+                color="yellowgreen"
+              />
+              <Text color="$yellowgreen"> {numbers[0] / 10 + 5}%</Text>
+            </View>
           </View>
         </Card>
-        <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('45%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius="$20" />
+        <Card
+          size="lg"
+          variant="elevated"
+          mt="$4"
+          style={{ width: wp("45%"), height: hp("12%") }}
+          backgroundColor={cardBackgroundColor}
+          borderRadius="$20"
+        />
       </View>
-      <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
+      <View
+        flexDirection="row"
+        justifyContent="flex-end"
+        mt="$6"
+        mb="$4"
+        h="$8"
+        alignItems="center"
+      >
         {checkedIn ? (
-          <Button w={wp('36%')} borderRadius="$12" backgroundColor="lightblue" onPress={checkIn}>
+          <Button
+            w={wp("36%")}
+            borderRadius="$12"
+            backgroundColor="lightblue"
+            onPress={checkIn}
+          >
             <ButtonText color="dimgrey">Check out</ButtonText>
           </Button>
         ) : (
-          <Button w={wp('36%')} borderRadius="$12" backgroundColor="greenyellow" onPress={checkIn}>
+          <Button
+            w={wp("36%")}
+            borderRadius="$12"
+            backgroundColor="greenyellow"
+            onPress={checkIn}
+            testID="checkInOutButton"
+          >
             <ButtonText color="dimgrey">Check in</ButtonText>
           </Button>
         )}
@@ -122,10 +196,10 @@ const Dashboard = () => {
       <View>
         <Text color={textColor}>Occupancy levels</Text>
         <LineChart
-        withInnerLines={true}
-        withOuterLines={false}
-        withVerticalLines={false}
-        // fromZero={true}
+          withInnerLines={true}
+          withOuterLines={false}
+          withVerticalLines={false}
+          // fromZero={true}
           data={{
             labels: ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"],
             datasets: [
@@ -145,10 +219,10 @@ const Dashboard = () => {
                   numbers[3],
                   numbers[2],
                   numbers[1],
-                  numbers[0]
-                ]
-              }
-            ]
+                  numbers[0],
+                ],
+              },
+            ],
           }}
           width={370} // from react-native
           height={220}
@@ -163,18 +237,18 @@ const Dashboard = () => {
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             style: {
-              borderRadius: 16
+              borderRadius: 16,
             },
             propsForDots: {
               r: "0",
               strokeWidth: "2",
-              stroke: "green"
-            }
+              stroke: "green",
+            },
           }}
           bezier
           style={{
             marginVertical: 8,
-            borderRadius: 20
+            borderRadius: 20,
           }}
         />
       </View>
