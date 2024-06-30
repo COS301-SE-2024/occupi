@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Keyboard } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Keyboard } from 'react-native';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
@@ -41,6 +40,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
+import GradientButton from '@/components/GradientButton';
 
 const signInSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
@@ -217,36 +217,6 @@ const SignInForm = () => {
   const handleState = () => {
     setShowPassword((showState) => !showState);
   };
-
-  const GradientButton = ({ onPress, text }) => (
-    <LinearGradient
-      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-      locations={[0.02, 0.31, 0.67, 0.97]}
-      start={[0, 1]}
-      end={[1, 0]}
-      style={styles.buttonContainer}
-    >
-      <Heading style={styles.buttonText} onPress={onPress}>
-        {text}
-      </Heading>
-    </LinearGradient>
-  );
-
-  const styles = StyleSheet.create({
-    buttonContainer: {
-      borderRadius: 15,
-      marginTop: hp('2%'),
-      alignSelf: 'center',
-      width: wp('90%'),
-      height: hp('6%'),
-    },
-    buttonText: {
-      color: 'black',
-      fontSize: wp('4%'),
-      textAlign: 'center',
-      lineHeight: hp('6%'),
-    },
-  });
 
   return (
     <>
