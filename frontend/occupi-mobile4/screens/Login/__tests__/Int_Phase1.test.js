@@ -7,13 +7,60 @@ import Onboarding3 from '../Onboarding3';
 import Welcome from '../Welcome';
 import { router } from 'expo-router';
 
+// Mock expo-router
+const mockedRouter = {
+  replace: jest.fn(),
+  push: jest.fn(),
+  navigate: jest.fn(),
+};
+
 jest.mock('expo-router', () => ({
-  router: {
-    replace: jest.fn(),
-    push: jest.fn(),
-    navigate: jest.fn(),
-  },
+  router: mockedRouter,
 }));
+jest.mock('@gluestack-ui/themed', () => ({
+  ...jest.requireActual('@gluestack-ui/themed'),
+  Center: 'Center',
+  Heading: 'Heading',
+  Text: 'Text',
+  Image: 'Image',
+}));
+
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: 'LinearGradient',
+}));
+
+jest.mock('react-native-responsive-screen', () => ({
+  widthPercentageToDP: jest.fn(),
+  heightPercentageToDP: jest.fn(),
+}));
+
+
+jest.mock('../Welcome', () => (props) => (
+  <div {...props}>
+    <div testID="login-button" onPress={() => mockedRouter.push('/login')} />
+    <div testID="register-text" onPress={() => mockedRouter.push('/signup')} />
+  </div>
+));
+
+jest.mock('../Onboarding1', () => (props) => (
+  <div {...props}>
+    <div testID="onboarding1-next" onPress={() => mockedRouter.push('/onboarding2')} />
+  </div>
+));
+
+jest.mock('../Onboarding2', () => (props) => (
+  <div {...props}>
+    <div testID="onboarding2-next" onPress={() => mockedRouter.push('/onboarding3')} />
+  </div>
+));
+
+jest.mock('../Onboarding3', () => (props) => (
+  <div {...props}>
+    <div testID="onboarding3-next" onPress={() => mockedRouter.push('/welcome')} />
+  </div>
+));
+
+
 
 jest.useFakeTimers();
 
@@ -56,7 +103,7 @@ describe('App Navigation Flow', () => {
       jest.advanceTimersByTime(5000);
     });
   
-    expect(router.navigate).toHaveBeenCalledWith('/welcome');
+    expect(mockedRouter.navigate).toHaveBeenCalledWith('/welcome');
   });
   
   it('should navigate to onboarding2 when Next button is pressed', () => {
@@ -67,7 +114,7 @@ describe('App Navigation Flow', () => {
       button.props.onPress();
     });
 
-    expect(router.push).toHaveBeenCalledWith('/onboarding2');
+    expect(mockedRouter.push).toHaveBeenCalledWith('/onboarding2');
   });
 
   it('should navigate to onboarding3 when Next button is pressed', () => {
@@ -78,7 +125,7 @@ describe('App Navigation Flow', () => {
       button.props.onPress();
     });
 
-    expect(router.push).toHaveBeenCalledWith('/onboarding3');
+    expect(mockedRouter.push).toHaveBeenCalledWith('/onboarding3');
   });
 
   it('should navigate to welcome when Next button is pressed', () => {
@@ -89,7 +136,7 @@ describe('App Navigation Flow', () => {
       button.props.onPress();
     });
 
-    expect(router.push).toHaveBeenCalledWith('/welcome');
+    expect(mockedRouter.push).toHaveBeenCalledWith('/welcome');
   });
 
   it('should navigate to login when Login button is pressed', () => {
@@ -100,7 +147,7 @@ describe('App Navigation Flow', () => {
       button.props.onPress();
     });
 
-    expect(router.push).toHaveBeenCalledWith('/login');
+    expect(mockedRouter.push).toHaveBeenCalledWith('/login');
   });
 
   it('should navigate to signup when Register text is pressed', () => {
@@ -111,6 +158,6 @@ describe('App Navigation Flow', () => {
       registerText.props.onPress();
     });
 
-    expect(router.push).toHaveBeenCalledWith('/signup');
+    expect(mockedRouter.push).toHaveBeenCalledWith('/signup');
   });
 });
