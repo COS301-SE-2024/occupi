@@ -13,7 +13,7 @@ const ProfileComponent = ({
   name = "Janet Doey",
 }: ProfileComponentProps) => {
   return (
-    <div>
+    <div data-testid="profile">
       <div className="avatar online">
         <div className="w-24 rounded-full">
           <img src={profileImage} alt="Profile" />
