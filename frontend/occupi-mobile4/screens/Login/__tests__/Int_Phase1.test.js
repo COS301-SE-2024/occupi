@@ -25,8 +25,39 @@ jest.mock('@gluestack-ui/themed', () => ({
   Image: 'Image',
 }));
 
+// jest.setup.js
+
+// Mock LinearGradient
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
+}));
+
+// Mock ViewPager
+jest.mock('@ui-kitten/components', () => ({
+  ViewPager: 'ViewPager',
+}));
+
+// Mock expo-router
+jest.mock('expo-router', () => ({
+  router: {
+    push: jest.fn(),
+    navigate: jest.fn(),
+  },
+}));
+
+// Mock react-native-responsive-screen
+jest.mock('react-native-responsive-screen', () => ({
+  widthPercentageToDP: jest.fn(),
+  heightPercentageToDP: jest.fn(),
+}));
+
+// Mock @gluestack-ui/themed components
+jest.mock('@gluestack-ui/themed', () => ({
+  Image: 'Image',
+  Center: 'Center',
+  Text: 'Text',
+  Heading: 'Heading',
+  Box: 'Box',
 }));
 
 jest.mock('react-native-responsive-screen', () => ({
