@@ -65,28 +65,40 @@ jest.mock('react-native-responsive-screen', () => ({
   heightPercentageToDP: jest.fn(),
 }));
 
+// jest.mock('..>SplashScreen', () => (props) => (
+//   <div {...props}>
+//     <div testID="splashscreen-text" source={require("../../screens/Login/assets/images/Occupi/occupi-white-trans.png")
+//     }/>
+//   </div>
+
+// ));
+
 
 jest.mock('../Welcome', () => (props) => (
   <div {...props}>
     <div testID="login-button" onPress={() => mockedRouter.push('/login')} />
     <div testID="register-text" onPress={() => mockedRouter.push('/signup')} />
+    <div testID="welcome-text">Predict. Plan. Perfect.</div>
   </div>
 ));
 
 jest.mock('../Onboarding1', () => (props) => (
   <div {...props}>
+    <div testID="onboarding1-text">Predictive AI to help you plan when you go to the office better</div>
     <div testID="onboarding1-next" onPress={() => mockedRouter.push('/onboarding2')} />
   </div>
 ));
 
 jest.mock('../Onboarding2', () => (props) => (
   <div {...props}>
+    <div testID="onboarding2-text">Uses historical data to provide day to day analysis and statistics</div>
     <div testID="onboarding2-next" onPress={() => mockedRouter.push('/onboarding3')} />
   </div>
 ));
 
 jest.mock('../Onboarding3', () => (props) => (
   <div {...props}>
+    <div testID="onboarding3-text">Provides real time updates for occupancy and capacity</div>
     <div testID="onboarding3-next" onPress={() => mockedRouter.push('/welcome')} />
   </div>
 ));
@@ -131,7 +143,7 @@ describe('App Navigation Flow', () => {
     expect(tree).toBeTruthy();
   
     act(() => {
-      jest.advanceTimersByTime(5000);
+      jest.advanceTimersByTime(5000); // Advance by 5 seconds
     });
   
     expect(mockedRouter.navigate).toHaveBeenCalledWith('/welcome');
