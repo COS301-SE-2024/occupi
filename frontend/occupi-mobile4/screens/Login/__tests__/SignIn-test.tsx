@@ -10,6 +10,12 @@ jest.mock('expo-router', () => ({
   },
 }));
 
+jest.mock('@react-native-async-storage/async-storage', () => ({
+    setItem: jest.fn(),
+    getItem: jest.fn(),
+    removeItem: jest.fn(),
+  }));
+
 jest.mock('expo-local-authentication', () => ({
   hasHardwareAsync: jest.fn().mockResolvedValue(true),
   supportedAuthenticationTypesAsync: jest.fn().mockResolvedValue([1, 2]), // Mocking fingerprint and facial recognition
