@@ -1,5 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`ThemedText renders correctly 1`] = `
+<div
+  className="css-text-146c3p1"
+  dir="auto"
+  style={
+    {
+      "color": "rgba(0,0,0,1.00)",
+      "fontSize": "16px",
+      "lineHeight": "24px",
+    }
+  }
+>
+  Snapshot test!
+</div>
+`;
+
 exports[`renders correctly 1`] = `
 <Text
   style={
