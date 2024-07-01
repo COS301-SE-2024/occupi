@@ -1,5 +1,3 @@
-import React from 'react'
-import ColourCircle from '@components/colourCircle/ColourCircle';
 import { useNavigate } from 'react-router-dom';
 
 const Appearance = () => {
