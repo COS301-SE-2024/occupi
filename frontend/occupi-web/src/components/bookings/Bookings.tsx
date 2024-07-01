@@ -20,12 +20,11 @@ import {
   SortDescriptor
 } from "@nextui-org/react";
 
-import {columns, users, statusOptions} from "../data/Data";
-import {capitalize} from "../data/Utils";
+import { columns, users, statusOptions } from "../data/Data";
+import { capitalize } from "../data/Utils";
 import { FaPlus, FaEllipsisV, FaChevronDown, FaSearch } from 'react-icons/fa';
 
 import { Key } from "@react-types/shared";
-import { TabComponent ,TopNav} from "@components/index";
 const statusColorMap: Record<string, ChipProps["color"]> = {
   IN: "success",
   BOOKED: "warning",
