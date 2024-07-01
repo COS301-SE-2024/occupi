@@ -22,7 +22,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="w-full overflow-auto">
+    <div data-testid='dashboard' className="w-full overflow-auto">
       <TopNav
         mainComponent={<TabComponent setSelectedTab={handleClick} />}
         searchQuery={searchQuery}
