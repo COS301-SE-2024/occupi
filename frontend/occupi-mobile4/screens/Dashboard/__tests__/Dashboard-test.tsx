@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { StyledProvider, Theme } from '@gluestack-ui/themed';
 import Dashboard from '../Dashboard';
 
