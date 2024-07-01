@@ -1,13 +1,17 @@
 package tests
 
 import (
+	"fmt"
+	"math/rand"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
@@ -399,4 +403,114 @@ func TestGenerateOTP(t *testing.T) {
 	}
 
 	t.Logf("Generated OTP: %s", otp)
+}
+
+// Test Pagination
+func TestPagination(t *testing.T) {
+	generateUsers := func(num int) []*models.User {
+		var users []*models.User
+		for i := 0; i < num; i++ {
+			user := &models.User{
+				ID:    fmt.Sprintf("%d", i),
+				Email: fmt.Sprintf("test%d@example.com", i),
+			}
+			users = append(users, user)
+		}
+		return users
+	}
+	rand.Seed(time.Now().UnixNano())
+
+	t.Run("Random Page Sizes and Currents", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			users := generateUsers(rand.Intn(200))
+			current := rand.Intn(11) - 5   // current 在 -5 到 5 之间随机变化
+			pageSize := rand.Intn(21) - 10 // pageSize 在 -10 到 10 之间随机变化
+			t.Logf("Test #%d with current=%d, pageSize=%d, users length=%d\n", i+1, current, pageSize, len(users))
+
+			pagination, err := utils.Paginate(users, current, pageSize)
+			if err != nil {
+				t.Errorf("Failed to get pagination: %v", err)
+			}
+			t.Logf("Result for Test #%d: %+v\n", i+1, pagination)
+		}
+	})
+
+	t.Run("Edge Cases", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			dataSize  int
+			current   int
+			pageSize  int
+			expLength int
+		}{
+			{"Negative page size", 50, 1, -5, 0},
+			{"Negative current", 50, -1, 10, 10},
+			{"Zero page size", 50, 1, 0, 0},
+			{"Zero current", 50, 0, 10, 10},
+			{"Large current", 50, 100, 10, 0},
+			{"Large page size", 50, 1, 100, 50},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				users := generateUsers(tc.dataSize)
+				pagination, err := utils.Paginate(users, tc.current, tc.pageSize)
+				if err != nil {
+					t.Errorf("Failed to get pagination: %v", err)
+				}
+				if len(pagination.Result.([]*models.User)) != tc.expLength {
+					t.Errorf("Expected %d users, got %d", tc.expLength, len(pagination.Result.([]*models.User)))
+				}
+				t.Logf("%s: %+v\n", tc.name, pagination)
+			})
+		}
+	})
+
+	t.Run("Change Page", func(t *testing.T) {
+		users := generateUsers(rand.Intn(200))
+		pageSize := rand.Intn(21) - 10 // pageSize 在 -10 到 10 之间随机变化
+		pagination, err := utils.Paginate(users, 1, pageSize)
+		if err != nil {
+			t.Errorf("Failed to get pagination: %v", err)
+		}
+		t.Logf("First page: %+v\n", pagination)
+
+		for i := 2; i <= 4; i++ {
+			pagination, err := utils.Paginate(users, i, pageSize)
+			if err != nil {
+				t.Errorf("Failed to get pagination: %v", err)
+			}
+			t.Logf("Page %d: %+v\n", i, pagination)
+		}
+	})
+
+	t.Run("Varying Data Set Size", func(t *testing.T) {
+		tests := []struct {
+			name      string
+			dataSize  int
+			current   int
+			pageSize  int
+			expLength int
+		}{
+			{"Empty data set", 0, 1, 10, 0},
+			{"Single item data set", 1, 1, 10, 1},
+			{"Single page data set", 10, 1, 10, 10},
+			{"Partial page data set", 15, 2, 10, 5},
+			{"Larger data set", 1000, 50, 20, 20},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				users := generateUsers(tc.dataSize)
+				pagination, err := utils.Paginate(users, tc.current, tc.pageSize)
+				if err != nil {
+					t.Errorf("Failed to get pagination: %v", err)
+				}
+				if len(pagination.Result.([]*models.User)) != tc.expLength {
+					t.Errorf("Expected %d users, got %d", tc.expLength, len(pagination.Result.([]*models.User)))
+				}
+				t.Logf("%s: %+v\n", tc.name, pagination)
+			})
+		}
+	})
 }
