@@ -8,6 +8,7 @@ import Welcome from '../Welcome';
 import { router } from 'expo-router';
 
 // Mock expo-router
+
 const mockedRouter = {
   replace: jest.fn(),
   push: jest.fn(),
@@ -108,8 +109,16 @@ jest.mock('../Onboarding3', () => (props) => (
 jest.useFakeTimers();
 
 describe('App Navigation Flow', () => {
+  let loggedMessages;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    loggedMessages = [];
+    console.log = jest.fn(message => loggedMessages.push(message));
+  });
+
+  afterEach(() => {
+    console.log.mockClear();
   });
 
   it('should render components without crashing', () => {
@@ -137,16 +146,13 @@ describe('App Navigation Flow', () => {
     const welcome = renderer.create(<Welcome />);
     expect(welcome.root.findByProps({ testID: 'welcome-text' }).props.children).toBe('Predict. Plan. Perfect.');
   });
-
-  it('should render SplashScreen and navigate after timeout', () => {
-    const tree = renderer.create(<SplashScreen />);
-    expect(tree).toBeTruthy();
   
+  it('should navigate from SplashScreen to Welcome after timeout', () => {
+    renderer.create(<SplashScreen />);
     act(() => {
-      jest.advanceTimersByTime(5000); // Advance by 5 seconds
+      jest.advanceTimersByTime(5000);
     });
-  
-    expect(mockedRouter.navigate).toHaveBeenCalledWith('/welcome');
+    expect(router.navigate).toHaveBeenCalledWith('/welcome');
   });
   
   it('should navigate to onboarding2 when Next button is pressed', () => {
