@@ -7,7 +7,6 @@ import SideNavBarButton from "./sideNavBarButton/SideNavBarButton";
 import TopNav from './topNav/TopNav';
 import GraphContainer from "./graphContainer/GraphContainer";
 import TabComponent from "./tabComponent/TabComponent";
-import ColourCircle from "./colourCircle/ColourCircle";
 import Appearance from "./appearance/Appearance";
 import MenuItem from './drawerComponent/menuItem/MenuItem';
 import Bookings from "./bookings/Bookings";
@@ -32,7 +31,6 @@ export {
     TopNav,
     GraphContainer,
     TabComponent,
-    ColourCircle,
     Appearance,
     MenuItem,
     Bookings,
