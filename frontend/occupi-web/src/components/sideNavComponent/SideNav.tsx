@@ -129,6 +129,7 @@ const SideNav = () => {
 
 
   return (
+   <div data-testid='sidenav'>
     <motion.div className="w-fit border-r-[2px] border-r-secondary flex flex-col items-center z-50"
       animate={isMinimized ? "closed" : "open"}
       variants={sidenavvariants}>
@@ -166,6 +167,7 @@ const SideNav = () => {
         setSelectedPanelF={setSelectedPanelF} />
       )}
     </motion.div>
+    </div>
   );
 };
 export default SideNav;
