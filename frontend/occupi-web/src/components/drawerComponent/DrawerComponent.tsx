@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import MenuItem from "./menuItem/MenuItem"; // Make sure to adjust the path according to your directory structure
-import {Userprofile, Pallete, Privacy, AlertIcon, HelpIcon} from "@assets/index";
+import { Userprofile, Pallete } from "@assets/index";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Appearance } from "@components/index";
@@ -9,7 +9,7 @@ import { SettingsImg } from "@assets/index";
 const DrawerComponent = () => {
   const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState<string>("/profile");
-  const [showAppearance, setShowAppearance] = useState(false);
+  const [showAppearance] = useState(false);
 
   const handleClick = (path: string) => {
     setSelectedItem(path);
