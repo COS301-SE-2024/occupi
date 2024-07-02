@@ -32,7 +32,7 @@ test("columns array structure and properties", () => {
 // Test the integrity and structure of users
 test("users array has the correct structure and content", () => {
   expect(users.length).toBe(20);
-  users.forEach((user: { id: any; name: any; role: any; team: any; status: any; email: any; bookings: any; }) => {
+  users.forEach((user: { id: number; name: string; role: string; team: string; status:string; email:string; bookings: number; }) => {
     expect(user).toHaveProperty('id');
     expect(user).toHaveProperty('name');
     expect(user).toHaveProperty('role');
@@ -53,7 +53,7 @@ test("users array has the correct structure and content", () => {
 // Test the integrity and structure of statusOptions
 test("statusOptions array has the correct entries", () => {
   expect(statusOptions.length).toBe(3);
-  statusOptions.forEach((option: { name: any; uid: any; }) => {
+  statusOptions.forEach((option: { name: string; uid: string; }) => {
     expect(option).toHaveProperty('name');
     expect(option).toHaveProperty('uid');
     expect(typeof option.name).toBe('string');

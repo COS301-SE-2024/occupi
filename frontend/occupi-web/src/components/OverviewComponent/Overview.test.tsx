@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import OverviewComponent from "./OverviewComponent";
 
 describe("OverviewComponent Tests", () => {

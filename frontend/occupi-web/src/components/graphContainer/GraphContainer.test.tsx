@@ -1,7 +1,6 @@
 /// <reference lib="dom" />
-import { describe, test, expect,afterEach } from "bun:test";
-import React from "react";
-import { render, screen,cleanup} from "@testing-library/react";
+import { test, expect, afterEach } from "bun:test";
+import { render, cleanup } from "@testing-library/react";
 import GraphContainer from "./GraphContainer";
 
 afterEach(() => {
