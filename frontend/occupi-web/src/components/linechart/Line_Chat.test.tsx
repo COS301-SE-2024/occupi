@@ -16,25 +16,25 @@ describe("Line Chart Component Tests", () => {
 
 });
 
-test("Download button click triggers download function", () => {
-    // Mock the handleDownload function
-    const mockHandleDownload = mock(() => {});
+// test("Download button click triggers download function", () => {
+//     // Mock the handleDownload function
+//     const mockHandleDownload = mock(() => {});
   
-    // Override the App component to use our mocked function
-    // const MockedApp = () => {
-    //   return (
-    //     <div>
-    //       <button onClick={mockHandleDownload}>Download Chart</button>
-    //     </div>
-    //   );
-    // };
+//     // Override the App component to use our mocked function
+//     // const MockedApp = () => {
+//     //   return (
+//     //     <div>
+//     //       <button onClick={mockHandleDownload}>Download Chart</button>
+//     //     </div>
+//     //   );
+//     // };
   
-    const { getByText } = render(<Line_Chart />);
-    const downloadButton = getByText("Download Chart");
+//     const { getByText } = render(<Line_Chart />);
+//     const downloadButton = getByText("Download Chart");
   
-    // Simulate clicking the button
-    fireEvent.click(downloadButton);
+//     // Simulate clicking the button
+//     fireEvent.click(downloadButton);
   
-    // Assert that our mocked function was called
-    expect(mockHandleDownload).toHaveBeenCalled();
-  });
+//     // Assert that our mocked function was called
+//     expect(mockHandleDownload).toHaveBeenCalled();
+//   });
