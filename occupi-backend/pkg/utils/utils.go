@@ -6,16 +6,17 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"regexp"
-	"sync"
+	"strings"
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/go-playground/validator"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 )
 
 // sets up the logger and configures it
@@ -66,6 +67,24 @@ func GenerateEmployeeID() string {
 	return employeeID
 }
 
+// Function to validate a given employee ID with the structure OCCUPIYYYYXXXX where YYYY is year and XXXX is a 4-digit number
+func ValidateEmployeeID(employeeID string) bool {
+	// Regex pattern for employee ID validation
+	var employeeIDRegex = regexp.MustCompile(`^OCCUPI\d{4}\d{4}$`)
+	return employeeIDRegex.MatchString(employeeID)
+}
+
+// Function to generate an employee ID with the structure OCCUPIYYYYXXXX
+func GenerateBookingID() string {
+	currentYear := time.Now().Year()
+	randomNum, err := generateRandomNumber()
+	if err != nil {
+		return "BOOKOCCUPI00000000"
+	}
+	employeeID := fmt.Sprintf("BOOKOCCUPI%d%04d", currentYear, randomNum)
+	return employeeID
+}
+
 // generates a random auth0 state
 func GenerateRandomState() (string, error) {
 	b := make([]byte, 32)
@@ -77,31 +96,6 @@ func GenerateRandomState() (string, error) {
 	state := base64.StdEncoding.EncodeToString(b)
 
 	return state, nil
-}
-
-// sends multiple emails concurrently
-func SendMultipleEmailsConcurrently(emails map[string]string, subject, body string) []string {
-	// Use a WaitGroup to wait for all goroutines to complete
-	var wg sync.WaitGroup
-	var emailErrors []string
-	var mu sync.Mutex
-
-	for _, email := range emails {
-		wg.Add(1)
-		go func(email string) {
-			defer wg.Done()
-			if err := mail.SendMail(email, subject, body); err != nil {
-				mu.Lock()
-				emailErrors = append(emailErrors, email)
-				mu.Unlock()
-			}
-		}(email)
-	}
-
-	// Wait for all email sending goroutines to complete
-	wg.Wait()
-
-	return emailErrors
 }
 
 // sanitizes the given input
@@ -181,7 +175,104 @@ func CompareArgon2IDHash(password string, hashedPassword string) (bool, error) {
 	return match, nil
 }
 
-func WillRemove() {
-	// This function is only here to make sure that the package is not empty
-	// and that the linter does not complain about it
+// Helper function to lower first case of a string
+func LowercaseFirstLetter(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToLower(string(s[0])) + s[1:]
+}
+
+func TypeCheck(value interface{}, expectedType reflect.Type) bool {
+	valueType := reflect.TypeOf(value)
+
+	// Handle pointer types by dereferencing
+	if expectedType.Kind() == reflect.Ptr {
+		expectedType = expectedType.Elem()
+		if value == nil {
+			return true
+		}
+	}
+
+	if valueType != nil && valueType.Kind() == reflect.Ptr {
+		valueType = valueType.Elem()
+	}
+
+	// Handle slices and arrays
+	if expectedType.Kind() == reflect.Slice || expectedType.Kind() == reflect.Array {
+		if valueType.Kind() != reflect.Slice && valueType.Kind() != reflect.Array {
+			return false
+		}
+		elemType := expectedType.Elem()
+		for i := 0; i < reflect.ValueOf(value).Len(); i++ {
+			if !TypeCheck(reflect.ValueOf(value).Index(i).Interface(), elemType) {
+				return false
+			}
+		}
+		return true
+	}
+
+	// Handle time.Time type
+	if expectedType == reflect.TypeOf(time.Time{}) {
+		_, ok := value.(string)
+		if !ok {
+			return false
+		}
+		_, err := time.Parse(time.RFC3339, value.(string))
+		return err == nil
+	}
+
+	return valueType == expectedType
+}
+
+func ValidateJSON(data map[string]interface{}, expectedType reflect.Type) (map[string]interface{}, error) {
+	validatedData := make(map[string]interface{})
+
+	for i := 0; i < expectedType.NumField(); i++ {
+		field := expectedType.Field(i)
+		jsonTag := field.Tag.Get("json")
+		validateTag := field.Tag.Get("binding")
+
+		// Check if the JSON field exists
+		value, exists := data[jsonTag]
+		if !exists {
+			if validateTag == "required" {
+				logrus.Error("missing required field: ", jsonTag)
+				return nil, fmt.Errorf("missing required field: %s", jsonTag)
+			}
+			continue
+		}
+
+		// Parse date/time strings to time.Time
+		if field.Type == reflect.TypeOf(time.Time{}) {
+			parsedTime, err := time.Parse(time.RFC3339, value.(string))
+			if err != nil {
+				logrus.Error("field ", jsonTag, " is of incorrect format")
+				return nil, fmt.Errorf("field %s is of incorrect format", jsonTag)
+			}
+			validatedData[jsonTag] = parsedTime
+		} else {
+			validatedData[jsonTag] = value
+		}
+
+		// Check the field type
+		if !TypeCheck(value, field.Type) {
+			logrus.Error("field ", jsonTag, " is of incorrect type")
+			return nil, fmt.Errorf("field %s is of incorrect type", jsonTag)
+		}
+
+	}
+	return validatedData, nil
+}
+
+func GetErrorMsg(fe validator.FieldError) string {
+	switch fe.Tag() {
+	case "required":
+		return "The " + LowercaseFirstLetter(fe.Field()) + " field is required"
+	case "email":
+		return "The " + fe.Field() + " field must be a valid email address"
+	case "min":
+		return "The " + fe.Field() + " field must be greater than " + fe.Param()
+	}
+	return "The " + fe.Field() + " field is invalid"
 }

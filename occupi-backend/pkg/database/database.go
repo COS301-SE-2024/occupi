@@ -2,13 +2,13 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,41 +16,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-// attempts to and establishes a connection with the remote mongodb database
-func ConnectToDatabase() *mongo.Client {
-	// MongoDB connection parameters
-	username := configs.GetMongoDBUsername()
-	password := configs.GetMongoDBPassword()
-	clusterURI := configs.GetMongoDBCLUSTERURI()
-	dbName := configs.GetMongoDBName()
-	mongoDBStartURI := configs.GetMongoDBStartURI()
-
-	// Escape the special characters in the password
-	escapedPassword := url.QueryEscape(password)
-
-	// Construct the connection URI
-	uri := fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
-
-	// Set client options
-	clientOptions := options.Client().ApplyURI(uri)
-
-	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	// Check the connection
-	err = client.Ping(context.TODO(), nil)
-	if err != nil {
-		logrus.Error(err)
-	}
-
-	logrus.Info("Connected to MongoDB!")
-
-	return client
-}
 
 // returns all data from the mongo database
 func GetAllData(db *mongo.Client) []bson.M {
@@ -78,9 +43,7 @@ func GetAllData(db *mongo.Client) []bson.M {
 		users = append(users, user)
 	}
 
-	if err := cursor.Err(); err != nil {
-		logrus.Error(fmt.Printf("Cursor error: %v", err))
-	}
+	// Return the users
 
 	return users
 }
@@ -92,6 +55,71 @@ func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bo
 	_, err := collection.InsertOne(ctx, booking)
 	if err != nil {
 		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// Retrieves bookings associated with a user
+func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models.Booking, error) {
+	// Get the bookings for the user
+	collection := db.Database("Occupi").Collection("RoomBooking")
+	filter := bson.M{
+		"$or": []bson.M{
+			{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}},
+			{"creator": email},
+		},
+	}
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	var bookings []models.Booking
+	for cursor.Next(ctx) {
+		var booking models.Booking
+		if err := cursor.Decode(&booking); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		bookings = append(bookings, booking)
+	}
+	return bookings, nil
+}
+
+// Confirms the user check-in by checking certain criteria
+func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) (bool, error) {
+	// Save the check-in to the database
+	collection := db.Database("Occupi").Collection("RoomBooking")
+
+	// Find the booking by bookingId, roomId, and creator
+	filter := bson.M{
+		"_id":     checkIn.BookingID,
+		"creator": checkIn.Creator,
+	}
+
+	// Find the booking
+	var booking models.Booking
+	err := collection.FindOne(context.TODO(), filter).Decode(&booking)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("Booking not found")
+			return false, errors.New("booking not found")
+		}
+		logrus.Error("Failed to find booking:", err)
+		return false, err
+	}
+
+	update := bson.M{
+		"$set": bson.M{"checkedIn": true},
+	}
+
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	var updatedBooking models.Booking
+	err = collection.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedBooking)
+	if err != nil {
+		logrus.Error("Failed to update booking:", err)
 		return false, err
 	}
 	return true, nil
@@ -111,14 +139,29 @@ func EmailExists(ctx *gin.Context, db *mongo.Client, email string) bool {
 	return true
 }
 
+// checks if booking exists in database
+func BookingExists(ctx *gin.Context, db *mongo.Client, id string) bool {
+	// Check if the booking exists in the database
+	collection := db.Database("Occupi").Collection("RoomBooking")
+
+	filter := bson.M{"_id": id}
+	var existingbooking models.Booking
+	err := collection.FindOne(ctx, filter).Decode(&existingbooking)
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+	return true
+}
+
 // adds user to database
 func AddUser(ctx *gin.Context, db *mongo.Client, user models.RequestUser) (bool, error) {
 	// convert to user struct
 	userStruct := models.User{
-		OccupiID:             utils.GenerateEmployeeID(),
+		OccupiID:             user.EmployeeID,
 		Password:             user.Password,
 		Email:                user.Email,
-		Role:                 "basic",
+		Role:                 constants.Basic,
 		OnSite:               true,
 		IsVerified:           false,
 		NextVerificationDate: time.Now(), // this will be updated once the email is verified
@@ -140,7 +183,7 @@ func AddOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bool,
 	otpStruct := models.OTP{
 		Email:      email,
 		OTP:        otp,
-		ExpireWhen: time.Now().Add(time.Minute * 10),
+		ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetOTPExpiration())),
 	}
 	_, err := collection.InsertOne(ctx, otpStruct)
 	if err != nil {
@@ -160,6 +203,10 @@ func OTPExists(ctx *gin.Context, db *mongo.Client, email string, otp string) (bo
 	if err != nil {
 		logrus.Error(err)
 		return false, err
+	}
+	// Check if the OTP has expired
+	if time.Now().After(otpStruct.ExpireWhen) {
+		return false, nil
 	}
 	return true, nil
 }
@@ -253,4 +300,89 @@ func UpdateVerificationStatusTo(ctx *gin.Context, db *mongo.Client, email string
 		return false, err
 	}
 	return true, nil
+}
+
+// Confirms if a booking has been cancelled
+func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, id string, email string) (bool, error) {
+	// Save the check-in to the database
+	collection := db.Database("Occupi").Collection("RoomBooking")
+
+	// Find the booking by bookingId, roomId, and check if the email is in the emails object
+	filter := bson.M{
+		"_id":     id,
+		"creator": email}
+
+	// Find the booking
+	var localBooking models.Booking
+	err := collection.FindOne(context.TODO(), filter).Decode(&localBooking)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Error("Email not associated with the room")
+			return false, errors.New("email not associated with the room")
+		}
+		logrus.Error("Failed to find booking:", err)
+		return false, err
+	}
+
+	// Delete the booking
+	_, err = collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		logrus.Error("Failed to cancel booking:", err)
+		return false, err
+	}
+	return true, nil
+}
+
+// Gets all rooms available for booking
+func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo string) ([]models.Room, error) {
+	collection := db.Database("Occupi").Collection("Rooms")
+
+	var cursor *mongo.Cursor
+	var err error
+
+	// findOptions := options.Find()
+	// findOptions.SetLimit(10)       // Limit the results to 10
+	// findOptions.SetSkip(int64(10)) // Skip the specified number of documents for pagination
+
+	// Find all rooms on the specified floor
+	filter := bson.M{"floorNo": floorNo}
+	// cursor, err = collection.Find(context.TODO(), filter, findOptions)
+	cursor, err = collection.Find(context.TODO(), filter)
+
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var rooms []models.Room
+	for cursor.Next(context.TODO()) {
+		var room models.Room
+		if err := cursor.Decode(&room); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		rooms = append(rooms, room)
+	}
+
+	if err := cursor.Err(); err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	return rooms, nil
+}
+
+// Checks if a user is an admin
+func CheckIfUserIsAdmin(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
+	// Check if the user is an admin
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return user.Role == constants.Admin, nil
 }

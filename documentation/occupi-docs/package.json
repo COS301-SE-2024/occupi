@@ -3,9 +3,8 @@
     "version": "0.0.1",
     "description": "Occupi documentation",
     "scripts": {
-        "dev": "NODE_ENV=development next dev",
+        "dev": "next dev",
         "build": "next build",
-        "buildbackend": "APP_ENV=backend next build",
         "start": "next start"
     },
     "dependencies": {
