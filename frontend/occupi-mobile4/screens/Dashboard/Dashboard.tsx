@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, useColorScheme, Dimensions } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
   Text,
@@ -147,7 +147,7 @@ const Dashboard = () => {
               }
             ]
           }}
-          width={360} // from react-native
+          width={Dimensions.get("window").width -30} // from react-native
           height={220}
           // yAxisLabel=""
           // yAxisSuffix="k"
@@ -160,7 +160,7 @@ const Dashboard = () => {
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             style: {
-              borderRadius: 16
+              borderRadius: 20
             },
             propsForDots: {
               r: "0",
@@ -171,7 +171,7 @@ const Dashboard = () => {
           bezier
           style={{
             marginVertical: 8,
-            borderRadius: 20
+            borderRadius: 16,
           }}
         />
       </View>
