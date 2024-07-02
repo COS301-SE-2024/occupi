@@ -1,7 +1,6 @@
 import React from "react";
-import SideNav from "../components/sideNavComponent/SideNav";
 import TopNav from "../components/topNav/TopNav";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 type Props = {
   children: React.ReactNode;

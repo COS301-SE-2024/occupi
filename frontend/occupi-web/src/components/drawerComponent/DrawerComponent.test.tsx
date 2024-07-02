@@ -24,6 +24,5 @@ const renderWithRouter = (component: string | number | boolean | Iterable<ReactN
     fireEvent.click(profileButton);
     // Check if the selectedItem state is updated
     expect(container.innerHTML).toContain("Profile");
-    // This assumes you have a way to check the navigation path or mock `useNavigate`
   });
 

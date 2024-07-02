@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
-import { test, expect, mock,beforeEach, afterEach } from 'bun:test';
-import { render, fireEvent,cleanup } from '@testing-library/react';
+import { test, expect, mock, afterEach } from 'bun:test';
+import { render, fireEvent, cleanup } from '@testing-library/react';
 import OtpComponent from './OtpComponent'; // Adjust the import based on your file structure
 
 
