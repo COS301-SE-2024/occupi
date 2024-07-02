@@ -9,8 +9,8 @@ type ProfileComponentProps = {
 
 const ProfileComponent = ({
   profileImage = "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg",
-  email = "defaultEmail@example.com",
-  name = "Janet Doey",
+  // email = "defaultEmail@example.com",
+  // name = "Janet Doey",
 }: ProfileComponentProps) => {
   return (
     <div data-testid="profile">

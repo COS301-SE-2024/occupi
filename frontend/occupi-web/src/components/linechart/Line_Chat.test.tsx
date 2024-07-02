@@ -21,15 +21,15 @@ test("Download button click triggers download function", () => {
     const mockHandleDownload = mock(() => {});
   
     // Override the App component to use our mocked function
-    const MockedApp = () => {
-      return (
-        <div>
-          <button onClick={mockHandleDownload}>Download Chart</button>
-        </div>
-      );
-    };
+    // const MockedApp = () => {
+    //   return (
+    //     <div>
+    //       <button onClick={mockHandleDownload}>Download Chart</button>
+    //     </div>
+    //   );
+    // };
   
-    const { getByText } = render(<MockedApp />);
+    const { getByText } = render(<Line_Chart />);
     const downloadButton = getByText("Download Chart");
   
     // Simulate clicking the button
