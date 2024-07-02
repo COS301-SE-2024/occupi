@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
-import { render, screen, fireEvent } from "@testing-library/react";
-import {GradientButton} from "@components/index";
+import { render, screen } from "@testing-library/react";
+import { GradientButton } from "@components/index";
 
 describe("GradientButton Tests", () => {
   test("renders the button with the correct text", () => {

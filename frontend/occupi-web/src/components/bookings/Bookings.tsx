@@ -20,12 +20,11 @@ import {
   SortDescriptor
 } from "@nextui-org/react";
 
-import {columns, users, statusOptions} from "../data/Data";
-import {capitalize} from "../data/Utils";
+import { columns, users, statusOptions } from "../data/Data";
+import { capitalize } from "../data/Utils";
 import { FaPlus, FaEllipsisV, FaChevronDown, FaSearch } from 'react-icons/fa';
 
 import { Key } from "@react-types/shared";
-import { TabComponent ,TopNav} from "@components/index";
 const statusColorMap: Record<string, ChipProps["color"]> = {
   IN: "success",
   BOOKED: "warning",
@@ -202,7 +201,7 @@ export default function Bookings() {
                 selectionMode="multiple"
                 onSelectionChange={setStatusFilter}
               >
-                {statusOptions.map((status: { uid: any; name: any; }) => (
+                {statusOptions.map((status: { uid: string; name: string; }) => (
                   <DropdownItem key={status.uid} className="capitalize">
                     {capitalize(status.name)}
                   </DropdownItem>
@@ -223,7 +222,7 @@ export default function Bookings() {
                 selectionMode="multiple"
                 onSelectionChange={setVisibleColumns}
               >
-                {columns.map((column: { uid: any; name: any; }) => (
+                {columns.map((column: { uid: string; name: string; }) => (
                   <DropdownItem key={column.uid} className="capitalize">
                     {capitalize(column.name)}
                   </DropdownItem>
@@ -307,8 +306,8 @@ export default function Bookings() {
       onSelectionChange={setSelectedKeys}
       onSortChange={setSortDescriptor}
     >
-    <TableHeader columns={headerColumns as { uid: string; sortable: any; name: any; }[]}>
-        {(column: { uid: string; sortable: any; name: any; }) => (
+    <TableHeader columns={headerColumns as { uid: string; sortable: boolean; name: string; }[]}>
+        {(column: { uid: string; sortable: boolean; name: string; }) => (
             <TableColumn
                 key={column.uid}
                 align={column.uid === "actions" ? "center" : "start"}
