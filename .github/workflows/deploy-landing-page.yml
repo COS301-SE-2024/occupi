@@ -2,7 +2,10 @@ name: Deploy Landing page
 
 on:
   push:
-    branches: ["not-yet-specified"]
+    branches: ["develop"]
+    paths: [
+      "frontend/occupi/**",
+    ]
 
   workflow_dispatch:
 
@@ -11,32 +14,82 @@ defaults:
     working-directory: frontend/occupi
 
 jobs:
-  deploy:
+  # Build job
+  build-test:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest # or "latest", "canary", <sha>
+
+      - name: Install dependencies with Bun
+        run: bun install
+
+      - name: Build with Next.js
+        run: bun run build
+
+  build-push-docker:
+    name: Build and Push Landing Page Docker Image
+    runs-on: ubuntu-latest
+    needs: build-test
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Bun
-      uses: oven-sh/setup-bun@v1
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
       with:
-        bun-version: latest # or "latest", "canary", <sha>
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Install dependencies
-      run: bun install
-
-    - name: Build Next.js app
-      run: bun run build
-
-    - name: Export static files (if needed)
-      run: bun export
-
-    - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.5.3
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
       with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        context: frontend/occupi
+        file: frontend/occupi/Dockerfile
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/occupi:latest
 
-    - name: Deploy to server
-      run: |
-        rsync -avz --delete-after frontend/occupi/out ${{ secrets.DEPLOY_SERVER }}:${{ secrets.DEPLOY_PATH }}
+  deploy:
+          name: Deploy Landing Page
+          runs-on: ubuntu-latest
+          needs: build-push-docker
+  
+          steps:
+              - name: Checkout code
+                uses: actions/checkout@v4
+  
+              - name: Copy files to VM
+                uses: appleboy/scp-action@v0.1.5
+                with:
+                      host: ${{ secrets.VM_IP }}
+                      username: ${{ secrets.VM_USERNAME }}
+                      key: ${{ secrets.VM_SSH_KEY }}
+                      source: "frontend/occupi/docker-compose.yml,frontend/occupi/Dockerfile"
+                      target: "/home/${{ secrets.VM_USERNAME }}/occupi"
+  
+              # SSH to VM and run commands
+              - name: SSH to VM
+                uses: appleboy/ssh-action@master
+                with:
+                  host: ${{ secrets.VM_IP }}
+                  username: ${{ secrets.VM_USERNAME }}
+                  key: ${{ secrets.VM_SSH_KEY }}
+                  script: |
+                      cd /home/${{ secrets.VM_USERNAME }}/occupi/frontend/occupi
+                      echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+                      DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml down
+                      DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml pull
+                      DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml up -d

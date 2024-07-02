@@ -1,0 +1,21 @@
+# Use the official Golang image as a base
+FROM golang:1.22
+
+# Set the current working directory inside the container
+WORKDIR /app
+
+# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+# Copy the source code into the container
+COPY . .
+
+# Build the Go application
+RUN go build -o occupi-backend ./cmd/occupi-backend
+
+# Expose the port the app runs on
+EXPOSE 8080
+
+# Command to run the executable
+CMD ["./occupi-backend", "-env=prod"]

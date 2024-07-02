@@ -1,0 +1,20 @@
+services:
+  occupi-backend-prod:
+    image: $DOCKER_USERNAME/occupi-backend:latest
+    container_name: occupi-backend-prod
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      - ENV=production
+    networks:
+      - webnet
+    ports:
+      - "8080:8080"
+    volumes:
+      - /etc/letsencrypt/live/occupi.tech/fullchain.pem:/etc/letsencrypt/live/occupi.tech/fullchain.pem:ro
+      - /etc/letsencrypt/live/occupi.tech/privkey.pem:/etc/letsencrypt/live/occupi.tech/privkey.pem:ro
+
+networks:
+  webnet:
+    external: true

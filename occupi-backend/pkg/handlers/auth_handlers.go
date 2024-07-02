@@ -2,28 +2,30 @@ package handlers
 
 import (
 	"net/http"
-	"net/url"
+	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 // handler for logging a new user on occupi /auth/login
-func Login(ctx *gin.Context, appsession *models.AppSession) {
+func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	var requestUser models.RequestUser
 	if err := ctx.ShouldBindBodyWithJSON(&requestUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and password fields",
+			"Expected email and password fields or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
@@ -31,6 +33,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession) {
 	// sanitize user password and email
 	requestUser.Email = utils.SanitizeInput(requestUser.Email)
 	requestUser.Password = utils.SanitizeInput(requestUser.Password)
+	requestUser.EmployeeID = utils.SanitizeInput(requestUser.EmployeeID)
 
 	// validate email
 	if !utils.ValidateEmail(requestUser.Email) {
@@ -50,6 +53,17 @@ func Login(ctx *gin.Context, appsession *models.AppSession) {
 			"Invalid password",
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
+			nil))
+		return
+	}
+
+	// validate employee id if it exists
+	if requestUser.EmployeeID != "" {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Unexpected payload field",
+			constants.InvalidRequestPayloadCode,
+			"Unexpected employee ID found in request payload, this field is not required for login",
 			nil))
 		return
 	}
@@ -109,6 +123,26 @@ func Login(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// check if the user is an admin
+	if role == constants.Admin {
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession.DB, requestUser.Email)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
+			return
+		}
+
+		if !isAdmin {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Not an admin",
+				constants.InvalidAuthCode,
+				"Only admins can access this route",
+				nil))
+			return
+		}
+	}
+
 	// check if the next verification date is due
 	due, err := database.CheckIfNextVerificationDateIsDue(ctx, appsession.DB, requestUser.Email)
 	if err != nil {
@@ -118,34 +152,45 @@ func Login(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	if due {
-		ReverifyUsersEmail(ctx, appsession, requestUser.Email)
+		reverifyUsersEmail(ctx, appsession, requestUser.Email)
 		return
 	}
 
-	state, err := utils.GenerateRandomState()
+	// generate a jwt token for the user
+	var token string
+	var expirationTime time.Time
+	if role == constants.Admin {
+		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, constants.Admin)
+	} else {
+		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, constants.Basic)
+	}
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
 	}
 
-	// Save the state inside the session.
+	// set the jwt token in the cookie
 	session := sessions.Default(ctx)
-	session.Set("state", state)
+	session.Set("email", requestUser.Email)
+	if role == constants.Admin {
+		session.Set("role", constants.Admin)
+	} else {
+		session.Set("role", constants.Basic)
+	}
 	if err := session.Save(); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
 	}
+	ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(
 		http.StatusOK,
 		"Successful login!",
 		nil))
 }
-
-// redirect to the Auth0 login page -> social auth stuff here
-// ctx.Redirect(http.StatusTemporaryRedirect, appsession.Authenticator.AuthCodeURL(state))
 
 // handler for registering a new user on occupi /auth/register
 func Register(ctx *gin.Context, appsession *models.AppSession) {
@@ -155,7 +200,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and password fields",
+			"Expected at least email and password fields with optional emloyee_id or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
@@ -163,6 +208,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	// sanitize user password and email
 	requestUser.Email = utils.SanitizeInput(requestUser.Email)
 	requestUser.Password = utils.SanitizeInput(requestUser.Password)
+	requestUser.EmployeeID = utils.SanitizeInput(requestUser.EmployeeID)
 
 	// validate email
 	if !utils.ValidateEmail(requestUser.Email) {
@@ -184,6 +230,19 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 			"Password does neet meet requirements",
 			nil))
 		return
+	}
+
+	// validate employee id if it exists
+	if requestUser.EmployeeID != "" && !utils.ValidateEmployeeID(requestUser.EmployeeID) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid employee ID",
+			constants.InvalidRequestPayloadCode,
+			"Employee ID does not meet requirements",
+			nil))
+		return
+	} else if requestUser.EmployeeID == "" {
+		requestUser.EmployeeID = utils.GenerateEmployeeID()
 	}
 
 	// check if a user already exists in the database with such an email
@@ -228,25 +287,8 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// generete auth0 session and token
-	state, err := utils.GenerateRandomState()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	// Save the state inside the session.
-	session := sessions.Default(ctx)
-	session.Set("state", state)
-	if err := session.Save(); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
 	subject := "Email Verification - Your One-Time Password (OTP)"
-	body := mail.FormatEmailVerificationBody(otp)
+	body := mail.FormatEmailVerificationBody(otp, requestUser.Email)
 
 	if err := mail.SendMail(requestUser.Email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -268,7 +310,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and otp fields",
+			"Expected email and otp fields or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
@@ -300,19 +342,28 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// check if the otp is in the database
-	exists, err := database.OTPExists(ctx, appsession.DB, userotp.Email, userotp.OTP)
+	valid, err := database.OTPExists(ctx, appsession.DB, userotp.Email, userotp.OTP)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
 	}
 
-	if !exists {
+	if !valid {
+		// otp expired or invalid
+		_, err := database.DeleteOTP(ctx, appsession.DB, userotp.Email, userotp.OTP)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
+			return
+		}
+
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid OTP",
 			constants.InvalidAuthCode,
-			"Email not registered, otp expired or invalid",
+			"Otp expired or invalid",
 			nil))
 		return
 	}
@@ -338,7 +389,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 // handler for reverifying a users email address
-func ReverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
+func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
 	// generate a random otp for the user and send email
 	otp, err := utils.GenerateOTP()
 	if err != nil {
@@ -354,8 +405,8 @@ func ReverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 		return
 	}
 
-	subject := "Email Verification - Your One-Time Password (OTP)"
-	body := mail.FormatEmailVerificationBody(otp)
+	subject := "Email Reverification - Your One-Time Password (OTP)"
+	body := mail.FormatReVerificationEmailBody(otp, email)
 
 	if err := mail.SendMail(email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -374,31 +425,27 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	// this will contain reset password logic
 }
 
-// handler for logging out a user on occupi /auth/logout
-func Logout(c *gin.Context) {
-	logoutURL, err := url.Parse("https://" + configs.GetAuth0Domain() + "/v2/logout")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, utils.InternalServerError())
+// handler for logging out a user
+func Logout(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	session.Clear()
+	if err := session.Save(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
 	}
 
-	scheme := "http"
-	if c.Request.TLS != nil {
-		scheme = "https"
+	// List of domains to clear cookies from
+	domains := configs.GetOccupiDomains()
+
+	// Iterate over each domain and clear the "token" and "occupi-sessions-store" cookies
+	for _, domain := range domains {
+		ctx.SetCookie("token", "", -1, "/", domain, false, true)
+		ctx.SetCookie("occupi-sessions-store", "", -1, "/", domain, false, true)
 	}
 
-	returnTo, err := url.Parse(scheme + "://" + c.Request.Host)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	parameters := url.Values{}
-	parameters.Add("returnTo", returnTo.String())
-	parameters.Add("client_id", configs.GetAuth0ClientID())
-	logoutURL.RawQuery = parameters.Encode()
-
-	c.Redirect(http.StatusTemporaryRedirect, logoutURL.String())
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		http.StatusOK,
+		"Logged out successfully!",
+		nil))
 }
