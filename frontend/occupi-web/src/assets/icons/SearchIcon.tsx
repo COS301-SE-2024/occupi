@@ -1,4 +1,3 @@
-import React from "react";
 import {IconSvgProps} from "../../components/data/types";
 
 export const SearchIcon = (props: IconSvgProps) => (
