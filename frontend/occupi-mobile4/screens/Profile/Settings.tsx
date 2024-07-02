@@ -9,9 +9,7 @@ import {
   Switch,
   Divider,
   Pressable,
-  useToast,
-  Toast,
-ToastTitle,
+  useToast
 } from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
