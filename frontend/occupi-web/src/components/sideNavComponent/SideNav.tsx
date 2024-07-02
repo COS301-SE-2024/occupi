@@ -1,6 +1,8 @@
-import { ChevronLeft, ChevronRight,
-   Grid, ColorSwatch, Home, PieChart, UserProfileGroup,OccupiLogo,Report ,Faq} from "@assets/index";
-import {SideNavBarButton} from "@components/index";
+import {
+  ChevronLeft, ChevronRight,
+  Grid, ColorSwatch, Home, PieChart, UserProfileGroup, OccupiLogo, Report
+} from "@assets/index";
+import { SideNavBarButton } from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -129,8 +131,8 @@ const SideNav = () => {
 
 
   return (
-   <div data-testid='sidenav'>
-    <motion.div className="w-fit border-r-[2px] border-r-secondary flex flex-col items-center z-50"
+  
+    <motion.div data-testid='sidenav' className="w-fit border-r-[2px] border-r-secondary flex flex-col items-center z-50"
       animate={isMinimized ? "closed" : "open"}
       variants={sidenavvariants}>
       <div className={"flex flex-wrap items-center h-[110px] relative z-50 w-full "
@@ -167,7 +169,7 @@ const SideNav = () => {
         setSelectedPanelF={setSelectedPanelF} />
       )}
     </motion.div>
-    </div>
+   
   );
 };
 export default SideNav;

@@ -19,7 +19,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     handleClick("/overview");
-  }, []);
+  },[]);
 
   return (
     <div data-testid='dashboard' className="w-full overflow-auto">

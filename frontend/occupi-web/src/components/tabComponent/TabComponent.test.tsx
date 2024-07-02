@@ -1,14 +1,14 @@
 /// <reference lib="dom" />
-import { afterEach ,test,expect, mock} from "bun:test";
-import { cleanup, fireEvent, render,screen } from "@testing-library/react";
-import {TabComponent} from "@components/index";
+import { afterEach, test, expect, mock } from "bun:test";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { TabComponent } from "@components/index";
 
 afterEach(() => {
   cleanup();
 });
 
 test("Tab component renders correctly", () => {
-    render(<TabComponent setSelectedTab={function (arg: string): void {
+    render(<TabComponent setSelectedTab={function (): void {
         throw new Error("Function not implemented.");
     } } />);
  const tab = screen.getByTestId('tab');

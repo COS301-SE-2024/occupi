@@ -16,7 +16,7 @@ const TabComponent = (props: TabComponentProps) => {
   };
 
   return (
-    <div data-testid='tab' className="flex items-center justify-center h-[46px] w-[305px] rounded-[15px] bg-secondary">
+    <div className="flex items-center justify-center h-[46px] w-[305px] rounded-[15px] bg-secondary">
       <motion.div
         whileTap={{ scale: 0.97 }}
         className={`w-[95px] h-[36px] rounded-[10px] flex justify-center items-center hover:bg-primary mr-[5px] cursor-pointer ${activeTab === 1 ? "bg-primary" : ""}`}
