@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gin-gonic/gin"
 
@@ -19,6 +21,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	// "github.com/stretchr/testify/mock"
 )
@@ -158,6 +161,30 @@ func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (m
 	return response, nil
 }
 
+// Insert mock data into the test database
+func InsertMockData(db *mongo.Client) {
+	collection := db.Database("Occupi").Collection("users")
+	user := models.UserDetails{
+		ID:       "1234567890",
+		Email:    "john.doe@example.com",
+		Password: "hashedpassword",
+		Role:     "admin",
+		OnSite:   true,
+		Details: *models.Details{
+			ContactNo: "123-456-7890",
+			Dob:       time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
+			Gender:    "male",
+			Name:      "John Doe",
+			Pronouns:  "He/him",
+		},
+		Position:             "Manager",
+		Status:               "Active",
+		IsVerified:           true,
+		NextVerificationDate: time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC),
+	}
+	collection.InsertOne(context.Background(), user)
+}
+
 // SetupTestEnvironment initializes the test environment and returns the router and cookies
 func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	// Connect to the test database
@@ -278,6 +305,8 @@ func getSharedTestCases(r *gin.Engine, cookies []*http.Cookie) []testCase {
 		},
 	}
 }
+
+// Tests the ViewUserDetails handler
 
 // Tests the CancelBooking handler
 func TestCancelBooking(t *testing.T) {

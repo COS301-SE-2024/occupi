@@ -206,6 +206,11 @@ func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	if !database.EmailExists(ctx, appsession.DB, email) {
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
+		return
+	}
+
 	// Get all bookings for the userBooking
 	user, err := database.GetUserDetails(ctx, appsession.DB, email)
 	if err != nil {
