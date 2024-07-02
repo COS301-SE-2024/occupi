@@ -1,5 +1,5 @@
-import { describe, expect, test, afterEach, mock } from "bun:test";
-import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { describe, expect, test, afterEach } from "bun:test";
+import { render, screen, cleanup } from "@testing-library/react";
 import { Line_Chart } from "@components/index";
 
 

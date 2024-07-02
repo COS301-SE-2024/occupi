@@ -45,7 +45,7 @@ test("Tab component renders all three tabs", () => {
   });
   
   test("Clicking on a tab calls setSelectedTab with correct argument", () => {
-    const mockSetSelectedTab = mock((arg: string) => {});
+    const mockSetSelectedTab = mock((arg: string) => {arg.toLowerCase()});
     render(<TabComponent setSelectedTab={mockSetSelectedTab} />);
     
     const bookingsTab = screen.getByText('Bookings');
