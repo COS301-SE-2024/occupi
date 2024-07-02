@@ -8,12 +8,12 @@ describe("Checkbox", () => {
   beforeAll(() => {
     // Mock the @radix-ui/react-checkbox module
     mock.module("@radix-ui/react-checkbox", () => ({
-      Root: ({ children, ...props }: any) => (
+      Root: ({ children, ...props }: { [key: string]: string }) => (
         <div data-testid="checkbox-root" {...props}>
           {children}
         </div>
       ),
-      Indicator: ({ children, ...props }: any) => (
+      Indicator: ({ children, ...props }:{ [key: string]: string } ) => (
         <div data-testid="checkbox-indicator" {...props}>
           {children}
         </div>
