@@ -1,0 +1,53 @@
+name: Lint and Test Mobile
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths: [
+      "frontend/occupi-mobile4/**",
+      ".github/workflows/lint-test-mobile.yml"
+    ]
+
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: frontend/occupi-mobile4
+    
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Install Dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Lint
+      run: npm run lint
+      
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Install Dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Run Tests
+      run: npm run test

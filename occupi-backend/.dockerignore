@@ -19,3 +19,6 @@
 *.swp
 *.gitignore
 *.md
+*.out
+*.toml
+*.exe

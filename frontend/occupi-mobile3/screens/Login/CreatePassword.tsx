@@ -36,6 +36,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { Keyboard } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 import GuestLayout from '../../layouts/GuestLayout';
 
@@ -47,8 +48,8 @@ import { styled } from '@gluestack-style/react';
 const StyledImage = styled(Image, {
   props: {
     style: {
-      height: 40,
-      width: 320,
+      height: wp('10%'),
+      width: wp('80%'),
     },
   },
 });
@@ -140,6 +141,35 @@ export default function CreatePassword() {
     });
   };
 
+  const GradientButton = ({ onPress, text }) => (
+    <LinearGradient
+      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+      locations={[0.02, 0.31, 0.67, 0.97]}
+      start={[0, 1]}
+      end={[1, 0]}
+      style={styles.buttonContainer}
+    >
+      <Heading style={styles.buttonText} onPress={onPress}>
+        {text}
+      </Heading>
+    </LinearGradient>
+  );
+
+  const styles = StyleSheet.create({
+    buttonContainer: {
+      borderRadius: 15,
+      marginTop: hp('2%'),
+      alignSelf: 'center',
+      width: wp('90%'),
+      height: hp('6%'),
+    },
+    buttonText: {
+      color: 'black',
+      fontSize: wp('4%'),
+      textAlign: 'center',
+      lineHeight: hp('6%'),
+    }
+  });
 
   function ScreenText() {
     return (
@@ -148,18 +178,18 @@ export default function CreatePassword() {
           <Image
             alt="logo"
             source={Logo}
-            style={{ width: 110, height: 110 }}
+            style={{ width: wp('27%'), height: wp('27%') }}
           />
         </HStack>
         <Heading
-          fontSize="$xl"
+          fontSize={wp('6%')}
           sx={{
-            '@md': { fontSize: '$2xl' },
+            '@md': { fontSize: wp('8%') },
           }}
         >
           Create new password
         </Heading>
-        <Text fontSize="$sm">
+        <Text fontSize={wp('4%')}>
           Your new password must be different from previous used passwords and
           must be of at least 8 characters.
         </Text>
@@ -176,7 +206,6 @@ export default function CreatePassword() {
           _dark: { bg: '$primary500' },
         }}
       >
-        
         <StyledImage
           w="$80"
           h="$10"
@@ -256,7 +285,7 @@ export default function CreatePassword() {
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input   borderRadius="$full" backgroundColor="#f2f2f2">
                       <InputField
-                        fontSize="$sm"
+                        fontSize={wp('4%')}
                         placeholder="Password"
                         value={value}
                         onChangeText={onChange}
@@ -316,7 +345,7 @@ export default function CreatePassword() {
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input   borderRadius="$full" backgroundColor="#f2f2f2">
                       <InputField
-                        fontSize="$sm"
+                        fontSize={wp('4%')}
                         placeholder="Confirm Password"
                         value={value}
                         onChangeText={onChange}
@@ -350,19 +379,10 @@ export default function CreatePassword() {
             </Box>
           </VStack>
 
-          <Button
-            variant="solid"
-            size="lg"
-            mt="$12"
-            sx={{ '@md': { mt: '$40' } }}
+          <GradientButton
             onPress={handleSubmit(onSubmit)}
-            borderRadius="$full"
-            bg="cyan"
-          >
-            <ButtonText color="white" fontSize="sm">
-              Update Password
-            </ButtonText>
-          </Button>
+            text="Update Password"
+          />
         </Box>
       </ScrollView>
     </GuestLayout>

@@ -16,21 +16,34 @@ type User struct {
 
 // structure of booking
 type Booking struct {
-	ID        string   `json:"_id" bson:"_id,omitempty"`
-	OccupiID  int      `json:"occupiId" bson:"occupiId,omitempty"`
-	RoomID    string   `json:"roomId" bson:"roomId"`
-	Slot      int      `json:"slot" bson:"slot"`
-	Emails    []string `json:"emails" bson:"emails"`
-	CheckedIn bool     `json:"checkedIn" bson:"checkedIn,omitempty"`
-	Creator   string   `json:"creator" bson:"creator"`
-	FloorNo   int      `json:"floorNo" bson:"floorNo"`
+	ID        string    `json:"_id" bson:"_id,omitempty"`
+	OccupiID  string    `json:"occupiId" bson:"occupiId,omitempty"`
+	RoomID    string    `json:"roomId" bson:"roomId" binding:"required"`
+	RoomName  string    `json:"roomName" bson:"roomName" binding:"required"`
+	Emails    []string  `json:"emails" bson:"emails" binding:"required,dive,email"`
+	CheckedIn bool      `json:"checkedIn" bson:"checkedIn"`
+	Creator   string    `json:"creator" bson:"creator" binding:"required,email"`
+	FloorNo   string    `json:"floorNo" bson:"floorNo" binding:"required"`
+	Date      time.Time `json:"date" bson:"date" binding:"required"`
+	Start     time.Time `json:"start" bson:"start" binding:"required"`
+	End       time.Time `json:"end" bson:"end" binding:"required"`
+}
+type Cancel struct {
+	BookingID string    `json:"bookingId" bson:"bookingId" binding:"required"`
+	RoomID    string    `json:"roomId" bson:"roomId" binding:"required"`
+	RoomName  string    `json:"roomName" bson:"roomName" binding:"required"`
+	Emails    []string  `json:"emails" bson:"emails" binding:"required,dive,email"`
+	Creator   string    `json:"creator" bson:"creator" binding:"required,email"`
+	FloorNo   string    `json:"floorNo" bson:"floorNo" binding:"required"`
+	Date      time.Time `json:"date" bson:"date" binding:"required"`
+	Start     time.Time `json:"start" bson:"start" binding:"required"`
+	End       time.Time `json:"end" bson:"end" binding:"required"`
 }
 
 // structure of CheckIn
 type CheckIn struct {
-	BookingID string `json:"bookingId" bson:"bookingId"`
-	Email     string `json:"email" bson:"email"`
-	RoomID    string `json:"roomId" bson:"roomId"`
+	BookingID string `json:"bookingId" bson:"bookingId" binding:"required"`
+	Creator   string `json:"creator" bson:"creator" binding:"required,email"`
 }
 
 type OTP struct {
@@ -42,4 +55,19 @@ type OTP struct {
 
 type ViewBookings struct {
 	Email string `json:"email" bson:"email"`
+}
+
+type Room struct {
+	ID           string `json:"_id" bson:"_id,omitempty"`
+	RoomID       string `json:"roomId" bson:"roomId,omitempty"`
+	RoomNo       string `json:"roomNo" bson:"roomNo,omitempty"`
+	FloorNo      string `json:"floorNo" bson:"floorNo" binding:"required"`
+	MinOccupancy int    `json:"minOccupancy" bson:"minOccupancy,omitempty"`
+	MaxOccupancy int    `json:"maxOccupancy" bson:"maxOccupancy"`
+	Description  string `json:"description" bson:"description"`
+	RoomName     string `json:"roomName" bson:"roomName"`
+}
+
+type RoomRequest struct {
+	FloorNo string `json:"floorNo" bson:"floorNo" binding:"required"`
 }

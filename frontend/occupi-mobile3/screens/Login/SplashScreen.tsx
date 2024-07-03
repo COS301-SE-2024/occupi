@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Box,
+import { Box,
   Image,
   Center,
   Heading,
@@ -10,6 +9,7 @@ import {
 import { styled } from '@gluestack-style/react';
 import { ViewPager } from '@ui-kitten/components';
 import { router } from 'expo-router';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const GradientButton = ({ onPress, text }) => (
   <LinearGradient
@@ -112,9 +112,9 @@ const OnboardingScreen = ({ onFinish }) => {
     >
       <Center w="100%" flex={1}>
         <Box
-          maxWidth="508px"
+          // maxWidth="508px"
           w="100%"
-          minHeight="authcard"
+          // minHeight="authcard"
           justifyContent="center"
         >
           <HeaderLogo />
@@ -130,7 +130,7 @@ export default function SplashScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSelectedIndex(1); // Assuming Onboarding1 is at index 1
-      router.navigate('/home'); // Navigate to Onboarding1 screen
+      router.navigate('/login'); // Navigate to Onboarding1 screen
     }, 5000); // 8 seconds
 
     return () => clearTimeout(timer); // Clean up timer on component unmount
@@ -158,20 +158,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 110,
-    height: 110,
+    width: wp('27%'),
+    height: wp('27%'),
   },
   buttonContainer: {
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+    paddingVertical: hp('2%'),
+    paddingHorizontal: wp('8%'),
     borderRadius: 25,
-    marginTop: 20,
+    marginTop: hp('2%'),
     alignSelf: 'center',
-    width: 150,
+    width: wp('40%'),
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: wp('4%'),
     textAlign: 'center',
   },
 });

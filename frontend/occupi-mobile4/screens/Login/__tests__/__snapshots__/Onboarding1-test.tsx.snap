@@ -1,0 +1,163 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Onboarding1 component renders correctly and matches snapshot 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "white",
+      "flex": 1,
+      "padding": 30,
+    }
+  }
+>
+  <View
+    data-style=""
+    dataSet={
+      {
+        "style": "",
+      }
+    }
+    style={
+      [
+        undefined,
+        {},
+        {
+          "height": "100%",
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <Image
+      alt="logo"
+      aria-label="logo"
+      data-style=""
+      dataSet={
+        {
+          "style": "",
+        }
+      }
+      role="img"
+      source={1}
+      style={
+        [
+          undefined,
+          {},
+          {
+            "height": 525,
+            "marginBottom": 40,
+            "width": 525,
+          },
+        ]
+      }
+    />
+    <Text
+      accessibilityRole="header"
+      data-style=""
+      dataSet={
+        {
+          "style": "",
+        }
+      }
+      style={
+        {
+          "alignSelf": "flex-start",
+          "fontSize": 60,
+          "fontWeight": "bold",
+          "marginBottom": 26.5,
+          "marginTop": 80,
+          "marginVertical": 42.56,
+          "paddingLeft": 30,
+        }
+      }
+    >
+      Capacity Prediction
+    </Text>
+    <Text
+      data-style=""
+      dataSet={
+        {
+          "style": "",
+        }
+      }
+      style={
+        [
+          undefined,
+          {},
+          {
+            "alignSelf": "flex-start",
+            "fontSize": 37.5,
+            "fontWeight": "300",
+            "marginBottom": 53.5,
+            "padding": 30,
+          },
+        ]
+      }
+    >
+      Predictive AI to help you plan when you go to the office better
+    </Text>
+    <ViewManagerAdapter_ExpoLinearGradient
+      colors={
+        [
+          4284566984,
+          4287032268,
+          4289920058,
+          4293849184,
+        ]
+      }
+      endPoint={
+        [
+          1,
+          0,
+        ]
+      }
+      locations={
+        [
+          0.02,
+          0.31,
+          0.67,
+          0.97,
+        ]
+      }
+      startPoint={
+        [
+          0,
+          1,
+        ]
+      }
+      style={
+        {
+          "alignSelf": "center",
+          "borderRadius": 15,
+          "height": 80,
+          "marginTop": 26.5,
+          "width": 675,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="header"
+        data-style=""
+        dataSet={
+          {
+            "style": "",
+          }
+        }
+        onPress={[Function]}
+        style={
+          {
+            "color": "black",
+            "fontSize": 30,
+            "fontWeight": "bold",
+            "lineHeight": 80,
+            "marginVertical": 42.56,
+            "textAlign": "center",
+          }
+        }
+      >
+        Next
+      </Text>
+    </ViewManagerAdapter_ExpoLinearGradient>
+  </View>
+</View>
+`;

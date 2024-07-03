@@ -1,15 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"flag"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -17,16 +14,18 @@ import (
 
 // occupi backend entry point
 func main() {
-	// Load environment variables from .env file
-	if err := godotenv.Load(); err != nil {
-		log.Fatal(fmt.Printf("Error loading .env file with error as %s", err))
-	}
+	// Define the environment flag
+	env := flag.String("env", "dev.localhost", "Environment to use (dev.localhost, dev.deployed, prod)")
+	flag.Parse()
+
+	// init viper
+	configs.InitViper(env)
 
 	// setup logger to log all server interactions
 	utils.SetupLogger()
 
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := configs.ConnectToDatabase()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -49,13 +48,20 @@ func main() {
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()
 
-	// fatal error if the cert or key file is not found
-	if certFile == "CERT_FILE_NAME" || keyFile == "KEY_FILE_NAME" {
-		logrus.Fatal("Cert or Key file not found")
-	}
+	// logrus all env variables
+	logrus.Infof("Server running on port: %s", configs.GetPort())
+	logrus.Infof("Server running in %s mode", configs.GetGinRunMode())
+	logrus.Infof("Server running with cert file: %s", certFile)
+	logrus.Infof("Server running with key file: %s", keyFile)
 
-	// Listening on the port with TLS
-	if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
-		logrus.Fatal("Failed to run server: ", err)
+	// Listening on the port with TLS if env is prod or dev.deployed
+	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
+		if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
+			logrus.Fatal("Failed to run server: ", err)
+		}
+	} else {
+		if err := ginRouter.Run(":" + configs.GetPort()); err != nil {
+			logrus.Fatal("Failed to run server: ", err)
+		}
 	}
 }

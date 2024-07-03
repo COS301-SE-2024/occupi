@@ -10,3 +10,4 @@ documentation/SRS-Docs/SRS.toc
 occupi-backend/configs/config.yaml
 occupi-backend/configs/dev.localhost.yaml
 occupi-backend/configs/test.yaml
+/benchmarks

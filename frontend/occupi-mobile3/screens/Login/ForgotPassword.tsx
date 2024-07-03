@@ -30,11 +30,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Keyboard, StyleSheet } from 'react-native';
-
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { AlertTriangle } from 'lucide-react-native';
-
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
-import { router } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 
 const forgotPasswordSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
@@ -137,8 +136,9 @@ export default function ForgotPassword() {
   const [isEmailFocused, setIsEmailFocused] = useState(false);
 
   const toast = useToast();
+  const navigation = useNavigation();
 
-  const onSubmit = (_data: SignUpSchemaType) => {
+  const onSubmit = (data: SignUpSchemaType) => {
     toast.show({
       placement: 'bottom right',
       render: ({ id }) => {
@@ -151,8 +151,8 @@ export default function ForgotPassword() {
     });
     reset();
 
-    // Navigate screen to appropriate location
-    router.push('/verify-otp');
+    // Navigate to OTP Verification screen with email as a parameter
+    navigation.navigate('verify-otp', { email: data.email });
   };
 
   const handleKeyPress = () => {
@@ -162,10 +162,10 @@ export default function ForgotPassword() {
 
   const GradientButton = ({ onPress, text }) => (
     <LinearGradient
-    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-    locations={[0.02, 0.31, 0.67, 0.97]}
-    start={[0, 1]}
-    end={[1, 0]}
+      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+      locations={[0.02, 0.31, 0.67, 0.97]}
+      start={[0, 1]}
+      end={[1, 0]}
       style={styles.buttonContainer}
     >
       <Heading style={styles.buttonText} onPress={onPress}>
@@ -173,25 +173,24 @@ export default function ForgotPassword() {
       </Heading>
     </LinearGradient>
   );
-  
+
   const styles = StyleSheet.create({
     buttonContainer: {
       borderRadius: 15,
-      marginTop: 20,
+      marginTop: hp('2%'),
       alignSelf: 'center',
-      width: 360,
-      height: 50
+      width: wp('90%'),
+      height: hp('6%'),
     },
     buttonText: {
       color: 'black',
-      fontSize: 16,
+      fontSize: wp('4%'),
       textAlign: 'center',
-      lineHeight: 50,
+      lineHeight: hp('6%'),
     }
   });
 
   return (
-
     <GuestLayout>
       <StyledExpoRouterLink bg="$white" href="..">
         <Icon
@@ -297,8 +296,8 @@ export default function ForgotPassword() {
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input mt="$1" backgroundColor="#f2f2f2" borderRadius="$12" borderColor="#f2f2f2" h="$12">
                   <InputField
-                    fontSize="$md"
-                    h="50"
+                    fontSize={wp('4%')}
+                    h={hp('5%')}
                     placeholder="Email"
                     type="text"
                     value={value}

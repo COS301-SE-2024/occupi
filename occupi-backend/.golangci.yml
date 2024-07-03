@@ -35,8 +35,10 @@ linters:
 issues:
   exclude:
     - "don't use underscores in Go names"
+  exclude-dirs:
+    - tests
   exclude-rules:
-    - text: "test/.go"
+    - text: "tests/.go"
       linters:
         - errcheck
       path: internal/mocks/*
