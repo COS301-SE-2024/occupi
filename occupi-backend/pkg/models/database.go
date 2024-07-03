@@ -26,13 +26,15 @@ type UserDetails struct {
 	Details              *Details       `json:"details" bson:"details"`
 	Notifications        *Notifications `json:"notifications" bson:"notifications"`
 	Security             *Security      `json:"security" bson:"security"`
+	Status               string         `json:"status" bson:"status"`
+	Position             string         `json:"position" bson:"position"`
 }
 
 type Details struct {
 	ContactNo string    `json:"contactNo" bson:"contactNo"`
 	Name      string    `json:"name" bson:"name"`
 	DOB       time.Time `json:"dob" bson:"dob"`
-	Company   string    `json:"company" bson:"company"`
+	Gender    string    `json:"gender" bson:"gender"`
 	Pronouns  string    `json:"pronouns" bson:"pronouns"`
 }
 

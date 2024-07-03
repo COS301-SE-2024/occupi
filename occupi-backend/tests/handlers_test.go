@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	// "github.com/stretchr/testify/mock"
 )
@@ -160,29 +160,8 @@ func createMockBooking(r *gin.Engine, payload string, cookies []*http.Cookie) (m
 
 	return response, nil
 }
-
-// Insert mock data into the test database
-func InsertMockData(db *mongo.Client) {
-	collection := db.Database("Occupi").Collection("users")
-	user := models.UserDetails{
-		ID:       "1234567890",
-		Email:    "john.doe@example.com",
-		Password: "hashedpassword",
-		Role:     "admin",
-		OnSite:   true,
-		Details: *models.Details{
-			ContactNo: "123-456-7890",
-			Dob:       time.Date(1990, 1, 1, 0, 0, 0, 0, time.UTC),
-			Gender:    "male",
-			Name:      "John Doe",
-			Pronouns:  "He/him",
-		},
-		Position:             "Manager",
-		Status:               "Active",
-		IsVerified:           true,
-		NextVerificationDate: time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC),
-	}
-	collection.InsertOne(context.Background(), user)
+func BoolPtr(b bool) *bool {
+	return &b
 }
 
 // SetupTestEnvironment initializes the test environment and returns the router and cookies
@@ -222,13 +201,29 @@ func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	return r, cookies
 }
 
+// Clean up the test database
+func CleanupTestDatabase(db *mongo.Database) {
+	collection := db.Collection("users")
+	collection.DeleteMany(context.Background(), bson.M{})
+}
+
 // Helper function to send a request and verify the response
 func sendRequestAndVerifyResponse(t *testing.T, r *gin.Engine, method, url string, payload string, cookies []*http.Cookie, expectedStatusCode int, expectedMessage string) {
 	// Create a request to pass to the handler
-	req, err := http.NewRequest(method, url, bytes.NewBuffer([]byte(payload)))
+	var req *http.Request
+	var err error
+
+	if method == http.MethodGet {
+		req, err = http.NewRequest(method, url, nil)
+	} else {
+		req, err = http.NewRequest(method, url, bytes.NewBuffer([]byte(payload)))
+	}
+
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// Set the request header
 	req.Header.Set("Content-Type", "application/json")
 
 	// Add the stored cookies to the request
@@ -400,6 +395,77 @@ func TestCancelBooking(t *testing.T) {
 		})
 	}
 }
+
+// Tests the GetUserDetails handler
+// func TestGetUserDetails(t *testing.T) {
+// 	// connect to the database
+// 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+// 	collection := db.Database("Occupi").Collection("users")
+// 	parsedTime, _ := time.Parse(time.RFC3339, "2024-09-15T00:00:00Z")
+// 	documents := []interface{}{
+// 		models.UserDetails{
+// 			OccupiID:             "OCCUPI20245311",
+// 			Password:             "hashedpassword",
+// 			Email:                "john.doe@example.com",
+// 			Role:                 "admin",
+// 			OnSite:               true,
+// 			IsVerified:           true,
+// 			NextVerificationDate: parsedTime,
+// 			Details: &models.Details{
+// 				ContactNo: "123-456-7890",
+// 				DOB:       parsedTime,
+// 				Gender:    "male",
+// 				Name:      "John Doe",
+// 				Pronouns:  "He/him",
+// 			},
+// 			Notifications: &models.Notifications{
+// 				Allow:           BoolPtr(true),
+// 				BookingReminder: BoolPtr(true),
+// 				Max_Capacity:    BoolPtr(true),
+// 			},
+// 			Security: &models.Security{
+// 				MFA:        BoolPtr(true),
+// 				Biometrics: BoolPtr(true),
+// 			},
+// 			Position: "Manager",
+// 			Status:   "Active",
+// 		},
+// 	}
+// 	setup.InsertData(collection, documents)
+// 	// Setup the test environment
+// 	r, cookies := setupTestEnvironment(t)
+
+// 	// Define test cases
+// 	testCases := []testCase{
+// 		{
+// 			name:               "Valid Request",
+// 			payload:            "/api/user-details?email=john.doe@example.com",
+// 			expectedStatusCode: http.StatusOK,
+// 			expectedMessage:    "Successfully fetched user details",
+// 			setupFunc:          func() string { return "" },
+// 		},
+// 		{
+// 			name:               "Invalid Request",
+// 			payload:            "/api/user-details",
+// 			expectedStatusCode: http.StatusBadRequest,
+// 			expectedMessage:    "Invalid request payload",
+// 			setupFunc:          func() string { return "" },
+// 		},
+// 		{
+// 			name:               "User Not Found",
+// 			payload:            "/api/user-details?email=jane.doe@example.com",
+// 			expectedStatusCode: http.StatusNotFound,
+// 			expectedMessage:    "User not found",
+// 			setupFunc:          func() string { return "" },
+// 		},
+// 	}
+
+// 	for _, tc := range testCases {
+// 		t.Run(tc.name, func(t *testing.T) {
+// 			sendRequestAndVerifyResponse(t, r, "GET", tc.payload, "", cookies, tc.expectedStatusCode, tc.expectedMessage)
+// 		})
+// 	}
+// }
 
 // Tests the BookRoom handler
 func TestBookRoom(t *testing.T) {
