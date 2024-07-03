@@ -1,4 +1,4 @@
-import FAQPage from "../screens/Profile/FAQPage";
+import FAQPage from "../screens/Settings/FAQPage";
 
 export default function Home() {
   return (

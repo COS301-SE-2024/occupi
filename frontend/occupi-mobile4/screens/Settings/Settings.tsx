@@ -87,9 +87,7 @@ const Settings = () => {
       title: 'Notifications',
       description: 'Manage your notifications',
       iconName: 'bell',
-      accessoryRight: () => (
-        <Switch isChecked={notificationsEnabled} onToggle={toggleNotifications} />
-      ),
+      onPress: () => router.push('set-notifications')
     },
     { title: 'Privacy Policy', description: 'View privacy policy', iconName: 'lock', onPress: () => handleNavigate('PrivacyPolicyScreen') },
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => handleNavigate('SecurityScreen') },
