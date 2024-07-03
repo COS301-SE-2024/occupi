@@ -519,7 +519,33 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
 	request.Token = utils.SanitizeInput(request.Token)
 	request.Password = utils.SanitizeInput(request.Password)
 
+	// New Password validation
+	if !utils.ValidatePassword(request.Password) {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid password",
+            constants.InvalidRequestPayloadCode,
+            "Password does not meet requirements",
+            nil))
+        return
+    }
+
+	// Check if the token exists in the database by validation
+	email, err := database.GetEmailByResetToken(ctx, appsession.DB, request.Token)
+    if err != nil {
+        ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(
+            http.StatusUnauthorized,
+            "Invalid or expired token",
+            constants.InvalidAuthCode,
+            "Please request a new password reset",
+            nil))
+        return
+    }
+
 	
+
+}
+
 
 
 // handler for logging out a user
