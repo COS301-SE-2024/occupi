@@ -29,10 +29,15 @@ import {columns, users, statusOptions} from "../data/Data";
 import {capitalize} from "../data/Utils";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
-  IN: "success",
-  OUT: "danger",
+  ONSITE: "success",
+  OFFSITE: "danger",
   BOOKED: "warning",
 };
+
+// type BookingComponentProps = {
+//   roleColumnName: string; // Add other props as needed
+// };
+
 
 const INITIAL_VISIBLE_COLUMNS = ["name", "role", "status", "actions"];
 
