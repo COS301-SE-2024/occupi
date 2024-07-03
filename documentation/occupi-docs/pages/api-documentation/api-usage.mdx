@@ -499,7 +499,7 @@ If there are any errors during the process, appropriate error messages are retur
 
 - **Method**
     
-    `POST`
+    `GET`
     
 - **Request Body**
 
@@ -526,7 +526,53 @@ If there are any errors during the process, appropriate error messages are retur
 - **Code:** 500
 - **Content:** `{ "status":  500, "message": "Failed to get rooms", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get rooms"} }`
 
- 
+### GetUserDetails
+
+This endpoint is used to view the details of a user in the Occupi system.
+Upon a successful request, the details of the user are returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/user-details?email=jane.doe@example.com`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "string"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully fetched user details!", "data": {"user details"} }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
+**Error Response**
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "User not found", "error": {"code":"BAD_REQUEST","details":null,"message":"User not found"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to get user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get user details"} }`
+
+
+
+
 
 
 
