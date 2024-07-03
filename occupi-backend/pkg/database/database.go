@@ -418,6 +418,19 @@ func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetTok
     return true, nil
 }
 
+// retrieves the email associated with a reset token
+func GetEmailByResetToken(ctx context.Context, db *mongo.Client, resetToken string) (string, error) {
+    collection := db.Database("Occupi").Collection("ResetTokens")
+    filter := bson.M{"token": resetToken}
+    var resetTokenStruct models.ResetToken
+    err := collection.FindOne(ctx, filter).Decode(&resetTokenStruct)
+    if err != nil {
+        logrus.Error(err)
+        return "", err
+    }
+    return resetTokenStruct.Email, nil
+}
+
 // CheckResetToken function 
 func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
 	// Check if the token exists in the database
