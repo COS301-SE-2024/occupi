@@ -41,7 +41,7 @@ type Details struct {
 type Notifications struct {
 	Allow           *bool `json:"allow" bson:"allow"`
 	BookingReminder *bool `json:"bookingReminder" bson:"bookingReminder"`
-	Max_Capacity    *bool `json:"maxCapacity" bson:"maxCapacity"`
+	MaxCapacity     *bool `json:"maxCapacity" bson:"maxCapacity"`
 }
 
 type Security struct {
