@@ -436,6 +436,18 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// Sanitize and validate email
+    request.Email = utils.SanitizeInput(request.Email)
+    if !utils.ValidateEmail(request.Email) {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid email address",
+            constants.InvalidRequestPayloadCode,
+            "Expected a valid format for email address",
+            nil))
+        return
+    }
+
 	// Check if the email exists in the database
 	if exists := database.EmailExists(ctx, appsession.DB, request.Email); !exists {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -446,6 +458,11 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 			nil))
 		return
 	}
+
+	
+
+
+
 
 
 }
