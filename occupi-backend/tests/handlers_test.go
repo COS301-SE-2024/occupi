@@ -21,6 +21,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	// "github.com/stretchr/testify/mock"
@@ -976,4 +977,186 @@ func TestMockDatabase(t *testing.T) {
 	// check that the data length is greater than 0
 	data := response["data"].([]interface{})
 	assert.Greater(t, len(data), 0)
+}
+
+func TestResetPassword(t *testing.T) {
+    // Setup the test environment
+    r, cookies := setupTestEnvironment(t)
+
+    // Define test cases
+    testCases := []struct {
+        name               string
+        payload            string
+        expectedStatusCode int
+        expectedMessage    string
+    }{
+        {
+            name: "Valid Request",
+            payload: `{
+                "email": "test@example.com"
+            }`,
+            expectedStatusCode: http.StatusOK,
+            expectedMessage:    "Password reset link sent to your email",
+        },
+        {
+            name: "Invalid Email",
+            payload: `{
+                "email": "invalid-email"
+            }`,
+            expectedStatusCode: http.StatusBadRequest,
+            expectedMessage:    "Invalid email address",
+        },
+        {
+            name: "Email Not Registered",
+            payload: `{
+                "email": "nonexistent@example.com"
+            }`,
+            expectedStatusCode: http.StatusBadRequest,
+            expectedMessage:    "Email not registered",
+        },
+    }
+
+    for _, tc := range testCases {
+        t.Run(tc.name, func(t *testing.T) {
+            req, err := http.NewRequest("POST", "/api/reset-password", bytes.NewBuffer([]byte(tc.payload)))
+            if err != nil {
+                t.Fatal(err)
+            }
+
+            req.Header.Set("Content-Type", "application/json")
+            for _, cookie := range cookies {
+                req.AddCookie(cookie)
+            }
+
+            rr := httptest.NewRecorder()
+            r.ServeHTTP(rr, req)
+
+            assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
+
+            var response map[string]interface{}
+            err = json.Unmarshal(rr.Body.Bytes(), &response)
+            if err != nil {
+                t.Fatalf("could not unmarshal response: %v", err)
+            }
+
+            assert.Equal(t, tc.expectedMessage, response["message"], "handler returned unexpected message")
+        })
+    }
+}
+
+func TestCompletePasswordReset(t *testing.T) {
+    // Setup the test environment
+    r, cookies := setupTestEnvironment(t)
+
+	 // Get a reference to the test database client
+	client := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+
+    // Define test cases
+    testCases := []struct {
+        name               string
+        payload            string
+        expectedStatusCode int
+        expectedMessage    string
+        setupFunc          func(*mongo.Client) // Function to setup necessary data (e.g., reset token)
+    }{
+        {
+            name: "Valid Request",
+            payload: `{
+                "token": "valid_token",
+                "password": "NewValidPassword123!",
+                "email": "test@example.com"
+            }`,
+            expectedStatusCode: http.StatusOK,
+            expectedMessage:    "Password reset successful",
+            setupFunc: func(db *mongo.Client) {
+                // Setup valid reset token in the database
+                expirationTime := time.Now().Add(time.Hour) // Token expires in 1 hour
+                _, err := database.AddResetToken(context.Background(), db, "test@example.com", "valid_token", expirationTime)
+                if err != nil {
+                    t.Fatalf("Failed to setup valid reset token: %v", err)
+                }
+            },
+        },
+        {
+            name: "Invalid Token",
+            payload: `{
+                "token": "invalid_token",
+                "password": "NewValidPassword123!",
+                "email": "test@example.com"
+            }`,
+            expectedStatusCode: http.StatusUnauthorized,
+            expectedMessage:    "Invalid or expired token",
+            setupFunc: func(db *mongo.Client) {},
+        },
+        {
+            name: "Expired Token",
+            payload: `{
+                "token": "expired_token",
+                "password": "NewValidPassword123!",
+                "email": "test@example.com"
+            }`,
+            expectedStatusCode: http.StatusUnauthorized,
+            expectedMessage:    "Token has expired",
+            setupFunc: func(db *mongo.Client) {
+             // Setup expired reset token in the database
+			 expirationTime := time.Now().Add(-time.Hour) // Token expired 1 hour ago
+			 _, err := database.AddResetToken(context.Background(), db, "test@example.com", "expired_token", expirationTime)
+			 if err != nil {
+				 t.Fatalf("Failed to setup expired reset token: %v", err)
+			 }
+
+            },
+        },
+        {
+            name: "Invalid Password",
+            payload: `{
+                "token": "valid_token",
+                "password": "weak",
+                "email": "test@example.com"
+            }`,
+            expectedStatusCode: http.StatusBadRequest,
+            expectedMessage:    "Invalid password",
+            setupFunc: func(db *mongo.Client) {
+                // Setup valid reset token in the database
+                expirationTime := time.Now().Add(time.Hour) // Token expires in 1 hour
+                _, err := database.AddResetToken(context.Background(), db, "test@example.com", "valid_token_2", expirationTime)
+                if err != nil {
+                    t.Fatalf("Failed to setup valid reset token: %v", err)
+                }
+
+            },
+        },
+    }
+
+    for _, tc := range testCases {
+        t.Run(tc.name, func(t *testing.T) {
+            tc.setupFunc(client) // Run setup function
+
+            req, err := http.NewRequest("POST", "/api/complete-password-reset", bytes.NewBuffer([]byte(tc.payload)))
+            if err != nil {
+                t.Fatal(err)
+            }
+
+            req.Header.Set("Content-Type", "application/json")
+            for _, cookie := range cookies {
+                req.AddCookie(cookie)
+            }
+
+            rr := httptest.NewRecorder()
+            r.ServeHTTP(rr, req)
+
+            assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
+
+            var response map[string]interface{}
+            err = json.Unmarshal(rr.Body.Bytes(), &response)
+            if err != nil {
+                t.Fatalf("could not unmarshal response: %v", err)
+            }
+
+            assert.Equal(t, tc.expectedMessage, response["message"], "handler returned unexpected message")
+        })
+
+		// Clean up the test database after all tests
+		CleanupTestDatabase(client.Database("Occupi"))
+    }
 }
