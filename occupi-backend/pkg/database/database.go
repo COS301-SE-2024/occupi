@@ -373,6 +373,20 @@ func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo string) ([]models.R
 	return rooms, nil
 }
 
+// Get user information
+func GetUserDetails(ctx *gin.Context, db *mongo.Client, email string) (models.UserDetails, error) {
+	collection := db.Database("Occupi").Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.UserDetails
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return models.UserDetails{}, err
+	}
+	return user, nil
+}
+
 // Checks if a user is an admin
 func CheckIfUserIsAdmin(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
 	// Check if the user is an admin
