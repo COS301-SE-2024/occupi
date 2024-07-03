@@ -1,1 +1,12 @@
 node_modules
+documentation/SRS-Docs/SRS.aux
+documentation/SRS-Docs/SRS.fdb_latexmk
+documentation/SRS-Docs/SRS.fls
+documentation/SRS-Docs/SRS.log
+documentation/SRS-Docs/SRS.out
+documentation/SRS-Docs/SRS.synctex.gz
+documentation/SRS-Docs/SRS.synctex.gz
+documentation/SRS-Docs/SRS.toc
+occupi-backend/configs/config.yaml
+occupi-backend/configs/dev.localhost.yaml
+occupi-backend/configs/test.yaml
