@@ -459,6 +459,24 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// Generate a reset token 
+    resetToken, err := utils.GenerateRandomState()
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error(err)
+        return
+    }
+
+	// Set token expiration time for an hour from now
+	expirationTime := time.Now().Add(time.Hour)
+
+	// save the reset token and the time in database
+	if _, err := database.AddResetToken(ctx, appsession.DB, request.Email, resetToken, expirationTime); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
 	
 
 
