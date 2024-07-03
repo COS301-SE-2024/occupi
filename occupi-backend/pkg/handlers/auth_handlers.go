@@ -436,7 +436,16 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	
+	// Check if the email exists in the database
+	if exists := database.EmailExists(ctx, appsession.DB, request.Email); !exists {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Email not registered",
+			constants.InvalidAuthCode,
+			"Please register first before attempting to reset password",
+			nil))
+		return
+	}
 
 
 }
