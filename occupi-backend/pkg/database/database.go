@@ -402,24 +402,23 @@ func CheckIfUserIsAdmin(ctx *gin.Context, db *mongo.Client, email string) (bool,
 }
 
 
-// AddResetToken function 
-func AddResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
-	// Save the token to the database
-	collection := db.Database("Occupi").Collection("ResetTokens")
-	resetToken := models.ResetToken{
-		Email: email,
-		Token: token,
-		ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetResetTokenExpiration())),
-	}
-	_, err := collection.InsertOne(ctx, resetToken)
-	if err != nil {
-		logrus.Error(err)
-		return false, err
-	}
-	return true, nil
+// AddResetToken adds a reset token to the database
+func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetToken string, expirationTime time.Time) (bool, error) {
+    collection := db.Database("Occupi").Collection("ResetTokens")
+    resetTokenStruct := models.ResetToken{
+        Email:      email,
+        Token:      resetToken,
+        ExpireWhen: expirationTime,
+    }
+    _, err := collection.InsertOne(ctx, resetTokenStruct)
+    if err != nil {
+        logrus.Error(err)
+        return false, err
+    }
+    return true, nil
 }
 
-// CheckResetToken function
+// CheckResetToken function 
 func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
 	// Check if the token exists in the database
 	collection := db.Database("Occupi").Collection("ResetTokens")
@@ -430,10 +429,26 @@ func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token str
 		logrus.Error(err)
 		return false, err
 	}
-	// Check if the token has expired
+	// checks if a reset token has expired
 	if time.Now().After(resetToken.ExpireWhen) {
 		return false, nil
 	}
 	return true, nil
 }
+
+// UpdateUserPassword, which updates the password in the database set by the user
+func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, password string) (bool, error) {
+	// Update the password in the database
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"password": password}}
+	_, err := collection.UpdateOne(ctx, filter,update)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+
 
