@@ -13,14 +13,33 @@ mock.module("@assets/index", () => ({
   OccupiLogo: () => <div data-testid="occupi-logo">Occupi Logo</div>,
 }));
 
+interface CheckboxProps {
+  checked?: boolean;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+interface GradientButtonProps {
+  Text: string;
+  clickEvent: () => void;
+  isLoading: boolean;
+  isClickable: boolean;
+}
+
+interface InputBoxProps {
+  type: string;
+  placeholder: string;
+  label: string;
+  submitValue: (value: string, isValid: boolean) => void;
+}
+
 mock.module("@components/index", () => ({
-  Checkbox: (props: any) => <input type="checkbox" {...props} />,
-  GradientButton: ({ Text, clickEvent, isLoading, isClickable }: any) => (
+  Checkbox: (props: CheckboxProps) => <input type="checkbox" {...props} />,
+  GradientButton: ({ Text, clickEvent, isLoading, isClickable }: GradientButtonProps) => (
     <button onClick={clickEvent} disabled={!isClickable || isLoading}>
       {Text}
     </button>
   ),
-  InputBox: ({ type, placeholder, label, submitValue }: any) => (
+  InputBox: ({ type, placeholder, label, submitValue }: InputBoxProps) => (
     <input
       type={type}
       placeholder={placeholder}
@@ -49,17 +68,14 @@ describe("LoginForm", () => {
   });
 
   test('renders input fields correctly', () => {
-    // render(<LoginForm />);
     const emailInputs = screen.getAllByPlaceholderText(/Enter your email address/);
     const passwordInputs = screen.getAllByPlaceholderText(/Enter your password/);
     expect(emailInputs).toHaveLength(1); // Ensure there's only one email input
     expect(passwordInputs).toHaveLength(1); // Ensure there's only one password input
   });
 
-
-  //Intergration tests
+  //Integration tests
   test("disables buttons when form is invalid", () => {
-    // render(<LoginForm />);
     const authButton = screen.getByText("Auth");
     const registerButton = screen.getByText("Register");
     
@@ -68,7 +84,6 @@ describe("LoginForm", () => {
   });
 
   test("enables buttons when form is valid", () => {
-    // render(<LoginForm />);
     const emailInput = screen.getByPlaceholderText("Enter your email address");
     const passwordInput = screen.getByPlaceholderText("Enter your password");
     
