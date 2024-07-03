@@ -504,6 +504,8 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
     var request struct {
         Token    string `json:"token" binding:"required"`
         Password string `json:"password" binding:"required"`
+		Email string `json:"email" binding:"required,email"`
+		
     }
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -542,7 +544,28 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-	
+	// Check if the token has already expired or not
+	expired, err := database.CheckResetToken(
+		ctx,
+		appsession.DB,
+		request.Email,
+		request.Token,
+	)
+	if err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error(err)
+        return
+    }
+    if expired {
+        ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(
+            http.StatusUnauthorized,
+            "Token has expired",
+            constants.InvalidAuthCode,
+            "Please request a new password reset",
+            nil))
+        return
+    }
+
 
 }
 
