@@ -400,3 +400,40 @@ func CheckIfUserIsAdmin(ctx *gin.Context, db *mongo.Client, email string) (bool,
 	}
 	return user.Role == constants.Admin, nil
 }
+
+
+// AddResetToken function 
+func AddResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
+	// Save the token to the database
+	collection := db.Database("Occupi").Collection("ResetTokens")
+	resetToken := models.ResetToken{
+		Email: email,
+		Token: token,
+		ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetResetTokenExpiration())),
+	}
+	_, err := collection.InsertOne(ctx, resetToken)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// CheckResetToken function
+func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
+	// Check if the token exists in the database
+	collection := db.Database("Occupi").Collection("ResetTokens")
+	filter := bson.M{"email": email, "token": token}
+	var resetToken models.ResetToken
+	err := collection.FindOne(ctx, filter).Decode(&resetToken)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	// Check if the token has expired
+	if time.Now().After(resetToken.ExpireWhen) {
+		return false, nil
+	}
+	return true, nil
+}
+
