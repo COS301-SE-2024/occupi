@@ -425,6 +425,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	// Extracting the email from the user
 	var request struct {
         Email string `json:"email" binding:"required,email"`
+
     }
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -477,13 +478,49 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	
+	// Generate reset password link
+    resetLink := configs.GetFrontendURL() + "/reset-password?token=" + resetToken
 
+	// Send the email to the user with the rest link
+	subject := "Password Reset - Your Reset Link"
+	body := mail.FormatResetPasswordEmailBody(resetLink)
 
+	if err := mail.SendMail(request.Email, subject, body); err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error(err)
+        return
+    }
 
-
+    ctx.JSON(http.StatusOK, utils.SuccessResponse(
+        http.StatusOK,
+        "Password reset link sent to your email",
+        nil))
 
 }
+
+// handler for changing a users password
+ 
+func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
+    var request struct {
+        Token    string `json:"token" binding:"required"`
+        Password string `json:"password" binding:"required"`
+    }
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected email field",
+			nil))
+		return
+	}
+
+	// Sanitize and validate input from users
+	request.Token = utils.SanitizeInput(request.Token)
+	request.Password = utils.SanitizeInput(request.Password)
+
+	
+
 
 // handler for logging out a user
 func Logout(ctx *gin.Context) {
