@@ -565,7 +565,31 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
             nil))
         return
     }
+	// Hash th enew password
+	hashedPassword, err := utils.Argon2IDHash(request.Password)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
 
+	// Update the password in the database
+	if _, err := database.UpdateUserPassword(ctx, appsession.DB, email, hashedPassword); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	 // Clear the reset token
+	 if _, err := database.ClearResetToken(ctx, appsession.DB, email,request.Token); err != nil {
+        logrus.Error("Failed to clear reset token: ", err)
+    }
+
+    ctx.JSON(http.StatusOK, utils.SuccessResponse(
+        http.StatusOK,
+        "Password reset successful",
+        nil))
+	
 
 }
 
