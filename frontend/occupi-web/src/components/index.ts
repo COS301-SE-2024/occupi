@@ -19,7 +19,7 @@ import Line_Chart from "./linechart/Line_Chart";
 import BarGraph from "./barGraph/BarGraph";
 import BookingComponent from "./bookingComponent/BookingComponent";
 import PDFReport from "../pages/reports/PDFReport";
-
+import Modal from "./modal/Modal";
 
 export {
     DrawerComponent,
@@ -42,5 +42,6 @@ export {
     Line_Chart,
     BarGraph,
     BookingComponent,
-    PDFReport
+    PDFReport,
+    Modal
 }

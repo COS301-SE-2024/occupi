@@ -1,5 +1,7 @@
 import React from "react";
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 import {
   Table,
@@ -20,13 +22,14 @@ import {
   Selection,
   ChipProps,
   SortDescriptor,
-  Tooltip
+  Tooltip,
 } from "@nextui-org/react";
-import {PlusIcon} from "@assets/index";
-import {SearchIcon} from "@assets/index";
-import {ChevronDownIcon,EyeIcon,DeleteIcon,EditIcon} from "@assets/index";
-import {columns, users, statusOptions} from "../data/Data";
-import {capitalize} from "../data/Utils";
+import { PlusIcon } from "@assets/index";
+import { SearchIcon } from "@assets/index";
+import { ChevronDownIcon, EyeIcon, DeleteIcon, EditIcon } from "@assets/index";
+import { columns, users, statusOptions } from "../data/Data";
+import { capitalize } from "../data/Utils";
+import { Modal } from "@components/index";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
   ONSITE: "success",
@@ -38,15 +41,20 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
 //   roleColumnName: string; // Add other props as needed
 // };
 
-
 const INITIAL_VISIBLE_COLUMNS = ["name", "role", "status", "actions"];
 
-type User = typeof users[0];
+type User = (typeof users)[0];
+
+
 
 export default function App() {
   const [filterValue, setFilterValue] = React.useState("");
-  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(new Set([]));
-  const [visibleColumns, setVisibleColumns] = React.useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
+  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
+    new Set([])
+  );
+  const [visibleColumns, setVisibleColumns] = React.useState<Selection>(
+    new Set(INITIAL_VISIBLE_COLUMNS)
+  );
   const [statusFilter, setStatusFilter] = React.useState<Selection>("all");
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
@@ -61,7 +69,9 @@ export default function App() {
   const headerColumns = React.useMemo(() => {
     if (visibleColumns === "all") return columns;
 
-    return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
+    return columns.filter((column) =>
+      Array.from(visibleColumns).includes(column.uid)
+    );
   }, [visibleColumns]);
 
   const filteredItems = React.useMemo(() => {
@@ -69,17 +79,20 @@ export default function App() {
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((user) =>
-        user.name.toLowerCase().includes(filterValue.toLowerCase()),
+        user.name.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
-    if (statusFilter !== "all" && Array.from(statusFilter).length !== statusOptions.length) {
+    if (
+      statusFilter !== "all" &&
+      Array.from(statusFilter).length !== statusOptions.length
+    ) {
       filteredUsers = filteredUsers.filter((user) =>
-        Array.from(statusFilter).includes(user.status),
+        Array.from(statusFilter).includes(user.status)
       );
     }
 
     return filteredUsers;
-  }, [hasSearchFilter,users, filterValue, statusFilter]);
+  }, [hasSearchFilter, users, filterValue, statusFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -107,7 +120,7 @@ export default function App() {
       case "name":
         return (
           <User
-            avatarProps={{radius: "lg", src: user.avatar}}
+            avatarProps={{ radius: "lg", src: user.avatar }}
             description={user.email}
             name={cellValue}
           >
@@ -117,38 +130,58 @@ export default function App() {
       case "role":
         return (
           <div className="flex  flex-col">
-            <p className="text-bold text-small text-text_col capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">{user.team}</p>
+            <p className="text-bold text-small text-text_col capitalize">
+              {cellValue}
+            </p>
+            <p className="text-bold text-tiny capitalize text-default-400">
+              {user.team}
+            </p>
           </div>
         );
       case "status":
         return (
-          <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
+          <Chip
+            className="capitalize"
+            color={statusColorMap[user.status]}
+            size="sm"
+            variant="flat"
+          >
             {cellValue}
           </Chip>
         );
-        case "actions":
-          return (
-            <div className="relative flex items-center gap-2">
-              <Tooltip content="Details">
-                <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                  <EyeIcon />
-                </span>
-              </Tooltip>
-              <Tooltip content="Edit user">
-                <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                  <EditIcon />
-                </span>
-              </Tooltip>
-              <Tooltip color="danger" content="Delete user">
-                <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                  <DeleteIcon />
-                </span>
-              </Tooltip>
-            </div>
-          );
-        default:
-          return cellValue;
+      case "actions":
+        return (
+          <div className="relative flex items-center gap-2">
+            <Tooltip content="View User Details">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                {/* <EyeIcon /> */}
+                <Modal/>
+              </span>
+            </Tooltip>
+            {/* <Tooltip content="Edit user">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                <EditIcon />
+              </span>
+            </Tooltip> */}
+            <Tooltip content="Email user">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                <a
+                  href={`mailto:user@example.com`}
+                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                >
+                  <FontAwesomeIcon icon={faEnvelope} />
+                </a>
+              </span>
+            </Tooltip>
+            {/* <Tooltip color="danger" content="Delete user">
+              <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                <DeleteIcon />
+              </span>
+            </Tooltip> */}
+          </div>
+        );
+      default:
+        return cellValue;
     }
   }, []);
 
@@ -164,10 +197,13 @@ export default function App() {
     }
   }, [page]);
 
-  const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRowsPerPage(Number(e.target.value));
-    setPage(1);
-  }, []);
+  const onRowsPerPageChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setRowsPerPage(Number(e.target.value));
+      setPage(1);
+    },
+    []
+  );
 
   const onSearchChange = React.useCallback((value?: string) => {
     if (value) {
@@ -178,15 +214,18 @@ export default function App() {
     }
   }, []);
 
-  const onClear = React.useCallback(()=>{
-    setFilterValue("")
-    setPage(1)
-  },[])
+  const onClear = React.useCallback(() => {
+    setFilterValue("");
+    setPage(1);
+  }, []);
 
   const topContent = React.useMemo(() => {
     return (
       <div className="flex flex-col gap-4">
-        <div data-testid='input-search' className="flex justify-between gap-3 items-end">
+        <div
+          data-testid="input-search"
+          className="flex justify-between gap-3 items-end"
+        >
           <Input
             isClearable
             className="w-full sm:max-w-[44%] border-none"
@@ -199,7 +238,7 @@ export default function App() {
           <div className="flex gap-3">
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon />} variant="flat">  
+                <Button endContent={<ChevronDownIcon />} variant="flat">
                   Status
                 </Button>
               </DropdownTrigger>
@@ -220,7 +259,7 @@ export default function App() {
             </Dropdown>
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon />} variant="flat"> 
+                <Button endContent={<ChevronDownIcon />} variant="flat">
                   Columns
                 </Button>
               </DropdownTrigger>
@@ -239,13 +278,18 @@ export default function App() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button  endContent={<PlusIcon />} className=" bg-primary_alt text-text_col_alt">
+            <Button
+              endContent={<PlusIcon />}
+              className=" bg-primary_alt text-text_col_alt"
+            >
               Add New
             </Button>
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total {users.length} users</span>
+          <span className="text-default-400 text-small">
+            Total {users.length} users
+          </span>
           <label className="flex items-center text-default-400 text-small">
             Rows per page:
             <select
@@ -288,10 +332,20 @@ export default function App() {
           onChange={setPage}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
+          <Button
+            isDisabled={pages === 1}
+            size="sm"
+            variant="flat"
+            onPress={onPreviousPage}
+          >
             Previous
           </Button>
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
+          <Button
+            isDisabled={pages === 1}
+            size="sm"
+            variant="flat"
+            onPress={onNextPage}
+          >
             Next
           </Button>
         </div>
@@ -301,51 +355,49 @@ export default function App() {
 
   return (
     <motion.div
-    initial={{ opacity: 0, scale: 0.7 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.2 }}
->
-  <div data-testid='table'>
-    <Table
-    
-      aria-label="Example table with custom cells, pagination and sorting"
-      isHeaderSticky
-      bottomContent={bottomContent}
-      bottomContentPlacement="outside"
-      classNames={{
-        wrapper: "max-h-[382px]",
-      }}
-      selectedKeys={selectedKeys}
-      selectionMode="multiple"
-      sortDescriptor={sortDescriptor}
-      topContent={topContent}
-      topContentPlacement="outside"
-      onSelectionChange={setSelectedKeys}
-      onSortChange={setSortDescriptor}
+      initial={{ opacity: 0, scale: 0.7 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
     >
-      <TableHeader columns={headerColumns}>
-        {(column) => (
-          <TableColumn
-            key={column.uid}
-            align={column.uid === "actions" ? "center" : "start"}
-            allowsSorting={column.sortable}
-          >
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody emptyContent={"No users found"} items={sortedItems}>
-        {(item) => (
-          <TableRow key={item.id}>
-            {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-    </div>
+      <div data-testid="table">
+        <Table
+          aria-label="Example table with custom cells, pagination and sorting"
+          isHeaderSticky
+          bottomContent={bottomContent}
+          bottomContentPlacement="outside"
+          classNames={{
+            wrapper: "max-h-[382px]",
+          }}
+          selectedKeys={selectedKeys}
+          selectionMode="multiple"
+          sortDescriptor={sortDescriptor}
+          topContent={topContent}
+          topContentPlacement="outside"
+          onSelectionChange={setSelectedKeys}
+          onSortChange={setSortDescriptor}
+        >
+          <TableHeader columns={headerColumns}>
+            {(column) => (
+              <TableColumn
+                key={column.uid}
+                align={column.uid === "actions" ? "center" : "start"}
+                allowsSorting={column.sortable}
+              >
+                {column.name}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody emptyContent={"No users found"} items={sortedItems}>
+            {(item) => (
+              <TableRow key={item.id}>
+                {(columnKey) => (
+                  <TableCell>{renderCell(item, columnKey)}</TableCell>
+                )}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </motion.div>
   );
 }
-
-
-
