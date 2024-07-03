@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import {
   Button,
@@ -7,6 +7,7 @@ import {
   HStack,
   VStack,
   Text,
+  View,
   Link,
   Divider,
   Icon,
@@ -41,19 +42,20 @@ import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard, StyleSheet } from 'react-native';
+import { Keyboard, StyleSheet, Alert, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
 import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
 import { styled } from '@gluestack-style/react';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const StyledImage = styled(Image, {
   props: {
     style: {
-      height: 40,
-      width: 320,
+      height: wp('10%'),
+      width: wp('80%'),
     },
   },
 });
@@ -102,13 +104,11 @@ function SideContainerWeb() {
         w="$80"
         alt="gluestack-ui Pro"
         resizeMode="contain"
-        source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
+      // source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
       />
     </Center>
   );
 }
-
-
 
 const SignUpForm = () => {
   const {
@@ -122,21 +122,60 @@ const SignUpForm = () => {
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [pwMatched, setPwMatched] = useState(false);
   const toast = useToast();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const spinValue = useRef(new Animated.Value(0)).current;
 
-  const onSubmit = (_data: SignUpSchemaType) => {
+  const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
       setPwMatched(true);
-      toast.show({
-        placement: 'bottom right',
-        render: ({ id }) => {
-          return (
-            <Toast nativeID={id} variant="accent" action="success">
-              <ToastTitle>Email verified</ToastTitle>
-            </Toast>
-          );
-        },
-      });
-      reset();
+      setLoading(true);
+      try {
+        const response = await fetch('http://10.0.0.160:8080/auth/register', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: _data.email,
+            password: _data.password
+          }),
+          credentials: "include"
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setLoading(false);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          router.push({pathname:'/verify-otp', params: { email: _data.email}});
+        } else {
+          setLoading(false);
+          // console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+      setLoading(false)
     } else {
       toast.show({
         placement: 'bottom right',
@@ -149,9 +188,6 @@ const SignUpForm = () => {
         },
       });
     }
-    // Implement your own onSubmit and navigation logic here.
-    // Navigate to appropriate location
-    router.replace('/verify-otp');
   };
 
   const handleKeyPress = () => {
@@ -173,10 +209,10 @@ const SignUpForm = () => {
 
   const GradientButton = ({ onPress, text }) => (
     <LinearGradient
-    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-    locations={[0.02, 0.31, 0.67, 0.97]}
-    start={[0, 1]}
-    end={[1, 0]}
+      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+      locations={[0.02, 0.31, 0.67, 0.97]}
+      start={[0, 1]}
+      end={[1, 0]}
       style={styles.buttonContainer}
     >
       <Heading style={styles.buttonText} onPress={onPress}>
@@ -184,20 +220,20 @@ const SignUpForm = () => {
       </Heading>
     </LinearGradient>
   );
-  
+
   const styles = StyleSheet.create({
     buttonContainer: {
       borderRadius: 15,
-      marginTop: 20,
+      marginTop: hp('2%'),
       alignSelf: 'center',
-      width: 360,
-      height: 50
+      width: wp('90%'),
+      height: hp('6%'),
     },
     buttonText: {
       color: 'black',
-      fontSize: 16,
+      fontSize: wp('4%'),
       textAlign: 'center',
-      lineHeight: 50,
+      lineHeight: hp('6%'),
     }
   });
 
@@ -220,16 +256,16 @@ const SignUpForm = () => {
                 try {
                   await signUpSchema.parseAsync({ email: value });
                   return true;
-                } catch (error: any) {
+                } catch (error) {
                   return error.message;
                 }
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12" >
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Email"
-                  fontSize="$sm"
+                  fontSize={wp('4%')}
                   type="text"
                   value={value}
                   onChangeText={onChange}
@@ -271,10 +307,10 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Employee ID"
-                  fontSize="$sm"
+                  fontSize={wp('4%')}
                   type="number"
                   value={value}
                   onChangeText={onChange}
@@ -308,15 +344,15 @@ const SignUpForm = () => {
                     password: value,
                   });
                   return true;
-                } catch (error: any) {
+                } catch (error) {
                   return error.message;
                 }
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
-                  fontSize="$sm"
+                  fontSize={wp('4%')}
                   placeholder="Password"
                   value={value}
                   onChangeText={onChange}
@@ -361,10 +397,10 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h="$12">
+              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Confirm Password"
-                  fontSize="$sm"
+                  fontSize={wp('4%')}
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
@@ -427,7 +463,6 @@ const SignUpForm = () => {
                   Terms of Use
                 </LinkText>
               </Link>{' '}
-              {/* &{' '} */}
               <Link>
                 <LinkText
                   sx={{
@@ -448,10 +483,18 @@ const SignUpForm = () => {
         )}
       />
 
-      <GradientButton
-        onPress={handleSubmit(onSubmit)}
-        text="Signup"
-      />
+
+      {loading ? (
+        <GradientButton
+          onPress={handleSubmit(onSubmit)}
+          text="Verifying..."
+        />
+      ) : (
+        <GradientButton
+          onPress={handleSubmit(onSubmit)}
+          text="Signup"
+        />
+      )}
     </>
   );
 };
@@ -492,7 +535,7 @@ function SignUpFormComponent() {
             <Image
               alt="Occupi Logo"
               source={Logo}
-              style={{ width: 100, height: 100 }}
+              style={{ width: wp('30%'), height: wp('30%') }}
             />
           </HStack>
           <VStack space="xs" mb="$2">
@@ -504,7 +547,7 @@ function SignUpFormComponent() {
               Register for Occupi.
             </Heading>
             <Text color="$black"
-              fontSize="$2xl"
+              fontSize={wp('6%')}
               fontWeight="$100"
               sx={{ _dark: { color: '$textDark800' } }}>
               Predict. Plan. Perfect.
@@ -543,7 +586,7 @@ function SignUpFormComponent() {
 export default function SignUp() {
   return (
     <GuestLayout>
-    <Box
+      <Box
         sx={{
           '@md': {
             display: 'flex',

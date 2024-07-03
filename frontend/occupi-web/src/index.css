@@ -15,16 +15,14 @@
   --green-leaf: #AFF16C;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #0D0D0D;
-    --primary-40: rgba(10, 10, 10, 0.40);
-    --secondary: #252525;
-    --text-col: #FFFFFF;
-    --primary-alt: #FFFFFF;
-    --secondary-alt: #EBEBEB;
-    --text-col-alt: #0D0D0D;
-  }
+:root.dark {
+  --primary: #0D0D0D;
+  --primary-40: rgba(10, 10, 10, 0.40);
+  --secondary: #252525;
+  --text-col: #FFFFFF;
+  --primary-alt: #FFFFFF;
+  --secondary-alt: #EBEBEB;
+  --text-col-alt: #0D0D0D;
 }
 
 html{background: var(--primary); width: 100vw; overflow-x: hidden; height: 100vh; overflow: overlay;}
@@ -38,43 +36,42 @@ body {
   height: 100vh;
   width: 100vw;
   overflow-x: hidden;
+  overflow-y: auto;
   background: var(--primary);
 }
 
-@media (min-width: 1280px) { 
-  /*scrollbars*/
-  ::-webkit-scrollbar { 
-    width: 6px; 
-    z-index: 5000;
-  }
+/*scrollbars*/
+::-webkit-scrollbar { 
+  width: 8px !important; 
+  z-index: 5000 !important;
+}
 
-  /* Track */
-  ::-webkit-scrollbar-track {
-    border-radius: 15px;
-    margin-top: 15px;
-    margin-bottom: 15px;
-    z-index: 5000;
-  }
+/* Track */
+::-webkit-scrollbar-track {
+  border-radius: 15px !important;
+  margin-top: 15px !important;
+  margin-bottom: 15px !important;
+  z-index: 5000 !important;
+}
 
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    background: var(--secondary-alt);
-    opacity: 0.8;
-    border-radius: 15px;
-    z-index: 5000;
-  }
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-alt) !important;
+  opacity: 0.8 !important;
+  border-radius: 15px !important;
+  z-index: 5000 !important;
+}
 
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--green-leaf);
-    z-index: 5000; 
-  }
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--green-leaf) !important;
+  z-index: 5000 !important; 
+}
 
-  /* Handle on active */
-  ::-webkit-scrollbar-thumb:active {
-    background: var(--green-leaf);
-    z-index: 5000; 
-  }
+/* Handle on active */
+::-webkit-scrollbar-thumb:active {
+  background: var(--green-leaf) !important;
+  z-index: 5000 !important; 
 }
 
 .hover_buttons:hover svg path{
@@ -85,10 +82,10 @@ body {
   stroke: var(--primary);
 }
 
-.hover_buttons_text:hover h2{
+.hover_buttons_text:hover h2, p{
   color: var(--primary);
 }
 
-.selected_buttons_text h2{
+.selected_buttons_text h2, p{
   color: var(--primary);
 }

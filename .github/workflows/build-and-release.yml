@@ -1,0 +1,153 @@
+name: Build and Release all
+
+on:
+  push:
+    branches:
+      - action-needs-refinement-lol
+
+jobs:
+    build-backend-binary:
+        name: Build Backend Binary
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v2
+              with:
+                go-version: '1.16'
+
+            - name: Build Backend Binary
+              run: |
+                go build -o occupi-backend ./occupi-backend/cmd/occupi-backend/main.go
+
+            - name: Archive Backend Binary
+              run: |
+                mkdir -p dist
+                mv occupi-backend/occupi-backend dist/occupi-backend
+                zip -r dist/occupi-backend.zip dist/occupi-backend
+
+            - name: Upload Backend Binary
+              uses: actions/upload-artifact@v2
+              with:
+                name: occupi-backend
+                path: dist/occupi-backend.zip
+
+
+    build-expo-app:
+        name: Build Expo App for Android and iOS
+        runs-on: [ubuntu-latest, macos-latest]
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v2
+              with:
+                node-version: '20'
+
+            - name: Install Expo CLI
+              run: |
+                npm install -g expo-cli
+
+            - name: Install Expo dependencies
+              run: |
+                cd occupi-frontend
+                npm install
+
+            - name: Build Expo App for native platforms
+              run: |
+                cd occupi-frontend/occupi-mobile
+                expo build
+            
+            - name: Archive Expo App for Android and iOS
+              run: |
+                mkdir -p dist
+                mv occupi-frontend/occupi-mobile/dist dist/occupi-mobile
+                zip -r dist/occupi-mobile.zip dist/occupi-mobile
+
+            - name: Upload Expo App for Android and iOS
+              uses: actions/upload-artifact@v2
+              with:
+                name: occupi-mobile
+                path: dist/occupi-backend.zip
+
+    build-vite-app:
+        name: Build Vite App
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v2
+              with:
+                node-version: '14'
+
+            - name: Install Vite
+              run: |
+                npm install -g create-vite
+
+            - name: Install Vite dependencies
+              run: |
+                cd occupi-frontend
+                npm install
+
+            - name: Build Vite App
+              run: |
+                cd occupi-frontend
+                npm run build
+
+    build-tauri-app:
+        name: Build Tauri App
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Rust
+              uses: actions/setup-rust@v1
+              with:
+                rust-version: '1.53.0'
+
+            - name: Install Tauri
+              run: |
+                cargo install tauri-bundler --force
+
+            - name: Build Tauri App
+              run: |
+                cd occupi-frontend
+                tauri build
+
+    release:
+        name: Release
+        runs-on: ubuntu-latest
+        needs: [build-backend-binary, build-expo-app, build-vite-app, build-tauri-app]
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v2
+              with:
+                node-version: '14'
+
+            - name: Install GitHub CLI
+              run: |
+                sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+                sudo apt-add-repository https://cli.github.com/packages
+                sudo apt update
+                sudo apt install gh
+
+            - name: Login to GitHub
+              run: |
+                gh auth login
+
+            - name: Create a Release
+              run: |
+                gh release create v1.0.0 -t "v1.0.0" -n "v1.0.0" ./occupi-backend/occupi-backend ./occupi-frontend/occupi-frontend ./occupi-frontend/dist ./occupi-frontend/build ./occupi-frontend/target/release/occupi-frontend
+
+            - name: Upload Release Assets
+              run: |
+                gh release upload v1.0.0 ./occupi-backend/occupi-backend ./occupi-frontend/occupi-frontend ./occupi-frontend/dist ./occupi-frontend/build ./occupi-frontend/target/release/occupi-frontend
