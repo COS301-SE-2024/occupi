@@ -449,8 +449,6 @@ func UpdateUserDetails(ctx *gin.Context, db *mongo.Client, user models.UserDetai
 		logrus.Error("Failed to find user: ", err)
 		return false, err
 	}
-	fmt.Println(userStruct)
-	fmt.Println(userStruct.Details)
 
 	updateFields := bson.M{}
 	AddFieldToUpdateMap(updateFields, "occupiId", user.OccupiID)
