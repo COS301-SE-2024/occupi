@@ -106,3 +106,9 @@ type Room struct {
 type RoomRequest struct {
 	FloorNo string `json:"floorNo" bson:"floorNo" binding:"required"`
 }
+
+type ResetToken struct {
+    Email      string    `bson:"email"`
+    Token      string    `bson:"token"`
+    ExpireWhen time.Time `bson:"expireWhen"`
+}
