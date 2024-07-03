@@ -422,7 +422,23 @@ func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 
 // handler for reseting a users password TODO: complete implementation
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-	// this will contain reset password logic
+	// Extracting the email from the user
+	var request struct {
+        Email string `json:"email" binding:"required,email"`
+    }
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected email field",
+			nil))
+		return
+	}
+
+	
+
+
 }
 
 // handler for logging out a user
