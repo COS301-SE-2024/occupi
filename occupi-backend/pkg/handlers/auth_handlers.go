@@ -479,10 +479,10 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Generate reset password link
-    resetLink := configs.GetFrontendURL() + "/reset-password?token=" + resetToken
+    resetLink := configs.GetFrontendURL() + "/forgot-password?token=" + resetToken
 
 	// Send the email to the user with the rest link
-	subject := "Password Reset - Your Reset Link"
+	subject := "Forgot Password Reset - Your Reset Link"
 	body := mail.FormatResetPasswordEmailBody(resetLink)
 
 	if err := mail.SendMail(request.Email, subject, body); err != nil {
