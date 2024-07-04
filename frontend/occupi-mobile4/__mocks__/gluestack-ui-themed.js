@@ -38,3 +38,5 @@ const mockComponent = (name) => {
     Button: 'Button',
     ButtonText: 'ButtonText',
   };
+
+  export default mockComponent;
