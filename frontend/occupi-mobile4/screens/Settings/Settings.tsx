@@ -66,7 +66,7 @@ const Settings = () => {
   };
 
   const data = [
-    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.push('/profile')},
+    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
     {
       title: 'Notifications',
       description: 'Manage your notifications',

@@ -100,14 +100,56 @@ const Profile = () => {
     hideDatePicker();
   };
 
-  const onSave = () => {
-    // Alert.alert(
-    //   'Profile Saved',
-    //   `Name: ${name}\nDOB: ${date.toLocaleDateString()}\nGender: ${
-    //     ['Male', 'Female', 'N-Bin'][selectedGenderIndex]
-    //   }\nEmail: ${email}\nEmployee ID: ${employeeId}\nPhone: ${phoneNumber}\nPronouns: ${pronouns}`
-    // );
+  const onSave = async () => {
+    const body = {
+      "email" : email,
+      "details": {
+      "contactNo": phoneNumber,
+      "gender": "Male",
+      "name": name,
+      "pronouns": pronouns
+      }
+    };
+    console.log(JSON.stringify(body));
+    try {
+      const response = await fetch('https://dev.occupi.tech/api/update-user', {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
+        credentials: "include"
+      });
+      const data = await response.json();
+      console.log(data);
+      if (response.ok) {
+        console.log(response);
+      } else {
+        console.log(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      // setResponse('An error occurred');
+    }
+
+    try {
+      const response = await fetch(`https://dev.occupi.tech/api/user-details?email=${email}`)
+      const data = await response.json();
+      if (response.ok) {
+        saveUserData(JSON.stringify(data));
+        console.log(data);
+      } else {
+        console.log(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
+
+  async function saveUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
 
   return (
     <SafeAreaView
@@ -120,7 +162,7 @@ const Profile = () => {
             name="chevron-left"
             size="xl"
             color={colorScheme === 'dark' ? 'white' : 'black'}
-            onPress={() => router.back()}
+            onPress={() => router.replace('/settings')}
           />
           <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
             My account
