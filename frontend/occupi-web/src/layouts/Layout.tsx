@@ -7,7 +7,7 @@ type Props = {
 
 const Layout = (props: Props) => {
   return (
-      <div className="w-screen h-screen overflow-x-hidden overflow-y-hidden flex">
+      <div data-testid='layout' className="w-screen h-screen overflow-x-hidden overflow-y-hidden flex">
         <SideNav />
         {props.children}
       </div>

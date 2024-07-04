@@ -23,7 +23,7 @@ import (
 
 func TestProtectedRoute(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -52,7 +52,7 @@ func TestProtectedRoute(t *testing.T) {
 
 func TestProtectedRouteInvalidToken(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -75,7 +75,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -119,7 +119,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 
 func TestAdminRoute(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -148,7 +148,7 @@ func TestAdminRoute(t *testing.T) {
 
 func TestUnauthorizedAccess(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -170,7 +170,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 
 func TestUnauthorizedAdminAccess(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -195,7 +195,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 
 func TestAccessUnprotectedRoute(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -221,7 +221,7 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 
 func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -246,7 +246,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 
 func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
