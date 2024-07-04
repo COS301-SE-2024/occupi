@@ -37,6 +37,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
@@ -92,6 +93,11 @@ const SignInForm = () => {
       console.log(e);
     }
   };
+
+  async function saveUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
+
 
   const handleBiometricSignIn = async () => {
     const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
@@ -176,6 +182,7 @@ const SignInForm = () => {
       if (response.ok) {
         setLoading(false);
         storeData(_data.email);
+        saveUserData(_data.email);
         toast.show({
           placement: 'top',
           render: ({ id }) => {
@@ -218,6 +225,7 @@ const SignInForm = () => {
     setShowPassword((showState) => !showState);
   };
 
+  
   return (
     <>
       <View style={{ alignItems: 'center', marginBottom: hp('2%') }}>
