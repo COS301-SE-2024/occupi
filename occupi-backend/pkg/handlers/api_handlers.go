@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
+	"reflect"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -51,47 +54,41 @@ func FetchResourceAuth(ctx *gin.Context, appsession *models.AppSession) {
 
 // BookRoom handles booking a room and sends a confirmation email
 func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
-	// consider structuring api responses to match that as outlined in our coding standards documentation
-	//link: https://cos301-se-2024.github.io/occupi/coding-standards/go-coding-standards#response-and-error-handling
-	var booking models.Booking
-	if err := ctx.ShouldBindJSON(&booking); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected RoomID,Slot,Emails[],Creator,FloorNo ", nil))
+	var bookingRequest map[string]interface{}
+	if err := ctx.ShouldBindJSON(&bookingRequest); err != nil {
+		HandleValidationErrors(ctx, err)
 		return
 	}
-	// // Initialize the validator
-	// validate := validator.New()
 
-	// // Validate the booking struct
-	// if err := validate.Struct(booking); err != nil {
-	// 	validationErrors := err.(validator.ValidationErrors)
-	// 	errorDetails := make(gin.H)
-	// 	for _, validationError := range validationErrors {
-	// 		errorDetails[validationError.Field()] = validationError.Tag()
-	// 	}
-	// 	ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Validation failed", constants.InvalidRequestPayloadCode, "Validation errors occurred", errorDetails))
-	// 	return
-	// }
+	// Validate JSON
+	validatedData, err := utils.ValidateJSON(bookingRequest, reflect.TypeOf(models.Booking{}))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
+		return
+	}
+
+	// Convert validated data to Booking struct
+	var booking models.Booking
+	bookingBytes, _ := json.Marshal(validatedData)
+	if err := json.Unmarshal(bookingBytes, &booking); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to book", constants.InternalServerErrorCode, "Failed to check in", nil))
+		return
+	}
+
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
 	booking.OccupiID = utils.GenerateBookingID()
 	booking.CheckedIn = false
 
 	// Save the booking to the database
-	_, err := database.SaveBooking(ctx, appsession.DB, booking)
+	_, err = database.SaveBooking(ctx, appsession.DB, booking)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to save booking", constants.InternalServerErrorCode, "Failed to save booking", nil))
 		return
 	}
 
-	// Prepare the email content
-	subject := "Booking Confirmation - Occupi"
-	body := mail.FormatBookingEmailBodyForBooker(booking.ID, booking.RoomID, booking.Slot, booking.Emails)
-
-	// Send the confirmation email concurrently to all recipients
-	emailErrors := mail.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
-
-	if len(emailErrors) > 0 {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send confirmation email", constants.InternalServerErrorCode, "Failed to send confirmation email", nil))
+	if err := mail.SendBookingEmails(booking); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send booking email", constants.InternalServerErrorCode, "Failed to send booking email", nil))
 		return
 	}
 
@@ -102,7 +99,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 func ViewBookings(ctx *gin.Context, appsession *models.AppSession) {
 	// Extract the email query parameter
 	email := ctx.Query("email")
-	if email == "" {
+	if email == "" || !utils.ValidateEmail(email) {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Email Address", nil))
 		return
 	}
@@ -110,44 +107,51 @@ func ViewBookings(ctx *gin.Context, appsession *models.AppSession) {
 	// Get all bookings for the userBooking
 	bookings, err := database.GetUserBookings(ctx, appsession.DB, email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get bookings", constants.InternalServerErrorCode, "Failed to get bookings", nil))
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get bookings", constants.InternalServerErrorCode, "Failed to get bookings", nil))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched bookings!", bookings))
 }
 
-// Cancel booking handles the cancellation of a booking
 func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
-	var booking models.Booking
-	if err := ctx.ShouldBindJSON(&booking); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Booking ID, Room ID, and Email Address", nil))
+	var cancelRequest map[string]interface{}
+	if err := ctx.ShouldBindJSON(&cancelRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+		return
+	}
+
+	// Validate JSON
+	validatedData, err := utils.ValidateJSON(cancelRequest, reflect.TypeOf(models.Cancel{}))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
+		return
+	}
+
+	// Convert validated JSON to Cancel struct
+	var cancel models.Cancel
+	cancelBytes, _ := json.Marshal(validatedData)
+	if err := json.Unmarshal(cancelBytes, &cancel); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel", constants.InternalServerErrorCode, "Failed to cancel", nil))
 		return
 	}
 
 	// Check if the booking exists
-	exists := database.BookingExists(ctx, appsession.DB, booking.ID)
+	exists := database.BookingExists(ctx, appsession.DB, cancel.BookingID)
 	if !exists {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(404, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
 		return
 	}
 
 	// Confirm the cancellation to the database
-	_, err := database.ConfirmCancellation(ctx, appsession.DB, booking.ID, booking.Creator)
+	_, err = database.ConfirmCancellation(ctx, appsession.DB, cancel.BookingID, cancel.Creator)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel booking", constants.InternalServerErrorCode, "Failed to cancel booking", nil))
 		return
 	}
 
-	// Prepare the email content
-	subject := "Booking Cancelled - Occupi"
-	body := mail.FormatBookingEmailBody(booking.ID, booking.RoomID, booking.Slot)
-
-	// Send the confirmation email concurrently to all recipients
-	emailErrors := mail.SendMultipleEmailsConcurrently(booking.Emails, subject, body)
-
-	if len(emailErrors) > 0 {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send cancellation email", constants.InternalServerErrorCode, "Failed to send cancellation email", nil))
+	if err := mail.SendCancellationEmails(cancel); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "An error occurred", constants.InternalServerErrorCode, "Failed to send booking email", nil))
 		return
 	}
 
@@ -156,21 +160,36 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 
 // CheckIn handles the check-in process for a booking
 func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
-	var checkIn models.CheckIn
+	var checkInRequest map[string]interface{}
+	if err := ctx.ShouldBindJSON(&checkInRequest); err != nil {
+		HandleValidationErrors(ctx, err)
+		return
+	}
 
-	if err := ctx.ShouldBindJSON(&checkIn); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Booking ID, Room ID, and Creator Email Address", nil))
+	// Validate JSON
+	validatedData, err := utils.ValidateJSON(checkInRequest, reflect.TypeOf(models.CheckIn{}))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
+		return
+	}
+
+	// Convert validated JSON to CheckIn struct
+	var checkIn models.CheckIn
+	checkInBytes, _ := json.Marshal(validatedData)
+	if err := json.Unmarshal(checkInBytes, &checkIn); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to check in", constants.InternalServerErrorCode, "Failed to check in", nil))
 		return
 	}
 
 	// Check if the booking exists
 	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingID)
 	if !exists {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to find booking", constants.InternalServerErrorCode, "Failed to find booking", nil))
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
 		return
 	}
+
 	// Confirm the check-in to the database
-	_, err := database.ConfirmCheckIn(ctx, appsession.DB, checkIn)
+	_, err = database.ConfirmCheckIn(ctx, appsession.DB, checkIn)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to check in", constants.InternalServerErrorCode, "Failed to check in. Email not associated with booking", nil))
 		return
@@ -179,27 +198,101 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully checked in!", nil))
 }
 
-// View all available rooms
-func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
-	var room models.Room
-	if err := ctx.ShouldBindJSON(&room); err != nil && !errors.Is(err, io.EOF) {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Floor No", nil))
+func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
+	// Extract the email query parameter
+	email := ctx.Query("email")
+	if email == "" || !utils.ValidateEmail(email) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Email Address", nil))
 		return
 	}
-	var rooms []models.Room
-	var err error
-	if room.FloorNo != -1 {
-		// If FloorNo is provided, filter by FloorNo
-		rooms, err = database.GetAllRooms(ctx, appsession.DB, room.FloorNo)
-	} else {
-		// If FloorNo is not provided, fetch all rooms on the ground floor
-		rooms, err = database.GetAllRooms(ctx, appsession.DB, 0)
+
+	if !database.EmailExists(ctx, appsession.DB, email) {
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
+		return
 	}
 
+	// Get all bookings for the userBooking
+	user, err := database.GetUserDetails(ctx, appsession.DB, email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get user details", constants.InternalServerErrorCode, "Failed to get user details", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched user details!", user))
+}
+func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
+	var user models.UserDetails
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+		return
+	}
+
+	// Check if the user exists
+	if !database.EmailExists(ctx, appsession.DB, user.Email) {
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
+		return
+	}
+	var err error
+	// Update the user details in the database
+	_, err = database.UpdateUserDetails(ctx, appsession.DB, user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update user details", constants.InternalServerErrorCode, "Failed to update user details", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated user details!", nil))
+}
+
+func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
+	var roomRequest map[string]interface{}
+	var room models.RoomRequest
+	if err := ctx.ShouldBindJSON(&roomRequest); err != nil && !errors.Is(err, io.EOF) {
+		HandleValidationErrors(ctx, err)
+		return
+	}
+
+	// Validate JSON
+	validatedData, err := utils.ValidateJSON(roomRequest, reflect.TypeOf(models.RoomRequest{}))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, err.Error(), constants.BadRequestCode, err.Error(), nil))
+		return
+	}
+
+	// Convert validated JSON to RoomRequest struct
+	roomBytes, _ := json.Marshal(validatedData)
+	if err := json.Unmarshal(roomBytes, &room); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get room", constants.InternalServerErrorCode, "Failed to check in", nil))
+		return
+	}
+
+	var floorNo string
+	if room.FloorNo == "" {
+		floorNo = "0"
+	} else {
+		floorNo = room.FloorNo
+	}
+
+	var rooms []models.Room
+	rooms, err = database.GetAllRooms(ctx, appsession.DB, floorNo)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get rooms", constants.InternalServerErrorCode, "Failed to get rooms", nil))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched rooms!", rooms))
+}
+
+// Helper function to handle validation of requests
+func HandleValidationErrors(ctx *gin.Context, err error) {
+	var ve validator.ValidationErrors
+	if errors.As(err, &ve) {
+		out := make([]models.ErrorMsg, len(ve))
+		for i, err := range ve {
+			out[i] = models.ErrorMsg{
+				Field:   utils.LowercaseFirstLetter(err.Field()),
+				Message: utils.GetErrorMsg(err),
+			}
+		}
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid request payload", gin.H{"errors": out}))
+	}
 }

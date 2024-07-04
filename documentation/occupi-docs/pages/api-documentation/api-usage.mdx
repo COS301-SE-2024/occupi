@@ -17,7 +17,6 @@ The API also allows you to retrieve information about these resources.
     - [Authentication](#authentication)
       - [Register](#register)
       - [Login](#login)
-      - [Login-Admin](#login-admin)
       - [Verify OTP](#verify-otp)
       - [Logout](#logout)
     - [Api](#api)
@@ -151,7 +150,8 @@ The authentication endpoints are used to register, login, login-admin, logout, a
 ```json copy
 {
   "email": "abcd@gmail.com",
-  "password": "123456"
+  "password": "123456",
+  "employee_id": "OCCUPI20241234" //this field is optional, an employee id will be generated if not provided
 }
 ```
 
@@ -181,39 +181,6 @@ The authentication endpoints are used to register, login, login-admin, logout, a
 
 **_Example json to send:_**
 
-```json copy
-{
-  "email": "abcd@gmail.com",
-  "password": "123456"
-}
-```
-
-### Login-Admin
-
-- **URL**
-
-  `/auth/login-admin`
-
-- **Method**
-  
-    `POST`
-
-- **Success Response**
-  
-    - **Code:** 200
-    - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
-
-- **Error Response**
-    
-      - **Code:** 400
-      - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
-
-- **Error Response**
-  - **Code:** 500
-  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
-
-**_Example json to send:_**
-  
 ```json copy
 {
   "email": "abcd@gmail.com",
@@ -341,39 +308,34 @@ If there are any errors during the process, appropriate error messages are retur
 ```json copy
 {
     "roomId": "string",
-    "slot": "integer",
     "emails": ["string"],
     "creator": "string",
-    "floorNo": "integer"
+    "floorNo": "integer",
+    "date": "string",
+    "start": "string",
+    "end": "string"
 }
 ```
 
 **Success Response**
 
 - **Code:** 200
-- **Content:** `{ "message": "Resources fetched successfully"
-                "data" : "Booking ID" }`
+- **Content:** `{ "status":  200, "message": "Successfully booked!", "data": {"1234567890"}, }`
 
 **Error Response**
 
 - **Code:** 400
-- **Content:** `{ "message": "Invalid request Payload",
-            "code" : "InvalidRequestPayloadCode",
-            "details: "Expected RoomID, Slot, Emails[], Creator, FloorNo" }`
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
 
 **Error Response**
 
 - **Code:** 500
-- **Content:** `{ "message": "Failed to save booking",
-            "code": "InternalServerErrorCode",
-            "details": "Failed to save booking" }`
+- **Content:** `{ "status":  500, "message": "Failed to save booking", "error": {"code":"INTERNAL_SERVER_ERROR","details":"Failed to save booking","message":"Failed to save booking"} }`
 
 **Error Response**
 
 - **Code:** 500
-- **Content:** `{ "message": "Failed to send confirmation emails",
-            "code": "InternalServerErrorCode",
-            "details": "Failed to send confirmation emails" }`
+- **Content:** `{ "status":  500, "message": "Failed to send confirmation emails", "error": {"code":"INTERNAL_SERVER_ERROR","details":"Failed to send confirmation emails","message":"Failed to send confirmation emails"} }`
 
 ### ViewBookings
 
@@ -395,29 +357,25 @@ If there are any errors during the process, appropriate error messages are retur
 
 ```json copy
 {  
-    "emails": "string",
+    "emails": "string"
 }
 ```
 
 **Success Response**
 
 - **Code:** 200
-- **Content:** `{ "message": "Bookings fetched successfully",
-                "data" : "List of bookings" }`
+- **Content:** `{ "status":  200, "message": "Successfully fetched bookings!", "data": null }`
 
 **Error Response**
     
 - **Code:** 400
-- **Content:** `{ "message": "Invalid request Payload",
-            "code" : "InvalidRequestPayloadCode",
-            "details: "Expected Email Address" }`  
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Expected Email Address"}, }`
+ 
 
 **Error Response**
      
 - **Code:** 500
-- **Content:** `{ "message": "Failed to fetch bookings",
-            "code": "InternalServerErrorCode",
-            "details": "Failed to fetch bookings" }`
+- **Content:** `{ "status":  500, "message": "Failed to get bookings", "error": {"code":"INTERNAL_SERVER_ERROR","details":"Failed to get bookings","message":"Failed to get bookings"} }`
 
 ### CancelBooking
 
@@ -441,36 +399,46 @@ If there are any errors during the process, appropriate error messages are retur
 ```json copy
 {  
     "bookingId": "string",
+    "roomId": "string",
+    "emails": ["string"],
     "creator": "string",
+    "floorNo": "integer",
+    "date": "string",
+    "start": "string",
+    "end": "string"
 }
 ```
 
 **Success Response**
 
 - **Code:** 200
-- **Content:** `{ "message": "Booking canceled successfully",
-                "data" : "nil" }`
+- **Content:** `{ "status":  200, "message": "Successfully cancelled booking!", "data":null }`
 
 **Error Response**
-        
+
 - **Code:** 400
-- **Content:** `{ "message": "Invalid request Payload",
-                "code" : "InvalidRequestPayloadCode",
-                "details: "Expected Booking ID, Creator" }`
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
 
 **Error Response**
-            
-- **Code:** 500
-- **Content:** `{ "message": "Failed to cancel booking",
-                    "code": "InternalServerErrorCode",
-                    "details": "Failed to cancel booking" }`
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"}, }`
 
 **Error Response**
-                    
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "Booking not found", "error": {"code":"BAD_REQUEST","details":null,"message":"Booking not found"}, }`
+
+**Error Response**
+
 - **Code:** 500
-- **Content:** `{ "message": "Failed to send confirmation emails",
-                            "code": "InternalServerErrorCode",
-                            "details": "Failed to send confirmation emails" }`
+- **Content:** `{ "status":  500, "message": "Failed to cancel booking", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to save booking"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to send confirmation emails", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"An error occured"} }`
+
                               
 ### CheckIn
 
@@ -485,7 +453,7 @@ If there are any errors during the process, appropriate error messages are retur
 
 - **Method**
     
-    `GET`
+    `POST`
 
 - **Request Body**
 
@@ -494,37 +462,181 @@ If there are any errors during the process, appropriate error messages are retur
 ```json copy
 {  
     "bookingId": "string",
-    "email": "string",
-    "roomId": "string",
+    "email": "string"
 }
 ```
 
 **Success Response**
 
 - **Code:** 200
-- **Content:** `{ "message": "Checked in successfully",
-                "data" : "nil" }`
+- **Content:** `{ "status":  200, "message": "Successfully checked in!", "data":null }`
 
 **Error Response**
-            
+
 - **Code:** 400
-- **Content:** `{ "message": "Invalid request Payload",
-                "code" : "InvalidRequestPayloadCode",
-                "details: "Expected Booking ID, Email, RoomID" }`
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
 
 **Error Response**
-                        
-- **Code:** 500
-- **Content:** `{ "message": "Failed to check-in",
-                    "code": "InternalServerErrorCode",
-                    "details": "Failed to check-in" }`
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "Booking not found", "error": {"code":"BAD_REQUEST","details":null,"message":"Booking not found"}, }`
 
 **Error Response**
 
 - **Code:** 500
-- **Content:** `{ "message": "Failed to send confirmation emails",
-                    "code": "InternalServerErrorCode",
-                    "details": "Failed to send confirmation emails" }`  
+- **Content:** `{ "status":  500, "message": "Failed to check in", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to checkin"} }`
+
+### ViewRooms
+
+This endpoint is used to view all rooms in the Occupi system.
+Upon a successful request, a list of all rooms is returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/view-rooms`
+
+- **Method**
+    
+    `GET`
+    
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "floorNo": "string"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully fetched rooms!", "data": {"list of all rooms"} }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to get rooms", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get rooms"} }`
+
+### GetUserDetails
+
+This endpoint is used to view the details of a user in the Occupi system.
+Upon a successful request, the details of the user are returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/user-details?email=jane.doe@example.com`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "string"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully fetched user details!", "data": {"user details"} }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
+**Error Response**
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "User not found", "error": {"code":"BAD_REQUEST","details":null,"message":"User not found"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to get user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get user details"} }`
+
+### UpdateUserDetails
+
+This endpoint is used to update the details of a user in the Occupi system.
+The client needs to provide the user's email address and the details to be updated.
+Upon a successful request, the user's details are updated.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/update-user`
+
+- **Method**
+    
+    `PUT`
+
+
+- **Request Body**
+
+- **Content**
+- Add fields that you want to update. Always include email field.
+
+```json copy
+{
+  "email": "John.Doe@example.com",
+  "details": {
+    "contactNo": "123456789",
+    "dob": "1970-01-01T00:00:00Z",
+    "gender": "Male",
+    "name": "John Doea",
+    "pronouns": "He/him"
+  },
+  "notifications": {
+    "allow": true,
+    "booking_reminder": false,
+    "max_capacity": true
+  },
+  "security": {
+    "2fa": false,
+    "biometrics": true
+  },
+  "position": "Head of Examples"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully updated user details!", "data": nil }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
+**Error Response**
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "User not found", "error": {"code":"BAD_REQUEST","details":null,"message":"User not found"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to update user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update user details"} }`
+
+
+
+
 
 
 

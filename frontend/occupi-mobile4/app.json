@@ -19,11 +19,16 @@
       }
     },
     "android": {
-      "permissions": ["USE_BIOMETRIC", "USE_FINGERPRINT"],
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.y2kodedev.occupi",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -35,6 +40,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "0127a6f2-e29a-4a67-a134-be8c4daed566"
+      }
     }
   }
 }

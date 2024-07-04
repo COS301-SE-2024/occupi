@@ -2,10 +2,10 @@
 setlocal
 
 if "%1 %2" == "run dev" (
-    go run -v cmd/occupi-backend/main.go
+    go run -v cmd/occupi-backend/main.go -env=dev.localhost
     exit /b 0
 ) else if "%1 %2" == "run prod" (
-    go run cmd/occupi-backend/main.go
+    go run cmd/occupi-backend/main.go -env=dev.localhost
     exit /b 0
 ) else if "%1 %2" == "build dev" (
     go build -v cmd/occupi-backend/main.go
@@ -13,17 +13,11 @@ if "%1 %2" == "run dev" (
 ) else if "%1 %2" == "build prod" (
     go build cmd/occupi-backend/main.go
     exit /b 0
-) else if "%1 %2" == "docker build" (
-    docker-compose build
-    exit /b 0
-) else if "%1 %2" == "docker up" (
-    docker-compose up
-    exit /b 0
 ) else if "%1" == "test" (
-    go test -v ./tests/...
+    gotestsum --format testname -- -v ./tests/...
     exit /b 0
 ) else if "%1 %2" == "test codecov" (
-    go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
+    gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
     exit /b 0
 ) else if "%1" == "lint" (
     golangci-lint run
@@ -41,14 +35,12 @@ if "%1 %2" == "run dev" (
 echo Usage: occupi.bat {command}
 echo.
 echo Available commands:
-echo   run dev           : go run -v cmd/occupi-backend/main.go
-echo   run prod          : go run cmd/occupi-backend/main.go
+echo   run dev           : go run -v cmd/occupi-backend/main.go -env=dev.localhost
+echo   run prod          : go run cmd/occupi-backend/main.go -env=dev.localhost
 echo   build dev         : go build -v cmd/occupi-backend/main.go
 echo   build prod        : go build cmd/occupi-backend/main.go
-echo   docker build      : docker-compose build
-echo   docker up         : docker-compose up
-echo   test              : go test ./tests/...
-echo   test codecov      : go test ./tests/... -race -coverprofile=coverage.out -covermode=atomic
+echo   test              : gotestsum --format testname -- -v ./tests/...
+echo   test codecov      : gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
 echo   lint              : golangci-lint run
 echo   help              : Show this help message
 exit /b 0

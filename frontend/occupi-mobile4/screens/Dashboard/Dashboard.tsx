@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { StatusBar, useColorScheme } from "react-native";
-import Navbar from "../../components/NavBar";
+import React, { useEffect, useState } from 'react';
+import { StatusBar, useColorScheme, Dimensions } from 'react-native';
+import Navbar from '../../components/NavBar';
 import {
   Text,
   View,
@@ -32,8 +32,7 @@ const Dashboard = () => {
   );
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === "dark");
   const [checkedIn, setCheckedIn] = useState(false);
-  const toast = useToast();
-
+  const toast = useToast()
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers((prevNumbers) => {
@@ -52,7 +51,7 @@ const Dashboard = () => {
       toast.show({
         placement: "top",
         render: ({ id }) => (
-          <Toast nativeID={id} variant="accent" action="info">
+          <Toast nativeID={String(id)} variant="accent" action="info">
             <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
           </Toast>
         ),
@@ -62,7 +61,7 @@ const Dashboard = () => {
       toast.show({
         placement: "top",
         render: ({ id }) => (
-          <Toast nativeID={id} variant="accent" action="info">
+          <Toast nativeID={String(id)} variant="accent" action="info">
             <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
           </Toast>
         ),
@@ -75,25 +74,14 @@ const Dashboard = () => {
   const cardBackgroundColor = isDarkMode ? "#2C2C2E" : "#F3F3F3";
 
   return (
-    <View
-      pt="$16"
-      px="$4"
-      flex="$1"
-      flexDirection="column"
-      backgroundColor={backgroundColor}
-    >
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+    <View pt="$16" px="$4" flex={1} flexDirection="column" backgroundColor={backgroundColor}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <View flexDirection="row" justifyContent="space-between">
         <View>
-          <Text fontSize={wp("5%")} fontWeight="$light" color={textColor}>
+          <Text fontSize={wp('5%')} fontWeight="light" color={textColor}>
             Hi Sabrina 👋
           </Text>
-          <Text
-            mt="$4"
-            fontSize={wp("6%")}
-            fontWeight="$bold"
-            color={textColor}
-          >
+          <Text mt="$4" fontSize={wp('6%')} fontWeight="bold" color={textColor}>
             Welcome to Occupi
           </Text>
         </View>
@@ -189,7 +177,7 @@ const Dashboard = () => {
       </View>
       {/* <Image
         alt="logo"
-        p="$10"
+        p="10"
         source={require('./assets/graph.png')}
         style={{ width: wp('100%'), height: hp('31%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
       /> */}
@@ -224,9 +212,9 @@ const Dashboard = () => {
               },
             ],
           }}
-          width={370} // from react-native
+          width={Dimensions.get("window").width -30} // from react-native
           height={220}
-          // yAxisLabel="$"
+          // yAxisLabel=""
           // yAxisSuffix="k"
           yAxisInterval={1} // optional, defaults to 1
           chartConfig={{
@@ -237,7 +225,7 @@ const Dashboard = () => {
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             style: {
-              borderRadius: 16,
+              borderRadius: 20
             },
             propsForDots: {
               r: "0",
@@ -248,7 +236,7 @@ const Dashboard = () => {
           bezier
           style={{
             marginVertical: 8,
-            borderRadius: 20,
+            borderRadius: 16,
           }}
         />
       </View>

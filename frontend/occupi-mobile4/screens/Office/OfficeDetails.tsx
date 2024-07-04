@@ -139,11 +139,10 @@ const OfficeDetails = () => {
   return (
     <>
       {/* Top Section */}
-      <View pt="$16" backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: wp('5%') }}>
-        <Icon right="$4" as={Feather} name="chevron-left" size="40" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
-
-        <Text right="$8" fontWeight="$bold" fontSize="$22" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
-        <View alignItems="$center" flexDirection="$row" w="$24" justifyContent="$space-between">
+      <View pt="$12" px="$8" pb="$4" backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Icon right="$4" as={Feather} name="chevron-left" size="xl" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
+        <Text right="$8" fontWeight="$bold" fontSize={22} style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
+        <View alignItems="center" flexDirection="row" w="$24" justifyContent="space-between">
           <View rounded="$full" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} p="$2">
             <Feather name="heart" size={24} color={isDarkMode ? '#fff' : '#000'} />
           </View>
@@ -165,7 +164,7 @@ const OfficeDetails = () => {
               <Image alt="slide3" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
             </View>
           </PagerView> */}
-          <View style={styles.root}>
+          <View>
             <Animated.ScrollView
               horizontal={true}
               pagingEnabled={true}
@@ -175,7 +174,7 @@ const OfficeDetails = () => {
               })}
             >
               {pages.map((page, index) => (
-                <View key={index} style={[styles.page], { width }}>
+                <View key={index} style={{ width }}>
                   <View style={styles.page} key="1">
                     <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                   </View>
@@ -194,7 +193,7 @@ const OfficeDetails = () => {
           </View>
         </View>
         <View style={{ padding: wp('5%') }}>
-          <Text fontSize="$24" fontWeight="$bold" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
+          <Text fontSize={24} fontWeight="$bold" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
           <View alignItems="center" flexDirection="row">
             <Ionicons name="wifi" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Fast   </Text>
             <MaterialCommunityIcons name="television" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> OLED   </Text>
@@ -280,7 +279,7 @@ const OfficeDetails = () => {
           />
         </View>
         {/* Check Availability Button */}
-        <TouchableOpacity testID="booking-link"  bottom="$0" style={{ margin: wp('5%') }} onPress={() => router.push({ pathname: '/booking-details', params: { email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData } })}>
+        <TouchableOpacity testID="booking-link"  style={{ margin: wp('5%') }} onPress={() => router.push({ pathname: '/booking-details', params: { email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData } })}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
             start={{ x: 0, y: 0 }}
@@ -293,7 +292,7 @@ const OfficeDetails = () => {
               onConfirm={handleConfirm}
               onCancel={hideDatePicker}
             />
-            <Text color={isDarkMode ? '#000' : '#fff'} fontSize="$16" fontWeight="$bold">Check availability</Text>
+            <Text color={isDarkMode ? '#000' : '#fff'} fontSize={16} fontWeight="$bold">Check availability</Text>
           </LinearGradient>
         </TouchableOpacity>
 

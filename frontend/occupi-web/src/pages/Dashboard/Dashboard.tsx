@@ -1,18 +1,36 @@
 import { TopNav } from "@components/index";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  TabComponent,
+} from "@components/index";
+import { useNavigate, Outlet } from "react-router-dom";
 
 const Dashboard = () => {
-    const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(e.target.value);
-    };
+  const handleClick = (path: string) => {
+    navigate("/dashboard" + path);
+  };
 
-    return (
-        <div className="w-full">
-            <TopNav searchQuery={searchQuery} onChange={handleInputChange} />
-        </div>
-    )
-}
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
-export default Dashboard
+  useEffect(() => {
+    handleClick("/overview");
+  },[]);
+
+  return (
+    <div data-testid='dashboard' className="w-full overflow-auto">
+      <TopNav
+        mainComponent={<TabComponent setSelectedTab={handleClick} />}
+        searchQuery={searchQuery}
+        onChange={handleInputChange}
+      />
+      <Outlet />
+    </div>
+  );
+};
+
+export default Dashboard;

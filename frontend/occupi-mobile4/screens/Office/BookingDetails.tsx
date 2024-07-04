@@ -24,6 +24,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
+import GradientButton from '@/components/GradientButton';
 
 const getTimeForSlot = (slot) => {
   console.log(slot);
@@ -150,7 +151,7 @@ const BookingDetails = () => {
           placement: 'top',
           render: ({ id }) => {
             return (
-              <Toast nativeID={id} variant="accent" action="success">
+              <Toast nativeID={String(id)} variant="accent" action="success">
                 <ToastTitle>{data.message}</ToastTitle>
               </Toast>
             );
@@ -163,7 +164,7 @@ const BookingDetails = () => {
           placement: 'top',
           render: ({ id }) => {
             return (
-              <Toast nativeID={id} variant="accent" action="error">
+              <Toast nativeID={String(id)} variant="accent" action="error">
                 <ToastTitle>{data.message}</ToastTitle>
               </Toast>
             );
@@ -295,6 +296,7 @@ const BookingDetails = () => {
       style={{
         flex: 1,
         backgroundColor: isDark ? "#000" : "#fff",
+        paddingTop: 50
       }}
     >
       <View
@@ -305,7 +307,7 @@ const BookingDetails = () => {
         }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon as={Feather} name="chevron-left" size="40" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
+          <Icon as={Feather} name="chevron-left" size="xl" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
         </TouchableOpacity>
         {/* <Feather name="calendar" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} /> */}
         <Text
@@ -394,39 +396,17 @@ const BookingDetails = () => {
               </View>
             </View>
           </View>
-          <TouchableOpacity
-          testID="booking-link"
-            style={{ margin: 15, borderRadius: 25 }}
-            onPress={handleBiometricAuth}
-          >
-            <LinearGradient
-              colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
-              locations={[0.02, 0.31, 0.67, 0.97]}
-              start={[0, 1]}
-              end={[1, 0]}
-              style={{
-                padding: 15,
-                alignItems: "center",
-                borderRadius: 15,
-              }}
-            >
-              <Text
-                style={{
-                  color: isDark ? "#000" : "#fff",
-                  fontSize: 16,
-                  fontWeight: "bold",
-                }}
-              >
-                Confirm booking
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          <GradientButton
+            onPress={() => handleBiometricAuth()}
+            text="Confirm booking"
+            testID="booking-link"
+          />
         </View>
       )}
 
       {currentStep === 1 && (
         <View testID="booking-data" style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", margin: 15 }}>
+          <View style={{ flexDirection: "row", margin: 15,alignItems: "center" }}>
             <TextInput
               style={{
                 flex: 1,
@@ -480,33 +460,12 @@ const BookingDetails = () => {
             }}
           />
 
-          {!loading ? (<TouchableOpacity
-          testID="booking-link"
-            style={{ margin: 15, borderRadius: 15 }}
-            onPress={() => onSubmit()}
-          >
-            <LinearGradient
-              colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
-              locations={[0.02, 0.31, 0.67, 0.97]}
-              start={[0, 1]}
-              end={[1, 0]}
-              style={{
-                padding: 15,
-                alignItems: "center",
-                borderRadius: 15,
-              }}
-            >
-              <Text
-                style={{
-                  color: isDark ? '#000' : '#fff',
-                  fontSize: 16,
-                  fontWeight: "bold",
-                }}
-              >
-                Send invites
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          {!loading ? (
+            <GradientButton
+              onPress={() => onSubmit()}
+              text="Send invites" 
+              testID="booking-link"
+            />
           ) : (
             <TouchableOpacity
             testID="booking-link"
@@ -555,30 +514,30 @@ const BookingDetails = () => {
           > */}
           <View style={{ width: 365, height:500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom:50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
             <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
-            <Text fontSize="$24" fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000' }}>HDMI Room</Text>
+            <Text fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000', fontSize: 24 }}>HDMI Room</Text>
             <View px="$3" alignItems="center" flexDirection="row">
               <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Fast   </Text>
               <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
               <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
               <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
             </View>
-            <View px="$3" flexDirection="$row" justifyContent="$space-around">
-              <View alignItems="$center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$yellowgreen" borderRadius="$10">
+            <View px="$3" flexDirection="row" justifyContent="space-around">
+              <View alignItems="center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$yellowgreen" borderRadius="$lg">
                 <Text color={isDark ? '#000' : '#fff'}>Check in: {startTime}</Text>
               </View>
-              <View alignItems="$center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$#FF5F5F" borderRadius="$10">
+              <View alignItems="center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$#FF5F5F" borderRadius="$lg">
                 <Text color={isDark ? '#000' : '#fff'}>Check out: {endTime}</Text>
               </View>
             </View>
-            <View mt="$1" flexDirection="$row" alignItems="$center" right="$6">
-              <Box backgroundColor={isDark ? '#000' : '#fff'} right="$" h="$10" borderRadius="$20" w="$10" />
+            <View mt="$1" flexDirection="row" alignItems="center" right="$6">
+              <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius="$lg" w="$10" />
               <Text color={isDark ? '#000' : '#fff'}>----------------------------------------------</Text>
-              <Box backgroundColor={isDark ? '#000' : '#fff'} left="$" h="$10" borderRadius="$20" w="$10" />
+              <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius="$lg" w="$10" />
             </View>
             <View px="$4" py="$2">
-              <View flexDirection="$row" alignItems="$center">
+              <View flexDirection="row" alignItems="center">
                 <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} />
-                <Text color={isDark ? '#fff' : '#000'} fontSize="$20"> Attendees:</Text>
+                <Text color={isDark ? '#fff' : '#000'} style={{ fontSize: 20 }}> Attendees:</Text>
               </View>
               <ScrollView style={{height:70}}>
                 {attendees.map((email, idx) => (
@@ -615,7 +574,7 @@ const BookingDetails = () => {
           </View>
           {/* </Text> */}
           <TouchableOpacity style={{ paddingHorizontal: 0, marginBottom: 50 }} onPress={() => router.push('/home')}>
-            <View flexDirection="$row" mt="$8" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDark ? '#2C2C2E' : '#F3F3F3'} h="$11">
+            <View flexDirection="row" mt="$8" borderRadius="$lg" alignItems="center" justifyContent="center" backgroundColor={isDark ? '#2C2C2E' : '#F3F3F3'} h="$11">
               <Text fontWeight="$bold" color="black">Home</Text>
             </View>
           </TouchableOpacity>
