@@ -16,6 +16,7 @@ import {
   LineChart
 } from "react-native-chart-kit";
 import { FontAwesome6 } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 // import { number } from 'zod';
@@ -65,6 +66,12 @@ const Dashboard = () => {
       });
     }
   };
+
+  async function saveUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
+
+  saveUserData('kamogelomoeketse@gmail.com');
 
   const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';

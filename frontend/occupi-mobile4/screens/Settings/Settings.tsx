@@ -12,12 +12,14 @@ import {
   useToast
 } from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';
 import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import CookieManager from '@react-native-cookies/cookies';
+import * as SecureStore from 'expo-secure-store';
 
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -73,13 +75,34 @@ const Settings = () => {
     }
   }
 
-  const toggleNotifications = () => {
-    setNotificationsEnabled(!notificationsEnabled);
-  };
-
   const handleNavigate = (screen) => {
     navigation.navigate(screen);
   };
+
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('email');
+      if (value !== null) {
+        console.log(value);
+      }
+    } catch (e) {
+      // error reading value
+      console.log(e);
+    }
+  };
+
+  getData();
+
+  async function getValueFor(key) {
+    let result = await SecureStore.getItemAsync(key);
+    if (result) {
+      alert("🔐 Here's your value 🔐 \n" + result);
+    } else {
+      alert('No values stored under that key.');
+    }
+  }
+
+  getValueFor('UserData');
 
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: handleNameChange },
@@ -91,14 +114,6 @@ const Settings = () => {
     },
     { title: 'Privacy Policy', description: 'View privacy policy', iconName: 'lock', onPress: () => handleNavigate('PrivacyPolicyScreen') },
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => handleNavigate('SecurityScreen') },
-    // {
-    //   title: 'Dark mode',
-    //   description: 'Enable or disable dark mode',
-    //   iconName: 'moon',
-    //   accessoryRight: () => (
-    //     <Switch isChecked={colorScheme === 'dark'} onToggle={toggleColorMode} />
-    //   ),
-    // },
     { title: 'Terms and Policies', description: 'View terms and policies', iconName: 'file-text', onPress: () => handleNavigate('TermsPoliciesScreen') },
     { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
     { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
