@@ -12,3 +12,8 @@ type RequestUserOTP struct {
 	Email string `json:"email" binding:"required,email"`
 	OTP   string `json:"otp" binding:"required,otp,len=6"`
 }
+
+type ErrorMsg struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}

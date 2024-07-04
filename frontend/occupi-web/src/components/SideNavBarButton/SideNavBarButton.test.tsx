@@ -1,6 +1,5 @@
 /// <reference lib="dom" />
 import { describe, test, expect, afterEach, mock } from "bun:test";
-import React from "react";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import SideNavBarButton from "./SideNavBarButton";
 

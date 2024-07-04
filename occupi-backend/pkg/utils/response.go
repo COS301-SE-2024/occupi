@@ -3,9 +3,8 @@ package utils
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/gin-gonic/gin"
 )
 
 // creates success response and formats it correctly

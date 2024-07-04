@@ -16,16 +16,16 @@ const LoginForm = (): JSX.Element => {
   const [isloading, setIsLoading] = useState<boolean>(false);
 
 
-  function Login() {
-    setIsLoading(true);
-    // login functionality should happen here, use axios if possible
-  //  <Link to="/dashboard" ></Link> // navigate to OTP page on successful login
+  // function Login() {
+  //   setIsLoading(true);
+  //   // login functionality should happen here, use axios if possible
+  // //  <Link to="/dashboard" ></Link> // navigate to OTP page on successful login
   
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate("/otp");
-    }, 2000);
-  }
+  //   setTimeout(() => {
+  //     setIsLoading(false);
+  //     navigate("/otp");
+  //   }, 2000);
+  // }
 
   const handleWebAuthnRegistration = async () => {
     try {

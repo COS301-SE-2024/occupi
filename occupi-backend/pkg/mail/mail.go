@@ -1,9 +1,11 @@
 package mail
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"gopkg.in/gomail.v2"
 )
 
@@ -33,7 +35,7 @@ func SendMail(to string, subject string, body string) error {
 	return nil
 }
 
-func SendMultipleEmailsConcurrently(emails []string, subject, body string) []string {
+func SendMultipleEmailsConcurrently(emails []string, subject, body string, creator string) []string {
 	if configs.GetGinRunMode() == "test" {
 		return []string{} // Do not send emails in test mode
 	}
@@ -59,4 +61,66 @@ func SendMultipleEmailsConcurrently(emails []string, subject, body string) []str
 	wg.Wait()
 
 	return emailErrors
+}
+
+func SendBookingEmails(booking models.Booking) error {
+	// Prepare the email content
+	creatorSubject := "Booking Confirmation - Occupi"
+	creatorBody := FormatBookingEmailBodyForBooker(booking.ID, booking.RoomID, 0, booking.Emails, booking.Creator)
+
+	// Prepare the email content for attendees
+	attendeesSubject := "You're invited to a Booking - Occupi"
+	attendeesBody := FormatBookingEmailBodyForAttendees(booking.ID, booking.RoomID, 0, booking.Creator)
+
+	var attendees []string
+	for _, email := range booking.Emails {
+		if email != booking.Creator {
+			attendees = append(attendees, email)
+		}
+	}
+
+	creatorEmailError := SendMail(booking.Creator, creatorSubject, creatorBody)
+	if creatorEmailError != nil {
+		return creatorEmailError
+	}
+
+	// Send the confirmation email concurrently to all recipients
+	emailErrors := SendMultipleEmailsConcurrently(attendees, attendeesSubject, attendeesBody, booking.Creator)
+
+	if len(emailErrors) > 0 {
+		return errors.New("failed to send booking  emails")
+	}
+
+	return nil
+}
+
+func SendCancellationEmails(cancel models.Cancel) error {
+	// Prepare the email content
+	creatorSubject := "Booking Cancelled - Occupi"
+	creatorBody := FormatCancellationEmailBodyForBooker(cancel.BookingID, cancel.RoomID, 0, cancel.Creator)
+
+	// Prepare the email content for attendees
+	attendeesSubject := "Booking Cancelled - Occupi"
+	attendeesBody := FormatCancellationEmailBodyForAttendees(cancel.BookingID, cancel.RoomID, 0, cancel.Creator)
+
+	var attendees []string
+	for _, email := range cancel.Emails {
+		if email != cancel.Creator {
+			attendees = append(attendees, email)
+		}
+	}
+
+	creatorEmailError := SendMail(cancel.Creator, creatorSubject, creatorBody)
+	if creatorEmailError != nil {
+		return creatorEmailError
+	}
+
+	// Send the confirmation email concurrently to all recipients
+	emailErrors := SendMultipleEmailsConcurrently(attendees, attendeesSubject, attendeesBody, cancel.Creator)
+
+	if len(emailErrors) > 0 {
+		return errors.New("failed to send cancellation emails")
+	}
+
+	return nil
 }

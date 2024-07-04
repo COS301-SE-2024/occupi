@@ -1,4 +1,4 @@
-name: Lint, Test, Build and Deploy Dev golang
+name: Build and Deploy Dev golang
 
 on:
   push:

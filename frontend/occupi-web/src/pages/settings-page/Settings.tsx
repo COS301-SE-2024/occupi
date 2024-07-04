@@ -21,7 +21,7 @@ const Settings = () => {
 
   useEffect(() => {
     handleClick("/profile");
-  }, [])
+  },[]);
 
   return (
     <div className="w-full overflow-auto">

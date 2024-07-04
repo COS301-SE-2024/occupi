@@ -1,6 +1,15 @@
 # Use the official bun image as a base
 FROM oven/bun:latest
 
+# Install dependencies required by the canvas package
+RUN apt-get update && apt-get install -y \
+    libcairo2-dev \
+    libjpeg-dev \
+    libpango1.0-dev \
+    libgif-dev \
+    build-essential \
+    g++
+
 # Set the current working directory inside the container
 WORKDIR /app
 
