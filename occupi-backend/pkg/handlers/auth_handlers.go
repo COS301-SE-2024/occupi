@@ -422,22 +422,20 @@ func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 
 // handler for reseting a users password TODO: complete implementation
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-	// Extracting the email from the user
-	var request struct {
+    var request struct {
         Email string `json:"email" binding:"required,email"`
-
     }
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid request payload",
-			constants.InvalidRequestPayloadCode,
-			"Expected email field",
-			nil))
-		return
-	}
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid email address",
+            constants.InvalidRequestPayloadCode,
+            "Expected a valid format for email address",
+            nil))
+        return
+    }
 
-	// Sanitize and validate email
+    // Sanitize and validate email
     request.Email = utils.SanitizeInput(request.Email)
     if !utils.ValidateEmail(request.Email) {
         ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -449,18 +447,18 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-	// Check if the email exists in the database
-	if exists := database.EmailExists(ctx, appsession.DB, request.Email); !exists {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Email not registered",
-			constants.InvalidAuthCode,
-			"Please register first before attempting to reset password",
-			nil))
-		return
-	}
+    // Check if the email exists in the database
+    if exists := database.EmailExists(ctx, appsession.DB, request.Email); !exists {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Email not registered",
+            constants.InvalidAuthCode,
+            "Please register first before attempting to reset password",
+            nil))
+        return
+    }
 
-	// Generate a reset token 
+    // Generate a reset token 
     resetToken, err := utils.GenerateRandomState()
     if err != nil {
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -468,24 +466,24 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-	// Set token expiration time for an hour from now
-	expirationTime := time.Now().Add(time.Hour)
+    // Set token expiration time for an hour from now
+    expirationTime := time.Now().Add(time.Hour)
 
-	// save the reset token and the time in database
-	if _, err := database.AddResetToken(ctx, appsession.DB, request.Email, resetToken, expirationTime); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
+    // save the reset token and the time in database
+    if _, err := database.AddResetToken(ctx, appsession.DB, request.Email, resetToken, expirationTime); err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error(err)
+        return
+    }
 
-	// Generate reset password link
+    // Generate reset password link
     resetLink := configs.GetFrontendURL() + "/forgot-password?token=" + resetToken
 
-	// Send the email to the user with the rest link
-	subject := "Forgot Password Reset - Your Reset Link"
-	body := mail.FormatResetPasswordEmailBody(resetLink)
+    // Send the email to the user with the reset link
+    subject := "Forgot Password Reset - Your Reset Link"
+    body := mail.FormatResetPasswordEmailBody(resetLink)
 
-	if err := mail.SendMail(request.Email, subject, body); err != nil {
+    if err := mail.SendMail(request.Email, subject, body); err != nil {
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
         logrus.Error(err)
         return
@@ -495,7 +493,6 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
         http.StatusOK,
         "Password reset link sent to your email",
         nil))
-
 }
 
 // handler for changing a users password
@@ -504,25 +501,25 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
     var request struct {
         Token    string `json:"token" binding:"required"`
         Password string `json:"password" binding:"required"`
-		Email string `json:"email" binding:"required,email"`
-		
+        Email    string `json:"email" binding:"required,email"`
     }
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid request payload",
-			constants.InvalidRequestPayloadCode,
-			"Expected email field",
-			nil))
-		return
-	}
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid request payload",
+            constants.InvalidRequestPayloadCode,
+            "Expected email, token, and password fields",
+            nil))
+        return
+    }
 
-	// Sanitize and validate input from users
-	request.Token = utils.SanitizeInput(request.Token)
-	request.Password = utils.SanitizeInput(request.Password)
+    // Sanitize and validate input from users
+    request.Token = utils.SanitizeInput(request.Token)
+    request.Password = utils.SanitizeInput(request.Password)
+    request.Email = utils.SanitizeInput(request.Email)
 
-	// New Password validation
-	if !utils.ValidatePassword(request.Password) {
+    // New Password validation
+    if !utils.ValidatePassword(request.Password) {
         ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
             http.StatusBadRequest,
             "Invalid password",
@@ -532,56 +529,40 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-	// Check if the token exists in the database by validation
-	email, err := database.GetEmailByResetToken(ctx, appsession.DB, request.Token)
-    if err != nil {
-        ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(
-            http.StatusUnauthorized,
-            "Invalid or expired token",
-            constants.InvalidAuthCode,
-            "Please request a new password reset",
-            nil))
-        return
-    }
-
-	// Check if the token has already expired or not
-	expired, err := database.CheckResetToken(
-		ctx,
-		appsession.DB,
-		request.Email,
-		request.Token,
-	)
+    // Check if the token exists and is valid for the given email
+	validToken, message, err := database.ValidateResetToken(ctx, appsession.DB, request.Email, request.Token)
 	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+	if !validToken {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(
+			http.StatusUnauthorized,
+			message,  // This will now be either "Invalid token" or "Token has expired"
+			constants.InvalidAuthCode,
+			"Please request a new password reset",
+			nil))
+		return
+	}
+
+    // Hash the new password
+    hashedPassword, err := utils.Argon2IDHash(request.Password)
+    if err != nil {
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
         logrus.Error(err)
         return
     }
-    if expired {
-        ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(
-            http.StatusUnauthorized,
-            "Token has expired",
-            constants.InvalidAuthCode,
-            "Please request a new password reset",
-            nil))
+
+    // Update the password in the database
+    if _, err := database.UpdateUserPassword(ctx, appsession.DB, request.Email, hashedPassword); err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error(err)
         return
     }
-	// Hash th enew password
-	hashedPassword, err := utils.Argon2IDHash(request.Password)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
 
-	// Update the password in the database
-	if _, err := database.UpdateUserPassword(ctx, appsession.DB, email, hashedPassword); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	 // Clear the reset token
-	 if _, err := database.ClearResetToken(ctx, appsession.DB, email,request.Token); err != nil {
+    // Clear the reset token
+    if _, err := database.ClearResetToken(ctx, appsession.DB, request.Email, request.Token); err != nil {
         logrus.Error("Failed to clear reset token: ", err)
     }
 
@@ -589,9 +570,8 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
         http.StatusOK,
         "Password reset successful",
         nil))
-	
-
 }
+
 
 
 
