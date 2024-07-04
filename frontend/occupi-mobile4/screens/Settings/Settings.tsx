@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, ScrollView } from 'react-native';
 import {
   VStack,
@@ -8,30 +8,33 @@ import {
   Icon,
   Divider,
   Pressable,
-  useToast
 } from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';
 import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import CookieManager from '@react-native-cookies/cookies';
-import { Cookies } from '@react-native-cookies/cookies';
 import * as SecureStore from 'expo-secure-store';
 
 const Settings = () => {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [name, setName] = useState('Sabrina Carpenter');
-  const toast = useToast();
+  const [name, setName] = useState('');
+  const [position, setPosition] = useState('');
   const navigation = useNavigation();
   let colorScheme = useColorScheme();
 
-  const handleNameChange = () => {
-    setName('Sabrina Palmer');
-    router.push('/profile');
-  };
+  useEffect(() => {
+    const getUserDetails = async () => {
+      let result = await SecureStore.getItemAsync('UserData');
+      // setUserDetails(JSON.parse(result).data);
+      let jsonresult = JSON.parse(result);
+      // console.log(jsonresult.data.details.name);
+      setName(String(jsonresult.data.details.name));
+      setPosition(String(jsonresult.data.position));
+      // console.log(JSON.parse(result).data.details.name);
+    };
+    getUserDetails();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -56,43 +59,14 @@ const Settings = () => {
       console.error('Error:', error);
     }
   }
+  // console.log("details"+name);
 
   const handleNavigate = (screen) => {
     navigation.navigate(screen);
   };
 
-  // const clearCookies = async () => {
-  //   const url = 'https://dev.occupi.tech'; // replace with your API URL
-  //   await Cookies.clearByName(url);
-  //   console.log('Cookies cleared!');
-  // };
-
-  // const getData = async () => {
-  //   try {
-  //     const value = await AsyncStorage.getItem('email');
-  //     if (value !== null) {
-  //       console.log(value);
-  //     }
-  //   } catch (e) {
-  //     // error reading value
-  //     console.log(e);
-  //   }
-  // };
-
-  // getData();
-
-  async function getValueFor(key) {
-    let result = await SecureStore.getItemAsync(key);
-    if (result) {
-      alert("🔐 Here's your value 🔐 \n" + result);
-    } else {
-      alert('No values stored under that key.');
-    }
-  }
-  getValueFor('email');
-
   const data = [
-    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: handleNameChange },
+    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.push('/profile')},
     {
       title: 'Notifications',
       description: 'Manage your notifications',
@@ -144,7 +118,7 @@ const Settings = () => {
               <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
               {/* <Icon as={Feather} name="edit" size="sm" color={colorScheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
             </HStack>
-            <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Chief Executive Officer</Text>
+            <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text>
           </Box>
         </Box>
         <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />

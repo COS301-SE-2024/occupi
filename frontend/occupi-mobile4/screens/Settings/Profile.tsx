@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import {
   Radio,
   RadioGroup,
@@ -46,14 +47,27 @@ const SIZES = {
 
 const Profile = () => {
   const [selectedGenderIndex, setSelectedGenderIndex] = useState(1);
-  const [name, setName] = useState('Sabrina Carpenter');
-  const [email, setEmail] = useState('sabrina@deloitte.co.za');
-  const [employeeId, setEmployeeId] = useState('31115087');
-  const [phoneNumber, setPhoneNumber] = useState('082 083 3988');
-  const [pronouns, setPronouns] = useState('she/her');
-  const [date, setDate] = useState(new Date(2000, 6, 7));
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [pronouns, setPronouns] = useState('');
+  const [date, setDate] = useState();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   let colorScheme = useColorScheme();
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      let result = await SecureStore.getItemAsync('UserData');
+      // setUserDetails(JSON.parse(result).data);
+      let jsonresult = JSON.parse(result);
+      // console.log(jsonresult.data.details.name);
+      setName(String(jsonresult.data.details.name));
+      setPosition(String(jsonresult.data.position));
+      // console.log(JSON.parse(result).data.details.name);
+    };
+    getUserDetails();
+  }, []);
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -69,12 +83,12 @@ const Profile = () => {
   };
 
   const onSave = () => {
-    Alert.alert(
-      'Profile Saved',
-      `Name: ${name}\nDOB: ${date.toLocaleDateString()}\nGender: ${
-        ['Male', 'Female', 'N-Bin'][selectedGenderIndex]
-      }\nEmail: ${email}\nEmployee ID: ${employeeId}\nPhone: ${phoneNumber}\nPronouns: ${pronouns}`
-    );
+    // Alert.alert(
+    //   'Profile Saved',
+    //   `Name: ${name}\nDOB: ${date.toLocaleDateString()}\nGender: ${
+    //     ['Male', 'Female', 'N-Bin'][selectedGenderIndex]
+    //   }\nEmail: ${email}\nEmployee ID: ${employeeId}\nPhone: ${phoneNumber}\nPronouns: ${pronouns}`
+    // );
   };
 
   return (
@@ -115,7 +129,7 @@ const Profile = () => {
           style={colorScheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}
         >
           <Text style={colorScheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>
-            {date.toLocaleDateString()}
+            {/* {date.toLocaleDateString()} */}
           </Text>
           <MaterialIcons name="calendar-today" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
         </TouchableOpacity>
