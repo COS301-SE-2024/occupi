@@ -1,29 +1,12 @@
 // /// <reference lib="dom" />
-// import { describe, test, expect, afterEach, mock } from "bun:test";
-// import React from "react";
+// import { describe, test, expect, afterEach } from "bun:test";
 // import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 // import LoginForm from "./LoginForm";
-// import { loginpng, OccupiLogo } from "@assets/index";
 
 
-// // Mock the components and assets
-// jest.mock("@assets/index", () => ({
-//   loginpng: "mocked-login-png",
-//   OccupiLogo: () => <div data-testid="occupi-logo">Mock OccupiLogo</div>,
-// }));
 
-// jest.mock("@components/index", () => ({
-//   Checkbox: (props: any) => <input type="checkbox" data-testid="checkbox" {...props} />,
-//   GradientButton: (props: any) => <button data-testid="gradient-button" disabled={!props.isClickable}>{props.Text}</button>,
-//   InputBox: (props: any) => (
-//     <input
-//       data-testid={`inputbox-${props.label}`}
-//       type={props.type}
-//       placeholder={props.placeholder}
-//       onChange={(e) => props.submitValue(e.target.value, true)}
-//     />
-//   ),
-// }));
+
+
 
 // afterEach(() => {
 //   cleanup();

@@ -16,7 +16,7 @@ const OverviewComponent = () => {
                 Welcome to Occupi
                 </div>
                 <motion.div 
-                whileHover={{gap: "10px"}}
+                // whileHover={{ gap: "10px"}}
                 className="flex w-full h-8 items-center text-text_col text-3xl font-semibold leading-none mt-9 cursor-pointer">
                   Office bookings <ChevronRight size={24} className="mt-1" />
                 </motion.div>
@@ -70,7 +70,7 @@ const OverviewComponent = () => {
             </div>
 
             <motion.div 
-            whileHover={{gap: "10px"}}
+            // whileHover={{gap: "10px"}}
               className="flex w-11/12 mr-auto ml-auto h-8 text-text_col text-3xl font-semibold leading-none mt-32 items-center cursor-auto">
                 Most Visitations <ChevronRight size={24} className="mt-2" />
             </motion.div>

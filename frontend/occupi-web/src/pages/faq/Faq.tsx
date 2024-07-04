@@ -200,7 +200,7 @@ const FaqItem = ({ faq }: { faq: { question: string; answer: string } }) => {
     <div>
       <motion.div
         layout
-        initial={{ borderRadius: 10 }}
+        // initial={{ borderRadius: 10 }}
         className="mb-4 p-4 rounded-lg text-text_col bg-secondary shadow"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -227,7 +227,7 @@ const HelpItem = ({ help }: { help: { title: string; content: string } }) => {
   return (
     <motion.div
       layout
-      initial={{ borderRadius: 10 }}
+      // initial={{ borderRadius: 10 }}
       className="mb-4 text-text_col_alt p-4  rounded-lg bg-secondary shadow"
       onClick={() => setIsOpen(!isOpen)}
     >

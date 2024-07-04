@@ -1,7 +1,7 @@
 import { Button } from "@nextui-org/react";
 import html2canvas from "html2canvas";
 import "./styles.css";
-import React, { useRef } from "react";
+import { useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from "recharts";
 
 const data = [
@@ -59,7 +59,6 @@ const data = [
 ];
 
 export default function App() {
-
   const chartRef = useRef<HTMLDivElement | null>(null);
 
   const handleDownload = () => {
@@ -74,36 +73,38 @@ export default function App() {
     }
   };
 
-
-
   return (
-    <div>
-    
-    <div ref={chartRef} style={{ width: "100%", height: 400 }}>
+    <div data-testid="graph">
+      <div ref={chartRef} style={{ width: "100%", height: 400 }}>
+        <Button
+          data-testid="download-button1"
+          className=" -mt-10 mb-5 ml-3 bg-primary_alt text-text_col_alt"
+          onClick={handleDownload}
+        >
+          Download Chart
+        </Button>
 
-    <Button className=" -mt-10 mb-5 ml-3 bg-primary_alt text-text_col_alt"  onClick={handleDownload}>Download Chart</Button>
-
-    <ResponsiveContainer width="100%" height={390}>
-
-    <BarChart
-      data={data}
-      margin={{
-        top: 4,
-        right: 30,
-        left: 20,
-        bottom: 5,
-      }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar dataKey="Yesterday" fill="#FF5F5F" radius={[6, 6, 0, 0]} />
-      <Bar dataKey="Today" fill="#AFF16C" radius={[6, 6, 0, 0]} />
-    </BarChart>
-    </ResponsiveContainer>
-    </div>
+        <ResponsiveContainer data-testid="bar-graph" width="100%" height={390}>
+          <BarChart
+          
+            data={data}
+            margin={{
+              top: 4,
+              right: 30,
+              left: 20,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="Yesterday" fill="#FF5F5F" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="Today" fill="#AFF16C" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
