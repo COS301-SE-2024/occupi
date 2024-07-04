@@ -59,6 +59,6 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client) {
 		auth.POST("/logout", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Logout(ctx) })
 		// it's typically used by users who can't log in because they've forgotten their password.
 		auth.POST("/forgot-password", func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession) })
-		auth.POST("/forgot-password-reset", middleware.PasswordResetProtectedRoute, func(ctx *gin.Context) { handlers.CompletePasswordReset(ctx, appsession)})
+		auth.POST("/forgot-password-reset", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CompletePasswordReset(ctx, appsession)})
 	}
 }
