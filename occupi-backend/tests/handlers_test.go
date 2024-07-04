@@ -980,10 +980,9 @@ func TestMockDatabase(t *testing.T) {
 }
 
 func TestResetPassword(t *testing.T) {
-    // Setup the test environment
     r, cookies := setupTestEnvironment(t)
 
-    // Define test cases
+
     testCases := []struct {
         name               string
         payload            string
@@ -993,7 +992,7 @@ func TestResetPassword(t *testing.T) {
         {
             name: "Valid Request",
             payload: `{
-                "email": "test@example.com"
+                "email": "abcd@gmail.com" 
             }`,
             expectedStatusCode: http.StatusOK,
             expectedMessage:    "Password reset link sent to your email",
@@ -1031,7 +1030,7 @@ func TestResetPassword(t *testing.T) {
             rr := httptest.NewRecorder()
             r.ServeHTTP(rr, req)
 
-            assert.Equal(t, tc.expectedStatusCode, rr.Code, "handler returned wrong status code")
+            assert.Equal(t, tc.expectedStatusCode, rr.Code)
 
             var response map[string]interface{}
             err = json.Unmarshal(rr.Body.Bytes(), &response)
@@ -1039,7 +1038,7 @@ func TestResetPassword(t *testing.T) {
                 t.Fatalf("could not unmarshal response: %v", err)
             }
 
-            assert.Equal(t, tc.expectedMessage, response["message"], "handler returned unexpected message")
+            assert.Equal(t, tc.expectedMessage, response["message"])
         })
     }
 }
@@ -1048,8 +1047,8 @@ func TestCompletePasswordReset(t *testing.T) {
     // Setup the test environment
     r, cookies := setupTestEnvironment(t)
 
-	 // Get a reference to the test database client
-	client := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+    // Get a reference to the test database client
+    client := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
     // Define test cases
     testCases := []struct {
@@ -1057,7 +1056,7 @@ func TestCompletePasswordReset(t *testing.T) {
         payload            string
         expectedStatusCode int
         expectedMessage    string
-        setupFunc          func(*mongo.Client) // Function to setup necessary data (e.g., reset token)
+        setupFunc          func(*mongo.Client, *testing.T)
     }{
         {
             name: "Valid Request",
@@ -1068,7 +1067,7 @@ func TestCompletePasswordReset(t *testing.T) {
             }`,
             expectedStatusCode: http.StatusOK,
             expectedMessage:    "Password reset successful",
-            setupFunc: func(db *mongo.Client) {
+            setupFunc: func(db *mongo.Client, t *testing.T) {
                 // Setup valid reset token in the database
                 expirationTime := time.Now().Add(time.Hour) // Token expires in 1 hour
                 _, err := database.AddResetToken(context.Background(), db, "test@example.com", "valid_token", expirationTime)
@@ -1086,7 +1085,7 @@ func TestCompletePasswordReset(t *testing.T) {
             }`,
             expectedStatusCode: http.StatusUnauthorized,
             expectedMessage:    "Invalid or expired token",
-            setupFunc: func(db *mongo.Client) {},
+            setupFunc: func(db *mongo.Client, t *testing.T) {},
         },
         {
             name: "Expired Token",
@@ -1097,40 +1096,41 @@ func TestCompletePasswordReset(t *testing.T) {
             }`,
             expectedStatusCode: http.StatusUnauthorized,
             expectedMessage:    "Token has expired",
-            setupFunc: func(db *mongo.Client) {
-             // Setup expired reset token in the database
-			 expirationTime := time.Now().Add(-time.Hour) // Token expired 1 hour ago
-			 _, err := database.AddResetToken(context.Background(), db, "test@example.com", "expired_token", expirationTime)
-			 if err != nil {
-				 t.Fatalf("Failed to setup expired reset token: %v", err)
-			 }
-
+            setupFunc: func(db *mongo.Client, t *testing.T) {
+                // Setup expired reset token in the database
+                expirationTime := time.Now().Add(-time.Hour) // Token expired 1 hour ago
+                _, err := database.AddResetToken(context.Background(), db, "test@example.com", "expired_token", expirationTime)
+                if err != nil {
+                    t.Fatalf("Failed to setup expired reset token: %v", err)
+                }
             },
         },
         {
             name: "Invalid Password",
             payload: `{
-                "token": "valid_token",
+                "token": "valid_token_2",
                 "password": "weak",
                 "email": "test@example.com"
             }`,
             expectedStatusCode: http.StatusBadRequest,
             expectedMessage:    "Invalid password",
-            setupFunc: func(db *mongo.Client) {
+            setupFunc: func(db *mongo.Client, t *testing.T) {
                 // Setup valid reset token in the database
                 expirationTime := time.Now().Add(time.Hour) // Token expires in 1 hour
                 _, err := database.AddResetToken(context.Background(), db, "test@example.com", "valid_token_2", expirationTime)
                 if err != nil {
                     t.Fatalf("Failed to setup valid reset token: %v", err)
                 }
-
             },
         },
     }
 
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
-            tc.setupFunc(client) // Run setup function
+            // Clean up the test database before each test case
+            CleanupTestDatabase(client.Database("Occupi"))
+
+            tc.setupFunc(client, t) // Run setup function
 
             req, err := http.NewRequest("POST", "/auth/forgot-password-reset", bytes.NewBuffer([]byte(tc.payload)))
             if err != nil {
@@ -1155,8 +1155,8 @@ func TestCompletePasswordReset(t *testing.T) {
 
             assert.Equal(t, tc.expectedMessage, response["message"], "handler returned unexpected message")
         })
-
-		// Clean up the test database after all tests
-		CleanupTestDatabase(client.Database("Occupi"))
     }
+
+    // Clean up the test database after all tests
+    CleanupTestDatabase(client.Database("Occupi"))
 }
