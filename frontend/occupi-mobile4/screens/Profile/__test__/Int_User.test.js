@@ -1,8 +1,8 @@
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
-import FAQPage from '../FAQPage';
-import Profile from '../Profile';
-import Settings from '../Settings';
+import FAQPage from '../../Settings/FAQPage';
+import Profile from '../../Settings/Profile';
+import Settings from '../../Settings/Settings';
 import { router } from 'expo-router';
 
 // Mock expo-router
