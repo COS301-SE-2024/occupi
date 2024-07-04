@@ -474,7 +474,7 @@ func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, passwo
 	return true, nil
 }
 
-// ClearRestToekn, removes the reset token from teh database
+// ClearRestToekn, removes the reset token from the database
 func ClearResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
 	// Delete the token from the database
 	collection := db.Database("Occupi").Collection("ResetTokens")
