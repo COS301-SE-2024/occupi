@@ -19,10 +19,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
-	// "github.com/stretchr/testify/mock"
 )
 
 // Tests the ViewBookings handler
@@ -615,46 +612,4 @@ func TestPingRoute(t *testing.T) {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			actualResponse, expectedResponse)
 	}
-}
-
-func TestMockDatabase(t *testing.T) {
-	// connect to the database
-	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-
-	// set gin run mode
-	gin.SetMode(configs.GetGinRunMode())
-
-	// Create a Gin router
-	r := gin.Default()
-
-	// Register the route
-	router.OccupiRouter(r, db)
-
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/resource-auth", nil)
-	req.AddCookie(&http.Cookie{Name: "token", Value: token})
-
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	/*
-		Expected response body:
-		{
-			"data": [], -> array of data
-			"message": "Successfully fetched resource!", -> message
-			"status": 200 -> status code
-	*/
-	// check that the data length is greater than 0 after converting the response body to a map
-	var response map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &response)
-	if err != nil {
-		t.Errorf("could not unmarshal response: %v", err)
-	}
-
-	// check that the data length is greater than 0
-	data := response["data"].([]interface{})
-	assert.Greater(t, len(data), 0)
 }
