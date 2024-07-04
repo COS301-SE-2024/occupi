@@ -487,3 +487,23 @@ func ClearResetToken(ctx *gin.Context, db *mongo.Client, email string, token str
 	return true, nil
 }
 
+// ValidateResetToken 
+func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token string) (bool, string, error) {
+    // Find the reset token document
+    var resetToken models.ResetToken
+    collection := db.Database("Occupi").Collection("ResetTokens")
+    err := collection.FindOne(ctx, bson.M{"email": email, "token": token}).Decode(&resetToken)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            return false, "Invalid or expired token", nil
+        }
+        return false, "", err
+    }
+
+    // Check if the token has expired
+    if time.Now().After(resetToken.ExpireWhen) {
+        return false, "Token has expired", nil
+    }
+
+    return true, "", nil
+}
