@@ -3,9 +3,11 @@ package configs
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/allegro/bigcache/v3"
 
 	"context"
 	"fmt"
@@ -62,6 +64,16 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	logrus.Info("Connected to MongoDB!")
 
 	return client
+}
+
+// Create cache
+func CreateCache() *bigcache.BigCache {
+	cache, err := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return cache
 }
 
 func SeedMockDatabase(mockdatafilepath string) {

@@ -30,6 +30,7 @@ import (
 func TestViewBookingsHandler(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -38,7 +39,7 @@ func TestViewBookingsHandler(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -168,6 +169,7 @@ func BoolPtr(b bool) *bool {
 func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	// Connect to the test database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// Set Gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -176,7 +178,7 @@ func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	// Generate a token
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
@@ -575,6 +577,7 @@ func TestCheckIn(t *testing.T) {
 func TestPingRoute(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -583,7 +586,7 @@ func TestPingRoute(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("GET", "/ping", nil)
@@ -621,6 +624,7 @@ func TestPingRoute(t *testing.T) {
 func TestRateLimit(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -632,7 +636,7 @@ func TestRateLimit(t *testing.T) {
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	server := httptest.NewServer(ginRouter)
 	defer server.Close()
@@ -672,6 +676,7 @@ func TestRateLimit(t *testing.T) {
 func TestRateLimitWithMultipleIPs(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -683,7 +688,7 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	server := httptest.NewServer(ginRouter)
 	defer server.Close()
@@ -767,6 +772,7 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 func TestInvalidLogoutHandler(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -775,7 +781,7 @@ func TestInvalidLogoutHandler(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("POST", "/auth/logout", nil)
@@ -798,6 +804,7 @@ func TestInvalidLogoutHandler(t *testing.T) {
 func TestValidLogoutHandler(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -806,7 +813,7 @@ func TestValidLogoutHandler(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("POST", "/auth/logout", nil)
@@ -858,6 +865,7 @@ func TestValidLogoutHandler(t *testing.T) {
 func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -866,7 +874,7 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	// read domains
 	domains := configs.GetOccupiDomains()
@@ -939,6 +947,7 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 func TestMockDatabase(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -947,7 +956,7 @@ func TestMockDatabase(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
