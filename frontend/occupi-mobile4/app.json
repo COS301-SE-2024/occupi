@@ -27,7 +27,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.y2kodedev.occupi"
+      "package": "com.y2kodedev.occupi",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",

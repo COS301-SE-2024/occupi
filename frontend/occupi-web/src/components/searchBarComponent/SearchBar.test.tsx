@@ -1,7 +1,6 @@
 /// <reference lib="dom" />
-import { describe, test, expect,afterEach,mock } from "bun:test";
-import React from "react";
-import { render, screen ,cleanup,fireEvent} from "@testing-library/react";
+import { describe, test, expect, afterEach, mock } from "bun:test";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import SearchBar from "./SearchBar";
 
 

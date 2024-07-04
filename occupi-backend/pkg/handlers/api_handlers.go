@@ -198,6 +198,51 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully checked in!", nil))
 }
 
+func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
+	// Extract the email query parameter
+	email := ctx.Query("email")
+	if email == "" || !utils.ValidateEmail(email) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Email Address", nil))
+		return
+	}
+
+	if !database.EmailExists(ctx, appsession.DB, email) {
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
+		return
+	}
+
+	// Get all bookings for the userBooking
+	user, err := database.GetUserDetails(ctx, appsession.DB, email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get user details", constants.InternalServerErrorCode, "Failed to get user details", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched user details!", user))
+}
+func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
+	var user models.UserDetails
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+		return
+	}
+
+	// Check if the user exists
+	if !database.EmailExists(ctx, appsession.DB, user.Email) {
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
+		return
+	}
+	var err error
+	// Update the user details in the database
+	_, err = database.UpdateUserDetails(ctx, appsession.DB, user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update user details", constants.InternalServerErrorCode, "Failed to update user details", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated user details!", nil))
+}
+
 func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 	var roomRequest map[string]interface{}
 	var room models.RoomRequest

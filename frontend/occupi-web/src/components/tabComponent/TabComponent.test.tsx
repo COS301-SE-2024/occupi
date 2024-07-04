@@ -1,62 +1,56 @@
-// /// <reference lib="dom" />
-// import { describe, test, expect, afterEach } from "bun:test";
-// import React from "react";
-// import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-// import {TabComponent} from "@components/index";
+/// <reference lib="dom" />
+import { afterEach, test, expect, mock } from "bun:test";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { TabComponent } from "@components/index";
 
-// afterEach(() => {
-//   cleanup();
-// });
+afterEach(() => {
+  cleanup();
+});
 
-// describe("TabComponent", () => {
-//   // test("renders with initial active tab 2", () => {
-//   //   render(<TabComponent setSelectedTab={function (arg: string): void {
-//   //     throw new Error("Function not implemented.");
-//   //   } } />);
-//   //   const activeTab = screen.getByRole("tab", { name: "Tab2" });
-//   //   expect(activeTab.className).toContain("bg-white");
-//   //   expect(activeTab.className).toContain("text-black");
-//   // });
+test("Tab component renders correctly", () => {
+    render(<TabComponent setSelectedTab={function (): void {
+        throw new Error("Function not implemented.");
+    } } />);
+ const tab = screen.getByTestId('tab');
+    expect(tab).not.toBeNull();
 
-//   test("activates tab 1 when clicked", () => {
-//     render(<TabComponent setSelectedTab={function (arg: string): void {
-//       throw new Error("Function not implemented.");
-//     } } />);
-//     const tab1 = screen.getByRole("tab", { name: "Tab1" });
-//     fireEvent.click(tab1);
-//     expect(tab1.className).toContain("bg-white");
-//     expect(tab1.className).toContain("text-black");
-//   });
+});
 
-//   // test("activates tab 3 when clicked", () => {
-//   //   render(<TabComponent setSelectedTab={function (arg: string): void {
-//   //     throw new Error("Function not implemented.");
-//   //   } } />);
-//   //   const tab3 = screen.getByRole("tab", { name: "Tab3" });
-//   //   fireEvent.click(tab3);
-//   //   expect(tab3.className).toContain("bg-white");
-//   //   expect(tab3.className).toContain("text-black");
-//   // });
+test("Tab component renders all three tabs", () => {
+    const mockSetSelectedTab = mock(() => {});
+    render(<TabComponent setSelectedTab={mockSetSelectedTab} />);
+    
+    expect(screen.getByText('Overview')).toBeDefined();
+    expect(screen.getByText('Bookings')).toBeDefined();
+    expect(screen.getByText('Visitations')).toBeDefined();
+  });
 
-//   test("deactivates other tabs when a tab is clicked", () => {
-//     render(<TabComponent setSelectedTab={function (arg: string): void {
-//       throw new Error("Function not implemented.");
-//     } } />);
+  test("Initial active tab is Overview", () => {
+    const mockSetSelectedTab = mock(() => {});
+    render(<TabComponent setSelectedTab={mockSetSelectedTab} />);
+    
+    const overviewTab = screen.getByText('Overview').closest('div');
+    expect(overviewTab?.classList.contains('bg-primary')).toBe(true);
+  });
 
-//     const tab1 = screen.getByRole("tab", { name: "Tab1" });
-//     const tab2 = screen.getByRole("tab", { name: "Tab2" });
-//     const tab3 = screen.getByRole("tab", { name: "Tab3" });
-
-//     fireEvent.click(tab1);
-//     expect(tab1.className).toContain("bg-white");
-//     expect(tab1.className).toContain("text-black");
-//     expect(tab2.className).toContain("bg-gray-200");
-//     expect(tab3.className).toContain("bg-gray-200");
-
-//     fireEvent.click(tab3);
-//     expect(tab3.className).toContain("bg-white");
-//     expect(tab3.className).toContain("text-black");
-//     expect(tab1.className).toContain("bg-gray-200");
-//     expect(tab2.className).toContain("bg-gray-200");
-//   });
-// });
+  test("Clicking on a tab changes the active tab", () => {
+    const mockSetSelectedTab = mock(() => {});
+    render(<TabComponent setSelectedTab={mockSetSelectedTab} />);
+    
+    const bookingsTab = screen.getByText('Bookings');
+    fireEvent.click(bookingsTab);
+    
+    const bookingsTabDiv = bookingsTab.closest('div');
+    expect(bookingsTabDiv?.classList.contains('bg-primary')).toBe(true);
+  });
+  
+  test("Clicking on a tab calls setSelectedTab with correct argument", () => {
+    const mockSetSelectedTab = mock((arg: string) => {arg.toLowerCase()});
+    render(<TabComponent setSelectedTab={mockSetSelectedTab} />);
+    
+    const bookingsTab = screen.getByText('Bookings');
+    fireEvent.click(bookingsTab);
+    
+    expect(mockSetSelectedTab.mock.calls.length).toBe(1);
+    expect(mockSetSelectedTab.mock.calls[0][0]).toBe('/bookings');
+  });

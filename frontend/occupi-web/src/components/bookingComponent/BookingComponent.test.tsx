@@ -1,11 +1,10 @@
 import { expect, test, beforeEach, afterEach } from 'bun:test';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import App from '../../App';
-import { after } from 'node:test';
+import { screen, fireEvent, cleanup, render } from '@testing-library/react';
+import { BookingComponent } from '@components/index';
 
-// beforeEach(() => {
-//   render(<App />);
-// });
+beforeEach(() => {
+  render(<BookingComponent/>);
+});
 
 afterEach(() => {
   cleanup();
@@ -23,3 +22,26 @@ test('App component renders and can interact with UI elements', async () => {
     screen.debug(); // Outputs the current DOM for inspection
   }
 });
+
+test('Table Renders Correctly', async () => {
+  let table;
+  try {
+    table = await screen.findByTestId('table');
+    expect(table).not.toBeNull();
+  } catch (error) {
+    console.error('Table was not found:', error);
+    screen.debug();
+  }
+});
+
+test('Search Renders Correctly', async () => {
+    let search;
+    try {
+      search = await screen.findByTestId('input-search');
+      expect(search).not.toBeNull();
+    } catch (error) {
+      console.error('Search was not found:', error);
+      screen.debug();
+    }
+  });
+

@@ -47,7 +47,7 @@ const SimplePieChart: React.FC = () => {
             dataKey="value"
           >
             {
-              data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)
+              data.map((_entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)
             }
           </Pie>
           <Tooltip />
