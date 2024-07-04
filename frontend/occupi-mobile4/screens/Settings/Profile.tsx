@@ -52,18 +52,36 @@ const Profile = () => {
   const [employeeId, setEmployeeId] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [pronouns, setPronouns] = useState('');
-  const [date, setDate] = useState();
+  const [date, setDate] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   let colorScheme = useColorScheme();
 
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
+      console.log(result);
       // setUserDetails(JSON.parse(result).data);
       let jsonresult = JSON.parse(result);
       // console.log(jsonresult.data.details.name);
       setName(String(jsonresult.data.details.name));
-      setPosition(String(jsonresult.data.position));
+      setEmail(String(jsonresult.data.email));
+      setEmployeeId(String(jsonresult.data.occupiId));
+      setPhoneNumber(String(jsonresult.data.details.contactNo));
+      setPronouns(String(jsonresult.data.details.pronouns));
+      const dateString = jsonresult.data.details.dob;
+      const date = new Date(dateString);
+
+      // Get the day, month, and year
+      const day = date.getDate();
+      const month = date.getMonth() + 1; // Months are zero-based
+      const year = date.getFullYear();
+
+      // Format the date as MM/DD/YYYY
+      const formatted = `${month}/${day}/${year}`;
+
+      // Set the formatted date in the state
+      setDate(formatted)
+
       // console.log(JSON.parse(result).data.details.name);
     };
     getUserDetails();
@@ -118,7 +136,7 @@ const Profile = () => {
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder={name}
+          value={name}
           placeholderTextColor={COLORS.gray}
           onChangeText={setName}
         />
@@ -129,7 +147,7 @@ const Profile = () => {
           style={colorScheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}
         >
           <Text style={colorScheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>
-            {/* {date.toLocaleDateString()} */}
+            {date}
           </Text>
           <MaterialIcons name="calendar-today" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
         </TouchableOpacity>
@@ -187,21 +205,23 @@ const Profile = () => {
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder={email}
           placeholderTextColor={COLORS.gray}
+          editable={false}
           onChangeText={setEmail}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Employee ID</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Occupi ID</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder={employeeId}
           placeholderTextColor={COLORS.gray}
+          editable={false}
           onChangeText={setEmployeeId}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Number</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Cell No</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder={phoneNumber}
+          value={phoneNumber}
           placeholderTextColor={COLORS.gray}
           onChangeText={setPhoneNumber}
         />
@@ -209,7 +229,7 @@ const Profile = () => {
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Pronouns (optional)</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="she/her"
+          value={pronouns}
           placeholderTextColor={COLORS.gray}
           onChangeText={setPronouns}
         />
