@@ -17,7 +17,7 @@ const TopNav = (props: TopNavProps) => {
   }
   
     return (
-        <div className="sticky top-0 z-10 overflow-hidden border-b-[2px] border-b-secondary flex items-center justify-between h-[110px] backdrop-blur-[20px] bg-primary_40">
+        <div data-testid='topnav' className="sticky top-0 z-10 overflow-hidden border-b-[2px] border-b-secondary flex items-center justify-between h-[110px] backdrop-blur-[20px] bg-primary_40">
           <div className="ml-[30px]">
             {props.mainComponent}
           </div>

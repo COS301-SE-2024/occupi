@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -17,46 +16,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-// attempts to and establishes a connection with the remote mongodb database
-func ConnectToDatabase(args ...string) *mongo.Client {
-	// MongoDB connection parameters
-	username := configs.GetMongoDBUsername()
-	password := configs.GetMongoDBPassword()
-	clusterURI := configs.GetMongoDBCLUSTERURI()
-	dbName := configs.GetMongoDBName()
-	mongoDBStartURI := configs.GetMongoDBStartURI()
-
-	// Escape the special characters in the password
-	escapedPassword := url.QueryEscape(password)
-
-	// Construct the connection URI
-	var uri string
-	if len(args) > 0 {
-		uri = fmt.Sprintf("%s://%s:%s@%s/%s?%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName, args[0])
-	} else {
-		uri = fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
-	}
-
-	// Set client options
-	clientOptions := options.Client().ApplyURI(uri)
-
-	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	// Check the connection
-	err = client.Ping(context.TODO(), nil)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	logrus.Info("Connected to MongoDB!")
-
-	return client
-}
 
 // returns all data from the mongo database
 func GetAllData(db *mongo.Client) []bson.M {
@@ -84,9 +43,7 @@ func GetAllData(db *mongo.Client) []bson.M {
 		users = append(users, user)
 	}
 
-	if err := cursor.Err(); err != nil {
-		logrus.Error(fmt.Printf("Cursor error: %v", err))
-	}
+	// Return the users
 
 	return users
 }
@@ -107,7 +64,12 @@ func SaveBooking(ctx *gin.Context, db *mongo.Client, booking models.Booking) (bo
 func GetUserBookings(ctx *gin.Context, db *mongo.Client, email string) ([]models.Booking, error) {
 	// Get the bookings for the user
 	collection := db.Database("Occupi").Collection("RoomBooking")
-	filter := bson.M{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}}
+	filter := bson.M{
+		"$or": []bson.M{
+			{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}},
+			{"creator": email},
+		},
+	}
 	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		logrus.Error(err)
@@ -134,7 +96,6 @@ func ConfirmCheckIn(ctx *gin.Context, db *mongo.Client, checkIn models.CheckIn) 
 	// Find the booking by bookingId, roomId, and creator
 	filter := bson.M{
 		"_id":     checkIn.BookingID,
-		"roomId":  checkIn.RoomID,
 		"creator": checkIn.Creator,
 	}
 
@@ -373,7 +334,7 @@ func ConfirmCancellation(ctx *gin.Context, db *mongo.Client, id string, email st
 }
 
 // Gets all rooms available for booking
-func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room, error) {
+func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo string) ([]models.Room, error) {
 	collection := db.Database("Occupi").Collection("Rooms")
 
 	var cursor *mongo.Cursor
@@ -383,17 +344,10 @@ func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room
 	// findOptions.SetLimit(10)       // Limit the results to 10
 	// findOptions.SetSkip(int64(10)) // Skip the specified number of documents for pagination
 
-	if floorNo == 0 {
-		// Find all rooms
-		filter := bson.M{"floorNo": 0}
-		// cursor, err = collection.Find(context.TODO(), filter, findOptions)
-		cursor, err = collection.Find(context.TODO(), filter)
-	} else {
-		// Find all rooms on the specified floor
-		filter := bson.M{"floorNo": floorNo}
-		// cursor, err = collection.Find(context.TODO(), filter, findOptions)
-		cursor, err = collection.Find(context.TODO(), filter)
-	}
+	// Find all rooms on the specified floor
+	filter := bson.M{"floorNo": floorNo}
+	// cursor, err = collection.Find(context.TODO(), filter, findOptions)
+	cursor, err = collection.Find(context.TODO(), filter)
 
 	if err != nil {
 		logrus.Error(err)
@@ -417,6 +371,106 @@ func GetAllRooms(ctx *gin.Context, db *mongo.Client, floorNo int) ([]models.Room
 	}
 
 	return rooms, nil
+}
+
+// Get user information
+func GetUserDetails(ctx *gin.Context, db *mongo.Client, email string) (models.UserDetails, error) {
+	collection := db.Database("Occupi").Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.UserDetails
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return models.UserDetails{}, err
+	}
+	return user, nil
+}
+
+// AddFieldToUpdateMap adds a field to the update map if it's non-zero or non-nil
+func AddFieldToUpdateMap(updateFields bson.M, fieldName string, fieldValue interface{}) {
+	switch value := fieldValue.(type) {
+	case string:
+		if value != "" {
+			updateFields[fieldName] = value
+		}
+	case bool:
+		updateFields[fieldName] = value
+	case *bool:
+		if value != nil {
+			updateFields[fieldName] = *value
+		}
+	case time.Time:
+		if !value.IsZero() {
+			updateFields[fieldName] = value
+		}
+	case *models.Details:
+		if value != nil {
+			nestedFields := bson.M{}
+			AddFieldToUpdateMap(nestedFields, "contactNo", value.ContactNo)
+			AddFieldToUpdateMap(nestedFields, "name", value.Name)
+			AddFieldToUpdateMap(nestedFields, "dob", value.DOB)
+			AddFieldToUpdateMap(nestedFields, "gender", value.Gender)
+			AddFieldToUpdateMap(nestedFields, "pronouns", value.Pronouns)
+			if len(nestedFields) > 0 {
+				updateFields[fieldName] = nestedFields
+			}
+		}
+	case *models.Notifications:
+		if value != nil {
+			nestedFields := bson.M{}
+			AddFieldToUpdateMap(nestedFields, "allow", value.Allow)
+			AddFieldToUpdateMap(nestedFields, "bookingReminder", value.BookingReminder)
+			AddFieldToUpdateMap(nestedFields, "maxCapacity", value.MaxCapacity)
+			if len(nestedFields) > 0 {
+				updateFields[fieldName] = nestedFields
+			}
+		}
+	case *models.Security:
+		if value != nil {
+			nestedFields := bson.M{}
+			AddFieldToUpdateMap(nestedFields, "mfa", value.MFA)
+			AddFieldToUpdateMap(nestedFields, "biometrics", value.Biometrics)
+			if len(nestedFields) > 0 {
+				updateFields[fieldName] = nestedFields
+			}
+		}
+	}
+}
+
+// UpdateUserDetails updates the user's details
+func UpdateUserDetails(ctx *gin.Context, db *mongo.Client, user models.UserDetails) (bool, error) {
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": user.Email}
+
+	var userStruct models.UserDetails
+	err := collection.FindOne(context.TODO(), filter).Decode(&userStruct)
+	if err != nil {
+		logrus.Error("Failed to find user: ", err)
+		return false, err
+	}
+
+	updateFields := bson.M{}
+	AddFieldToUpdateMap(updateFields, "occupiId", user.OccupiID)
+	AddFieldToUpdateMap(updateFields, "password", user.Password)
+	AddFieldToUpdateMap(updateFields, "email", user.Email)
+	AddFieldToUpdateMap(updateFields, "role", user.Role)
+	AddFieldToUpdateMap(updateFields, "onSite", user.OnSite)
+	AddFieldToUpdateMap(updateFields, "isVerified", user.IsVerified)
+	AddFieldToUpdateMap(updateFields, "nextVerificationDate", user.NextVerificationDate)
+	AddFieldToUpdateMap(updateFields, "details", user.Details)
+	AddFieldToUpdateMap(updateFields, "notifications", user.Notifications)
+	AddFieldToUpdateMap(updateFields, "security", user.Security)
+	AddFieldToUpdateMap(updateFields, "status", user.Status)
+	AddFieldToUpdateMap(updateFields, "position", user.Position)
+
+	update := bson.M{"$set": updateFields}
+	_, err = collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error("Failed to update user details: ", err)
+		return false, err
+	}
+	return true, nil
 }
 
 // Checks if a user is an admin
