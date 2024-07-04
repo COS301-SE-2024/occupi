@@ -1018,7 +1018,7 @@ func TestResetPassword(t *testing.T) {
 
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
-            req, err := http.NewRequest("POST", "/api/reset-password", bytes.NewBuffer([]byte(tc.payload)))
+            req, err := http.NewRequest("POST", "/auth/forgot-password", bytes.NewBuffer([]byte(tc.payload)))
             if err != nil {
                 t.Fatal(err)
             }
@@ -1132,7 +1132,7 @@ func TestCompletePasswordReset(t *testing.T) {
         t.Run(tc.name, func(t *testing.T) {
             tc.setupFunc(client) // Run setup function
 
-            req, err := http.NewRequest("POST", "/api/complete-password-reset", bytes.NewBuffer([]byte(tc.payload)))
+            req, err := http.NewRequest("POST", "/auth/forgot-password-reset", bytes.NewBuffer([]byte(tc.payload)))
             if err != nil {
                 t.Fatal(err)
             }
