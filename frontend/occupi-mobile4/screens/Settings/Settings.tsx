@@ -6,7 +6,6 @@ import {
   Box,
   Center,
   Icon,
-  Switch,
   Divider,
   Pressable,
   useToast
@@ -19,6 +18,7 @@ import Navbar from '../../components/NavBar';
 import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import CookieManager from '@react-native-cookies/cookies';
+import { Cookies } from '@react-native-cookies/cookies';
 import * as SecureStore from 'expo-secure-store';
 
 const Settings = () => {
@@ -45,31 +45,13 @@ const Settings = () => {
         credentials: "include"
       });
       const data = await response.json();
-      // if (response.ok) {
-      //   console.log(data);
-      //   toast.show({
-      //         placement: 'top',
-      //         render: ({ id }) => {
-      //           return (
-      //             <Toast nativeID={String(id)} variant="accent" action="success">
-      //               <ToastTitle>{data.message}</ToastTitle>
-      //             </Toast>
-      //           );
-      //         },
-      //       });
+      if (response.ok) {
+        console.log(data);
+        alert("logged out siccessfully");
         router.replace('/login');
-      // } else {
-      //   toast.show({
-      //         placement: 'top',
-      //         render: ({ id }) => {
-      //           return (
-      //             <Toast nativeID={String(id)} variant="accent" action="error">
-      //               <ToastTitle>{data.message}</ToastTitle>
-      //             </Toast>
-      //           );
-      //         },
-      //       });
-      // }
+      } else {
+        alert("unable to logout");
+      }
     } catch (error) {
       console.error('Error:', error);
     }
@@ -79,19 +61,25 @@ const Settings = () => {
     navigation.navigate(screen);
   };
 
-  const getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem('email');
-      if (value !== null) {
-        console.log(value);
-      }
-    } catch (e) {
-      // error reading value
-      console.log(e);
-    }
-  };
+  // const clearCookies = async () => {
+  //   const url = 'https://dev.occupi.tech'; // replace with your API URL
+  //   await Cookies.clearByName(url);
+  //   console.log('Cookies cleared!');
+  // };
 
-  getData();
+  // const getData = async () => {
+  //   try {
+  //     const value = await AsyncStorage.getItem('email');
+  //     if (value !== null) {
+  //       console.log(value);
+  //     }
+  //   } catch (e) {
+  //     // error reading value
+  //     console.log(e);
+  //   }
+  // };
+
+  // getData();
 
   async function getValueFor(key) {
     let result = await SecureStore.getItemAsync(key);
@@ -101,8 +89,7 @@ const Settings = () => {
       alert('No values stored under that key.');
     }
   }
-
-  getValueFor('UserData');
+  getValueFor('email');
 
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: handleNameChange },
