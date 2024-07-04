@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import { Heading } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-const GradientButton = ({ onPress, text }) => {
+const GradientButton = ({ onPress, text,testID }) => {
   return (
   <LinearGradient
     colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
@@ -13,7 +13,7 @@ const GradientButton = ({ onPress, text }) => {
     end={[1, 0]}
     style={styles.buttonContainer}
   >
-    <Heading style={styles.buttonText} onPress={onPress}>
+    <Heading style={styles.buttonText} onPress={onPress} testID={testID}>
       {text}
     </Heading>
   </LinearGradient>
