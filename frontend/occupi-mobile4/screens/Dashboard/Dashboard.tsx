@@ -44,13 +44,13 @@ const Dashboard = () => {
   }, [colorScheme]);
 
   useEffect(() => {
-    const fetchAllRooms = async () => {
+    const getUserDetails = async () => {
       console.log("heree");
       try {
         const response = await fetch('https://dev.occupi.tech/api/user-details?email=kamogelomoeketse@gmail.com')
         const data = await response.json();
         if (response.ok) {
-          saveUserData('yurppp');
+          saveUserData(JSON.stringify(data));
           console.log(data);
         } else {
           console.log(data);
@@ -79,7 +79,7 @@ const Dashboard = () => {
         });
       }
     };
-    fetchAllRooms();
+    getUserDetails();
   }, [toast]);
   
   const checkIn = () => {
@@ -114,7 +114,7 @@ const Dashboard = () => {
   }
 
   saveUserEmail('kamogelomoeketse@gmail.com');
-  saveUserData('hahah');
+
 
   const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
