@@ -15,7 +15,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	// "github.com/stretchr/testify/mock"
@@ -288,7 +287,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 
 func TestRateLimit(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -339,7 +338,7 @@ func TestRateLimit(t *testing.T) {
 
 func TestRateLimitWithMultipleIPs(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
