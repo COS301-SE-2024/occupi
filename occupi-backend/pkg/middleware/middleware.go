@@ -144,3 +144,62 @@ func AttachRateLimitMiddleware(ginRouter *gin.Engine) {
 	// Apply the middleware to the router
 	ginRouter.Use(middleware)
 }
+
+// PasswordResetProtectedRoute This new middleware could validate a reset token instead of a regular authentication token. 
+// It would be used to protect the route that allows users to reset their password.
+func PasswordResetProtectedRoute(ctx *gin.Context) {
+	tokenStr, err := ctx.Cookie("token")
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User not authorized",
+				nil))
+		ctx.Abort()
+		return
+	}
+
+	claims, err := authenticator.ValidateToken(tokenStr)
+
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"Invalid token",
+				nil))
+		ctx.Abort()
+		return
+	}
+
+	// check if email and role session variables are set
+	session := sessions.Default(ctx)
+	if session.Get("email") == nil || session.Get("role") == nil {
+		session.Set("email", claims.Email)
+		session.Set("role", claims.Role)
+		if err := session.Save(); err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
+			ctx.Abort()
+			return
+		}
+	}
+
+	// check that session variables and token claims match
+	if session.Get("email") != claims.Email || session.Get("role") != claims.Role {
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"Invalid auth session",
+				nil))
+		ctx.Abort()
+		return
+	}
+
+	ctx.Next()
+}
