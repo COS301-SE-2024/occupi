@@ -134,6 +134,7 @@ exports[`Onboarding2 component renders correctly and matches snapshot 1`] = `
           "width": 675,
         }
       }
+      testID="gradient-button"
     >
       <Text
         accessibilityRole="header"
