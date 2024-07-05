@@ -26,6 +26,7 @@ import { router } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
+import LoadingGradientButton from '@/components/LoadingGradientButton';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -53,6 +54,7 @@ const Profile = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [pronouns, setPronouns] = useState('');
   const [date, setDate] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   let colorScheme = useColorScheme();
 
@@ -61,14 +63,14 @@ const Profile = () => {
       let result = await SecureStore.getItemAsync('UserData');
       console.log(result);
       // setUserDetails(JSON.parse(result).data);
-      let jsonresult = JSON.parse(result);
+      let jsonresult = JSON.parse(result | "{}");
       // console.log(jsonresult.data.details.name);
-      setName(String(jsonresult.data.details.name));
-      setEmail(String(jsonresult.data.email));
-      setEmployeeId(String(jsonresult.data.occupiId));
-      setPhoneNumber(String(jsonresult.data.details.contactNo));
-      setPronouns(String(jsonresult.data.details.pronouns));
-      const dateString = jsonresult.data.details.dob;
+      setName(String(jsonresult?.data?.details?.name));
+      setEmail(String(jsonresult?.data?.email));
+      setEmployeeId(String(jsonresult?.data?.occupiId));
+      setPhoneNumber(String(jsonresult?.data?.details?.contactNo));
+      setPronouns(String(jsonresult?.data?.details?.pronouns));
+      const dateString = jsonresult?.data?.details?.dob;
       const date = new Date(dateString);
 
       // Get the day, month, and year
@@ -102,15 +104,16 @@ const Profile = () => {
 
   const onSave = async () => {
     const body = {
-      "email" : email,
+      "email": email,
       "details": {
-      "contactNo": phoneNumber,
-      "gender": "Male",
-      "name": name,
-      "pronouns": pronouns
+        "contactNo": phoneNumber,
+        "gender": "Male",
+        "name": name,
+        "pronouns": pronouns
       }
     };
-    console.log(JSON.stringify(body));
+    // console.log(JSON.stringify(body));
+    setIsLoading(true);
     try {
       const response = await fetch('https://dev.occupi.tech/api/update-user', {
         method: 'PUT',
@@ -125,10 +128,14 @@ const Profile = () => {
       console.log(data);
       if (response.ok) {
         console.log(response);
+        setIsLoading(false);
+        alert('Details updated successfully');
       } else {
         console.log(data);
+        setIsLoading(false);
       }
     } catch (error) {
+      setIsLoading(false);
       console.error('Error:', error);
       // setResponse('An error occurred');
     }
@@ -159,7 +166,7 @@ const Profile = () => {
         <View style={styles.header}>
           <Icon
             as={Feather}
-            name="chevron-left"
+            name={"chevron-left"}
             size="xl"
             color={colorScheme === 'dark' ? 'white' : 'black'}
             onPress={() => router.replace('/settings')}
@@ -201,8 +208,8 @@ const Profile = () => {
         />
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
-        <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
-          <VStack flexDirection="row" justifyContent="space-between" space="$2">
+        {/* <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
+          <VStack flexDirection="row" justifyContent="space-between" space="sm">
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
@@ -240,7 +247,7 @@ const Profile = () => {
               </RadioIndicator>
             </Radio>
           </VStack>
-        </RadioGroup>
+        </RadioGroup> */}
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
         <TextInput
@@ -275,11 +282,16 @@ const Profile = () => {
           placeholderTextColor={COLORS.gray}
           onChangeText={setPronouns}
         />
+        {isLoading ? (
+          <LoadingGradientButton />
+        ) : (
+          <GradientButton
+            onPress={onSave}
+            text="Save"
+          />
+        )
+        }
 
-        <GradientButton
-          onPress={onSave}
-          text="Save"
-        />
       </ScrollView>
     </SafeAreaView>
   );
