@@ -20,6 +20,7 @@ import (
 func TestProtectedRoute(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -28,7 +29,7 @@ func TestProtectedRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -49,6 +50,7 @@ func TestProtectedRoute(t *testing.T) {
 func TestProtectedRouteInvalidToken(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -57,7 +59,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -72,6 +74,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -80,7 +83,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -116,6 +119,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 func TestAdminRoute(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -124,7 +128,7 @@ func TestAdminRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
@@ -145,6 +149,7 @@ func TestAdminRoute(t *testing.T) {
 func TestUnauthorizedAccess(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -153,7 +158,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -167,6 +172,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 func TestUnauthorizedAdminAccess(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -175,7 +181,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -192,6 +198,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 func TestAccessUnprotectedRoute(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -200,7 +207,7 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-open", nil)
@@ -218,6 +225,7 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -226,7 +234,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -243,6 +251,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -251,7 +260,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
