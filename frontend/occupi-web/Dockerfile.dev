@@ -1,32 +1,23 @@
-# Use the official bun image as a base
-FROM oven/bun:latest
-
-# Install dependencies required by the canvas package
-RUN apt-get update && apt-get install -y \
-    libcairo2-dev \
-    libjpeg-dev \
-    libpango1.0-dev \
-    libgif-dev \
-    build-essential \
-    g++
+# Use the official Node.js image as a base
+FROM node:20-alpine
 
 # Set the current working directory inside the container
 WORKDIR /app
 
-# copy bun.lockb package.json 
-COPY bun.lockb package.json ./
+# Copy package.json and yarn.lock files
+COPY package.json yarn.lock ./
 
-# install dependencies
-RUN bun install
+# Install dependencies using yarn
+RUN yarn install
 
-# copy the source code into the container
+# Copy the source code into the container
 COPY . .
 
-# Build the next.js application
-RUN bun run build
+# Build the Next.js application
+RUN yarn build
 
 # Expose the port the app runs on
 EXPOSE 4001
 
 # Command to run the executable
-CMD ["bun", "preview"]
+CMD ["yarn", "start"]
