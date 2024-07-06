@@ -476,23 +476,37 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Generate reset password link
-    resetLink := configs.GetFrontendURL() + "/forgot-password?token=" + resetToken
+    // Generate a OTP for the user to reset their password
+otp, err := utils.GenerateOTP()
+if err != nil {
+    ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+    logrus.Error("Failed to generate OTP:", err)
+    return
+}
 
-    // Send the email to the user with the reset link
-    subject := "Forgot Password Reset - Your Reset Link"
-    body := mail.FormatResetPasswordEmailBody(resetLink)
+// Store the OTP securely, associated with the user's account
+if _, err := database.AddOTP(ctx, appsession.DB, request.Email, otp); err != nil {
+	ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+	logrus.Error("Failed to store OTP:", err)
+	return
+}
 
-    if err := mail.SendMail(request.Email, subject, body); err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
-        return
-    }
 
-    ctx.JSON(http.StatusOK, utils.SuccessResponse(
-        http.StatusOK,
-        "Password reset link sent to your email",
-        nil))
+// Construct the email body with the OTP
+subject := "Password Reset - Your One-Time Password"
+body := mail.FormatResetPasswordEmailBody(otp)
+
+// Send the email to the user with the OTP
+if err := mail.SendMail(request.Email, subject, body); err != nil {
+    ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+    logrus.Error("Failed to send email:", err)
+    return
+}
+
+ctx.JSON(http.StatusOK, utils.SuccessResponse(
+    http.StatusOK,
+    "Password reset OTP sent to your email",
+    nil))
 }
 
 // handler for changing a users password
