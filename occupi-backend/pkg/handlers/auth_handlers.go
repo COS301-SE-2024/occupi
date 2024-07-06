@@ -152,7 +152,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	}
 
 	if due {
-		reverifyUsersEmail(ctx, appsession, requestUser.Email)
+		ReverifyUsersEmail(ctx, appsession, requestUser.Email)
 		return
 	}
 
@@ -389,7 +389,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 // handler for reverifying a users email address
-func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
+func ReverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
 	// generate a random otp for the user and send email
 	otp, err := utils.GenerateOTP()
 	if err != nil {
