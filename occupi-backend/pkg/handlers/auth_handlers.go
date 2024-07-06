@@ -458,81 +458,70 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Generate a reset token 
-    resetToken, err := utils.GenerateRandomState()
+    // Generate a OTP for the user to reset their password
+    otp, err := utils.GenerateOTP()
     if err != nil {
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
+        logrus.Error("Failed to generate OTP:", err)
         return
     }
 
-    // Set token expiration time for an hour from now
-    expirationTime := time.Now().Add(time.Hour)
-
-    // save the reset token and the time in database
-    if _, err := database.AddResetToken(ctx, appsession.DB, request.Email, resetToken, expirationTime); err != nil {
+    // Save the OTP in the database
+    success, err := database.AddOTP(ctx, appsession.DB, request.Email, otp)
+    if err != nil {
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
+        logrus.Error("Failed to save OTP:", err)
+        return
+    }
+    if !success {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to save OTP: operation unsuccessful")
         return
     }
 
-    // Generate a OTP for the user to reset their password
-otp, err := utils.GenerateOTP()
-if err != nil {
-    ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-    logrus.Error("Failed to generate OTP:", err)
-    return
-}
+    // Send the email to the user with the OTP
+    subject := "Password Reset - Your One-Time Password"
+    body := mail.FormatResetPasswordEmailBody(otp)
 
-// Store the OTP securely, associated with the user's account
-if _, err := database.AddOTP(ctx, appsession.DB, request.Email, otp); err != nil {
-	ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-	logrus.Error("Failed to store OTP:", err)
-	return
-}
+    if err := mail.SendMail(request.Email, subject, body); err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to send email:", err)
+        return
+    }
 
-
-// Construct the email body with the OTP
-subject := "Password Reset - Your One-Time Password"
-body := mail.FormatResetPasswordEmailBody(otp)
-
-// Send the email to the user with the OTP
-if err := mail.SendMail(request.Email, subject, body); err != nil {
-    ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-    logrus.Error("Failed to send email:", err)
-    return
-}
-
-ctx.JSON(http.StatusOK, utils.SuccessResponse(
-    http.StatusOK,
-    "Password reset OTP sent to your email",
-    nil))
+    ctx.JSON(http.StatusOK, utils.SuccessResponse(
+        http.StatusOK,
+        "Password reset OTP sent to your email",
+        nil))
 }
 
 // handler for changing a users password
  
 func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
-    var request struct {
-        Token    string `json:"token" binding:"required"`
-        Password string `json:"password" binding:"required"`
-        Email    string `json:"email" binding:"required,email"`
-    }
+    var request models.RequestUserOTP
+
+    // Sanitize input before binding
     if err := ctx.ShouldBindJSON(&request); err != nil {
         ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
             http.StatusBadRequest,
             "Invalid request payload",
             constants.InvalidRequestPayloadCode,
-            "Expected email, token, and password fields",
+            err.Error(),
             nil))
         return
     }
 
-    // Sanitize and validate input from users
-    request.Token = utils.SanitizeInput(request.Token)
-    request.Password = utils.SanitizeInput(request.Password)
-    request.Email = utils.SanitizeInput(request.Email)
+    // Additional validation if needed
+    if !utils.ValidateOTP(request.OTP) {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid OTP",
+            constants.InvalidRequestPayloadCode,
+            "OTP does not meet requirements",
+            nil))
+        return
+    }
 
-    // New Password validation
     if !utils.ValidatePassword(request.Password) {
         ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
             http.StatusBadRequest,
@@ -543,41 +532,25 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Check if the token exists and is valid for the given email
-	validToken, message, err := database.ValidateResetToken(ctx, appsession.DB, request.Email, request.Token)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-	if !validToken {
-		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(
-			http.StatusUnauthorized,
-			message,  // This will now be either "Invalid token" or "Token has expired"
-			constants.InvalidAuthCode,
-			"Please request a new password reset",
-			nil))
-		return
-	}
-
     // Hash the new password
     hashedPassword, err := utils.Argon2IDHash(request.Password)
     if err != nil {
+        logrus.Error("Failed to hash password: ", err)
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
         return
     }
 
     // Update the password in the database
     if _, err := database.UpdateUserPassword(ctx, appsession.DB, request.Email, hashedPassword); err != nil {
+        logrus.Error("Failed to update password: ", err)
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
         return
     }
 
-    // Clear the reset token
-    if _, err := database.ClearResetToken(ctx, appsession.DB, request.Email, request.Token); err != nil {
-        logrus.Error("Failed to clear reset token: ", err)
+    // Clear the OTP
+    if _, err := database.DeleteOTP(ctx, appsession.DB, request.Email, request.OTP); err != nil {
+        logrus.Error("Failed to clear OTP: ", err)
+        // Consider whether this should be a fatal error or just logged
     }
 
     ctx.JSON(http.StatusOK, utils.SuccessResponse(
@@ -585,6 +558,7 @@ func CompletePasswordReset(ctx *gin.Context, appsession *models.AppSession) {
         "Password reset successful",
         nil))
 }
+
 
 
 
