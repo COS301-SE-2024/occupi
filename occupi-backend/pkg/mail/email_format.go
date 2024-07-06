@@ -177,17 +177,17 @@ func appendFooter() string {
 }
 
 // Password reset email 
-func FormatResetPasswordEmailBody(resetLink string) string {
-	return appendHeader("Password Reset") + `
-		<div class="content">
-			<p>Dear User,</p>
-			<p>
-				You have requested to reset your password. Please click the link below to reset your password:<br>
-				<a href="` + resetLink + `">Reset Password</a><br><br>
-				If you did not request this email, please ignore this email.<br><br>
-				This link will expire in 1 hour.<br><br>
-				Thank you,<br>
-				<b>The Occupi Team</b><br>
-			</p>
-		</div>` + appendFooter()
+func FormatResetPasswordEmailBody(otp string) string {
+    return appendHeader("Password Reset") + `
+        <div class="content">
+            <p>Dear User,</p>
+            <p>
+                You have requested to reset your password. Your One-Time Password (OTP) is:<br>
+                <h2 style="color: #4a4a4a; background-color: #f0f0f0; padding: 10px; display: inline-block;">` + otp + `</h2><br><br>
+                Please use this OTP to reset your password. If you did not request this email, please ignore it.<br><br>
+                This OTP will expire in 1 hour.<br><br>
+                Thank you,<br>
+                <b>The Occupi Team</b><br>
+            </p>
+        </div>` + appendFooter()
 }
