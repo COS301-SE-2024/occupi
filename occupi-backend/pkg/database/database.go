@@ -20,7 +20,7 @@ import (
 // returns all data from the mongo database
 func GetAllData(appsession *models.AppSession) []bson.M {
 	// Use the client
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	// Define filter to find documents where onSite is true
 	filter := bson.M{"onSite": true}
@@ -138,7 +138,7 @@ func EmailExists(ctx *gin.Context, appsession *models.AppSession, email string) 
 		return false
 	}
 	// Check if the email exists in the database
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
@@ -183,7 +183,7 @@ func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.Reques
 		NextVerificationDate: time.Now(), // this will be updated once the email is verified
 	}
 	// Save the user to the database
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	_, err := collection.InsertOne(ctx, userStruct)
 	if err != nil {
 		logrus.Error(err)
@@ -195,7 +195,7 @@ func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.Reques
 // adds otp to database
 func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
 	// Save the OTP to the database
-	collection := appsession.DB.Database("Occupi").Collection("OTPS")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OTPS")
 	otpStruct := models.OTP{
 		Email:      email,
 		OTP:        otp,
@@ -212,7 +212,7 @@ func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp s
 // checks if otp exists in database
 func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
 	// Check if the OTP exists in the database
-	collection := appsession.DB.Database("Occupi").Collection("OTPS")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OTPS")
 	filter := bson.M{"email": email, "otp": otp}
 	var otpStruct models.OTP
 	err := collection.FindOne(ctx, filter).Decode(&otpStruct)
@@ -230,7 +230,7 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 // deletes otp from database
 func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
 	// Delete the OTP from the database
-	collection := appsession.DB.Database("Occupi").Collection("OTPS")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OTPS")
 	filter := bson.M{"email": email, "otp": otp}
 	_, err := collection.DeleteOne(ctx, filter)
 	if err != nil {
@@ -243,7 +243,7 @@ func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, ot
 // verifies a user in the database
 func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
 	// Verify the user in the database and set next date to verify to 30 days from now
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30)}}
 	_, err := collection.UpdateOne(ctx, filter, update)
@@ -257,7 +257,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (
 // get's the hash password stored in the database belonging to this user
 func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) (string, error) {
 	// Get the password from the database
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
@@ -271,7 +271,7 @@ func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) 
 // checks if the next verification date is due
 func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
 	// Check if the next verification date is due
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
@@ -293,7 +293,7 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 // checks if the user is verified
 func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
 	// Check if the user is verified
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
@@ -307,7 +307,7 @@ func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, emai
 // updates the users verification status to true or false
 func UpdateVerificationStatusTo(ctx *gin.Context, appsession *models.AppSession, email string, status bool) (bool, error) {
 	// Update the verification status of the user
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	update := bson.M{"$set": bson.M{"isVerified": status}}
 	_, err := collection.UpdateOne(ctx, filter, update)
@@ -492,7 +492,7 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user mod
 // Checks if a user is an admin
 func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
 	// Check if the user is an admin
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
