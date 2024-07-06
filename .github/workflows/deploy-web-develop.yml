@@ -88,7 +88,7 @@ jobs:
                   username: ${{ secrets.VM_USERNAME }}
                   key: ${{ secrets.VM_SSH_KEY }}
                   script: |
-                      cd /home/${{ secrets.VM_USERNAME }}/occupi-web-dev/frontend/occupi-web-dev
+                      cd /home/${{ secrets.VM_USERNAME }}/occupi-web-dev/frontend/occupi-web
                       echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
                       DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.dev.yml down
                       DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.dev.yml pull
