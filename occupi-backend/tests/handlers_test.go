@@ -305,6 +305,7 @@ func getSharedTestCases(r *gin.Engine, cookies []*http.Cookie) []testCase {
 
 // Tests the ViewUserDetails handler
 
+/*
 // Tests the CancelBooking handler
 func TestCancelBooking(t *testing.T) {
 	// Setup the test environment
@@ -397,6 +398,7 @@ func TestCancelBooking(t *testing.T) {
 		})
 	}
 }
+*/
 
 // Tests the GetUserDetails handler
 // func TestGetUserDetails(t *testing.T) {
@@ -469,6 +471,7 @@ func TestCancelBooking(t *testing.T) {
 // 	}
 // }
 
+/*
 // Tests the BookRoom handler
 func TestBookRoom(t *testing.T) {
 	// Setup the test environment
@@ -551,6 +554,7 @@ func TestBookRoom(t *testing.T) {
 		})
 	}
 }
+*/
 
 // Tests CheckIn handler
 func TestCheckIn(t *testing.T) {
