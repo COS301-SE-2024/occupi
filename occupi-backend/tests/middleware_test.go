@@ -297,6 +297,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 func TestRateLimit(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -308,7 +309,7 @@ func TestRateLimit(t *testing.T) {
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	server := httptest.NewServer(ginRouter)
 	defer server.Close()
@@ -348,6 +349,7 @@ func TestRateLimit(t *testing.T) {
 func TestRateLimitWithMultipleIPs(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -359,7 +361,7 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	server := httptest.NewServer(ginRouter)
 	defer server.Close()
