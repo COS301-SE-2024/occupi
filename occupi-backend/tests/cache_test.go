@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"log"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -53,10 +52,6 @@ func TestEmailExistsPerformance(t *testing.T) {
 		database.EmailExists(ctx, appsessionWithoutCache, email)
 	}
 	durationWithoutCache := time.Since(startTime)
-
-	// Compare durations and log the results
-	log.Printf("Email exists Duration with cache: %v", durationWithCache)
-	log.Printf("Email exists Duration without cache: %v", durationWithoutCache)
 
 	// Assert that the cache improves the speed
 	if durationWithoutCache <= durationWithCache {
