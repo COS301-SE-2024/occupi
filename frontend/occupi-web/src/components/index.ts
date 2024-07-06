@@ -12,7 +12,7 @@ import MenuItem from './drawerComponent/menuItem/MenuItem';
 import Bookings from "./bookings/Bookings";
 import OverView from "./overView/OverView";
 import OverviewComponent from "./OverviewComponent/OverviewComponent";
-import ProfileComponent from "./profileComponent/ProfileComponent";
+import ProfileComponent from "./ProfileComponent/ProfileComponent";
 import SearchBarComponent from "./searchBarComponent/SearchBar";
 import SideNav from "./sideNavComponent/SideNav";
 import Line_Chart from "./linechart/Line_Chart";
