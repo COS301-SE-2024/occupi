@@ -11,6 +11,10 @@ import (
 
 // SendMail sends an email using gomail
 func SendMail(to string, subject string, body string) error {
+	if configs.GetGinRunMode() == "test" {
+		return nil // Do not send emails in test mode
+	}
+
 	from := configs.GetSystemEmail()
 	password := configs.GetSMTPPassword()
 	smtpHost := configs.GetSMTPHost()
@@ -32,6 +36,10 @@ func SendMail(to string, subject string, body string) error {
 }
 
 func SendMultipleEmailsConcurrently(emails []string, subject, body string, creator string) []string {
+	if configs.GetGinRunMode() == "test" {
+		return []string{} // Do not send emails in test mode
+	}
+
 	// Use a WaitGroup to wait for all goroutines to complete
 	var wg sync.WaitGroup
 	var emailErrors []string

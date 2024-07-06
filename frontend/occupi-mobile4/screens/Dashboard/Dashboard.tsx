@@ -16,6 +16,7 @@ import {
   LineChart
 } from "react-native-chart-kit";
 import { FontAwesome6 } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 // import { number } from 'zod';
@@ -41,6 +42,45 @@ const Dashboard = () => {
     setIsDarkMode(colorScheme === 'dark');
     return () => clearInterval(intervalId);
   }, [colorScheme]);
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      console.log("heree");
+      try {
+        const response = await fetch('https://dev.occupi.tech/api/user-details?email=kamogelomoeketse@gmail.com')
+        const data = await response.json();
+        if (response.ok) {
+          saveUserData(JSON.stringify(data));
+          console.log(data);
+        } else {
+          console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>Network Error: {error.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+      }
+    };
+    getUserDetails();
+  }, [toast]);
   
   const checkIn = () => {
     if (checkedIn === false) {
@@ -65,6 +105,16 @@ const Dashboard = () => {
       });
     }
   };
+
+  async function saveUserEmail(value) {
+    await SecureStore.setItemAsync('email', value);
+  }
+  async function saveUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
+
+  saveUserEmail('kamogelomoeketse@gmail.com');
+
 
   const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
