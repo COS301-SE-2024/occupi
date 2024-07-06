@@ -18,6 +18,7 @@ import (
 func TestInvalidLogoutHandler(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -26,7 +27,7 @@ func TestInvalidLogoutHandler(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("POST", "/auth/logout", nil)
@@ -49,6 +50,7 @@ func TestInvalidLogoutHandler(t *testing.T) {
 func TestValidLogoutHandler(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -57,7 +59,7 @@ func TestValidLogoutHandler(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("POST", "/auth/logout", nil)
@@ -109,6 +111,7 @@ func TestValidLogoutHandler(t *testing.T) {
 func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -117,7 +120,7 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	// read domains
 	domains := configs.GetOccupiDomains()

@@ -24,6 +24,7 @@ import (
 func TestMockDatabase(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -32,7 +33,7 @@ func TestMockDatabase(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
