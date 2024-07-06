@@ -1,169 +1,215 @@
-import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, LabelEncoder
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.callbacks import EarlyStopping # type: ignore
-from tensorflow.keras.models import Sequential # type: ignore
-from tensorflow.keras.layers import LSTM, Dense, Dropout # type: ignore
-from tensorflow.keras.utils import to_categorical
-from matplotlib import pyplot as plt
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, LSTM, Dense, Flatten, Dropout, BatchNormalization
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
+from datetime import datetime
 
-# Load data
-df = pd.read_csv("datasets/Attendance_data(1).csv", parse_dates=["Date"], index_col="Date")
+# Load the dataset
+file_path = 'datasets/Attendance_data(1).csv'
+data = pd.read_csv(file_path)
 
-# Add Day of the Week feature
-df['Day_of_Week'] = df.index.dayofweek + 1  # Monday=1, Sunday=7
-df['Is_Weekend'] = df['Day_of_Week'].apply(lambda x: 1 if x >= 6 else 0)
+# Convert the Date feature to datetime
+data['Date'] = pd.to_datetime(data['Date'])
 
-# Quantile-based categorization into 7 categories
-quantiles = df['Number_Attended'].quantile([i/7 for i in range(1, 7)])
+# Create a mapping for days of the week
+day_mapping = {
+    'Monday': 0,
+    'Tuesday': 1,
+    'Wednesday': 2,
+    'Thursday': 3,
+    'Friday': 4,
+    'Saturday': 5,
+    'Sunday': 6
+}
 
-def categorize_attendance_quantile(number):
-    if number <= quantiles.iloc[0]:
-        return 0  # Very Low attendance
-    elif number <= quantiles.iloc[1]:
-        return 1  # Low attendance
-    elif number <= quantiles.iloc[2]:
-        return 2  # Below Average attendance
-    elif number <= quantiles.iloc[3]:
-        return 3  # Average attendance
-    elif number <= quantiles.iloc[4]:
-        return 4  # Above Average attendance
-    elif number <= quantiles.iloc[5]:
-        return 5  # High attendance
-    else:
-        return 6  # Very High attendance
+# Apply the mapping to the 'Day_of_Week' column
+data['Day_of_Week'] = data['Day_of_Week'].map(day_mapping).astype(int)
 
-df['Attendance_Category'] = df['Number_Attended'].apply(categorize_attendance_quantile)
+# Label encode the 'Special_Event' column
+label_encoder = LabelEncoder()
+data['Special_Event'] = label_encoder.fit_transform(data['Special_Event'])
 
-# Bar Plot for Day of the Week
-plt.figure(figsize=(14, 7))
-day_of_week_avg = df.groupby('Day_of_Week').mean()
-day_of_week_avg['Number_Attended'].plot(kind='line')
-plt.xlabel('Day of the Week')
-plt.ylabel('Average Value')
-plt.title('Average Attendance by Day of the Week')
+# Define bins for categorizing attendance into increments of 150
+bins = [0, 300, 600, 900, 1200, 1500, 1800, float('inf')]
+labels = list(range(len(bins) - 1))
+
+# Categorize the attendance data
+data['Attendance_Level'] = pd.cut(data['Number_Attended'], bins=bins, labels=labels)
+
+# Handle missing values (replace with 0)
+data['Attendance_Level'] = data['Attendance_Level'].cat.codes  # Convert categories to codes
+data['Attendance_Level'] = data['Attendance_Level'].replace(-1, np.nan)  # Replace -1 with NaN
+data['Attendance_Level'] = data['Attendance_Level'].fillna(0)  # Fill NaN values with 0
+
+# Convert Attendance_Level to integer type after filling
+data['Attendance_Level'] = data['Attendance_Level'].astype(int)
+
+
+# Attendance Levels by Day of Week
+plt.figure(figsize=(12, 8))
+sns.boxplot(x='Day_of_Week', y='Attendance_Level', data=data)
+plt.xlabel('Day of Week')
+plt.ylabel('Attendance Level')
+plt.title('Attendance Levels by Day of the Week')
 plt.show()
 
-# Line Plot
-plt.figure(figsize=(14, 7))
-plt.plot(df.index, df['Number_Attended'], label='Attendance')
-plt.xlabel('Date')
-plt.ylabel('Value')
-plt.title('Line Plot of Attendance Over Time')
-plt.legend()
+# Select features and target (using minimal preprocessing)
+features = ['Day_of_Week', 'Month', 'Day_of_month', 'Is_Weekend', 'Special_Event']
+target = 'Attendance_Level'
+
+X = data[features].values
+y = data[target].values
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize the features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Original Distribution of Number Attended
+plt.figure(figsize=(14, 6))
+plt.subplot(1, 2, 1)
+sns.histplot(data['Number_Attended'], kde=True)
+plt.xlabel('Number Attended (Original)')
+plt.ylabel('Count')
+plt.title('Original Number Attended Distribution')
+
+# Original Distribution of Attendance Level
+plt.subplot(1, 2, 2)
+sns.histplot(data['Attendance_Level'], kde=True)
+plt.xlabel('Attendance Level (Original)')
+plt.ylabel('Count')
+plt.title('Original Attendance Level Distribution')
+
+plt.tight_layout()
 plt.show()
 
-# Normalize the data for all features except the target
-scaler = MinMaxScaler(feature_range=(0, 1))
-features_scaled = scaler.fit_transform(df.drop(['Attendance_Category'], axis=1))
+# Reshape the data to 3D for CNN-LSTM
+X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
+X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
 
-# Convert the target to categorical
-target = to_categorical(df['Attendance_Category'])
+print(f'X_train shape: {X_train.shape}')
+print(f'X_test shape: {X_test.shape}')
 
-# Convert data to sequences
-def create_sequences(data, target, seq_length):
-    xs, ys = [], []
-    for i in range(len(data) - seq_length):
-        x = data[i:i + seq_length]
-        y = target[i + seq_length]
-        xs.append(x)
-        ys.append(y)
-    return np.array(xs), np.array(ys)
+# Build the improved CNN-LSTM model
+model = Sequential()
 
-# Define sequence length
-seq_length = 28
+#CNN Part
+model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(X_train.shape[1], X_train.shape[2]), padding='same'))
+model.add(BatchNormalization())
+model.add(MaxPooling1D(pool_size=2))
+model.add(Conv1D(filters=128, kernel_size=2, activation='relu'))
+model.add(BatchNormalization())
+model.add(MaxPooling1D(pool_size=1))  # Adjust pool size to 1 to prevent negative dimension
 
-# Create sequences
-X, y = create_sequences(features_scaled, target, seq_length)
+# LSTM Part
+model.add(LSTM(50, return_sequences=True))
+model.add(Dropout(0.25))
+model.add(LSTM(100, return_sequences=False))
+model.add(Dropout(0.25))
 
-# Split into train and test sets
-trainX, testX, trainY, testY = train_test_split(X, y, test_size=0.2, random_state=42)
+#Fully Connected Part
+model.add(Dense(100, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(50, activation='relu'))
+model.add(Dropout(0.5))
 
-# Print shapes
-print(f"trainX shape: {trainX.shape}")
-print(f"trainY shape: {trainY.shape}")
-print(f"testX shape: {testX.shape}")
-print(f"testY shape: {testY.shape}")
+# Output layer
+model.add(Dense(len(labels), activation='softmax'))  # Adjust the output layer for 7 classes
 
-# Define the model
-def build_model(input_shape):
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=input_shape))
-    model.add(Dropout(0.2))
-    model.add(LSTM(units=50))
-    model.add(Dropout(0.2))
-    model.add(Dense(units=7, activation='softmax'))  # Predict 7 categories
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
+# Compile the model
+model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(learning_rate=0.001), metrics=['accuracy'])
 
-# Get the input shape
-input_shape = (trainX.shape[1], trainX.shape[2])
+# Define early stopping
+early_stopping = EarlyStopping(monitor='val_loss', patience=25, restore_best_weights=True)
 
-# Build the model
-model = build_model(input_shape)
-model.summary()
-
-# Train the model with early stopping
-early_stopping = EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True)
-
-history = model.fit(trainX, trainY, epochs=100, batch_size=30, validation_data=(testX, testY), callbacks=[early_stopping])
+# Train the model with callbacks
+history = model.fit(X_train, y_train, epochs=60, batch_size=32, validation_data=(X_test, y_test), callbacks=[early_stopping], verbose=2)
 
 # Evaluate the model
-loss, accuracy = model.evaluate(testX, testY)
-print(f"Test loss: {loss}")
-print(f"Test accuracy: {accuracy * 100:.2f}%")
+loss, accuracy = model.evaluate(X_test, y_test)
+print(f'Test Accuracy: {accuracy:.4f}')
 
 # Make predictions
-predictions = model.predict(testX)
-predicted_classes = np.argmax(predictions, axis=1)
-true_classes = np.argmax(testY, axis=1)
+predictions = model.predict(X_test)
+predicted_labels = np.argmax(predictions, axis=1)
 
-# Print the first few predictions and true values
-print(predicted_classes[:5])
-print(true_classes[:5])
+# Create a DataFrame to compare actual and predicted values
+results = pd.DataFrame({'Actual': y_test, 'Predicted': predicted_labels})
 
-# Plot predictions vs true values
-plt.figure(figsize=(14, 7))
-plt.plot(true_classes, color='blue', label='Actual')
-plt.plot(predicted_classes, color='red', label='Predicted')
-plt.xlabel('Time')
-plt.ylabel('Attendance Category')
-plt.title('LSTM Predictions vs Actual Categories')
+# Display the results
+print(results.head())
+
+# Plot the results
+plt.figure(figsize=(10, 6))
+plt.plot(results['Actual'].values, label='Actual')
+plt.plot(results['Predicted'].values, label='Predicted', alpha=0.7)
+plt.xlabel('Sample Index')
+plt.ylabel('Attendance Level')
 plt.legend()
+plt.title('Actual vs. Predicted Attendance Levels')
 plt.show()
 
-# Predict attendance category for each day of the week
-days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-predictions_per_day = []
+# Function to predict attendance level for a given day
+def predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event):
+    # Create a feature vector based on the input
+    input_features = np.array([[day_of_week, month, day_of_month, is_weekend, special_event]])
+    
+    # Standardize the input features
+    input_features = scaler.transform(input_features)
+    
+    # Reshape the input features to match the model's input shape
+    input_features = input_features.reshape((input_features.shape[0], input_features.shape[1], 1))
+    
+    # Make predictions
+    predictions = model.predict(input_features)
+    predicted_label = np.argmax(predictions, axis=1)
+    
+    return predicted_label[0]
 
-for day in range(1, 8):  # Days of the week 1-7 (Monday-Sunday)
-    specific_day_data = df[df['Day_of_Week'] == day]
+# Predict attendance levels for each day of the week
+def predict_weekly_attendance(year, month, start_day):
+    days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    predictions = []
     
-    if specific_day_data.empty:
-        continue
+    for i, day_name in enumerate(days_of_week):
+        day_of_week = i  # Monday is 0, Sunday is 6
+        date = datetime(year, month, start_day + i)
+        day_of_month = date.day
+        is_weekend = 1 if day_of_week in [5, 6] else 0
+        special_event = 0  # Assuming no special event
+        
+        predicted_attendance_level = predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event, year, start_day + i)
+        predictions.append((day_name, predicted_attendance_level))
     
-    scaled_specific_day_data = scaler.transform(specific_day_data.drop(['Attendance_Category'], axis=1))
-    X_specific_day, _ = create_sequences(scaled_specific_day_data, specific_day_data['Attendance_Category'].values, seq_length)
-    
-    if X_specific_day.size == 0:
-        continue
-    
-    predictions_specific_day = model.predict(X_specific_day)
-    predicted_classes_specific_day = np.argmax(predictions_specific_day, axis=1)
-    
-    # Most frequent prediction for the specific day
-    unique, counts = np.unique(predicted_classes_specific_day, return_counts=True)
-    most_frequent_prediction = unique[np.argmax(counts)]
-    
-    predictions_per_day.append({
-        "Day": days_of_week[day - 1],
-        "Predicted Attendance Category": most_frequent_prediction
-    })
+    return predictions
 
-# Create a DataFrame for the predictions
-df_predictions = pd.DataFrame(predictions_per_day)
-print(df_predictions)
+# Example usage
+year = 2026
+month = 3
+start_day = 11  # Starting from Monday, March 11, 2024
 
-# Save to CSV if needed
-df_predictions.to_csv("predicted_attendance_category_per_day.csv", index=False)
+weekly_predictions = predict_weekly_attendance(year, month, start_day)
+
+# Display the predictions
+print("Weekly Attendance Level Predictions:")
+for day, prediction in weekly_predictions:
+    print(f"{day}: {prediction}")
+
+# Plot the predictions
+days, levels = zip(*weekly_predictions)
+plt.figure(figsize=(10, 6))
+plt.plot(days, levels, marker='o')
+plt.xlabel('Day of the Week')
+plt.ylabel('Attendance Level')
+plt.title('Predicted Attendance Levels for the Week')
+plt.show()
