@@ -192,3 +192,19 @@ func FormatResetPasswordEmailBody(otp string, email string) string {
 			</p>
 		</div>` + appendFooter()
 }
+
+// formatTwoFAEmailBody
+func FormatTwoFAEmailBody(otp string, email string) string {
+	return appendHeader("Two-Factor Authentication") + `
+		<div class="content">
+			<p>Dear ` + email + `,</p>
+			<p>
+				You have requested to enable Two-Factor Authentication. Your One-Time Password (OTP) is:<br>
+				<h2 style="color: #4a4a4a; background-color: #f0f0f0; padding: 10px; display: inline-block;">` + otp + `</h2><br><br>
+				Please use this OTP to enable Two-Factor Authentication. If you did not request this email, please ignore it.<br><br>
+				This OTP will expire in 10 minutes.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + appendFooter()
+}
