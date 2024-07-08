@@ -12,6 +12,7 @@ type User struct {
 	OnSite               bool      `json:"onSite" bson:"onSite"`
 	IsVerified           bool      `json:"isVerified" bson:"isVerified"`
 	NextVerificationDate time.Time `json:"nextVerificationDate" bson:"nextVerificationDate"`
+	TwoFAEnabled		 bool		`json: "twoFAenabled" bson: "twoFAenabled"`
 }
 
 type UserDetails struct {
