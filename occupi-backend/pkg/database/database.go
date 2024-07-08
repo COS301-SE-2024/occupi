@@ -400,6 +400,92 @@ func GetUserDetails(ctx *gin.Context, db *mongo.Client, email string) (models.Us
 	return user, nil
 }
 
+// AddFieldToUpdateMap adds a field to the update map if it's non-zero or non-nil
+func AddFieldToUpdateMap(updateFields bson.M, fieldName string, fieldValue interface{}) {
+	switch value := fieldValue.(type) {
+	case string:
+		if value != "" {
+			updateFields[fieldName] = value
+		}
+	case bool:
+		updateFields[fieldName] = value
+	case *bool:
+		if value != nil {
+			updateFields[fieldName] = *value
+		}
+	case time.Time:
+		if !value.IsZero() {
+			updateFields[fieldName] = value
+		}
+	case *models.Details:
+		if value != nil {
+			nestedFields := bson.M{}
+			AddFieldToUpdateMap(nestedFields, "contactNo", value.ContactNo)
+			AddFieldToUpdateMap(nestedFields, "name", value.Name)
+			AddFieldToUpdateMap(nestedFields, "dob", value.DOB)
+			AddFieldToUpdateMap(nestedFields, "gender", value.Gender)
+			AddFieldToUpdateMap(nestedFields, "pronouns", value.Pronouns)
+			if len(nestedFields) > 0 {
+				updateFields[fieldName] = nestedFields
+			}
+		}
+	case *models.Notifications:
+		if value != nil {
+			nestedFields := bson.M{}
+			AddFieldToUpdateMap(nestedFields, "allow", value.Allow)
+			AddFieldToUpdateMap(nestedFields, "bookingReminder", value.BookingReminder)
+			AddFieldToUpdateMap(nestedFields, "maxCapacity", value.MaxCapacity)
+			if len(nestedFields) > 0 {
+				updateFields[fieldName] = nestedFields
+			}
+		}
+	case *models.Security:
+		if value != nil {
+			nestedFields := bson.M{}
+			AddFieldToUpdateMap(nestedFields, "mfa", value.MFA)
+			AddFieldToUpdateMap(nestedFields, "biometrics", value.Biometrics)
+			if len(nestedFields) > 0 {
+				updateFields[fieldName] = nestedFields
+			}
+		}
+	}
+}
+
+// UpdateUserDetails updates the user's details
+func UpdateUserDetails(ctx *gin.Context, db *mongo.Client, user models.UserDetails) (bool, error) {
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": user.Email}
+
+	var userStruct models.UserDetails
+	err := collection.FindOne(context.TODO(), filter).Decode(&userStruct)
+	if err != nil {
+		logrus.Error("Failed to find user: ", err)
+		return false, err
+	}
+
+	updateFields := bson.M{}
+	AddFieldToUpdateMap(updateFields, "occupiId", user.OccupiID)
+	AddFieldToUpdateMap(updateFields, "password", user.Password)
+	AddFieldToUpdateMap(updateFields, "email", user.Email)
+	AddFieldToUpdateMap(updateFields, "role", user.Role)
+	AddFieldToUpdateMap(updateFields, "onSite", user.OnSite)
+	AddFieldToUpdateMap(updateFields, "isVerified", user.IsVerified)
+	AddFieldToUpdateMap(updateFields, "nextVerificationDate", user.NextVerificationDate)
+	AddFieldToUpdateMap(updateFields, "details", user.Details)
+	AddFieldToUpdateMap(updateFields, "notifications", user.Notifications)
+	AddFieldToUpdateMap(updateFields, "security", user.Security)
+	AddFieldToUpdateMap(updateFields, "status", user.Status)
+	AddFieldToUpdateMap(updateFields, "position", user.Position)
+
+	update := bson.M{"$set": updateFields}
+	_, err = collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error("Failed to update user details: ", err)
+		return false, err
+	}
+	return true, nil
+}
+
 // Checks if a user is an admin
 func CheckIfUserIsAdmin(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
 	// Check if the user is an admin
