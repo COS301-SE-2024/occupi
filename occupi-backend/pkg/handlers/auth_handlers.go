@@ -419,59 +419,11 @@ func ReverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 		"Please check your email for the OTP to re-verify your account.",
 		nil))
 }
-// Common handler logic for reset password
-func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-	var requestUser models.RequestUser
-
-    // Generate a random OTP for the user and send email
-    otp, err := utils.GenerateOTP()
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
-        return
-    }
-
-    // Save OTP to database
-    if _, err := database.AddOTP(ctx, appsession, otp, requestUser.Email); err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
-        return
-    }
-
-    subject := "Password Reset - Your One-Time Password (OTP)"
-    body := mail.FormatResetPasswordEmailBody(
-        otp,
-       requestUser.Email,
-    )
-
-    if err := mail.SendMail( requestUser.Email, subject, body); err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
-        return
-    }
-
-    ctx.JSON(http.StatusOK, utils.SuccessResponse(
-        http.StatusOK,
-        "Please check your email for the OTP to reset your password.",
-        nil))
-}
-
-// Handler for forgot password
-func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
-    var requestUser models.RequestUser
-    if err := ctx.ShouldBindJSON(&requestUser); err != nil {
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Invalid request payload",
-            constants.InvalidRequestPayloadCode,
-            "Expected email field or you may have placed a comma at the end of the JSON payload",
-            nil))
-        return
-    }
-
+// common handler logic for reset
+func handlePasswordReset(ctx *gin.Context, appsession *models.AppSession, email string) {
     // Sanitize and validate email
-    requestUser.Email = utils.SanitizeInput(requestUser.Email)
-    if !utils.ValidateEmail(requestUser.Email) {
+    sanitizedEmail := utils.SanitizeInput(email)
+    if !utils.ValidateEmail(sanitizedEmail) {
         ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
             http.StatusBadRequest,
             "Invalid email address",
@@ -481,8 +433,8 @@ func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Check if a user already exists in the database with such an email
-    if exists := database.EmailExists(ctx, appsession, requestUser.Email); !exists {
+    // Check if the email exists in the database
+    if exists := database.EmailExists(ctx, appsession, sanitizedEmail); !exists {
         ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
             http.StatusBadRequest,
             "Email not registered",
@@ -492,9 +444,81 @@ func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Call ResetPassword function with the validated email
-    ResetPassword(ctx, appsession)
+    // Generate a OTP for the user to reset their password
+    otp, err := utils.GenerateOTP()
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to generate OTP:", err)
+        return
+    }
+
+    // Save the OTP in the database
+    success, err := database.AddOTP(ctx, appsession, sanitizedEmail, otp)
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to save OTP:", err)
+        return
+    }
+    if !success {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to save OTP: operation unsuccessful")
+        return
+    }
+
+    // Send the email to the user with the OTP
+    subject := "Password Reset - Your One-Time Password"
+    body := mail.FormatResetPasswordEmailBody(otp,email)
+
+    if err := mail.SendMail(sanitizedEmail, subject, body); err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to send email:", err)
+        return
+    }
+
+    ctx.JSON(http.StatusOK, utils.SuccessResponse(
+        http.StatusOK,
+        "Password reset OTP sent to your email",
+        nil))
 }
+
+func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
+    var request struct {
+        Email string `json:"email" binding:"required,email"`
+    }
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid email address",
+            constants.InvalidRequestPayloadCode,
+            "Expected a valid format for email address",
+            nil))
+        return
+    }
+
+    handlePasswordReset(ctx, appsession, request.Email)
+}
+
+func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
+    var request struct {
+        Email string `json:"email" binding:"required,email"`
+    }
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid email address",
+            constants.InvalidRequestPayloadCode,
+            "Expected a valid format for email address",
+            nil))
+        return
+    }
+
+    handlePasswordReset(ctx, appsession, request.Email)
+}
+
+
+
+
+
 // handler for logging out a user
 func Logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
