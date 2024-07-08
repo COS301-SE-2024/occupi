@@ -659,3 +659,74 @@ func TestForgotPassword(t *testing.T) {
         })
     }
 }
+
+// handler test fot reset password
+func TestResetPassword(t *testing.T) {
+    // Setup the test environment
+    r, cookies := setupTestEnvironment(t)
+
+    // Define test cases
+    testCases := []struct {
+        name               string
+        payload            string
+        expectedStatusCode int
+        expectedMessage    string
+    }{
+        {
+            name: "Valid Request",
+            payload: `{
+                "email": "abcd@gmail.com",
+                "otp": "123456",
+                "newPassword": "newPassword123"
+            }`,
+            expectedStatusCode: http.StatusOK,
+            expectedMessage:    "Password reset successful",
+        },
+        {
+            name: "Invalid Email Format",
+            payload: `{
+                "email": "invalid-email",
+                "otp": "123456",
+                "newPassword": "newPassword123"
+            }`,
+            expectedStatusCode: http.StatusBadRequest,
+            expectedMessage:    "Invalid email address",
+        },
+        {
+            name: "Non-existent Email",
+            payload: `{
+                "email": "nonexistent@example.com",
+                "otp": "123456",
+                "newPassword": "newPassword123"
+            }`,
+            expectedStatusCode: http.StatusBadRequest,
+            expectedMessage:    "Email not registered",
+        },
+        {
+            name: "Invalid OTP",
+            payload: `{
+                "email": "test@example.com",
+                "otp": "invalid",
+                "newPassword": "newPassword123"
+            }`,
+            expectedStatusCode: http.StatusBadRequest,
+            expectedMessage:    "Invalid OTP",
+        },
+        {
+            name: "Weak Password",
+            payload: `{
+                "email": "test@example.com",
+                "otp": "123456",
+                "newPassword": "weak"
+            }`,
+            expectedStatusCode: http.StatusBadRequest,
+            expectedMessage:    "Password does not meet security requirements",
+        },
+    }
+
+    for _, tc := range testCases {
+        t.Run(tc.name, func(t *testing.T) {
+            sendRequestAndVerifyResponse(t, r, "POST", "/api/reset-password", tc.payload, cookies, tc.expectedStatusCode, tc.expectedMessage)
+        })
+    }
+}
