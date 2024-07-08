@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, ScrollView } from 'react-native';
 import {
   VStack,
@@ -6,30 +6,35 @@ import {
   Box,
   Center,
   Icon,
-  Switch,
   Divider,
   Pressable,
-  useToast
 } from '@gluestack-ui/themed';
 import { useNavigation } from '@react-navigation/native';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';
 import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import * as SecureStore from 'expo-secure-store';
 
 const Settings = () => {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [name, setName] = useState('Sabrina Carpenter');
-  const toast = useToast();
+  const [name, setName] = useState('');
+  const [position, setPosition] = useState('');
   const navigation = useNavigation();
   let colorScheme = useColorScheme();
 
-  const handleNameChange = () => {
-    setName('Sabrina Palmer');
-    router.push('/profile');
-  };
+  useEffect(() => {
+    const getUserDetails = async () => {
+      let result = await SecureStore.getItemAsync('UserData');
+      // setUserDetails(JSON.parse(result).data);
+      let jsonresult = JSON.parse(result);
+      // console.log(jsonresult.data.details.name);
+      setName(String(jsonresult.data.details.name));
+      setPosition(String(jsonresult.data.position));
+      // console.log(JSON.parse(result).data.details.name);
+    };
+    getUserDetails();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -43,64 +48,33 @@ const Settings = () => {
         credentials: "include"
       });
       const data = await response.json();
-      // if (response.ok) {
-      //   console.log(data);
-      //   toast.show({
-      //         placement: 'top',
-      //         render: ({ id }) => {
-      //           return (
-      //             <Toast nativeID={String(id)} variant="accent" action="success">
-      //               <ToastTitle>{data.message}</ToastTitle>
-      //             </Toast>
-      //           );
-      //         },
-      //       });
+      if (response.ok) {
+        console.log(data);
+        alert("logged out siccessfully");
         router.replace('/login');
-      // } else {
-      //   toast.show({
-      //         placement: 'top',
-      //         render: ({ id }) => {
-      //           return (
-      //             <Toast nativeID={String(id)} variant="accent" action="error">
-      //               <ToastTitle>{data.message}</ToastTitle>
-      //             </Toast>
-      //           );
-      //         },
-      //       });
-      // }
+      } else {
+        alert("unable to logout");
+      }
     } catch (error) {
       console.error('Error:', error);
     }
   }
-
-  const toggleNotifications = () => {
-    setNotificationsEnabled(!notificationsEnabled);
-  };
+  // console.log("details"+name);
 
   const handleNavigate = (screen) => {
     navigation.navigate(screen);
   };
 
   const data = [
-    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: handleNameChange },
+    { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
     {
       title: 'Notifications',
       description: 'Manage your notifications',
       iconName: 'bell',
-      accessoryRight: () => (
-        <Switch isChecked={notificationsEnabled} onToggle={toggleNotifications} />
-      ),
+      onPress: () => router.push('set-notifications')
     },
     { title: 'Privacy Policy', description: 'View privacy policy', iconName: 'lock', onPress: () => handleNavigate('PrivacyPolicyScreen') },
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => handleNavigate('SecurityScreen') },
-    // {
-    //   title: 'Dark mode',
-    //   description: 'Enable or disable dark mode',
-    //   iconName: 'moon',
-    //   accessoryRight: () => (
-    //     <Switch isChecked={colorScheme === 'dark'} onToggle={toggleColorMode} />
-    //   ),
-    // },
     { title: 'Terms and Policies', description: 'View terms and policies', iconName: 'file-text', onPress: () => handleNavigate('TermsPoliciesScreen') },
     { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
     { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
@@ -144,7 +118,7 @@ const Settings = () => {
               <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
               {/* <Icon as={Feather} name="edit" size="sm" color={colorScheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
             </HStack>
-            <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Chief Executive Officer</Text>
+            <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text>
           </Box>
         </Box>
         <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
