@@ -572,6 +572,14 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
             return
         }
 
+        // Set 2FA enabled to true
+        err = database.SetTwoFAEnabled(ctx, appsession.DB, request.Email, true)
+        if err != nil {
+            logrus.WithError(err).Error("Error setting 2FA enabled status")
+            ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+            return
+        }
+
         ctx.JSON(http.StatusOK, utils.SuccessResponse(
             http.StatusOK,
             "Two-factor authentication successful",
@@ -620,6 +628,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
         }
     }
 }
+
  
  
 

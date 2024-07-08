@@ -667,3 +667,13 @@ func IsTwoFAEnabled(ctx context.Context, db *mongo.Client, email string) (bool, 
     }
 	return user.TwoFAEnabled, nil
 }
+
+// setting the 2fa enabled 
+func SetTwoFAEnabled(ctx context.Context, db *mongo.Database, email string, enabled bool) error {
+    collection := db.Collection("users")
+    filter := bson.M{"email": email}
+    update := bson.M{"$set": bson.M{"twoFAEnabled": enabled}}
+
+    _, err := collection.UpdateOne(ctx, filter, update)
+    return err
+}
