@@ -185,7 +185,7 @@ func FormatResetPasswordEmailBody(otp string) string {
                 You have requested to reset your password. Your One-Time Password (OTP) is:<br>
                 <h2 style="color: #4a4a4a; background-color: #f0f0f0; padding: 10px; display: inline-block;">` + otp + `</h2><br><br>
                 Please use this OTP to reset your password. If you did not request this email, please ignore it.<br><br>
-                This OTP will expire in 1 hour.<br><br>
+                This OTP will expire in 10 minutes.<br><br>
                 Thank you,<br>
                 <b>The Occupi Team</b><br>
             </p>
