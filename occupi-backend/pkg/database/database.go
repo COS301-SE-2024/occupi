@@ -623,3 +623,22 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
     return true, "", nil
 }
 
+// VerifyTwoFACode checks if the provided 2FA code is valid for the user
+func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) (bool, error) {
+    collection := db.Database("Occupi").Collection("Users")
+    filter := bson.M{
+        "email": email,
+        "twoFACode": code,
+        "twoFACodeExpiry": bson.M{"$gt": time.Now()},
+    }
+    var user models.User
+    err := collection.FindOne(ctx, filter).Decode(&user)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            return false, nil
+        }
+        return false, err
+    }
+    return true, nil
+}
+
