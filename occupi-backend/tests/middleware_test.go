@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -13,14 +15,15 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	// "github.com/stretchr/testify/mock"
 )
 
 func TestProtectedRoute(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -29,7 +32,7 @@ func TestProtectedRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -49,7 +52,8 @@ func TestProtectedRoute(t *testing.T) {
 
 func TestProtectedRouteInvalidToken(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -58,7 +62,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -72,7 +76,8 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -81,7 +86,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -116,7 +121,8 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 
 func TestAdminRoute(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -125,7 +131,7 @@ func TestAdminRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
@@ -145,7 +151,8 @@ func TestAdminRoute(t *testing.T) {
 
 func TestUnauthorizedAccess(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -154,7 +161,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -167,7 +174,8 @@ func TestUnauthorizedAccess(t *testing.T) {
 
 func TestUnauthorizedAdminAccess(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -176,7 +184,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -192,7 +200,8 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 
 func TestAccessUnprotectedRoute(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -201,7 +210,7 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-open", nil)
@@ -218,7 +227,8 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 
 func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -227,7 +237,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -243,7 +253,8 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 
 func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// connect to the database
-	db := database.ConnectToDatabase(constants.AdminDBAccessOption)
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -252,7 +263,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -281,4 +292,152 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are not auth'd, only non-auth'd users can access this endpoint\",\"status\":200}",
 		strings.ReplaceAll(w1.Body.String(), "-\\u003e", "->"),
 	)
+}
+
+func TestRateLimit(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	ginRouter := gin.Default()
+
+	// adding rate limiting middleware
+	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	// Register routes
+	router.OccupiRouter(ginRouter, db, cache)
+
+	server := httptest.NewServer(ginRouter)
+	defer server.Close()
+
+	var wg sync.WaitGroup
+	numRequests := 10
+	responseCodes := make([]int, numRequests)
+
+	for i := 0; i < numRequests; i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			resp, err := http.Get(server.URL + "/ping")
+			if err != nil {
+				t.Errorf("Request %d failed: %v", index, err)
+				return
+			}
+			defer resp.Body.Close()
+			responseCodes[index] = resp.StatusCode
+		}(i)
+		time.Sleep(100 * time.Millisecond) // Slight delay to spread out the requests
+	}
+
+	wg.Wait()
+
+	rateLimitedCount := 0
+	for _, code := range responseCodes {
+		if code == http.StatusTooManyRequests {
+			rateLimitedCount++
+		}
+	}
+
+	assert.Greater(t, rateLimitedCount, 0, "There should be some requests that are rate limited")
+	assert.LessOrEqual(t, rateLimitedCount, numRequests-5, "There should be at least 5 requests that are not rate limited")
+}
+
+func TestRateLimitWithMultipleIPs(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	ginRouter := gin.Default()
+
+	// adding rate limiting middleware
+	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	// Register routes
+	router.OccupiRouter(ginRouter, db, cache)
+
+	server := httptest.NewServer(ginRouter)
+	defer server.Close()
+
+	var wg sync.WaitGroup
+	numRequests := 10
+	ip1 := "192.168.1.1"
+	ip2 := "192.168.1.2"
+	responseCodesIP1 := make([]int, numRequests)
+	responseCodesIP2 := make([]int, numRequests-5)
+
+	// Send requests from the first IP address
+	for i := 0; i < numRequests; i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			client := &http.Client{}
+			req, err := http.NewRequest("GET", server.URL+"/ping", nil)
+			if err != nil {
+				t.Errorf("Failed to create request: %v", err)
+				return
+			}
+			req.Header.Set("X-Forwarded-For", ip1)
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Errorf("Request failed: %v", err)
+				return
+			}
+			defer resp.Body.Close()
+			responseCodesIP1[index] = resp.StatusCode
+		}(i)
+		time.Sleep(10 * time.Millisecond) // Slight delay to spread out the requests
+	}
+
+	// Send requests from the second IP address
+	for i := 0; i < numRequests-5; i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+			client := &http.Client{}
+			req, err := http.NewRequest("GET", server.URL+"/ping", nil)
+			if err != nil {
+				t.Errorf("Failed to create request: %v", err)
+				return
+			}
+			req.Header.Set("X-Forwarded-For", ip2)
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Errorf("Request failed: %v", err)
+				return
+			}
+			defer resp.Body.Close()
+			responseCodesIP2[index] = resp.StatusCode
+		}(i)
+		time.Sleep(10 * time.Millisecond) // Slight delay to spread out the requests
+	}
+
+	wg.Wait()
+
+	rateLimitedCountIP1 := 0
+	rateLimitedCountIP2 := 0
+	for _, code := range responseCodesIP1 {
+		if code == http.StatusTooManyRequests {
+			rateLimitedCountIP1++
+		}
+	}
+	for _, code := range responseCodesIP2 {
+		if code == http.StatusTooManyRequests {
+			rateLimitedCountIP2++
+		}
+	}
+
+	// Assertions for IP1
+	assert.Greater(t, rateLimitedCountIP1, 0, "There should be some requests from IP1 that are rate limited")
+	assert.LessOrEqual(t, rateLimitedCountIP1, numRequests-5, "There should be at least 5 requests from IP1 that are not rate limited")
+
+	// Assertions for IP2
+	assert.Equal(t, rateLimitedCountIP2, 0, "There should be no requests from IP2 that are rate limited")
 }

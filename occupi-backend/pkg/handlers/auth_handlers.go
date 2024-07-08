@@ -69,7 +69,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	}
 
 	// check if a user already exists in the database with such an email
-	if exists := database.EmailExists(ctx, appsession.DB, requestUser.Email); !exists {
+	if exists := database.EmailExists(ctx, appsession, requestUser.Email); !exists {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Email not registered",
@@ -80,7 +80,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	}
 
 	// fetch hashed password
-	hashedPassword, err := database.GetPassword(ctx, appsession.DB, requestUser.Email)
+	hashedPassword, err := database.GetPassword(ctx, appsession, requestUser.Email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
@@ -106,7 +106,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	}
 
 	// check if the user is verified
-	verified, err := database.CheckIfUserIsVerified(ctx, appsession.DB, requestUser.Email)
+	verified, err := database.CheckIfUserIsVerified(ctx, appsession, requestUser.Email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
@@ -125,7 +125,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 
 	// check if the user is an admin
 	if role == constants.Admin {
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession.DB, requestUser.Email)
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, requestUser.Email)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
@@ -144,7 +144,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	}
 
 	// check if the next verification date is due
-	due, err := database.CheckIfNextVerificationDateIsDue(ctx, appsession.DB, requestUser.Email)
+	due, err := database.CheckIfNextVerificationDateIsDue(ctx, appsession, requestUser.Email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
@@ -152,7 +152,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 	}
 
 	if due {
-		reverifyUsersEmail(ctx, appsession, requestUser.Email)
+		ReverifyUsersEmail(ctx, appsession, requestUser.Email)
 		return
 	}
 
@@ -246,7 +246,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// check if a user already exists in the database with such an email
-	if exists := database.EmailExists(ctx, appsession.DB, requestUser.Email); exists {
+	if exists := database.EmailExists(ctx, appsession, requestUser.Email); exists {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Email registered",
@@ -266,7 +266,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	requestUser.Password = hashedPassword
 
 	// save user to database
-	if _, err := database.AddUser(ctx, appsession.DB, requestUser); err != nil {
+	if _, err := database.AddUser(ctx, appsession, requestUser); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
@@ -281,7 +281,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// save otp to database
-	if _, err := database.AddOTP(ctx, appsession.DB, requestUser.Email, otp); err != nil {
+	if _, err := database.AddOTP(ctx, appsession, requestUser.Email, otp); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
@@ -342,7 +342,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// check if the otp is in the database
-	valid, err := database.OTPExists(ctx, appsession.DB, userotp.Email, userotp.OTP)
+	valid, err := database.OTPExists(ctx, appsession, userotp.Email, userotp.OTP)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
@@ -351,7 +351,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 
 	if !valid {
 		// otp expired or invalid
-		_, err := database.DeleteOTP(ctx, appsession.DB, userotp.Email, userotp.OTP)
+		_, err := database.DeleteOTP(ctx, appsession, userotp.Email, userotp.OTP)
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -369,14 +369,14 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// delete the otp from the database
-	if _, err := database.DeleteOTP(ctx, appsession.DB, userotp.Email, userotp.OTP); err != nil {
+	if _, err := database.DeleteOTP(ctx, appsession, userotp.Email, userotp.OTP); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		// the otp will autodelete after an hour so we can continue
 	}
 
 	// change users verification status to true
-	if _, err := database.VerifyUser(ctx, appsession.DB, userotp.Email); err != nil {
+	if _, err := database.VerifyUser(ctx, appsession, userotp.Email); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
@@ -389,7 +389,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 // handler for reverifying a users email address
-func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
+func ReverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
 	// generate a random otp for the user and send email
 	otp, err := utils.GenerateOTP()
 	if err != nil {
@@ -399,7 +399,7 @@ func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 	}
 
 	// save otp to database
-	if _, err := database.AddOTP(ctx, appsession.DB, email, otp); err != nil {
+	if _, err := database.AddOTP(ctx, appsession, email, otp); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
@@ -419,11 +419,105 @@ func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 		"Please check your email for the OTP to re-verify your account.",
 		nil))
 }
+// common handler logic for reset
+func handlePasswordReset(ctx *gin.Context, appsession *models.AppSession, email string) {
+    // Sanitize and validate email
+    sanitizedEmail := utils.SanitizeInput(email)
+    if !utils.ValidateEmail(sanitizedEmail) {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid email address",
+            constants.InvalidRequestPayloadCode,
+            "Expected a valid format for email address",
+            nil))
+        return
+    }
 
-// handler for reseting a users password TODO: complete implementation
-func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-	// this will contain reset password logic
+    // Check if the email exists in the database
+    if exists := database.EmailExists(ctx, appsession, sanitizedEmail); !exists {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Email not registered",
+            constants.InvalidAuthCode,
+            "Please register first before attempting to reset password",
+            nil))
+        return
+    }
+
+    // Generate a OTP for the user to reset their password
+    otp, err := utils.GenerateOTP()
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to generate OTP:", err)
+        return
+    }
+
+    // Save the OTP in the database
+    success, err := database.AddOTP(ctx, appsession, sanitizedEmail, otp)
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to save OTP:", err)
+        return
+    }
+    if !success {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to save OTP: operation unsuccessful")
+        return
+    }
+
+    // Send the email to the user with the OTP
+    subject := "Password Reset - Your One-Time Password"
+    body := mail.FormatResetPasswordEmailBody(otp,email)
+
+    if err := mail.SendMail(sanitizedEmail, subject, body); err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error("Failed to send email:", err)
+        return
+    }
+
+    ctx.JSON(http.StatusOK, utils.SuccessResponse(
+        http.StatusOK,
+        "Password reset OTP sent to your email",
+        nil))
 }
+
+func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
+    var request struct {
+        Email string `json:"email" binding:"required,email"`
+    }
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid email address",
+            constants.InvalidRequestPayloadCode,
+            "Expected a valid format for email address",
+            nil))
+        return
+    }
+
+    handlePasswordReset(ctx, appsession, request.Email)
+}
+
+func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
+    var request struct {
+        Email string `json:"email" binding:"required,email"`
+    }
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid email address",
+            constants.InvalidRequestPayloadCode,
+            "Expected a valid format for email address",
+            nil))
+        return
+    }
+
+    handlePasswordReset(ctx, appsession, request.Email)
+}
+
+
+
+
 
 // handler for logging out a user
 func Logout(ctx *gin.Context) {

@@ -21,7 +21,7 @@ func FormatBookingEmailBody(bookingID string, roomID string, slot int) string {
 }
 
 // formats booking email body to send person who booked
-func FormatBookingEmailBodyForBooker(bookingID string, roomID string, slot int, attendees []string) string {
+func FormatBookingEmailBodyForBooker(bookingID string, roomID string, slot int, attendees []string, email string) string {
 	listOfAttendees := "<ul>"
 	for _, email := range attendees {
 		listOfAttendees += "<li>" + email + "</li>"
@@ -44,6 +44,23 @@ func FormatBookingEmailBodyForBooker(bookingID string, roomID string, slot int, 
 		</div>` + appendFooter()
 }
 
+// formats cancellation email body to send person who booked
+func FormatCancellationEmailBodyForBooker(bookingID string, roomID string, slot int, email string) string {
+
+	return appendHeader("Cancellation") + `
+		<div class="content">
+			<p>Dear booker,</p>
+			<p>
+				You have successfully cancelled your booked office space. Here are the booking details:<br><br>
+				<b>Booking ID:</b> ` + bookingID + `<br>
+				<b>Room ID:</b> ` + roomID + `<br>
+				<b>Slot:</b> ` + strconv.Itoa(slot) + `<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + appendFooter()
+}
+
 // formats booking email body to send attendees
 func FormatBookingEmailBodyForAttendees(bookingID string, roomID string, slot int, email string) string {
 	return appendHeader("Booking") + `
@@ -51,6 +68,23 @@ func FormatBookingEmailBodyForAttendees(bookingID string, roomID string, slot in
 			<p>Dear attendees,</p>
 			<p>
 				` + email + ` has booked an office space and invited you to join. Here are the booking details:<br><br>
+				<b>Booking ID:</b> ` + bookingID + `<br>
+				<b>Room ID:</b> ` + roomID + `<br>
+				<b>Slot:</b> ` + strconv.Itoa(slot) + `<br><br>
+				If you have any questions, feel free to contact us.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + appendFooter()
+}
+
+// formats cancellation email body to send attendees
+func FormatCancellationEmailBodyForAttendees(bookingID string, roomID string, slot int, email string) string {
+	return appendHeader("Booking") + `
+		<div class="content">
+			<p>Dear attendees,</p>
+			<p>
+				` + email + ` has cancelled the booked office space with the following details:<br><br>
 				<b>Booking ID:</b> ` + bookingID + `<br>
 				<b>Room ID:</b> ` + roomID + `<br>
 				<b>Slot:</b> ` + strconv.Itoa(slot) + `<br><br>
@@ -132,11 +166,29 @@ func appendHeader(title string) string {
 }
 
 func appendFooter() string {
-	return `<div class="footer">
-				<img src="https://raw.githubusercontent.com/COS301-SE-2024/occupi/develop/presentation/Occupi/Occupi-black.png" alt="Business Banner" style="width:100%;">
-				<p>140 Lunnon Road, Hillcrest, Pretoria. PO Box 14679, Hatfield, 0028</p>
-			</div>
+	return `
+		<div class="footer" style="text-align:center; padding:10px; font-size:12px;">
+			<img src="https://raw.githubusercontent.com/COS301-SE-2024/occupi/develop/presentation/Occupi/Occupi-black.png" alt="Business Banner" style="width:80%; max-width:600px; height:auto; margin-bottom:10px;">
+			<p style="margin:5px 0;">140 Lunnon Road, Hillcrest, Pretoria. PO Box 14679, Hatfield, 0028</p>
+		</div>
 		</body>
 		</html>
 	`
+}
+
+
+// FormatPasswordResetEmailBody(otp, email)
+func FormatResetPasswordEmailBody(otp string, email string) string {
+	return appendHeader("Password Reset") + `
+		<div class="content">
+			<p>Dear ` + email + `,</p>
+			<p>
+				You have requested to reset your password. Your One-Time Password (OTP) is:<br>
+				<h2 style="color: #4a4a4a; background-color: #f0f0f0; padding: 10px; display: inline-block;">` + otp + `</h2><br><br>
+				Please use this OTP to reset your password. If you did not request this email, please ignore it.<br><br>
+				This OTP will expire in 10 minutes.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + appendFooter()
 }
