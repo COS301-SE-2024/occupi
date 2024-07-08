@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -601,7 +600,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
 
             // Send OTP via email
             subject := "Occupi Re-verification Code"
-            body := formatTwoFAEmailBody(otp)
+            body := mail.FormatTwoFAEmailBody(otp, request.Email)
             if err := mail.SendMail(request.Email, subject, body); err != nil {
                 ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
                 logrus.Error(err)
@@ -622,11 +621,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
     }
 }
  
- // Helper function to format the 2FA email body
- func formatTwoFAEmailBody(otp string) string {
-	 return "Your Occupi 2FA code is: %s" + otp
- }
-
+ 
 
 // handler for logging out a user
 func Logout(ctx *gin.Context) {
