@@ -30,7 +30,7 @@ const (
 	Env                 = "ENV"
 	OtpExpiration       = "OTP_EXPIRATION"
 	FrontendURL         = "FRONTEND_URL"
-	
+	ConfigLicense       = "CONFIG_LICENSE"
 )
 
 // init viper
@@ -242,3 +242,11 @@ func GetOTPExpiration() int {
 	return expiration
 }
 
+// gets the config license as defined in the config.yaml file
+func GetConfigLicense() string {
+	license := viper.GetString(ConfigLicense)
+	if license == "" {
+		license = "CONFIG_LICENSE"
+	}
+	return license
+}
