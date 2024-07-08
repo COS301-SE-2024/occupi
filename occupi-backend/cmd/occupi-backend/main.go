@@ -27,6 +27,9 @@ func main() {
 	// connect to the database
 	db := configs.ConnectToDatabase()
 
+	// create cache
+	cache := configs.CreateCache()
+
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
 
@@ -43,7 +46,7 @@ func main() {
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()

@@ -25,6 +25,7 @@ import (
 func TestMockDatabase(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -33,7 +34,7 @@ func TestMockDatabase(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db)
+	router.OccupiRouter(r, db, cache)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -78,7 +79,7 @@ func TestGetAllData(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, onSiteTrueDocs...))
 
 		// Call the function under test
-		users := database.GetAllData(mt.Client)
+		users := database.GetAllData(models.New(mt.Client, nil))
 
 		// Validate the result
 		expected := []bson.M{
@@ -117,7 +118,7 @@ func TestEmailExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists := database.EmailExists(ctx, mt.Client, email)
+		exists := database.EmailExists(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.True(t, exists)
@@ -127,7 +128,7 @@ func TestEmailExists(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch))
 
 		// Call the function under test
-		exists := database.EmailExists(ctx, mt.Client, email)
+		exists := database.EmailExists(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.False(t, exists)
@@ -140,7 +141,7 @@ func TestEmailExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists := database.EmailExists(ctx, mt.Client, email)
+		exists := database.EmailExists(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.False(t, exists)
@@ -176,7 +177,7 @@ func TestAddUser(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.AddUser(ctx, mt.Client, user)
+		success, err := database.AddUser(ctx, models.New(mt.Client, nil), user)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -190,7 +191,7 @@ func TestAddUser(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.AddUser(ctx, mt.Client, user)
+		success, err := database.AddUser(ctx, models.New(mt.Client, nil), user)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -230,7 +231,7 @@ func TestOTPExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, mt.Client, email, otp)
+		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -245,7 +246,7 @@ func TestOTPExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, mt.Client, email, otp)
+		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -256,7 +257,7 @@ func TestOTPExists(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.OTPS", mtest.FirstBatch))
 
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, mt.Client, email, otp)
+		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -270,7 +271,7 @@ func TestOTPExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, mt.Client, email, otp)
+		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -304,7 +305,7 @@ func TestAddOTP(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.AddOTP(ctx, mt.Client, email, otp)
+		success, err := database.AddOTP(ctx, models.New(mt.Client, nil), email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -320,7 +321,7 @@ func TestAddOTP(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.AddOTP(ctx, mt.Client, email, otp)
+		success, err := database.AddOTP(ctx, models.New(mt.Client, nil), email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -354,7 +355,7 @@ func TestDeleteOTP(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.DeleteOTP(ctx, mt.Client, email, otp)
+		success, err := database.DeleteOTP(ctx, models.New(mt.Client, nil), email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -370,7 +371,7 @@ func TestDeleteOTP(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.DeleteOTP(ctx, mt.Client, email, otp)
+		success, err := database.DeleteOTP(ctx, models.New(mt.Client, nil), email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -403,7 +404,7 @@ func TestVerifyUser(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, mt.Client, email)
+		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -419,7 +420,7 @@ func TestVerifyUser(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, mt.Client, email)
+		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -456,7 +457,7 @@ func TestGetPassword(t *testing.T) {
 		}))
 
 		// Call the function under test
-		pass, err := database.GetPassword(ctx, mt.Client, email)
+		pass, err := database.GetPassword(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -470,7 +471,7 @@ func TestGetPassword(t *testing.T) {
 		}))
 
 		// Call the function under test
-		pass, err := database.GetPassword(ctx, mt.Client, email)
+		pass, err := database.GetPassword(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -506,7 +507,7 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isVerified, err := database.CheckIfUserIsVerified(ctx, mt.Client, email)
+		isVerified, err := database.CheckIfUserIsVerified(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -520,7 +521,7 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isVerified, err := database.CheckIfUserIsVerified(ctx, mt.Client, email)
+		isVerified, err := database.CheckIfUserIsVerified(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -534,7 +535,7 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isVerified, err := database.CheckIfUserIsVerified(ctx, mt.Client, email)
+		isVerified, err := database.CheckIfUserIsVerified(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -567,7 +568,7 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.UpdateVerificationStatusTo(ctx, mt.Client, email, true)
+		success, err := database.UpdateVerificationStatusTo(ctx, models.New(mt.Client, nil), email, true)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -583,7 +584,7 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.UpdateVerificationStatusTo(ctx, mt.Client, email, true)
+		success, err := database.UpdateVerificationStatusTo(ctx, models.New(mt.Client, nil), email, true)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -619,7 +620,7 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, mt.Client, email)
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -633,7 +634,7 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, mt.Client, email)
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -647,7 +648,7 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, mt.Client, email)
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -887,7 +888,7 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		}))
 
 		mockUpdate := new(MockUpdateVerificationStatus)
-		mockUpdate.On("UpdateVerificationStatusTo", ctx, mt.Client, email, false).Return(true, nil)
+		mockUpdate.On("UpdateVerificationStatusTo", ctx, models.New(mt.Client, nil), email, false).Return(true, nil)
 
 		// Replace the original function with the mock
 		originalFunc := database.UpdateVerificationStatusTo
@@ -895,14 +896,14 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		defer func() { database.UpdateVerificationStatusTo = originalFunc }()
 
 		// Call the function under test
-		due, err := database.CheckIfNextVerificationDateIsDue(ctx, mt.Client, email)
+		due, err := database.CheckIfNextVerificationDateIsDue(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.NoError(t, err)
 		assert.True(t, due)
 
 		// Verify the mock
-		mockUpdate.AssertCalled(t, "UpdateVerificationStatusTo", ctx, mt.Client, email, false)
+		mockUpdate.AssertCalled(t, "UpdateVerificationStatusTo", ctx, models.New(mt.Client, nil), email, false)
 	})
 
 	mt.Run("Next verification date is not due", func(mt *mtest.T) {
@@ -913,7 +914,7 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		}))
 
 		// Call the function under test
-		due, err := database.CheckIfNextVerificationDateIsDue(ctx, mt.Client, email)
+		due, err := database.CheckIfNextVerificationDateIsDue(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -927,7 +928,7 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		}))
 
 		// Call the function under test
-		due, err := database.CheckIfNextVerificationDateIsDue(ctx, mt.Client, email)
+		due, err := database.CheckIfNextVerificationDateIsDue(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -942,7 +943,7 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		}))
 
 		mockUpdate := new(MockUpdateVerificationStatus)
-		mockUpdate.On("UpdateVerificationStatusTo", ctx, mt.Client, email, false).Return(false, assert.AnError)
+		mockUpdate.On("UpdateVerificationStatusTo", ctx, models.New(mt.Client, nil), email, false).Return(false, assert.AnError)
 
 		// Replace the original function with the mock
 		originalFunc := database.UpdateVerificationStatusTo
@@ -950,14 +951,14 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		defer func() { database.UpdateVerificationStatusTo = originalFunc }()
 
 		// Call the function under test
-		due, err := database.CheckIfNextVerificationDateIsDue(ctx, mt.Client, email)
+		due, err := database.CheckIfNextVerificationDateIsDue(ctx, models.New(mt.Client, nil), email)
 
 		// Validate the result
 		assert.Error(t, err)
 		assert.False(t, due)
 
 		// Verify the mock
-		mockUpdate.AssertCalled(t, "UpdateVerificationStatusTo", ctx, mt.Client, email, false)
+		mockUpdate.AssertCalled(t, "UpdateVerificationStatusTo", ctx, models.New(mt.Client, nil), email, false)
 	})
 }
 */
