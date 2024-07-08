@@ -11,6 +11,8 @@ print_help() {
     echo "  test              -> gotestsum --format testname -- -v ./tests/..."
     echo "  test codecov      -> gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out"
     echo "  lint              -> golangci-lint run"
+    echo "  decrypt env       -> cd scripts && chmod +x decrypt_env_variables.sh && ./decrypt_env_variables.sh"
+    echo "  encrypt env       -> cd scripts && chmod +x encrypt_env_variables.sh && ./encrypt_env_variables.sh"
     echo "  help              -> Show this help message"
 }
 
@@ -28,6 +30,10 @@ elif [ "$1" = "test" ] && [ "$2" = "codecov" ]; then
     gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
 elif [ "$1" = "lint" ]; then
     golangci-lint run
+elif [ "$1" = "decrypt" ] && [ "$2" = "env" ]; then
+    cd scripts && chmod +x decrypt_env_variables.sh && ./decrypt_env_variables.sh
+elif [ "$1" = "encrypt" ] && [ "$2" = "env" ]; then
+    cd scripts && chmod +x encrypt_env_variables.sh && ./encrypt_env_variables.sh
 elif [ "$1" = "help" ] || [ -z "$1" ]; then
     print_help
 else
