@@ -26,6 +26,8 @@ import (
 	"flag"
 
 	"github.com/gin-gonic/gin"
+	nrgin "github.com/newrelic/go-agent/v3/integrations/nrgin"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -66,6 +68,21 @@ func main() {
 
 	// adding rate limiting middleware
 	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
+		// Create a newrelic application
+		app, err := newrelic.NewApplication(
+			newrelic.ConfigAppName("occupi-backend"),
+			newrelic.ConfigLicense(configs.GetConfigLicense()),
+			newrelic.ConfigAppLogForwardingEnabled(true),
+		)
+		if err != nil {
+			logrus.Fatal("Failed to create newrelic application: ", err)
+		}
+
+		// adding newrelic middleware
+		ginRouter.Use(nrgin.Middleware(app))
+	}
 
 	// Register routes
 	router.OccupiRouter(ginRouter, db, cache)
