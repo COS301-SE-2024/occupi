@@ -515,7 +515,116 @@ func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
     handlePasswordReset(ctx, appsession, request.Email)
 }
 
+// handler for Verify 2fa
+func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
+    var request struct {
+        Email string `json:"email" binding:"required,email"`
+        Code  string `json:"code" binding:"required,len=6"`
+    }
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid request payload",
+            constants.InvalidRequestPayloadCode,
+            err.Error(),
+            nil))
+        return
+    }
 
+    valid, err := database.VerifyTwoFACode(ctx, appsession.DB, request.Email, request.Code)
+    if err != nil {
+        logrus.WithFields(logrus.Fields{
+            "email": request.Email,
+            "error": err.Error(),
+        }).Error("Error verifying 2FA code")
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        return
+    }
+
+    if !valid {
+        logrus.WithFields(logrus.Fields{
+            "email": request.Email,
+        }).Info("Invalid 2FA code attempt")
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid 2FA code",
+            constants.InvalidAuthCode,
+            "The provided 2FA code is invalid or has expired",
+            nil))
+        return
+    }
+
+    // Generate OTP
+    otp, err := utils.GenerateOTP()
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        logrus.Error(err)
+        return
+    }
+
+    // Get user's 2FA preference
+    twoFAPreference, err := database.GetUserTwoFAPreference(ctx, appsession.DB, request.Email)
+    if err != nil {
+        logrus.WithFields(logrus.Fields{
+            "email": request.Email,
+            "error": err.Error(),
+        }).Error("Error getting user's 2FA preference")
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        return
+    }
+
+    // Send OTP based on user's preference
+    if twoFAPreference == "email" {
+        subject := "Your Occupi 2FA Code"
+        body := mail.FormatTwoFAEmailBody(otp)
+        if err := mail.SendMail(request.Email, subject, body); err != nil {
+            ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+            logrus.Error(err)
+            return
+        }
+    } 
+	// else if twoFAPreference == "sms" {
+    //     phoneNumber, err := database.GetUserPhoneNumber(ctx, appsession.DB, request.Email)
+    //     if err != nil {
+    //         logrus.WithFields(logrus.Fields{
+    //             "email": request.Email,
+    //             "error": err.Error(),
+    //         }).Error("Error getting user's phone number")
+    //         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+    //         return
+    //     }
+    //     if err := utils.SendSMS(ctx, phoneNumber, "Your Occupi login code is: "+otp); err != nil {
+    //         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+    //         logrus.Error(err)
+    //         return
+    //     }
+    // }
+	 {
+        ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+            http.StatusInternalServerError,
+            "Invalid 2FA preference",
+            constants.InvalidAuthCode,
+            "The user's 2FA preference is not properly set",
+            nil))
+        return
+    }
+
+    // Save OTP in the database
+    err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
+    if err != nil {
+        logrus.WithFields(logrus.Fields{
+            "email": request.Email,
+            "error": err.Error(),
+        }).Error("Error saving OTP in database")
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        return
+    }
+
+    ctx.JSON(http.StatusOK, utils.SuccessResponse(
+        http.StatusOK,
+        "OTP sent successfully. Please check your " + twoFAPreference + ".",
+        nil))
+}
 
 
 
