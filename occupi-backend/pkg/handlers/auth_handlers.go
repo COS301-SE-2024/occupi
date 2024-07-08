@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -531,6 +532,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
+	// Verify the 2FA code
     valid, err := database.VerifyTwoFACode(ctx, appsession.DB, request.Email, request.Code)
     if err != nil {
         logrus.WithFields(logrus.Fields{
@@ -563,7 +565,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
     }
 
     // Get user's 2FA preference
-    twoFAPreference, err := database.GetUserTwoFAPreference(ctx, appsession.DB, request.Email)
+    twoFAPreference, err := database.IsTwoFAEnabled(ctx, appsession.DB, request.Email)
     if err != nil {
         logrus.WithFields(logrus.Fields{
             "email": request.Email,
@@ -573,59 +575,36 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Send OTP based on user's preference
-    if twoFAPreference == "email" {
-        subject := "Your Occupi 2FA Code"
-        body := mail.FormatTwoFAEmailBody(otp)
-        if err := mail.SendMail(request.Email, subject, body); err != nil {
-            ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-            logrus.Error(err)
-            return
-        }
-    } 
-	// else if twoFAPreference == "sms" {
-    //     phoneNumber, err := database.GetUserPhoneNumber(ctx, appsession.DB, request.Email)
-    //     if err != nil {
-    //         logrus.WithFields(logrus.Fields{
-    //             "email": request.Email,
-    //             "error": err.Error(),
-    //         }).Error("Error getting user's phone number")
-    //         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-    //         return
-    //     }
-    //     if err := utils.SendSMS(ctx, phoneNumber, "Your Occupi login code is: "+otp); err != nil {
-    //         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-    //         logrus.Error(err)
-    //         return
-    //     }
-    // }
-	 {
-        ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
-            http.StatusInternalServerError,
-            "Invalid 2FA preference",
-            constants.InvalidAuthCode,
-            "The user's 2FA preference is not properly set",
-            nil))
-        return
-    }
-
-    // Save OTP in the database
-    err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
-    if err != nil {
-        logrus.WithFields(logrus.Fields{
-            "email": request.Email,
-            "error": err.Error(),
-        }).Error("Error saving OTP in database")
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        return
-    }
-
-    ctx.JSON(http.StatusOK, utils.SuccessResponse(
-        http.StatusOK,
-        "OTP sent successfully. Please check your " + twoFAPreference + ".",
-        nil))
-}
-
+     // Send OTP via email
+	 subject := "Your Occupi 2FA Code"
+	 body := formatTwoFAEmailBody(otp)
+	 if err := mail.SendMail(request.Email, subject, body); err != nil {
+		 ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		 logrus.Error(err)
+		 return
+	 }
+ 
+	 // Save new OTP in the database
+	 err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
+	 if err != nil {
+		 logrus.WithFields(logrus.Fields{
+			 "email": request.Email,
+			 "error": err.Error(),
+		 }).Error("Error saving OTP in database")
+		 ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		 return
+	 }
+ 
+	 ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		 http.StatusOK,
+		 "OTP sent successfully. Please check your email.",
+		 nil))
+ }
+ 
+ // Helper function to format the 2FA email body
+ func formatTwoFAEmailBody(otp string) string {
+	 return fmt.Sprintf("Your Occupi 2FA code is: %s", otp)
+ }
 
 
 // handler for logging out a user
