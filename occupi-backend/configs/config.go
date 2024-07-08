@@ -242,11 +242,3 @@ func GetOTPExpiration() int {
 	return expiration
 }
 
-// gets the frontend url as defined in the config.yaml file in seconds
-func GetFrontendURL() string {
-	frontendURL := viper.GetString("FRONTEND_URL")
-	if frontendURL == "" {
-		frontendURL = "FRONTEND_URL"
-	}
-	return frontendURL
-}

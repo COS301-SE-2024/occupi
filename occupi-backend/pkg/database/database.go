@@ -224,6 +224,19 @@ func DeleteOTP(ctx *gin.Context, db *mongo.Client, email string, otp string) (bo
 	return true, nil
 }
 
+// GetResetOTP retrieves the OTP for the given email and OTP from the database
+func GetResetOTP(ctx context.Context, db *mongo.Client, email, otp string) (*models.OTP, error) {
+    collection := db.Database("Occupi").Collection("OTPs")
+    var resetOTP models.OTP
+    filter := bson.M{"email": email, "otp": otp}
+    err := collection.FindOne(ctx, filter).Decode(&resetOTP)
+    if err != nil {
+        return nil, err
+    }
+    return &resetOTP, nil
+}
+
+
 // verifies a user in the database
 func VerifyUser(ctx *gin.Context, db *mongo.Client, email string) (bool, error) {
 	// Verify the user in the database and set next date to verify to 30 days from now
@@ -507,3 +520,4 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
 
     return true, "", nil
 }
+
