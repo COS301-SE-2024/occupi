@@ -624,7 +624,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
  
  // Helper function to format the 2FA email body
  func formatTwoFAEmailBody(otp string) string {
-	 return fmt.Sprintf("Your Occupi 2FA code is: %s", otp)
+	 return "Your Occupi 2FA code is: %s" + otp
  }
 
 
