@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { useDisclosure } from "@nextui-org/react";
 
 import {
   Table,
@@ -29,7 +30,7 @@ import { SearchIcon } from "@assets/index";
 import { ChevronDownIcon, EyeIcon, DeleteIcon, EditIcon } from "@assets/index";
 import { columns, users, statusOptions } from "../data/Data";
 import { capitalize } from "../data/Utils";
-import { Modal } from "@components/index";
+import { OccupancyModal } from "@components/index";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
   ONSITE: "success",
@@ -61,6 +62,9 @@ export default function App() {
     column: "bookings",
     direction: "ascending",
   });
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
 
   const [page, setPage] = React.useState(1);
 
@@ -155,7 +159,11 @@ export default function App() {
             <Tooltip content="View User Details">
               <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
                 {/* <EyeIcon /> */}
-                <Modal/>
+                <div onClick={onOpen}>
+        {/* <EyeIcon />Hello */}
+        
+      </div>
+      <OccupancyModal/>
               </span>
             </Tooltip>
             {/* <Tooltip content="Edit user">
