@@ -9,45 +9,14 @@ import {
 } from "@nextui-org/react";
 import { EyeIcon } from "@assets/index";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-} from "recharts";
+  WeeklyAttendanceChart,
+  OfficePresent,
+  OccupancyRatingChart,
+  KeyStats,
+  ProfileComponent
+} from "@components/index";
 
-const weeklyData = [
-  { day: "Mon", hours: 8 },
-  { day: "Tue", hours: 7 },
-  { day: "Wed", hours: 9 },
-  { day: "Thu", hours: 8 },
-  { day: "Fri", hours: 6 },
-];
-
-const timeData = [
-  { time: "9AM", probability: 0.7 },
-  { time: "11AM", probability: 0.9 },
-  { time: "1PM", probability: 0.5 },
-  { time: "3PM", probability: 0.8 },
-  { time: "5PM", probability: 0.6 },
-];
-
-const occupancyData = [
-  { name: "In Office", value: 70 },
-  { name: "Remote", value: 30 },
-];
-
-const COLORS = ["#0088FE", "#00C49F"];
-
-export default function App() {
+export default function OccupancyModal() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
@@ -69,76 +38,23 @@ export default function App() {
                 User Office Occupancy Stats
               </ModalHeader>
               <ModalBody className="text-text_col">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">
-                      Weekly Attendance
-                    </h3>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <BarChart data={weeklyData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="day" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="hours" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                <div className="flex flex-col gap-6">
+                  {/* User Profile and Key Stats Section */}
+                  <div className=" border flex justify-between items-start bg-secondary p-4 rounded-lg">
+                    <ProfileComponent />
+                    <KeyStats />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">
-                      Probability of Office Presence
-                    </h3>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <LineChart data={timeData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="probability"
-                          stroke="#82ca9d"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">
-                      Occupancy Rating
-                    </h3>
-                    <ResponsiveContainer width="100%" height={200}>
-                      <PieChart>
-                        <Pie
-                          data={occupancyData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {occupancyData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex flex-col   justify-center items-center">
-                    <h3 className="text-lg font-semiboldmb-2">Key Stats</h3>
-                    <div className="text-text_col">
-                      <p className="text-text_col">Average Weekly Hours: 7.6</p>
-                      <p className="text-text_col">
-                        Most Likely Office Time: 11AM
-                      </p>
-                      <p className="text-text_col">Occupancy Rating: 70%</p>
+
+                  {/* Charts Section */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="border bg-secondary p-4 rounded-lg shadow">
+                      <WeeklyAttendanceChart />
+                    </div>
+                    <div className="border bg-secondary p-4 rounded-lg shadow">
+                      <OfficePresent />
+                    </div>
+                    <div className="border bg-secondary p-4 rounded-lg shadow col-span-2">
+                      <OccupancyRatingChart />
                     </div>
                   </div>
                 </div>
