@@ -240,6 +240,19 @@ func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, ot
 	return true, nil
 }
 
+// GetResetOTP retrieves the OTP for the given email and OTP from the database
+func GetResetOTP(ctx context.Context, db *mongo.Client, email, otp string) (*models.OTP, error) {
+    collection := db.Database("Occupi").Collection("OTPs")
+    var resetOTP models.OTP
+    filter := bson.M{"email": email, "otp": otp}
+    err := collection.FindOne(ctx, filter).Decode(&resetOTP)
+    if err != nil {
+        return nil, err
+    }
+    return &resetOTP, nil
+}
+
+
 // verifies a user in the database
 func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
 	// Verify the user in the database and set next date to verify to 30 days from now
@@ -502,3 +515,111 @@ func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email s
 	}
 	return user.Role == constants.Admin, nil
 }
+
+
+// AddResetToken adds a reset token to the database
+func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetToken string, expirationTime time.Time) (bool, error) {
+    collection := db.Database("Occupi").Collection("ResetTokens")
+    resetTokenStruct := models.ResetToken{
+        Email:      email,
+        Token:      resetToken,
+        ExpireWhen: expirationTime,
+    }
+    _, err := collection.InsertOne(ctx, resetTokenStruct)
+    if err != nil {
+        logrus.Error(err)
+        return false, err
+    }
+    return true, nil
+}
+
+// retrieves the email associated with a reset token
+func GetEmailByResetToken(ctx context.Context, db *mongo.Client, resetToken string) (string, error) {
+    collection := db.Database("Occupi").Collection("ResetTokens")
+    filter := bson.M{"token": resetToken}
+    var resetTokenStruct models.ResetToken
+    err := collection.FindOne(ctx, filter).Decode(&resetTokenStruct)
+    if err != nil {
+        logrus.Error(err)
+        return "", err
+    }
+    return resetTokenStruct.Email, nil
+}
+
+// CheckResetToken function 
+func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
+    // Access the "ResetTokens" collection within the "Occupi" database.
+    collection := db.Database("Occupi").Collection("ResetTokens")
+    
+    // Create a filter to find the document matching the provided email and token.
+    filter := bson.M{"email": email, "token": token}
+    
+    // Define a variable to hold the reset token document.
+    var resetToken models.ResetToken
+    
+    // Attempt to find the document in the collection.
+    err := collection.FindOne(ctx, filter).Decode(&resetToken)
+    if err != nil {
+        // Log and return the error if the document cannot be found or decoded.
+        logrus.Error(err)
+        return false, err
+    }
+
+	  // Check if the current time is after the token's expiration time.
+    if time.Now().After(resetToken.ExpireWhen) {
+        // Return false indicating the token has expired.
+        return false, nil
+    }
+    
+    // Return true indicating the token is still valid.
+    return true, nil
+}
+
+// UpdateUserPassword, which updates the password in the database set by the user
+func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, password string) (bool, error) {
+	// Update the password in the database
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"password": password}}
+	_, err := collection.UpdateOne(ctx, filter,update)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// ClearRestToekn, removes the reset token from the database
+func ClearResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
+	// Delete the token from the database
+	collection := db.Database("Occupi").Collection("ResetTokens")
+	filter := bson.M{"email": email, "token": token}
+	_, err := collection.DeleteOne(ctx,filter)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
+}
+
+// ValidateResetToken 
+func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token string) (bool, string, error) {
+    // Find the reset token document
+    var resetToken models.ResetToken
+    collection := db.Database("Occupi").Collection("ResetTokens")
+    err := collection.FindOne(ctx, bson.M{"email": email, "token": token}).Decode(&resetToken)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            return false, "Invalid or expired token", nil
+        }
+        return false, "", err
+    }
+
+    // Check if the token has expired
+    if time.Now().After(resetToken.ExpireWhen) {
+        return false, "Token has expired", nil
+    }
+
+    return true, "", nil
+}
+

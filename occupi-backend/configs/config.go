@@ -29,6 +29,8 @@ const (
 	OccupiDomains       = "OCCUPI_DOMAINS"
 	Env                 = "ENV"
 	OtpExpiration       = "OTP_EXPIRATION"
+	FrontendURL         = "FRONTEND_URL"
+	
 )
 
 // init viper
@@ -239,3 +241,4 @@ func GetOTPExpiration() int {
 	}
 	return expiration
 }
+

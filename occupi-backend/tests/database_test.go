@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -655,6 +656,198 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 	})
 }
 
+// Test AddResetToken
+func TestAddResetToken(t *testing.T) {
+    mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+    
+    mt.Run("success", func(mt *mtest.T) {
+        mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+        email := "test@example.com"
+        resetToken := "token123"
+        expirationTime := time.Now().Add(1 * time.Hour)
+
+        success, err := database.AddResetToken(context.Background(), mt.Client, email, resetToken, expirationTime)
+
+        assert.NoError(t, err)
+        assert.True(t, success)
+    })
+
+    mt.Run("error", func(mt *mtest.T) {
+        mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+            Code:    11000,
+            Message: "duplicate key error",
+        }))
+
+        email := "test@example.com"
+        resetToken := "token123"
+        expirationTime := time.Now().Add(1 * time.Hour)
+
+        success, err := database.AddResetToken(context.Background(), mt.Client, email, resetToken, expirationTime)
+
+        assert.Error(t, err)
+        assert.False(t, success)
+    })
+}
+
+// Test GetEmailByResetToken
+func TestGetEmailByResetToken(t *testing.T) {
+    mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+    
+    mt.Run("success", func(mt *mtest.T) {
+        expectedEmail := "test@example.com"
+        resetToken := "token123"
+
+        mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
+            {Key: "email", Value: expectedEmail},
+            {Key: "token", Value: resetToken},
+        }))
+
+        email, err := database.GetEmailByResetToken(context.Background(), mt.Client, resetToken)
+
+        assert.NoError(t, err)
+        assert.Equal(t, expectedEmail, email)
+    })
+
+    mt.Run("not found", func(mt *mtest.T) {
+        resetToken := "nonexistenttoken"
+
+        mt.AddMockResponses(mtest.CreateCursorResponse(0, "Occupi.ResetTokens", mtest.FirstBatch))
+
+        email, err := database.GetEmailByResetToken(context.Background(), mt.Client, resetToken)
+
+        assert.Error(t, err)
+        assert.Equal(t, "", email)
+    })
+}
+
+// Test CheckResetToken
+
+func TestCheckResetToken(t *testing.T) {
+    mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+    
+
+    gin.SetMode(gin.TestMode)
+    ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+    mt.Run("valid token", func(mt *mtest.T) {
+        email := "test@example.com"
+        token := "validtoken"
+        expireWhen := time.Now().Add(1 * time.Hour)
+
+        mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
+            {Key: "email", Value: email},
+            {Key: "token", Value: token},
+            {Key: "expireWhen", Value: expireWhen},
+        }))
+
+        valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
+
+        assert.NoError(t, err)
+        assert.True(t, valid)
+    })
+
+    mt.Run("expired token", func(mt *mtest.T) {
+        email := "test@example.com"
+        token := "expiredtoken"
+        expireWhen := time.Now().Add(-1 * time.Hour)
+
+        mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
+            {Key: "email", Value: email},
+            {Key: "token", Value: token},
+            {Key: "expireWhen", Value: expireWhen},
+        }))
+
+        valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
+
+        assert.NoError(t, err)
+        assert.False(t, valid)
+    })
+
+    mt.Run("token not found", func(mt *mtest.T) {
+        email := "test@example.com"
+        token := "nonexistenttoken"
+
+        mt.AddMockResponses(mtest.CreateCursorResponse(0, "Occupi.ResetTokens", mtest.FirstBatch))
+
+        valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
+
+        assert.Error(t, err)
+        assert.False(t, valid)
+    })
+}
+
+// Test UpdateUserPassword
+func TestUpdateUserPassword(t *testing.T) {
+    mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+    
+
+    gin.SetMode(gin.TestMode)
+    ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+    mt.Run("success", func(mt *mtest.T) {
+        email := "test@example.com"
+        newPassword := "newpassword123"
+
+        mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+        success, err := database.UpdateUserPassword(ctx, mt.Client, email, newPassword)
+
+        assert.NoError(t, err)
+        assert.True(t, success)
+    })
+
+    mt.Run("error", func(mt *mtest.T) {
+        email := "test@example.com"
+        newPassword := "newpassword123"
+
+        mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+            Code:    11000,
+            Message: "update error",
+        }))
+
+        success, err := database.UpdateUserPassword(ctx, mt.Client, email, newPassword)
+
+        assert.Error(t, err)
+        assert.False(t, success)
+    })
+}
+
+// Test ClearResetToken
+func TestClearResetToken(t *testing.T) {
+    mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+    
+
+    gin.SetMode(gin.TestMode)
+    ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+    mt.Run("success", func(mt *mtest.T) {
+        email := "test@example.com"
+        token := "token123"
+
+        mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+        success, err := database.ClearResetToken(ctx, mt.Client, email, token)
+
+        assert.NoError(t, err)
+        assert.True(t, success)
+    })
+
+    mt.Run("error", func(mt *mtest.T) {
+        email := "test@example.com"
+        token := "token123"
+
+        mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+            Code:    11000,
+            Message: "delete error",
+        }))
+
+        success, err := database.ClearResetToken(ctx, mt.Client, email, token)
+
+        assert.Error(t, err)
+        assert.False(t, success)
+    })
+}
 /*
 
 type MockUpdateVerificationStatus struct {
@@ -769,3 +962,4 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 	})
 }
 */
+
