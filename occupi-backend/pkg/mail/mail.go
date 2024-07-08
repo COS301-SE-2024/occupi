@@ -7,35 +7,43 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"gopkg.in/gomail.v2"
 )
 
-var (
-	mu                sync.Mutex
-	emailsSent        int
-	recipientsReached int
-	dayStart          time.Time
-)
+const test = "test"
 
 // SendMail sends an email using gomail
 func SendMail(to string, subject string, body string) error {
-	if configs.GetGinRunMode() == "test" {
+	if configs.GetGinRunMode() == test {
 		return nil // Do not send emails in test mode
 	}
 
-	from := configs.GetSystemEmail()
-	password := configs.GetSMTPPassword()
-	smtpHost := configs.GetSMTPHost()
-	smtpPort := configs.GetSMTPPort()
-
 	m := gomail.NewMessage()
-	m.SetHeader("From", from)
+	m.SetHeader("From", configs.GetSystemEmail())
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
+	d := gomail.NewDialer(configs.GetSMTPHost(), configs.GetSMTPPort(), configs.GetSystemEmail(), configs.GetSMTPPassword())
+
+	if err := d.DialAndSend(m); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SendMailBCC sends an email using gomail with BCC
+func SendMailBCC(subject, body, bcc string) error {
+	m := gomail.NewMessage()
+	m.SetHeader("From", configs.GetSystemEmail())
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", body)
+	m.SetHeader("Bcc", bcc)
+
+	d := gomail.NewDialer(configs.GetSMTPHost(), configs.GetSMTPPort(), configs.GetSystemEmail(), configs.GetSMTPPassword())
 
 	if err := d.DialAndSend(m); err != nil {
 		return err
@@ -45,7 +53,7 @@ func SendMail(to string, subject string, body string) error {
 }
 
 func SendMultipleEmailsConcurrently(emails []string, subject, body string, creator string) []string {
-	if configs.GetGinRunMode() == "test" {
+	if configs.GetGinRunMode() == test {
 		return []string{} // Do not send emails in test mode
 	}
 
@@ -72,39 +80,34 @@ func SendMultipleEmailsConcurrently(emails []string, subject, body string, creat
 	return emailErrors
 }
 
-func SendBulkEmailWithBCC(emails []string, subject, body string) error {
-	// Lock to prevent
-	mu.Lock()
-
+// SendBulkEmailWithBCC sends an email to multiple recipients using BCC
+func SendBulkEmailWithBCC(emails []string, subject, body string, appsession *models.AppSession) error {
 	// if new day, reset email count
-	if time.Since(dayStart) > 24*time.Hour {
-		dayStart = time.Now()
-		emailsSent = 0
-		recipientsReached = 0
+	if time.Now().Day() != appsession.CurrentDate.Day() {
+		appsession.EmailsSent = 0
+		appsession.CurrentDate = time.Now()
 	}
 
-	// if emails exceed 10, return error
-	if len(emails) > 10 {
+	// if email addresses exceed limit, return error
+	if len(emails) > constants.RecipientsLimit {
 		return errors.New("exceeded maximum number of recipients")
 	}
 
-	// if we will exceed max allowed emails of 50 per day, return error
-	if emailsSent+len(emails) > 50 {
+	// if we will exceed max allowed emails, return error
+	if appsession.EmailsSent+1 > constants.EmailsSentLimit {
 		return errors.New("exceeded maximum number of emails sent per day")
 	}
 
-	// if we will exceed max allowed recipients of 500 per day, return error
-	if recipientsReached+len(emails) > 500 {
-		return errors.New("exceeded maximum number of recipients per day")
-	}
-
 	// Send the email
-	if configs.GetGinRunMode() != "test" {
+	if configs.GetGinRunMode() != test {
 		bcc := strings.Join(emails, ",")
 		if err := SendMailBCC(subject, body, bcc); err != nil {
 			return err
 		}
-  }
+	}
+
+	// Update the email count
+	appsession.EmailsSent++
 
 	return nil
 }
@@ -136,27 +139,6 @@ func SendBookingEmails(booking models.Booking) error {
 	if len(emailErrors) > 0 {
 		return errors.New("failed to send booking  emails")
 	}
-
-	return nil
-}
-
-func SendMailBCC(subject, body, bcc string) error {
-	from := configs.GetSystemEmail()
-	password := configs.GetSMTPPassword()
-	smtpHost := configs.GetSMTPHost()
-	smtpPort := configs.GetSMTPPort()
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", from)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/html", body)
-	m.SetHeader("Bcc", bcc)
-
-	d := gomail.NewDialer(smtpHost, smtpPort, from, password)
-
-	if err := d.DialAndSend(m); err != nil {
-		return err
-  }
 
 	return nil
 }

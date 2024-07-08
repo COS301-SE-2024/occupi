@@ -10,4 +10,6 @@ const (
 	Admin                     = "admin"
 	Basic                     = "basic"
 	AdminDBAccessOption       = "authSource=admin"
+	EmailsSentLimit           = 50
+	RecipientsLimit           = 10
 )
