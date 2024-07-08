@@ -531,14 +531,6 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Get user details
-    user, err := database.GetUserDetails(ctx, appsession, request.Email)
-    if err != nil {
-        logrus.WithError(err).Error("Error fetching user details")
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        return
-    }
-
     // Check if 2FA is enabled for the user
     twoFAEnabled, err := database.IsTwoFAEnabled(ctx, appsession.DB, request.Email)
     if err != nil {
