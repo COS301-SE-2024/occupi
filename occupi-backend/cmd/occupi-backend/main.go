@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -26,7 +25,10 @@ func main() {
 	utils.SetupLogger()
 
 	// connect to the database
-	db := database.ConnectToDatabase()
+	db := configs.ConnectToDatabase()
+
+	// create cache
+	cache := configs.CreateCache()
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -44,7 +46,7 @@ func main() {
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()

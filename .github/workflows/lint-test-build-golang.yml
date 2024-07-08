@@ -107,9 +107,13 @@ jobs:
       run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/test.yaml.gpg > configs/test.yaml
                 
+    - name: Install gotestsum
+      run: |
+        go install gotest.tools/gotestsum@latest
+
     - name: Run tests
       run: |
-        go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
+        gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1

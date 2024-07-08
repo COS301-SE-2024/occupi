@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Keyboard } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Keyboard } from 'react-native';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
@@ -38,9 +37,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
+import GradientButton from '@/components/GradientButton';
 
 const signInSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
@@ -93,6 +94,11 @@ const SignInForm = () => {
     }
   };
 
+  async function saveUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
+
+
   const handleBiometricSignIn = async () => {
     const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
     console.log('Supported biometric types:', biometricType);
@@ -107,7 +113,7 @@ const SignInForm = () => {
         });
         console.log('Biometric authentication result:', result);
         if (result.success) {
-          router.push('/home');
+          router.replace('/home');
         } else {
           console.log('Biometric authentication failed');
           toast.show({
@@ -176,6 +182,7 @@ const SignInForm = () => {
       if (response.ok) {
         setLoading(false);
         storeData(_data.email);
+        saveUserData(_data.email);
         toast.show({
           placement: 'top',
           render: ({ id }) => {
@@ -186,7 +193,7 @@ const SignInForm = () => {
             );
           },
         });
-        router.push('/home');
+        router.replace('/home');
       } else {
         setLoading(false);
         console.log(data);
@@ -218,36 +225,7 @@ const SignInForm = () => {
     setShowPassword((showState) => !showState);
   };
 
-  const GradientButton = ({ onPress, text }) => (
-    <LinearGradient
-      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-      locations={[0.02, 0.31, 0.67, 0.97]}
-      start={[0, 1]}
-      end={[1, 0]}
-      style={styles.buttonContainer}
-    >
-      <Heading style={styles.buttonText} onPress={onPress}>
-        {text}
-      </Heading>
-    </LinearGradient>
-  );
-
-  const styles = StyleSheet.create({
-    buttonContainer: {
-      borderRadius: 15,
-      marginTop: hp('2%'),
-      alignSelf: 'center',
-      width: wp('90%'),
-      height: hp('6%'),
-    },
-    buttonText: {
-      color: 'black',
-      fontSize: wp('4%'),
-      textAlign: 'center',
-      lineHeight: hp('6%'),
-    },
-  });
-
+  
   return (
     <>
       <View style={{ alignItems: 'center', marginBottom: hp('2%') }}>

@@ -1,4 +1,3 @@
-import React from "react";
 import {IconSvgProps} from "../../components/data/types";
 
 export const VerticalDotsIcon = ({size = 24, width, height, ...props}: IconSvgProps) => (

@@ -1,8 +1,7 @@
- import React from 'react'
- 
+  
  const Analysis = () => {
    return (
-     <div>Analysis</div>
+     <div data-testid='analysis'>Analysis</div>
    )
  }
  
