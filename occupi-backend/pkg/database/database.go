@@ -146,12 +146,18 @@ func EmailExists(ctx *gin.Context, appsession *models.AppSession, email string) 
 		logrus.Error(err)
 		return false
 	}
-	// Add the email to the cache
+
+	// Add the user to the cache if cache is not nil
 	if appsession.Cache != nil {
-		if err := appsession.Cache.Set(email, []byte(email)); err != nil {
+		if userData, err := bson.Marshal(user); err != nil {
 			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
 		}
 	}
+
 	return true
 }
 
@@ -204,6 +210,7 @@ func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.Reques
 			}
 		}
 	}
+
 	return true, nil
 }
 
@@ -236,6 +243,7 @@ func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp s
 			}
 		}
 	}
+
 	return true, nil
 }
 
@@ -243,8 +251,19 @@ func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp s
 func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
 	// check if otp exists in the cache if cache is not nil
 	if appsession.Cache != nil {
-		if _, err := appsession.Cache.Get(email + otp); err == nil {
-			return true, nil
+		if _, err := appsession.Cache.Get(email + otp); err != nil {
+			logrus.Error(err)
+		} else {
+			// check if the OTP has expired
+			var otpStruct models.OTP
+			if err := bson.UnmarshalExtJSON([]byte(email+otp), true, &otpStruct); err != nil {
+				logrus.Error(err)
+			} else {
+				if time.Now().After(otpStruct.ExpireWhen) {
+					return false, nil
+				}
+				return true, nil
+			}
 		}
 	}
 	// Check if the OTP exists in the database
@@ -256,15 +275,33 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 		logrus.Error(err)
 		return false, err
 	}
+
 	// Check if the OTP has expired
 	if time.Now().After(otpStruct.ExpireWhen) {
 		return false, nil
 	}
+
+	// Add the OTP to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if otpData, err := bson.Marshal(otpStruct); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(email+otp, otpData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return true, nil
 }
 
 // deletes otp from database
 func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
 	// Delete the OTP from the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OTPS")
 	filter := bson.M{"email": email, "otp": otp}
@@ -273,6 +310,14 @@ func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, ot
 		logrus.Error(err)
 		return false, err
 	}
+
+	// delete otp from cache if cache is not nil
+	if appsession.Cache != nil {
+		if err := appsession.Cache.Delete(email + otp); err != nil {
+			logrus.Error(err) // the otp may also not xist in the cache which is valid behaviour
+		}
+	}
+
 	return true, nil
 }
 
@@ -290,6 +335,12 @@ func GetResetOTP(ctx context.Context, db *mongo.Client, email, otp string) (*mod
 
 // verifies a user in the database
 func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
 	// Verify the user in the database and set next date to verify to 30 days from now
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -299,11 +350,58 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (
 		logrus.Error(err)
 		return false, err
 	}
+
+	// if user is in cache, update the user in the cache
+	if appsession.Cache == nil {
+		return true, nil
+	}
+
+	var user models.User
+	userData, err := appsession.Cache.Get(email)
+	if err != nil {
+		logrus.Error(err)
+		return true, nil
+	}
+
+	if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+		logrus.Error(err)
+		return true, nil
+	}
+
+	user.IsVerified = true
+	user.NextVerificationDate = time.Now().AddDate(0, 0, 30)
+	if userData, err := bson.Marshal(user); err == nil {
+		if err := appsession.Cache.Set(email, userData); err != nil {
+			logrus.Error(err)
+		}
+	}
+
 	return true, nil
 }
 
 // get's the hash password stored in the database belonging to this user
 func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) (string, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return "", errors.New("database is nil")
+	}
+
+	// Get the password from the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err == nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				return user.Password, nil
+			}
+		}
+	}
 	// Get the password from the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -313,11 +411,53 @@ func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) 
 		logrus.Error(err)
 		return "", err
 	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return user.Password, nil
 }
 
 // checks if the next verification date is due
 func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// Get the user from the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err == nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				if time.Now().After(user.NextVerificationDate) {
+					_, err := UpdateVerificationStatusTo(ctx, appsession, email, false)
+					if err != nil {
+						logrus.Error(err)
+						return false, err
+					}
+					return true, nil
+				}
+				return false, nil
+			}
+		}
+	}
+
 	// Check if the next verification date is due
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -327,6 +467,18 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 		logrus.Error(err)
 		return false, err
 	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	if time.Now().After(user.NextVerificationDate) {
 		_, err := UpdateVerificationStatusTo(ctx, appsession, email, false)
 		if err != nil {
@@ -340,6 +492,28 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 
 // checks if the user is verified
 func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// Check if the user is verified in the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err == nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				return user.IsVerified, nil
+			}
+		}
+	}
+
 	// Check if the user is verified
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -349,11 +523,29 @@ func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, emai
 		logrus.Error(err)
 		return false, err
 	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return user.IsVerified, nil
 }
 
 // updates the users verification status to true or false
 func UpdateVerificationStatusTo(ctx *gin.Context, appsession *models.AppSession, email string, status bool) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
 	// Update the verification status of the user
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -363,6 +555,32 @@ func UpdateVerificationStatusTo(ctx *gin.Context, appsession *models.AppSession,
 		logrus.Error(err)
 		return false, err
 	}
+
+	// if user is in cache, update the user in the cache
+	if appsession.Cache == nil {
+		logrus.Error("Cache is nil")
+		return true, nil
+	}
+
+	var user models.User
+	userData, err := appsession.Cache.Get(email)
+	if err != nil {
+		logrus.Error(err)
+		return true, nil
+	}
+
+	if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+		logrus.Error(err)
+		return true, nil
+	}
+
+	user.IsVerified = status
+	if userData, err := bson.Marshal(user); err == nil {
+		if err := appsession.Cache.Set(email, userData); err != nil {
+			logrus.Error(err)
+		}
+	}
+
 	return true, nil
 }
 
@@ -539,6 +757,28 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user mod
 
 // Checks if a user is an admin
 func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// Get the user from the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err == nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				return user.Role == constants.Admin, nil
+			}
+		}
+	}
+
 	// Check if the user is an admin
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -548,6 +788,18 @@ func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email s
 		logrus.Error(err)
 		return false, err
 	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return user.Role == constants.Admin, nil
 }
 
@@ -611,6 +863,12 @@ func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token str
 
 // UpdateUserPassword, which updates the password in the database set by the user
 func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, password string) (bool, error) {
+	// Check if the database is nil
+	if db == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
 	// Update the password in the database
 	collection := db.Database("Occupi").Collection("Users")
 	filter := bson.M{"email": email}
@@ -620,6 +878,9 @@ func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, passwo
 		logrus.Error(err)
 		return false, err
 	}
+
+	// Update users password in cache if cache is not nil
+
 	return true, nil
 }
 
