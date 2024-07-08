@@ -532,74 +532,95 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-	// Verify the 2FA code
-    valid, err := database.VerifyTwoFACode(ctx, appsession.DB, request.Email, request.Code)
+    // Get user details
+    user, err := database.GetUserDetails(ctx, appsession, request.Email)
     if err != nil {
-        logrus.WithFields(logrus.Fields{
-            "email": request.Email,
-            "error": err.Error(),
-        }).Error("Error verifying 2FA code")
+        logrus.WithError(err).Error("Error fetching user details")
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
         return
     }
 
-    if !valid {
-        logrus.WithFields(logrus.Fields{
-            "email": request.Email,
-        }).Info("Invalid 2FA code attempt")
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Invalid 2FA code",
-            constants.InvalidAuthCode,
-            "The provided 2FA code is invalid or has expired",
+    // Check if 2FA is enabled for the user
+    twoFAEnabled, err := database.IsTwoFAEnabled(ctx, appsession.DB, request.Email)
+    if err != nil {
+        logrus.WithError(err).Error("Error checking 2FA status")
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        return
+    }
+
+    if twoFAEnabled {
+        // Verify the 2FA code
+        valid, err := database.VerifyTwoFACode(ctx, appsession.DB, request.Email, request.Code)
+        if err != nil {
+            logrus.WithFields(logrus.Fields{
+                "email": request.Email,
+                "error": err.Error(),
+            }).Error("Error verifying 2FA code")
+            ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+            return
+        }
+
+        if !valid {
+            logrus.WithFields(logrus.Fields{
+                "email": request.Email,
+            }).Info("Invalid 2FA code attempt")
+            ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+                http.StatusBadRequest,
+                "Invalid 2FA code",
+                constants.InvalidAuthCode,
+                "The provided 2FA code is invalid or has expired",
+                nil))
+            return
+        }
+
+        ctx.JSON(http.StatusOK, utils.SuccessResponse(
+            http.StatusOK,
+            "Two-factor authentication successful",
             nil))
-        return
-    }
+    } else {
+        // Check if user needs to re-verify
+        if time.Now().After(user.NextVerificationDate) {
+            // User needs to re-verify
+            otp, err := utils.GenerateOTP()
+            if err != nil {
+                ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+                logrus.Error(err)
+                return
+            }
 
-    // Generate OTP
-    otp, err := utils.GenerateOTP()
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error(err)
-        return
-    }
+            // Save OTP in the database
+            err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
+            if err != nil {
+                logrus.WithFields(logrus.Fields{
+                    "email": request.Email,
+                    "error": err.Error(),
+                }).Error("Error saving OTP in database")
+                ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+                return
+            }
 
-    // Get user's 2FA preference
-    twoFAPreference, err := database.IsTwoFAEnabled(ctx, appsession.DB, request.Email)
-    if err != nil {
-        logrus.WithFields(logrus.Fields{
-            "email": request.Email,
-            "error": err.Error(),
-        }).Error("Error getting user's 2FA preference")
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        return
-    }
+            // Send OTP via email
+            subject := "Occupi Re-verification Code"
+            body := formatTwoFAEmailBody(otp)
+            if err := mail.SendMail(request.Email, subject, body); err != nil {
+                ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+                logrus.Error(err)
+                return
+            }
 
-     // Send OTP via email
-	 subject := "Your Occupi 2FA Code"
-	 body := formatTwoFAEmailBody(otp)
-	 if err := mail.SendMail(request.Email, subject, body); err != nil {
-		 ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		 logrus.Error(err)
-		 return
-	 }
- 
-	 // Save new OTP in the database
-	 err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
-	 if err != nil {
-		 logrus.WithFields(logrus.Fields{
-			 "email": request.Email,
-			 "error": err.Error(),
-		 }).Error("Error saving OTP in database")
-		 ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		 return
-	 }
- 
-	 ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		 http.StatusOK,
-		 "OTP sent successfully. Please check your email.",
-		 nil))
- }
+            ctx.JSON(http.StatusOK, utils.SuccessResponse(
+                http.StatusOK,
+                "Re-verification required. Please check your email for the verification code.",
+                gin.H{"requireVerification": true}))
+        } else {
+            // User doesn't need to re-verify yet
+            ctx.JSON(http.StatusOK, utils.SuccessResponse(
+                http.StatusOK,
+                "Authentication successful",
+                nil))
+        }
+    }
+}
  
  // Helper function to format the 2FA email body
  func formatTwoFAEmailBody(otp string) string {
