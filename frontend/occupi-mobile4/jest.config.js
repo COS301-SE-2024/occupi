@@ -10,7 +10,7 @@ module.exports = {
     '^react-native-chart-kit$': '<rootDir>/__mocks__/react-native-chart-kit.js',
     '^@gluestack-ui/themed$': '<rootDir>/__mocks__/gluestack-ui-themed.js',
     '^@expo/vector-icons$': '<rootDir>/__mocks__/expo-vector-icons.js',
-     "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/imageMock.js"
+    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/__mocks__/imageMock.js'
   },
   testEnvironment: 'jsdom',
   transform: {
