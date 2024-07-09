@@ -198,7 +198,6 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 			"Successful login!",
 			nil))
 	}
-
 }
 
 // handler for registering a new user on occupi /auth/register
@@ -312,7 +311,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 // handler for verifying a users otp /api/verify-otp
-func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
+func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role string, cookies bool) {
 	var userotp models.RequestUserOTP
 	if err := ctx.ShouldBindBodyWithJSON(&userotp); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -391,10 +390,56 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Email verified successfully!",
-		nil))
+	// if the user is not logging in, we can stop here
+	if !login {
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Email verified successfully!",
+			nil))
+	}
+
+	// generate a jwt token for the user
+	var token string
+	var expirationTime time.Time
+	if role == constants.Admin {
+		token, expirationTime, err = authenticator.GenerateToken(userotp.Email, constants.Admin)
+	} else {
+		token, expirationTime, err = authenticator.GenerateToken(userotp.Email, constants.Basic)
+	}
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	session := sessions.Default(ctx)
+	session.Set("email", userotp.Email)
+	if role == constants.Admin {
+		session.Set("role", constants.Admin)
+	} else {
+		session.Set("role", constants.Basic)
+	}
+	if err := session.Save(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	if !cookies {
+		ctx.Header("Authorization", "Bearer "+token)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			gin.H{"token": token}))
+	} else {
+		// set the jwt token in the cookie
+		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			nil))
+	}
 }
 
 // handler for reverifying a users email address
