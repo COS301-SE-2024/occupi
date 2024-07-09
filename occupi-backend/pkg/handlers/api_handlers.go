@@ -282,6 +282,24 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched rooms!", rooms))
 }
 
+func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
+	var filterRequest models.FilterUsers
+	if err := ctx.ShouldBindJSON(&filterRequest); err != nil {
+		HandleValidationErrors(ctx, err)
+		return
+	}
+
+	// Get all users matching a filter
+	users, err := database.FilterUsers(ctx, appsession, filterRequest)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users!", users))
+}
+
 // Helper function to handle validation of requests
 func HandleValidationErrors(ctx *gin.Context, err error) {
 	var ve validator.ValidationErrors
