@@ -61,9 +61,9 @@ const Profile = () => {
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
-      console.log(result);
+      console.log("UserData:",result);
       // setUserDetails(JSON.parse(result).data);
-      let jsonresult = JSON.parse(result | "{}");
+      let jsonresult = JSON.parse(result);
       // console.log(jsonresult.data.details.name);
       setName(String(jsonresult?.data?.details?.name));
       setEmail(String(jsonresult?.data?.email));

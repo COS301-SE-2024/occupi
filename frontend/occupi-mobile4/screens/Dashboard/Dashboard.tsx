@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [checkedIn, setCheckedIn] = useState(false);
+  const [name, setName] = useState("User");
   const toast = useToast()
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -41,6 +42,15 @@ const Dashboard = () => {
     setIsDarkMode(colorScheme === 'dark');
     return () => clearInterval(intervalId);
   }, [colorScheme]);
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      let result = await SecureStore.getItemAsync('UserData');
+      let jsonresult = JSON.parse(result);
+      setName(String(jsonresult?.data?.details?.name)); // console.log(JSON.parse(result).data.details.name);
+    };
+    getUserDetails();
+  }, []);
   
   const checkIn = () => {
     if (checkedIn === false) {
@@ -69,9 +79,7 @@ const Dashboard = () => {
   async function saveUserEmail(value) {
     await SecureStore.setItemAsync('email', value);
   }
-  async function saveUserData(value) {
-    await SecureStore.setItemAsync('UserData', value);
-  }
+  
 
   saveUserEmail('kamogelomoeketse@gmail.com');
 
@@ -86,7 +94,7 @@ const Dashboard = () => {
       <View flexDirection="row" justifyContent="space-between">
         <View>
           <Text fontSize={wp('5%')} fontWeight="light" color={textColor}>
-            Hi Sabrina 👋
+            Hi {name} 👋
           </Text>
           <Text mt="$4" fontSize={wp('6%')} fontWeight="bold" color={textColor}>
             Welcome to Occupi
