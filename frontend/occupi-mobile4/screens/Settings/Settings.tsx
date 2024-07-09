@@ -44,7 +44,6 @@ const Settings = () => {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({}),
         credentials: "include"
       });
       const data = await response.json();
@@ -53,6 +52,7 @@ const Settings = () => {
         alert("logged out siccessfully");
         router.replace('/login');
       } else {
+        console.log(data);
         alert("unable to logout");
       }
     } catch (error) {

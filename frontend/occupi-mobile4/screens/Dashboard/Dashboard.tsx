@@ -38,49 +38,9 @@ const Dashboard = () => {
         return newNumbers;
       });
     }, 3000);
-    // console.log(numbers);
     setIsDarkMode(colorScheme === 'dark');
     return () => clearInterval(intervalId);
   }, [colorScheme]);
-
-  useEffect(() => {
-    const getUserDetails = async () => {
-      console.log("heree");
-      try {
-        const response = await fetch('https://dev.occupi.tech/api/user-details?email=kamogelomoeketse@gmail.com')
-        const data = await response.json();
-        if (response.ok) {
-          saveUserData(JSON.stringify(data));
-          console.log(data);
-        } else {
-          console.log(data);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>{data.error.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="error">
-                <ToastTitle>Network Error: {error.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-      }
-    };
-    getUserDetails();
-  }, [toast]);
   
   const checkIn = () => {
     if (checkedIn === false) {
