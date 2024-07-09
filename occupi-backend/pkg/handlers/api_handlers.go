@@ -284,14 +284,22 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 
 func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
 	var filterRequest models.FilterUsers
-	if err := ctx.ShouldBindJSON(&filterRequest); err != nil {
-		HandleValidationErrors(ctx, err)
-		return
-	}
+	// Extract query parameters
+	filterRequest.DepartmentNo = ctx.Query("DepartmentNo")
 
 	// Get all users matching a filter
 	users, err := database.FilterUsers(ctx, appsession, filterRequest)
 
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users!", users))
+}
+
+func GetUsers(ctx *gin.Context, appsession *models.AppSession) {
+	users, err := database.GetAllUsers(ctx, appsession)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
 		return

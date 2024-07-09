@@ -51,6 +51,8 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 		api.GET("/view-rooms", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewRooms(ctx, appsession) })
 		api.GET("/user-details", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetUserDetails(ctx, appsession) })
 		api.PUT("/update-user", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateUserDetails(ctx, appsession) })
+		api.GET("/filter-users", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.FilterUsers(ctx, appsession) })
+		api.GET("/get-users", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.GetUsers(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{
@@ -67,11 +69,11 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 		auth.POST("/logout", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Logout(ctx) })
 		// it's typically used by users who can't log in because they've forgotten their password.
 
-		auth.POST("/reset-password",middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession) })
-		auth.POST("/forgot-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ForgotPassword(ctx, appsession)})
+		auth.POST("/reset-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession) })
+		auth.POST("/forgot-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ForgotPassword(ctx, appsession) })
 		auth.POST("/verify-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.VerifyTwoFA(ctx, appsession) })
-		auth.POST("/verify-otp-enable-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) { 
-			handlers.VerifyOTPAndEnable2FA(ctx, appsession) 
+		auth.POST("/verify-otp-enable-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) {
+			handlers.VerifyOTPAndEnable2FA(ctx, appsession)
 		})
 
 	}
