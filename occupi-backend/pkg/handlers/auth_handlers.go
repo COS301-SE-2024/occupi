@@ -18,7 +18,7 @@ import (
 )
 
 // handler for logging a new user on occupi /auth/login
-func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
+func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
 	var requestUser models.RequestUser
 	if err := ctx.ShouldBindBodyWithJSON(&requestUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -171,7 +171,6 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 		return
 	}
 
-	// set the jwt token in the cookie
 	session := sessions.Default(ctx)
 	session.Set("email", requestUser.Email)
 	if role == constants.Admin {
@@ -184,12 +183,21 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
 		logrus.Error(err)
 		return
 	}
-	ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Successful login!",
-		nil))
+	if !cookies {
+		ctx.Header("Authorization", "Bearer "+token)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			gin.H{"token": token}))
+	} else {
+		// set the jwt token in the cookie
+		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			nil))
+	}
 }
 
 // handler for registering a new user on occupi /auth/register
@@ -303,7 +311,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 // handler for verifying a users otp /api/verify-otp
-func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
+func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role string, cookies bool) {
 	var userotp models.RequestUserOTP
 	if err := ctx.ShouldBindBodyWithJSON(&userotp); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -382,10 +390,56 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Email verified successfully!",
-		nil))
+	// if the user is not logging in, we can stop here
+	if !login {
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Email verified successfully!",
+			nil))
+	}
+
+	// generate a jwt token for the user
+	var token string
+	var expirationTime time.Time
+	if role == constants.Admin {
+		token, expirationTime, err = authenticator.GenerateToken(userotp.Email, constants.Admin)
+	} else {
+		token, expirationTime, err = authenticator.GenerateToken(userotp.Email, constants.Basic)
+	}
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	session := sessions.Default(ctx)
+	session.Set("email", userotp.Email)
+	if role == constants.Admin {
+		session.Set("role", constants.Admin)
+	} else {
+		session.Set("role", constants.Basic)
+	}
+	if err := session.Save(); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	if !cookies {
+		ctx.Header("Authorization", "Bearer "+token)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			gin.H{"token": token}))
+	} else {
+		// set the jwt token in the cookie
+		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			nil))
+	}
 }
 
 // handler for reverifying a users email address
@@ -419,101 +473,69 @@ func ReverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email s
 		"Please check your email for the OTP to re-verify your account.",
 		nil))
 }
+
 // common handler logic for reset
 func handlePasswordReset(ctx *gin.Context, appsession *models.AppSession, email string) {
-    // Sanitize and validate email
-    sanitizedEmail := utils.SanitizeInput(email)
-    if !utils.ValidateEmail(sanitizedEmail) {
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Invalid email address",
-            constants.InvalidRequestPayloadCode,
-            "Expected a valid format for email address",
-            nil))
-        return
-    }
+	// Sanitize and validate email
+	sanitizedEmail := utils.SanitizeInput(email)
+	if !utils.ValidateEmail(sanitizedEmail) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid email address",
+			constants.InvalidRequestPayloadCode,
+			"Expected a valid format for email address",
+			nil))
+		return
+	}
 
-    // Check if the email exists in the database
-    if exists := database.EmailExists(ctx, appsession, sanitizedEmail); !exists {
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Email not registered",
-            constants.InvalidAuthCode,
-            "Please register first before attempting to reset password",
-            nil))
-        return
-    }
+	// Check if the email exists in the database
+	if exists := database.EmailExists(ctx, appsession, sanitizedEmail); !exists {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Email not registered",
+			constants.InvalidAuthCode,
+			"Please register first before attempting to reset password",
+			nil))
+		return
+	}
 
-    // Generate a OTP for the user to reset their password
-    otp, err := utils.GenerateOTP()
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error("Failed to generate OTP:", err)
-        return
-    }
+	// Generate a OTP for the user to reset their password
+	otp, err := utils.GenerateOTP()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error("Failed to generate OTP:", err)
+		return
+	}
 
-    // Save the OTP in the database
-    success, err := database.AddOTP(ctx, appsession, sanitizedEmail, otp)
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error("Failed to save OTP:", err)
-        return
-    }
-    if !success {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error("Failed to save OTP: operation unsuccessful")
-        return
-    }
+	// Save the OTP in the database
+	success, err := database.AddOTP(ctx, appsession, sanitizedEmail, otp)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error("Failed to save OTP:", err)
+		return
+	}
+	if !success {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error("Failed to save OTP: operation unsuccessful")
+		return
+	}
 
-    // Send the email to the user with the OTP
-    subject := "Password Reset - Your One-Time Password"
-    body := mail.FormatResetPasswordEmailBody(otp,email)
+	// Send the email to the user with the OTP
+	subject := "Password Reset - Your One-Time Password"
+	body := mail.FormatResetPasswordEmailBody(otp, email)
 
-    if err := mail.SendMail(sanitizedEmail, subject, body); err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-        logrus.Error("Failed to send email:", err)
-        return
-    }
+	if err := mail.SendMail(sanitizedEmail, subject, body); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error("Failed to send email:", err)
+		return
+	}
 
-    ctx.JSON(http.StatusOK, utils.SuccessResponse(
-        http.StatusOK,
-        "Password reset OTP sent to your email",
-        nil))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		http.StatusOK,
+		"Password reset OTP sent to your email",
+		nil))
 }
 
-func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-    var request struct {
-        Email string `json:"email" binding:"required,email"`
-    }
-    if err := ctx.ShouldBindJSON(&request); err != nil {
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Invalid email address",
-            constants.InvalidRequestPayloadCode,
-            "Expected a valid format for email address",
-            nil))
-        return
-    }
-
-    handlePasswordReset(ctx, appsession, request.Email)
-}
-
-func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
-    var request struct {
-        Email string `json:"email" binding:"required,email"`
-    }
-    if err := ctx.ShouldBindJSON(&request); err != nil {
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Invalid email address",
-            constants.InvalidRequestPayloadCode,
-            "Expected a valid format for email address",
-            nil))
-        return
-    }
-
-    handlePasswordReset(ctx, appsession, request.Email)
-}
 
 // handler for Verify 2fa
 func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
@@ -611,7 +633,41 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
         nil))
 }
  
- 
+
+func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
+	var request struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid email address",
+			constants.InvalidRequestPayloadCode,
+			"Expected a valid format for email address",
+			nil))
+		return
+	}
+
+	handlePasswordReset(ctx, appsession, request.Email)
+}
+
+func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
+	var request struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid email address",
+			constants.InvalidRequestPayloadCode,
+			"Expected a valid format for email address",
+			nil))
+		return
+	}
+
+	handlePasswordReset(ctx, appsession, request.Email)
+}
+
 
 // handler for logging out a user
 func Logout(ctx *gin.Context) {
@@ -622,6 +678,12 @@ func Logout(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
+
+	// Clear the Authorization header
+	ctx.Header("Authorization", "")
+
+	// Alternatively, completely remove the Authorization header
+	ctx.Writer.Header().Del("Authorization")
 
 	// List of domains to clear cookies from
 	domains := configs.GetOccupiDomains()
