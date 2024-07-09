@@ -85,17 +85,12 @@ const SignInForm = () => {
     console.log('Biometric hardware available:', isBiometricAvailable);
   };
 
-  const storeData = async (value) => {
-    try {
-      await AsyncStorage.setItem('email', value);
-    } catch (e) {
-      // saving error
-      console.log(e);
-    }
-  };
-
-  async function saveUserData(value) {
+  async function storeUserData(value) {
     await SecureStore.setItemAsync('UserData', value);
+  }
+
+  async function storeToken(value) {
+    await SecureStore.setItemAsync('Token', value);
   }
 
 
@@ -160,7 +155,7 @@ const SignInForm = () => {
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
     try {
-      const response = await fetch('https://dev.occupi.tech/auth/login', {
+      const response = await fetch('https://dev.occupi.tech/auth/login-mobile', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -173,16 +168,10 @@ const SignInForm = () => {
         credentials: "include"
       });
       const data = await response.json();
-      const cookies = response.headers.get('Accept');
-      // CookieManager.get('https://dev.occupi.tech')
-      //   .then((cookies) => {
-      //     console.log('CookieManager.get =>', cookies);
-      //   });
-      console.log(cookies);
       if (response.ok) {
+        console.log(data.data.token);
         setLoading(false);
-        storeData(_data.email);
-        saveUserData(_data.email);
+        storeToken(data.data.token);
         toast.show({
           placement: 'top',
           render: ({ id }) => {
@@ -193,6 +182,50 @@ const SignInForm = () => {
             );
           },
         });
+        try {
+          let authToken = await SecureStore.getItemAsync('Token');
+          // console.log(authToken);
+
+          const response = await fetch(`https://dev.occupi.tech/api/user-details?email=${_data.email}`, {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `${authToken}`
+            },
+            credentials: "include"
+          });
+          const data = await response.json();
+          console.log("here");
+          if (response.ok) {
+            storeUserData(JSON.stringify(data));
+            console.log(`Data of ${_data.email}: `,data);
+          } else {
+            console.log(data);
+            toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="error">
+                    <ToastTitle>{data.error.message}</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>Network Error</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
         router.replace('/home');
       } else {
         setLoading(false);
@@ -210,9 +243,7 @@ const SignInForm = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      // setResponse('An error occurred');
     }
-    // }, 3000);
     setLoading(false);
   };
 
