@@ -184,7 +184,7 @@ const SignInForm = () => {
         });
         try {
           let authToken = await SecureStore.getItemAsync('Token');
-          console.log(authToken);
+          // console.log(authToken);
 
           const response = await fetch(`https://dev.occupi.tech/api/user-details?email=${_data.email}`, {
             method: 'GET',
