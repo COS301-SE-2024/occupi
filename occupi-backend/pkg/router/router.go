@@ -66,7 +66,13 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 		auth.POST("/verify-otp-mobile-admin-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.VerifyOTP(ctx, appsession, true, constants.Admin, false) })
 		auth.POST("/logout", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Logout(ctx) })
 		// it's typically used by users who can't log in because they've forgotten their password.
-		auth.POST("/reset-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession) })
-		auth.POST("/forgot-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ForgotPassword(ctx, appsession) })
+
+		auth.POST("/reset-password",middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession) })
+		auth.POST("/forgot-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ForgotPassword(ctx, appsession)})
+		auth.POST("/verify-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.VerifyTwoFA(ctx, appsession) })
+		auth.POST("/verify-otp-enable-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) { 
+			handlers.VerifyOTPAndEnable2FA(ctx, appsession) 
+		})
+
 	}
 }
