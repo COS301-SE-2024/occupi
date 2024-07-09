@@ -22,7 +22,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
-  return Math.floor(Math.random() * 20)+300; 
+  return Math.floor(Math.random() * 20) + 300;
 };
 
 const Dashboard = () => {
@@ -46,12 +46,15 @@ const Dashboard = () => {
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
-      let jsonresult = JSON.parse(result);
-      setName(String(jsonresult?.data?.details?.name)); // console.log(JSON.parse(result).data.details.name);
+      console.log(result);
+      if (result !== undefined) {
+        let jsonresult = JSON.parse(result);
+        setName(String(jsonresult?.data?.details?.name)); 
+      }
     };
     getUserDetails();
   }, []);
-  
+
   const checkIn = () => {
     if (checkedIn === false) {
       setCheckedIn(true);
@@ -79,7 +82,7 @@ const Dashboard = () => {
   async function saveUserEmail(value) {
     await SecureStore.setItemAsync('email', value);
   }
-  
+
 
   saveUserEmail('kamogelomoeketse@gmail.com');
 
@@ -112,7 +115,7 @@ const Dashboard = () => {
         <Card flexDirection="row" justifyContent="center" alignItems="center" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
           <Text color={textColor} fontSize={40}>{numbers[0]}</Text>
           <View flexDirection="column">
-          <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0]/10+5}%</Text></View>
+            <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
           </View>
         </Card>
         <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} />
@@ -137,10 +140,10 @@ const Dashboard = () => {
       <View>
         <Text color={textColor}>Occupancy levels</Text>
         <LineChart
-        withInnerLines={true}
-        withOuterLines={false}
-        withVerticalLines={false}
-        // fromZero={true}
+          withInnerLines={true}
+          withOuterLines={false}
+          withVerticalLines={false}
+          // fromZero={true}
           data={{
             labels: ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"],
             datasets: [
@@ -165,7 +168,7 @@ const Dashboard = () => {
               }
             ]
           }}
-          width={Dimensions.get("window").width -30} // from react-native
+          width={Dimensions.get("window").width - 30} // from react-native
           height={220}
           // yAxisLabel=""
           // yAxisSuffix="k"
