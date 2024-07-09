@@ -31,6 +31,7 @@ const (
 	OtpExpiration       = "OTP_EXPIRATION"
 	FrontendURL         = "FRONTEND_URL"
 	ConfigLicense       = "CONFIG_LICENSE"
+	OtpGenReqEviction   = "OTP_GEN_REQ_EVICTION"
 )
 
 // init viper
@@ -249,4 +250,13 @@ func GetConfigLicense() string {
 		license = "CONFIG_LICENSE"
 	}
 	return license
+}
+
+// gets the otp request eviction time as defined in the config.yaml file in seconds
+func GetOTPReqEviction() int {
+	time := viper.GetInt(OtpGenReqEviction)
+	if time == 0 {
+		time = 60
+	}
+	return time
 }
