@@ -501,6 +501,7 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user mod
 	return true, nil
 }
 
+// Filters Users based on the filter provided
 func FilterUsers(ctx *gin.Context, appsession *models.AppSession, filter models.FilterUsers) ([]models.UserDetails, error) {
 	collection := appsession.DB.Database("Occupi").Collection("Users")
 	if collection == nil {
@@ -512,7 +513,6 @@ func FilterUsers(ctx *gin.Context, appsession *models.AppSession, filter models.
 	AddFieldToUpdateMap(filterMap, "role", filter.Role)
 	AddFieldToUpdateMap(filterMap, "status", filter.Status)
 	AddFieldToUpdateMap(filterMap, "departmentNo", filter.DepartmentNo)
-
 	cursor, err := collection.Find(ctx, filterMap)
 	if err != nil {
 		logrus.Error(err)
@@ -530,6 +530,32 @@ func FilterUsers(ctx *gin.Context, appsession *models.AppSession, filter models.
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func GetAllUsers(ctx *gin.Context, appsession *models.AppSession) ([]models.UserDetails, error) {
+	collection := appsession.DB.Database("Occupi").Collection("Users")
+	if collection == nil {
+		logrus.Error("Failed to get collection")
+		return nil, errors.New("failed to get collection")
+	}
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.UserDetails
+	for cursor.Next(ctx) {
+		var user models.UserDetails
+		if err := cursor.Decode(&user); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+
 }
 
 // Checks if a user is an admin
