@@ -57,6 +57,10 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   let colorScheme = useColorScheme();
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
+  const updateDetailsUrl = process.env.EXPO_PUBLIC_UPDATE_USER_DETAILS;
+  console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);
 
   useEffect(() => {
     const getUserDetails = async () => {
@@ -115,7 +119,8 @@ const Profile = () => {
     // console.log(JSON.stringify(body));
     setIsLoading(true);
     try {
-      const response = await fetch('https://dev.occupi.tech/api/update-user', {
+      let authToken = await SecureStore.getItemAsync('Token');
+      const response = await fetch(`${apiUrl}${updateDetailsUrl}`, {
         method: 'PUT',
         headers: {
           Accept: 'application/json',
@@ -141,7 +146,7 @@ const Profile = () => {
     }
 
     try {
-      const response = await fetch(`https://dev.occupi.tech/api/user-details?email=${email}`)
+      const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`)
       const data = await response.json();
       if (response.ok) {
         saveUserData(JSON.stringify(data));
