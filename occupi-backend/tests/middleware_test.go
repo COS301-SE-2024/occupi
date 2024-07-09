@@ -16,6 +16,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	// "github.com/stretchr/testify/mock"
 )
@@ -672,4 +673,91 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 
 	// Assertions for IP2
 	assert.Equal(t, rateLimitedCountIP2, 0, "There should be no requests from IP2 that are rate limited")
+}
+
+func TestAttachOTPRateLimitMiddleware(t *testing.T) {
+	gin.SetMode(configs.GetGinRunMode())
+
+	type testCase struct {
+		description  string
+		clientIP     string
+		waitDuration time.Duration
+		expectedCode int
+		expectedBody string
+	}
+
+	tests := []testCase{
+		{
+			description:  "first request should succeed",
+			clientIP:     "192.168.0.1",
+			waitDuration: 5 * time.Second,
+			expectedCode: http.StatusOK,
+			expectedBody: "OTP request successful",
+		},
+		{
+			description:  "second request within couple of seconds should be rate limited",
+			clientIP:     "192.168.0.1",
+			waitDuration: 0,
+			expectedCode: http.StatusTooManyRequests,
+			expectedBody: `{"error":{"code":"RATE_LIMIT","details":null,"message":"Too many requests"},"message":"Too Many Requests","status":429}`,
+		},
+		{
+			description:  "second request within couple of seconds should be rate limited as evictions are not done yet",
+			clientIP:     "192.168.0.1",
+			waitDuration: 3,
+			expectedCode: http.StatusTooManyRequests,
+			expectedBody: `{"error":{"code":"RATE_LIMIT","details":null,"message":"Too many requests"},"message":"Too Many Requests","status":429}`,
+		},
+		{
+			description:  "second request within couple of seconds should work as evictions just completed",
+			clientIP:     "192.168.0.1",
+			waitDuration: 4 * time.Second,
+			expectedCode: http.StatusOK,
+			expectedBody: `OTP request successfu`,
+		},
+		{
+			description:  "request after a couple seconds should succeed",
+			clientIP:     "192.168.0.1",
+			waitDuration: 5 * time.Second,
+			expectedCode: http.StatusOK,
+			expectedBody: "OTP request successful",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.description, func(t *testing.T) {
+			appsession := &models.AppSession{
+				DB:          nil,
+				Cache:       nil,
+				EmailsSent:  0,
+				CurrentDate: time.Now(),
+				OtpReqCache: configs.CreateOTPRateLimitCache(),
+			}
+
+			router := gin.New()
+			router.GET("/otp",
+				func(ctx *gin.Context) { middleware.AttachOTPRateLimitMiddleware(ctx, appsession) },
+				func(ctx *gin.Context) {
+					ctx.JSON(http.StatusOK, gin.H{"message": "OTP request successful"})
+				})
+
+			req := httptest.NewRequest(http.MethodGet, "/otp", nil)
+			req.RemoteAddr = tc.clientIP + ":12345"
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+			assert.Equal(t, http.StatusOK, w.Code)
+			assert.Contains(t, w.Body.String(), "OTP request successful")
+
+			time.Sleep(tc.waitDuration)
+
+			req2 := httptest.NewRequest(http.MethodGet, "/otp", nil)
+			req2.RemoteAddr = tc.clientIP + ":12345"
+			w2 := httptest.NewRecorder()
+
+			router.ServeHTTP(w2, req2)
+			assert.Equal(t, tc.expectedCode, w2.Code)
+			assert.Contains(t, w2.Body.String(), tc.expectedBody)
+		})
+	}
 }
