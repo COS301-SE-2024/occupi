@@ -536,6 +536,104 @@ func handlePasswordReset(ctx *gin.Context, appsession *models.AppSession, email 
 		nil))
 }
 
+
+// handler for Verify 2fa
+func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
+    var request struct {
+        Email string `json:"email" binding:"required,email"`
+    }
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid request payload",
+            constants.InvalidRequestPayloadCode,
+            err.Error(),
+            nil))
+        return
+    }
+
+    // Generate OTP
+    otp, err := utils.GenerateOTP()
+    if err != nil {
+        logrus.WithError(err).Error("Error generating OTP")
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        return
+    }
+
+    // Save OTP in the database
+    err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
+    if err != nil {
+        logrus.WithFields(logrus.Fields{
+            "email": request.Email,
+            "error": err.Error(),
+        }).Error("Error saving OTP in database")
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        return
+    }
+
+    // Send OTP via email
+    subject := "Occupi Two-Factor Authentication Code"
+    body := mail.FormatTwoFAEmailBody(otp, request.Email)
+    if err := mail.SendMail(request.Email, subject, body); err != nil {
+        logrus.WithError(err).Error("Error sending OTP email")
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        return
+    }
+
+    ctx.JSON(http.StatusOK, utils.SuccessResponse(
+        http.StatusOK,
+        "Two-factor authentication code sent. Please check your email.",
+        nil))
+}
+
+func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
+    var request struct {
+        Email string `json:"email" binding:"required,email"`
+        Code  string `json:"code" binding:"required,len=6"`
+    }
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid request payload",
+            constants.InvalidRequestPayloadCode,
+            err.Error(),
+            nil))
+        return
+    }
+
+    // Verify the 2FA code
+    valid, err := database.VerifyTwoFACode(ctx, appsession.DB, request.Email, request.Code)
+    if err != nil {
+        logrus.WithError(err).Error("Error verifying 2FA code")
+        ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+        return
+    }
+
+    if !valid {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid 2FA code",
+            constants.InvalidAuthCode,
+            "The provided 2FA code is invalid or has expired",
+            nil))
+        return
+    }
+
+    // Enable 2FA for the user
+	err = database.SetTwoFAEnabled(ctx, appsession.DB.Database("Occupi"), request.Email, true )
+	if err != nil {
+		logrus.WithError(err).Error("Error enabling 2FA")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+    ctx.JSON(http.StatusOK, utils.SuccessResponse(
+        http.StatusOK,
+        "Two-factor authentication enabled successfully",
+        nil))
+}
+ 
+
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	var request struct {
 		Email string `json:"email" binding:"required,email"`
@@ -569,6 +667,7 @@ func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
 
 	handlePasswordReset(ctx, appsession, request.Email)
 }
+
 
 // handler for logging out a user
 func Logout(ctx *gin.Context) {
