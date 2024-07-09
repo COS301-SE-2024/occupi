@@ -19,7 +19,10 @@ import (
 // the user has already been authenticated previously.
 func ProtectedRoute(ctx *gin.Context) {
 	tokenStr, err := ctx.Cookie("token")
-	if err != nil {
+	// Retrieve token from Authorization header
+	headertokenStr := ctx.GetHeader("Authorization")
+	if (err != nil || tokenStr == "") && headertokenStr == "" {
+		// If token is not found in cookies or JSON payload, return unauthorized
 		ctx.JSON(http.StatusUnauthorized,
 			utils.ErrorResponse(
 				http.StatusUnauthorized,
@@ -29,6 +32,10 @@ func ProtectedRoute(ctx *gin.Context) {
 				nil))
 		ctx.Abort()
 		return
+	}
+
+	if tokenStr == "" {
+		tokenStr = headertokenStr
 	}
 
 	claims, err := authenticator.ValidateToken(tokenStr)
@@ -80,6 +87,24 @@ func UnProtectedRoute(ctx *gin.Context) {
 	tokenStr, err := ctx.Cookie("token")
 	if err == nil {
 		_, err := authenticator.ValidateToken(tokenStr)
+
+		if err == nil {
+			ctx.JSON(http.StatusUnauthorized,
+				utils.ErrorResponse(
+					http.StatusUnauthorized,
+					"Bad Request",
+					constants.InvalidAuthCode,
+					"User already authorized",
+					nil))
+			ctx.Abort()
+			return
+		}
+	}
+
+	// Retrieve token from Authorization header
+	headertokenStr := ctx.GetHeader("Authorization")
+	if headertokenStr != "" {
+		_, err := authenticator.ValidateToken(headertokenStr)
 
 		if err == nil {
 			ctx.JSON(http.StatusUnauthorized,
