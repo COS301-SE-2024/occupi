@@ -124,7 +124,8 @@ const Profile = () => {
         method: 'PUT',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
         },
         body: JSON.stringify(body),
         credentials: "include"
@@ -146,7 +147,16 @@ const Profile = () => {
     }
 
     try {
-      const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`)
+      let authToken = await SecureStore.getItemAsync('Token');
+      const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
+        },
+        credentials: "include"
+      });
       const data = await response.json();
       if (response.ok) {
         saveUserData(JSON.stringify(data));
