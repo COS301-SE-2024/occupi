@@ -26,14 +26,14 @@ func SeedMockDatabase(mockdatafilepath string) {
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 
 	// Read the JSON file
-	file_data, err := os.ReadFile(mockdatafilepath)
+	fileData, err := os.ReadFile(mockdatafilepath)
 	if err != nil {
 		log.Fatalf("Failed to read JSON file: %v", err)
 	}
 
 	// Parse the JSON file
 	var mockDatabase MockDatabase
-	if err := bson.UnmarshalExtJSON(file_data, true, &mockDatabase); err != nil {
+	if err := bson.UnmarshalExtJSON(fileData, true, &mockDatabase); err != nil {
 		log.Fatalf("Failed to unmarshal JSON data: %v", err)
 	}
 
