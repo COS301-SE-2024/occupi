@@ -16,6 +16,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	// "github.com/stretchr/testify/mock"
 )
@@ -50,6 +51,37 @@ func TestProtectedRoute(t *testing.T) {
 	)
 }
 
+func TestProtectedRouteAuthHeader(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db, cache)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	// set authorization header
+	req.Header.Set("Authorization", token)
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+}
+
 func TestProtectedRouteInvalidToken(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -67,6 +99,30 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
 	req.AddCookie(&http.Cookie{Name: "token", Value: "invalid-token"})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+}
+
+func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db, cache)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil) // set authorization header
+	req.Header.Set("Authorization", "invalid-token")
 
 	r.ServeHTTP(w, req)
 
@@ -119,6 +175,53 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid auth session\"},\"message\":\"Bad Request\",\"status\":401}", w1.Body.String())
 }
 
+func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db, cache)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	// set authorization header
+	req.Header.Set("Authorization", token)
+
+	// make first request with this token and email and let session be created
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+
+	token2, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
+
+	w1 := httptest.NewRecorder()
+
+	// clear previous auth header
+	req.Header.Del("Authorization")
+	// set new authorization header
+	req.Header.Set("Authorization", token2)
+
+	// make second request with different email and token
+	r.ServeHTTP(w1, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w1.Code)
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid auth session\"},\"message\":\"Bad Request\",\"status\":401}", w1.Body.String())
+}
+
 func TestAdminRoute(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -138,6 +241,37 @@ func TestAdminRoute(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
 	req.AddCookie(&http.Cookie{Name: "token", Value: token})
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are an admin\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+}
+
+func TestAdminRouteAuthHeader(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db, cache)
+
+	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-admin", nil)
+	// set authorization header
+	req.Header.Set("Authorization", token)
 
 	r.ServeHTTP(w, req)
 
@@ -198,6 +332,33 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized to access admin route\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
+func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db, cache)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-admin", nil)
+	// set authorization header
+	req.Header.Set("Authorization", token)
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized to access admin route\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+}
+
 func TestAccessUnprotectedRoute(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -251,6 +412,33 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User already authorized\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
+func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db, cache)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-open", nil)
+	// set authorization header
+	req.Header.Set("Authorization", token)
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User already authorized\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+}
+
 func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// connect to the database
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -283,6 +471,51 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	w1 := httptest.NewRecorder()
 	req1, _ := http.NewRequest("GET", "/ping-open", nil)
 	req1.AddCookie(&http.Cookie{Name: "token", Value: "invalid-token"})
+
+	r.ServeHTTP(w1, req1)
+
+	assert.Equal(t, http.StatusOK, w1.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are not auth'd, only non-auth'd users can access this endpoint\",\"status\":200}",
+		strings.ReplaceAll(w1.Body.String(), "-\\u003e", "->"),
+	)
+}
+
+func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	// Register the route
+	router.OccupiRouter(r, db, cache)
+
+	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping-auth", nil)
+	// set authorization header
+	req.Header.Set("Authorization", token)
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(
+		t,
+		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are auth'd\",\"status\":200}",
+		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
+	)
+
+	w1 := httptest.NewRecorder()
+	req1, _ := http.NewRequest("GET", "/ping-open", nil)
+	// set authorization header
+	req.Header.Set("Authorization", "invalid-token")
 
 	r.ServeHTTP(w1, req1)
 
@@ -440,4 +673,91 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 
 	// Assertions for IP2
 	assert.Equal(t, rateLimitedCountIP2, 0, "There should be no requests from IP2 that are rate limited")
+}
+
+func TestAttachOTPRateLimitMiddleware(t *testing.T) {
+	gin.SetMode(configs.GetGinRunMode())
+
+	type testCase struct {
+		description  string
+		clientIP     string
+		waitDuration time.Duration
+		expectedCode int
+		expectedBody string
+	}
+
+	tests := []testCase{
+		{
+			description:  "first request should succeed",
+			clientIP:     "192.168.0.1",
+			waitDuration: 5 * time.Second,
+			expectedCode: http.StatusOK,
+			expectedBody: "OTP request successful",
+		},
+		{
+			description:  "second request within couple of seconds should be rate limited",
+			clientIP:     "192.168.0.1",
+			waitDuration: 0,
+			expectedCode: http.StatusTooManyRequests,
+			expectedBody: `{"error":{"code":"RATE_LIMIT","details":null,"message":"Too many requests"},"message":"Too Many Requests","status":429}`,
+		},
+		{
+			description:  "second request within couple of seconds should be rate limited as evictions are not done yet",
+			clientIP:     "192.168.0.1",
+			waitDuration: 3,
+			expectedCode: http.StatusTooManyRequests,
+			expectedBody: `{"error":{"code":"RATE_LIMIT","details":null,"message":"Too many requests"},"message":"Too Many Requests","status":429}`,
+		},
+		{
+			description:  "second request within couple of seconds should work as evictions just completed",
+			clientIP:     "192.168.0.1",
+			waitDuration: 4 * time.Second,
+			expectedCode: http.StatusOK,
+			expectedBody: `OTP request successfu`,
+		},
+		{
+			description:  "request after a couple seconds should succeed",
+			clientIP:     "192.168.0.1",
+			waitDuration: 5 * time.Second,
+			expectedCode: http.StatusOK,
+			expectedBody: "OTP request successful",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.description, func(t *testing.T) {
+			appsession := &models.AppSession{
+				DB:          nil,
+				Cache:       nil,
+				EmailsSent:  0,
+				CurrentDate: time.Now(),
+				OtpReqCache: configs.CreateOTPRateLimitCache(),
+			}
+
+			router := gin.New()
+			router.GET("/otp",
+				func(ctx *gin.Context) { middleware.AttachOTPRateLimitMiddleware(ctx, appsession) },
+				func(ctx *gin.Context) {
+					ctx.JSON(http.StatusOK, gin.H{"message": "OTP request successful"})
+				})
+
+			req := httptest.NewRequest(http.MethodGet, "/otp", nil)
+			req.RemoteAddr = tc.clientIP + ":12345"
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+			assert.Equal(t, http.StatusOK, w.Code)
+			assert.Contains(t, w.Body.String(), "OTP request successful")
+
+			time.Sleep(tc.waitDuration)
+
+			req2 := httptest.NewRequest(http.MethodGet, "/otp", nil)
+			req2.RemoteAddr = tc.clientIP + ":12345"
+			w2 := httptest.NewRecorder()
+
+			router.ServeHTTP(w2, req2)
+			assert.Equal(t, tc.expectedCode, w2.Code)
+			assert.Contains(t, w2.Body.String(), tc.expectedBody)
+		})
+	}
 }

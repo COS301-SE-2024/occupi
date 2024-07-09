@@ -26,25 +26,23 @@ const Settings = () => {
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
-      // setUserDetails(JSON.parse(result).data);
       let jsonresult = JSON.parse(result);
-      // console.log(jsonresult.data.details.name);
       setName(String(jsonresult.data.details.name));
       setPosition(String(jsonresult.data.position));
-      // console.log(JSON.parse(result).data.details.name);
     };
     getUserDetails();
   }, []);
 
   const handleLogout = async () => {
+    let authToken = await SecureStore.getItemAsync('Token');
     try {
       const response = await fetch('https://dev.occupi.tech/auth/logout', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
         },
-        body: JSON.stringify({}),
         credentials: "include"
       });
       const data = await response.json();
@@ -53,6 +51,7 @@ const Settings = () => {
         alert("logged out siccessfully");
         router.replace('/login');
       } else {
+        console.log(data);
         alert("unable to logout");
       }
     } catch (error) {
