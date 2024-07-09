@@ -917,3 +917,58 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
 
 	return true, "", nil
 }
+
+// SaveTwoFACode saves the 2FA code for a user
+func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) error {
+    collection := db.Database("Occupi").Collection("Users")
+    filter := bson.M{"email": email}
+    update := bson.M{
+        "$set": bson.M{
+            "twoFACode": code,
+            "twoFACodeExpiry": time.Now().Add(10 * time.Minute),
+        },
+    }
+    _, err := collection.UpdateOne(ctx, filter, update)
+    return err
+}
+
+// VerifyTwoFACode checks if the provided 2FA code is valid for the user
+func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) (bool, error) {
+    collection := db.Database("Occupi").Collection("Users")
+    filter := bson.M{
+        "email": email,
+        "twoFACode": code,
+        "twoFACodeExpiry": bson.M{"$gt": time.Now()},
+    }
+    var user models.User
+    err := collection.FindOne(ctx, filter).Decode(&user)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            return false, nil
+        }
+        return false, err
+    }
+    return true, nil
+}
+
+// IsTwoFAEnabled checks if 2FA is enabled for the user
+func IsTwoFAEnabled(ctx context.Context, db *mongo.Client, email string) (bool, error) {
+    collection := db.Database("Occupi").Collection("Users")
+    filter := bson.M{"email": email}
+    var user models.User
+    err := collection.FindOne(ctx, filter).Decode(&user)
+    if err != nil {
+        return false, err
+    }
+	return user.TwoFAEnabled, nil
+}
+
+// setting the 2fa enabled 
+func SetTwoFAEnabled(ctx context.Context, db *mongo.Database, email string, enabled bool) error {
+    collection := db.Collection("users")
+    filter := bson.M{"email": email}
+    update := bson.M{"$set": bson.M{"twoFAEnabled": enabled}}
+
+    _, err := collection.UpdateOne(ctx, filter, update)
+    return err
+}

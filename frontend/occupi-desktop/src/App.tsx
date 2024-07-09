@@ -1,53 +1,74 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
+import { LoginForm, OtpPage, Settings, Dashboard,Analysis,Visitation,Faq} from "@pages/index";
+import {Appearance, OverviewComponent,BookingComponent,PDFReport} from "@components/index";
+import { Layout } from "@layouts/index";
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from "react";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  // Initialize the theme state with system preference
+  const [theme, ] = useState(() => {
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    return savedTheme;
+  });
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  useEffect(() => {
+    const applyTheme = (theme: string ) => {
+      if (theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+      } else {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      }
+    };
 
+    applyTheme(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const disableContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener('contextmenu', disableContextMenu);
+
+    // Cleanup the event listener when the component is unmounted
+    return () => {
+      document.removeEventListener('contextmenu', disableContextMenu);
+    };
+  }, []);
+  
   return (
-    <div className="container">
-      <h1>Welcome to Tauri!</h1>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginForm />} />
+        <Route path="/otp" element={<OtpPage />} />
 
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-
-      <p>{greetMsg}</p>
-    </div>
-  );
+        <Route path="/*" element={
+          <Layout>
+          <Routes>
+            <Route path="dashboard/*" element={<Dashboard />} >
+              <Route path="overview" element={<OverviewComponent />} />
+              <Route path="bookings" element={<BookingComponent />} />{/**attach appropriate component */}
+              <Route path="visitations" element={<Visitation />} />{/**attach appropriate component */}
+              <Route path="analysis" element={<Analysis/>} />{}
+            </Route>
+            <Route path="reports" element={<PDFReport />} />{/**attach appropriate component */}
+            <Route path="faq" element={ <Faq/> } />{/**attach appropriate component */}
+           
+            <Route path="settings/*" element={<Settings />}>
+              <Route path="profile" element={<Appearance />} />{/**attach appropriate component */}
+              <Route path="appearance" element={<Appearance />} />
+              <Route path="privacy" element={<Appearance />} />{/**attach appropriate component */}
+              <Route path="help" element={<Appearance />} />{/**attach appropriate component */}
+              <Route path="about" element={<Appearance />} />{/**attach appropriate component */}
+            </Route>
+          </Routes>
+        </Layout>}>
+        </Route>
+      </Routes>
+    </Router>
+  )
 }
 
-export default App;
+export default App

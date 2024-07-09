@@ -10,8 +10,7 @@ type RequestUser struct {
 // expected structure of otp from api requests
 type RequestUserOTP struct {
 	Email string `json:"email" binding:"required,email"`
-	OTP   string `json:"otp" binding:"required,otp,len=6"`
-	Password   string `json:"password" binding:"required,min=8"`
+	OTP   string `json:"otp" binding:"required,len=6"`
 }
 
 type ErrorMsg struct {
