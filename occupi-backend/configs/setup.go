@@ -56,8 +56,8 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 
 // Create cache
 func CreateCache() *bigcache.BigCache {
-	config := bigcache.DefaultConfig(10 * time.Minute) // Set the eviction time to 5 seconds
-	config.CleanWindow = 10 * time.Minute              // Set the cleanup interval to 5 seconds
+	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to 5 seconds
+	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to 5 seconds
 	cache, err := bigcache.New(context.Background(), config)
 	if err != nil {
 		logrus.Fatal(err)

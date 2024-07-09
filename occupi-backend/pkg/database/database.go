@@ -150,10 +150,10 @@ func EmailExists(ctx *gin.Context, appsession *models.AppSession, email string) 
 	// Add the user to the cache if cache is not nil
 	if appsession.Cache != nil {
 		if userData, err := bson.Marshal(user); err != nil {
-			logrus.Error(err)
+			logrus.Error("Failed to marshall user: ", err)
 		} else {
 			if err := appsession.Cache.Set(user.Email, userData); err != nil {
-				logrus.Error(err)
+				logrus.Error("Failed to set key: ", err)
 			}
 		}
 	}
@@ -256,7 +256,7 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 		} else {
 			// check if the OTP has expired
 			var otpStruct models.OTP
-			if err := bson.UnmarshalExtJSON([]byte(email+otp), true, &otpStruct); err != nil {
+			if err := bson.Unmarshal([]byte(email+otp), &otpStruct); err != nil {
 				logrus.Error(err)
 			} else {
 				if time.Now().After(otpStruct.ExpireWhen) {
@@ -363,7 +363,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (
 		return true, nil
 	}
 
-	if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+	if err := bson.Unmarshal(userData, &user); err != nil {
 		logrus.Error(err)
 		return true, nil
 	}
@@ -392,11 +392,11 @@ func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) 
 		// unmarshal the user from the cache
 		var user models.User
 		userData, err := appsession.Cache.Get(email)
-		if err == nil {
-			logrus.Error(err)
+		if err != nil {
+			logrus.Error("key does not exist: ", err)
 		} else {
-			if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
-				logrus.Error(err)
+			if err := bson.Unmarshal(userData, &user); err != nil {
+				logrus.Error("failed to unmarshall", err)
 			} else {
 				return user.Password, nil
 			}
@@ -439,10 +439,10 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 		// unmarshal the user from the cache
 		var user models.User
 		userData, err := appsession.Cache.Get(email)
-		if err == nil {
+		if err != nil {
 			logrus.Error(err)
 		} else {
-			if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+			if err := bson.Unmarshal(userData, &user); err != nil {
 				logrus.Error(err)
 			} else {
 				if time.Now().After(user.NextVerificationDate) {
@@ -503,10 +503,10 @@ func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, emai
 		// unmarshal the user from the cache
 		var user models.User
 		userData, err := appsession.Cache.Get(email)
-		if err == nil {
+		if err != nil {
 			logrus.Error(err)
 		} else {
-			if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+			if err := bson.Unmarshal(userData, &user); err != nil {
 				logrus.Error(err)
 			} else {
 				return user.IsVerified, nil
@@ -569,7 +569,7 @@ func UpdateVerificationStatusTo(ctx *gin.Context, appsession *models.AppSession,
 		return true, nil
 	}
 
-	if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+	if err := bson.Unmarshal(userData, &user); err != nil {
 		logrus.Error(err)
 		return true, nil
 	}
@@ -768,10 +768,10 @@ func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email s
 		// unmarshal the user from the cache
 		var user models.User
 		userData, err := appsession.Cache.Get(email)
-		if err == nil {
+		if err != nil {
 			logrus.Error(err)
 		} else {
-			if err := bson.UnmarshalExtJSON(userData, true, &user); err != nil {
+			if err := bson.Unmarshal(userData, &user); err != nil {
 				logrus.Error(err)
 			} else {
 				return user.Role == constants.Admin, nil
@@ -920,55 +920,55 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
 
 // SaveTwoFACode saves the 2FA code for a user
 func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) error {
-    collection := db.Database("Occupi").Collection("Users")
-    filter := bson.M{"email": email}
-    update := bson.M{
-        "$set": bson.M{
-            "twoFACode": code,
-            "twoFACodeExpiry": time.Now().Add(10 * time.Minute),
-        },
-    }
-    _, err := collection.UpdateOne(ctx, filter, update)
-    return err
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	update := bson.M{
+		"$set": bson.M{
+			"twoFACode":       code,
+			"twoFACodeExpiry": time.Now().Add(10 * time.Minute),
+		},
+	}
+	_, err := collection.UpdateOne(ctx, filter, update)
+	return err
 }
 
 // VerifyTwoFACode checks if the provided 2FA code is valid for the user
 func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) (bool, error) {
-    collection := db.Database("Occupi").Collection("Users")
-    filter := bson.M{
-        "email": email,
-        "twoFACode": code,
-        "twoFACodeExpiry": bson.M{"$gt": time.Now()},
-    }
-    var user models.User
-    err := collection.FindOne(ctx, filter).Decode(&user)
-    if err != nil {
-        if err == mongo.ErrNoDocuments {
-            return false, nil
-        }
-        return false, err
-    }
-    return true, nil
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{
+		"email":           email,
+		"twoFACode":       code,
+		"twoFACodeExpiry": bson.M{"$gt": time.Now()},
+	}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // IsTwoFAEnabled checks if 2FA is enabled for the user
 func IsTwoFAEnabled(ctx context.Context, db *mongo.Client, email string) (bool, error) {
-    collection := db.Database("Occupi").Collection("Users")
-    filter := bson.M{"email": email}
-    var user models.User
-    err := collection.FindOne(ctx, filter).Decode(&user)
-    if err != nil {
-        return false, err
-    }
+	collection := db.Database("Occupi").Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return false, err
+	}
 	return user.TwoFAEnabled, nil
 }
 
-// setting the 2fa enabled 
+// setting the 2fa enabled
 func SetTwoFAEnabled(ctx context.Context, db *mongo.Database, email string, enabled bool) error {
-    collection := db.Collection("users")
-    filter := bson.M{"email": email}
-    update := bson.M{"$set": bson.M{"twoFAEnabled": enabled}}
+	collection := db.Collection("users")
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"twoFAEnabled": enabled}}
 
-    _, err := collection.UpdateOne(ctx, filter, update)
-    return err
+	_, err := collection.UpdateOne(ctx, filter, update)
+	return err
 }
