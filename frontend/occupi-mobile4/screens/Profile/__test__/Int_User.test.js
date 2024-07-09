@@ -15,7 +15,7 @@ jest.mock('expo-router', () => ({
 }));
 
 // Override the original components with inline mock components
-jest.mock('../FAQPage', () => (props) => (
+jest.mock('../../Settings/FAQPage', () => (props) => (
   <div {...props}>
     <div
       testID="profile-link"
@@ -25,7 +25,7 @@ jest.mock('../FAQPage', () => (props) => (
     />
   </div>
 ));
-jest.mock('../Profile', () => (props) => (
+jest.mock('../../Settings/Profile', () => (props) => (
   <div {...props}>
     <div
       testID="settings-link"
@@ -35,7 +35,7 @@ jest.mock('../Profile', () => (props) => (
     />
   </div>
 ));
-jest.mock('../Settings', () => (props) => (
+jest.mock('../../Settings/Settings', () => (props) => (
   <div {...props}>
     <div
       testID="faq-link"
