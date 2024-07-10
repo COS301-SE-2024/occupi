@@ -24,6 +24,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
+import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
 
 const getTimeForSlot = (slot) => {
@@ -100,8 +101,9 @@ const BookingDetails = () => {
   const [attendees, setAttendees] = useState([creatorEmail]);
   console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
-
   const steps = ["Booking details", "Invite attendees", "Receipt"];
+  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+  const bookroomendpoint = process.env.EXPO_PUBLIC_BOOK_ROOM;
 
   const addAttendee = () => {
     if (email && !attendees.includes(email)) {
@@ -125,13 +127,15 @@ const BookingDetails = () => {
       "floorNo": parseInt(roomParams.floorNo, 10)
     };
     console.log(body);
+    let authToken = await SecureStore.getItemAsync('Token');
     try {
       setLoading(true);
-      const response = await fetch('https://dev.occupi.tech/api/book-room', {
+      const response = await fetch(`${apiUrl}${bookroomendpoint}`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
         },
         body: JSON.stringify(body),
         credentials: "include"
