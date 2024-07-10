@@ -9,6 +9,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"gopkg.in/gomail.v2"
 )
 
@@ -115,11 +116,11 @@ func SendBulkEmailWithBCC(emails []string, subject, body string, appsession *mod
 func SendBookingEmails(booking models.Booking) error {
 	// Prepare the email content
 	creatorSubject := "Booking Confirmation - Occupi"
-	creatorBody := FormatBookingEmailBodyForBooker(booking.ID, booking.RoomID, 0, booking.Emails, booking.Creator)
+	creatorBody := utils.FormatBookingEmailBodyForBooker(booking.ID, booking.RoomID, 0, booking.Emails, booking.Creator)
 
 	// Prepare the email content for attendees
 	attendeesSubject := "You're invited to a Booking - Occupi"
-	attendeesBody := FormatBookingEmailBodyForAttendees(booking.ID, booking.RoomID, 0, booking.Creator)
+	attendeesBody := utils.FormatBookingEmailBodyForAttendees(booking.ID, booking.RoomID, 0, booking.Creator)
 
 	var attendees []string
 	for _, email := range booking.Emails {
@@ -146,11 +147,11 @@ func SendBookingEmails(booking models.Booking) error {
 func SendCancellationEmails(cancel models.Cancel) error {
 	// Prepare the email content
 	creatorSubject := "Booking Cancelled - Occupi"
-	creatorBody := FormatCancellationEmailBodyForBooker(cancel.BookingID, cancel.RoomID, 0, cancel.Creator)
+	creatorBody := utils.FormatCancellationEmailBodyForBooker(cancel.BookingID, cancel.RoomID, 0, cancel.Creator)
 
 	// Prepare the email content for attendees
 	attendeesSubject := "Booking Cancelled - Occupi"
-	attendeesBody := FormatCancellationEmailBodyForAttendees(cancel.BookingID, cancel.RoomID, 0, cancel.Creator)
+	attendeesBody := utils.FormatCancellationEmailBodyForAttendees(cancel.BookingID, cancel.RoomID, 0, cancel.Creator)
 
 	var attendees []string
 	for _, email := range cancel.Emails {
