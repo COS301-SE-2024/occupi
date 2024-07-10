@@ -27,7 +27,7 @@ import {
 } from "@nextui-org/react";
 import { PlusIcon } from "@assets/index";
 import { SearchIcon } from "@assets/index";
-import { ChevronDownIcon, EyeIcon, DeleteIcon, EditIcon } from "@assets/index";
+import { ChevronDownIcon } from "@assets/index";
 import { columns, users, statusOptions } from "../data/Data";
 import { capitalize } from "../data/Utils";
 import { OccupancyModal } from "@components/index";
@@ -63,7 +63,7 @@ export default function App() {
     direction: "ascending",
   });
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const {  onOpen } = useDisclosure();
 
 
   const [page, setPage] = React.useState(1);
