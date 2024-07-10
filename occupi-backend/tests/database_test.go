@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/allegro/bigcache/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
@@ -917,35 +918,46 @@ func TestUpdateUserPassword(t *testing.T) {
 
 // Test ClearResetToken
 func TestClearResetToken(t *testing.T) {
-	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+    mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
-	gin.SetMode(gin.TestMode)
-	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+    mt.Run("success", func(mt *mtest.T) {
+        // Create a mock AppSession
+        cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10 * time.Minute))
+        appSession := models.New(mt.Client, cache)
 
-	mt.Run("success", func(mt *mtest.T) {
-		email := "test@example.com"
-		token := "token123"
+        email := "test@example.com"
+        token := "testtoken"
 
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
+        mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		success, err := database.ClearResetToken(ctx, mt.Client, email, token)
+        // Create a mock gin.Context
+        w := httptest.NewRecorder()
+        c, _ := gin.CreateTestContext(w)
 
-		assert.NoError(t, err)
-		assert.True(t, success)
-	})
+        success, err := database.ClearResetToken(c, appSession, email, token)
+        assert.NoError(t, err)
+        assert.True(t, success)
+    })
 
-	mt.Run("error", func(mt *mtest.T) {
-		email := "test@example.com"
-		token := "token123"
+    mt.Run("error", func(mt *mtest.T) {
+        // Create a mock AppSession
+        cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10 * time.Minute))
+        appSession := models.New(mt.Client, cache)
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
-			Code:    11000,
-			Message: "delete error",
-		}))
+        email := "test@example.com"
+        token := "testtoken"
 
-		success, err := database.ClearResetToken(ctx, mt.Client, email, token)
+        mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+            Code:    11000,
+            Message: "duplicate key error",
+        }))
 
-		assert.Error(t, err)
-		assert.False(t, success)
-	})
+        // Create a mock gin.Context
+        w := httptest.NewRecorder()
+        c, _ := gin.CreateTestContext(w)
+
+        success, err := database.ClearResetToken(c, appSession, email, token)
+        assert.Error(t, err)
+        assert.False(t, success)
+    })
 }
