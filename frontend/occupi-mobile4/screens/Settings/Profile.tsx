@@ -57,7 +57,7 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   let colorScheme = useColorScheme();
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
   const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
   const updateDetailsUrl = process.env.EXPO_PUBLIC_UPDATE_USER_DETAILS;
   console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);

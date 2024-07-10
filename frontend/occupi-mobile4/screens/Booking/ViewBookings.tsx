@@ -11,6 +11,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { Octicons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../../components/NavBar';
+import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
 
 const groupDataInPairs = (data) => {
@@ -98,16 +99,20 @@ const ViewBookings = () => {
     // const [email, setEmail] = useState('kamogelomoeketse@gmail.com');
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
+    const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
 
 
     const onRefresh = React.useCallback(() => {
         const fetchAllRooms = async () => {
             console.log("heree");
+            let authToken = await SecureStore.getItemAsync('Token');
+            console.log("Token:"+authToken);
             try {
-                const response = await fetch(`https://dev.occupi.tech/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
+                const response = await fetch(`${apiUrl}/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `${authToken}`
                     },
                 });
                 const data = await response.json();
@@ -186,12 +191,15 @@ const ViewBookings = () => {
 
     useEffect(() => {
         const fetchAllRooms = async () => {
-            console.log("heree");
+            let authToken = await SecureStore.getItemAsync('Token');
+            // console.log("Token:"+authToken);
+            // console.log("heree");
             try {
-                const response = await fetch(`https://dev.occupi.tech/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
+                const response = await fetch(`${apiUrl}/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `${authToken}`
                     },
                 });
                 const data = await response.json();
