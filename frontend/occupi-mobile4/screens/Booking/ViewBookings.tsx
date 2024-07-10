@@ -123,7 +123,7 @@ const ViewBookings = () => {
         const fetchAllRooms = async () => {
             console.log("heree");
             let authToken = await SecureStore.getItemAsync('Token');
-            console.log("Token:"+authToken);
+            console.log("Token:" + authToken);
             try {
                 const response = await fetch(`${apiUrl}${viewbookingsendpoint}?email=${email}`, {
                     method: 'GET',
@@ -178,7 +178,7 @@ const ViewBookings = () => {
             setRefreshing(false);
             fetchAllRooms();
         }, 2000);
-    }, [toast,apiUrl,viewbookingsendpoint,email]);
+    }, [toast, apiUrl, viewbookingsendpoint, email]);
 
     const toggleLayout = () => {
         setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
@@ -207,20 +207,19 @@ const ViewBookings = () => {
     // ];
 
     useEffect(() => {
-        const fetchUserEmail = async () => {
-            let result = await SecureStore.getItemAsync('UserData');
-            // console.log(result);
-            if (result !== undefined) {
-                let jsonresult = JSON.parse(result);
-                setEmail(String(jsonresult?.data?.details?.email));
-            }
-        }
         const fetchAllRooms = async () => {
             let authToken = await SecureStore.getItemAsync('Token');
+            let result = await SecureStore.getItemAsync('UserData');
+            // console.log(result);
+            // if (result !== undefined) {
+            let jsonresult = JSON.parse(result);
+            setEmail(jsonresult?.data?.email);
+            // }
             // console.log("Token:"+authToken);
             // console.log("heree");
             try {
-                const response = await fetch(`${apiUrl}/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
+                // console.log(`${apiUrl}${viewbookingsendpoint}?email=${jsonresult?.data?.email}`);
+                const response = await fetch(`${apiUrl}${viewbookingsendpoint}?email=${jsonresult?.data?.email}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -228,6 +227,7 @@ const ViewBookings = () => {
                     },
                 });
                 const data = await response.json();
+                console.log(data);
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
                     // console.log(data);
@@ -268,17 +268,16 @@ const ViewBookings = () => {
                 });
             }
         };
-        fetchUserEmail();
         fetchAllRooms();
-    }, [toast, apiUrl]);
+    }, [toast, apiUrl, email, viewbookingsendpoint]);
 
     const roomPairs = groupDataInPairs(roomData);
 
-    const handleRoomClick = async (value : string) => {
+    const handleRoomClick = async (value: string) => {
         await SecureStore.setItemAsync('CurrentRoom', value);
         router.push('/viewbookingdetails');
         // console.log(value);
-      }
+    }
 
     return (
         <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
@@ -366,7 +365,7 @@ const ViewBookings = () => {
                         >
                             {pair.map((room) => (
                                 <TouchableOpacity
-                                onPress={() => handleRoomClick(JSON.stringify(room))}
+                                    onPress={() => handleRoomClick(JSON.stringify(room))}
                                     style={{
                                         flex: 1,
                                         borderWidth: 1,
