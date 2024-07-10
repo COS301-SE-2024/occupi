@@ -40,14 +40,14 @@ func PingHandlerAdmin(ctx *gin.Context) {
 
 // handler for fetching test resource from /api/resource. Formats and returns json response
 func FetchResource(ctx *gin.Context, appsession *models.AppSession) {
-	data := database.GetAllData(appsession)
+	data := database.GetAllData(ctx, appsession)
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Data fetched successfully", data))
 }
 
 // handler for fetching test resource from /api/resource. Formats and returns json response
 func FetchResourceAuth(ctx *gin.Context, appsession *models.AppSession) {
-	data := database.GetAllData(appsession)
+	data := database.GetAllData(ctx, appsession)
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Data fetched successfully", data))
 }
