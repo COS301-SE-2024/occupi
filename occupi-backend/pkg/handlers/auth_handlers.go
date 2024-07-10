@@ -539,7 +539,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
     }
 
     // Save OTP in the database
-    err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
+    err = database.SaveTwoFACode(ctx, appsession, request.Email, otp)
     if err != nil {
         logrus.WithFields(logrus.Fields{
             "email": request.Email,
@@ -580,7 +580,7 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
     }
 
     // Verify the 2FA code
-    valid, err := database.VerifyTwoFACode(ctx, appsession.DB, request.Email, request.Code)
+    valid, err := database.VerifyTwoFACode(ctx, appsession, request.Email, request.Code)
     if err != nil {
         logrus.WithError(err).Error("Error verifying 2FA code")
         ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -598,7 +598,7 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
     }
 
     // Enable 2FA for the user
-	err = database.SetTwoFAEnabled(ctx, appsession.DB.Database("Occupi"), request.Email, true )
+	err = database.SetTwoFAEnabled(ctx, appsession, request.Email, true )
 	if err != nil {
 		logrus.WithError(err).Error("Error enabling 2FA")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
