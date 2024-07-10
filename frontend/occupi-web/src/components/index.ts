@@ -24,8 +24,9 @@ import WeeklyAttendanceChart from "./weeklyAttendanceChart/WeeklyAttendanceChart
 import KeyStats from "./keyStats.tsx/KeyStats";
 import OccupancyRatingChart from "./occupancyRatingChart/OccupancyRating";
 import OfficePresent from "./officePresentProbabilityChart/OfficePresent";
-
-
+import StatCard from "./statCard/StatCard";
+import Header from "./headerComponent/Header";
+import OccupiLoader from "./occupiLoader/OccupiLoader";
 
 export {
     DrawerComponent,
@@ -53,5 +54,8 @@ export {
     WeeklyAttendanceChart,
     KeyStats,
     OccupancyRatingChart,
-    OfficePresent
+    OfficePresent,
+    StatCard,
+    Header,
+    OccupiLoader
 }
