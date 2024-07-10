@@ -773,10 +773,11 @@ If there are any errors during the process, appropriate error messages are retur
 This endpoint is used to view all rooms in the Occupi system.
 Upon a successful request, a list of all rooms is returned.
 If there are any errors during the process, appropriate error messages are returned.
+Pass floorNo as a query parameter to get rooms on a specific floor. If floorNo is not provided, all rooms on floor 0 are returned.
 
 - **URL**
 
-  `/api/view-rooms`
+  `/api/view-rooms?floorNo=0`
 
 - **Method**
     
@@ -787,9 +788,7 @@ If there are any errors during the process, appropriate error messages are retur
 - **Content**
 
 ```json copy
-{
-  "floorNo": "string"
-}
+{}
 ```
 
 **Success Response**
@@ -914,6 +913,88 @@ If there are any errors during the process, appropriate error messages are retur
 
 - **Code:** 500
 - **Content:** `{ "status":  500, "message": "Failed to update user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update user details"} }`
+
+### GetUsers
+
+This endpoint is used to view all users in the Occupi system.
+Upon a successful request, a list of all users is returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/get-users`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched users!", "data": {"list of all users"} }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid request payload"}, }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Failed to get users", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get users"} }`
+
+### FilterUsers
+
+This endpoint is used to filter users in the Occupi system.
+The client needs to provide the filter criteria.
+Upon a successful request, a list of users that match the filter criteria is returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/filter-users?DepartmentNo=?`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched users!", "data": {"list of all users"} }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Expected Department Number"}, }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Failed to get users", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get users"} }`
+
 
 
 
