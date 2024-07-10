@@ -6,8 +6,6 @@ import { SideNavBarButton } from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, User} from "@nextui-org/react";
-import { Logout, Bell, SettingsIcon ,Faq} from "@assets/index";
 
 const sidenavvariants = {
   open: {
@@ -165,7 +163,7 @@ const SideNav = () => {
           )}
         </div>
 
-        <div className="mt-auto mb-4 w-full px-2">
+        {/* <div className="mt-auto mb-4 w-full px-2">
           <Dropdown placement="top-start">
             <DropdownTrigger>
               <User
@@ -190,7 +188,7 @@ const SideNav = () => {
               <DropdownItem key="/logout" color="danger" startContent={<Logout />}>Logout</DropdownItem>
             </DropdownMenu>
           </Dropdown>
-        </div>
+        </div> */}
       </div>
     </motion.div>
   );
