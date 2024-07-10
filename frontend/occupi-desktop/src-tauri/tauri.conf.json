@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "occupi-desktop",
-    "version": "0.0.0"
+    "version": "0.2.0"
   },
   "tauri": {
     "allowlist": {
@@ -20,7 +20,7 @@
     "windows": [
       {
         "title": "occupi-desktop",
-        "width": 800,
+        "width": 1200,
         "height": 600
       }
     ],
@@ -30,7 +30,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.tauri.dev",
+      "identifier": "com.occupi.tech.occupi-desktop",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",

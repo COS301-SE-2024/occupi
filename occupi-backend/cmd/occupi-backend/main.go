@@ -1,9 +1,33 @@
+/*
+occupi-backend is the backend server for the occupi project.
+It is responsible for handling all the requests from the frontend and interacting with the database.
+
+Usage:
+
+	go run cmd/occupi-backend/main.go [environment]
+
+The environment flag is used to specify the environment in which the server should run.
+
+	    -env=dev.localhost
+			This specifies that the server should run in development mode on localhost. This is the default environment.
+
+		-env=dev.deployed
+			This specifies that the server should run in development mode on a deployed server.
+
+		-env=prod
+			This specifies that the server should run in production mode.
+
+		-env=test
+			This specifies that the server should run in test mode.
+*/
 package main
 
 import (
 	"flag"
 
 	"github.com/gin-gonic/gin"
+	nrgin "github.com/newrelic/go-agent/v3/integrations/nrgin"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -27,6 +51,9 @@ func main() {
 	// connect to the database
 	db := configs.ConnectToDatabase()
 
+	// create cache
+	cache := configs.CreateCache()
+
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
 
@@ -42,8 +69,23 @@ func main() {
 	// adding rate limiting middleware
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
+	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
+		// Create a newrelic application
+		app, err := newrelic.NewApplication(
+			newrelic.ConfigAppName("occupi-backend"),
+			newrelic.ConfigLicense(configs.GetConfigLicense()),
+			newrelic.ConfigAppLogForwardingEnabled(true),
+		)
+		if err != nil {
+			logrus.Fatal("Failed to create newrelic application: ", err)
+		}
+
+		// adding newrelic middleware
+		ginRouter.Use(nrgin.Middleware(app))
+	}
+
 	// Register routes
-	router.OccupiRouter(ginRouter, db)
+	router.OccupiRouter(ginRouter, db, cache)
 
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()

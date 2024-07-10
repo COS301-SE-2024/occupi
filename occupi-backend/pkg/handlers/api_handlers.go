@@ -40,14 +40,14 @@ func PingHandlerAdmin(ctx *gin.Context) {
 
 // handler for fetching test resource from /api/resource. Formats and returns json response
 func FetchResource(ctx *gin.Context, appsession *models.AppSession) {
-	data := database.GetAllData(appsession.DB)
+	data := database.GetAllData(appsession)
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Data fetched successfully", data))
 }
 
 // handler for fetching test resource from /api/resource. Formats and returns json response
 func FetchResourceAuth(ctx *gin.Context, appsession *models.AppSession) {
-	data := database.GetAllData(appsession.DB)
+	data := database.GetAllData(appsession)
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Data fetched successfully", data))
 }
@@ -81,7 +81,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	booking.CheckedIn = false
 
 	// Save the booking to the database
-	_, err = database.SaveBooking(ctx, appsession.DB, booking)
+	_, err = database.SaveBooking(ctx, appsession, booking)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to save booking", constants.InternalServerErrorCode, "Failed to save booking", nil))
 		return
@@ -105,7 +105,7 @@ func ViewBookings(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Get all bookings for the userBooking
-	bookings, err := database.GetUserBookings(ctx, appsession.DB, email)
+	bookings, err := database.GetUserBookings(ctx, appsession, email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get bookings", constants.InternalServerErrorCode, "Failed to get bookings", nil))
 		return
@@ -137,14 +137,14 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Check if the booking exists
-	exists := database.BookingExists(ctx, appsession.DB, cancel.BookingID)
+	exists := database.BookingExists(ctx, appsession, cancel.BookingID)
 	if !exists {
 		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
 		return
 	}
 
 	// Confirm the cancellation to the database
-	_, err = database.ConfirmCancellation(ctx, appsession.DB, cancel.BookingID, cancel.Creator)
+	_, err = database.ConfirmCancellation(ctx, appsession, cancel.BookingID, cancel.Creator)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel booking", constants.InternalServerErrorCode, "Failed to cancel booking", nil))
 		return
@@ -182,20 +182,65 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Check if the booking exists
-	exists := database.BookingExists(ctx, appsession.DB, checkIn.BookingID)
+	exists := database.BookingExists(ctx, appsession, checkIn.BookingID)
 	if !exists {
 		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
 		return
 	}
 
 	// Confirm the check-in to the database
-	_, err = database.ConfirmCheckIn(ctx, appsession.DB, checkIn)
+	_, err = database.ConfirmCheckIn(ctx, appsession, checkIn)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to check in", constants.InternalServerErrorCode, "Failed to check in. Email not associated with booking", nil))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully checked in!", nil))
+}
+
+func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
+	// Extract the email query parameter
+	email := ctx.Query("email")
+	if email == "" || !utils.ValidateEmail(email) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Email Address", nil))
+		return
+	}
+
+	if !database.EmailExists(ctx, appsession, email) {
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
+		return
+	}
+
+	// Get all bookings for the userBooking
+	user, err := database.GetUserDetails(ctx, appsession, email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get user details", constants.InternalServerErrorCode, "Failed to get user details", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched user details!", user))
+}
+func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
+	var user models.UserDetails
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+		return
+	}
+
+	// Check if the user exists
+	if !database.EmailExists(ctx, appsession, user.Email) {
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
+		return
+	}
+	var err error
+	// Update the user details in the database
+	_, err = database.UpdateUserDetails(ctx, appsession, user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update user details", constants.InternalServerErrorCode, "Failed to update user details", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated user details!", nil))
 }
 
 func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
@@ -228,7 +273,7 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	var rooms []models.Room
-	rooms, err = database.GetAllRooms(ctx, appsession.DB, floorNo)
+	rooms, err = database.GetAllRooms(ctx, appsession, floorNo)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get rooms", constants.InternalServerErrorCode, "Failed to get rooms", nil))
 		return

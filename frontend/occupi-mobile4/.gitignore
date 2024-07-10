@@ -12,6 +12,8 @@ web-build/
 
 eas.json
 app.json
+occupi-4d02a-firebase-adminsdk-4ea8s-545f5460aa.json
+google-services.json
 
 # macOS
 .DS_Store
@@ -21,3 +23,5 @@ app.json
 
 expo-env.d.ts
 # @end expo-cli
+
+.env

@@ -4,6 +4,7 @@ import OtpPage from "./OtpPage"; // Adjust the import path as needed
 import { createElement } from "react";
 // import '@testing-library/jest-dom';
 
+
 interface OtpComponentProps {
   setOtp: (otp: string, isValid: boolean) => void;
 }
@@ -68,9 +69,7 @@ test("OTP input updates correctly", () => {
 //     let state = initialState;
 //     const setState = (newState: typeof initialState) => {
 //       state = typeof newState === 'function' ? newState(state) : newState;
-//       if ('validity' in state) buttonClickable = state.validity;
-//     };
-//     setOTP = setState;
+
 //     return [state, setState];
 //   });
 
@@ -79,6 +78,7 @@ test("OTP input updates correctly", () => {
 //     buttonClickable = isClickable;
 //     return null;
 //   });
+
 
 //   // Create a mock OtpPage component
 //   const MockOtpPage = () => {
@@ -115,6 +115,7 @@ test("OTP input updates correctly", () => {
 //     };
 //     return [state, setState];
 //   });
+
 
 //   // Mock SendOTP function
 //   const mockSendOTP = mock(() => {

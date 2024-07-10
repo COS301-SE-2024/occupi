@@ -12,12 +12,21 @@ The API also allows you to retrieve information about these resources.
     - [Base URL](#base-url)
     - [Ping](#ping)
       - [Ping](#ping-1)
+      - [Ping-Open](#ping-open)
       - [Ping-Auth](#ping-auth)
       - [Ping-Admin](#ping-admin)
     - [Authentication](#authentication)
-      - [Register](#register)
       - [Login](#login)
+      - [Login-Admin](#login-admin)
+      - [Login-Mobile](#login-mobile)
+      - [Login-Admin-Mobile](#login-admin-mobile)
+      - [Register](#register)
+      - [Resend OTP](#resend-otp)
       - [Verify OTP](#verify-otp)
+      - [Verify OTP Login](#verify-otp-login)
+      - [Verify OTP Admin Login](#verify-otp-admin-login)
+      - [Verify OTP Mobile Login](#verify-otp-mobile-login)
+      - [Verify OTP Mobile Admin Login](#verify-otp-mobile-admin-login)
       - [Logout](#logout)
     - [Api](#api)
       - [Resources](#resources)
@@ -30,7 +39,7 @@ The API also allows you to retrieve information about these resources.
 
 ## Base URL
 
-The base URL for the Occupi API is `https://occupi.tech`, `https://dev.occupi.tech` or `https://localhost:8080` if you are in develop mode.
+The base URL for the Occupi API is `https://occupi.tech`, `https://dev.occupi.tech` or `http://localhost:8080` if you are in develop mode.
 
 ## Ping
 
@@ -60,6 +69,34 @@ The ping endpoint is used to check if the API is up and running.
 ```json copy
 {}
 ```
+
+### Ping-Open
+
+The ping-open endpoint is used to check if the API is up and running and also to check if the user is not authenticated. If a user is authenticated, they cannot access this endpoint.
+
+- **URL**
+
+  `/ping-open`
+
+- **Method**
+  
+    `GET`
+
+- **Success Response**
+  
+    - **Code:** 200
+    - **Content:** `{ "status":  200, "message": "pong -> I am alive and kicking and you are not auth'd, only non-auth'd users can access this endpoint", "data": {}, }`
+
+- **Error Response**
+    
+      - **Code:** 401
+      - **Content:** `{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized\"},\"message\":\"Bad Request\",\"status\":401}`
+
+**_Example json to send:_**
+  
+  ```json copy
+  {}
+  ```
 
 ### Ping-Auth
 
@@ -121,6 +158,140 @@ The ping-admin endpoint is used to check if the API is up and running and also t
 
 The authentication endpoints are used to register, login, login-admin, logout, and verify users. Only POST requests are used for these endpoints.
 
+### Login
+
+- **URL**
+
+  `/auth/login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "password": "123456"
+}
+```
+
+### Login-Admin
+
+- **URL**
+
+  `/auth/login-admin`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+  "password": "123456"
+}
+```
+
+### Login-Mobile
+
+- **URL**
+
+  `/auth/login-mobile`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {"token": "some random jwt token"}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "password": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
+
+### Login-Admin-Mobile
+
+- **URL**
+
+  `/auth/login-mobile`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {"token": "some random jwt token"}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+  "password": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
+
 ### Register
 
 - **URL**
@@ -155,11 +326,13 @@ The authentication endpoints are used to register, login, login-admin, logout, a
 }
 ```
 
-### Login
+### Resend OTP
+
+This endpoint is used to resend a new OTP to the user's email during registration.
 
 - **URL**
 
-  `/auth/login`
+  `/auth/resend-otp`
 
 - **Method**
 
@@ -168,7 +341,7 @@ The authentication endpoints are used to register, login, login-admin, logout, a
 - **Success Response**
 
   - **Code:** 200
-  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+  - **Content:** `{ "status":  200, "message": "Registration successful! Please check your email for the OTP to verify your account.", "data": {}, }`
 
   **Error Response**
 
@@ -183,12 +356,13 @@ The authentication endpoints are used to register, login, login-admin, logout, a
 
 ```json copy
 {
-  "email": "abcd@gmail.com",
-  "password": "123456"
+  "email": "abcd@gmail.com"
 }
 ```
 
 ### Verify OTP
+
+This endpoint is used to verify the OTP sent to the user's email during registration.
 
 - **URL**
 
@@ -217,9 +391,151 @@ The authentication endpoints are used to register, login, login-admin, logout, a
 ```json copy
 {
   "email": "abcd@gmail.com",
-  "oTP": "123456"
+  "otp": "123456"
 }
 ```
+
+### Verify OTP Login
+
+This endpoint verifies the otp sent during registration and logs the user in if the otp is valid.
+
+- **URL**
+
+  `/auth/verify-otp-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "otp": "123456"
+}
+```
+
+### Verify OTP Admin Login
+
+This endpoint verifies the otp sent during registration and logs the admin in if the otp is valid.
+
+- **URL**
+
+  `/auth/verify-otp-admin-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+  "otp": "123456"
+}
+```
+
+### Verify OTP Mobile Login
+
+This endpoint verifies the otp sent during registration and logs the user in if the otp is valid.
+
+- **URL**
+
+  `/auth/verify-otp-mobile-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {"token": "some random jwt token"}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "otp": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
+
+### Verify OTP Mobile Admin Login
+
+This endpoint verifies the otp sent during registration and logs the admin in if the otp is valid.
+
+- **URL**
+
+  `/auth/verify-otp-mobile-admin-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {"token": "some random jwt token"}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+  "otp": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
 
 ### Logout
 
@@ -499,7 +815,7 @@ If there are any errors during the process, appropriate error messages are retur
 
 - **Method**
     
-    `POST`
+    `GET`
     
 - **Request Body**
 
@@ -526,7 +842,117 @@ If there are any errors during the process, appropriate error messages are retur
 - **Code:** 500
 - **Content:** `{ "status":  500, "message": "Failed to get rooms", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get rooms"} }`
 
- 
+### GetUserDetails
+
+This endpoint is used to view the details of a user in the Occupi system.
+Upon a successful request, the details of the user are returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/user-details?email=jane.doe@example.com`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "string"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully fetched user details!", "data": {"user details"} }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
+**Error Response**
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "User not found", "error": {"code":"BAD_REQUEST","details":null,"message":"User not found"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to get user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get user details"} }`
+
+### UpdateUserDetails
+
+This endpoint is used to update the details of a user in the Occupi system.
+The client needs to provide the user's email address and the details to be updated.
+Upon a successful request, the user's details are updated.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/update-user`
+
+- **Method**
+    
+    `PUT`
+
+
+- **Request Body**
+
+- **Content**
+- Add fields that you want to update. Always include email field.
+
+```json copy
+{
+  "email": "John.Doe@example.com",
+  "details": {
+    "contactNo": "123456789",
+    "dob": "1970-01-01T00:00:00Z",
+    "gender": "Male",
+    "name": "John Doea",
+    "pronouns": "He/him"
+  },
+  "notifications": {
+    "allow": true,
+    "booking_reminder": false,
+    "max_capacity": true
+  },
+  "security": {
+    "2fa": false,
+    "biometrics": true
+  },
+  "position": "Head of Examples"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully updated user details!", "data": nil }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
+**Error Response**
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "User not found", "error": {"code":"BAD_REQUEST","details":null,"message":"User not found"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to update user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update user details"} }`
+
+
+
+
 
 
 
