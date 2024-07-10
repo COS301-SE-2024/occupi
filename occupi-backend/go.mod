@@ -22,6 +22,7 @@ require (
 )
 
 require (
+	github.com/gin-contrib/cors v1.7.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect
 	google.golang.org/grpc v1.62.1 // indirect
