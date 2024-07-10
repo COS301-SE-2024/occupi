@@ -31,6 +31,7 @@ const (
 	OtpExpiration       = "OTP_EXPIRATION"
 	FrontendURL         = "FRONTEND_URL"
 	ConfigLicense       = "CONFIG_LICENSE"
+	CacheEviction       = "CACHE_EVICTION"
 	OtpGenReqEviction   = "OTP_GEN_REQ_EVICTION"
 	AllowOriginsVal     = "ALLOW_ORIGINS"
 	AllowMethodsVal     = "ALLOW_METHODS"
@@ -256,6 +257,15 @@ func GetConfigLicense() string {
 		license = "CONFIG_LICENSE"
 	}
 	return license
+}
+
+// gets the cache eviction time as defined in the config.yaml file in seconds
+func GetCacheEviction() int {
+	time := viper.GetInt(CacheEviction)
+	if time == 0 {
+		time = 600
+	}
+	return time
 }
 
 // gets the otp request eviction time as defined in the config.yaml file in seconds

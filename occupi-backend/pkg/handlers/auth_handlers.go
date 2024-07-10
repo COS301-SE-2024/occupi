@@ -708,6 +708,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	var request struct {
 		Email string `json:"email" binding:"required,email"`
 	}
+  
 	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -737,7 +738,6 @@ func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
 
 	handlePasswordReset(ctx, appsession, request.Email)
 }
-
 
 // handler for logging out a user
 func Logout(ctx *gin.Context) {
