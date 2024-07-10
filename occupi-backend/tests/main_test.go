@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/data"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
@@ -21,7 +22,7 @@ func TestMain(m *testing.M) {
 	utils.SetupLogger()
 
 	// begin seeding the mock database
-	configs.SeedMockDatabase("../data/test_data.json")
+	data.SeedMockDatabase("../data/test_data.json")
 
 	log.Println("Starting up tests")
 

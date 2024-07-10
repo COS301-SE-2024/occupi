@@ -14,6 +14,9 @@
     },
     "ios": {
       "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
         "NSFaceIDUsageDescription": "This app uses Face ID or Touch ID to confirm bookings."
       }
@@ -27,7 +30,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.y2kodedev.occupi"
+      "package": "com.y2kodedev.occupi",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +39,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
