@@ -32,12 +32,12 @@ const (
 	FrontendURL         = "FRONTEND_URL"
 	ConfigLicense       = "CONFIG_LICENSE"
 	OtpGenReqEviction   = "OTP_GEN_REQ_EVICTION"
-	AllowOrigins        = "ALLOW_ORIGINS"
-	AllowMethods        = "ALLOW_METHODS"
-	AllowHeaders        = "ALLOW_HEADERS"
-	ExposeHeaders       = "EXPOSE_HEADERS"
-	AllowCredentials    = "ALLOW_CREDENTIALS"
-	MaxAge              = "MAX_AGE"
+	AllowOriginsVal     = "ALLOW_ORIGINS"
+	AllowMethodsVal     = "ALLOW_METHODS"
+	AllowHeadersVal     = "ALLOW_HEADERS"
+	ExposeHeadersVal    = "EXPOSE_HEADERS"
+	Caval               = "ALLOW_CREDENTIALS"
+	MaxAgeVal           = "MAX_AGE"
 )
 
 // init viper
@@ -269,7 +269,7 @@ func GetOTPReqEviction() int {
 
 // gets allow origins as defined in the config.yaml file
 func GetAllowOrigins() []string {
-	origins := viper.GetString(AllowOrigins)
+	origins := viper.GetString(AllowOriginsVal)
 	if origins != "" {
 		originList := strings.Split(origins, ",")
 		return originList
@@ -279,7 +279,7 @@ func GetAllowOrigins() []string {
 
 // gets allow methods as defined in the config.yaml file
 func GetAllowMethods() []string {
-	methods := viper.GetString(AllowMethods)
+	methods := viper.GetString(AllowMethodsVal)
 	if methods != "" {
 		methodList := strings.Split(methods, ",")
 		return methodList
@@ -289,7 +289,7 @@ func GetAllowMethods() []string {
 
 // gets allow headers as defined in the config.yaml file
 func GetAllowHeaders() []string {
-	headers := viper.GetString(AllowHeaders)
+	headers := viper.GetString(AllowHeadersVal)
 	if headers != "" {
 		headerList := strings.Split(headers, ",")
 		return headerList
@@ -299,7 +299,7 @@ func GetAllowHeaders() []string {
 
 // gets expose headers as defined in the config.yaml file
 func GetExposeHeaders() []string {
-	headers := viper.GetString(ExposeHeaders)
+	headers := viper.GetString(ExposeHeadersVal)
 	if headers != "" {
 		headerList := strings.Split(headers, ",")
 		return headerList
@@ -309,12 +309,12 @@ func GetExposeHeaders() []string {
 
 // gets allow credentials as defined in the config.yaml file
 func GetAllowCredentials() bool {
-	credentials := viper.GetBool(AllowCredentials)
+	credentials := viper.GetBool(Caval)
 	return credentials
 }
 
 // gets max age as defined in the config.yaml file
 func GetMaxAge() int {
-	age := viper.GetInt(MaxAge)
+	age := viper.GetInt(MaxAgeVal)
 	return age
 }
