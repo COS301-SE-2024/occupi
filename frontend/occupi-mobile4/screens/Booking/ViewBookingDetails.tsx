@@ -23,55 +23,75 @@ import {
     widthPercentageToDP as wp
 } from 'react-native-responsive-screen';
 import PagerView from 'react-native-pager-view';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 
+interface Room {
+    _id: string;
+    roomName: string;
+    roomId: string;
+    roomNo: number;
+    floorNo: number;
+    minOccupancy: number;
+    maxOccupancy: number;
+    description: string;
+    emails: string[];
+    date: string;
+    start: string;
+    end: string;
+}
 
 const ViewBookingDetails = (bookingId:string, roomName:string) => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
-    const [room, setRoom] = useState({});
+    const [room, setRoom] = useState<Room>({});
     const router = useRouter();
     const [checkedIn, setCheckedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
+    const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+    const checkinendpoint = process.env.EXPO_PUBLIC_CHECK_IN;
+    const cancelbookingendpoint = process.env.EXPO_PUBLIC_CANCEL_BOOKING;
+
     // console.log("HERE:" + room);
 
     useEffect(() => {
         const getCurrentRoom = async () => {
-          let result = await SecureStore.getItemAsync('CurrentRoom');
-          console.log("CurrentRoom:",result);
+          let result : string = await SecureStore.getItemAsync('CurrentRoom');
+        //   console.log("CurrentRoom:",result);
           // setUserDetails(JSON.parse(result).data);
           let jsonresult = JSON.parse(result);
-          console.log(jsonresult.checkedIn);
+        //   console.log(jsonresult.checkedIn);
           setRoom(jsonresult);
           setCheckedIn(jsonresult.checkedIn);
         };
         getCurrentRoom();
       }, []);
 
-      console.log("Room",room._id);
+    //   console.log("Room",room._id);
     
 
     const checkin = async () => {
         const body = {
             "bookingId": room._id,
-            "creator": room.creator,
-            "roomId": room.roomId
+            "creator": room.creator
         };
         setIsLoading(true);
         console.log(body);
+        // console.log(apiUrl+""+checkinendpoint);
+        let authToken = await SecureStore.getItemAsync('Token');
         try {
-            const response = await fetch('https://dev.occupi.tech/api/check-in', {
+            const response = await fetch(`${apiUrl}${checkinendpoint}`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `${authToken}`
                 },
                 body: JSON.stringify(body),
                 credentials: "include"
             });
             const data = await response.json();
-            console.log(data);
+            // console.log(data);
             // const cookies = response.headers.get('Accept');
             //   console.log(cookies);
             if (response.ok) {
@@ -108,17 +128,19 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
 
     const cancelBooking = async () => {
         const body = {
-            "_id": room._id,
+            "bookingId": room._id,
             "creator": room.creator,
         };
         setIsLoading(true);
         console.log(body);
+        let authToken = await SecureStore.getItemAsync('Token');
         try {
-            const response = await fetch('https://dev.occupi.tech/api/cancel-booking', {
+            const response = await fetch(`${apiUrl}${cancelbookingendpoint}`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `${authToken}`
                 },
                 body: JSON.stringify(body),
                 credentials: "include"
@@ -139,7 +161,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                     },
                 });
                 setIsLoading(false);
-                router.push("/home");
+                router.replace("/home");
             } else {
                 setIsLoading(false);
                 console.log(data);
@@ -191,10 +213,10 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                 <View px="$4">
                     <View flexDirection="$row" alignItems="$center">
                         <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} />
-                        <Text color={isDarkMode ? '#fff' : '#000'} fontSize="$20"> Attendees: {room.emails.length}</Text>
+                        <Text color={isDarkMode ? '#fff' : '#000'} fontSize="$20"> Attendees: {room.emails?.length}</Text>
 
                     </View>
-                    {room.emails.map((email, idx) => (
+                    {room.emails?.map((email, idx) => (
                         <Text color={isDarkMode ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                     ))}
                     <Text mt="$4" mb="$1" fontSize="$16" fontWeight="$bold" color={colorScheme === 'dark' ? 'white' : 'black'}>Description</Text>

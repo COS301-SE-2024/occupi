@@ -112,10 +112,11 @@ const ViewBookings = () => {
     const toast = useToast();
     const [roomData, setRoomData] = useState<Room[]>([]);
     // const [selectedSort, setSelectedSort] = useState("newest");
-    // const [email, setEmail] = useState('kamogelomoeketse@gmail.com');
+    const [email, setEmail] = useState('');
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
     const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+    const viewbookingsendpoint = process.env.EXPO_PUBLIC_VIEW_BOOKINGS;
 
 
     const onRefresh = React.useCallback(() => {
@@ -124,7 +125,7 @@ const ViewBookings = () => {
             let authToken = await SecureStore.getItemAsync('Token');
             console.log("Token:"+authToken);
             try {
-                const response = await fetch(`${apiUrl}/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
+                const response = await fetch(`${apiUrl}${viewbookingsendpoint}?email=${email}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -134,7 +135,7 @@ const ViewBookings = () => {
                 const data = await response.json();
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
-                    console.log(data);
+                    // console.log(data);
                     // toast.show({
                     //     placement: 'top',
                     //     render: ({ id }) => {
@@ -177,7 +178,7 @@ const ViewBookings = () => {
             setRefreshing(false);
             fetchAllRooms();
         }, 2000);
-    }, [toast]);
+    }, [toast,apiUrl,viewbookingsendpoint,email]);
 
     const toggleLayout = () => {
         setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
@@ -206,6 +207,14 @@ const ViewBookings = () => {
     // ];
 
     useEffect(() => {
+        const fetchUserEmail = async () => {
+            let result = await SecureStore.getItemAsync('UserData');
+            // console.log(result);
+            if (result !== undefined) {
+                let jsonresult = JSON.parse(result);
+                setEmail(String(jsonresult?.data?.details?.email));
+            }
+        }
         const fetchAllRooms = async () => {
             let authToken = await SecureStore.getItemAsync('Token');
             // console.log("Token:"+authToken);
@@ -221,7 +230,7 @@ const ViewBookings = () => {
                 const data = await response.json();
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
-                    console.log(data);
+                    // console.log(data);
                     // toast.show({
                     //     placement: 'top',
                     //     render: ({ id }) => {
@@ -259,6 +268,7 @@ const ViewBookings = () => {
                 });
             }
         };
+        fetchUserEmail();
         fetchAllRooms();
     }, [toast, apiUrl]);
 
@@ -267,7 +277,7 @@ const ViewBookings = () => {
     const handleRoomClick = async (value : string) => {
         await SecureStore.setItemAsync('CurrentRoom', value);
         router.push('/viewbookingdetails');
-        console.log(value);
+        // console.log(value);
       }
 
     return (
