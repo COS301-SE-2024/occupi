@@ -26,9 +26,9 @@ import { FaPlus, FaEllipsisV, FaChevronDown, FaSearch } from 'react-icons/fa';
 
 import { Key } from "@react-types/shared";
 const statusColorMap: Record<string, ChipProps["color"]> = {
-  IN: "success",
+  ONSITE: "success",
   BOOKED: "warning",
-  OUT: "danger",
+  OFFSITE: "danger",
 };
 
 const INITIAL_VISIBLE_COLUMNS = ["name", "role", "status", "actions"];
