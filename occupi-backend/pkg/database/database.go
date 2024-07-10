@@ -589,24 +589,43 @@ func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, passwo
 	return true, nil
 }
 
-// ClearRestToekn, removes the reset token from the database
-func ClearResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
-	// Delete the token from the database
-	collection := db.Database("Occupi").Collection("ResetTokens")
-	filter := bson.M{"email": email, "token": token}
-	_, err := collection.DeleteOne(ctx,filter)
-	if err != nil {
-		logrus.Error(err)
-		return false, err
-	}
-	return true, nil
+// ClearResetToken removes the reset token from the database
+func ClearResetToken(ctx *gin.Context, appSession *models.AppSession, email string, token string) (bool, error) {
+    collection := appSession.DB.Database("Occupi").Collection("ResetTokens")
+    filter := bson.M{"email": email, "token": token}
+    _, err := collection.DeleteOne(ctx, filter)
+    if err != nil {
+        logrus.Error(err)
+        return false, err
+    }
+
+    // Clear from cache
+    if appSession.Cache != nil {
+        cacheKey := "reset_token:" + email
+        err = appSession.Cache.Delete(cacheKey)
+        if err != nil {
+            logrus.Error("Failed to delete reset token from cache:", err)
+        }
+    }
+
+    return true, nil
 }
 
-// ValidateResetToken 
-func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token string) (bool, string, error) {
-    // Find the reset token document
+// ValidateResetToken validates the reset token
+func ValidateResetToken(ctx context.Context, appSession *models.AppSession, email, token string) (bool, string, error) {
+    cacheKey := "reset_token:" + email
+
+    // Check cache first
+    if appSession.Cache != nil {
+        cachedToken, err := appSession.Cache.Get(cacheKey)
+        if err == nil && string(cachedToken) == token {
+            return true, "", nil
+        }
+    }
+
+    // If not in cache, check database
     var resetToken models.ResetToken
-    collection := db.Database("Occupi").Collection("ResetTokens")
+    collection := appSession.DB.Database("Occupi").Collection("ResetTokens")
     err := collection.FindOne(ctx, bson.M{"email": email, "token": token}).Decode(&resetToken)
     if err != nil {
         if err == mongo.ErrNoDocuments {
@@ -620,12 +639,20 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
         return false, "Token has expired", nil
     }
 
+    // Cache the valid token
+    if appSession.Cache != nil {
+        err = appSession.Cache.Set(cacheKey, []byte(token))
+        if err != nil {
+            logrus.Error("Failed to cache reset token:", err)
+        }
+    }
+
     return true, "", nil
 }
 
 // SaveTwoFACode saves the 2FA code for a user
-func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) error {
-    collection := db.Database("Occupi").Collection("Users")
+func SaveTwoFACode(ctx context.Context, appSession *models.AppSession, email, code string) error {
+    collection := appSession.DB.Database("Occupi").Collection("Users")
     filter := bson.M{"email": email}
     update := bson.M{
         "$set": bson.M{
@@ -634,12 +661,36 @@ func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) er
         },
     }
     _, err := collection.UpdateOne(ctx, filter, update)
-    return err
+    if err != nil {
+        return err
+    }
+
+    // Cache the 2FA code
+    if appSession.Cache != nil {
+        cacheKey := "2fa_code:" + email
+        err = appSession.Cache.Set(cacheKey, []byte(code))
+        if err != nil {
+            logrus.Error("Failed to cache 2FA code:", err)
+        }
+    }
+
+    return nil
 }
 
 // VerifyTwoFACode checks if the provided 2FA code is valid for the user
-func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) (bool, error) {
-    collection := db.Database("Occupi").Collection("Users")
+func VerifyTwoFACode(ctx context.Context, appSession *models.AppSession, email, code string) (bool, error) {
+    cacheKey := "2fa_code:" + email
+
+    // Check cache first
+    if appSession.Cache != nil {
+        cachedCode, err := appSession.Cache.Get(cacheKey)
+        if err == nil && string(cachedCode) == code {
+            return true, nil
+        }
+    }
+
+    // If not in cache or doesn't match, check database
+    collection := appSession.DB.Database("Occupi").Collection("Users")
     filter := bson.M{
         "email": email,
         "twoFACode": code,
@@ -653,27 +704,69 @@ func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) 
         }
         return false, err
     }
+
     return true, nil
 }
 
 // IsTwoFAEnabled checks if 2FA is enabled for the user
-func IsTwoFAEnabled(ctx context.Context, db *mongo.Client, email string) (bool, error) {
-    collection := db.Database("Occupi").Collection("Users")
+func IsTwoFAEnabled(ctx context.Context, appSession *models.AppSession, email string) (bool, error) {
+    cacheKey := "2fa_enabled:" + email
+
+    // Check cache first
+    if appSession.Cache != nil {
+        cachedValue, err := appSession.Cache.Get(cacheKey)
+        if err == nil {
+            return string(cachedValue) == "true", nil
+        }
+    }
+
+    // If not in cache, check database
+    collection := appSession.DB.Database("Occupi").Collection("Users")
     filter := bson.M{"email": email}
     var user models.User
     err := collection.FindOne(ctx, filter).Decode(&user)
     if err != nil {
         return false, err
     }
-	return user.TwoFAEnabled, nil
+
+    // Cache the result
+    if appSession.Cache != nil {
+        cacheValue := "false"
+        if user.TwoFAEnabled {
+            cacheValue = "true"
+        }
+        err = appSession.Cache.Set(cacheKey, []byte(cacheValue))
+        if err != nil {
+            logrus.Error("Failed to cache 2FA enabled status:", err)
+        }
+    }
+
+    return user.TwoFAEnabled, nil
 }
 
-// setting the 2fa enabled 
-func SetTwoFAEnabled(ctx context.Context, db *mongo.Database, email string, enabled bool) error {
-    collection := db.Collection("users")
+// SetTwoFAEnabled sets the 2FA enabled status for a user
+func SetTwoFAEnabled(ctx context.Context, appSession *models.AppSession, email string, enabled bool) error {
+    collection := appSession.DB.Database("Occupi").Collection("Users")
     filter := bson.M{"email": email}
     update := bson.M{"$set": bson.M{"twoFAEnabled": enabled}}
 
     _, err := collection.UpdateOne(ctx, filter, update)
-    return err
+    if err != nil {
+        return err
+    }
+
+    // Update cache
+    if appSession.Cache != nil {
+        cacheKey := "2fa_enabled:" + email
+        cacheValue := "false"
+        if enabled {
+            cacheValue = "true"
+        }
+        err = appSession.Cache.Set(cacheKey, []byte(cacheValue))
+        if err != nil {
+            logrus.Error("Failed to update 2FA enabled status in cache:", err)
+        }
+    }
+
+    return nil
 }
