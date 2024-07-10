@@ -68,10 +68,10 @@ const SignInForm = () => {
   } = useForm<SignInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
   const loginUrl = process.env.EXPO_PUBLIC_LOGIN;
   const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
-  console.log(apiUrl,loginUrl);
+  console.log(apiUrl + "" +loginUrl);
   const isEmailFocused = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
