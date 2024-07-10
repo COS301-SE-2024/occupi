@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Icon,
     ScrollView,
@@ -18,6 +18,7 @@ import {
     MaterialIcons
 } from '@expo/vector-icons';
 import { useColorScheme, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import {
     widthPercentageToDP as wp
 } from 'react-native-responsive-screen';
@@ -25,18 +26,31 @@ import PagerView from 'react-native-pager-view';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 
-const ViewBookingDetails = (bookingId, roomName) => {
+const ViewBookingDetails = (bookingId:string, roomName:string) => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
-    const roomParams = useLocalSearchParams();
-    const roomData = roomParams.roomData;
-    const room = JSON.parse(roomData);
+    const [room, setRoom] = useState({});
     const router = useRouter();
-    const [checkedIn, setCheckedIn] = useState(room.checkedIn);
+    const [checkedIn, setCheckedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
-    console.log("HERE:" + roomData);
-    console.log(checkedIn);
+    // console.log("HERE:" + room);
+
+    useEffect(() => {
+        const getCurrentRoom = async () => {
+          let result = await SecureStore.getItemAsync('CurrentRoom');
+          console.log("CurrentRoom:",result);
+          // setUserDetails(JSON.parse(result).data);
+          let jsonresult = JSON.parse(result);
+          console.log(jsonresult.checkedIn);
+          setRoom(jsonresult);
+          setCheckedIn(jsonresult.checkedIn);
+        };
+        getCurrentRoom();
+      }, []);
+
+      console.log("Room",room._id);
+    
 
     const checkin = async () => {
         const body = {
