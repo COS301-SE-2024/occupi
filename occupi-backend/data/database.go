@@ -85,3 +85,17 @@ func insertData(collection *mongo.Collection, documents []interface{}) {
 		log.Printf("Collection %s already has %d documents, skipping seeding\n", collection.Name(), count)
 	}
 }
+
+func CleanDatabase() {
+	// connect to the database
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+
+	// Drop all collections
+	collections := []string{"OTPS", "RoomBooking", "Rooms", "Users"}
+	for _, collection := range collections {
+		if err := db.Database(configs.GetMongoDBName()).Collection(collection).Drop(context.Background()); err != nil {
+			log.Fatalf("Failed to drop collection %s: %v", collection, err)
+		}
+		log.Printf("Successfully dropped collection %s\n", collection)
+	}
+}
