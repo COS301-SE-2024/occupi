@@ -4,14 +4,50 @@ import "time"
 
 // structure of user
 type User struct {
-	ID                   string    `json:"_id" bson:"_id,omitempty"`
-	OccupiID             string    `json:"occupiId" bson:"occupiId"`
-	Password             string    `json:"password" bson:"password"`
-	Email                string    `json:"email" bson:"email"`
-	Role                 string    `json:"role" bson:"role"`
-	OnSite               bool      `json:"onSite" bson:"onSite"`
-	IsVerified           bool      `json:"isVerified" bson:"isVerified"`
-	NextVerificationDate time.Time `json:"nextVerificationDate" bson:"nextVerificationDate"`
+    ID                   string    `json:"_id" bson:"_id,omitempty"`
+    OccupiID             string    `json:"occupiId" bson:"occupiId"`
+    Password             string    `json:"password" bson:"password"`
+    Email                string    `json:"email" bson:"email"`
+    Role                 string    `json:"role" bson:"role"`
+    OnSite               bool      `json:"onSite" bson:"onSite"`
+    IsVerified           bool      `json:"isVerified" bson:"isVerified"`
+    NextVerificationDate time.Time `json:"nextVerificationDate" bson:"nextVerificationDate"`
+    TwoFAEnabled         bool      `json:"twoFAEnabled" bson:"twoFAEnabled"`
+}
+
+type UserDetails struct {
+	ID                   string         `json:"_id" bson:"_id,omitempty"`
+	OccupiID             string         `json:"occupiId" bson:"occupiId"`
+	Password             string         `json:"password" bson:"password"`
+	Email                string         `json:"email" bson:"email"`
+	Role                 string         `json:"role" bson:"role"`
+	OnSite               bool           `json:"onSite" bson:"onSite"`
+	IsVerified           bool           `json:"isVerified" bson:"isVerified"`
+	NextVerificationDate time.Time      `json:"nextVerificationDate" bson:"nextVerificationDate"`
+	Details              *Details       `json:"details" bson:"details"`
+	Notifications        *Notifications `json:"notifications" bson:"notifications"`
+	Security             *Security      `json:"security" bson:"security"`
+	Status               string         `json:"status" bson:"status"`
+	Position             string         `json:"position" bson:"position"`
+}
+
+type Details struct {
+	ContactNo string    `json:"contactNo" bson:"contactNo"`
+	Name      string    `json:"name" bson:"name"`
+	DOB       time.Time `json:"dob" bson:"dob"`
+	Gender    string    `json:"gender" bson:"gender"`
+	Pronouns  string    `json:"pronouns" bson:"pronouns"`
+}
+
+type Notifications struct {
+	Allow           *bool `json:"allow" bson:"allow"`
+	BookingReminder *bool `json:"bookingReminder" bson:"bookingReminder"`
+	MaxCapacity     *bool `json:"maxCapacity" bson:"maxCapacity"`
+}
+
+type Security struct {
+	MFA        *bool `json:"mfa" bson:"mfa"`
+	Biometrics *bool `json:"biometrics" bson:"biometrics"`
 }
 
 // structure of booking
@@ -70,4 +106,10 @@ type Room struct {
 
 type RoomRequest struct {
 	FloorNo string `json:"floorNo" bson:"floorNo" binding:"required"`
+}
+
+type ResetToken struct {
+    Email      string    `bson:"email"`
+    Token      string    `bson:"token"`
+    ExpireWhen time.Time `bson:"expireWhen"`
 }

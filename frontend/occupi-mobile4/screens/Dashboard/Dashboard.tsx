@@ -16,12 +16,13 @@ import {
   LineChart
 } from "react-native-chart-kit";
 import { FontAwesome6 } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
-  return Math.floor(Math.random() * 20)+300; 
+  return Math.floor(Math.random() * 20) + 300;
 };
 
 const Dashboard = () => {
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [checkedIn, setCheckedIn] = useState(false);
+  const [name, setName] = useState("User");
   const toast = useToast()
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -37,11 +39,22 @@ const Dashboard = () => {
         return newNumbers;
       });
     }, 3000);
-    // console.log(numbers);
     setIsDarkMode(colorScheme === 'dark');
     return () => clearInterval(intervalId);
   }, [colorScheme]);
-  
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      let result = await SecureStore.getItemAsync('UserData');
+      console.log(result);
+      if (result !== undefined) {
+        let jsonresult = JSON.parse(result);
+        setName(String(jsonresult?.data?.details?.name)); 
+      }
+    };
+    getUserDetails();
+  }, []);
+
   const checkIn = () => {
     if (checkedIn === false) {
       setCheckedIn(true);
@@ -66,6 +79,14 @@ const Dashboard = () => {
     }
   };
 
+  async function saveUserEmail(value) {
+    await SecureStore.setItemAsync('email', value);
+  }
+
+
+  saveUserEmail('kamogelomoeketse@gmail.com');
+
+
   const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
   const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
@@ -76,7 +97,7 @@ const Dashboard = () => {
       <View flexDirection="row" justifyContent="space-between">
         <View>
           <Text fontSize={wp('5%')} fontWeight="light" color={textColor}>
-            Hi Sabrina 👋
+            Hi {name} 👋
           </Text>
           <Text mt="$4" fontSize={wp('6%')} fontWeight="bold" color={textColor}>
             Welcome to Occupi
@@ -94,7 +115,7 @@ const Dashboard = () => {
         <Card flexDirection="row" justifyContent="center" alignItems="center" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
           <Text color={textColor} fontSize={40}>{numbers[0]}</Text>
           <View flexDirection="column">
-          <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0]/10+5}%</Text></View>
+            <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
           </View>
         </Card>
         <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} />
@@ -119,10 +140,10 @@ const Dashboard = () => {
       <View>
         <Text color={textColor}>Occupancy levels</Text>
         <LineChart
-        withInnerLines={true}
-        withOuterLines={false}
-        withVerticalLines={false}
-        // fromZero={true}
+          withInnerLines={true}
+          withOuterLines={false}
+          withVerticalLines={false}
+          // fromZero={true}
           data={{
             labels: ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"],
             datasets: [
@@ -147,7 +168,7 @@ const Dashboard = () => {
               }
             ]
           }}
-          width={Dimensions.get("window").width -30} // from react-native
+          width={Dimensions.get("window").width - 30} // from react-native
           height={220}
           // yAxisLabel=""
           // yAxisSuffix="k"
