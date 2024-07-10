@@ -24,7 +24,9 @@ package main
 
 import (
 	"flag"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	nrgin "github.com/newrelic/go-agent/v3/integrations/nrgin"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -59,6 +61,16 @@ func main() {
 
 	// Create a Gin router
 	ginRouter := gin.Default()
+
+	// Set CORS
+	ginRouter.Use(cors.New(cors.Config{
+		AllowOrigins:     configs.GetAllowOrigins(),
+		AllowMethods:     configs.GetAllowMethods(),
+		AllowHeaders:     configs.GetAllowHeaders(),
+		ExposeHeaders:    configs.GetExposeHeaders(),
+		AllowCredentials: configs.GetAllowCredentials(),
+		MaxAge:           time.Duration(configs.GetMaxAge()) * time.Second,
+	}))
 
 	// Set trusted proxies
 	err := ginRouter.SetTrustedProxies(configs.GetTrustedProxies())

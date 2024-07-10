@@ -18,7 +18,11 @@ import (
 )
 
 // returns all data from the mongo database
-func GetAllData(appsession *models.AppSession) []bson.M {
+func GetAllData(ctx *gin.Context, appsession *models.AppSession) []bson.M {
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil
+	}
 	// Use the client
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
@@ -51,7 +55,7 @@ func GetAllData(appsession *models.AppSession) []bson.M {
 // attempts to save booking in database
 func SaveBooking(ctx *gin.Context, appsession *models.AppSession, booking models.Booking) (bool, error) {
 	// Save the booking to the database
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 	_, err := collection.InsertOne(ctx, booking)
 	if err != nil {
 		logrus.Error(err)
@@ -63,7 +67,7 @@ func SaveBooking(ctx *gin.Context, appsession *models.AppSession, booking models
 // Retrieves bookings associated with a user
 func GetUserBookings(ctx *gin.Context, appsession *models.AppSession, email string) ([]models.Booking, error) {
 	// Get the bookings for the user
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 	filter := bson.M{
 		"$or": []bson.M{
 			{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}},
@@ -91,7 +95,7 @@ func GetUserBookings(ctx *gin.Context, appsession *models.AppSession, email stri
 // Confirms the user check-in by checking certain criteria
 func ConfirmCheckIn(ctx *gin.Context, appsession *models.AppSession, checkIn models.CheckIn) (bool, error) {
 	// Save the check-in to the database
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
 	// Find the booking by bookingId, roomId, and creator
 	filter := bson.M{
@@ -146,19 +150,25 @@ func EmailExists(ctx *gin.Context, appsession *models.AppSession, email string) 
 		logrus.Error(err)
 		return false
 	}
-	// Add the email to the cache
+
+	// Add the user to the cache if cache is not nil
 	if appsession.Cache != nil {
-		if err := appsession.Cache.Set(email, []byte(email)); err != nil {
-			logrus.Error(err)
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error("Failed to marshall user: ", err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error("Failed to set key: ", err)
+			}
 		}
 	}
+
 	return true
 }
 
 // checks if booking exists in database
 func BookingExists(ctx *gin.Context, appsession *models.AppSession, id string) bool {
 	// Check if the booking exists in the database
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
 	filter := bson.M{"_id": id}
 	var existingbooking models.Booking
@@ -172,6 +182,11 @@ func BookingExists(ctx *gin.Context, appsession *models.AppSession, id string) b
 
 // adds user to database
 func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.RequestUser) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
 	// convert to user struct
 	userStruct := models.User{
 		OccupiID:             user.EmployeeID,
@@ -189,11 +204,27 @@ func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.Reques
 		logrus.Error(err)
 		return false, err
 	}
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return true, nil
 }
 
 // adds otp to database
 func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
 	// Save the OTP to the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OTPS")
 	otpStruct := models.OTP{
@@ -206,11 +237,47 @@ func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp s
 		logrus.Error(err)
 		return false, err
 	}
+	// Add the OTP to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if otpData, err := bson.Marshal(otpStruct); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(email+otp, otpData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return true, nil
 }
 
 // checks if otp exists in database
 func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
+	// check if otp exists in the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var otpStruct models.OTP
+		otpData, err := appsession.Cache.Get(email + otp)
+		if err != nil {
+			logrus.Error("key does not exist: ", err)
+		} else {
+			if err := bson.Unmarshal(otpData, &otpStruct); err != nil {
+				logrus.Error("failed to unmarshall", err)
+			} else {
+				if time.Now().After(otpStruct.ExpireWhen) {
+					return false, nil
+				}
+				return true, nil
+			}
+		}
+	}
+
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
 	// Check if the OTP exists in the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OTPS")
 	filter := bson.M{"email": email, "otp": otp}
@@ -220,15 +287,33 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 		logrus.Error(err)
 		return false, err
 	}
+
 	// Check if the OTP has expired
 	if time.Now().After(otpStruct.ExpireWhen) {
 		return false, nil
 	}
+
+	// Add the OTP to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if otpData, err := bson.Marshal(otpStruct); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(email+otp, otpData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return true, nil
 }
 
 // deletes otp from database
 func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
 	// Delete the OTP from the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OTPS")
 	filter := bson.M{"email": email, "otp": otp}
@@ -237,12 +322,20 @@ func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, ot
 		logrus.Error(err)
 		return false, err
 	}
+
+	// delete otp from cache if cache is not nil
+	if appsession.Cache != nil {
+		if err := appsession.Cache.Delete(email + otp); err != nil {
+			logrus.Error(err) // the otp may also not xist in the cache which is valid behaviour
+		}
+	}
+
 	return true, nil
 }
 
 // GetResetOTP retrieves the OTP for the given email and OTP from the database
 func GetResetOTP(ctx context.Context, db *mongo.Client, email, otp string) (*models.OTP, error) {
-	collection := db.Database("Occupi").Collection("OTPs")
+	collection := db.Database(configs.GetMongoDBName()).Collection("OTPs")
 	var resetOTP models.OTP
 	filter := bson.M{"email": email, "otp": otp}
 	err := collection.FindOne(ctx, filter).Decode(&resetOTP)
@@ -254,6 +347,12 @@ func GetResetOTP(ctx context.Context, db *mongo.Client, email, otp string) (*mod
 
 // verifies a user in the database
 func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
 	// Verify the user in the database and set next date to verify to 30 days from now
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -263,11 +362,58 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (
 		logrus.Error(err)
 		return false, err
 	}
+
+	// if user is in cache, update the user in the cache
+	if appsession.Cache == nil {
+		return true, nil
+	}
+
+	var user models.User
+	userData, err := appsession.Cache.Get(email)
+	if err != nil {
+		logrus.Error(err)
+		return true, nil
+	}
+
+	if err := bson.Unmarshal(userData, &user); err != nil {
+		logrus.Error(err)
+		return true, nil
+	}
+
+	user.IsVerified = true
+	user.NextVerificationDate = time.Now().AddDate(0, 0, 30)
+	if userData, err := bson.Marshal(user); err == nil {
+		if err := appsession.Cache.Set(email, userData); err != nil {
+			logrus.Error(err)
+		}
+	}
+
 	return true, nil
 }
 
 // get's the hash password stored in the database belonging to this user
 func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) (string, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return "", errors.New("database is nil")
+	}
+
+	// Get the password from the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err != nil {
+			logrus.Error("key does not exist: ", err)
+		} else {
+			if err := bson.Unmarshal(userData, &user); err != nil {
+				logrus.Error("failed to unmarshall", err)
+			} else {
+				return user.Password, nil
+			}
+		}
+	}
 	// Get the password from the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -277,11 +423,53 @@ func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) 
 		logrus.Error(err)
 		return "", err
 	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return user.Password, nil
 }
 
 // checks if the next verification date is due
 func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// Get the user from the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err != nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.Unmarshal(userData, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				if time.Now().After(user.NextVerificationDate) {
+					_, err := UpdateVerificationStatusTo(ctx, appsession, email, false)
+					if err != nil {
+						logrus.Error(err)
+						return false, err
+					}
+					return true, nil
+				}
+				return false, nil
+			}
+		}
+	}
+
 	// Check if the next verification date is due
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -291,6 +479,18 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 		logrus.Error(err)
 		return false, err
 	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	if time.Now().After(user.NextVerificationDate) {
 		_, err := UpdateVerificationStatusTo(ctx, appsession, email, false)
 		if err != nil {
@@ -304,6 +504,28 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 
 // checks if the user is verified
 func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// Check if the user is verified in the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err != nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.Unmarshal(userData, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				return user.IsVerified, nil
+			}
+		}
+	}
+
 	// Check if the user is verified
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -313,11 +535,29 @@ func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, emai
 		logrus.Error(err)
 		return false, err
 	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return user.IsVerified, nil
 }
 
 // updates the users verification status to true or false
 func UpdateVerificationStatusTo(ctx *gin.Context, appsession *models.AppSession, email string, status bool) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
 	// Update the verification status of the user
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -327,13 +567,39 @@ func UpdateVerificationStatusTo(ctx *gin.Context, appsession *models.AppSession,
 		logrus.Error(err)
 		return false, err
 	}
+
+	// if user is in cache, update the user in the cache
+	if appsession.Cache == nil {
+		logrus.Error("Cache is nil")
+		return true, nil
+	}
+
+	var user models.User
+	userData, err := appsession.Cache.Get(email)
+	if err != nil {
+		logrus.Error(err)
+		return true, nil
+	}
+
+	if err := bson.Unmarshal(userData, &user); err != nil {
+		logrus.Error(err)
+		return true, nil
+	}
+
+	user.IsVerified = status
+	if userData, err := bson.Marshal(user); err == nil {
+		if err := appsession.Cache.Set(email, userData); err != nil {
+			logrus.Error(err)
+		}
+	}
+
 	return true, nil
 }
 
 // Confirms if a booking has been cancelled
 func ConfirmCancellation(ctx *gin.Context, appsession *models.AppSession, id string, email string) (bool, error) {
 	// Save the check-in to the database
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
 	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
@@ -363,7 +629,7 @@ func ConfirmCancellation(ctx *gin.Context, appsession *models.AppSession, id str
 
 // Gets all rooms available for booking
 func GetAllRooms(ctx *gin.Context, appsession *models.AppSession, floorNo string) ([]models.Room, error) {
-	collection := appsession.DB.Database("Occupi").Collection("Rooms")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
 
 	var cursor *mongo.Cursor
 	var err error
@@ -403,7 +669,7 @@ func GetAllRooms(ctx *gin.Context, appsession *models.AppSession, floorNo string
 
 // Get user information
 func GetUserDetails(ctx *gin.Context, appsession *models.AppSession, email string) (models.UserDetails, error) {
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	filter := bson.M{"email": email}
 	var user models.UserDetails
@@ -468,7 +734,7 @@ func AddFieldToUpdateMap(updateFields bson.M, fieldName string, fieldValue inter
 
 // UpdateUserDetails updates the user's details
 func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user models.UserDetails) (bool, error) {
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": user.Email}
 
 	var userStruct models.UserDetails
@@ -560,6 +826,28 @@ func GetAllUsers(ctx *gin.Context, appsession *models.AppSession) ([]models.User
 
 // Checks if a user is an admin
 func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// Get the user from the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err != nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.Unmarshal(userData, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				return user.Role == constants.Admin, nil
+			}
+		}
+	}
+
 	// Check if the user is an admin
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -569,12 +857,24 @@ func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email s
 		logrus.Error(err)
 		return false, err
 	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
 	return user.Role == constants.Admin, nil
 }
 
 // AddResetToken adds a reset token to the database
 func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetToken string, expirationTime time.Time) (bool, error) {
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	resetTokenStruct := models.ResetToken{
 		Email:      email,
 		Token:      resetToken,
@@ -590,7 +890,7 @@ func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetTok
 
 // retrieves the email associated with a reset token
 func GetEmailByResetToken(ctx context.Context, db *mongo.Client, resetToken string) (string, error) {
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	filter := bson.M{"token": resetToken}
 	var resetTokenStruct models.ResetToken
 	err := collection.FindOne(ctx, filter).Decode(&resetTokenStruct)
@@ -603,8 +903,8 @@ func GetEmailByResetToken(ctx context.Context, db *mongo.Client, resetToken stri
 
 // CheckResetToken function
 func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
-	// Access the "ResetTokens" collection within the "Occupi" database.
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	// Access the "ResetTokens" collection within the configs.GetMongoDBName() database.
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 
 	// Create a filter to find the document matching the provided email and token.
 	filter := bson.M{"email": email, "token": token}
@@ -632,8 +932,14 @@ func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token str
 
 // UpdateUserPassword, which updates the password in the database set by the user
 func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, password string) (bool, error) {
+	// Check if the database is nil
+	if db == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
 	// Update the password in the database
-	collection := db.Database("Occupi").Collection("Users")
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	update := bson.M{"$set": bson.M{"password": password}}
 	_, err := collection.UpdateOne(ctx, filter, update)
@@ -641,13 +947,16 @@ func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, passwo
 		logrus.Error(err)
 		return false, err
 	}
+
+	// Update users password in cache if cache is not nil
+
 	return true, nil
 }
 
 // ClearRestToekn, removes the reset token from the database
 func ClearResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
 	// Delete the token from the database
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	filter := bson.M{"email": email, "token": token}
 	_, err := collection.DeleteOne(ctx, filter)
 	if err != nil {
@@ -661,7 +970,7 @@ func ClearResetToken(ctx *gin.Context, db *mongo.Client, email string, token str
 func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token string) (bool, string, error) {
 	// Find the reset token document
 	var resetToken models.ResetToken
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	err := collection.FindOne(ctx, bson.M{"email": email, "token": token}).Decode(&resetToken)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -680,7 +989,7 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
 
 // SaveTwoFACode saves the 2FA code for a user
 func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) error {
-	collection := db.Database("Occupi").Collection("Users")
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	update := bson.M{
 		"$set": bson.M{
@@ -694,7 +1003,7 @@ func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) er
 
 // VerifyTwoFACode checks if the provided 2FA code is valid for the user
 func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) (bool, error) {
-	collection := db.Database("Occupi").Collection("Users")
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{
 		"email":           email,
 		"twoFACode":       code,
@@ -713,7 +1022,7 @@ func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) 
 
 // IsTwoFAEnabled checks if 2FA is enabled for the user
 func IsTwoFAEnabled(ctx context.Context, db *mongo.Client, email string) (bool, error) {
-	collection := db.Database("Occupi").Collection("Users")
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)

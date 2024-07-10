@@ -310,6 +310,76 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 		nil))
 }
 
+// handler for generating a new otp for a user and resending it via email
+func ResendOTP(ctx *gin.Context, appsession *models.AppSession) {
+	var request struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid email address",
+			constants.InvalidRequestPayloadCode,
+			"Expected a valid format for email address",
+			nil))
+		return
+	}
+
+	// sanitize email
+	request.Email = utils.SanitizeInput(request.Email)
+
+	// validate email
+	if !utils.ValidateEmail(request.Email) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid email address",
+			constants.InvalidRequestPayloadCode,
+			"Expected a valid format for email address",
+			nil))
+		return
+	}
+
+	// check if the email exists in the database
+	if exists := database.EmailExists(ctx, appsession, request.Email); !exists {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Email not registered",
+			constants.InvalidAuthCode,
+			"Please register first before attempting to resend OTP",
+			nil))
+		return
+	}
+
+	// generate a random otp for the user and send email
+	otp, err := utils.GenerateOTP()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	// save otp to database
+	if _, err := database.AddOTP(ctx, appsession, request.Email, otp); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	subject := "Email Verification - Your One-Time Password (OTP)"
+	body := mail.FormatEmailVerificationBody(otp, request.Email)
+
+	if err := mail.SendMail(request.Email, subject, body); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		http.StatusOK,
+		"Please check your email for the OTP to verify your account.",
+		nil))
+}
+
 // handler for verifying a users otp /api/verify-otp
 func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role string, cookies bool) {
 	var userotp models.RequestUserOTP
@@ -638,6 +708,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	var request struct {
 		Email string `json:"email" binding:"required,email"`
 	}
+  
 	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -667,7 +738,6 @@ func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
 
 	handlePasswordReset(ctx, appsession, request.Email)
 }
-
 
 // handler for logging out a user
 func Logout(ctx *gin.Context) {

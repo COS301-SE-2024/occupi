@@ -37,6 +37,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "jest-setup.ts", "bun-test-extend.d.ts"],
+  "include": ["src","setupTests.ts",  "jest-setup.ts", "bun-test-extend.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
