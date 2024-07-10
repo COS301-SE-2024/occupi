@@ -4,6 +4,7 @@ import OtpPage from "./OtpPage"; // Adjust the import path as needed
 import { createElement } from "react";
 // import '@testing-library/jest-dom';
 
+
 interface OtpComponentProps {
   setOtp: (otp: string, isValid: boolean) => void;
 }
@@ -58,20 +59,17 @@ test("OTP input updates correctly", () => {
 
 
 
+
 // test("Complete button becomes clickable when OTP is valid", () => {
 //   let buttonClickable = false;
-//   let otpState = { otp: "", validity: false };
+//   let setOTP: (state: { otp: string; validity: boolean }) => void = () => {};
 
 //   // Mock useState
 //   const mockUseState = mock((initialState) => {
 //     let state = initialState;
 //     const setState = (newState: typeof initialState) => {
 //       state = typeof newState === 'function' ? newState(state) : newState;
-//       otpState = state;
-//       if ('validity' in state) {
-//         buttonClickable = state.validity;
-//       }
-//     };
+
 //     return [state, setState];
 //   });
 
@@ -81,31 +79,28 @@ test("OTP input updates correctly", () => {
 //     return null;
 //   });
 
+
 //   // Create a mock OtpPage component
 //   const MockOtpPage = () => {
-//     const [otp, setOTP] = mockUseState({otp: "", validity: false});
+//     const [otp, setOTPState] = mockUseState({otp: "", validity: false});
+//     setOTP = setOTPState;
     
 //     return createElement('div', null, 
-//       createElement(MockGradientButton, { isClickable: otp.validity }),
-//       createElement('button', { 
-//         onClick: () => setOTP({ otp: "123456", validity: true }) 
-//       }, "Set Valid OTP")
+//       createElement(MockGradientButton, { isClickable: otp.validity })
 //     );
 //   };
 
 //   // Render the mocked OtpPage
-//   const page: React.ReactElement = createElement(MockOtpPage);
+//   createElement(MockOtpPage);
 
 //   // Initially, the button should be disabled
 //   expect(buttonClickable).toBe(false);
 
 //   // Simulate setting a valid OTP
-//   page.props.children[1].props.onClick();
+//   setOTP({ otp: "123456", validity: true });
 
 //   // Now, the button should be clickable
 //   expect(buttonClickable).toBe(true);
-//   expect(otpState.validity).toBe(true);
-//   expect(otpState.otp).toBe("123456");
 // });
 
 // test("SendOTP function is called when Complete button is clicked", async () => {
@@ -120,6 +115,7 @@ test("OTP input updates correctly", () => {
 //     };
 //     return [state, setState];
 //   });
+
 
 //   // Mock SendOTP function
 //   const mockSendOTP = mock(() => {
