@@ -3,7 +3,6 @@ package tests
 import (
 	"net/http"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -958,21 +957,6 @@ func TestFormatBookingEmailBodyForBooker(t *testing.T) {
 	}
 }
 
-func FormatCancellationEmailBodyForBooker(bookingID string, roomID string, slot int, email string) string {
-	return utils.AppendHeader("Cancellation") + `
-		<div class="content">
-			<p>Dear booker,</p>
-			<p>
-				You have successfully cancelled your booked office space. Here are the booking details:<br><br>
-				<b>Booking ID:</b> ` + bookingID + `<br>
-				<b>Room ID:</b> ` + roomID + `<br>
-				<b>Slot:</b> ` + strconv.Itoa(slot) + `<br><br>
-				Thank you,<br>
-				<b>The Occupi Team</b><br>
-			</p>
-		</div>` + utils.AppendFooter()
-}
-
 func TestFormatCancellationEmailBodyForBooker(t *testing.T) {
 	tests := []struct {
 		bookingID string
@@ -1021,7 +1005,7 @@ func TestFormatCancellationEmailBodyForBooker(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("TestFormatCancellationEmailBodyForBooker", func(t *testing.T) {
-			actual := FormatCancellationEmailBodyForBooker(tt.bookingID, tt.roomID, tt.slot, tt.email)
+			actual := utils.FormatCancellationEmailBodyForBooker(tt.bookingID, tt.roomID, tt.slot, tt.email)
 			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
 				t.Errorf("expected %q, got %q", tt.expected, actual)
 			}
@@ -1080,6 +1064,45 @@ func TestFormatBookingEmailBodyForAttendees(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("TestFormatBookingEmailBodyForAttendees", func(t *testing.T) {
 			actual := utils.FormatBookingEmailBodyForAttendees(tt.bookingID, tt.roomID, tt.slot, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatCancellationEmailBodyForAttendees(t *testing.T) {
+	tests := []struct {
+		bookingID string
+		roomID    string
+		slot      int
+		email     string
+		expected  string
+	}{
+		{
+			bookingID: "B123",
+			roomID:    "R456",
+			slot:      7,
+			email:     "user@example.com",
+			expected: utils.AppendHeader("Booking") + `
+		<div class="content">
+			<p>Dear attendees,</p>
+			<p>
+				user@example.com has cancelled the booked office space with the following details:<br><br>
+				<b>Booking ID:</b> B123<br>
+				<b>Room ID:</b> R456<br>
+				<b>Slot:</b> 7<br><br>
+				If you have any questions, feel free to contact us.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatCancellationEmailBodyForAttendees", func(t *testing.T) {
+			actual := utils.FormatCancellationEmailBodyForAttendees(tt.bookingID, tt.roomID, tt.slot, tt.email)
 			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
 				t.Errorf("expected %q, got %q", tt.expected, actual)
 			}
