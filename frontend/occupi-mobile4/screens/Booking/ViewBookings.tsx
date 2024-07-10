@@ -260,9 +260,15 @@ const ViewBookings = () => {
             }
         };
         fetchAllRooms();
-    }, [toast]);
+    }, [toast, apiUrl]);
 
     const roomPairs = groupDataInPairs(roomData);
+
+    const handleRoomClick = async (value : string) => {
+        await SecureStore.setItemAsync('CurrentRoom', value);
+        router.push('/viewbookingdetails');
+        console.log(value);
+      }
 
     return (
         <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
@@ -350,7 +356,7 @@ const ViewBookings = () => {
                         >
                             {pair.map((room) => (
                                 <TouchableOpacity
-                                    onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
+                                onPress={() => handleRoomClick(JSON.stringify(room))}
                                     style={{
                                         flex: 1,
                                         borderWidth: 1,
@@ -403,7 +409,7 @@ const ViewBookings = () => {
                 >
                     {roomData.map((room) => (
                         <TouchableOpacity
-                            onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
+                            onPress={() => handleRoomClick(JSON.stringify(room))}
                             style={{
                                 flex: 1,
                                 borderWidth: 1,
@@ -455,17 +461,5 @@ const ViewBookings = () => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: 'pink',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-});
 
 export default ViewBookings;
