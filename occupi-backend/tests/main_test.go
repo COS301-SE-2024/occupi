@@ -36,6 +36,9 @@ func TestMain(m *testing.M) {
 }
 
 func TestCORS(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
