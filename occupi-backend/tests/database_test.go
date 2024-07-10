@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/allegro/bigcache/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
@@ -816,34 +817,44 @@ func TestUpdateUserPassword(t *testing.T) {
 // Test ClearResetToken
 func TestClearResetToken(t *testing.T) {
     mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-    
-
-    gin.SetMode(gin.TestMode)
-    ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 
     mt.Run("success", func(mt *mtest.T) {
+        // Create a mock AppSession
+        cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10 * time.Minute))
+        appSession := models.New(mt.Client, cache)
+
         email := "test@example.com"
-        token := "token123"
+        token := "testtoken"
 
         mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-        success, err := database.ClearResetToken(ctx, mt.Client, email, token)
+        // Create a mock gin.Context
+        w := httptest.NewRecorder()
+        c, _ := gin.CreateTestContext(w)
 
+        success, err := database.ClearResetToken(c, appSession, email, token)
         assert.NoError(t, err)
         assert.True(t, success)
     })
 
     mt.Run("error", func(mt *mtest.T) {
+        // Create a mock AppSession
+        cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10 * time.Minute))
+        appSession := models.New(mt.Client, cache)
+
         email := "test@example.com"
-        token := "token123"
+        token := "testtoken"
 
         mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
             Code:    11000,
-            Message: "delete error",
+            Message: "duplicate key error",
         }))
 
-        success, err := database.ClearResetToken(ctx, mt.Client, email, token)
+        // Create a mock gin.Context
+        w := httptest.NewRecorder()
+        c, _ := gin.CreateTestContext(w)
 
+        success, err := database.ClearResetToken(c, appSession, email, token)
         assert.Error(t, err)
         assert.False(t, success)
     })
