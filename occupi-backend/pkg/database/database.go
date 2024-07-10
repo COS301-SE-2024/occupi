@@ -18,7 +18,11 @@ import (
 )
 
 // returns all data from the mongo database
-func GetAllData(appsession *models.AppSession) []bson.M {
+func GetAllData(ctx *gin.Context, appsession *models.AppSession) []bson.M {
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil
+	}
 	// Use the client
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
@@ -51,7 +55,7 @@ func GetAllData(appsession *models.AppSession) []bson.M {
 // attempts to save booking in database
 func SaveBooking(ctx *gin.Context, appsession *models.AppSession, booking models.Booking) (bool, error) {
 	// Save the booking to the database
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 	_, err := collection.InsertOne(ctx, booking)
 	if err != nil {
 		logrus.Error(err)
@@ -63,7 +67,7 @@ func SaveBooking(ctx *gin.Context, appsession *models.AppSession, booking models
 // Retrieves bookings associated with a user
 func GetUserBookings(ctx *gin.Context, appsession *models.AppSession, email string) ([]models.Booking, error) {
 	// Get the bookings for the user
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 	filter := bson.M{
 		"$or": []bson.M{
 			{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}},
@@ -91,7 +95,7 @@ func GetUserBookings(ctx *gin.Context, appsession *models.AppSession, email stri
 // Confirms the user check-in by checking certain criteria
 func ConfirmCheckIn(ctx *gin.Context, appsession *models.AppSession, checkIn models.CheckIn) (bool, error) {
 	// Save the check-in to the database
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
 	// Find the booking by bookingId, roomId, and creator
 	filter := bson.M{
@@ -164,7 +168,7 @@ func EmailExists(ctx *gin.Context, appsession *models.AppSession, email string) 
 // checks if booking exists in database
 func BookingExists(ctx *gin.Context, appsession *models.AppSession, id string) bool {
 	// Check if the booking exists in the database
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
 	filter := bson.M{"_id": id}
 	var existingbooking models.Booking
@@ -251,13 +255,14 @@ func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp s
 func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
 	// check if otp exists in the cache if cache is not nil
 	if appsession.Cache != nil {
-		if _, err := appsession.Cache.Get(email + otp); err != nil {
-			logrus.Error(err)
+		// unmarshal the user from the cache
+		var otpStruct models.OTP
+		otpData, err := appsession.Cache.Get(email + otp)
+		if err != nil {
+			logrus.Error("key does not exist: ", err)
 		} else {
-			// check if the OTP has expired
-			var otpStruct models.OTP
-			if err := bson.Unmarshal([]byte(email+otp), &otpStruct); err != nil {
-				logrus.Error(err)
+			if err := bson.Unmarshal(otpData, &otpStruct); err != nil {
+				logrus.Error("failed to unmarshall", err)
 			} else {
 				if time.Now().After(otpStruct.ExpireWhen) {
 					return false, nil
@@ -266,6 +271,13 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 			}
 		}
 	}
+
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
 	// Check if the OTP exists in the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OTPS")
 	filter := bson.M{"email": email, "otp": otp}
@@ -323,7 +335,7 @@ func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, ot
 
 // GetResetOTP retrieves the OTP for the given email and OTP from the database
 func GetResetOTP(ctx context.Context, db *mongo.Client, email, otp string) (*models.OTP, error) {
-	collection := db.Database("Occupi").Collection("OTPs")
+	collection := db.Database(configs.GetMongoDBName()).Collection("OTPs")
 	var resetOTP models.OTP
 	filter := bson.M{"email": email, "otp": otp}
 	err := collection.FindOne(ctx, filter).Decode(&resetOTP)
@@ -587,7 +599,7 @@ func UpdateVerificationStatusTo(ctx *gin.Context, appsession *models.AppSession,
 // Confirms if a booking has been cancelled
 func ConfirmCancellation(ctx *gin.Context, appsession *models.AppSession, id string, email string) (bool, error) {
 	// Save the check-in to the database
-	collection := appsession.DB.Database("Occupi").Collection("RoomBooking")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
 	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
@@ -617,7 +629,7 @@ func ConfirmCancellation(ctx *gin.Context, appsession *models.AppSession, id str
 
 // Gets all rooms available for booking
 func GetAllRooms(ctx *gin.Context, appsession *models.AppSession, floorNo string) ([]models.Room, error) {
-	collection := appsession.DB.Database("Occupi").Collection("Rooms")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
 
 	var cursor *mongo.Cursor
 	var err error
@@ -657,7 +669,7 @@ func GetAllRooms(ctx *gin.Context, appsession *models.AppSession, floorNo string
 
 // Get user information
 func GetUserDetails(ctx *gin.Context, appsession *models.AppSession, email string) (models.UserDetails, error) {
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	filter := bson.M{"email": email}
 	var user models.UserDetails
@@ -722,7 +734,7 @@ func AddFieldToUpdateMap(updateFields bson.M, fieldName string, fieldValue inter
 
 // UpdateUserDetails updates the user's details
 func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user models.UserDetails) (bool, error) {
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": user.Email}
 
 	var userStruct models.UserDetails
@@ -805,7 +817,7 @@ func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email s
 
 // AddResetToken adds a reset token to the database
 func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetToken string, expirationTime time.Time) (bool, error) {
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	resetTokenStruct := models.ResetToken{
 		Email:      email,
 		Token:      resetToken,
@@ -821,7 +833,7 @@ func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetTok
 
 // retrieves the email associated with a reset token
 func GetEmailByResetToken(ctx context.Context, db *mongo.Client, resetToken string) (string, error) {
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	filter := bson.M{"token": resetToken}
 	var resetTokenStruct models.ResetToken
 	err := collection.FindOne(ctx, filter).Decode(&resetTokenStruct)
@@ -834,8 +846,8 @@ func GetEmailByResetToken(ctx context.Context, db *mongo.Client, resetToken stri
 
 // CheckResetToken function
 func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
-	// Access the "ResetTokens" collection within the "Occupi" database.
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	// Access the "ResetTokens" collection within the configs.GetMongoDBName() database.
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 
 	// Create a filter to find the document matching the provided email and token.
 	filter := bson.M{"email": email, "token": token}
@@ -870,7 +882,7 @@ func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, passwo
 	}
 
 	// Update the password in the database
-	collection := db.Database("Occupi").Collection("Users")
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	update := bson.M{"$set": bson.M{"password": password}}
 	_, err := collection.UpdateOne(ctx, filter, update)
@@ -887,7 +899,7 @@ func UpdateUserPassword(ctx *gin.Context, db *mongo.Client, email string, passwo
 // ClearRestToekn, removes the reset token from the database
 func ClearResetToken(ctx *gin.Context, db *mongo.Client, email string, token string) (bool, error) {
 	// Delete the token from the database
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	filter := bson.M{"email": email, "token": token}
 	_, err := collection.DeleteOne(ctx, filter)
 	if err != nil {
@@ -901,7 +913,7 @@ func ClearResetToken(ctx *gin.Context, db *mongo.Client, email string, token str
 func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token string) (bool, string, error) {
 	// Find the reset token document
 	var resetToken models.ResetToken
-	collection := db.Database("Occupi").Collection("ResetTokens")
+	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	err := collection.FindOne(ctx, bson.M{"email": email, "token": token}).Decode(&resetToken)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -920,7 +932,7 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
 
 // SaveTwoFACode saves the 2FA code for a user
 func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) error {
-	collection := db.Database("Occupi").Collection("Users")
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	update := bson.M{
 		"$set": bson.M{
@@ -934,7 +946,7 @@ func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) er
 
 // VerifyTwoFACode checks if the provided 2FA code is valid for the user
 func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) (bool, error) {
-	collection := db.Database("Occupi").Collection("Users")
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{
 		"email":           email,
 		"twoFACode":       code,
@@ -953,7 +965,7 @@ func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) 
 
 // IsTwoFAEnabled checks if 2FA is enabled for the user
 func IsTwoFAEnabled(ctx context.Context, db *mongo.Client, email string) (bool, error) {
-	collection := db.Database("Occupi").Collection("Users")
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)

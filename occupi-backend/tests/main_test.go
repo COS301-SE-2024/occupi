@@ -21,6 +21,9 @@ func TestMain(m *testing.M) {
 	// setup logger to log all server interactions
 	utils.SetupLogger()
 
+	// clean the database
+	data.CleanDatabase()
+
 	// begin seeding the mock database
 	data.SeedMockDatabase("../data/test_data.json")
 
