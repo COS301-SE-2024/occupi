@@ -34,7 +34,7 @@ const OtpPage = () => {
           <h2 className="w-[30vw] text-text_col font-semibold text-5xl mt-2">We sent you an email with a code</h2>
           <h3 className="w-[30vw] text-text_col font-extralight text-2xl mt-4">Please enter it to continue</h3>
 
-          <OtpComponent setOtp={(otp_val, validity) => {
+          <OtpComponent setOtp={(otp_val: string[], validity:boolean) => {
             setOTP({ ... otp, otp : otp_val.toString()})
             setOTP({ ... otp, validity : validity})
           }}/>
