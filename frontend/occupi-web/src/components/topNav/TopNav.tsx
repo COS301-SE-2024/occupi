@@ -1,6 +1,3 @@
-import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, User} from "@nextui-org/react";
-import { Logout, Bell, SettingsIcon ,Faq} from "@assets/index";
-import { useNavigate } from "react-router-dom";
 
 type TopNavProps = {
     mainComponent?: JSX.Element;
@@ -10,11 +7,11 @@ type TopNavProps = {
   
   
 const TopNav = (props: TopNavProps) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-  function navigateTo(path: string) {
-    navigate(path);
-  }
+  // function navigateTo(path: string) {
+  //   navigate(path);
+  // }
   
     return (
         <div data-testid='topnav' className="sticky top-0 z-10 overflow-hidden border-b-[2px] border-b-secondary flex items-center justify-between h-[110px] backdrop-blur-[20px] bg-primary_40">
@@ -30,7 +27,7 @@ const TopNav = (props: TopNavProps) => {
             onChange={props.onChange}
           />
 
-          <div className="flex items-center gap-4 mr-[30px]">
+          {/* <div className="flex items-center gap-4 mr-[30px]">
                 <Dropdown placement="bottom-start">
                   <DropdownTrigger>
                     <User
@@ -55,7 +52,7 @@ const TopNav = (props: TopNavProps) => {
                     <DropdownItem key="/logout" color="danger" startContent={<Logout />}>Logout</DropdownItem>
                   </DropdownMenu>
                 </Dropdown>
-              </div>
+              </div> */}
         </div>
     )
   }
