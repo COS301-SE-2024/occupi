@@ -5,6 +5,7 @@ import (
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -19,7 +20,10 @@ import (
 // the user has already been authenticated previously.
 func ProtectedRoute(ctx *gin.Context) {
 	tokenStr, err := ctx.Cookie("token")
-	if err != nil {
+	// Retrieve token from Authorization header
+	headertokenStr := ctx.GetHeader("Authorization")
+	if (err != nil || tokenStr == "") && headertokenStr == "" {
+		// If token is not found in cookies or JSON payload, return unauthorized
 		ctx.JSON(http.StatusUnauthorized,
 			utils.ErrorResponse(
 				http.StatusUnauthorized,
@@ -29,6 +33,10 @@ func ProtectedRoute(ctx *gin.Context) {
 				nil))
 		ctx.Abort()
 		return
+	}
+
+	if tokenStr == "" {
+		tokenStr = headertokenStr
 	}
 
 	claims, err := authenticator.ValidateToken(tokenStr)
@@ -94,6 +102,24 @@ func UnProtectedRoute(ctx *gin.Context) {
 		}
 	}
 
+	// Retrieve token from Authorization header
+	headertokenStr := ctx.GetHeader("Authorization")
+	if headertokenStr != "" {
+		_, err := authenticator.ValidateToken(headertokenStr)
+
+		if err == nil {
+			ctx.JSON(http.StatusUnauthorized,
+				utils.ErrorResponse(
+					http.StatusUnauthorized,
+					"Bad Request",
+					constants.InvalidAuthCode,
+					"User already authorized",
+					nil))
+			ctx.Abort()
+			return
+		}
+	}
+
 	// check if email and role session variables are set
 	session := sessions.Default(ctx)
 	if session.Get("email") != nil || session.Get("role") != nil {
@@ -128,6 +154,33 @@ func AdminRoute(ctx *gin.Context) {
 	}
 
 	ctx.Next()
+}
+
+// Rate limit otp verification requests to 1 requests per minute
+func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSession) {
+	// Check if the user has already sent an OTP request
+	_, err := appsession.OtpReqCache.Get(ctx.ClientIP())
+
+	if err == nil {
+		ctx.JSON(http.StatusTooManyRequests,
+			utils.ErrorResponse(
+				http.StatusTooManyRequests,
+				"Too Many Requests",
+				constants.RateLimitCode,
+				"Too many requests",
+				nil))
+		ctx.Abort()
+		return
+	}
+
+	// Add the user's IP address to the cache
+	err = appsession.OtpReqCache.Set(ctx.ClientIP(), []byte("sent"))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		ctx.Abort()
+		return
+	}
 }
 
 // AttachRateLimitMiddleware attaches the rate limit middleware to the router.

@@ -31,6 +31,13 @@ const (
 	OtpExpiration       = "OTP_EXPIRATION"
 	FrontendURL         = "FRONTEND_URL"
 	ConfigLicense       = "CONFIG_LICENSE"
+	OtpGenReqEviction   = "OTP_GEN_REQ_EVICTION"
+	AllowOriginsVal     = "ALLOW_ORIGINS"
+	AllowMethodsVal     = "ALLOW_METHODS"
+	AllowHeadersVal     = "ALLOW_HEADERS"
+	ExposeHeadersVal    = "EXPOSE_HEADERS"
+	Caval               = "ALLOW_CREDENTIALS"
+	MaxAgeVal           = "MAX_AGE"
 )
 
 // init viper
@@ -249,4 +256,65 @@ func GetConfigLicense() string {
 		license = "CONFIG_LICENSE"
 	}
 	return license
+}
+
+// gets the otp request eviction time as defined in the config.yaml file in seconds
+func GetOTPReqEviction() int {
+	time := viper.GetInt(OtpGenReqEviction)
+	if time == 0 {
+		time = 60
+	}
+	return time
+}
+
+// gets allow origins as defined in the config.yaml file
+func GetAllowOrigins() []string {
+	origins := viper.GetString(AllowOriginsVal)
+	if origins != "" {
+		originList := strings.Split(origins, ",")
+		return originList
+	}
+	return []string{"*"}
+}
+
+// gets allow methods as defined in the config.yaml file
+func GetAllowMethods() []string {
+	methods := viper.GetString(AllowMethodsVal)
+	if methods != "" {
+		methodList := strings.Split(methods, ",")
+		return methodList
+	}
+	return []string{"*"}
+}
+
+// gets allow headers as defined in the config.yaml file
+func GetAllowHeaders() []string {
+	headers := viper.GetString(AllowHeadersVal)
+	if headers != "" {
+		headerList := strings.Split(headers, ",")
+		return headerList
+	}
+	return []string{"*"}
+}
+
+// gets expose headers as defined in the config.yaml file
+func GetExposeHeaders() []string {
+	headers := viper.GetString(ExposeHeadersVal)
+	if headers != "" {
+		headerList := strings.Split(headers, ",")
+		return headerList
+	}
+	return []string{"*"}
+}
+
+// gets allow credentials as defined in the config.yaml file
+func GetAllowCredentials() bool {
+	credentials := viper.GetBool(Caval)
+	return credentials
+}
+
+// gets max age as defined in the config.yaml file
+func GetMaxAge() int {
+	age := viper.GetInt(MaxAgeVal)
+	return age
 }
