@@ -63,9 +63,7 @@ const OfficeDetails = () => {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
-  const roomParams = useLocalSearchParams();
-  const roomData = roomParams.roomData;
-  const roomData2 = JSON.parse(roomData);
+  const [room, setRoom] = useState();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const scrollX = useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
@@ -81,14 +79,26 @@ const OfficeDetails = () => {
   };
   const upcomingDates = getUpcomingDates();
 
+  useEffect(() => {
+    const getCurrentRoom = async () => {
+      let result : string = await SecureStore.getItemAsync('CurrentRoom');
+      console.log("CurrentRoom:",result);
+      // setUserDetails(JSON.parse(result).data);
+      let jsonresult = JSON.parse(result);
+      // console.log(jsonresult);
+      setRoom(jsonresult);
+    };
+    getCurrentRoom();
+  }, []);
+
   const handleBookRoom = async () => {
     // console.log('Booking Room');
     // console.log(date);
     // console.log(startTime);
     // console.log(endTime);
-    // console.log(roomData2.roomName);
-    // console.log(roomData2.roomId);
-    // console.log(roomData2.floorNo);
+    // console.log(room?.roomName);
+    // console.log(room?.roomId);
+    // console.log(room?.floorNo);
 
     // Check if any of the required fields are blank
     if (!date || !startTime || !endTime) {
@@ -108,18 +118,20 @@ const OfficeDetails = () => {
       date: date,
       startTime: startTime,
       endTime: endTime,
-      roomName: roomData2.roomName,
-      roomId: roomData2.roomId,
-      floorNo: roomData2.floorNo
+      roomName: room?.roomName,
+      roomId: room?.roomId,
+      floorNo: room?.floorNo,
+      minOccupancy: room?.minOccupancy,
+      maxOccupancy: room?.maxOccupancy
     };
 
-    // console.log(bookingInfo);
+    console.log(bookingInfo);
     await SecureStore.setItemAsync('BookingInfo', JSON.stringify(bookingInfo));
     router.replace('/booking-details');
   }
 
 
-  // console.log(roomData2);
+  // console.log(room?);
   // console.log(userEmail);
 
   return (
@@ -127,7 +139,7 @@ const OfficeDetails = () => {
       {/* Top Section */}
       <View pt="$12" px="$8" pb="$4" backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Icon right="$4" as={Feather} name="chevron-left" size="xl" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
-        <Text right="$2" fontWeight="$bold" fontSize={22} style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
+        <Text right="$2" fontWeight="$bold" fontSize={22} style={{ color: isDarkMode ? '#fff' : '#000' }}>{room?.roomName}</Text>
         <View alignItems="center" flexDirection="row" w="$24" justifyContent="space-between">
           <View rounded="$full" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} p="$2">
             <Feather name="heart" size={24} color={isDarkMode ? '#fff' : '#000'} />
@@ -168,12 +180,12 @@ const OfficeDetails = () => {
           </View>
         </View>
         <View style={{ paddingHorizontal: wp('5%') }}>
-          <Text fontSize={24} fontWeight="$bold" mt="$2" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
+          <Text fontSize={24} fontWeight="$bold" mt="$2" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{room?.roomName}</Text>
           <View alignItems="center" flexDirection="row">
             <Ionicons name="wifi" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Fast   </Text>
             <MaterialCommunityIcons name="television" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> OLED   </Text>
-            <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> {roomData2.minOccupancy} - {roomData2.maxOccupancy}   </Text>
-            <Feather name="layers" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Floor: {roomData2.floorNo === 0 ? 'G' : roomData2.floorNo}</Text>
+            <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> {room?.minOccupancy} - {room?.maxOccupancy}   </Text>
+            <Feather name="layers" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Floor: {room?.floorNo === 0 ? 'G' : room?.floorNo}</Text>
           </View>
         </View>
 
@@ -206,7 +218,7 @@ const OfficeDetails = () => {
         <View px="$5">
           <Text fontSize={24} fontWeight="$bold" style={{ color: isDarkMode ? '#fff' : '#000' }}>Description</Text>
           <Text fontSize={16} style={{ color: isDarkMode ? '#fff' : '#000' }}>
-            {roomData2.description}
+            {room?.description}
           </Text>
         </View>
         <Divider my="$2" bg="$grey" w="80%" alignSelf='center' />

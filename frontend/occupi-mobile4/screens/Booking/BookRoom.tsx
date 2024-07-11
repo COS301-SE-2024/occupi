@@ -112,6 +112,11 @@ const BookRoom = () => {
 
   const roomPairs = groupDataInPairs(roomData);
 
+  const handleRoomSelect = async (room) => {
+    await SecureStore.setItemAsync('CurrentRoom', JSON.stringify(room));
+    router.push('/office-details');
+  }
+
   return (
     <>
       <View style={{ flex: 1, backgroundColor, paddingTop: 60, top: 0 }}>
@@ -142,7 +147,7 @@ const BookRoom = () => {
             {roomPairs.map((pair, index) => (
               <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                 {pair.map((room, idx) => (
-                  <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room) } })}>
+                  <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => handleRoomSelect(room)}>
                     <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                     <View style={{ padding: 10 }}>
                       <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
@@ -171,7 +176,7 @@ const BookRoom = () => {
         ) : (
           <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11, marginBottom: 84 }} showsVerticalScrollIndicator={false}>
             {roomData.map((room, idx) => (
-              <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: "fit" }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room) } })}>
+              <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: "fit" }} onPress={() => handleRoomSelect(room)}>
                 <Image style={{ width: '50%', height: '100%', borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                 <View style={{ flex: 1, padding: 10, justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
