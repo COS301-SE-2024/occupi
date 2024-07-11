@@ -334,7 +334,7 @@ func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, ot
 }
 
 // GetResetOTP retrieves the OTP for the given email and OTP from the database
-func GetResetOTP(ctx context.Context, db *mongo.Client, email, otp string) (*models.OTP, error) {
+func GetResetOTP(ctx *gin.Context, db *mongo.Client, email, otp string) (*models.OTP, error) {
 	collection := db.Database(configs.GetMongoDBName()).Collection("OTPs")
 	var resetOTP models.OTP
 	filter := bson.M{"email": email, "otp": otp}
@@ -816,7 +816,7 @@ func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email s
 }
 
 // AddResetToken adds a reset token to the database
-func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetToken string, expirationTime time.Time) (bool, error) {
+func AddResetToken(ctx *gin.Context, db *mongo.Client, email string, resetToken string, expirationTime time.Time) (bool, error) {
 	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	resetTokenStruct := models.ResetToken{
 		Email:      email,
@@ -832,7 +832,7 @@ func AddResetToken(ctx context.Context, db *mongo.Client, email string, resetTok
 }
 
 // retrieves the email associated with a reset token
-func GetEmailByResetToken(ctx context.Context, db *mongo.Client, resetToken string) (string, error) {
+func GetEmailByResetToken(ctx *gin.Context, db *mongo.Client, resetToken string) (string, error) {
 	collection := db.Database(configs.GetMongoDBName()).Collection("ResetTokens")
 	filter := bson.M{"token": resetToken}
 	var resetTokenStruct models.ResetToken
@@ -920,7 +920,7 @@ func ClearResetToken(ctx *gin.Context, appSession *models.AppSession, email stri
 
 
 // ValidateResetToken validates the reset token
-func ValidateResetToken(ctx context.Context, appSession *models.AppSession, email, token string) (bool, string, error) {
+func ValidateResetToken(ctx *gin.Context, appSession *models.AppSession, email, token string) (bool, string, error) {
     cacheKey := "reset_token:" + email
 
     // Check cache first
@@ -959,7 +959,7 @@ func ValidateResetToken(ctx context.Context, appSession *models.AppSession, emai
 }
 
 // SaveTwoFACode saves the 2FA code for a user
-func SaveTwoFACode(ctx context.Context, appSession *models.AppSession, email, code string) error {
+func SaveTwoFACode(ctx *gin.Context, appSession *models.AppSession, email, code string) error {
     collection := appSession.DB.Database("Occupi").Collection("Users")
     filter := bson.M{"email": email}
     update := bson.M{
@@ -986,7 +986,7 @@ func SaveTwoFACode(ctx context.Context, appSession *models.AppSession, email, co
 }
 
 // VerifyTwoFACode checks if the provided 2FA code is valid for the user
-func VerifyTwoFACode(ctx context.Context, appSession *models.AppSession, email, code string) (bool, error) {
+func VerifyTwoFACode(ctx *gin.Context, appSession *models.AppSession, email, code string) (bool, error) {
     cacheKey := "2fa_code:" + email
 
     // Check cache first
@@ -1017,7 +1017,7 @@ func VerifyTwoFACode(ctx context.Context, appSession *models.AppSession, email, 
 }
 
 // IsTwoFAEnabled checks if 2FA is enabled for the user
-func IsTwoFAEnabled(ctx context.Context, appSession *models.AppSession, email string) (bool, error) {
+func IsTwoFAEnabled(ctx *gin.Context, appSession *models.AppSession, email string) (bool, error) {
     cacheKey := "2fa_enabled:" + email
 
     // Check cache first
@@ -1053,7 +1053,7 @@ func IsTwoFAEnabled(ctx context.Context, appSession *models.AppSession, email st
 }
 
 // SetTwoFAEnabled sets the 2FA enabled status for a user
-func SetTwoFAEnabled(ctx context.Context, appSession *models.AppSession, email string, enabled bool) error {
+func SetTwoFAEnabled(ctx *gin.Context, appSession *models.AppSession, email string, enabled bool) error {
     collection := appSession.DB.Database("Occupi").Collection("Users")
     filter := bson.M{"email": email}
     update := bson.M{"$set": bson.M{"twoFAEnabled": enabled}}
