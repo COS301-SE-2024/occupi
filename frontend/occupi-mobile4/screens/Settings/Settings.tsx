@@ -67,13 +67,9 @@ const Settings = () => {
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
-    { title: 'Privacy Policy', description: 'View privacy policy', iconName: 'lock', onPress: () => handleNavigate('PrivacyPolicyScreen') },
-    { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.replace('/set-security') },
-    { title: 'Terms and Policies', description: 'View terms and policies', iconName: 'file-text', onPress: () => handleNavigate('TermsPoliciesScreen') },
-    { title: 'Report a problem', description: 'Report any issues', iconName: 'alert-circle', onPress: () => handleNavigate('ReportProblemScreen') },
-    { title: 'Support', description: 'Get support', iconName: 'headphones', onPress: () => handleNavigate('SupportScreen') },
+    { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
     { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
-    { title: 'About and Help', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
+    { title: 'FAQ', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
   ];
 
   const renderListItem = ({ item }) => (
