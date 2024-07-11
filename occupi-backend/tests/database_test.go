@@ -1178,3 +1178,55 @@ func TestIsTwoFAEnabled(t *testing.T) {
 		assert.False(t, enabled)
 	})
 }
+
+func TestSetTwoFAEnabled(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	mt.Run("enable 2FA", func(mt *mtest.T) {
+		email := "test@example.com"
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		err := database.SetTwoFAEnabled(ctx, appSession, email, true)
+		assert.NoError(t, err)
+	})
+
+	mt.Run("disable 2FA", func(mt *mtest.T) {
+		email := "test@example.com"
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		err := database.SetTwoFAEnabled(ctx, appSession, email, false)
+		assert.NoError(t, err)
+	})
+
+	mt.Run("error", func(mt *mtest.T) {
+		email := "test@example.com"
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		err := database.SetTwoFAEnabled(ctx, appSession, email, true)
+		assert.Error(t, err)
+	})
+}
