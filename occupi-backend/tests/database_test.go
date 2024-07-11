@@ -801,34 +801,39 @@ func TestAddResetToken(t *testing.T) {
 
 // Test GetEmailByResetToken
 func TestGetEmailByResetToken(t *testing.T) {
-	// Create a new context
-
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
 	mt.Run("success", func(mt *mtest.T) {
-		expectedEmail := "test@example.com"
-		resetToken := "token123"
+		resetToken := "resettoken123"
+		email := "test@example.com"
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
-			{Key: "email", Value: expectedEmail},
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
 			{Key: "token", Value: resetToken},
 		}))
 
-		email, err := database.GetEmailByResetToken(context.Background(), mt.Client, resetToken)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
 
+		resultEmail, err := database.GetEmailByResetToken(ctx, mt.Client, resetToken)
 		assert.NoError(t, err)
-		assert.Equal(t, expectedEmail, email)
+		assert.Equal(t, email, resultEmail)
 	})
 
-	mt.Run("not found", func(mt *mtest.T) {
-		resetToken := "nonexistenttoken"
+	mt.Run("error", func(mt *mtest.T) {
+		resetToken := "resettoken123"
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(0, "Occupi.ResetTokens", mtest.FirstBatch))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
 
-		email, err := database.GetEmailByResetToken(context.Background(), mt.Client, resetToken)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
 
+		resultEmail, err := database.GetEmailByResetToken(ctx, mt.Client, resetToken)
 		assert.Error(t, err)
-		assert.Equal(t, "", email)
+		assert.Empty(t, resultEmail)
 	})
 }
 
