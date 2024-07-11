@@ -840,54 +840,59 @@ func TestGetEmailByResetToken(t *testing.T) {
 // Test CheckResetToken
 
 func TestCheckResetToken(t *testing.T) {
-
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-
-	gin.SetMode(gin.TestMode)
-	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 
 	mt.Run("valid token", func(mt *mtest.T) {
 		email := "test@example.com"
-		token := "validtoken"
-		expireWhen := time.Now().Add(1 * time.Hour)
+		token := "resettoken123"
+		expirationTime := time.Now().Add(1 * time.Hour)
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "token", Value: token},
-			{Key: "expireWhen", Value: expireWhen},
+			{Key: "expireWhen", Value: expirationTime},
 		}))
 
-		valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
 
+		valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
 		assert.NoError(t, err)
 		assert.True(t, valid)
 	})
 
 	mt.Run("expired token", func(mt *mtest.T) {
 		email := "test@example.com"
-		token := "expiredtoken"
-		expireWhen := time.Now().Add(-1 * time.Hour)
+		token := "resettoken123"
+		expirationTime := time.Now().Add(-1 * time.Hour)
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "token", Value: token},
-			{Key: "expireWhen", Value: expireWhen},
+			{Key: "expireWhen", Value: expirationTime},
 		}))
 
-		valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
 
+		valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
 		assert.NoError(t, err)
 		assert.False(t, valid)
 	})
 
-	mt.Run("token not found", func(mt *mtest.T) {
+	mt.Run("error", func(mt *mtest.T) {
 		email := "test@example.com"
-		token := "nonexistenttoken"
+		token := "resettoken123"
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(0, "Occupi.ResetTokens", mtest.FirstBatch))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
 
 		valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
-
 		assert.Error(t, err)
 		assert.False(t, valid)
 	})
