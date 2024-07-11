@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Image,
   TouchableOpacity,
@@ -27,72 +27,22 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
 
-const getTimeForSlot = (slot) => {
-  // console.log(slot);
-  let startTime, endTime;
-  switch (slot) {
-    case 1:
-      startTime = '07:00';
-      endTime = '08:00';
-      break;
-    case 2:
-      startTime = '08:00';
-      endTime = '09:00';
-      break;
-    case 3:
-      startTime = '09:00';
-      endTime = '10:00';
-      break;
-    case 4:
-      startTime = '10:00';
-      endTime = '11:00';
-      break;
-    case 5:
-      startTime = '11:00';
-      endTime = '12:00';
-      break;
-    case 6:
-      startTime = '12:00';
-      endTime = '13:00';
-      break;
-    case 7:
-      startTime = '13:00';
-      endTime = '14:00';
-      break;
-    case 8:
-      startTime = '14:00';
-      endTime = '15:00';
-      break;
-    case 9:
-      startTime = '15:00';
-      endTime = '16:00';
-      break;
-    case 10:
-      startTime = '16:00';
-      endTime = '17:00';
-      break;
-    default:
-      startTime = 'Invalid slot';
-      endTime = 'Invalid slot';
-  }
-  return { startTime, endTime };
-};
 
 const BookingDetails = () => {
   const navigation = useNavigation();
   const [currentStep, setCurrentStep] = useState(0);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [bookingInfo, setBookingInfo] = useState({});
   const colorScheme = useColorScheme();
   const toast = useToast();
   const router = useRouter();
   const roomParams = useLocalSearchParams();
-  const creatorEmail = roomParams.email;
+  const [creatorEmail, setCreatorEmail] = useState('');
   const slot = roomParams.slot || 0;
-  const { startTime, endTime } = getTimeForSlot(Number(roomParams.slot));
-  const roomId = roomParams.roomId;
-  const floorNo = roomParams.floorNo;
-  const roomData = JSON.parse(roomParams.roomData);
+  const { startTime, endTime } = {4,5};
+  const roomId = bookingInfo.roomId;
+  const floorNo = bookingInfo.floorNo;
   const isDark = colorScheme === "dark";
   // console.log(creatorEmail + slot + roomId + floorNo);
   // console.log(roomData);
@@ -104,6 +54,18 @@ const BookingDetails = () => {
   const steps = ["Booking details", "Invite attendees", "Receipt"];
   const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
   const bookroomendpoint = process.env.EXPO_PUBLIC_BOOK_ROOM;
+
+  useEffect(() => {
+    const getBookingInfo = async () => {
+      let result : string = await SecureStore.getItemAsync('BookingInfo');
+    //   console.log("CurrentRoom:",result);
+      // setUserDetails(JSON.parse(result).data);
+      let jsonresult = JSON.parse(result);
+      console.log(jsonresult);
+      setBookingInfo(jsonresult);
+    };
+    getBookingInfo();
+  }, []);
 
   const addAttendee = () => {
     if (email && !attendees.includes(email)) {
