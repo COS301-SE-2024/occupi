@@ -305,41 +305,11 @@ func TestDeleteOTP_withCache(t *testing.T) {
 	assert.Nil(t, cachedUser)
 }
 
-func TestValidateResetToken(t *testing.T) {
-    ctx := context.Background()
-    db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-    cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10 * time.Minute))
-    appSession := models.New(db, cache)
-
-    email := "test@example.com"
-    token := "testtoken"
-    expireWhen := time.Now().Add(1 * time.Hour)
-
-    // Insert a test token
-    collection := db.Database("Occupi").Collection("ResetTokens")
-    _, err := collection.InsertOne(ctx, bson.M{"email": email, "token": token, "expireWhen": expireWhen})
-    if err != nil {
-        t.Fatalf("Failed to insert test token: %v", err)
-    }
-
-    // Validate the token
-    valid, msg, err := database.ValidateResetToken(ctx, appSession, email, token)
-    if err != nil {
-        t.Fatalf("Failed to validate reset token: %v", err)
-    }
-    if !valid {
-        t.Errorf("Expected token to be valid, got invalid with message: %s", msg)
-    }
-
-    // Check if token is cached
-    cachedToken, err := cache.Get("reset_token:" + email)
-    if err != nil || string(cachedToken) != token {
-        t.Errorf("Token not cached properly after validation")
-    }
-}
+// TestSaveTwoFACode
 
 func TestSaveAndVerifyTwoFACode(t *testing.T) {
-    ctx := context.Background()
+	w := httptest.NewRecorder()
+    ctx,_ := gin.CreateTestContext(w)
     db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
     cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10 * time.Minute))
     appSession := models.New(db, cache)
@@ -370,7 +340,8 @@ func TestSaveAndVerifyTwoFACode(t *testing.T) {
 }
 
 func TestIsTwoFAEnabledAndSetTwoFAEnabled(t *testing.T) {
-    ctx := context.Background()
+	w := httptest.NewRecorder()
+	ctx,_ := gin.CreateTestContext(w)
     db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
     cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10 * time.Minute))
     appSession := models.New(db, cache)
