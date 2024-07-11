@@ -11,6 +11,7 @@ import {
 
 import Navbar from '../../components/NavBar';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import * as SecureStore from 'expo-secure-store';
 
 const groupDataInPairs = (data) => {
   if (!data) return [];
@@ -42,13 +43,23 @@ const BookRoom = () => {
   const toggleLayout = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
   };
+  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+  const viewroomsendpoint = process.env.EXPO_PUBLIC_VIEW_ROOMS;
 
   useEffect(() => {
     const fetchAllRooms = async () => {
-      console.log("heree");
+      // console.log("heree");
+      let authToken = await SecureStore.getItemAsync('Token');
       try {
-        const response = await fetch('https://dev.occupi.tech/api/view-rooms')
+        const response = await fetch(`${apiUrl}${viewroomsendpoint}?floorNo=0`, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `${authToken}`
+          },
+      });
         const data = await response.json();
+        // console.log(data);
         if (response.ok) {
           setRoomData(data.data || []); // Ensure data is an array
           // toast.show({
@@ -89,7 +100,7 @@ const BookRoom = () => {
       }
     };
     fetchAllRooms();
-  }, [toast]);
+  }, [toast, apiUrl, viewroomsendpoint]);
 
   useEffect(() => {
     setIsDarkMode(colorScheme === 'dark');
@@ -100,6 +111,11 @@ const BookRoom = () => {
   const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
 
   const roomPairs = groupDataInPairs(roomData);
+
+  const handleRoomSelect = async (room) => {
+    await SecureStore.setItemAsync('CurrentRoom', JSON.stringify(room));
+    router.push('/office-details');
+  }
 
   return (
     <>
@@ -131,7 +147,7 @@ const BookRoom = () => {
             {roomPairs.map((pair, index) => (
               <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                 {pair.map((room, idx) => (
-                  <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room) } })}>
+                  <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => handleRoomSelect(room)}>
                     <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                     <View style={{ padding: 10 }}>
                       <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
@@ -160,7 +176,7 @@ const BookRoom = () => {
         ) : (
           <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11, marginBottom: 84 }} showsVerticalScrollIndicator={false}>
             {roomData.map((room, idx) => (
-              <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: 160 }} onPress={() => router.push({ pathname: '/office-details', params: { roomData: JSON.stringify(room) } })}>
+              <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: "fit" }} onPress={() => handleRoomSelect(room)}>
                 <Image style={{ width: '50%', height: '100%', borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                 <View style={{ flex: 1, padding: 10, justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
