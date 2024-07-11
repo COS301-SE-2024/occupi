@@ -60,7 +60,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
         //   console.log("CurrentRoom:",result);
           // setUserDetails(JSON.parse(result).data);
           let jsonresult = JSON.parse(result);
-        //   console.log(jsonresult.checkedIn);
+          console.log(jsonresult);
           setRoom(jsonresult);
           setCheckedIn(jsonresult.checkedIn);
         };

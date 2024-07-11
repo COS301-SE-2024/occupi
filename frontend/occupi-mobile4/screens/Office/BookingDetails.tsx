@@ -33,22 +33,18 @@ const BookingDetails = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [bookingInfo, setBookingInfo] = useState({});
+  const [bookingInfo, setbookingInfo] = useState();
   const colorScheme = useColorScheme();
   const toast = useToast();
   const router = useRouter();
-  const roomParams = useLocalSearchParams();
   const [creatorEmail, setCreatorEmail] = useState('');
-  const slot = roomParams.slot || 0;
-  const { startTime, endTime } = {4,5};
-  const roomId = bookingInfo.roomId;
-  const floorNo = bookingInfo.floorNo;
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const isDark = colorScheme === "dark";
-  // console.log(creatorEmail + slot + roomId + floorNo);
-  // console.log(roomData);
-  // console.log("slot: " + slot);
+  // console.log(creatorEmail + roomId + floorNo);
+  // console.log(bookingInfo?);
   // console.log(startTime);
-  const [attendees, setAttendees] = useState([creatorEmail]);
+  const [attendees, setAttendees] = useState(['']);
   // console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
   const steps = ["Booking details", "Invite attendees", "Receipt"];
@@ -56,15 +52,24 @@ const BookingDetails = () => {
   const bookroomendpoint = process.env.EXPO_PUBLIC_BOOK_ROOM;
 
   useEffect(() => {
-    const getBookingInfo = async () => {
-      let result : string = await SecureStore.getItemAsync('BookingInfo');
-    //   console.log("CurrentRoom:",result);
+    const getbookingInfo = async () => {
+      let userinfo = await SecureStore.getItemAsync('UserData');
+      // console.log(result);
+      // if (result !== undefined) {
+      let jsoninfo = JSON.parse(userinfo);
+      setCreatorEmail(jsoninfo?.data?.email);
+      let result: string = await SecureStore.getItemAsync('BookingInfo');
+      console.log("CurrentRoom:", jsoninfo?.data?.email);
       // setUserDetails(JSON.parse(result).data);
       let jsonresult = JSON.parse(result);
-      console.log(jsonresult);
-      setBookingInfo(jsonresult);
+      console.log("BookingInfo", jsonresult);
+      setbookingInfo(jsonresult);
+      setStartTime(jsonresult.startTime);
+      setEndTime(jsonresult.endTime);
+      console.log(jsoninfo?.data?.email);
+      setAttendees([jsoninfo?.data?.email]);
     };
-    getBookingInfo();
+    getbookingInfo();
   }, []);
 
   const addAttendee = () => {
@@ -80,16 +85,16 @@ const BookingDetails = () => {
 
   const onSubmit = async () => {
     const body = {
-      "roomId": roomParams.roomId,
+      "roomId": bookingInfo?.roomId,
       "emails": attendees,
-      "roomName": roomData.roomName,
+      "roomName": bookingInfo?.roomName,
       "creator": creatorEmail,
-      "floorNo": roomParams.floorNo,
-      "date": "2024-07-01T00:00:00.000+00:00",
-      "start": "2024-07-01T08:00:00.000+00:00",
-      "end": "2024-07-01T09:00:00.000+00:00"
+      "floorNo": bookingInfo?.floorNo,
+      "date": `${bookingInfo?.date}T00:00:00.000+00:00`,
+      "start": `${bookingInfo?.date}T${startTime}:00.000+00:00`,
+      "end": `${bookingInfo?.date}T${endTime}:00.000+00:00`
     };
-    console.log("hereeeeee");
+    console.log("hereeeeee", body);
     let authToken = await SecureStore.getItemAsync('Token');
     try {
       setLoading(true);
@@ -301,7 +306,7 @@ const BookingDetails = () => {
                 color: isDark ? "#fff" : "#000",
               }}
             >
-              {roomData.roomName}
+              {bookingInfo?.roomName}
             </Text>
             <View
               style={{
@@ -312,8 +317,8 @@ const BookingDetails = () => {
             >
               <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> Fast   </Text>
               <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
-              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
-              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> Floor: {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
+              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}>{bookingInfo?.minOccupancy} - {bookingInfo?.maxOccupancy}   </Text>
+              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> Floor: {bookingInfo?.floorNo === "0" ? 'G' : bookingInfo?.floorNo}</Text>
 
             </View>
             <View
@@ -472,12 +477,12 @@ const BookingDetails = () => {
           > */}
           <View style={{ width: 365, height: 500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom: 50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
             <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
-            <Text fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000', fontSize: 24 }}>HDMI Room</Text>
+            <Text fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000', fontSize: 24 }}>{bookingInfo?.roomName}</Text>
             <View px="$3" alignItems="center" flexDirection="row">
               <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Fast   </Text>
               <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
-              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
-              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
+              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}>{bookingInfo?.minOccupancy} - {bookingInfo?.maxOccupancy}   </Text>
+              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor {bookingInfo?.floorNo === "0" ? 'G' : bookingInfo?.floorNo}</Text>
             </View>
             <View px="$3" flexDirection="row" justifyContent="space-around">
               <View alignItems="center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$yellowgreen" borderRadius="$lg">
