@@ -1049,3 +1049,71 @@ func TestValidateResetToken(t *testing.T) {
 		assert.Empty(t, message)
 	})
 }
+
+func TestVerifyTwoFACode(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	mt.Run("valid code", func(mt *mtest.T) {
+		email := "test@example.com"
+		code := "123456"
+		expirationTime := time.Now().Add(1 * time.Hour)
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "twoFACode", Value: code},
+			{Key: "twoFACodeExpiry", Value: expirationTime},
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		valid, err := database.VerifyTwoFACode(ctx, appSession, email, code)
+		assert.NoError(t, err)
+		assert.True(t, valid)
+	})
+
+	mt.Run("expired code", func(mt *mtest.T) {
+		email := "test@example.com"
+		code := "123456"
+		expirationTime := time.Now().Add(-1 * time.Hour)
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "twoFACode", Value: code},
+			{Key: "twoFACodeExpiry", Value: expirationTime},
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		valid, err := database.VerifyTwoFACode(ctx, appSession, email, code)
+		assert.NoError(t, err)
+		assert.False(t, valid)
+	})
+
+	mt.Run("error", func(mt *mtest.T) {
+		email := "test@example.com"
+		code := "123456"
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		valid, err := database.VerifyTwoFACode(ctx, appSession, email, code)
+		assert.Error(t, err)
+		assert.False(t, valid)
+	})
+}
