@@ -22,3 +22,4 @@ bun dev
 To learn more about Vite, take a look at the following resources:
 
 - [Vite Documentation](https://vitejs.dev/) - learn about Vite's features and API.
+

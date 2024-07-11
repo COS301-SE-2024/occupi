@@ -1,28 +1,18 @@
 package configs
 
 import (
-	"log"
-	"os"
+	"time"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/allegro/bigcache/v3"
 
 	"context"
 	"fmt"
 	"net/url"
 
 	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type MockDatabase struct {
-	OTPS     []models.OTP     `json:"otps"`
-	Bookings []models.Booking `json:"bookings"`
-	Rooms    []models.Room    `json:"rooms"`
-	Users    []models.User    `json:"users"`
-}
 
 // attempts to and establishes a connection with the remote mongodb database
 func ConnectToDatabase(args ...string) *mongo.Client {
@@ -64,67 +54,26 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	return client
 }
 
-func SeedMockDatabase(mockdatafilepath string) {
-	// connect to the database
-	db := ConnectToDatabase(constants.AdminDBAccessOption)
-
-	// Read the JSON file
-	data, err := os.ReadFile(mockdatafilepath)
+// Create cache
+func CreateCache() *bigcache.BigCache {
+	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to 5 seconds
+	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to 5 seconds
+	cache, err := bigcache.New(context.Background(), config)
 	if err != nil {
-		log.Fatalf("Failed to read JSON file: %v", err)
+		logrus.Fatal(err)
 	}
 
-	// Parse the JSON file
-	var mockDatabase MockDatabase
-	if err := bson.UnmarshalExtJSON(data, true, &mockDatabase); err != nil {
-		log.Fatalf("Failed to unmarshal JSON data: %v", err)
-	}
-
-	// Insert data into each collection
-	otpsDocuments := make([]interface{}, 0, len(mockDatabase.OTPS))
-	for _, otps := range mockDatabase.OTPS {
-		otpsDocuments = append(otpsDocuments, otps)
-	}
-	insertData(db.Database(GetMongoDBName()).Collection("OTPS"), otpsDocuments)
-
-	BookingsDocuments := make([]interface{}, 0, len(mockDatabase.Bookings))
-	for _, roomBooking := range mockDatabase.Bookings {
-		BookingsDocuments = append(BookingsDocuments, roomBooking)
-	}
-	insertData(db.Database(GetMongoDBName()).Collection("RoomBooking"), BookingsDocuments)
-
-	roomsDocuments := make([]interface{}, 0, len(mockDatabase.Rooms))
-	for _, rooms := range mockDatabase.Rooms {
-		roomsDocuments = append(roomsDocuments, rooms)
-	}
-	insertData(db.Database(GetMongoDBName()).Collection("Rooms"), roomsDocuments)
-
-	usersDocuments := make([]interface{}, 0, len(mockDatabase.Users))
-	for _, users := range mockDatabase.Users {
-		usersDocuments = append(usersDocuments, users)
-	}
-	insertData(db.Database(GetMongoDBName()).Collection("Users"), usersDocuments)
-
-	log.Println("Successfully seeded test data into MongoDB")
+	return cache
 }
 
-// Function to insert data if the collection is empty
-func insertData(collection *mongo.Collection, documents []interface{}) {
-	count, err := collection.CountDocuments(context.Background(), bson.D{})
+// create cache for rate limiting otp regenration requests
+func CreateOTPRateLimitCache() *bigcache.BigCache {
+	config := bigcache.DefaultConfig(time.Duration(GetOTPReqEviction()) * time.Second) // Set the eviction time to x seconds
+	config.CleanWindow = time.Duration(GetOTPReqEviction()/2) * time.Second            // Set the cleanup interval to x seconds
+	cache, err := bigcache.New(context.Background(), config)
 	if err != nil {
-		log.Fatalf("Failed to count documents: %v", err)
+		logrus.Fatal(err)
 	}
 
-	switch {
-	case count == 0 && len(documents) > 0:
-		_, err := collection.InsertMany(context.Background(), documents)
-		if err != nil {
-			log.Fatalf("Failed to insert documents into %s collection: %v", collection.Name(), err)
-		}
-		log.Printf("Successfully seeded data into %s collection\n", collection.Name())
-	case len(documents) == 0:
-		log.Printf("No documents to insert into %s skipping seeding\n", collection.Name())
-	default:
-		log.Printf("Collection %s already has %d documents, skipping seeding\n", collection.Name(), count)
-	}
+	return cache
 }
