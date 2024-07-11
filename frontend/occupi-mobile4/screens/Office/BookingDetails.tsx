@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Image,
   TouchableOpacity,
@@ -24,84 +24,53 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
+import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
 
-const getTimeForSlot = (slot) => {
-  console.log(slot);
-  let startTime, endTime;
-  switch (slot) {
-    case 1:
-      startTime = '07:00';
-      endTime = '08:00';
-      break;
-    case 2:
-      startTime = '08:00';
-      endTime = '09:00';
-      break;
-    case 3:
-      startTime = '09:00';
-      endTime = '10:00';
-      break;
-    case 4:
-      startTime = '10:00';
-      endTime = '11:00';
-      break;
-    case 5:
-      startTime = '11:00';
-      endTime = '12:00';
-      break;
-    case 6:
-      startTime = '12:00';
-      endTime = '13:00';
-      break;
-    case 7:
-      startTime = '13:00';
-      endTime = '14:00';
-      break;
-    case 8:
-      startTime = '14:00';
-      endTime = '15:00';
-      break;
-    case 9:
-      startTime = '15:00';
-      endTime = '16:00';
-      break;
-    case 10:
-      startTime = '16:00';
-      endTime = '17:00';
-      break;
-    default:
-      startTime = 'Invalid slot';
-      endTime = 'Invalid slot';
-  }
-  return { startTime, endTime };
-};
 
 const BookingDetails = () => {
   const navigation = useNavigation();
   const [currentStep, setCurrentStep] = useState(0);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [bookingInfo, setbookingInfo] = useState();
   const colorScheme = useColorScheme();
   const toast = useToast();
   const router = useRouter();
-  const roomParams = useLocalSearchParams();
-  const creatorEmail = roomParams.email;
-  const slot = roomParams.slot || 0;
-  const { startTime, endTime } = getTimeForSlot(Number(roomParams.slot));
-  const roomId = roomParams.roomId;
-  const floorNo = roomParams.floorNo;
-  const roomData = JSON.parse(roomParams.roomData);
+  const [creatorEmail, setCreatorEmail] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const isDark = colorScheme === "dark";
-  console.log(creatorEmail + slot + roomId + floorNo);
-  console.log(roomData);
-  console.log("slot: " + slot);
-  console.log(startTime);
-  const [attendees, setAttendees] = useState([creatorEmail]);
-  console.log(attendees);
+  // console.log(creatorEmail + roomId + floorNo);
+  // console.log(bookingInfo?);
+  // console.log(startTime);
+  const [attendees, setAttendees] = useState(['']);
+  // console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
-
   const steps = ["Booking details", "Invite attendees", "Receipt"];
+  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+  const bookroomendpoint = process.env.EXPO_PUBLIC_BOOK_ROOM;
+
+  useEffect(() => {
+    const getbookingInfo = async () => {
+      let userinfo = await SecureStore.getItemAsync('UserData');
+      // console.log(result);
+      // if (result !== undefined) {
+      let jsoninfo = JSON.parse(userinfo);
+      setCreatorEmail(jsoninfo?.data?.email);
+      let result: string = await SecureStore.getItemAsync('BookingInfo');
+      console.log("CurrentRoom:", jsoninfo?.data?.email);
+      // setUserDetails(JSON.parse(result).data);
+      let jsonresult = JSON.parse(result);
+      console.log("BookingInfo", jsonresult);
+      setbookingInfo(jsonresult);
+      setStartTime(jsonresult.startTime);
+      setEndTime(jsonresult.endTime);
+      console.log(jsoninfo?.data?.email);
+      setAttendees([jsoninfo?.data?.email]);
+    };
+    getbookingInfo();
+  }, []);
 
   const addAttendee = () => {
     if (email && !attendees.includes(email)) {
@@ -115,35 +84,32 @@ const BookingDetails = () => {
   };
 
   const onSubmit = async () => {
-
     const body = {
-      "roomId": roomParams.roomId,
-      "slot": parseInt(roomParams.slot, 10),
+      "roomId": bookingInfo?.roomId,
       "emails": attendees,
-      "roomName": roomData.roomName,
+      "roomName": bookingInfo?.roomName,
       "creator": creatorEmail,
-      "floorNo": parseInt(roomParams.floorNo, 10)
+      "floorNo": bookingInfo?.floorNo,
+      "date": `${bookingInfo?.date}T00:00:00.000+00:00`,
+      "start": `${bookingInfo?.date}T${startTime}:00.000+00:00`,
+      "end": `${bookingInfo?.date}T${endTime}:00.000+00:00`
     };
-    console.log(body);
+    console.log("hereeeeee", body);
+    let authToken = await SecureStore.getItemAsync('Token');
     try {
       setLoading(true);
-      const response = await fetch('https://dev.occupi.tech/api/book-room', {
+      const response = await fetch(`${apiUrl}${bookroomendpoint}`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
         },
         body: JSON.stringify(body),
         credentials: "include"
       });
       const data = await response.json();
       console.log(data);
-      const cookies = response.headers.get('Accept');
-      // CookieManager.get('https://dev.occupi.tech')
-      //   .then((cookies) => {
-      //     console.log('CookieManager.get =>', cookies);
-      //   });
-      console.log(cookies);
       if (response.ok) {
         setCurrentStep(2);
         setLoading(false);
@@ -340,7 +306,7 @@ const BookingDetails = () => {
                 color: isDark ? "#fff" : "#000",
               }}
             >
-              {roomData.roomName}
+              {bookingInfo?.roomName}
             </Text>
             <View
               style={{
@@ -351,8 +317,8 @@ const BookingDetails = () => {
             >
               <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> Fast   </Text>
               <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
-              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
-              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> Floor: {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
+              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}>{bookingInfo?.minOccupancy} - {bookingInfo?.maxOccupancy}   </Text>
+              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> Floor: {bookingInfo?.floorNo === "0" ? 'G' : bookingInfo?.floorNo}</Text>
 
             </View>
             <View
@@ -462,7 +428,7 @@ const BookingDetails = () => {
           {!loading ? (
             <GradientButton
               onPress={() => onSubmit()}
-              text="Send invites" 
+              text="Send invites"
             />
           ) : (
             <TouchableOpacity
@@ -509,14 +475,14 @@ const BookingDetails = () => {
               color: isDark ? "#fff" : "#000",
             }}
           > */}
-          <View style={{ width: 365, height:500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom:50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
+          <View style={{ width: 365, height: 500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom: 50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
             <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
-            <Text fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000', fontSize: 24 }}>HDMI Room</Text>
+            <Text fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000', fontSize: 24 }}>{bookingInfo?.roomName}</Text>
             <View px="$3" alignItems="center" flexDirection="row">
               <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Fast   </Text>
               <MaterialCommunityIcons name="television" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> OLED   </Text>
-              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}> {roomData.minOccupancy} - {roomData.maxOccupancy} </Text>
-              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor {roomData.floorNo === 0 ? 'G' : roomData.floorNo}</Text>
+              <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} /><Text color={isDark ? '#fff' : '#000'}>{bookingInfo?.minOccupancy} - {bookingInfo?.maxOccupancy}   </Text>
+              <Feather name="layers" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Floor {bookingInfo?.floorNo === "0" ? 'G' : bookingInfo?.floorNo}</Text>
             </View>
             <View px="$3" flexDirection="row" justifyContent="space-around">
               <View alignItems="center" my="$3" px="$1" py="$1.5" w="$2/5" backgroundColor="$yellowgreen" borderRadius="$lg">
@@ -536,7 +502,7 @@ const BookingDetails = () => {
                 <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} />
                 <Text color={isDark ? '#fff' : '#000'} style={{ fontSize: 20 }}> Attendees:</Text>
               </View>
-              <ScrollView style={{height:70}}>
+              <ScrollView style={{ height: 70 }}>
                 {attendees.map((email, idx) => (
                   <Text color={isDark ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                 ))}
