@@ -766,30 +766,34 @@ func TestAddResetToken(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
 	mt.Run("success", func(mt *mtest.T) {
+		email := "test@example.com"
+		resetToken := "resettoken123"
+		expirationTime := time.Now().Add(24 * time.Hour)
+
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		email := "test@example.com"
-		resetToken := "token123"
-		expirationTime := time.Now().Add(1 * time.Hour)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
 
-		success, err := database.AddResetToken(context.Background(), mt.Client, email, resetToken, expirationTime)
-
+		success, err := database.AddResetToken(ctx, mt.Client, email, resetToken, expirationTime)
 		assert.NoError(t, err)
 		assert.True(t, success)
 	})
 
 	mt.Run("error", func(mt *mtest.T) {
+		email := "test@example.com"
+		resetToken := "resettoken123"
+		expirationTime := time.Now().Add(24 * time.Hour)
+
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
 			Code:    11000,
-			Message: "duplicate key error",
+			Message: "insert error",
 		}))
 
-		email := "test@example.com"
-		resetToken := "token123"
-		expirationTime := time.Now().Add(1 * time.Hour)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
 
-		success, err := database.AddResetToken(context.Background(), mt.Client, email, resetToken, expirationTime)
-
+		success, err := database.AddResetToken(ctx, mt.Client, email, resetToken, expirationTime)
 		assert.Error(t, err)
 		assert.False(t, success)
 	})
@@ -797,6 +801,8 @@ func TestAddResetToken(t *testing.T) {
 
 // Test GetEmailByResetToken
 func TestGetEmailByResetToken(t *testing.T) {
+	// Create a new context
+
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
 	mt.Run("success", func(mt *mtest.T) {
@@ -829,6 +835,7 @@ func TestGetEmailByResetToken(t *testing.T) {
 // Test CheckResetToken
 
 func TestCheckResetToken(t *testing.T) {
+
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
 	gin.SetMode(gin.TestMode)
