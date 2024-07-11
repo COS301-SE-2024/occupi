@@ -38,6 +38,7 @@ interface Room {
     date: string;
     start: string;
     end: string;
+    creator: string;
 }
 
 const ViewBookingDetails = (bookingId:string, roomName:string) => {
@@ -130,6 +131,14 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
         const body = {
             "bookingId": room._id,
             "creator": room.creator,
+            "roomId": room.roomId,
+            "emails": room.emails,
+            "roomName": room.roomName,
+            "floorNo": room.floorNo,
+            "date": room.date,
+            "start": room.start,
+            "end": room.end
+
         };
         setIsLoading(true);
         console.log(body);
@@ -255,7 +264,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                 {!isLoading ? (
                     <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
                         <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                            <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="maroon">Delete Booking</Text>
+                            <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="maroon">Cancel Booking</Text>
                         </View>
                     </TouchableOpacity>
                 ) : (
