@@ -206,7 +206,7 @@ const Security = () => {
           </FormControlLabel>
           <Controller
             defaultValue=""
-            name="password"
+            name="currentpassword"
             control={control}
             rules={{
               validate: async (value) => {
@@ -230,6 +230,7 @@ const Security = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
+                  color={colorScheme === 'dark' ? 'white' : 'black'}
                   type={showPassword ? 'text' : 'password'}
                 />
                 <InputSlot onPress={handleState} pr="$3">
@@ -275,6 +276,7 @@ const Security = () => {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
+                  color={colorScheme === 'dark' ? 'white' : 'black'}
                   returnKeyType="done"
                   type={showPassword ? 'text' : 'password'}
                 />
@@ -322,6 +324,7 @@ const Security = () => {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
+                  color={colorScheme === 'dark' ? 'white' : 'black'}
                   returnKeyType="done"
                   type={showConfirmPassword ? 'text' : 'password'}
                 />
