@@ -28,7 +28,7 @@ import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
 
 const getTimeForSlot = (slot) => {
-  console.log(slot);
+  // console.log(slot);
   let startTime, endTime;
   switch (slot) {
     case 1:
@@ -94,12 +94,12 @@ const BookingDetails = () => {
   const floorNo = roomParams.floorNo;
   const roomData = JSON.parse(roomParams.roomData);
   const isDark = colorScheme === "dark";
-  console.log(creatorEmail + slot + roomId + floorNo);
-  console.log(roomData);
-  console.log("slot: " + slot);
-  console.log(startTime);
+  // console.log(creatorEmail + slot + roomId + floorNo);
+  // console.log(roomData);
+  // console.log("slot: " + slot);
+  // console.log(startTime);
   const [attendees, setAttendees] = useState([creatorEmail]);
-  console.log(attendees);
+  // console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
   const steps = ["Booking details", "Invite attendees", "Receipt"];
   const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
@@ -117,16 +117,17 @@ const BookingDetails = () => {
   };
 
   const onSubmit = async () => {
-
     const body = {
       "roomId": roomParams.roomId,
-      "slot": parseInt(roomParams.slot, 10),
       "emails": attendees,
       "roomName": roomData.roomName,
       "creator": creatorEmail,
-      "floorNo": parseInt(roomParams.floorNo, 10)
+      "floorNo": roomParams.floorNo,
+      "date": "2024-07-01T00:00:00.000+00:00",
+      "start": "2024-07-01T08:00:00.000+00:00",
+      "end": "2024-07-01T09:00:00.000+00:00"
     };
-    console.log(body);
+    console.log("hereeeeee");
     let authToken = await SecureStore.getItemAsync('Token');
     try {
       setLoading(true);
@@ -142,12 +143,6 @@ const BookingDetails = () => {
       });
       const data = await response.json();
       console.log(data);
-      const cookies = response.headers.get('Accept');
-      // CookieManager.get('https://dev.occupi.tech')
-      //   .then((cookies) => {
-      //     console.log('CookieManager.get =>', cookies);
-      //   });
-      console.log(cookies);
       if (response.ok) {
         setCurrentStep(2);
         setLoading(false);
@@ -466,7 +461,7 @@ const BookingDetails = () => {
           {!loading ? (
             <GradientButton
               onPress={() => onSubmit()}
-              text="Send invites" 
+              text="Send invites"
             />
           ) : (
             <TouchableOpacity
@@ -513,7 +508,7 @@ const BookingDetails = () => {
               color: isDark ? "#fff" : "#000",
             }}
           > */}
-          <View style={{ width: 365, height:500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom:50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
+          <View style={{ width: 365, height: 500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom: 50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
             <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
             <Text fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000', fontSize: 24 }}>HDMI Room</Text>
             <View px="$3" alignItems="center" flexDirection="row">
@@ -540,7 +535,7 @@ const BookingDetails = () => {
                 <Octicons name="people" size={24} color={isDark ? '#fff' : '#000'} />
                 <Text color={isDark ? '#fff' : '#000'} style={{ fontSize: 20 }}> Attendees:</Text>
               </View>
-              <ScrollView style={{height:70}}>
+              <ScrollView style={{ height: 70 }}>
                 {attendees.map((email, idx) => (
                   <Text color={isDark ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                 ))}

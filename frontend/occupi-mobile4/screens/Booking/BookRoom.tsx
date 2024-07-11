@@ -48,7 +48,7 @@ const BookRoom = () => {
 
   useEffect(() => {
     const fetchAllRooms = async () => {
-      console.log("heree");
+      // console.log("heree");
       let authToken = await SecureStore.getItemAsync('Token');
       try {
         const response = await fetch(`${apiUrl}${viewroomsendpoint}?floorNo=0`, {
@@ -59,6 +59,7 @@ const BookRoom = () => {
           },
       });
         const data = await response.json();
+        // console.log(data);
         if (response.ok) {
           setRoomData(data.data || []); // Ensure data is an array
           // toast.show({
