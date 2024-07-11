@@ -90,6 +90,14 @@ func TestGetAllData(t *testing.T) {
 		{{Key: "onSite", Value: true}, {Key: "name", Value: "User2"}},
 	}
 
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		users := database.GetAllData(ctx, models.New(nil, nil))
+
+		// Validate the result
+		assert.Nil(t, users)
+	})
+
 	mt.Run("Find onSite true users", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, onSiteTrueDocs...))
 
@@ -145,6 +153,25 @@ func TestEmailExists(t *testing.T) {
 
 		// Validate the result
 		assert.True(t, exists)
+	})
+
+	mt.Run("Email exists adding to cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+		}))
+
+		cache := configs.CreateCache()
+
+		// Call the function under test
+		exists := database.EmailExists(ctx, models.New(mt.Client, cache), email)
+
+		// Validate the result
+		assert.True(t, exists)
+
+		// Check if the email exists in the cache
+		email, err := cache.Get(email)
+		assert.NoError(t, err)
+		assert.NotNil(t, email)
 	})
 
 	mt.Run("Email does not exist", func(mt *mtest.T) {
@@ -216,6 +243,25 @@ func TestAddUser(t *testing.T) {
 		assert.True(t, success)
 	})
 
+	mt.Run("Add user successfully to cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		// Call the function under test
+		success, err := database.AddUser(ctx, models.New(mt.Client, cache), user)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the user was added to the cache
+		user, err := cache.Get(user.Email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+	})
+
 	mt.Run("InsertOne error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
 			Code:    11000,
@@ -279,6 +325,40 @@ func TestOTPExists(t *testing.T) {
 		assert.True(t, exists)
 	})
 
+	mt.Run("OTP exists and is valid in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		otpStruct := models.OTP{
+			Email:      email,
+			OTP:        otp,
+			ExpireWhen: validOTP,
+		}
+
+		// add otp to cache
+		if otpData, err := bson.Marshal(otpStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email+otp, otpData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the otp is in the cache
+		otpA, err := cache.Get(email + otp)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, otpA)
+
+		// Call the function under test
+		exists, err := database.OTPExists(ctx, models.New(mt.Client, cache), email, otp)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, exists)
+	})
+
 	mt.Run("OTP exists but is expired", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.OTPS", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
@@ -288,6 +368,40 @@ func TestOTPExists(t *testing.T) {
 
 		// Call the function under test
 		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.False(t, exists)
+	})
+
+	mt.Run("OTP exists but is expired in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		otpStruct := models.OTP{
+			Email:      email,
+			OTP:        otp,
+			ExpireWhen: expiredOTP,
+		}
+
+		// add otp to cache
+		if otpData, err := bson.Marshal(otpStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email+otp, otpData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the otp is in the cache
+		otpA, err := cache.Get(email + otp)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, otpA)
+
+		// Call the function under test
+		exists, err := database.OTPExists(ctx, models.New(mt.Client, cache), email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -362,6 +476,25 @@ func TestAddOTP(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the inserted document
+	})
+
+	mt.Run("Add OTP successfully to cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		// Call the function under test
+		success, err := database.AddOTP(ctx, models.New(mt.Client, cache), email, otp)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the otp was added to the cache
+		otp, err := cache.Get(email + otp)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, otp)
 	})
 
 	mt.Run("InsertOne error", func(mt *mtest.T) {
@@ -539,6 +672,39 @@ func TestGetPassword(t *testing.T) {
 		// Validate the result
 		assert.NoError(t, err)
 		assert.Equal(t, password, pass)
+	})
+
+	mt.Run("Get password successfully from cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email:    email,
+			Password: password,
+		}
+
+		// Add password to cache
+		if passData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email, passData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the password is in the cache
+		pass, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, pass)
+
+		// Call the function under test
+		passwordv, err := database.GetPassword(ctx, models.New(mt.Client, cache), email)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.Equal(t, password, passwordv)
 	})
 
 	mt.Run("FindOne error", func(mt *mtest.T) {
@@ -731,6 +897,39 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		assert.True(t, isAdmin)
 	})
 
+	mt.Run("User is admin in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email: email,
+			Role:  constants.Admin,
+		}
+
+		// Add user to cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email, userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the cache
+		user, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// Call the function under test
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, cache), email)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, isAdmin)
+	})
+
 	mt.Run("User is not admin", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
@@ -743,6 +942,45 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		// Validate the result
 		assert.NoError(t, err)
 		assert.False(t, isAdmin)
+	})
+
+	mt.Run("User is not admin in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email: email,
+			Role:  constants.Basic,
+		}
+
+		// Add user to cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email, userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the cache
+		user, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// Call the function under test
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, cache), email)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.False(t, isAdmin)
+
+		// Verify the user was not updated in the cache
+		user, err = cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
 	})
 
 	mt.Run("FindOne error", func(mt *mtest.T) {
