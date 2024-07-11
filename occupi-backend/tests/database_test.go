@@ -978,3 +978,74 @@ func TestClearResetToken(t *testing.T) {
         assert.False(t, success)
     })
 }
+
+func TestValidateResetToken(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	mt.Run("valid token", func(mt *mtest.T) {
+		email := "test@example.com"
+		token := "resettoken123"
+		expirationTime := time.Now().Add(1 * time.Hour)
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "token", Value: token},
+			{Key: "expireWhen", Value: expirationTime},
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		valid, message, err := database.ValidateResetToken(ctx, appSession, email, token)
+		assert.NoError(t, err)
+		assert.True(t, valid)
+		assert.Empty(t, message)
+	})
+
+	mt.Run("expired token", func(mt *mtest.T) {
+		email := "test@example.com"
+		token := "resettoken123"
+		expirationTime := time.Now().Add(-1 * time.Hour)
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "token", Value: token},
+			{Key: "expireWhen", Value: expirationTime},
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		valid, message, err := database.ValidateResetToken(ctx, appSession, email, token)
+		assert.NoError(t, err)
+		assert.False(t, valid)
+		assert.Equal(t, "Token has expired", message)
+	})
+
+	mt.Run("error", func(mt *mtest.T) {
+		email := "test@example.com"
+		token := "resettoken123"
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		valid, message, err := database.ValidateResetToken(ctx, appSession, email, token)
+		assert.Error(t, err)
+		assert.False(t, valid)
+		assert.Empty(t, message)
+	})
+}
