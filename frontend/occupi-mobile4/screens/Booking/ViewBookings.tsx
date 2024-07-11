@@ -37,63 +37,6 @@ interface Room {
     end: string;
 }
 
-// const getTimeForSlot = (slot) => {
-//     let startTime, endTime;
-//     switch (slot) {
-//         case 1:
-//             startTime = '07:00';
-//             endTime = '08:00';
-//             break;
-//         case 2:
-//             startTime = '08:00';
-//             endTime = '09:00';
-//             break;
-//         case 3:
-//             startTime = '09:00';
-//             endTime = '10:00';
-//             break;
-//         case 4:
-//             startTime = '10:00';
-//             endTime = '11:00';
-//             break;
-//         case 5:
-//             startTime = '11:00';
-//             endTime = '12:00';
-//             break;
-//         case 6:
-//             startTime = '12:00';
-//             endTime = '13:00';
-//             break;
-//         case 7:
-//             startTime = '13:00';
-//             endTime = '14:00';
-//             break;
-//         case 8:
-//             startTime = '14:00';
-//             endTime = '15:00';
-//             break;
-//         case 9:
-//             startTime = '15:00';
-//             endTime = '16:00';
-//             break;
-//         case 10:
-//             startTime = '16:00';
-//             endTime = '17:00';
-//             break;
-//         default:
-//             startTime = 'Invalid slot';
-//             endTime = 'Invalid slot';
-//     }
-//     return { startTime, endTime };
-// };
-
-
-
-// const slotToTime = (slot: number) => {
-//     const { startTime, endTime } = getTimeForSlot(slot);
-//     return `${startTime} - ${endTime}`
-// }
-
 function extractTimeFromDate(dateString: string): string {
     const date = new Date(dateString);
     date.setHours(date.getHours() - 2);

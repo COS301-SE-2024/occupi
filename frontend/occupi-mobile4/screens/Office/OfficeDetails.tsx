@@ -22,6 +22,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 // import Carousel from 'react-native-snap-carousel';
+import * as SecureStore from 'expo-secure-store';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Theme } from 'react-native-calendars/src/types';
 import { PageIndicator } from 'react-native-page-indicator';
@@ -56,10 +57,9 @@ type RootStackParamList = {
 const pages = ['Page 1', 'Page 2', 'Page 3'];
 
 const OfficeDetails = () => {
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState();
   const [startTime, setStartTime] = useState();
   const [endTime, setEndTime] = useState();
-  const [userEmail, setUserEmail] = useState('');
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
@@ -80,6 +80,44 @@ const OfficeDetails = () => {
     return dates;
   };
   const upcomingDates = getUpcomingDates();
+
+  const handleBookRoom = async () => {
+    // console.log('Booking Room');
+    // console.log(date);
+    // console.log(startTime);
+    // console.log(endTime);
+    // console.log(roomData2.roomName);
+    // console.log(roomData2.roomId);
+    // console.log(roomData2.floorNo);
+
+    // Check if any of the required fields are blank
+    if (!date || !startTime || !endTime) {
+      alert('Please fill in all the information.');
+      return; // Exit the function to prevent further execution
+    }
+
+    // Compare startTime and endTime
+    const start = new Date(`1970-01-01T${startTime}Z`);
+    const end = new Date(`1970-01-01T${endTime}Z`);
+    if (end <= start) {
+      alert('End time cannot be before start time.');
+      return; // Exit the function to prevent further execution
+    }
+
+    let bookingInfo = {
+      date: date,
+      startTime: startTime,
+      endTime: endTime,
+      roomName: roomData2.roomName,
+      roomId: roomData2.roomId,
+      floorNo: roomData2.floorNo
+    };
+
+    // console.log(bookingInfo);
+    await SecureStore.setItemAsync('BookingInfo', JSON.stringify(bookingInfo));
+    router.replace('/booking-details');
+  }
+
 
   // console.log(roomData2);
   // console.log(userEmail);
@@ -171,9 +209,9 @@ const OfficeDetails = () => {
             {roomData2.description}
           </Text>
         </View>
-        <Divider my="$2" bg="$grey" w="80%" alignSelf='center'/>
+        <Divider my="$2" bg="$grey" w="80%" alignSelf='center' />
         <View mx="$4">
-        <Text color={isDarkMode ? '#fff' : '#000'}>Date:</Text>
+          <Text color={isDarkMode ? '#fff' : '#000'}>Date:</Text>
           <RNPickerSelect
             darkTheme={isDarkMode ? true : false}
             onValueChange={(value) => { setDate(value) }}
@@ -308,7 +346,7 @@ const OfficeDetails = () => {
         </View>
 
         {/* Check Availability Button */}
-        <TouchableOpacity style={{ margin: wp('5%') }} onPress={() => router.replace({ pathname: '/booking-details', params: { email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData } })}>
+        <TouchableOpacity style={{ margin: wp('5%') }} onPress={() => handleBookRoom()}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
             start={{ x: 0, y: 0 }}
