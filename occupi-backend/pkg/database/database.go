@@ -769,7 +769,7 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user mod
 
 // Filters Users based on the filter provided
 func FilterUsers(ctx *gin.Context, appsession *models.AppSession, filter models.FilterUsers) ([]models.UserDetails, error) {
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	if collection == nil {
 		logrus.Error("Failed to get collection")
 		return nil, errors.New("failed to get collection")
@@ -799,7 +799,7 @@ func FilterUsers(ctx *gin.Context, appsession *models.AppSession, filter models.
 }
 
 func GetAllUsers(ctx *gin.Context, appsession *models.AppSession) ([]models.UserDetails, error) {
-	collection := appsession.DB.Database("Occupi").Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	if collection == nil {
 		logrus.Error("Failed to get collection")
 		return nil, errors.New("failed to get collection")
