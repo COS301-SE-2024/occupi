@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   TouchableOpacity,
-  Modal,
   useColorScheme,
   StyleSheet,
   Animated,
@@ -14,12 +13,10 @@ import {
   ChevronDownIcon,
   Feather
 } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import RNPickerSelect from 'react-native-picker-select';
-import { Icon, ScrollView, View, Text, Image } from '@gluestack-ui/themed';
+import { Icon, ScrollView, View, Text, Image, Divider } from '@gluestack-ui/themed';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -27,9 +24,7 @@ import {
 // import Carousel from 'react-native-snap-carousel';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Theme } from 'react-native-calendars/src/types';
-import slotsData from './availableSlots.json';
 import { PageIndicator } from 'react-native-page-indicator';
-
 
 type RootStackParamList = {
   BookingDetails: undefined;
@@ -61,10 +56,9 @@ type RootStackParamList = {
 const pages = ['Page 1', 'Page 2', 'Page 3'];
 
 const OfficeDetails = () => {
-  const [modalVisible, setModalVisible] = useState(false);
-  // const [date, setDate] = useState(new Date(2000, 6, 7));
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [slot, setSlot] = useState(1);
+  const [date, setDate] = useState('');
+  const [startTime, setStartTime] = useState();
+  const [endTime, setEndTime] = useState();
   const [userEmail, setUserEmail] = useState('');
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -73,75 +67,29 @@ const OfficeDetails = () => {
   const roomData = roomParams.roomData;
   const roomData2 = JSON.parse(roomData);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [availableSlots, setAvailableSlots] = useState({});
   const scrollX = useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
   const animatedCurrent = useRef(Animated.divide(scrollX, width)).current;
-  useEffect(() => {
-    // Load the available slots from the JSON file
-    setAvailableSlots(slotsData.slots);
-    getData();
-  }, []);
-
-  // const handleCheckAvailability = () => {
-  //   setModalVisible(true);
-  // };
-
-  // const showDatePicker = () => {
-  //   setDatePickerVisibility(true);
-  // };
-
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
-
-  const handleConfirm = (selectedDate) => {
-    // setDate(selectedDate);
-    // setDate(selectedDate.toLocaleDateString());
-    // console.log(date.toLocaleDateString());
-    hideDatePicker();
-  };
-
-  // const storeData = async (value) => {
-  //   try {
-  //     await AsyncStorage.setItem('email', value);
-  //   } catch (e) {
-  //     // saving error
-  //   }
-  // };
-
-  const getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem('email');
-      // console.log(value);
-      setUserEmail(value);
-    } catch (e) {
-      // error reading value
-      console.log(e);
+  const getUpcomingDates = () => {
+    const dates = [];
+    for (let i = 1; i <= 4; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      dates.push(date.toISOString().split('T')[0]);
     }
+    return dates;
   };
+  const upcomingDates = getUpcomingDates();
 
-  // storeData('kamogelomoeketse@gmail.com');
-
-  // const renderItem = ({ item }: { item: { uri: string } }) => (
-  //   <View style={{ borderRadius: wp('5%'), overflow: 'hidden' }}>
-  //     <Image source={{ uri: item.uri }} style={{ width: '100%', height: hp('30%') }} />
-  //   </View>
-  // );
-
-  const handleSlotClick = () => {
-    navigation.navigate('/booking-details');
-  };
-
-  console.log(roomData2);
-  console.log(userEmail);
+  // console.log(roomData2);
+  // console.log(userEmail);
 
   return (
     <>
       {/* Top Section */}
       <View pt="$12" px="$8" pb="$4" backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Icon right="$4" as={Feather} name="chevron-left" size="xl" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
-        <Text right="$8" fontWeight="$bold" fontSize={22} style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
+        <Text right="$2" fontWeight="$bold" fontSize={22} style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
         <View alignItems="center" flexDirection="row" w="$24" justifyContent="space-between">
           <View rounded="$full" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} p="$2">
             <Feather name="heart" size={24} color={isDarkMode ? '#fff' : '#000'} />
@@ -152,18 +100,7 @@ const OfficeDetails = () => {
         </View>
       </View >
       <ScrollView style={{ backgroundColor: isDarkMode ? '#000' : '#fff' }}>
-        <View height="$96" mt="$4" mb="$8">
-          {/* <PagerView style={styles.container} initialPage={0}>
-            <View style={styles.page} key="1">
-              <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
-            </View>
-            <View style={styles.page} key="2">
-              <Image alt="slide2" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
-            </View>
-            <View style={styles.page} key="3">
-              <Image alt="slide3" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
-            </View>
-          </PagerView> */}
+        <View height="$64" mt="$2" mb="$8">
           <View>
             <Animated.ScrollView
               horizontal={true}
@@ -192,8 +129,8 @@ const OfficeDetails = () => {
             </View>
           </View>
         </View>
-        <View style={{ padding: wp('5%') }}>
-          <Text fontSize={24} fontWeight="$bold" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
+        <View style={{ paddingHorizontal: wp('5%') }}>
+          <Text fontSize={24} fontWeight="$bold" mt="$2" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{roomData2.roomName}</Text>
           <View alignItems="center" flexDirection="row">
             <Ionicons name="wifi" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}> Fast   </Text>
             <MaterialCommunityIcons name="television" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> OLED   </Text>
@@ -234,27 +171,24 @@ const OfficeDetails = () => {
             {roomData2.description}
           </Text>
         </View>
+        <Divider my="$2" bg="$grey" w="80%" alignSelf='center'/>
         <View mx="$4">
+        <Text color={isDarkMode ? '#fff' : '#000'}>Date:</Text>
           <RNPickerSelect
-            onValueChange={(value) => setSlot(value)}
+            darkTheme={isDarkMode ? true : false}
+            onValueChange={(value) => { setDate(value) }}
             items={[
-              { label: '07:00 - 08:00', value: '1' },
-              { label: '08:00 - 09:00', value: '2' },
-              { label: '09:00 - 10:00', value: '3' },
-              { label: '10:00 - 11:00', value: '4' },
-              { label: '11:00 - 12:00', value: '5' },
-              { label: '12:00 - 13:00', value: '6' },
-              { label: '13:00 - 14:00', value: '7' },
-              { label: '14:00 - 15:00', value: '8' },
-              { label: '15:00 - 16:00', value: '9' },
-              { label: '16:00 - 17:00', value: '10' }
+              { label: upcomingDates[0], value: upcomingDates[0] },
+              { label: upcomingDates[1], value: upcomingDates[1] },
+              { label: upcomingDates[2], value: upcomingDates[2] },
+              { label: upcomingDates[3], value: upcomingDates[3] },
             ]}
-            placeholder={{ label: 'Select a slot', value: null, color: isDarkMode ? '#fff' : '#000' }}
+            placeholder={{ label: 'Select a date', value: null, color: isDarkMode ? '#fff' : '#000' }}
             style={{
               inputIOS: {
                 fontSize: 16,
                 paddingVertical: 12,
-                marginVertical: 12,
+                marginVertical: 4,
                 paddingHorizontal: 16,
                 borderWidth: 1,
                 borderColor: 'lightgrey',
@@ -278,58 +212,112 @@ const OfficeDetails = () => {
             }}
           />
         </View>
+        <View mx="$4" flexDirection='$row' mt="$2" justifyContent='space-between'>
+          <View width="45%">
+            <Text color={isDarkMode ? '#fff' : '#000'}>Start Time:</Text>
+            <RNPickerSelect
+              darkTheme={isDarkMode ? true : false}
+              onValueChange={(value) => setStartTime(value)}
+              items={[
+                { label: '07:00', value: '07:00' },
+                { label: '08:00', value: '08:00' },
+                { label: '09:00', value: '09:00' },
+                { label: '10:00', value: '10:00' },
+                { label: '11:00', value: '11:00' },
+                { label: '12:00', value: '12:00' },
+                { label: '13:00', value: '13:00' },
+                { label: '14:00', value: '14:00' },
+                { label: '15:00', value: '15:00' },
+                { label: '16:00', value: '16:00' }
+              ]}
+              placeholder={{ label: 'Select a time', value: null, color: isDarkMode ? '#fff' : '#000' }}
+              style={{
+                inputIOS: {
+                  fontSize: 16,
+                  paddingVertical: 12,
+                  marginVertical: 4,
+                  paddingHorizontal: 16,
+                  borderWidth: 1,
+                  borderColor: 'lightgrey',
+                  borderRadius: 10,
+                  color: isDarkMode ? '#fff' : '#000',
+                  paddingRight: 30, // to ensure the text is never behind the icon
+                },
+                inputAndroid: {
+                  fontSize: 16,
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  borderWidth: 1,
+                  borderColor: 'lightgrey',
+                  borderRadius: 4,
+                  color: isDarkMode ? '#fff' : '#000',
+                  paddingRight: 30, // to ensure the text is never behind the icon
+                },
+              }}
+              Icon={() => {
+                return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center" />;
+              }}
+            />
+          </View>
+          <View width="45%">
+            <Text color={isDarkMode ? '#fff' : '#000'}>End Time:</Text>
+            <RNPickerSelect
+              darkTheme={isDarkMode ? true : false}
+              onValueChange={(value) => setEndTime(value)}
+              items={[
+                { label: '08:00', value: '08:00' },
+                { label: '09:00', value: '09:00' },
+                { label: '10:00', value: '10:00' },
+                { label: '11:00', value: '11:00' },
+                { label: '12:00', value: '12:00' },
+                { label: '13:00', value: '13:00' },
+                { label: '14:00', value: '14:00' },
+                { label: '15:00', value: '15:00' },
+                { label: '16:00', value: '16:00' },
+                { label: '17:00', value: '17:00' }
+              ]}
+              placeholder={{ label: 'Select a time', value: null, color: isDarkMode ? '#fff' : '#000' }}
+              style={{
+                inputIOS: {
+                  fontSize: 16,
+                  paddingVertical: 12,
+                  marginVertical: 4,
+                  paddingHorizontal: 16,
+                  borderWidth: 1,
+                  borderColor: 'lightgrey',
+                  borderRadius: 10,
+                  color: isDarkMode ? '#fff' : '#000',
+                  paddingRight: 30, // to ensure the text is never behind the icon
+                },
+                inputAndroid: {
+                  fontSize: 16,
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                  borderWidth: 1,
+                  borderColor: 'lightgrey',
+                  borderRadius: 4,
+                  color: isDarkMode ? '#fff' : '#000',
+                  paddingRight: 30, // to ensure the text is never behind the icon
+                },
+              }}
+              Icon={() => {
+                return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center" />;
+              }}
+            />
+          </View>
+        </View>
+
         {/* Check Availability Button */}
-        <TouchableOpacity style={{ margin: wp('5%') }} onPress={() => router.push({ pathname: '/booking-details', params: { email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData } })}>
+        <TouchableOpacity style={{ margin: wp('5%') }} onPress={() => router.replace({ pathname: '/booking-details', params: { email: userEmail, slot: slot, roomId: roomData2.roomId, floorNo: roomData2.floorNo, roomData: roomData } })}>
           <LinearGradient
             colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{ padding: wp('4%'), alignItems: 'center', borderRadius: 18 }}
           >
-            <DateTimePickerModal
-              isVisible={isDatePickerVisible}
-              mode="date"
-              onConfirm={handleConfirm}
-              onCancel={hideDatePicker}
-            />
             <Text color={isDarkMode ? '#000' : '#fff'} fontSize={16} fontWeight="$bold">Check availability</Text>
           </LinearGradient>
         </TouchableOpacity>
-
-
-        {/* Modal for Calendar */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={{ margin: wp('5%'), backgroundColor: isDarkMode ? '#333' : '#fff', borderRadius: wp('5%'), padding: wp('8%'), alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: hp('0.25%') }, shadowOpacity: 0.25, shadowRadius: hp('0.5%'), elevation: 5 }}>
-            <Text style={{ fontSize: wp('6%'), color: isDarkMode ? '#fff' : '#000', marginBottom: hp('2%') }}>Available slots</Text>
-            {/* <CalendarPicker /> */}
-            <View style={{ marginTop: hp('2%'), width: '100%' }}>
-              {Object.keys(availableSlots).map(date => (
-                availableSlots[date].map((slot, index) => (
-                  <TouchableOpacity
-                    key={`${date}-${index}`}
-                    style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: wp('4%'), borderRadius: wp('1%'), backgroundColor: isDarkMode ? '#444' : '#f0f0f0', marginBottom: hp('1%') }}
-                    onPress={handleSlotClick}
-                  >
-                    <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: wp('4%') }}>{date} at {slot}</Text>
-                  </TouchableOpacity>
-                ))
-              ))}
-            </View>
-            <TouchableOpacity
-              style={{ backgroundColor: 'red', padding: wp('2.5%'), borderRadius: wp('1%'), marginTop: wp('5%') }}
-              onPress={() => setModalVisible(!modalVisible)}
-            >
-              <Text style={{ color: '#fff', fontSize: wp('4%') }}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </Modal>
       </ScrollView>
     </>
   );
@@ -344,8 +332,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pageIndicator: {
-    left: 20,
-    right: 20,
+    // left: 20,
+    // right: 20,
     // bottom: 50,
     // position: 'absolute',
     marginTop: 20,

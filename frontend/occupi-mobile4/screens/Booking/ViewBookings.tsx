@@ -227,7 +227,7 @@ const ViewBookings = () => {
                     },
                 });
                 const data = await response.json();
-                console.log(data);
+                // console.log(data);
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
                     // console.log(data);
