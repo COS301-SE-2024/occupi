@@ -420,6 +420,7 @@ func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) 
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 
