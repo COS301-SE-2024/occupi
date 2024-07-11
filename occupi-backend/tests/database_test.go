@@ -1117,3 +1117,64 @@ func TestVerifyTwoFACode(t *testing.T) {
 		assert.False(t, valid)
 	})
 }
+
+func TestIsTwoFAEnabled(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	mt.Run("enabled", func(mt *mtest.T) {
+		email := "test@example.com"
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "twoFAEnabled", Value: true},
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		enabled, err := database.IsTwoFAEnabled(ctx, appSession, email)
+		assert.NoError(t, err)
+		assert.True(t, enabled)
+	})
+
+	mt.Run("disabled", func(mt *mtest.T) {
+		email := "test@example.com"
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "testdb.testcoll", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "twoFAEnabled", Value: false},
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		enabled, err := database.IsTwoFAEnabled(ctx, appSession, email)
+		assert.NoError(t, err)
+		assert.False(t, enabled)
+	})
+
+	mt.Run("error", func(mt *mtest.T) {
+		email := "test@example.com"
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		cache, _ := bigcache.New(context.Background(), bigcache.DefaultConfig(10*time.Minute))
+		appSession := models.New(mt.Client, cache)
+
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+
+		enabled, err := database.IsTwoFAEnabled(ctx, appSession, email)
+		assert.Error(t, err)
+		assert.False(t, enabled)
+	})
+}
