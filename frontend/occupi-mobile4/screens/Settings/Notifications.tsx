@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Alert,
@@ -33,6 +33,15 @@ const Notifications = () => {
   const [isEnabled2, setIsEnabled2] = useState(false);
   const [isEnabled3, setIsEnabled3] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
   const toggleSwitch1 = () => {
     setIsEnabled1(previousState => !previousState)
     setIsSaved(false);
@@ -97,7 +106,7 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
           <Switch
             trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled1 ? 'greenyellow' : 'white'}
+            thumbColor={isEnabled1 ? {accentColour} : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch1}
             value={isEnabled1}
@@ -107,7 +116,7 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
           <Switch
             trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled2 ? 'greenyellow' : 'white'}
+            thumbColor={isEnabled2 ? {accentColour} : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch2}
             value={isEnabled2}
@@ -117,7 +126,7 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when building is full</Text>
           <Switch
             trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled3 ? 'greenyellow' : 'white'}
+            thumbColor={isEnabled3 ? {accentColour} : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch3}
             value={isEnabled3}
