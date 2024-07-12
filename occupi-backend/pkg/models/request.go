@@ -13,6 +13,10 @@ type RequestUserOTP struct {
 	OTP   string `json:"otp" binding:"required,len=6"`
 }
 
+type RoomRequest struct {
+	FloorNo string `json:"floorNo" bson:"floorNo" binding:"required"`
+}
+
 type ErrorMsg struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
@@ -23,4 +27,9 @@ type QueryInput struct {
 	Projection []string               `json:"projection"`
 	Limit      int64                  `json:"limit"`
 	Page       int64                  `json:"page"`
+}
+
+// expected email structure from api requests
+type RequestEmail struct {
+	Email string `json:"email" binding:"required,email"`
 }
