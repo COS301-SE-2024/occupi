@@ -768,6 +768,7 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user mod
 	return true, nil
 }
 
+/*
 // Filters Users based on the filter provided
 func FilterUsers(ctx *gin.Context, appsession *models.AppSession, filter models.FilterUsers) ([]models.UserDetails, error) {
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
@@ -823,7 +824,7 @@ func GetAllUsers(ctx *gin.Context, appsession *models.AppSession) ([]models.User
 	}
 	return users, nil
 
-}
+}*/
 
 // Checks if a user is an admin
 func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
