@@ -140,11 +140,11 @@ const BookRoom = () => {
             <Text style={{ fontWeight: 'bold', fontSize: 18, color: textColor }}>Rooms</Text>
             <TouchableOpacity onPress={toggleLayout}>
               {layout === "row" ? (
-                <View style={{ backgroundColor: '#ADFF2F', alignSelf: 'center', padding: 8, borderRadius: 12 }}>
+                <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
                   <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
                 </View>
               ) : (
-                <View style={{ backgroundColor: '#ADFF2F', alignSelf: 'center', padding: 8, borderRadius: 12 }}>
+                <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
                   <Octicons name="rows" size={22} color="#2C2C2E" />
                 </View>
               )}
@@ -171,7 +171,7 @@ const BookRoom = () => {
                         </View>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <TouchableOpacity style={{ bottom: 0, width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: {accentColour} }}>
+                        <TouchableOpacity style={{ bottom: 0, width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: `${accentColour}` }}>
                           <Text style={{ color: 'dimgrey', fontSize: 13 }}>Available: now</Text>
                         </TouchableOpacity>
                         <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
@@ -200,7 +200,7 @@ const BookRoom = () => {
                     </View>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <TouchableOpacity style={{ width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: 'greenyellow' }}>
+                    <TouchableOpacity style={{ width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: `${accentColour}` }}>
                       <Text style={{ bottom: 0, color: 'dimgrey', fontSize: 13 }}>Available: now</Text>
                     </TouchableOpacity>
                     <Ionicons name="chevron-forward-outline" size={30} color={textColor} />

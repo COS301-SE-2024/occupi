@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { useColorScheme, Switch } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
+import * as SecureStore from 'expo-secure-store';
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
@@ -38,6 +39,7 @@ const Notifications = () => {
   useEffect(() => {
     const getAccentColour = async () => {
       let accentcolour = await SecureStore.getItemAsync('accentColour');
+      console.log(accentcolour);
       setAccentColour(accentcolour);
     };
     getAccentColour();
@@ -106,7 +108,7 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
           <Switch
             trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled1 ? {accentColour} : 'white'}
+            thumbColor={isEnabled1 ? `${accentColour}` : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch1}
             value={isEnabled1}
@@ -116,7 +118,7 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
           <Switch
             trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled2 ? {accentColour} : 'white'}
+            thumbColor={isEnabled2 ? `${accentColour}` : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch2}
             value={isEnabled2}
@@ -126,7 +128,7 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when building is full</Text>
           <Switch
             trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled3 ? {accentColour} : 'white'}
+            thumbColor={isEnabled3 ? `${accentColour}` : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch3}
             value={isEnabled3}
