@@ -50,6 +50,15 @@ const BookingDetails = () => {
   const steps = ["Booking details", "Invite attendees", "Receipt"];
   const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
   const bookroomendpoint = process.env.EXPO_PUBLIC_BOOK_ROOM;
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
 
   useEffect(() => {
     const getbookingInfo = async () => {
@@ -191,7 +200,7 @@ const BookingDetails = () => {
                 width: 20,
                 height: 20,
                 borderRadius: 10,
-                backgroundColor: index <= currentStep ? "greenyellow" : (isDark ? "#333" : "#E0E0E0"),
+                backgroundColor: index <= currentStep ? {accentColour} : (isDark ? "#333" : "#E0E0E0"),
               }}
             >
             </View>
@@ -199,7 +208,7 @@ const BookingDetails = () => {
               style={{
                 color:
                   currentStep === index
-                    ? "greenyellow"
+                    ? {accentColour}
                     : isDark
                       ? "#fff"
                       : "#000",
@@ -217,7 +226,7 @@ const BookingDetails = () => {
                 height: 2,
                 backgroundColor:
                   currentStep >= index + 1
-                    ? "greenyellow"
+                    ? {accentColour}
                     : isDark
                       ? "#333"
                       : "#E0E0E0",
@@ -390,7 +399,7 @@ const BookingDetails = () => {
             <TouchableOpacity
               onPress={addAttendee}
               style={{
-                backgroundColor: "greenyellow",
+                backgroundColor: {accentColour},
                 width: 40,
                 height: 40,
                 borderRadius: 12,
@@ -456,7 +465,7 @@ const BookingDetails = () => {
           <TouchableOpacity onPress={() => onSubmit()}>
             <Text
               style={{
-                color: "greenyellow",
+                color: {accentColour},
                 textAlign: "center",
                 marginTop: 10,
               }}

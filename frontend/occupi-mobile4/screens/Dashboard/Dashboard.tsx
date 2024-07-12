@@ -32,6 +32,15 @@ const Dashboard = () => {
   const [checkedIn, setCheckedIn] = useState(false);
   const [name, setName] = useState("User");
   const toast = useToast()
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers(prevNumbers => {
@@ -49,7 +58,7 @@ const Dashboard = () => {
       console.log(result);
       if (result !== undefined) {
         let jsonresult = JSON.parse(result);
-        setName(String(jsonresult?.data?.details?.name)); 
+        setName(String(jsonresult?.data?.details?.name));
       }
     };
     getUserDetails();
@@ -115,7 +124,7 @@ const Dashboard = () => {
         <Card flexDirection="row" justifyContent="center" alignItems="center" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
           <Text color={textColor} fontSize={40}>{numbers[0]}</Text>
           <View flexDirection="column">
-            <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
+            <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color={accentColour} /><Text color={accentColour}> {numbers[0] / 10 + 5}%</Text></View>
           </View>
         </Card>
         <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} />
@@ -126,7 +135,7 @@ const Dashboard = () => {
             <ButtonText color="dimgrey">Check out</ButtonText>
           </Button>
         ) : (
-          <Button w={wp('36%')} borderRadius={10} backgroundColor="greenyellow" onPress={checkIn}>
+          <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
             <ButtonText color="dimgrey">Check in</ButtonText>
           </Button>
         )}

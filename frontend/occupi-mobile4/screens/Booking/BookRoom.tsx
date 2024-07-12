@@ -45,6 +45,15 @@ const BookRoom = () => {
   };
   const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
   const viewroomsendpoint = process.env.EXPO_PUBLIC_VIEW_ROOMS;
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
 
   useEffect(() => {
     const fetchAllRooms = async () => {
@@ -162,7 +171,7 @@ const BookRoom = () => {
                         </View>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <TouchableOpacity style={{ bottom: 0, width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: 'greenyellow' }}>
+                        <TouchableOpacity style={{ bottom: 0, width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: {accentColour} }}>
                           <Text style={{ color: 'dimgrey', fontSize: 13 }}>Available: now</Text>
                         </TouchableOpacity>
                         <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
