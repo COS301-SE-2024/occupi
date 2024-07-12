@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import {
-  TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -17,13 +14,6 @@ import { router } from 'expo-router';
 import { useColorScheme, Switch } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
-
-const COLORS = {
-  white: '#FFFFFF',
-  black: '#000000',
-  gray: '#BEBEBE',
-  primary: '#3366FF',
-};
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
