@@ -20,7 +20,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 
-
 const FONTS = {
     h3: { fontSize: 20, fontWeight: 'bold' },
     body3: { fontSize: 16 },
@@ -57,24 +56,24 @@ const Appearance = () => {
     // setAccentcolour();
 
     const handleBack = () => {
-        if (isSaved === false) {
-            Alert.alert(
-                'Save Changes',
-                'You have unsaved changes. Would you like to save them?',
-                [
-                    {
-                        text: 'Leave without saving',
-                        onPress: () => router.back(),
-                        style: 'cancel',
-                    },
-                    { text: 'Save', onPress: () => onSave() },
-                ],
-                { cancelable: false }
-            );
-        }
-        else {
+        // if (isSaved === false) {
+        //     Alert.alert(
+        //         'Save Changes',
+        //         'You have unsaved changes. Would you like to save them?',
+        //         [
+        //             {
+        //                 text: 'Leave without saving',
+        //                 onPress: () => router.back(),
+        //                 style: 'cancel',
+        //             },
+        //             { text: 'Save', onPress: () => onSave() },
+        //         ],
+        //         { cancelable: false }
+        //     );
+        // }
+        // else {
             router.back();
-        }
+        // }
     }
 
     return (
@@ -105,6 +104,7 @@ const Appearance = () => {
                     <Image
                         h={hp('24%')}
                         w="30%"
+                        resizeMode='stretch'
                         borderRadius="$20"
                         alt="white"
                         source={require('./assets/white.png')}
@@ -129,7 +129,7 @@ const Appearance = () => {
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FFB443" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("#greenyellow")}>
+                        <TouchableOpacity onPress={() => setAccentcolour("greenyellow")}>
                             <View borderColor='greenyellow' borderRadius="$full" borderWidth={accentColour === 'greenyellow' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="greenyellow" />
                             </View>
