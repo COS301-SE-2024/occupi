@@ -17,3 +17,10 @@ type ErrorMsg struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
 }
+
+type QueryInput struct {
+	Filter     map[string]interface{} `json:"filter"`
+	Projection []string               `json:"projection"`
+	Limit      int64                  `json:"limit"`
+	Page       int64                  `json:"page"`
+}

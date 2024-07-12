@@ -3,8 +3,10 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -1186,4 +1189,147 @@ func TestClearResetToken(t *testing.T) {
 		assert.Error(t, err)
 		assert.False(t, success)
 	})
+}
+
+func TestFilterUsersWithProjection(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	tests := []struct {
+		name           string
+		appSession     *models.AppSession
+		filter         primitive.M
+		projection     bson.M
+		limit          int64
+		skip           int64
+		mockResponses  []bson.D
+		expectedResult []bson.M
+		expectedCount  int64
+		expectedError  error
+	}{
+		{
+			name: "Database is nil",
+			appSession: &models.AppSession{
+				DB: nil,
+			},
+			filter:         primitive.M{"username": "testuser"},
+			projection:     bson.M{"username": 1, "email": 1},
+			limit:          10,
+			skip:           0,
+			expectedResult: nil,
+			expectedCount:  0,
+			expectedError:  errors.New("database is nil"),
+		},
+		{
+			name: "Error in cursor all",
+			appSession: &models.AppSession{
+				DB: mt.Client,
+			},
+			filter:         primitive.M{"username": "testuser"},
+			projection:     bson.M{"username": 1, "email": 1},
+			limit:          10,
+			skip:           0,
+			mockResponses:  nil,
+			expectedResult: nil,
+			expectedCount:  0,
+			expectedError:  errors.New("database is nil"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mt.Run("mock "+tt.name, func(mt *mtest.T) {
+				// Add mock responses
+				mt.AddMockResponses(tt.mockResponses...)
+
+				// Setup Gin context
+				gin.SetMode(configs.GetGinRunMode())
+				ctx, _ := gin.CreateTestContext(nil)
+
+				// Execute the function
+				results, count, err := database.FilterUsersWithProjection(ctx, tt.appSession, tt.filter, tt.projection, tt.limit, tt.skip)
+
+				// Validate results
+				if !reflect.DeepEqual(results, tt.expectedResult) {
+					t.Errorf("FilterUsersWithProjection() got = %v, want %v", results, tt.expectedResult)
+				}
+				if count != tt.expectedCount {
+					t.Errorf("FilterUsersWithProjection() count = %v, want %v", count, tt.expectedCount)
+				}
+				if err != nil && tt.expectedError != nil && err.Error() != tt.expectedError.Error() {
+					t.Errorf("FilterUsersWithProjection() error = %v, want %v", err, tt.expectedError)
+				}
+				if err != nil && tt.expectedError == nil {
+					t.Errorf("FilterUsersWithProjection() unexpected error = %v", err)
+				}
+			})
+		})
+	}
+}
+
+func TestFilterUsersWithProjectionSuccess(t *testing.T) {
+	email := "TestFilterUsersWithProjectionSuccess@example.com"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := models.New(db, nil)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := primitive.M{"email": email}
+	projection := bson.M{"email": 1}
+	limit := 10
+	skip := 0
+
+	// Create test users
+	users := []models.UserDetails{
+		{
+			Email: email,
+		},
+		{
+			Email: email + ".za",
+		},
+		{
+			Email: email + ".uk",
+		},
+		{
+			Email: email + ".us",
+		},
+	}
+
+	// Insert test users into the database
+	for _, user := range users {
+		_, err := collection.InsertOne(ctx, user)
+
+		if err != nil {
+			t.Fatalf("Failed to insert test user into database: %v", err)
+		}
+	}
+
+	// Execute the function
+	results, count, err := database.FilterUsersWithProjection(ctx, appSession, filter, projection, int64(limit), int64(skip))
+
+	// Validate results
+	if err != nil {
+		t.Fatalf("FilterUsersWithProjection() error = %v", err)
+	}
+
+	if count != 1 {
+		t.Fatalf("FilterUsersWithProjection() count = %v, want %v", count, 1)
+	}
+
+	if len(results) != 1 {
+		t.Fatalf("FilterUsersWithProjection() results count = %v, want %v", len(results), 1)
+	}
+
+	if results[0]["email"] != email {
+		t.Fatalf("FilterUsersWithProjection() email = %v, want %v", results[0]["email"], email)
+	}
 }
