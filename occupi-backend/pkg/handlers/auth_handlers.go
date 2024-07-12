@@ -312,9 +312,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 
 // handler for generating a new otp for a user and resending it via email
 func ResendOTP(ctx *gin.Context, appsession *models.AppSession) {
-	var request struct {
-		Email string `json:"email" binding:"required,email"`
-	}
+	var request models.RequestEmail
 	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -608,9 +606,7 @@ func handlePasswordReset(ctx *gin.Context, appsession *models.AppSession, email 
 
 // handler for Verify 2fa
 func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
-	var request struct {
-		Email string `json:"email" binding:"required,email"`
-	}
+	var request models.RequestEmail
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -703,9 +699,7 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-	var request struct {
-		Email string `json:"email" binding:"required,email"`
-	}
+	var request models.RequestEmail
 
 	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -721,9 +715,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
-	var request struct {
-		Email string `json:"email" binding:"required,email"`
-	}
+	var request models.RequestEmail
 	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -765,5 +757,62 @@ func Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(
 		http.StatusOK,
 		"Logged out successfully!",
+		nil))
+}
+
+// handler for checking if this email is verified
+func IsEmailVerified(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid email address",
+			constants.InvalidRequestPayloadCode,
+			"Expected a valid format for email address",
+			nil))
+		return
+	}
+
+	// Sanitize and validate email
+	sanitizedEmail := utils.SanitizeInput(request.Email)
+	if !utils.ValidateEmail(sanitizedEmail) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid email address",
+			constants.InvalidRequestPayloadCode,
+			"Expected a valid format for email address",
+			nil))
+		return
+	}
+
+	// Check if the email exists in the database
+	if exists := database.EmailExists(ctx, appsession, sanitizedEmail); !exists {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Email not registered",
+			constants.InvalidAuthCode,
+			"Please register first before attempting to reset password",
+			nil))
+		return
+	}
+
+	// check if the user is verified
+	verified, err := database.CheckIfUserIsVerified(ctx, appsession, request.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	if !verified {
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"User is not verified",
+			nil))
+		return
+	}
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		http.StatusOK,
+		"User is verified",
 		nil))
 }

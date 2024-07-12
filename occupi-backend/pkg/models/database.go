@@ -111,10 +111,6 @@ type Room struct {
 	RoomName     string `json:"roomName" bson:"roomName"`
 }
 
-type RoomRequest struct {
-	FloorNo string `json:"floorNo" bson:"floorNo" binding:"required"`
-}
-
 type ResetToken struct {
 	Email      string    `bson:"email"`
 	Token      string    `bson:"token"`
