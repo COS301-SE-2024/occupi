@@ -10,8 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
@@ -1260,6 +1263,235 @@ func TestFormatTwoFAEmailBody(t *testing.T) {
 			actual := utils.FormatTwoFAEmailBody(tt.otp, tt.email)
 			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
 				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestSantizeFilter(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		want       primitive.M
+	}{
+		{
+			name: "Removes password field from filter",
+			queryInput: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username": "testuser",
+					"password": "password123",
+				},
+			},
+			want: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Filter without password field",
+			queryInput: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username": "testuser",
+				},
+			},
+			want: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Nil filter",
+			queryInput: models.QueryInput{
+				Filter: nil,
+			},
+			want: bson.M{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.SantizeFilter(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SantizeFilter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSantizeProjection(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		want       []string
+	}{
+		{
+			name: "Removes password field from projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "email"},
+			},
+			want: []string{"username", "email"},
+		},
+		{
+			name: "Projection without password field",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "email"},
+			},
+			want: []string{"username", "email"},
+		},
+		{
+			name: "Empty projection",
+			queryInput: models.QueryInput{
+				Projection: []string{},
+			},
+			want: []string{},
+		},
+		{
+			name: "Nil projection",
+			queryInput: models.QueryInput{
+				Projection: nil,
+			},
+			want: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.SantizeProjection(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SantizeProjection() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestConstructProjection(t *testing.T) {
+	tests := []struct {
+		name                string
+		queryInput          models.QueryInput
+		sanitizedProjection []string
+		want                bson.M
+	}{
+		{
+			name: "Construct projection with password field in sanitized projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "email"},
+			},
+			sanitizedProjection: []string{"username", "password", "email"},
+			want: bson.M{
+				"username": 1,
+				"password": 0,
+				"email":    1,
+			},
+		},
+		{
+			name: "Construct projection without password field in sanitized projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "email"},
+			},
+			sanitizedProjection: []string{"username", "email"},
+			want: bson.M{
+				"username": 1,
+				"email":    1,
+			},
+		},
+		{
+			name: "Empty projection",
+			queryInput: models.QueryInput{
+				Projection: []string{},
+			},
+			sanitizedProjection: []string{},
+			want: bson.M{
+				"password": 0,
+			},
+		},
+		{
+			name: "Nil projection",
+			queryInput: models.QueryInput{
+				Projection: nil,
+			},
+			sanitizedProjection: []string{},
+			want: bson.M{
+				"password": 0,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.ConstructProjection(tt.queryInput, tt.sanitizedProjection); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ConstructProjection() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetLimitPageSkip(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		wantLimit  int64
+		wantPage   int64
+		wantSkip   int64
+	}{
+		{
+			name: "Valid limit and page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  2,
+			},
+			wantLimit: 10,
+			wantPage:  2,
+			wantSkip:  10,
+		},
+		{
+			name: "Limit exceeds maximum",
+			queryInput: models.QueryInput{
+				Limit: 100,
+				Page:  1,
+			},
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Negative limit",
+			queryInput: models.QueryInput{
+				Limit: -1,
+				Page:  1,
+			},
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Zero page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  0,
+			},
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Negative page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  -1,
+			},
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotLimit, gotPage, gotSkip := utils.GetLimitPageSkip(tt.queryInput)
+			if gotLimit != tt.wantLimit {
+				t.Errorf("GetLimitPageSkip() gotLimit = %v, want %v", gotLimit, tt.wantLimit)
+			}
+			if gotPage != tt.wantPage {
+				t.Errorf("GetLimitPageSkip() gotPage = %v, want %v", gotPage, tt.wantPage)
+			}
+			if gotSkip != tt.wantSkip {
+				t.Errorf("GetLimitPageSkip() gotSkip = %v, want %v", gotSkip, tt.wantSkip)
 			}
 		})
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -1040,4 +1041,37 @@ func SetTwoFAEnabled(ctx context.Context, db *mongo.Database, email string, enab
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	return err
+}
+
+// filter users based on the filter provided and return specific fields based on the projection provided
+func FilterUsersWithProjection(ctx *gin.Context, appsession *models.AppSession, filter primitive.M, projection bson.M, limit int64, skip int64) ([]bson.M, int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	findOptions := options.Find()
+	findOptions.SetProjection(projection)
+	findOptions.SetLimit(limit)
+	findOptions.SetSkip(skip)
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	cursor, err := collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var results []bson.M
+	if err = cursor.All(ctx, &results); err != nil {
+		return nil, 0, err
+	}
+
+	totalResults, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return results, totalResults, nil
 }
