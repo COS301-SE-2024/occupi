@@ -72,7 +72,7 @@ const Appearance = () => {
         //     );
         // }
         // else {
-            router.back();
+        router.back();
         // }
     }
 
@@ -97,18 +97,40 @@ const Appearance = () => {
                 />
             </View>
 
-            <View mt="$4" flexDirection="column">
+            <View mt="$4" flexDirection="column" >
                 <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Mode</Text>
-                <View borderRadius={18} my="$2" height={hp('28%')} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+                <View p="$8" justifyContent='space-between' flexDirection='row' borderRadius={18} my="$2" height={hp('28%')} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+                    <View alignItems='center' w="$25%">
+                        <Image
+                            h={hp('18%')}
+                            resizeMode='stretch'
+                            borderRadius="$15"
+                            alt="white"
+                            source={require('./assets/white.png')}
+                        />
+                        <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>Light</Text>
+                    </View>
+                    <View alignItems='center' w="$25%">
+                        <Image
+                            h={hp('18%')}
+                            resizeMode='stretch'
+                            borderRadius="$15"
+                            alt="white"
+                            source={require('./assets/black.png')}
+                        />
+                        <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>Dark</Text>
+                    </View>
+                    <View alignItems='center' w="$25%">
+                        <Image
+                            h={hp('18%')}
+                            resizeMode='stretch'
+                            borderRadius="$15"
+                            alt="white"
+                            source={require('./assets/system.png')}
+                        />
+                        <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>System</Text>
+                    </View>
 
-                    <Image
-                        h={hp('24%')}
-                        w="30%"
-                        resizeMode='stretch'
-                        borderRadius="$20"
-                        alt="white"
-                        source={require('./assets/white.png')}
-                    />
 
                 </View>
                 <Text mt="$2" color={colorScheme === 'dark' ? 'white' : 'black'}>Accent colour</Text>
