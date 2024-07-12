@@ -281,7 +281,7 @@ func GetErrorMsg(fe validator.FieldError) string {
 }
 
 func SantizeFilter(queryInput models.QueryInput) primitive.M {
-	// Remove "password" field from filter if present
+	// Remove password field from filter if present
 	if queryInput.Filter == nil {
 		queryInput.Filter = make(map[string]interface{})
 	}
@@ -293,7 +293,7 @@ func SantizeFilter(queryInput models.QueryInput) primitive.M {
 }
 
 func SantizeProjection(queryInput models.QueryInput) []string {
-	// Remove "password" field from projection if present
+	// Remove password field from projection if present
 	sanitizedProjection := []string{}
 	for _, field := range queryInput.Projection {
 		if field != "password" {
@@ -305,17 +305,16 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 }
 
 func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
+	const passwordField = "password"
 	projection := bson.M{}
-	if queryInput.Projection == nil {
-		projection["password"] = 0 // Exclude password by default
-	} else if len(queryInput.Projection) == 0 {
-		projection["password"] = 0 // Exclude password by default
+	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
+		projection[passwordField] = 0 // Exclude password by default
 	} else {
 		for _, field := range sanitizedProjection {
-			if field != "password" {
+			if field != passwordField {
 				projection[field] = 1
-			} else if field == "password" {
-				projection["password"] = 0
+			} else if field == passwordField {
+				projection[passwordField] = 0
 			}
 		}
 	}
