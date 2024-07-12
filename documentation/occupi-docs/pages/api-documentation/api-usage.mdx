@@ -984,46 +984,6 @@ If there are any errors during the process, appropriate error messages are retur
 - **Code:** 500
 - **Content:** `{ "status":  500, "message": "Failed to update user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update user details"} }`
 
-### GetUsers
-
-This endpoint is used to view all users in the Occupi system.
-Upon a successful request, a list of all users is returned.
-If there are any errors during the process, appropriate error messages are returned.
-
-- **URL**
-
-  `/api/get-users`
-
-- **Method**
-    
-    `GET`
-
-- **Request Body**
-
-- **Content**
-
-```json copy
-{}
-```
-
-**Success Response**
-
-- **Code:** 200
-
-- **Content:** `{ "status":  200, "message": "Successfully fetched users!", "data": {"list of all users"} }`
-
-**Error Response**
-
-- **Code:** 400
-
-- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid request payload"}, }`
-
-**Error Response**
-
-- **Code:** 500
-
-- **Content:** `{ "status":  500, "message": "Failed to get users", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get users"} }`
-
 ### FilterUsers
 
 This endpoint is used to filter users in the Occupi system.
@@ -1033,7 +993,7 @@ If there are any errors during the process, appropriate error messages are retur
 
 - **URL**
 
-  `/api/filter-users?DepartmentNo=?`
+  `/api/filter-users`
 
 - **Method**
     
@@ -1044,14 +1004,22 @@ If there are any errors during the process, appropriate error messages are retur
 - **Content**
 
 ```json copy
-{}
+{
+    "filter": {
+        "onSite": true
+    },
+    "projection": ["email", "role"],
+    "limit": 50, // default is 50 and is the maximum
+    "page": 1 // default is 1, but can be incremented to get the next page
+}
+
 ```
 
 **Success Response**
 
 - **Code:** 200
 
-- **Content:** `{ "status":  200, "message": "Successfully fetched users!", "data": {"list of all users"} }`
+- **Content:** `{ "status":  200, "message": "Successfully fetched users!", "data": []"list of all users"], "meta": {"currentPage": 1,"totalPages": 20,"totalResults": 7}, }`
 
 **Error Response**
 
@@ -1064,21 +1032,3 @@ If there are any errors during the process, appropriate error messages are retur
 - **Code:** 500
 
 - **Content:** `{ "status":  500, "message": "Failed to get users", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get users"} }`
-
-
-
-
-
-
-
-
-
-
-
-### Users
-
-The users endpoints are used to create, read, update, and delete users.
-
-### Roles
-
-The roles endpoints are used to create, read, update, and delete roles.
