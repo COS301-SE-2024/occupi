@@ -9,6 +9,9 @@ services:
       - "4001:4000"
     networks:
       - webnet
+    volumes:
+      - /etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:/etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:ro
+      - /etc/letsencrypt/live/dev.occupi.tech/privkey.pem:/etc/letsencrypt/live/dev.occupi.tech/privkey.pem:ro
 
 networks:
   webnet:
