@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -347,18 +349,33 @@ func GetResetOTP(ctx context.Context, db *mongo.Client, email, otp string) (*mod
 }
 
 // verifies a user in the database
-func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, ipAddress string) (bool, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
 		return false, errors.New("database is nil")
 	}
 
+	// get ip address info
+	info, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
+
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	location := &models.Location{
+		City:    info.City,
+		Region:  info.Region,
+		Country: info.Country,
+	}
+
 	// Verify the user in the database and set next date to verify to 30 days from now
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
-	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30)}}
-	_, err := collection.UpdateOne(ctx, filter, update)
+	//append location to known locations array
+	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30), "knownLocations": bson.A{*location}}}
+
+	_, err = collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
 		return false, err
@@ -383,6 +400,8 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (
 
 	user.IsVerified = true
 	user.NextVerificationDate = time.Now().AddDate(0, 0, 30)
+	user.KnownLocations = append(user.KnownLocations, *location)
+
 	if userData, err := bson.Marshal(user); err == nil {
 		if err := appsession.Cache.Set(email, userData); err != nil {
 			logrus.Error(err)
@@ -1075,4 +1094,68 @@ func FilterUsersWithProjection(ctx *gin.Context, appsession *models.AppSession, 
 	}
 
 	return results, totalResults, nil
+}
+
+func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *models.AppSession, email string, ipAddress string) (bool, *ipinfo.Core, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, nil, errors.New("database is nil")
+	}
+
+	// get ip address info
+	info, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
+
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	// Get the user from the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err != nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.Unmarshal(userData, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				for _, location := range user.KnownLocations {
+					if location.Country == info.Country && location.City == info.City && location.Region == info.Region {
+						return true, nil, nil
+					}
+				}
+				return false, info, nil
+			}
+		}
+	}
+
+	// Check if the user is an admin
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	dberr := collection.FindOne(ctx, filter).Decode(&user)
+	if dberr != nil {
+		logrus.Error(err)
+		return false, nil, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
+	for _, location := range user.KnownLocations {
+		if location.Country == info.Country && location.City == info.City && location.Region == info.Region {
+			return true, nil, nil
+		}
+	}
+	return false, info, nil
 }
