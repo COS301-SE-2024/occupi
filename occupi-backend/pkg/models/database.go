@@ -4,15 +4,16 @@ import "time"
 
 // structure of user
 type User struct {
-	ID                   string    `json:"_id" bson:"_id,omitempty"`
-	OccupiID             string    `json:"occupiId" bson:"occupiId"`
-	Password             string    `json:"password" bson:"password"`
-	Email                string    `json:"email" bson:"email"`
-	Role                 string    `json:"role" bson:"role"`
-	OnSite               bool      `json:"onSite" bson:"onSite"`
-	IsVerified           bool      `json:"isVerified" bson:"isVerified"`
-	NextVerificationDate time.Time `json:"nextVerificationDate" bson:"nextVerificationDate"`
-	TwoFAEnabled         bool      `json:"twoFAEnabled" bson:"twoFAEnabled"`
+	ID                   string     `json:"_id" bson:"_id,omitempty"`
+	OccupiID             string     `json:"occupiId" bson:"occupiId"`
+	Password             string     `json:"password" bson:"password"`
+	Email                string     `json:"email" bson:"email"`
+	Role                 string     `json:"role" bson:"role"`
+	OnSite               bool       `json:"onSite" bson:"onSite"`
+	IsVerified           bool       `json:"isVerified" bson:"isVerified"`
+	NextVerificationDate time.Time  `json:"nextVerificationDate" bson:"nextVerificationDate"`
+	TwoFAEnabled         bool       `json:"twoFAEnabled" bson:"twoFAEnabled"`
+	KnownLocations       []Location `json:"locations" bson:"locations"`
 }
 
 type UserDetails struct {
@@ -55,6 +56,12 @@ type Notifications struct {
 type Security struct {
 	MFA        *bool `json:"mfa" bson:"mfa"`
 	Biometrics *bool `json:"biometrics" bson:"biometrics"`
+}
+
+type Location struct {
+	City    string `json:"city" bson:"city"`
+	Region  string `json:"region" bson:"region"`
+	Country string `json:"country" bson:"country"`
 }
 
 // structure of booking

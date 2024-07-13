@@ -597,7 +597,7 @@ func TestVerifyUser(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, models.New(nil, nil), email)
+		success, err := database.VerifyUser(ctx, models.New(nil, nil), email, ctx.ClientIP())
 
 		// Validate the result
 		assert.Error(t, err)
@@ -608,7 +608,7 @@ func TestVerifyUser(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email)
+		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -624,7 +624,7 @@ func TestVerifyUser(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email)
+		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
 
 		// Validate the result
 		assert.Error(t, err)
