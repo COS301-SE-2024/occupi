@@ -38,7 +38,6 @@ import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import GradientButton from '@/components/GradientButton';
@@ -68,10 +67,10 @@ const SignInForm = () => {
   } = useForm<SignInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
   const loginUrl = process.env.EXPO_PUBLIC_LOGIN;
   const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
-  console.log(apiUrl,loginUrl);
+  console.log(apiUrl + "" +loginUrl);
   const isEmailFocused = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"net"
 	"net/http"
 	"reflect"
 	"strings"
@@ -9,9 +10,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
@@ -1258,6 +1263,312 @@ func TestFormatTwoFAEmailBody(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("TestFormatTwoFAEmailBody", func(t *testing.T) {
 			actual := utils.FormatTwoFAEmailBody(tt.otp, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestSantizeFilter(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		want       primitive.M
+	}{
+		{
+			name: "Removes password field from filter",
+			queryInput: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username": "testuser",
+					"password": "password123",
+				},
+			},
+			want: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Filter without password field",
+			queryInput: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username": "testuser",
+				},
+			},
+			want: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Nil filter",
+			queryInput: models.QueryInput{
+				Filter: nil,
+			},
+			want: bson.M{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.SantizeFilter(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SantizeFilter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSantizeProjection(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		want       []string
+	}{
+		{
+			name: "Removes password field from projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "email"},
+			},
+			want: []string{"username", "email"},
+		},
+		{
+			name: "Projection without password field",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "email"},
+			},
+			want: []string{"username", "email"},
+		},
+		{
+			name: "Empty projection",
+			queryInput: models.QueryInput{
+				Projection: []string{},
+			},
+			want: []string{},
+		},
+		{
+			name: "Nil projection",
+			queryInput: models.QueryInput{
+				Projection: nil,
+			},
+			want: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.SantizeProjection(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SantizeProjection() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestConstructProjection(t *testing.T) {
+	tests := []struct {
+		name                string
+		queryInput          models.QueryInput
+		sanitizedProjection []string
+		want                bson.M
+	}{
+		{
+			name: "Construct projection with password field in sanitized projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "email"},
+			},
+			sanitizedProjection: []string{"username", "password", "email"},
+			want: bson.M{
+				"username": 1,
+				"password": 0,
+				"email":    1,
+			},
+		},
+		{
+			name: "Construct projection without password field in sanitized projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "email"},
+			},
+			sanitizedProjection: []string{"username", "email"},
+			want: bson.M{
+				"username": 1,
+				"email":    1,
+			},
+		},
+		{
+			name: "Empty projection",
+			queryInput: models.QueryInput{
+				Projection: []string{},
+			},
+			sanitizedProjection: []string{},
+			want: bson.M{
+				"password": 0,
+			},
+		},
+		{
+			name: "Nil projection",
+			queryInput: models.QueryInput{
+				Projection: nil,
+			},
+			sanitizedProjection: []string{},
+			want: bson.M{
+				"password": 0,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.ConstructProjection(tt.queryInput, tt.sanitizedProjection); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ConstructProjection() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetLimitPageSkip(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		wantLimit  int64
+		wantPage   int64
+		wantSkip   int64
+	}{
+		{
+			name: "Valid limit and page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  2,
+			},
+			wantLimit: 10,
+			wantPage:  2,
+			wantSkip:  10,
+		},
+		{
+			name: "Limit exceeds maximum",
+			queryInput: models.QueryInput{
+				Limit: 100,
+				Page:  1,
+			},
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Negative limit",
+			queryInput: models.QueryInput{
+				Limit: -1,
+				Page:  1,
+			},
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Zero page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  0,
+			},
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Negative page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  -1,
+			},
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotLimit, gotPage, gotSkip := utils.GetLimitPageSkip(tt.queryInput)
+			if gotLimit != tt.wantLimit {
+				t.Errorf("GetLimitPageSkip() gotLimit = %v, want %v", gotLimit, tt.wantLimit)
+			}
+			if gotPage != tt.wantPage {
+				t.Errorf("GetLimitPageSkip() gotPage = %v, want %v", gotPage, tt.wantPage)
+			}
+			if gotSkip != tt.wantSkip {
+				t.Errorf("GetLimitPageSkip() gotSkip = %v, want %v", gotSkip, tt.wantSkip)
+			}
+		})
+	}
+}
+
+func TestFormatIPAddressConfirmationEmailBody(t *testing.T) {
+	tests := []struct {
+		otp      string
+		email    string
+		expected string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			expected: utils.AppendHeader("IP Address Confirmation") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				Thank you for using Occupi. <br><br>
+				We have detected a new login attempt from an unrecognized IP address. To confirm this login, please use the following One-Time Password (OTP):<br>
+				OTP: <b>123456</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatIPAddressConfirmationEmailBody", func(t *testing.T) {
+			actual := utils.FormatIPAddressConfirmationEmailBody(tt.otp, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatIPAddressConfirmationEmailBodyWithIPInfo(t *testing.T) {
+	tests := []struct {
+		otp                string
+		email              string
+		unrecognizedLogger *ipinfo.Core
+		expected           string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			unrecognizedLogger: &ipinfo.Core{
+				IP:          net.ParseIP("8.8.8.8"),
+				City:        "Mountain View",
+				Region:      "California",
+				CountryName: "United States",
+			},
+			expected: utils.AppendHeader("IP Address Confirmation") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				Thank you for using Occupi. <br><br>
+				We have detected a new login attempt from 8.8.8.8 in Mountain View, California, United States<br>To confirm this login, please use the following One-Time Password (OTP):<br>
+				OTP: <b>123456</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatIPAddressConfirmationEmailBodyWithIPInfo", func(t *testing.T) {
+			actual := utils.FormatIPAddressConfirmationEmailBodyWithIPInfo(tt.otp, tt.email, tt.unrecognizedLogger)
 			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
 				t.Errorf("expected %q, got %q", tt.expected, actual)
 			}
