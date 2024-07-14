@@ -15,8 +15,11 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
 
 // sets up the logger and configures it
@@ -275,4 +278,61 @@ func GetErrorMsg(fe validator.FieldError) string {
 		return "The " + fe.Field() + " field must be greater than " + fe.Param()
 	}
 	return "The " + fe.Field() + " field is invalid"
+}
+
+func SantizeFilter(queryInput models.QueryInput) primitive.M {
+	// Remove password field from filter if present
+	if queryInput.Filter == nil {
+		queryInput.Filter = make(map[string]interface{})
+	}
+	delete(queryInput.Filter, "password")
+
+	filter := bson.M(queryInput.Filter)
+
+	return filter
+}
+
+func SantizeProjection(queryInput models.QueryInput) []string {
+	// Remove password field from projection if present
+	sanitizedProjection := []string{}
+	for _, field := range queryInput.Projection {
+		if field != "password" {
+			sanitizedProjection = append(sanitizedProjection, field)
+		}
+	}
+
+	return sanitizedProjection
+}
+
+func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
+	const passwordField = "password"
+	projection := bson.M{}
+	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
+		projection[passwordField] = 0 // Exclude password by default
+	} else {
+		for _, field := range sanitizedProjection {
+			if field != passwordField {
+				projection[field] = 1
+			} else if field == passwordField {
+				projection[passwordField] = 0
+			}
+		}
+	}
+
+	return projection
+}
+
+func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
+	limit := queryInput.Limit
+	if limit <= 0 || limit > 50 {
+		limit = 50 // Default limit
+	}
+
+	page := queryInput.Page
+	if page <= 0 {
+		page = 1
+	}
+	skip := (page - 1) * limit
+
+	return limit, page, skip
 }

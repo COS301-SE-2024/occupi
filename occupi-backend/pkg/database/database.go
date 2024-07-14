@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -346,17 +349,42 @@ func GetResetOTP(ctx *gin.Context, db *mongo.Client, email, otp string) (*models
 }
 
 // verifies a user in the database
-func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, ipAddress string) (bool, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
 		return false, errors.New("database is nil")
 	}
 
+	var info *ipinfo.Core
+	// check if run mode is test mode
+	if configs.GetGinRunMode() == "test" {
+		info = &ipinfo.Core{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		}
+	} else {
+		// get ip address info
+		infov, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
+		if err != nil {
+			logrus.Error(err)
+		}
+		info = infov
+	}
+
+	location := &models.Location{
+		City:    info.City,
+		Region:  info.Region,
+		Country: info.Country,
+	}
+
 	// Verify the user in the database and set next date to verify to 30 days from now
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
-	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30)}}
+	// append location to known locations array
+	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30), "knownLocations": bson.A{*location}}}
+
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
@@ -382,6 +410,8 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string) (
 
 	user.IsVerified = true
 	user.NextVerificationDate = time.Now().AddDate(0, 0, 30)
+	user.KnownLocations = append(user.KnownLocations, *location)
+
 	if userData, err := bson.Marshal(user); err == nil {
 		if err := appsession.Cache.Set(email, userData); err != nil {
 			logrus.Error(err)
@@ -767,6 +797,64 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user mod
 	return true, nil
 }
 
+/*
+// Filters Users based on the filter provided
+func FilterUsers(ctx *gin.Context, appsession *models.AppSession, filter models.FilterUsers) ([]models.UserDetails, error) {
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	if collection == nil {
+		logrus.Error("Failed to get collection")
+		return nil, errors.New("failed to get collection")
+	}
+
+	filterMap := bson.M{}
+	AddFieldToUpdateMap(filterMap, "role", filter.Role)
+	AddFieldToUpdateMap(filterMap, "status", filter.Status)
+	AddFieldToUpdateMap(filterMap, "departmentNo", filter.DepartmentNo)
+	cursor, err := collection.Find(ctx, filterMap)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.UserDetails
+	for cursor.Next(ctx) {
+		var user models.UserDetails
+		if err := cursor.Decode(&user); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
+func GetAllUsers(ctx *gin.Context, appsession *models.AppSession) ([]models.UserDetails, error) {
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	if collection == nil {
+		logrus.Error("Failed to get collection")
+		return nil, errors.New("failed to get collection")
+	}
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.UserDetails
+	for cursor.Next(ctx) {
+		var user models.UserDetails
+		if err := cursor.Decode(&user); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+
+}*/
+
 // Checks if a user is an admin
 func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
 	// check if database is nil
@@ -1077,4 +1165,111 @@ func SetTwoFAEnabled(ctx *gin.Context, appSession *models.AppSession, email stri
     }
 
     return nil
+}
+
+// filter users based on the filter provided and return specific fields based on the projection provided
+func FilterUsersWithProjection(ctx *gin.Context, appsession *models.AppSession, filter primitive.M, projection bson.M, limit int64, skip int64) ([]bson.M, int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	findOptions := options.Find()
+	findOptions.SetProjection(projection)
+	findOptions.SetLimit(limit)
+	findOptions.SetSkip(skip)
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	cursor, err := collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var results []bson.M
+	if err = cursor.All(ctx, &results); err != nil {
+		return nil, 0, err
+	}
+
+	totalResults, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return results, totalResults, nil
+}
+
+func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *models.AppSession, email string, ipAddress string) (bool, *ipinfo.Core, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, nil, errors.New("database is nil")
+	}
+
+	var info *ipinfo.Core
+	// check if run mode is test mode
+	if configs.GetGinRunMode() == "test" {
+		info = &ipinfo.Core{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		}
+	} else {
+		// get ip address info
+		infov, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
+		if err != nil {
+			logrus.Error(err)
+		}
+		info = infov
+	}
+
+	// Get the user from the cache if cache is not nil
+	if appsession.Cache != nil {
+		// unmarshal the user from the cache
+		var user models.User
+		userData, err := appsession.Cache.Get(email)
+		if err != nil {
+			logrus.Error(err)
+		} else {
+			if err := bson.Unmarshal(userData, &user); err != nil {
+				logrus.Error(err)
+			} else {
+				for _, location := range user.KnownLocations {
+					if location.Country == info.Country && location.City == info.City && location.Region == info.Region {
+						return true, nil, nil
+					}
+				}
+				return false, info, nil
+			}
+		}
+	}
+
+	// Check if the user is an admin
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false, nil, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	if appsession.Cache != nil {
+		if userData, err := bson.Marshal(user); err != nil {
+			logrus.Error(err)
+		} else {
+			if err := appsession.Cache.Set(user.Email, userData); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
+	for _, location := range user.KnownLocations {
+		if location.Country == info.Country && location.City == info.City && location.Region == info.Region {
+			return true, nil, nil
+		}
+	}
+	return false, info, nil
 }

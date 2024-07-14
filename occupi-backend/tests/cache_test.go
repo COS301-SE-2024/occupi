@@ -18,7 +18,7 @@ import (
 )
 
 func TestEmailExistsPerformance(t *testing.T) {
-	email := "test@example.com"
+	email := "TestEmailExistsPerformance@example.com"
 
 	// Create database connection and cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -37,7 +37,10 @@ func TestEmailExistsPerformance(t *testing.T) {
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
-	_, err := collection.InsertOne(ctx, bson.M{"email": email})
+	userStruct := models.User{
+		Email: email,
+	}
+	_, err := collection.InsertOne(ctx, userStruct)
 	if err != nil {
 		t.Fatalf("Failed to insert test email into database: %v", err)
 	}
@@ -63,7 +66,7 @@ func TestEmailExistsPerformance(t *testing.T) {
 }
 
 func TestEmailExists_WithCache(t *testing.T) {
-	email := "test@example.com"
+	email := "TestEmailExists_WithCache@example.com"
 	// Create database connection and cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
 	cache := configs.CreateCache()
@@ -79,7 +82,11 @@ func TestEmailExists_WithCache(t *testing.T) {
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
-	_, err := collection.InsertOne(ctx, bson.M{"email": email})
+	userStruct := models.User{
+		Email: email,
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct)
 	if err != nil {
 		t.Fatalf("Failed to insert test email into database: %v", err)
 	}
@@ -171,7 +178,7 @@ func TestAddOTP_WithCache(t *testing.T) {
 }
 
 func TestOTPExistsPerformance(t *testing.T) {
-	email := "test@example.com"
+	email := "TestOTPExistsPerformance@example.com"
 	otp := "123456"
 
 	// Create database connection and cache
@@ -222,7 +229,7 @@ func TestOTPExistsPerformance(t *testing.T) {
 }
 
 func TestOTPExists_WithCache(t *testing.T) {
-	email := "test@example.com"
+	email := "TestOTPExists_WithCache@example.com"
 	otp := "123456"
 	// Create database connection and cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -248,6 +255,12 @@ func TestOTPExists_WithCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to insert test otp into database: %v", err)
 	}
+
+	// Verify the otp is not in the cache before calling the function
+	nocachedOTP, err := cache.Get(email + otp)
+
+	assert.NotNil(t, err)
+	assert.Nil(t, nocachedOTP)
 
 	// call the function to test
 	exists, err := database.OTPExists(ctx, appSession, email, otp)
@@ -264,7 +277,7 @@ func TestOTPExists_WithCache(t *testing.T) {
 }
 
 func TestDeleteOTP_withCache(t *testing.T) {
-	email := "test@example.com"
+	email := "TestDeleteOTP_withCache@example.com"
 	otp := "123456"
 	// Create database connection and cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
@@ -291,6 +304,21 @@ func TestDeleteOTP_withCache(t *testing.T) {
 		t.Fatalf("Failed to insert test otp into database: %v", err)
 	}
 
+	// add otp to cache
+	if otpData, err := bson.Marshal(otpStruct); err != nil {
+		t.Fatal(err)
+	} else {
+		if err := cache.Set(email+otp, otpData); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Verify the otp is in the cache before calling the function
+	nocachedOTP, err := cache.Get(email + otp)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, nocachedOTP)
+
 	// call the function to test
 	success, err := database.DeleteOTP(ctx, appSession, email, otp)
 
@@ -298,7 +326,7 @@ func TestDeleteOTP_withCache(t *testing.T) {
 	assert.True(t, success)
 	assert.Nil(t, err)
 
-	// Verify the user is in the cache
+	// Verify the otp is not in the cache
 	cachedUser, err := cache.Get(email + otp)
 
 	assert.NotNil(t, err)
@@ -368,4 +396,340 @@ func TestIsTwoFAEnabledAndSetTwoFAEnabled(t *testing.T) {
     if err != nil || string(cachedStatus) != "true" {
         t.Errorf("2FA enabled status not cached properly")
     }
+}
+
+func TestGetPasswordPerformance(t *testing.T) {
+	email := "TestGetPasswordPerformance@example.com"
+	password := "password"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appsessionWithCache := models.New(db, cache)
+	// Create a new AppSession without the cache
+	appsessionWithoutCache := models.New(db, nil)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+	userStruct := models.User{
+		Email:    email,
+		Password: password,
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Test performance with cache
+	startTime := time.Now()
+	for i := 0; i < 1000; i++ {
+		database.GetPassword(ctx, appsessionWithCache, email)
+	}
+	durationWithCache := time.Since(startTime)
+
+	// Test performance without cache
+	startTime = time.Now()
+	for i := 0; i < 1000; i++ {
+		database.GetPassword(ctx, appsessionWithoutCache, email)
+	}
+	durationWithoutCache := time.Since(startTime)
+
+	// Assert that the cache improves the speed
+	if durationWithoutCache <= durationWithCache {
+		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+	}
+}
+
+func TestGetPassword_withCache(t *testing.T) {
+	email := "TestGetPassword_withCache@example.com"
+	password := "password"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := models.New(db, cache)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+	userStruct := models.User{
+		Email:    email,
+		Password: password,
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Verify the user is not in the cache before calling the function
+	nocachedUser, err := cache.Get(email)
+
+	assert.NotNil(t, err)
+	assert.Nil(t, nocachedUser)
+
+	// call the function to test
+	passwordv, err := database.GetPassword(ctx, appSession, email)
+
+	// Verify the response
+	assert.Equal(t, password, passwordv)
+	assert.Nil(t, err)
+
+	// Verify the user is in the cache
+	cachedUser, err := cache.Get(email)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedUser)
+}
+
+func TestCheckIfUserIsAdminPerformance(t *testing.T) {
+	email := "TestCheckIfUserIsAdminPerformance@example.com"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appsessionWithCache := models.New(db, cache)
+	// Create a new AppSession without the cache
+	appsessionWithoutCache := models.New(db, nil)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+	userStruct := models.User{
+		Email: email,
+		Role:  constants.Admin,
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Test performance with cache
+	startTime := time.Now()
+	for i := 0; i < 1000; i++ {
+		database.CheckIfUserIsAdmin(ctx, appsessionWithCache, email)
+	}
+
+	durationWithCache := time.Since(startTime)
+
+	// Test performance without cache
+	startTime = time.Now()
+	for i := 0; i < 1000; i++ {
+		database.CheckIfUserIsAdmin(ctx, appsessionWithoutCache, email)
+	}
+
+	durationWithoutCache := time.Since(startTime)
+
+	// Assert that the cache improves the speed
+	if durationWithoutCache <= durationWithCache {
+		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+	}
+}
+
+func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
+	email1 := "TestCheckIfUserIsAdmin_WithCache1@example.com"
+	email2 := "TestCheckIfUserIsAdmin_WithCache2@example.com"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := models.New(db, cache)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+	userStruct1 := models.User{
+		Email: email1,
+		Role:  constants.Admin,
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct1)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	userStruct2 := models.User{
+		Email: email2,
+		Role:  constants.Basic,
+	}
+
+	_, err = collection.InsertOne(ctx, userStruct2)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Verify the user is not in the cache before calling the function
+	nocachedUser1, err := cache.Get(email1)
+
+	assert.NotNil(t, err)
+	assert.Nil(t, nocachedUser1)
+
+	nocachedUser2, err := cache.Get(email2)
+
+	assert.NotNil(t, err)
+	assert.Nil(t, nocachedUser2)
+
+	// call the function to test
+	isAdmin1, err := database.CheckIfUserIsAdmin(ctx, appSession, email1)
+
+	// Verify the response
+	assert.True(t, isAdmin1)
+	assert.Nil(t, err)
+
+	// Verify the user is in the cache
+	cachedUser1, err := cache.Get(email1)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedUser1)
+
+	// call the function to test
+	isAdmin2, err := database.CheckIfUserIsAdmin(ctx, appSession, email2)
+
+	// Verify the response
+	assert.False(t, isAdmin2)
+	assert.Nil(t, err)
+
+	// Verify the user is in the cache
+	cachedUser2, err := cache.Get(email2)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedUser2)
+}
+
+func TestCheckIfUserIsLoggingInFromKnownLocationPerformance(t *testing.T) {
+	email := "TestCheckIfUserIsLoggingInFromKnownLocationPerformance@example.com"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appsessionWithCache := models.New(db, cache)
+	// Create a new AppSession without the cache
+	appsessionWithoutCache := models.New(db, nil)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+	userStruct := models.User{
+		Email: email,
+		KnownLocations: []models.Location{
+			{
+				City:    "Cape Town",
+				Region:  "Western Cape",
+				Country: "South Africa",
+			},
+		},
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Test performance with cache
+	startTime := time.Now()
+	for i := 0; i < 1000; i++ {
+		database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsessionWithCache, email, "8.8.8.8")
+	}
+
+	durationWithCache := time.Since(startTime)
+
+	// Test performance without cache
+	startTime = time.Now()
+	for i := 0; i < 1000; i++ {
+		database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsessionWithoutCache, email, "8.8.8.8")
+	}
+
+	durationWithoutCache := time.Since(startTime)
+
+	// Assert that the cache improves the speed
+	if durationWithoutCache <= durationWithCache {
+		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+	}
+}
+
+func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
+	email := "TestCheckIfUserIsLoggingInFromKnownLocation_withCache@example.com"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := models.New(db, cache)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+	userStruct := models.User{
+		Email: email,
+		KnownLocations: []models.Location{
+			{
+				City:    "Cape Town",
+				Region:  "Western Cape",
+				Country: "South Africa",
+			},
+		},
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Verify the user is not in the cache before calling the function
+	nocachedUser, err := cache.Get(email)
+
+	assert.NotNil(t, err)
+	assert.Nil(t, nocachedUser)
+
+	// call the function to test
+	yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appSession, email, "8.8.8.8")
+
+	// Verify the response
+	assert.True(t, yes)
+	assert.Nil(t, err)
+	assert.Nil(t, info)
+
+	// Verify the user is in the cache
+	cachedUser, err := cache.Get(email)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedUser)
 }

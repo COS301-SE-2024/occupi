@@ -14,10 +14,10 @@ test("columns array structure and properties", () => {
       expect(column.uid).toBeString();
     });
   
-    expect(columns).toContainEqual({name: "ID", uid: "id", sortable: true});
+    expect(columns).toContainEqual({name: "OCCUPI-ID", uid: "id", sortable: true});
     expect(columns).toContainEqual({name: "NAME", uid: "name", sortable: true});
     expect(columns).toContainEqual({name: "ROLE", uid: "role", sortable: true});
-    expect(columns).toContainEqual({name: "TEAM", uid: "team"});
+    expect(columns).toContainEqual({name: "DEPARTMENT", uid: "team"});
     expect(columns).toContainEqual({name: "EMAIL", uid: "email"});
     expect(columns).toContainEqual({name: "STATUS", uid: "status", sortable: true});
     expect(columns).toContainEqual({name: "ACTIONS", uid: "actions"});

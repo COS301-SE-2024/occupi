@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"reflect"
 
@@ -244,36 +243,14 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
-	var roomRequest map[string]interface{}
-	var room models.RoomRequest
-	if err := ctx.ShouldBindJSON(&roomRequest); err != nil && !errors.Is(err, io.EOF) {
-		HandleValidationErrors(ctx, err)
-		return
-	}
-
-	// Validate JSON
-	validatedData, err := utils.ValidateJSON(roomRequest, reflect.TypeOf(models.RoomRequest{}))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, err.Error(), constants.BadRequestCode, err.Error(), nil))
-		return
-	}
-
-	// Convert validated JSON to RoomRequest struct
-	roomBytes, _ := json.Marshal(validatedData)
-	if err := json.Unmarshal(roomBytes, &room); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get room", constants.InternalServerErrorCode, "Failed to check in", nil))
-		return
-	}
-
-	var floorNo string
-	if room.FloorNo == "" {
+	// Fetch floor number from query parameters
+	floorNo := ctx.Query("floorNo")
+	if floorNo == "" {
 		floorNo = "0"
-	} else {
-		floorNo = room.FloorNo
 	}
 
 	var rooms []models.Room
-	rooms, err = database.GetAllRooms(ctx, appsession, floorNo)
+	rooms, err := database.GetAllRooms(ctx, appsession, floorNo)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get rooms", constants.InternalServerErrorCode, "Failed to get rooms", nil))
 		return
@@ -281,6 +258,36 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched rooms!", rooms))
 }
+
+// func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
+// 	var filterRequest models.FilterUsers
+// 	if ctx.Query("DepartmentNo") == "" {
+// 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Department Number", nil))
+// 		return
+// 	}
+// 	// Extract query parameters
+// 	filterRequest.DepartmentNo = ctx.Query("DepartmentNo")
+
+// 	// Get all users matching a filter
+// 	users, err := database.FilterUsers(ctx, appsession, filterRequest)
+
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users!", users))
+// }
+
+// func GetUsers(ctx *gin.Context, appsession *models.AppSession) {
+// 	users, err := database.GetAllUsers(ctx, appsession)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users!", users))
+// }
 
 // Helper function to handle validation of requests
 func HandleValidationErrors(ctx *gin.Context, err error) {
@@ -295,4 +302,31 @@ func HandleValidationErrors(ctx *gin.Context, err error) {
 		}
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid request payload", gin.H{"errors": out}))
 	}
+}
+
+func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
+	var queryInput models.QueryInput
+	if err := ctx.ShouldBindJSON(&queryInput); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	filter := utils.SantizeFilter(queryInput)
+
+	sanitizedProjection := utils.SantizeProjection(queryInput)
+
+	projection := utils.ConstructProjection(queryInput, sanitizedProjection)
+
+	limit, page, skip := utils.GetLimitPageSkip(queryInput)
+
+	users, totalResults, err := database.FilterUsersWithProjection(ctx, appsession, filter, projection, limit, skip)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "success", users, gin.H{
+		"totalResults": len(users), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
 }

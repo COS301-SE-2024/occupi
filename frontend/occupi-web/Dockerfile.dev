@@ -1,23 +1,23 @@
 # Use the official bun image as a base
-FROM oven/bun:latest
+FROM node:20-alpine
 
 # Set the current working directory inside the container
 WORKDIR /app
 
-# copy bun.lockb package.json 
-COPY bun.lockb package.json ./
+# copy package.json package-lock.json
+COPY package.json package-lock.json ./
 
 # install dependencies
-RUN bun install
+RUN npm install
 
 # copy the source code into the container
 COPY . .
 
-# Build the next.js application
-RUN bun run build
+# Build the vite application
+RUN npm run build
 
 # Expose the port the app runs on
 EXPOSE 4001
 
 # Command to run the executable
-CMD ["bun", "preview"]
+CMD ["npm", "run", "preview"]

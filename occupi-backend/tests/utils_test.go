@@ -1,16 +1,22 @@
 package tests
 
 import (
+	"net"
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
@@ -726,6 +732,845 @@ func TestGetErrorMsg(t *testing.T) {
 				assert.Equal(t, "The Age field must be greater than 18", result)
 			default:
 				t.Errorf("Unhandled field: %s", fe.Field())
+			}
+		})
+	}
+}
+
+func TestAppendHeader(t *testing.T) {
+	tests := []struct {
+		title    string
+		expected string
+	}{
+		{
+			title: "Booking",
+			expected: `
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Booking</title>
+		<style>
+			/* Inline CSS for better compatibility */
+			.header {
+				background-color: #f8f9fa;
+				padding: 20px;
+				text-align: center;
+				font-family: Arial, sans-serif;
+			}
+			.content {
+				padding: 20px;
+				font-family: Arial, sans-serif;
+			}
+			.footer {
+				padding: 10px;
+				text-align: center;
+				font-family: Arial, sans-serif;
+				font-size: 12px;
+				color: #888;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<h1>Occupi Booking</h1>
+		</div>
+	`,
+		},
+		{
+			title: "Confirmation",
+			expected: `
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Confirmation</title>
+		<style>
+			/* Inline CSS for better compatibility */
+			.header {
+				background-color: #f8f9fa;
+				padding: 20px;
+				text-align: center;
+				font-family: Arial, sans-serif;
+			}
+			.content {
+				padding: 20px;
+				font-family: Arial, sans-serif;
+			}
+			.footer {
+				padding: 10px;
+				text-align: center;
+				font-family: Arial, sans-serif;
+				font-size: 12px;
+				color: #888;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<h1>Occupi Confirmation</h1>
+		</div>
+	`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestAppendHeader", func(t *testing.T) {
+			actual := utils.AppendHeader(tt.title)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestAppendFooter(t *testing.T) {
+	expected := `
+		<div class="footer" style="text-align:center; padding:10px; font-size:12px;">
+			<img src="https://raw.githubusercontent.com/COS301-SE-2024/occupi/develop/presentation/Occupi/Occupi-black.png" alt="Business Banner" style="width:80%; max-width:600px; height:auto; margin-bottom:10px;">
+			<p style="margin:5px 0;">140 Lunnon Road, Hillcrest, Pretoria. PO Box 14679, Hatfield, 0028</p>
+		</div>
+		</body>
+		</html>
+	`
+
+	actual := utils.AppendFooter()
+	if strings.TrimSpace(actual) != strings.TrimSpace(expected) {
+		t.Errorf("expected %q, got %q", expected, actual)
+	}
+}
+
+func TestFormatBookingEmailBody(t *testing.T) {
+	tests := []struct {
+		bookingID string
+		roomID    string
+		slot      int
+		expected  string
+	}{
+		{
+			bookingID: "12345",
+			roomID:    "A1",
+			slot:      1,
+			expected: `
+		Dear User,
+
+		Thank you for booking with Occupi. Here are your booking details:
+
+		Booking ID: 12345
+		Room ID: A1
+		Slot: 1
+
+		If you have any questions, feel free to contact us.
+
+		Thank you,
+		The Occupi Team
+		`,
+		},
+		{
+			bookingID: "67890",
+			roomID:    "B2",
+			slot:      2,
+			expected: `
+		Dear User,
+
+		Thank you for booking with Occupi. Here are your booking details:
+
+		Booking ID: 67890
+		Room ID: B2
+		Slot: 2
+
+		If you have any questions, feel free to contact us.
+
+		Thank you,
+		The Occupi Team
+		`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatBookingEmailBody", func(t *testing.T) {
+			actual := utils.FormatBookingEmailBody(tt.bookingID, tt.roomID, tt.slot)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatBookingEmailBodyForBooker(t *testing.T) {
+	tests := []struct {
+		bookingID string
+		roomID    string
+		slot      int
+		attendees []string
+		email     string
+		expected  string
+	}{
+		{
+			bookingID: "12345",
+			roomID:    "A1",
+			slot:      1,
+			attendees: []string{"attendee1@example.com", "attendee2@example.com"},
+			email:     "booker@example.com",
+			expected: utils.AppendHeader("Booking") + `
+		<div class="content">
+			<p>Dear booker,</p>
+			<p>
+				You have successfully booked an office space. Here are the booking details:<br><br>
+				<b>Booking ID:</b> 12345<br>
+				<b>Room ID:</b> A1<br>
+				<b>Slot:</b> 1<br><br>
+				<b>Attendees:</b><ul><li>attendee1@example.com</li><li>attendee2@example.com</li></ul><br><br>
+				Please ensure you arrive on time for your booking.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+		{
+			bookingID: "67890",
+			roomID:    "B2",
+			slot:      2,
+			attendees: []string{"attendee3@example.com"},
+			email:     "booker@example.com",
+			expected: utils.AppendHeader("Booking") + `
+		<div class="content">
+			<p>Dear booker,</p>
+			<p>
+				You have successfully booked an office space. Here are the booking details:<br><br>
+				<b>Booking ID:</b> 67890<br>
+				<b>Room ID:</b> B2<br>
+				<b>Slot:</b> 2<br><br>
+				<b>Attendees:</b><ul><li>attendee3@example.com</li></ul><br><br>
+				Please ensure you arrive on time for your booking.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatBookingEmailBodyForBooker", func(t *testing.T) {
+			actual := utils.FormatBookingEmailBodyForBooker(tt.bookingID, tt.roomID, tt.slot, tt.attendees, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatCancellationEmailBodyForBooker(t *testing.T) {
+	tests := []struct {
+		bookingID string
+		roomID    string
+		slot      int
+		email     string
+		expected  string
+	}{
+		{
+			bookingID: "12345",
+			roomID:    "A1",
+			slot:      1,
+			email:     "booker@example.com",
+			expected: utils.AppendHeader("Cancellation") + `
+		<div class="content">
+			<p>Dear booker,</p>
+			<p>
+				You have successfully cancelled your booked office space. Here are the booking details:<br><br>
+				<b>Booking ID:</b> 12345<br>
+				<b>Room ID:</b> A1<br>
+				<b>Slot:</b> 1<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+		{
+			bookingID: "67890",
+			roomID:    "B2",
+			slot:      2,
+			email:     "booker@example.com",
+			expected: utils.AppendHeader("Cancellation") + `
+		<div class="content">
+			<p>Dear booker,</p>
+			<p>
+				You have successfully cancelled your booked office space. Here are the booking details:<br><br>
+				<b>Booking ID:</b> 67890<br>
+				<b>Room ID:</b> B2<br>
+				<b>Slot:</b> 2<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatCancellationEmailBodyForBooker", func(t *testing.T) {
+			actual := utils.FormatCancellationEmailBodyForBooker(tt.bookingID, tt.roomID, tt.slot, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatBookingEmailBodyForAttendees(t *testing.T) {
+	tests := []struct {
+		bookingID string
+		roomID    string
+		slot      int
+		email     string
+		expected  string
+	}{
+		{
+			bookingID: "12345",
+			roomID:    "A1",
+			slot:      1,
+			email:     "organizer@example.com",
+			expected: utils.AppendHeader("Booking") + `
+		<div class="content">
+			<p>Dear attendees,</p>
+			<p>
+				organizer@example.com has booked an office space and invited you to join. Here are the booking details:<br><br>
+				<b>Booking ID:</b> 12345<br>
+				<b>Room ID:</b> A1<br>
+				<b>Slot:</b> 1<br><br>
+				If you have any questions, feel free to contact us.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+		{
+			bookingID: "67890",
+			roomID:    "B2",
+			slot:      2,
+			email:     "booker@example.com",
+			expected: utils.AppendHeader("Booking") + `
+		<div class="content">
+			<p>Dear attendees,</p>
+			<p>
+				booker@example.com has booked an office space and invited you to join. Here are the booking details:<br><br>
+				<b>Booking ID:</b> 67890<br>
+				<b>Room ID:</b> B2<br>
+				<b>Slot:</b> 2<br><br>
+				If you have any questions, feel free to contact us.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatBookingEmailBodyForAttendees", func(t *testing.T) {
+			actual := utils.FormatBookingEmailBodyForAttendees(tt.bookingID, tt.roomID, tt.slot, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatCancellationEmailBodyForAttendees(t *testing.T) {
+	tests := []struct {
+		bookingID string
+		roomID    string
+		slot      int
+		email     string
+		expected  string
+	}{
+		{
+			bookingID: "B123",
+			roomID:    "R456",
+			slot:      7,
+			email:     "user@example.com",
+			expected: utils.AppendHeader("Booking") + `
+		<div class="content">
+			<p>Dear attendees,</p>
+			<p>
+				user@example.com has cancelled the booked office space with the following details:<br><br>
+				<b>Booking ID:</b> B123<br>
+				<b>Room ID:</b> R456<br>
+				<b>Slot:</b> 7<br><br>
+				If you have any questions, feel free to contact us.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatCancellationEmailBodyForAttendees", func(t *testing.T) {
+			actual := utils.FormatCancellationEmailBodyForAttendees(tt.bookingID, tt.roomID, tt.slot, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatEmailVerificationBody(t *testing.T) {
+	tests := []struct {
+		otp      string
+		email    string
+		expected string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			expected: utils.AppendHeader("Registration") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				Thank you for registering with Occupi. <br><br>
+				To complete your registration, please use the following One-Time Password (OTP) to verify your email address:<br>
+				OTP: <b>123456</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+		{
+			otp:   "654321",
+			email: "example@domain.com",
+			expected: utils.AppendHeader("Registration") + `
+		<div class="content">
+			<p>Dear example@domain.com,</p>
+			<p>
+				Thank you for registering with Occupi. <br><br>
+				To complete your registration, please use the following One-Time Password (OTP) to verify your email address:<br>
+				OTP: <b>654321</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatEmailVerificationBody", func(t *testing.T) {
+			actual := utils.FormatEmailVerificationBody(tt.otp, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatReVerificationEmailBody(t *testing.T) {
+	tests := []struct {
+		otp      string
+		email    string
+		expected string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			expected: utils.AppendHeader("Re-verification") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				Thank you for using Occupi. <br><br>
+				To verify your email address, please use the following One-Time Password (OTP):<br>
+				OTP: <b>123456</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatReVerificationEmailBody", func(t *testing.T) {
+			actual := utils.FormatReVerificationEmailBody(tt.otp, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatResetPasswordEmailBody(t *testing.T) {
+	tests := []struct {
+		otp      string
+		email    string
+		expected string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			expected: utils.AppendHeader("Password Reset") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				You have requested to reset your password. Your One-Time Password (OTP) is:<br>
+				<h2 style="color: #4a4a4a; background-color: #f0f0f0; padding: 10px; display: inline-block;">123456</h2><br><br>
+				Please use this OTP to reset your password. If you did not request this email, please ignore it.<br><br>
+				This OTP will expire in 10 minutes.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatResetPasswordEmailBody", func(t *testing.T) {
+			actual := utils.FormatResetPasswordEmailBody(tt.otp, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatTwoFAEmailBody(t *testing.T) {
+	tests := []struct {
+		otp      string
+		email    string
+		expected string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			expected: utils.AppendHeader("Two-Factor Authentication") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				You have requested to enable Two-Factor Authentication. Your One-Time Password (OTP) is:<br>
+				<h2 style="color: #4a4a4a; background-color: #f0f0f0; padding: 10px; display: inline-block;">123456</h2><br><br>
+				Please use this OTP to enable Two-Factor Authentication. If you did not request this email, please ignore it.<br><br>
+				This OTP will expire in 10 minutes.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatTwoFAEmailBody", func(t *testing.T) {
+			actual := utils.FormatTwoFAEmailBody(tt.otp, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestSantizeFilter(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		want       primitive.M
+	}{
+		{
+			name: "Removes password field from filter",
+			queryInput: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username": "testuser",
+					"password": "password123",
+				},
+			},
+			want: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Filter without password field",
+			queryInput: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username": "testuser",
+				},
+			},
+			want: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Nil filter",
+			queryInput: models.QueryInput{
+				Filter: nil,
+			},
+			want: bson.M{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.SantizeFilter(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SantizeFilter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSantizeProjection(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		want       []string
+	}{
+		{
+			name: "Removes password field from projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "email"},
+			},
+			want: []string{"username", "email"},
+		},
+		{
+			name: "Projection without password field",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "email"},
+			},
+			want: []string{"username", "email"},
+		},
+		{
+			name: "Empty projection",
+			queryInput: models.QueryInput{
+				Projection: []string{},
+			},
+			want: []string{},
+		},
+		{
+			name: "Nil projection",
+			queryInput: models.QueryInput{
+				Projection: nil,
+			},
+			want: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.SantizeProjection(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SantizeProjection() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestConstructProjection(t *testing.T) {
+	tests := []struct {
+		name                string
+		queryInput          models.QueryInput
+		sanitizedProjection []string
+		want                bson.M
+	}{
+		{
+			name: "Construct projection with password field in sanitized projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "email"},
+			},
+			sanitizedProjection: []string{"username", "password", "email"},
+			want: bson.M{
+				"username": 1,
+				"password": 0,
+				"email":    1,
+			},
+		},
+		{
+			name: "Construct projection without password field in sanitized projection",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "email"},
+			},
+			sanitizedProjection: []string{"username", "email"},
+			want: bson.M{
+				"username": 1,
+				"email":    1,
+			},
+		},
+		{
+			name: "Empty projection",
+			queryInput: models.QueryInput{
+				Projection: []string{},
+			},
+			sanitizedProjection: []string{},
+			want: bson.M{
+				"password": 0,
+			},
+		},
+		{
+			name: "Nil projection",
+			queryInput: models.QueryInput{
+				Projection: nil,
+			},
+			sanitizedProjection: []string{},
+			want: bson.M{
+				"password": 0,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.ConstructProjection(tt.queryInput, tt.sanitizedProjection); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ConstructProjection() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetLimitPageSkip(t *testing.T) {
+	tests := []struct {
+		name       string
+		queryInput models.QueryInput
+		wantLimit  int64
+		wantPage   int64
+		wantSkip   int64
+	}{
+		{
+			name: "Valid limit and page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  2,
+			},
+			wantLimit: 10,
+			wantPage:  2,
+			wantSkip:  10,
+		},
+		{
+			name: "Limit exceeds maximum",
+			queryInput: models.QueryInput{
+				Limit: 100,
+				Page:  1,
+			},
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Negative limit",
+			queryInput: models.QueryInput{
+				Limit: -1,
+				Page:  1,
+			},
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Zero page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  0,
+			},
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name: "Negative page",
+			queryInput: models.QueryInput{
+				Limit: 10,
+				Page:  -1,
+			},
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotLimit, gotPage, gotSkip := utils.GetLimitPageSkip(tt.queryInput)
+			if gotLimit != tt.wantLimit {
+				t.Errorf("GetLimitPageSkip() gotLimit = %v, want %v", gotLimit, tt.wantLimit)
+			}
+			if gotPage != tt.wantPage {
+				t.Errorf("GetLimitPageSkip() gotPage = %v, want %v", gotPage, tt.wantPage)
+			}
+			if gotSkip != tt.wantSkip {
+				t.Errorf("GetLimitPageSkip() gotSkip = %v, want %v", gotSkip, tt.wantSkip)
+			}
+		})
+	}
+}
+
+func TestFormatIPAddressConfirmationEmailBody(t *testing.T) {
+	tests := []struct {
+		otp      string
+		email    string
+		expected string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			expected: utils.AppendHeader("IP Address Confirmation") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				Thank you for using Occupi. <br><br>
+				We have detected a new login attempt from an unrecognized IP address. To confirm this login, please use the following One-Time Password (OTP):<br>
+				OTP: <b>123456</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatIPAddressConfirmationEmailBody", func(t *testing.T) {
+			actual := utils.FormatIPAddressConfirmationEmailBody(tt.otp, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatIPAddressConfirmationEmailBodyWithIPInfo(t *testing.T) {
+	tests := []struct {
+		otp                string
+		email              string
+		unrecognizedLogger *ipinfo.Core
+		expected           string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			unrecognizedLogger: &ipinfo.Core{
+				IP:          net.ParseIP("8.8.8.8"),
+				City:        "Mountain View",
+				Region:      "California",
+				CountryName: "United States",
+			},
+			expected: utils.AppendHeader("IP Address Confirmation") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				Thank you for using Occupi. <br><br>
+				We have detected a new login attempt from 8.8.8.8 in Mountain View, California, United States<br>To confirm this login, please use the following One-Time Password (OTP):<br>
+				OTP: <b>123456</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatIPAddressConfirmationEmailBodyWithIPInfo", func(t *testing.T) {
+			actual := utils.FormatIPAddressConfirmationEmailBodyWithIPInfo(tt.otp, tt.email, tt.unrecognizedLogger)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
 			}
 		})
 	}
