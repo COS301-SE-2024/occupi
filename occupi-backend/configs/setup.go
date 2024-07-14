@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
+	"github.com/ipinfo/go/v2/ipinfo"
+	"github.com/ipinfo/go/v2/ipinfo/cache"
 
 	"context"
 	"fmt"
@@ -76,4 +78,16 @@ func CreateOTPRateLimitCache() *bigcache.BigCache {
 	}
 
 	return cache
+}
+
+// create ipinfo client
+func CreateIPInfoClient() *ipinfo.Client {
+	// engine
+	engine := cache.NewInMemory().WithExpiration(10 * time.Minute)
+	// create ipinfo cache
+	cache := ipinfo.NewCache(engine)
+
+	client := ipinfo.NewClient(nil, cache, GetIPClientInfoToken())
+
+	return client
 }

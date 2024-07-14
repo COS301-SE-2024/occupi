@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"net"
 	"net/http"
 	"reflect"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -1492,6 +1494,83 @@ func TestGetLimitPageSkip(t *testing.T) {
 			}
 			if gotSkip != tt.wantSkip {
 				t.Errorf("GetLimitPageSkip() gotSkip = %v, want %v", gotSkip, tt.wantSkip)
+			}
+		})
+	}
+}
+
+func TestFormatIPAddressConfirmationEmailBody(t *testing.T) {
+	tests := []struct {
+		otp      string
+		email    string
+		expected string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			expected: utils.AppendHeader("IP Address Confirmation") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				Thank you for using Occupi. <br><br>
+				We have detected a new login attempt from an unrecognized IP address. To confirm this login, please use the following One-Time Password (OTP):<br>
+				OTP: <b>123456</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatIPAddressConfirmationEmailBody", func(t *testing.T) {
+			actual := utils.FormatIPAddressConfirmationEmailBody(tt.otp, tt.email)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestFormatIPAddressConfirmationEmailBodyWithIPInfo(t *testing.T) {
+	tests := []struct {
+		otp                string
+		email              string
+		unrecognizedLogger *ipinfo.Core
+		expected           string
+	}{
+		{
+			otp:   "123456",
+			email: "user@example.com",
+			unrecognizedLogger: &ipinfo.Core{
+				IP:          net.ParseIP("8.8.8.8"),
+				City:        "Mountain View",
+				Region:      "California",
+				CountryName: "United States",
+			},
+			expected: utils.AppendHeader("IP Address Confirmation") + `
+		<div class="content">
+			<p>Dear user@example.com,</p>
+			<p>
+				Thank you for using Occupi. <br><br>
+				We have detected a new login attempt from 8.8.8.8 in Mountain View, California, United States<br>To confirm this login, please use the following One-Time Password (OTP):<br>
+				OTP: <b>123456</b><br>
+				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
+				If you did not request this email, please disregard it.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + utils.AppendFooter(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run("TestFormatIPAddressConfirmationEmailBodyWithIPInfo", func(t *testing.T) {
+			actual := utils.FormatIPAddressConfirmationEmailBodyWithIPInfo(tt.otp, tt.email, tt.unrecognizedLogger)
+			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
+				t.Errorf("expected %q, got %q", tt.expected, actual)
 			}
 		})
 	}
