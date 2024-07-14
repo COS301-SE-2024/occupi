@@ -129,6 +129,8 @@ model.add(Dense(len(labels), activation='softmax'))  # Adjust the output layer f
 # Compile the model
 model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(learning_rate=0.001), metrics=['accuracy'])
 
+print(f"Model's input shape: {model.input_shape}")
+
 # Define early stopping
 early_stopping = EarlyStopping(monitor='val_loss', patience=25, restore_best_weights=True)
 
@@ -177,39 +179,42 @@ def predict_attendance(day_of_week, month, day_of_month, is_weekend, special_eve
     return predicted_label[0]
 
 # Predict attendance levels for each day of the week
-def predict_weekly_attendance(year, month, start_day):
-    days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    predictions = []
+# def predict_weekly_attendance(year, month, start_day):
+#     days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+#     predictions = []
     
-    for i, day_name in enumerate(days_of_week):
-        day_of_week = i  # Monday is 0, Sunday is 6
-        date = datetime(year, month, start_day + i)
-        day_of_month = date.day
-        is_weekend = 1 if day_of_week in [5, 6] else 0
-        special_event = 0  # Assuming no special event
+#     for i, day_name in enumerate(days_of_week):
+#         day_of_week = i  # Monday is 0, Sunday is 6
+#         date = datetime(year, month, start_day + i)
+#         day_of_month = date.day
+#         is_weekend = 1 if day_of_week in [5, 6] else 0
+#         special_event = 0  # Assuming no special event
         
-        predicted_attendance_level = predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event, year, start_day + i)
-        predictions.append((day_name, predicted_attendance_level))
+#         predicted_attendance_level = predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event, year, start_day + i)
+#         predictions.append((day_name, predicted_attendance_level))
     
-    return predictions
+#     return predictions
 
-# Example usage
-year = 2026
-month = 3
-start_day = 11  # Starting from Monday, March 11, 2024
+# # Example usage
+# year = 2026
+# month = 3
+# start_day = 11  # Starting from Monday, March 11, 2024
 
-weekly_predictions = predict_weekly_attendance(year, month, start_day)
+# weekly_predictions = predict_weekly_attendance(year, month, start_day)
 
-# Display the predictions
-print("Weekly Attendance Level Predictions:")
-for day, prediction in weekly_predictions:
-    print(f"{day}: {prediction}")
+# # Display the predictions
+# print("Weekly Attendance Level Predictions:")
+# for day, prediction in weekly_predictions:
+#     print(f"{day}: {prediction}")
 
-# Plot the predictions
-days, levels = zip(*weekly_predictions)
-plt.figure(figsize=(10, 6))
-plt.plot(days, levels, marker='o')
-plt.xlabel('Day of the Week')
-plt.ylabel('Attendance Level')
-plt.title('Predicted Attendance Levels for the Week')
-plt.show()
+# # Plot the predictions
+# days, levels = zip(*weekly_predictions)
+# plt.figure(figsize=(10, 6))
+# plt.plot(days, levels, marker='o')
+# plt.xlabel('Day of the Week')
+# plt.ylabel('Attendance Level')
+# plt.title('Predicted Attendance Levels for the Week')
+# plt.show()
+
+# model.save('models/attendance_model.h5')
+# model.export('C:/Users/retha/Capstone/occupi/models/attendance_model/1')
