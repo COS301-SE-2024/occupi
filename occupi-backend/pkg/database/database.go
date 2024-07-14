@@ -1113,11 +1113,21 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 		return false, nil, errors.New("database is nil")
 	}
 
-	// get ip address info
-	info, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
-
-	if err != nil {
-		logrus.Error(err)
+	var info *ipinfo.Core
+	//check if run mode is test mode
+	if configs.GetGinRunMode() == "test" {
+		info = &ipinfo.Core{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		}
+	} else {
+		// get ip address info
+		infov, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
+		if err != nil {
+			logrus.Error(err)
+		}
+		info = infov
 	}
 
 	// Get the user from the cache if cache is not nil
@@ -1145,8 +1155,8 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
-	dberr := collection.FindOne(ctx, filter).Decode(&user)
-	if dberr != nil {
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
 		logrus.Error(err)
 		return false, nil, err
 	}

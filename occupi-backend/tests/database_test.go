@@ -1413,3 +1413,195 @@ func TestFilterUsersWithProjectionSuccess(t *testing.T) {
 		t.Fatalf("FilterUsersWithProjection() email = %v, want %v", results[0]["email"], email)
 	}
 }
+
+func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
+	// Setup mock MongoDB instance
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a new HTTP request with the POST method.
+	req, _ := http.NewRequest("POST", "/", nil)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a new context with the Request and ResponseWriter.
+	ctx, _ := gin.CreateTestContext(w)
+	ctx.Request = req
+
+	// Optionally, set any values in the context.
+	ctx.Set("test", "test")
+
+	email := "test@example.com"
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(nil, nil), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.False(t, yes)
+		assert.Nil(t, info)
+	})
+
+	mt.Run("Location does not exist", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+		}))
+
+		// Call the function under test
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.False(t, yes)
+		assert.NotNil(t, info)
+		assert.Equal(t, "Cape Town", info.City)
+		assert.Equal(t, "Western Cape", info.Region)
+		assert.Equal(t, "South Africa", info.Country)
+	})
+
+	mt.Run("Location exists and is valid", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "locations", Value: bson.A{
+				bson.D{
+					{Key: "city", Value: "Cape Town"},
+					{Key: "region", Value: "Western Cape"},
+					{Key: "country", Value: "South Africa"},
+				},
+			}},
+		}))
+
+		// Call the function under test
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, yes)
+		assert.Nil(t, info)
+	})
+
+	mt.Run("Location exists but ip address unkwown", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "locations", Value: bson.A{
+				bson.D{
+					{Key: "city", Value: "Durban"},
+					{Key: "region", Value: "KwaZulu-Natal"},
+					{Key: "country", Value: "South Africa"},
+				},
+			}},
+		}))
+
+		// Call the function under test
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.False(t, yes)
+		assert.NotNil(t, info)
+		assert.Equal(t, "Cape Town", info.City)
+		assert.Equal(t, "Western Cape", info.Region)
+		assert.Equal(t, "South Africa", info.Country)
+	})
+
+	mt.Run("Location exists and is valid in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email: email,
+			KnownLocations: []models.Location{
+				{
+					City:    "Cape Town",
+					Region:  "Western Cape",
+					Country: "South Africa",
+				},
+			},
+		}
+
+		// add userstruct to cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email, userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the cache
+		userA, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userA)
+
+		// Call the function under test
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, cache), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, yes)
+		assert.Nil(t, info)
+	})
+
+	mt.Run("Location exists but does not match what is in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email: email,
+			KnownLocations: []models.Location{
+				{
+					City:    "Durban",
+					Region:  "KwaZulu-Natal",
+					Country: "South Africa",
+				},
+			},
+		}
+
+		// add userstruct to cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email, userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the cache
+		userA, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userA)
+
+		// Call the function under test
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, cache), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.False(t, yes)
+		assert.NotNil(t, info)
+		assert.Equal(t, "Cape Town", info.City)
+		assert.Equal(t, "Western Cape", info.Region)
+		assert.Equal(t, "South Africa", info.Country)
+	})
+
+	mt.Run("Handle find error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		// Call the function under test
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(nil, nil), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.False(t, yes)
+		assert.Nil(t, info)
+	})
+}
