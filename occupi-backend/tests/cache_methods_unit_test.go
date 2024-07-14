@@ -79,19 +79,16 @@ func TestSetUser(t *testing.T) {
 		name         string
 		user         models.User
 		expectedUser models.User
-		expectedErr  error
 	}{
 		{
 			name:         "cache is nil",
 			user:         user,
 			expectedUser: models.User{},
-			expectedErr:  errors.New("cache not found"),
 		},
 		{
 			name:         "successful set user in cache",
 			user:         user,
 			expectedUser: user,
-			expectedErr:  nil,
 		},
 	}
 
@@ -107,12 +104,9 @@ func TestSetUser(t *testing.T) {
 				appsession = &models.AppSession{}
 			}
 
-			err := cache.SetUser(appsession, tt.user)
+			cache.SetUser(appsession, tt.user)
 
-			if tt.expectedErr != nil {
-				assert.EqualError(t, err, tt.expectedErr.Error())
-			} else {
-				assert.NoError(t, err)
+			if tt.name != "cache is nil" {
 
 				// check if user was set in cache
 				userData, err := appsession.Cache.Get(email)
@@ -138,19 +132,16 @@ func TestDeleteUser(t *testing.T) {
 		name         string
 		email        string
 		expectedUser models.User
-		expectedErr  error
 	}{
 		{
 			name:         "cache is nil",
 			email:        email,
 			expectedUser: models.User{},
-			expectedErr:  errors.New("cache not found"),
 		},
 		{
 			name:         "successful delete user in cache",
 			email:        email,
 			expectedUser: models.User{},
-			expectedErr:  nil,
 		},
 	}
 
@@ -172,12 +163,9 @@ func TestDeleteUser(t *testing.T) {
 				appsession = &models.AppSession{}
 			}
 
-			err := cache.DeleteUser(appsession, tt.email)
+			cache.DeleteUser(appsession, tt.email)
 
-			if tt.expectedErr != nil {
-				assert.EqualError(t, err, tt.expectedErr.Error())
-			} else {
-				assert.NoError(t, err)
+			if tt.name != "cache is nil" {
 
 				// check if user was deleted in cache
 				userData, err := appsession.Cache.Get(email)
@@ -257,13 +245,11 @@ func TestSetOTP(t *testing.T) {
 		name        string
 		otp         models.OTP
 		expectedOTP models.OTP
-		expectedErr error
 	}{
 		{
 			name:        "cache is nil",
 			otp:         otp,
 			expectedOTP: models.OTP{},
-			expectedErr: errors.New("cache not found"),
 		},
 		{
 			name: "successful set otp in cache",
@@ -272,7 +258,6 @@ func TestSetOTP(t *testing.T) {
 				Email: email,
 				OTP:   otpv,
 			},
-			expectedErr: nil,
 		},
 	}
 
@@ -288,13 +273,9 @@ func TestSetOTP(t *testing.T) {
 				appsession = &models.AppSession{}
 			}
 
-			err := cache.SetOTP(appsession, tt.otp)
+			cache.SetOTP(appsession, tt.otp)
 
-			if tt.expectedErr != nil {
-				assert.EqualError(t, err, tt.expectedErr.Error())
-			} else {
-				assert.NoError(t, err)
-
+			if tt.name != "cache is nil" {
 				// check if otp was set in cache
 				otpData, err := appsession.Cache.Get(email + otpv)
 				assert.NoError(t, err)
@@ -319,12 +300,10 @@ func TestDeleteOTPF(t *testing.T) {
 	tests := []struct {
 		name        string
 		expectedOTP models.OTP
-		expectedErr error
 	}{
 		{
 			name:        "cache is nil",
 			expectedOTP: models.OTP{},
-			expectedErr: errors.New("cache not found"),
 		},
 		{
 			name: "successful delete otp in cache",
@@ -332,7 +311,6 @@ func TestDeleteOTPF(t *testing.T) {
 				Email: email,
 				OTP:   otpv,
 			},
-			expectedErr: nil,
 		},
 	}
 
@@ -354,13 +332,9 @@ func TestDeleteOTPF(t *testing.T) {
 				appsession = &models.AppSession{}
 			}
 
-			err := cache.DeleteOTP(appsession, tt.expectedOTP.Email, tt.expectedOTP.OTP)
+			cache.DeleteOTP(appsession, tt.expectedOTP.Email, tt.expectedOTP.OTP)
 
-			if tt.expectedErr != nil {
-				assert.EqualError(t, err, tt.expectedErr.Error())
-			} else {
-				assert.NoError(t, err)
-
+			if tt.name != "cache is nil" {
 				// check if otp was deleted in cache
 				otpData, err := appsession.Cache.Get(email + otpv)
 				assert.NotNil(t, err)
