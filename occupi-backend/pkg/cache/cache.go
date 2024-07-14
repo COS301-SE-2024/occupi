@@ -30,39 +30,35 @@ func GetUser(appsession *models.AppSession, email string) (models.User, error) {
 	return user, nil
 }
 
-func SetUser(appsession *models.AppSession, user models.User) error {
+func SetUser(appsession *models.AppSession, user models.User) {
 	if appsession.Cache == nil {
-		return errors.New("cache not found")
+		return
 	}
 
 	// marshal the user
 	userData, err := bson.Marshal(user)
 	if err != nil {
 		logrus.Error("failed to marshall", err)
-		return err
+		return
 	}
 
 	// set the user in the cache
 	if err := appsession.Cache.Set(user.Email, userData); err != nil {
 		logrus.Error("failed to set user in cache", err)
-		return err
+		return
 	}
-
-	return nil
 }
 
-func DeleteUser(appsession *models.AppSession, email string) error {
+func DeleteUser(appsession *models.AppSession, email string) {
 	if appsession.Cache == nil {
-		return errors.New("cache not found")
+		return
 	}
 
 	// delete the user from the cache
 	if err := appsession.Cache.Delete(email); err != nil {
 		logrus.Error("failed to delete user from cache", err)
-		return err
+		return
 	}
-
-	return nil
 }
 
 func GetOTP(appsession *models.AppSession, email string, otp string) (models.OTP, error) {
@@ -88,9 +84,9 @@ func GetOTP(appsession *models.AppSession, email string, otp string) (models.OTP
 	return otpData, nil
 }
 
-func SetOTP(appsession *models.AppSession, otpData models.OTP) error {
+func SetOTP(appsession *models.AppSession, otpData models.OTP) {
 	if appsession.Cache == nil {
-		return errors.New("cache not found")
+		return
 	}
 
 	// marshal the otp
@@ -98,29 +94,25 @@ func SetOTP(appsession *models.AppSession, otpData models.OTP) error {
 	otpDataBytes, err := bson.Marshal(otpData)
 	if err != nil {
 		logrus.Error("failed to marshall", err)
-		return err
+		return
 	}
 
 	// set the otp in the cache
 	if err := appsession.Cache.Set(otpKey, otpDataBytes); err != nil {
 		logrus.Error("failed to set otp in cache", err)
-		return err
+		return
 	}
-
-	return nil
 }
 
-func DeleteOTP(appsession *models.AppSession, email string, otp string) error {
+func DeleteOTP(appsession *models.AppSession, email string, otp string) {
 	if appsession.Cache == nil {
-		return errors.New("cache not found")
+		return
 	}
 
 	// delete the otp from the cache
 	otpKey := email + otp
 	if err := appsession.Cache.Delete(otpKey); err != nil {
 		logrus.Error("failed to delete otp from cache", err)
-		return err
+		return
 	}
-
-	return nil
 }
