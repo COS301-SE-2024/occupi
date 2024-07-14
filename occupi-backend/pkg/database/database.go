@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/ipinfo/go/v2/ipinfo"
@@ -134,16 +135,17 @@ func ConfirmCheckIn(ctx *gin.Context, appsession *models.AppSession, checkIn mod
 
 // checks if email exists in database
 func EmailExists(ctx *gin.Context, appsession *models.AppSession, email string) bool {
-	if appsession.Cache != nil {
-		// Check if a user exists in the cache with this email
-		if _, err := appsession.Cache.Get(email); err == nil {
-			return true
-		}
-	}
+	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
 		return false
 	}
+
+	// Check if the email exists in the cache if cache is not nil
+	if _, err := cache.GetUser(appsession, email); err == nil {
+		return true
+	}
+
 	// Check if the email exists in the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -154,16 +156,8 @@ func EmailExists(ctx *gin.Context, appsession *models.AppSession, email string) 
 		return false
 	}
 
-	// Add the user to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if userData, err := bson.Marshal(user); err != nil {
-			logrus.Error("Failed to marshall user: ", err)
-		} else {
-			if err := appsession.Cache.Set(user.Email, userData); err != nil {
-				logrus.Error("Failed to set key: ", err)
-			}
-		}
-	}
+	// Add the user to the cache if cache is not nil, even if there is an error we don't care
+	cache.SetUser(appsession, user)
 
 	return true
 }
@@ -208,15 +202,7 @@ func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.Reques
 		return false, err
 	}
 	// Add the user to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			logrus.Error(err)
-		} else {
-			if err := appsession.Cache.Set(user.Email, userData); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}
+	cache.SetUser(appsession, userStruct)
 
 	return true, nil
 }
@@ -241,44 +227,25 @@ func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp s
 		return false, err
 	}
 	// Add the OTP to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if otpData, err := bson.Marshal(otpStruct); err != nil {
-			logrus.Error(err)
-		} else {
-			if err := appsession.Cache.Set(email+otp, otpData); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}
+	cache.SetOTP(appsession, otpStruct)
 
 	return true, nil
 }
 
 // checks if otp exists in database
 func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, otp string) (bool, error) {
-	// check if otp exists in the cache if cache is not nil
-	if appsession.Cache != nil {
-		// unmarshal the user from the cache
-		var otpStruct models.OTP
-		otpData, err := appsession.Cache.Get(email + otp)
-		if err != nil {
-			logrus.Error("key does not exist: ", err)
-		} else {
-			if err := bson.Unmarshal(otpData, &otpStruct); err != nil {
-				logrus.Error("failed to unmarshall", err)
-			} else {
-				if time.Now().After(otpStruct.ExpireWhen) {
-					return false, nil
-				}
-				return true, nil
-			}
-		}
-	}
-
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
 		return false, errors.New("database is nil")
+	}
+
+	// Check if the OTP exists in the cache if cache is not nil
+	if otpdata, err := cache.GetOTP(appsession, email, otp); err == nil {
+		if time.Now().After(otpdata.ExpireWhen) {
+			return false, nil
+		}
+		return true, nil
 	}
 
 	// Check if the OTP exists in the database
@@ -297,15 +264,7 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 	}
 
 	// Add the OTP to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if otpData, err := bson.Marshal(otpStruct); err != nil {
-			logrus.Error(err)
-		} else {
-			if err := appsession.Cache.Set(email+otp, otpData); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}
+	cache.SetOTP(appsession, otpStruct)
 
 	return true, nil
 }
@@ -327,11 +286,7 @@ func DeleteOTP(ctx *gin.Context, appsession *models.AppSession, email string, ot
 	}
 
 	// delete otp from cache if cache is not nil
-	if appsession.Cache != nil {
-		if err := appsession.Cache.Delete(email + otp); err != nil {
-			logrus.Error(err) // the otp may also not xist in the cache which is valid behaviour
-		}
-	}
+	cache.DeleteOTP(appsession, email, otp)
 
 	return true, nil
 }
@@ -391,31 +346,11 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 		return false, err
 	}
 
-	// if user is in cache, update the user in the cache
-	if appsession.Cache == nil {
-		return true, nil
-	}
-
-	var user models.User
-	userData, err := appsession.Cache.Get(email)
-	if err != nil {
-		logrus.Error(err)
-		return true, nil
-	}
-
-	if err := bson.Unmarshal(userData, &user); err != nil {
-		logrus.Error(err)
-		return true, nil
-	}
-
-	user.IsVerified = true
-	user.NextVerificationDate = time.Now().AddDate(0, 0, 30)
-	user.KnownLocations = append(user.KnownLocations, *location)
-
-	if userData, err := bson.Marshal(user); err == nil {
-		if err := appsession.Cache.Set(email, userData); err != nil {
-			logrus.Error(err)
-		}
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		userData.IsVerified = true
+		userData.NextVerificationDate = time.Now().AddDate(0, 0, 30)
+		userData.KnownLocations = append(userData.KnownLocations, *location)
+		cache.SetUser(appsession, userData)
 	}
 
 	return true, nil
@@ -430,20 +365,10 @@ func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) 
 	}
 
 	// Get the password from the cache if cache is not nil
-	if appsession.Cache != nil {
-		// unmarshal the user from the cache
-		var user models.User
-		userData, err := appsession.Cache.Get(email)
-		if err != nil {
-			logrus.Error("key does not exist: ", err)
-		} else {
-			if err := bson.Unmarshal(userData, &user); err != nil {
-				logrus.Error("failed to unmarshall", err)
-			} else {
-				return user.Password, nil
-			}
-		}
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Password, nil
 	}
+
 	// Get the password from the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
@@ -455,15 +380,7 @@ func GetPassword(ctx *gin.Context, appsession *models.AppSession, email string) 
 	}
 
 	// Add the user to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if userData, err := bson.Marshal(user); err != nil {
-			logrus.Error(err)
-		} else {
-			if err := appsession.Cache.Set(user.Email, userData); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}
+	cache.SetUser(appsession, user)
 
 	return user.Password, nil
 }
@@ -476,28 +393,16 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 		return false, errors.New("database is nil")
 	}
 
-	// Get the user from the cache if cache is not nil
-	if appsession.Cache != nil {
-		// unmarshal the user from the cache
-		var user models.User
-		userData, err := appsession.Cache.Get(email)
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		if !time.Now().After(userData.NextVerificationDate) {
+			return false, nil
+		}
+		_, err := UpdateVerificationStatusTo(ctx, appsession, email, false)
 		if err != nil {
 			logrus.Error(err)
-		} else {
-			if err := bson.Unmarshal(userData, &user); err != nil {
-				logrus.Error(err)
-			} else {
-				if time.Now().After(user.NextVerificationDate) {
-					_, err := UpdateVerificationStatusTo(ctx, appsession, email, false)
-					if err != nil {
-						logrus.Error(err)
-						return false, err
-					}
-					return true, nil
-				}
-				return false, nil
-			}
+			return false, err
 		}
+		return true, nil
 	}
 
 	// Check if the next verification date is due
@@ -511,25 +416,17 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 	}
 
 	// Add the user to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if userData, err := bson.Marshal(user); err != nil {
-			logrus.Error(err)
-		} else {
-			if err := appsession.Cache.Set(user.Email, userData); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}
+	cache.SetUser(appsession, user)
 
-	if time.Now().After(user.NextVerificationDate) {
-		_, err := UpdateVerificationStatusTo(ctx, appsession, email, false)
-		if err != nil {
-			logrus.Error(err)
-			return false, err
-		}
-		return true, nil
+	if !time.Now().After(user.NextVerificationDate) {
+		return false, nil
 	}
-	return false, nil
+	_, err = UpdateVerificationStatusTo(ctx, appsession, email, false)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+	return true, nil
 }
 
 // checks if the user is verified
@@ -541,19 +438,8 @@ func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, emai
 	}
 
 	// Check if the user is verified in the cache if cache is not nil
-	if appsession.Cache != nil {
-		// unmarshal the user from the cache
-		var user models.User
-		userData, err := appsession.Cache.Get(email)
-		if err != nil {
-			logrus.Error(err)
-		} else {
-			if err := bson.Unmarshal(userData, &user); err != nil {
-				logrus.Error(err)
-			} else {
-				return user.IsVerified, nil
-			}
-		}
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.IsVerified, nil
 	}
 
 	// Check if the user is verified
@@ -567,15 +453,7 @@ func CheckIfUserIsVerified(ctx *gin.Context, appsession *models.AppSession, emai
 	}
 
 	// Add the user to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if userData, err := bson.Marshal(user); err != nil {
-			logrus.Error(err)
-		} else {
-			if err := appsession.Cache.Set(user.Email, userData); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}
+	cache.SetUser(appsession, user)
 
 	return user.IsVerified, nil
 }
@@ -599,28 +477,9 @@ func UpdateVerificationStatusTo(ctx *gin.Context, appsession *models.AppSession,
 	}
 
 	// if user is in cache, update the user in the cache
-	if appsession.Cache == nil {
-		logrus.Error("Cache is nil")
-		return true, nil
-	}
-
-	var user models.User
-	userData, err := appsession.Cache.Get(email)
-	if err != nil {
-		logrus.Error(err)
-		return true, nil
-	}
-
-	if err := bson.Unmarshal(userData, &user); err != nil {
-		logrus.Error(err)
-		return true, nil
-	}
-
-	user.IsVerified = status
-	if userData, err := bson.Marshal(user); err == nil {
-		if err := appsession.Cache.Set(email, userData); err != nil {
-			logrus.Error(err)
-		}
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		userData.IsVerified = status
+		cache.SetUser(appsession, userData)
 	}
 
 	return true, nil
@@ -864,19 +723,8 @@ func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email s
 	}
 
 	// Get the user from the cache if cache is not nil
-	if appsession.Cache != nil {
-		// unmarshal the user from the cache
-		var user models.User
-		userData, err := appsession.Cache.Get(email)
-		if err != nil {
-			logrus.Error(err)
-		} else {
-			if err := bson.Unmarshal(userData, &user); err != nil {
-				logrus.Error(err)
-			} else {
-				return user.Role == constants.Admin, nil
-			}
-		}
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Role == constants.Admin, nil
 	}
 
 	// Check if the user is an admin
@@ -890,15 +738,7 @@ func CheckIfUserIsAdmin(ctx *gin.Context, appsession *models.AppSession, email s
 	}
 
 	// Add the user to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if userData, err := bson.Marshal(user); err != nil {
-			logrus.Error(err)
-		} else {
-			if err := appsession.Cache.Set(user.Email, userData); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}
+	cache.SetUser(appsession, user)
 
 	return user.Role == constants.Admin, nil
 }
@@ -1131,24 +971,13 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 	}
 
 	// Get the user from the cache if cache is not nil
-	if appsession.Cache != nil {
-		// unmarshal the user from the cache
-		var user models.User
-		userData, err := appsession.Cache.Get(email)
-		if err != nil {
-			logrus.Error(err)
-		} else {
-			if err := bson.Unmarshal(userData, &user); err != nil {
-				logrus.Error(err)
-			} else {
-				for _, location := range user.KnownLocations {
-					if location.Country == info.Country && location.City == info.City && location.Region == info.Region {
-						return true, nil, nil
-					}
-				}
-				return false, info, nil
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		for _, location := range userData.KnownLocations {
+			if location.City == info.City && location.Region == info.Region && location.Country == info.Country {
+				return true, nil, nil
 			}
 		}
+		return false, info, nil
 	}
 
 	// Check if the user is an admin
@@ -1162,15 +991,7 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 	}
 
 	// Add the user to the cache if cache is not nil
-	if appsession.Cache != nil {
-		if userData, err := bson.Marshal(user); err != nil {
-			logrus.Error(err)
-		} else {
-			if err := appsession.Cache.Set(user.Email, userData); err != nil {
-				logrus.Error(err)
-			}
-		}
-	}
+	cache.SetUser(appsession, user)
 
 	for _, location := range user.KnownLocations {
 		if location.Country == info.Country && location.City == info.City && location.Region == info.Region {
