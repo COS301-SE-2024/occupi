@@ -205,9 +205,7 @@ func FormatIPAddressConfirmationEmailBodyWithIPInfo(otp string, email string, un
 				Thank you for using Occupi. <br><br>
 				We have detected a new login attempt from ` + unrecognizedLogger.IP.String() +
 		` in ` + unrecognizedLogger.City + `, ` + unrecognizedLogger.Region + `, ` + unrecognizedLogger.CountryName +
-		`<br>Country Flag<br><img src="` + unrecognizedLogger.CountryFlagURL +
-		`" alt="Country Flag" style="width: 20px; height: 20px; display: inline-block;"><br> 
-				To confirm this login, please use the following One-Time Password (OTP):<br>
+		`<br>To confirm this login, please use the following One-Time Password (OTP):<br>
 				OTP: <b>` + otp + `</b><br>
 				This OTP is valid for the next <i>10 minutes</i>. Please do not share this OTP with anyone for security reasons.<br><br>
 				If you did not request this email, please disregard it.<br><br>
