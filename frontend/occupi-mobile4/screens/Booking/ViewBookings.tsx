@@ -11,6 +11,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import { Octicons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../../components/NavBar';
+import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
 
 const groupDataInPairs = (data) => {
@@ -31,61 +32,20 @@ interface Room {
     maxOccupancy: number;
     description: string;
     emails: string[];
+    date: string;
+    start: string;
+    end: string;
 }
 
-const getTimeForSlot = (slot) => {
-    let startTime, endTime;
-    switch (slot) {
-        case 1:
-            startTime = '07:00';
-            endTime = '08:00';
-            break;
-        case 2:
-            startTime = '08:00';
-            endTime = '09:00';
-            break;
-        case 3:
-            startTime = '09:00';
-            endTime = '10:00';
-            break;
-        case 4:
-            startTime = '10:00';
-            endTime = '11:00';
-            break;
-        case 5:
-            startTime = '11:00';
-            endTime = '12:00';
-            break;
-        case 6:
-            startTime = '12:00';
-            endTime = '13:00';
-            break;
-        case 7:
-            startTime = '13:00';
-            endTime = '14:00';
-            break;
-        case 8:
-            startTime = '14:00';
-            endTime = '15:00';
-            break;
-        case 9:
-            startTime = '15:00';
-            endTime = '16:00';
-            break;
-        case 10:
-            startTime = '16:00';
-            endTime = '17:00';
-            break;
-        default:
-            startTime = 'Invalid slot';
-            endTime = 'Invalid slot';
-    }
-    return { startTime, endTime };
-};
+function extractTimeFromDate(dateString: string): string {
+    const date = new Date(dateString);
+    date.setHours(date.getHours() - 2);
+    return date.toTimeString().substring(0, 5);
+}
 
-const slotToTime = (slot: number) => {
-    const { startTime, endTime } = getTimeForSlot(slot);
-    return `${startTime} - ${endTime}`
+function extractDateFromDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toDateString();
 }
 
 const ViewBookings = () => {
@@ -95,25 +55,30 @@ const ViewBookings = () => {
     const toast = useToast();
     const [roomData, setRoomData] = useState<Room[]>([]);
     // const [selectedSort, setSelectedSort] = useState("newest");
-    // const [email, setEmail] = useState('kamogelomoeketse@gmail.com');
+    const [email, setEmail] = useState('');
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
+    const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+    const viewbookingsendpoint = process.env.EXPO_PUBLIC_VIEW_BOOKINGS;
 
 
     const onRefresh = React.useCallback(() => {
         const fetchAllRooms = async () => {
             console.log("heree");
+            let authToken = await SecureStore.getItemAsync('Token');
+            console.log("Token:" + authToken);
             try {
-                const response = await fetch(`https://dev.occupi.tech/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
+                const response = await fetch(`${apiUrl}${viewbookingsendpoint}?email=${email}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `${authToken}`
                     },
                 });
                 const data = await response.json();
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
-                    console.log(data);
+                    // console.log(data);
                     // toast.show({
                     //     placement: 'top',
                     //     render: ({ id }) => {
@@ -156,7 +121,7 @@ const ViewBookings = () => {
             setRefreshing(false);
             fetchAllRooms();
         }, 2000);
-    }, [toast]);
+    }, [toast, apiUrl, viewbookingsendpoint, email]);
 
     const toggleLayout = () => {
         setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
@@ -186,18 +151,29 @@ const ViewBookings = () => {
 
     useEffect(() => {
         const fetchAllRooms = async () => {
-            console.log("heree");
+            let authToken = await SecureStore.getItemAsync('Token');
+            let result = await SecureStore.getItemAsync('UserData');
+            // console.log(result);
+            // if (result !== undefined) {
+            let jsonresult = JSON.parse(result);
+            setEmail(jsonresult?.data?.email);
+            // }
+            // console.log("Token:"+authToken);
+            // console.log("heree");
             try {
-                const response = await fetch(`https://dev.occupi.tech/api/view-bookings?email=kamogelomoeketse@gmail.com`, {
+                // console.log(`${apiUrl}${viewbookingsendpoint}?email=${jsonresult?.data?.email}`);
+                const response = await fetch(`${apiUrl}${viewbookingsendpoint}?email=${jsonresult?.data?.email}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `${authToken}`
                     },
                 });
                 const data = await response.json();
+                // console.log(data);
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
-                    console.log(data);
+                    // console.log(data);
                     // toast.show({
                     //     placement: 'top',
                     //     render: ({ id }) => {
@@ -236,9 +212,15 @@ const ViewBookings = () => {
             }
         };
         fetchAllRooms();
-    }, [toast]);
+    }, [toast, apiUrl, email, viewbookingsendpoint]);
 
     const roomPairs = groupDataInPairs(roomData);
+
+    const handleRoomClick = async (value: string) => {
+        await SecureStore.setItemAsync('CurrentRoom', value);
+        router.push('/viewbookingdetails');
+        // console.log(value);
+    }
 
     return (
         <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
@@ -326,7 +308,7 @@ const ViewBookings = () => {
                         >
                             {pair.map((room) => (
                                 <TouchableOpacity
-                                    onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
+                                    onPress={() => handleRoomClick(JSON.stringify(room))}
                                     style={{
                                         flex: 1,
                                         borderWidth: 1,
@@ -358,10 +340,9 @@ const ViewBookings = () => {
                                         </View>
                                         <View flexDirection="row" alignItems="center" justifyContent="space-between">
                                             <View>
-                                                <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{new Date().toDateString()}</Text>
-                                                <Text>{slotToTime(room.slot)}</Text>
+                                                <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)} </Text>
+                                                <Text>{extractTimeFromDate(room.start)}-{extractTimeFromDate(room.end)}</Text>
                                             </View>
-
                                             <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
                                         </View>
                                     </View>
@@ -380,7 +361,7 @@ const ViewBookings = () => {
                 >
                     {roomData.map((room) => (
                         <TouchableOpacity
-                            onPress={() => router.push({ pathname: '/viewbookingdetails', params: { roomData: JSON.stringify(room) } })}
+                            onPress={() => handleRoomClick(JSON.stringify(room))}
                             style={{
                                 flex: 1,
                                 borderWidth: 1,
@@ -408,7 +389,7 @@ const ViewBookings = () => {
                                     justifyContent: "space-between"
                                 }}
                             >
-                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
+                                <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
                                 <View flexDirection="row" alignItems="center">
                                     <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
                                 </View>
@@ -416,8 +397,8 @@ const ViewBookings = () => {
                                     <Text my="$1" fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}>Your booking time:</Text>
                                     <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
                                         <View>
-                                            <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{new Date().toDateString()}</Text>
-                                            <Text>{slotToTime(room.slot)}</Text>
+                                            <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)}</Text>
+                                            <Text>{extractTimeFromDate(room.start)}-{extractTimeFromDate(room.end)}</Text>
                                         </View>
                                         <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
                                     </View>
@@ -432,17 +413,5 @@ const ViewBookings = () => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-        backgroundColor: 'pink',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-});
 
 export default ViewBookings;
