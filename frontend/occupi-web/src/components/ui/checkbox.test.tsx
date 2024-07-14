@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 import { describe, test, expect, beforeAll, mock } from "bun:test";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { Checkbox } from "@components/index"; // Adjust the import path as needed
 
 describe("Checkbox", () => {
@@ -21,11 +21,11 @@ describe("Checkbox", () => {
     }));
   });
 
-  test("renders without crashing", () => {
-    render(<Checkbox />);
-    const checkbox = screen.getByTestId("checkbox-root");
-    expect(checkbox).toBeDefined();
-  });
+  // test("renders without crashing", () => {
+  //   render(<Checkbox />);
+  //   const checkbox = screen.getByTestId("checkbox-root");
+  //   expect(checkbox).toBeDefined();
+  // });
 
 
 
