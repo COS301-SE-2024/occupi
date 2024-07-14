@@ -357,7 +357,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	}
 
 	var info *ipinfo.Core
-	//check if run mode is test mode
+	// check if run mode is test mode
 	if configs.GetGinRunMode() == "test" {
 		info = &ipinfo.Core{
 			City:    "Cape Town",
@@ -382,7 +382,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	// Verify the user in the database and set next date to verify to 30 days from now
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
-	//append location to known locations array
+	// append location to known locations array
 	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30), "knownLocations": bson.A{*location}}}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
@@ -1114,7 +1114,7 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 	}
 
 	var info *ipinfo.Core
-	//check if run mode is test mode
+	// check if run mode is test mode
 	if configs.GetGinRunMode() == "test" {
 		info = &ipinfo.Core{
 			City:    "Cape Town",

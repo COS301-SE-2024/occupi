@@ -17,7 +17,7 @@ import (
 )
 
 // handler for sneding an otp to a users email address
-func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string, email_type string) (bool, error) {
+func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string, emailType string) (bool, error) {
 	// generate a random otp for the user and send email
 	otp, err := utils.GenerateOTP()
 	if err != nil {
@@ -32,18 +32,22 @@ func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string,
 	var subject string
 	var body string
 
-	if email_type == constants.VerifyEmail {
+	switch emailType {
+	case constants.VerifyEmail:
 		subject = "Email Verification - Your One-Time Password (OTP)"
 		body = utils.FormatEmailVerificationBody(otp, email)
-	} else if email_type == constants.ResetPassword {
+	case constants.ResetPassword:
 		subject = "Password Reset - Your One-Time Password (OTP)"
 		body = utils.FormatResetPasswordEmailBody(otp, email)
-	} else if email_type == constants.ReverifyEmail {
+	case constants.ReverifyEmail:
 		subject = "Email Reverification - Your One-Time Password (OTP)"
 		body = utils.FormatReVerificationEmailBody(otp, email)
-	} else if email_type == constants.ConfirmIPAddress {
+	case constants.ConfirmIPAddress:
 		subject = "Confirm IP Address - Your One-Time Password (OTP)"
 		body = utils.FormatIPAddressConfirmationEmailBody(otp, email)
+	default:
+		subject = "Email Verification - Your One-Time Password (OTP)"
+		body = utils.FormatEmailVerificationBody(otp, email)
 	}
 
 	if err := mail.SendMail(email, subject, body); err != nil {
@@ -57,7 +61,7 @@ func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string,
 	return true, nil
 }
 
-func SendOTPEMailForIpInfo(ctx *gin.Context, appsession *models.AppSession, email string, email_type string, unrecognizedLogger *ipinfo.Core) (bool, error) {
+func SendOTPEMailForIPInfo(ctx *gin.Context, appsession *models.AppSession, email string, emailType string, unrecognizedLogger *ipinfo.Core) (bool, error) {
 	// generate a random otp for the user and send email
 	otp, err := utils.GenerateOTP()
 	if err != nil {
@@ -298,7 +302,7 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	}
 
 	// check if the users ip address is logging in from a known location
-	isIpValid, unrecognizedLogger, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
+	isIPValid, unrecognizedLogger, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 	if err != nil {
 		return false, err
@@ -310,8 +314,8 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 			return false, err
 		}
 		return false, nil
-	} else if !isIpValid {
-		_, err := SendOTPEMailForIpInfo(ctx, appsession, email, constants.ConfirmIPAddress, unrecognizedLogger)
+	} else if !isIPValid {
+		_, err := SendOTPEMailForIPInfo(ctx, appsession, email, constants.ConfirmIPAddress, unrecognizedLogger)
 		if err != nil {
 			return false, err
 		}
