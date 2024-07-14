@@ -39,7 +39,7 @@ const (
 	ExposeHeadersVal    = "EXPOSE_HEADERS"
 	Caval               = "ALLOW_CREDENTIALS"
 	MaxAgeVal           = "MAX_AGE"
-	IPClientInfoToken   = "IP_CLIENT_INFO_TOKEN"
+	IPCIT               = "IP_CLIENT_INFO_TOKEN"
 )
 
 // init viper
@@ -332,9 +332,9 @@ func GetMaxAge() int {
 
 // gets the IP client info token as defined in the config.yaml file
 func GetIPClientInfoToken() string {
-	token := viper.GetString(IPClientInfoToken)
-	if token == "" {
-		token = "IP_CLIENT_INFO_TOKEN"
+	val := viper.GetString(IPCIT)
+	if val == "" {
+		val = "IP_CLIENT_INFO_TOKEN"
 	}
-	return token
+	return val
 }
