@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -311,21 +310,10 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 		return false, errors.New("database is nil")
 	}
 
-	var info *ipinfo.Core
-	// check if run mode is test mode
-	if configs.GetGinRunMode() == "test" {
-		info = &ipinfo.Core{
-			City:    "Cape Town",
-			Region:  "Western Cape",
-			Country: "South Africa",
-		}
-	} else {
-		// get ip address info
-		infov, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
-		if err != nil {
-			logrus.Error(err)
-		}
-		info = infov
+	info, err := configs.GetIPInfo(ipAddress, appsession.IPInfo)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
 	}
 
 	location := &models.Location{
@@ -340,7 +328,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	// append location to known locations array
 	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30), "knownLocations": bson.A{*location}}}
 
-	_, err := collection.UpdateOne(ctx, filter, update)
+	_, err = collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
 		return false, err
@@ -953,21 +941,10 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 		return false, nil, errors.New("database is nil")
 	}
 
-	var info *ipinfo.Core
-	// check if run mode is test mode
-	if configs.GetGinRunMode() == "test" {
-		info = &ipinfo.Core{
-			City:    "Cape Town",
-			Region:  "Western Cape",
-			Country: "South Africa",
-		}
-	} else {
-		// get ip address info
-		infov, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
-		if err != nil {
-			logrus.Error(err)
-		}
-		info = infov
+	info, err := configs.GetIPInfo(ipAddress, appsession.IPInfo)
+	if err != nil {
+		logrus.Error(err)
+		return false, nil, err
 	}
 
 	// Get the user from the cache if cache is not nil
@@ -984,7 +961,7 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
-	err := collection.FindOne(ctx, filter).Decode(&user)
+	err = collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		logrus.Error(err)
 		return false, nil, err
