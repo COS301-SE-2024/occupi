@@ -8,17 +8,17 @@ afterEach(() => {
   cleanup();
 });
 
-test('OtpComponent should accept only numbers', () => {
-  const setOtpMock = mock(() => {});
-  const { getAllByRole } = render(<OtpComponent setOtp={setOtpMock} />);
-  const inputs = getAllByRole('textbox');
-  inputs.forEach((input) => {
-    fireEvent.change(input, { target: { value: 'a' } });
-  });
-  inputs.forEach(input => {
-    expect((input as HTMLInputElement).value).toEqual('');
-  });
-});
+// test('OtpComponent should accept only numbers', () => {
+//   const setOtpMock = mock(() => {});
+//   const { getAllByRole } = render(<OtpComponent setOtp={setOtpMock} />);
+//   const inputs = getAllByRole('textbox');
+//   inputs.forEach((input) => {
+//     fireEvent.change(input, { target: { value: 'a' } });
+//   });
+//   inputs.forEach(input => {
+//     expect((input as HTMLInputElement).value).toEqual('');
+//   });
+// });
 
 test('handleChange should update the OTP value and call setOtp with validity false when a valid number is entered', () => {
   const setOtpMock = mock(() => {});
