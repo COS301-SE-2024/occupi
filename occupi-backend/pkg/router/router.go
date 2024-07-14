@@ -48,11 +48,10 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 		api.POST("/check-in", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CheckIn(ctx, appsession) })
 		api.POST("/cancel-booking", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.CancelBooking(ctx, appsession) })
 		api.GET(("/view-bookings"), middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewBookings(ctx, appsession) })
-		api.GET("/view-rooms", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ViewRooms(ctx, appsession) })
+		api.GET("/view-rooms", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewRooms(ctx, appsession) })
 		api.GET("/user-details", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetUserDetails(ctx, appsession) })
 		api.PUT("/update-user", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateUserDetails(ctx, appsession) })
-		// api.GET("/filter-users", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.FilterUsers(ctx, appsession) })
-		// api.GET("/get-users", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.GetUsers(ctx, appsession) })
+		api.GET("/filter-users", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FilterUsers(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{
@@ -76,6 +75,6 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 		auth.POST("/verify-otp-enable-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) {
 			handlers.VerifyOTPAndEnable2FA(ctx, appsession)
 		})
-
+		auth.POST("/is-verified", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.IsEmailVerified(ctx, appsession) })
 	}
 }

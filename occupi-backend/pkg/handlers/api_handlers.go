@@ -303,3 +303,30 @@ func HandleValidationErrors(ctx *gin.Context, err error) {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid request payload", gin.H{"errors": out}))
 	}
 }
+
+func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
+	var queryInput models.QueryInput
+	if err := ctx.ShouldBindJSON(&queryInput); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	filter := utils.SantizeFilter(queryInput)
+
+	sanitizedProjection := utils.SantizeProjection(queryInput)
+
+	projection := utils.ConstructProjection(queryInput, sanitizedProjection)
+
+	limit, page, skip := utils.GetLimitPageSkip(queryInput)
+
+	users, totalResults, err := database.FilterUsersWithProjection(ctx, appsession, filter, projection, limit, skip)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "success", users, gin.H{
+		"totalResults": len(users), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
+}
