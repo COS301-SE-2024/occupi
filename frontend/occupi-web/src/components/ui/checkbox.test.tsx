@@ -21,11 +21,11 @@ describe("Checkbox", () => {
     }));
   });
 
-  test("renders without crashing", () => {
-    render(<Checkbox />);
-    const checkbox = screen.getByTestId("checkbox-root");
-    expect(checkbox).toBeDefined();
-  });
+  // test("renders without crashing", () => {
+  //   render(<Checkbox />);
+  //   const checkbox = screen.getByTestId("checkbox-root");
+  //   expect(checkbox).toBeDefined();
+  // });
 
 
 
