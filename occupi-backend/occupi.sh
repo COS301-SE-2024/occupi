@@ -9,7 +9,7 @@ print_help() {
     echo "  build dev         -> go build -v cmd/occupi-backend/main.go"
     echo "  build prod        -> go build cmd/occupi-backend/main.go"
     echo "  test              -> gotestsum --format testname -- -v ./tests/..."
-    echo "  test codecov      -> gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out"
+    echo "  test codecov      -> gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out"
     echo "  lint              -> golangci-lint run"
     echo "  decrypt env       -> cd scripts && chmod +x decrypt_env_variables.sh && ./decrypt_env_variables.sh"
     echo "  encrypt env       -> cd scripts && chmod +x encrypt_env_variables.sh && ./encrypt_env_variables.sh"
@@ -27,7 +27,7 @@ elif [ "$1" = "build" ] && [ "$2" = "prod" ]; then
 elif [ "$1" = "test" ]; then
     gotestsum --format testname -- -v ./tests/...
 elif [ "$1" = "test" ] && [ "$2" = "codecov" ]; then
-    gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
+    gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
 elif [ "$1" = "lint" ]; then
     golangci-lint run
 elif [ "$1" = "decrypt" ] && [ "$2" = "env" ]; then
