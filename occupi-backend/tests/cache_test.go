@@ -555,3 +555,114 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser2)
 }
+
+func TestCheckIfUserIsLoggingInFromKnownLocationPerformance(t *testing.T) {
+	email := "TestCheckIfUserIsLoggingInFromKnownLocationPerformance@example.com"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appsessionWithCache := models.New(db, cache)
+	// Create a new AppSession without the cache
+	appsessionWithoutCache := models.New(db, nil)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+	userStruct := models.User{
+		Email: email,
+		KnownLocations: []models.Location{
+			{
+				City:    "Cape Town",
+				Region:  "Western Cape",
+				Country: "South Africa",
+			},
+		},
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Test performance with cache
+	startTime := time.Now()
+	for i := 0; i < 1000; i++ {
+		database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsessionWithCache, email, "8.8.8.8")
+	}
+
+	durationWithCache := time.Since(startTime)
+
+	// Test performance without cache
+	startTime = time.Now()
+	for i := 0; i < 1000; i++ {
+		database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsessionWithoutCache, email, "8.8.8.8")
+	}
+
+	durationWithoutCache := time.Since(startTime)
+
+	// Assert that the cache improves the speed
+	if durationWithoutCache <= durationWithCache {
+		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+	}
+}
+
+func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
+	email := "TestCheckIfUserIsLoggingInFromKnownLocation_withCache@example.com"
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := models.New(db, cache)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+	userStruct := models.User{
+		Email: email,
+		KnownLocations: []models.Location{
+			{
+				City:    "Cape Town",
+				Region:  "Western Cape",
+				Country: "South Africa",
+			},
+		},
+	}
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Verify the user is not in the cache before calling the function
+	nocachedUser, err := cache.Get(email)
+
+	assert.NotNil(t, err)
+	assert.Nil(t, nocachedUser)
+
+	// call the function to test
+	yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appSession, email, "8.8.8.8")
+
+	// Verify the response
+	assert.True(t, yes)
+	assert.Nil(t, err)
+	assert.Nil(t, info)
+
+	// Verify the user is in the cache
+	cachedUser, err := cache.Get(email)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedUser)
+}
