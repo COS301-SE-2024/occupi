@@ -356,11 +356,21 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 		return false, errors.New("database is nil")
 	}
 
-	// get ip address info
-	info, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
-
-	if err != nil {
-		logrus.Error(err)
+	var info *ipinfo.Core
+	//check if run mode is test mode
+	if configs.GetGinRunMode() == "test" {
+		info = &ipinfo.Core{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		}
+	} else {
+		// get ip address info
+		infov, err := appsession.IPInfo.GetIPInfo(net.ParseIP(ipAddress))
+		if err != nil {
+			logrus.Error(err)
+		}
+		info = infov
 	}
 
 	location := &models.Location{
@@ -375,7 +385,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	//append location to known locations array
 	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30), "knownLocations": bson.A{*location}}}
 
-	_, err = collection.UpdateOne(ctx, filter, update)
+	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
 		return false, err

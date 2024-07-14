@@ -102,7 +102,7 @@ func TestGetAllData(t *testing.T) {
 	})
 
 	mt.Run("Find onSite true users", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, onSiteTrueDocs...))
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, onSiteTrueDocs...))
 
 		// Call the function under test
 		users := database.GetAllData(ctx, models.New(mt.Client, nil))
@@ -147,7 +147,7 @@ func TestEmailExists(t *testing.T) {
 	})
 
 	mt.Run("Email exists", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 		}))
 
@@ -159,7 +159,7 @@ func TestEmailExists(t *testing.T) {
 	})
 
 	mt.Run("Email exists adding to cache", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 		}))
 
@@ -178,7 +178,7 @@ func TestEmailExists(t *testing.T) {
 	})
 
 	mt.Run("Email does not exist", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch))
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch))
 
 		// Call the function under test
 		exists := database.EmailExists(ctx, models.New(mt.Client, nil), email)
@@ -314,7 +314,7 @@ func TestOTPExists(t *testing.T) {
 	})
 
 	mt.Run("OTP exists and is valid", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.OTPS", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OTPS", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "otp", Value: otp},
 			{Key: "expireWhen", Value: validOTP},
@@ -363,7 +363,7 @@ func TestOTPExists(t *testing.T) {
 	})
 
 	mt.Run("OTP exists but is expired", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.OTPS", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OTPS", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "otp", Value: otp},
 			{Key: "expireWhen", Value: expiredOTP},
@@ -412,7 +412,7 @@ func TestOTPExists(t *testing.T) {
 	})
 
 	mt.Run("OTP does not exist", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.OTPS", mtest.FirstBatch))
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OTPS", mtest.FirstBatch))
 
 		// Call the function under test
 		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
@@ -605,7 +605,11 @@ func TestVerifyUser(t *testing.T) {
 	})
 
 	mt.Run("Verify user successfully", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OTPS", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "isVerified", Value: false},
+			{Key: "nextVerificationDate", Value: time.Now().Add(-1 * time.Hour)},
+		}))
 
 		// Call the function under test
 		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
@@ -615,6 +619,82 @@ func TestVerifyUser(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update
+	})
+
+	mt.Run("Verify user successfully and user is not in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OTPS", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "isVerified", Value: false},
+			{Key: "nextVerificationDate", Value: time.Now().Add(-1 * time.Hour)},
+		}))
+
+		cache := configs.CreateCache()
+
+		// Call the function under test
+		success, err := database.VerifyUser(ctx, models.New(mt.Client, cache), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update
+	})
+
+	mt.Run("Verify user successfully and user is in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OTPS", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "isVerified", Value: false},
+			{Key: "nextVerificationDate", Value: time.Now().Add(-1 * time.Hour)},
+		}))
+
+		cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email:                email,
+			IsVerified:           false,
+			NextVerificationDate: time.Now().Add(-1 * time.Hour),
+		}
+
+		// add user to cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email, userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the cache
+		userA, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userA)
+
+		// Call the function under test
+		success, err := database.VerifyUser(ctx, models.New(mt.Client, cache), email, ctx.ClientIP())
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in cache
+		user, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.True(t, userB.IsVerified)
+		assert.Equal(t, models.Location{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		}, userB.KnownLocations[0])
 	})
 
 	mt.Run("UpdateOne error", func(mt *mtest.T) {
@@ -664,7 +744,7 @@ func TestGetPassword(t *testing.T) {
 	})
 
 	mt.Run("Get password successfully", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "password", Value: password},
 		}))
@@ -756,7 +836,7 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 	})
 
 	mt.Run("User is verified", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "isVerified", Value: true},
 		}))
@@ -770,7 +850,7 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 	})
 
 	mt.Run("User is not verified", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "isVerified", Value: false},
 		}))
@@ -887,7 +967,7 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 	})
 
 	mt.Run("User is admin", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "role", Value: constants.Admin},
 		}))
@@ -934,7 +1014,7 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 	})
 
 	mt.Run("User is not admin", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.Users", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "role", Value: constants.Basic},
 		}))
@@ -1043,7 +1123,7 @@ func TestGetEmailByResetToken(t *testing.T) {
 		expectedEmail := "test@example.com"
 		resetToken := "token123"
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".ResetTokens", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: expectedEmail},
 			{Key: "token", Value: resetToken},
 		}))
@@ -1057,7 +1137,7 @@ func TestGetEmailByResetToken(t *testing.T) {
 	mt.Run("not found", func(mt *mtest.T) {
 		resetToken := "nonexistenttoken"
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(0, "Occupi.ResetTokens", mtest.FirstBatch))
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".ResetTokens", mtest.FirstBatch))
 
 		email, err := database.GetEmailByResetToken(context.Background(), mt.Client, resetToken)
 
@@ -1079,7 +1159,7 @@ func TestCheckResetToken(t *testing.T) {
 		token := "validtoken"
 		expireWhen := time.Now().Add(1 * time.Hour)
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".ResetTokens", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "token", Value: token},
 			{Key: "expireWhen", Value: expireWhen},
@@ -1096,7 +1176,7 @@ func TestCheckResetToken(t *testing.T) {
 		token := "expiredtoken"
 		expireWhen := time.Now().Add(-1 * time.Hour)
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "Occupi.ResetTokens", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".ResetTokens", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
 			{Key: "token", Value: token},
 			{Key: "expireWhen", Value: expireWhen},
@@ -1112,7 +1192,7 @@ func TestCheckResetToken(t *testing.T) {
 		email := "test@example.com"
 		token := "nonexistenttoken"
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(0, "Occupi.ResetTokens", mtest.FirstBatch))
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".ResetTokens", mtest.FirstBatch))
 
 		valid, err := database.CheckResetToken(ctx, mt.Client, email, token)
 
