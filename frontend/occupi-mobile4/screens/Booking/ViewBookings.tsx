@@ -58,7 +58,7 @@ const ViewBookings = () => {
     const [email, setEmail] = useState('');
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
-    const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+    const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
     const viewbookingsendpoint = process.env.EXPO_PUBLIC_VIEW_BOOKINGS;
 
 
