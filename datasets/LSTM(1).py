@@ -161,6 +161,9 @@ plt.legend()
 plt.title('Actual vs. Predicted Attendance Levels')
 plt.show()
 
+# Define the names of the days of the week
+day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
 # Function to predict attendance level for a given day
 def predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event):
     # Create a feature vector based on the input
@@ -178,43 +181,37 @@ def predict_attendance(day_of_week, month, day_of_month, is_weekend, special_eve
     
     return predicted_label[0]
 
-# Predict attendance levels for each day of the week
-# def predict_weekly_attendance(year, month, start_day):
-#     days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-#     predictions = []
-    
-#     for i, day_name in enumerate(days_of_week):
-#         day_of_week = i  # Monday is 0, Sunday is 6
-#         date = datetime(year, month, start_day + i)
-#         day_of_month = date.day
-#         is_weekend = 1 if day_of_week in [5, 6] else 0
-#         special_event = 0  # Assuming no special event
-        
-#         predicted_attendance_level = predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event, year, start_day + i)
-#         predictions.append((day_name, predicted_attendance_level))
-    
-#     return predictions
+# Function to predict attendance levels for each day of the week in March
+def predict_weekly_attendance(month, start_day):
+    predictions = []
+    for day_of_week in range(7):  # 0=Monday, 1=Tuesday, ..., 6=Sunday
+        day_of_month = start_day + day_of_week
+        is_weekend = 1 if day_of_week in [5, 6] else 0  # 1 if Saturday or Sunday, otherwise 0
+        special_event = 0  # Assuming no special event
+        predicted_attendance_level = predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event)
+        day_name = day_names[day_of_week]  # Get the name of the day from its integer representation
+        predictions.append((day_name, predicted_attendance_level))
+    return predictions
 
-# # Example usage
-# year = 2026
-# month = 3
-# start_day = 11  # Starting from Monday, March 11, 2024
+# Example usage
+month = 3
+start_day = 1  # Starting from the 1st of March
 
-# weekly_predictions = predict_weekly_attendance(year, month, start_day)
+weekly_predictions = predict_weekly_attendance(month, start_day)
 
-# # Display the predictions
-# print("Weekly Attendance Level Predictions:")
-# for day, prediction in weekly_predictions:
-#     print(f"{day}: {prediction}")
+# Display the predictions
+print("Weekly Attendance Level Predictions:")
+for day, prediction in weekly_predictions:
+    print(f"{day}: {prediction}")
 
-# # Plot the predictions
-# days, levels = zip(*weekly_predictions)
-# plt.figure(figsize=(10, 6))
-# plt.plot(days, levels, marker='o')
-# plt.xlabel('Day of the Week')
-# plt.ylabel('Attendance Level')
-# plt.title('Predicted Attendance Levels for the Week')
-# plt.show()
+# Plot the predictions
+days, levels = zip(*weekly_predictions)
+plt.figure(figsize=(10, 6))
+plt.plot(days, levels, marker='o')
+plt.xlabel('Day of the Week')
+plt.ylabel('Attendance Level')
+plt.title('Predicted Attendance Levels for the Week')
+plt.show()
 
-# model.save('models/attendance_model.h5')
-# model.export('C:/Users/retha/Capstone/occupi/models/attendance_model/1')
+# Save the model in the SavedModel format
+model.export('C:/Users/retha/Capstone/occupi/models/attendance_model/1')
