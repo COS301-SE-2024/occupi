@@ -107,11 +107,29 @@ func SanitizeInput(input string) string {
 	return p.Sanitize(input)
 }
 
+// sanitizes the given input of array of strings
+func SanitizeInputArray(input []string) []string {
+	for i, val := range input {
+		input[i] = SanitizeInput(val)
+	}
+	return input
+}
+
 // validates an email against a regex pattern
 func ValidateEmail(email string) bool {
 	// Regex pattern for email validation
 	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
+}
+
+// validates emails against a regex pattern
+func ValidateEmails(emails []string) bool {
+	for _, email := range emails {
+		if !ValidateEmail(email) {
+			return false
+		}
+	}
+	return true
 }
 
 // validates a password against a regex pattern
@@ -318,6 +336,8 @@ func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []str
 			}
 		}
 	}
+	// exclude _id field by default
+	projection["_id"] = 0
 
 	return projection
 }

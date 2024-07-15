@@ -330,3 +330,29 @@ func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "success", users, gin.H{
 		"totalResults": len(users), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
 }
+
+func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
+	var emails models.RequestEmails
+	if err := ctx.ShouldBindJSON(&emails); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// sanitize the emails
+	emails.Emails = utils.SanitizeInputArray(emails.Emails)
+
+	// validate the emails
+	if !utils.ValidateEmails(emails.Emails) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "One or more of email addresses are of Invalid format", nil))
+		return
+	}
+
+	pushTokens, err := database.GetUsersPushTokens(ctx, appsession, emails.Emails)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get push tokens", constants.InternalServerErrorCode, "Failed to get push tokens", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched push tokens!", pushTokens))
+}

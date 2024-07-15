@@ -178,7 +178,7 @@ func BookingExists(ctx *gin.Context, appsession *models.AppSession, id string) b
 }
 
 // adds user to database
-func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.RequestUser) (bool, error) {
+func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.RegisterUser) (bool, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -193,6 +193,9 @@ func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.Reques
 		OnSite:               true,
 		IsVerified:           false,
 		NextVerificationDate: time.Now(), // this will be updated once the email is verified
+		TwoFAEnabled:         false,
+		KnownLocations:       []models.Location{},
+		ExpoPushToken:        user.ExpoPushToken,
 	}
 	// Save the user to the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
@@ -930,6 +933,7 @@ func FilterUsersWithProjection(ctx *gin.Context, appsession *models.AppSession, 
 
 	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
+		logrus.Error(err)
 		return nil, 0, err
 	}
 
@@ -999,4 +1003,36 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 		}
 	}
 	return false, info, nil
+}
+
+func GetUsersPushTokens(ctx *gin.Context, appsession *models.AppSession, emails []string) ([]bson.M, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, errors.New("database is nil")
+	}
+
+	if len(emails) == 0 {
+		return nil, errors.New("no emails provided")
+	}
+
+	findOptions := options.Find()
+	findOptions.SetProjection(bson.M{"expoPushToken": 1, "_id": 0})
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": bson.M{"$in": emails}}
+
+	cursor, err := collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	var results []bson.M
+	if err = cursor.All(ctx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
