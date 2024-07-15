@@ -1,9 +1,9 @@
+// TopNav.tsx
 import React, { useState } from 'react';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, User } from "@nextui-org/react";
-import { Logout, Bell, SettingsIcon, Faq } from "@assets/index";
 import { useNavigate } from "react-router-dom";
 import { FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import {ProfileDropDown} from '@components/index';
 
 type TopNavProps = {
   mainComponent?: JSX.Element;
@@ -12,12 +12,7 @@ type TopNavProps = {
 }
 
 const TopNav = (props: TopNavProps) => {
-  const navigate = useNavigate();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-
-  function navigateTo(path: string) {
-    navigate(path);
-  }
 
   return (
     <div data-testid='topnav' className="sticky top-0 z-10 overflow-visible border-b-[2px] border-b-secondary flex items-center justify-between h-[70px] md:h-[110px] backdrop-blur-[20px] bg-primary_40 px-4 md:px-8">
@@ -78,31 +73,7 @@ const TopNav = (props: TopNavProps) => {
         >
           <FaSearch size={24} className="text-text_col" />
         </motion.button>
-
-        <Dropdown placement="bottom-end">
-          <DropdownTrigger>
-            <User
-              as="button"
-              avatarProps={{
-                isBordered: true,
-                src: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
-              }}
-              className="transition-transform"
-              description="occupi-admin"
-              name="Tinashe Austin"
-            />
-          </DropdownTrigger>
-          <DropdownMenu aria-label="User Actions" variant="flat" onAction={(key) => navigateTo(key.toString())}>
-            <DropdownItem key="profile" className="h-14 gap-2">
-              <p className="font-bold text-text_col">Signed in as</p>
-              <p className="font-bold text-text_col">@tinasheutstin</p>
-            </DropdownItem>
-            <DropdownItem key="/notifications" shortcut="⌘N" startContent={<Bell />}>Notifications</DropdownItem>
-            <DropdownItem key="/settings" shortcut="⌘S" startContent={<SettingsIcon />}>Settings</DropdownItem>
-            <DropdownItem key="/faq" shortcut="⌘H" startContent={<Faq />}>Help/FAQ</DropdownItem>
-            <DropdownItem key="/logout" color="danger" startContent={<Logout />}>Logout</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+        <ProfileDropDown />
       </div>
     </div>
   )

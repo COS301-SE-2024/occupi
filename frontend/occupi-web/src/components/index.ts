@@ -27,6 +27,7 @@ import OfficePresent from "./officePresentProbabilityChart/OfficePresent";
 import StatCard from "./statCard/StatCard";
 import Header from "./headerComponent/Header";
 import OccupiLoader from "./occupiLoader/OccupiLoader";
+import ProfileDropDown from "./profileDropDown/ProfileDropDown";
 
 export {
     DrawerComponent,
@@ -57,5 +58,6 @@ export {
     OfficePresent,
     StatCard,
     Header,
-    OccupiLoader
+    OccupiLoader,
+    ProfileDropDown
 }
