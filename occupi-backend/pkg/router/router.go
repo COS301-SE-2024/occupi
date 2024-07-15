@@ -6,18 +6,15 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/allegro/bigcache/v3"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // creates available endpoints and attaches handlers for each endpoint
-func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache) {
+func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	// creating a new valid session for management of shared variables
-	appsession := models.New(db, cache)
 
 	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
 	router.Use(sessions.Sessions("occupi-sessions-store", store))

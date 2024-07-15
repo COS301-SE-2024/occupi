@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"reflect"
+	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
@@ -88,6 +89,52 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	if err := mail.SendBookingEmails(booking); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send booking email", constants.InternalServerErrorCode, "Failed to send booking email", nil))
+		return
+	}
+
+	tokens, err := database.GetUsersPushTokens(ctx, appsession, booking.Emails)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get push tokens", constants.InternalServerErrorCode, "Failed to get push tokens", nil))
+		return
+	}
+
+	scheduledNotification := models.ScheduledNotification{
+		Title:                "Booking Starting Soon",
+		Message:              utils.ConstructBookingScheduledString(booking.Emails, booking.Creator, "3 mins"),
+		SendTime:             booking.Start.Add(-3 * time.Minute),
+		Emails:               booking.Emails,
+		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
+	}
+
+	success, errv := database.AddScheduledNotification(ctx, appsession, scheduledNotification, true)
+
+	if errv != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
+		return
+	}
+
+	if !success {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
+		return
+	}
+
+	notification := models.ScheduledNotification{
+		Title:                "Booking Invitation",
+		Message:              utils.ConstructBookingScheduledString(booking.Emails, booking.Creator, "3 mins"),
+		SendTime:             booking.Start.Add(-3 * time.Minute),
+		Emails:               booking.Emails,
+		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
+	}
+
+	success, errv = database.AddScheduledNotification(ctx, appsession, notification, false)
+
+	if errv != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
+		return
+	}
+
+	if !success {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
 		return
 	}
 

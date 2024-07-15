@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"log"
 	"time"
 
 	"github.com/allegro/bigcache/v3"
@@ -11,6 +12,7 @@ import (
 	"fmt"
 	"net/url"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,10 +41,14 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
+		log.Fatal(err)
 		logrus.Fatal(err)
+		client.Disconnect(ctx)
 	}
 
 	// Check the connection
@@ -90,4 +96,25 @@ func CreateIPInfoClient() *ipinfo.Client {
 	client := ipinfo.NewClient(nil, cache, GetIPClientInfoToken())
 
 	return client
+}
+
+func CreateRabbitConnection() *amqp.Connection {
+	// RabbitMQ connection parameters
+	rabbitMQUsername := GetRabbitMQUsername()
+	rabbitMQPassword := GetRabbitMQPassword()
+	rabbitMQHost := GetRabbitMQHost()
+	rabbitMQPort := GetRabbitMQPort()
+
+	// Construct the connection URI
+	uri := fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+
+	// Connect to RabbitMQ
+	conn, err := amqp.Dial(uri)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	logrus.Info("Connected to RabbitMQ!")
+
+	return conn
 }

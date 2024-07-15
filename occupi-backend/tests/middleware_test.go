@@ -33,7 +33,7 @@ func TestProtectedRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -63,7 +63,7 @@ func TestProtectedRouteAuthHeader(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -94,7 +94,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -118,7 +118,7 @@ func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil) // set authorization header
@@ -142,7 +142,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -187,7 +187,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -234,7 +234,7 @@ func TestAdminRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
@@ -264,7 +264,7 @@ func TestAdminRouteAuthHeader(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
@@ -295,7 +295,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -318,7 +318,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -344,7 +344,7 @@ func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -371,7 +371,7 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-open", nil)
@@ -398,7 +398,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -424,7 +424,7 @@ func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -451,7 +451,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -494,7 +494,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -542,7 +542,7 @@ func TestRateLimit(t *testing.T) {
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, models.New(db, cache))
 
 	server := httptest.NewServer(ginRouter)
 	defer server.Close()
@@ -594,7 +594,7 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 	middleware.AttachRateLimitMiddleware(ginRouter)
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, models.New(db, cache))
 
 	server := httptest.NewServer(ginRouter)
 	defer server.Close()

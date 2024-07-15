@@ -1,0 +1,28 @@
+services:
+  mongo-dev-local:
+    image: mongo:latest
+    container_name: mongo-dev-local
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+    ports:
+      - "27018:27017"
+    restart: on-failure:5
+    volumes:
+      - mongo-dev-local:/data/db
+
+  rabbitmq-dev-local:
+    image: rabbitmq:latest
+    container_name: rabbitmq-dev-local
+    ports:
+      - "5672:5672"
+    restart: on-failure:5
+    environment:
+      RABBITMQ_DEFAULT_USER: $RABBITMQ_DEFAULT_USER
+      RABBITMQ_DEFAULT_PASS: $RABBITMQ_DEFAULT_PASS
+    volumes:
+      - rabbitmq-dev-local:/var/lib/rabbitmq
+
+volumes:
+  mongo-dev-local:
+  rabbitmq-dev-local:

@@ -37,7 +37,7 @@ func TestMockDatabase(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
