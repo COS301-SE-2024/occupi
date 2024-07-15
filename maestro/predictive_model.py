@@ -181,4 +181,4 @@ results_df = pd.DataFrame({
 print(results_df.head())
 
 # Save the model
-model.save('attendance_model.keras')
+# model.save('attendance_model.keras')
