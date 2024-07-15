@@ -1036,3 +1036,58 @@ func GetUsersPushTokens(ctx *gin.Context, appsession *models.AppSession, emails 
 
 	return results, nil
 }
+
+func AddScheduledNotification(ctx *gin.Context, appsession *models.AppSession, notification models.ScheduledNotification, pushNotification bool) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
+
+	res, err := collection.InsertOne(ctx, notification)
+
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+
+	if !pushNotification {
+		return true, nil
+	}
+
+	// set the notification id
+	notification.ID = res.InsertedID.(primitive.ObjectID).Hex()
+
+	err = PublishMessage(appsession, notification)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+
+	return true, nil
+}
+
+func DeleteExpoPushTokensFromScheduledNotification(ctx *gin.Context, appsession *models.AppSession, notification models.ScheduledNotification) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
+
+	filter := bson.M{"_id": notification.ID}
+
+	// only delete the expo push tokens not in the provided list
+	update := bson.M{"$pull": bson.M{"expoPushTokens": bson.M{"$in": notification.UnsentExpoPushTokens}}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+
+	return true, nil
+}

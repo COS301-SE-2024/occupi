@@ -31,9 +31,12 @@ import (
 	nrgin "github.com/newrelic/go-agent/v3/integrations/nrgin"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
@@ -51,7 +54,12 @@ func main() {
 	utils.SetupLogger()
 
 	// connect to the database
-	db := configs.ConnectToDatabase()
+	var db *mongo.Client
+	if configs.GetEnv() != "devlocalhost" {
+		db = configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	} else {
+		db = configs.ConnectToDatabase()
+	}
 
 	// create cache
 	cache := configs.CreateCache()
@@ -97,7 +105,7 @@ func main() {
 	}
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, models.New(db, cache))
 
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()

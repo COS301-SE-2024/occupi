@@ -356,3 +356,33 @@ func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
 
 	return limit, page, skip
 }
+
+func ConstructBookingScheduledString(emails []string, creator string, startTime string) string {
+	n := len(emails)
+	if n == 0 {
+		return fmt.Sprintf("A Booking with %s starts in %s", creator, startTime)
+	}
+
+	switch n {
+	case 1:
+		return fmt.Sprintf("A booking with %s and %s starts in %s", creator, emails[0], startTime)
+	case 2:
+		return fmt.Sprintf("A booking with %s, %s and %d others starts in %s", creator, emails[0], n-1, startTime)
+	default:
+		return fmt.Sprintf("A booking with %s, %s and %d others starts in %s", creator, emails[0], n-1, startTime)
+	}
+}
+
+func ConvertToStringArray(input interface{}) []string {
+	// Convert the input to a slice of strings
+	var output []string
+	switch input.(type) {
+	case []interface{}:
+		for _, val := range input.([]interface{}) {
+			output = append(output, val.(string))
+		}
+	case []string:
+		output = input.([]string)
+	}
+	return output
+}

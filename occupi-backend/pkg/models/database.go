@@ -124,3 +124,12 @@ type ResetToken struct {
 	Token      string    `bson:"token"`
 	ExpireWhen time.Time `bson:"expireWhen"`
 }
+
+type ScheduledNotification struct {
+	ID                   string    `json:"_id" bson:"_id,omitempty"`
+	Title                string    `json:"title" bson:"title"`
+	Message              string    `json:"message" bson:"message"`
+	SendTime             time.Time `json:"send_time" bson:"send_time"`
+	UnsentExpoPushTokens []string  `json:"unsentExpoPushTokens" bson:"unsentExpoPushTokens"`
+	Emails               []string  `json:"emails" bson:"emails"`
+}

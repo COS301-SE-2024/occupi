@@ -54,10 +54,6 @@ func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string,
 		return false, err
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Please check your email for an otp.",
-		nil))
 	return true, nil
 }
 

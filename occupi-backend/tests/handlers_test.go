@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,6 +19,8 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+
 	// "github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	// "github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
@@ -36,7 +39,7 @@ func TestViewBookingsHandler(t *testing.T) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -175,7 +178,7 @@ func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	r := gin.Default()
 
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, models.New(db, cache))
 
 	// Generate a token
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
@@ -587,7 +590,7 @@ func TestPingRoute(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, models.New(db, cache))
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("GET", "/ping", nil)

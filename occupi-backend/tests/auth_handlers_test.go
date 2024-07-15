@@ -12,6 +12,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 )
 
@@ -27,7 +28,7 @@ func TestInvalidLogoutHandler(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, models.New(db, cache))
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("POST", "/auth/logout", nil)
@@ -59,7 +60,7 @@ func TestValidLogoutHandler(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, models.New(db, cache))
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("POST", "/auth/logout", nil)
@@ -120,7 +121,7 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	ginRouter := gin.Default()
 
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, models.New(db, cache))
 
 	// read domains
 	domains := configs.GetOccupiDomains()
