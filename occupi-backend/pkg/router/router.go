@@ -1,12 +1,15 @@
 package router
 
 import (
+	"time"
+
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/allegro/bigcache/v3"
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -21,6 +24,14 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 
 	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
 	router.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:	[]string{"*"},
+		AllowMethods:	[]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:	[]string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:	[]string{"Content-Length"},
+		MaxAge:			12 * time.Hour,
+	}))
 
 	ping := router.Group("/ping")
 	{
