@@ -72,7 +72,7 @@ model.fit(X_train, y_train, epochs=50, batch_size=10, verbose=2)
 loss, accuracy = model.evaluate(X_test, y_test)
 print(f'Test Accuracy: {accuracy:.2f}')
 
-model.export('/models/person_prediction_model')
+model.export('C:/Users/retha/Capstone/occupi/models/person_prediction_model/1')
 
 # Step 5: Predict on New Data
 # Example new data
