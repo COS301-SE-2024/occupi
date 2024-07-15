@@ -52,6 +52,7 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 		api.GET("/user-details", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetUserDetails(ctx, appsession) })
 		api.PUT("/update-user", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateUserDetails(ctx, appsession) })
 		api.GET("/filter-users", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FilterUsers(ctx, appsession) })
+		api.GET("/get-push-tokens", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.GetPushTokens(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{

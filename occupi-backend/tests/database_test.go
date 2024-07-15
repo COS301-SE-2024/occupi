@@ -220,7 +220,7 @@ func TestAddUser(t *testing.T) {
 	// Optionally, set any values in the context.
 	ctx.Set("test", "test")
 
-	user := models.RequestUser{
+	user := models.RegisterUser{
 		EmployeeID: "12345",
 		Password:   "password123",
 		Email:      "test@example.com",
@@ -1603,5 +1603,99 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		assert.Error(t, err)
 		assert.False(t, yes)
 		assert.Nil(t, info)
+	})
+}
+
+func TestGetUsersPushTokens(t *testing.T) {
+	users := []models.User{
+		{
+			Email:         "TestGetUsersPushTokens1@example.com",
+			ExpoPushToken: "b1b2b3b4b5b6b7b8b9b0",
+		},
+		{
+			Email:         "TestGetUsersPushTokens2@example.com",
+			ExpoPushToken: "a1a2a3a4a5a6a7a8a9a0",
+		},
+	}
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := models.New(db, nil)
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// Insert test users into the database
+	for _, user := range users {
+		_, err := collection.InsertOne(ctx, user)
+
+		if err != nil {
+			t.Fatalf("Failed to insert test user into database: %v", err)
+		}
+	}
+
+	// Test case: Database is nil
+	t.Run("Database is nil", func(t *testing.T) {
+		emails := []string{"test@example.com"}
+
+		results, err := database.GetUsersPushTokens(ctx, models.New(nil, nil), emails)
+		assert.Nil(t, results)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	// Test case: Empty emails
+	t.Run("Empty emails", func(t *testing.T) {
+		emails := []string{}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.Nil(t, results)
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "no emails provided")
+	})
+
+	// Test case: No matching users
+	t.Run("No matching users", func(t *testing.T) {
+		emails := []string{"TestGetUsersPushTokens3@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.Nil(t, results)
+		assert.Nil(t, err)
+	})
+
+	// Test case: Successful query with one user
+	t.Run("Successful query with one user a", func(t *testing.T) {
+		emails := []string{"TestGetUsersPushTokens1@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.NoError(t, err)
+		assert.Len(t, results, 1)
+		assert.Equal(t, users[0].ExpoPushToken, results[0]["expoPushToken"])
+	})
+
+	t.Run("Successful query with one user b", func(t *testing.T) {
+		emails := []string{"TestGetUsersPushTokens2@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.NoError(t, err)
+		assert.Len(t, results, 1)
+		assert.Equal(t, users[1].ExpoPushToken, results[0]["expoPushToken"])
+	})
+
+	// Test case: Successful query with two users
+	t.Run("Successful query with two users", func(t *testing.T) {
+		emails := []string{"TestGetUsersPushTokens1@example.com", "TestGetUsersPushTokens2@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.NoError(t, err)
+		assert.Len(t, results, 2)
+		assert.Equal(t, users[0].ExpoPushToken, results[0]["expoPushToken"])
+		assert.Equal(t, users[1].ExpoPushToken, results[1]["expoPushToken"])
 	})
 }

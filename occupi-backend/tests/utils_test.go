@@ -1376,6 +1376,7 @@ func TestConstructProjection(t *testing.T) {
 			},
 			sanitizedProjection: []string{"username", "password", "email"},
 			want: bson.M{
+				"_id":      0,
 				"username": 1,
 				"password": 0,
 				"email":    1,
@@ -1388,6 +1389,7 @@ func TestConstructProjection(t *testing.T) {
 			},
 			sanitizedProjection: []string{"username", "email"},
 			want: bson.M{
+				"_id":      0,
 				"username": 1,
 				"email":    1,
 			},
@@ -1399,6 +1401,7 @@ func TestConstructProjection(t *testing.T) {
 			},
 			sanitizedProjection: []string{},
 			want: bson.M{
+				"_id":      0,
 				"password": 0,
 			},
 		},
@@ -1409,6 +1412,7 @@ func TestConstructProjection(t *testing.T) {
 			},
 			sanitizedProjection: []string{},
 			want: bson.M{
+				"_id":      0,
 				"password": 0,
 			},
 		},
@@ -1572,6 +1576,99 @@ func TestFormatIPAddressConfirmationEmailBodyWithIPInfo(t *testing.T) {
 			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
 				t.Errorf("expected %q, got %q", tt.expected, actual)
 			}
+		})
+	}
+}
+
+func TestValidateEmails(t *testing.T) {
+	tests := []struct {
+		name   string
+		emails []string
+		want   bool
+	}{
+		{
+			name:   "All valid emails",
+			emails: []string{"test@example.com", "hello@world.com", "user.name+tag+sorting@example.com"},
+			want:   true,
+		},
+		{
+			name:   "One invalid email",
+			emails: []string{"test@example.com", "invalid-email", "user.name+tag+sorting@example.com"},
+			want:   false,
+		},
+		{
+			name:   "All invalid emails",
+			emails: []string{"invalid-email1", "invalid-email2", "invalid-email3"},
+			want:   false,
+		},
+		{
+			name:   "Empty email list",
+			emails: []string{},
+			want:   true,
+		},
+		{
+			name:   "Mixed valid and invalid emails",
+			emails: []string{"valid.email@example.com", "invalid-email"},
+			want:   false,
+		},
+		{
+			name:   "Single valid email",
+			emails: []string{"valid.email@example.com"},
+			want:   true,
+		},
+		{
+			name:   "Single invalid email",
+			emails: []string{"invalid-email"},
+			want:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.ValidateEmails(tt.emails); got != tt.want {
+				t.Errorf("ValidateEmails() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSanitizeInputArray(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		expected []string
+	}{
+		{
+			name:     "Plain text",
+			input:    []string{"Hello, world!", "This is a test.", "12345"},
+			expected: []string{"Hello, world!", "This is a test.", "12345"},
+		},
+		{
+			name:     "HTML input",
+			input:    []string{"<p>Hello, world!</p>", "<h1>This is a test.</h1>", "<b>12345</b>"},
+			expected: []string{"<p>Hello, world!</p>", "<h1>This is a test.</h1>", "<b>12345</b>"},
+		},
+		{
+			name:     "HTML with allowed tags",
+			input:    []string{"<b>Hello</b>, <i>world</i>!", "<b>Hello</b>"},
+			expected: []string{"<b>Hello</b>, <i>world</i>!", "<b>Hello</b>"},
+		},
+		{
+			name:     "HTML with disallowed tags",
+			input:    []string{"<script>alert('xss')</script><b>Hello</b>", "<script>alert('attack')</script>", "<script>alert('hacked')</script>"},
+			expected: []string{"<b>Hello</b>", "", ""},
+		},
+		{
+			name:     "HTML with attributes",
+			input:    []string{"<a href=\"http://example.com\" onclick=\"evil()\">link</a>", "<a href=\"http://example.com\" onclick=\"evil()\">link</a>"},
+			expected: []string{"<a href=\"http://example.com\" rel=\"nofollow\">link</a>", "<a href=\"http://example.com\" rel=\"nofollow\">link</a>"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.SanitizeInputArray(tt.input)
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

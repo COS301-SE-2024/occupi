@@ -116,7 +116,7 @@ func TestAddUser_WithCache(t *testing.T) {
 	// Create a new AppSession with the cache
 	appSession := models.New(db, cache)
 
-	user := models.RequestUser{
+	user := models.RegisterUser{
 		Email:      "test_withcache@example.com",
 		Password:   "password",
 		EmployeeID: "12345",

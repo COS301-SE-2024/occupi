@@ -14,6 +14,7 @@ type User struct {
 	NextVerificationDate time.Time  `json:"nextVerificationDate" bson:"nextVerificationDate"`
 	TwoFAEnabled         bool       `json:"twoFAEnabled" bson:"twoFAEnabled"`
 	KnownLocations       []Location `json:"locations" bson:"locations"`
+	ExpoPushToken        string     `json:"expoPushToken" bson:"expoPushToken"`
 }
 
 type UserDetails struct {
