@@ -3,13 +3,17 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
+	"strings"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -287,21 +291,65 @@ func HandleValidationErrors(ctx *gin.Context, err error) {
 func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
 	var queryInput models.QueryInput
 	if err := ctx.ShouldBindJSON(&queryInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		// try to bind the query input to the struct
+		queryInput = models.QueryInput{}
+
+		projectionStr := ctx.Query("projection")
+		if projectionStr != "" {
+			queryInput.Projection = strings.Split(ctx.Query("projection"), ",")
+		}
+
+		limitStr := ctx.Query("limit")
+		if limitStr != "" {
+			limit, err := strconv.ParseInt(limitStr, 10, 64) // Base 10, 64-bit size
+			if err != nil {
+				// Handle the error if the conversion fails, maybe set an error response
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid limit format", constants.InvalidRequestPayloadCode, "Invalid limit format", nil))
+				return
+			}
+			queryInput.Limit = limit
+		}
+
+		pageStr := ctx.Query("page")
+		if pageStr != "" {
+			page, err := strconv.ParseInt(pageStr, 10, 64) // Base 10, 64-bit size
+			if err != nil {
+				// Handle the error if the conversion fails, maybe set an error response
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid page format", constants.InvalidRequestPayloadCode, "Invalid page format", nil))
+				return
+			}
+			queryInput.Page = page
+		}
+
+		// For Filter, which expects a map[string]interface{}, unmarshal the JSON string
+		filterStr := ctx.Query("filter")
+		if filterStr != "" {
+			var filterMap map[string]interface{}
+			if err := json.Unmarshal([]byte(filterStr), &filterMap); err != nil {
+				// Handle JSON unmarshal error, maybe set an error response
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid filter format", constants.InvalidRequestPayloadCode, "Invalid filter format", nil))
+				return
+			}
+			queryInput.Filter = filterMap
+		}
 	}
 
 	filter := utils.SantizeFilter(queryInput)
+	fmt.Println("Filter: ", filter)
 
 	sanitizedProjection := utils.SantizeProjection(queryInput)
+	fmt.Println("Projection: ", sanitizedProjection)
 
 	projection := utils.ConstructProjection(queryInput, sanitizedProjection)
+	fmt.Println("CProjection: ", projection)
 
 	limit, page, skip := utils.GetLimitPageSkip(queryInput)
 
 	users, totalResults, err := database.FilterUsersWithProjection(ctx, appsession, filter, projection, limit, skip)
 
 	if err != nil {
+		logrus.Error("Failed to get users: ", err)
+		fmt.Printf("Failed to get users: %v\n", err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
 		return
