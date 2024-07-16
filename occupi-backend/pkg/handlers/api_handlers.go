@@ -10,7 +10,9 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/gin-contrib/sessions"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -100,10 +102,11 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	scheduledNotification := models.ScheduledNotification{
 		Title:                "Booking Starting Soon",
-		Message:              utils.ConstructBookingScheduledString(booking.Emails, booking.Creator, "3 mins"),
+		Message:              utils.ConstructBookingStartingInScheduledString(utils.PrependEmailtoSlice(booking.Emails, booking.Creator), "3 mins"),
 		SendTime:             booking.Start.Add(-3 * time.Minute),
 		Emails:               booking.Emails,
 		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
+		UnreadEmails:         booking.Emails,
 	}
 
 	success, errv := database.AddScheduledNotification(ctx, appsession, scheduledNotification, true)
@@ -120,10 +123,11 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	notification := models.ScheduledNotification{
 		Title:                "Booking Invitation",
-		Message:              utils.ConstructBookingScheduledString(booking.Emails, booking.Creator, "3 mins"),
-		SendTime:             booking.Start.Add(-3 * time.Minute),
+		Message:              utils.ConstructBookingScheduledString(utils.PrependEmailtoSlice(booking.Emails, booking.Creator)),
+		SendTime:             time.Now(),
 		Emails:               booking.Emails,
 		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
+		UnreadEmails:         booking.Emails,
 	}
 
 	success, errv = database.AddScheduledNotification(ctx, appsession, notification, false)
@@ -351,7 +355,7 @@ func HandleValidationErrors(ctx *gin.Context, err error) {
 	}
 }
 
-func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
+func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectionName string) {
 	var queryInput models.QueryInput
 	if err := ctx.ShouldBindJSON(&queryInput); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -366,16 +370,32 @@ func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
 
 	limit, page, skip := utils.GetLimitPageSkip(queryInput)
 
-	users, totalResults, err := database.FilterUsersWithProjection(ctx, appsession, filter, projection, limit, skip)
+	res, totalResults, err := database.FilterCollectionWithProjection(ctx, appsession, filter, projection, collectionName, limit, skip)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
-			http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
+		logrus.Error("Failed to filter collection because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "success", users, gin.H{
-		"totalResults": len(users), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
+	if collectionName == "Notifications" {
+		// get the users email from the session
+		session := sessions.Default(ctx)
+		if email, err := session.Get("email").(string); err {
+			logrus.Error("Failed to get email from session because: ", err)
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		} else {
+			err := database.ReadNotifications(ctx, appsession, email)
+
+			if err != nil {
+				logrus.Error("Failed to read notifications because: ", err)
+				// it's not a critical error so we don't return an error response
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "success", res, gin.H{
+		"totalResults": len(res), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
 }
 
 func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
@@ -402,4 +422,24 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched push tokens!", pushTokens))
+}
+
+func TestRabbit(ctx *gin.Context, appsession *models.AppSession) {
+	scheduledNotification := models.ScheduledNotification{
+		Title:                "Booking Starting Soon",
+		Message:              utils.ConstructBookingStartingInScheduledString(utils.PrependEmailtoSlice([]string{"test@example.com"}, "creator@example.com"), "now"),
+		SendTime:             time.Now().Add(30 * time.Second),
+		Emails:               []string{"test@example.com"},
+		UnsentExpoPushTokens: []string{"lmao u thot", "smh smh lol"},
+		UnreadEmails:         []string{"test@example.com"},
+	}
+
+	err := database.PublishMessage(appsession, scheduledNotification)
+	if err != nil {
+		logrus.Error("Failed to publish message because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully sent notifications!", nil))
 }

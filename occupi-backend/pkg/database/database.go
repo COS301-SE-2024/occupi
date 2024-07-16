@@ -916,8 +916,8 @@ func SetTwoFAEnabled(ctx context.Context, db *mongo.Database, email string, enab
 	return err
 }
 
-// filter users based on the filter provided and return specific fields based on the projection provided
-func FilterUsersWithProjection(ctx *gin.Context, appsession *models.AppSession, filter primitive.M, projection bson.M, limit int64, skip int64) ([]bson.M, int64, error) {
+// filter collection based on the filter provided and return specific fields based on the projection provided
+func FilterCollectionWithProjection(ctx *gin.Context, appsession *models.AppSession, filter primitive.M, projection bson.M, collectionName string, limit int64, skip int64) ([]bson.M, int64, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -929,7 +929,7 @@ func FilterUsersWithProjection(ctx *gin.Context, appsession *models.AppSession, 
 	findOptions.SetLimit(limit)
 	findOptions.SetSkip(skip)
 
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection(collectionName)
 
 	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
@@ -1062,7 +1062,7 @@ func AddScheduledNotification(ctx *gin.Context, appsession *models.AppSession, n
 
 	err = PublishMessage(appsession, notification)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Error("Failed to publish message because: ", err)
 		return false, err
 	}
 
@@ -1090,4 +1090,30 @@ func DeleteExpoPushTokensFromScheduledNotification(ctx *gin.Context, appsession 
 	}
 
 	return true, nil
+}
+
+func ReadNotifications(ctx *gin.Context, appsession *models.AppSession, email string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
+
+	// update many by removing this email from unreademails array for all notifications it is in
+	updateFilter := bson.M{"emails": bson.M{"$in": []string{email}}}
+
+	updateProjection := bson.M{"$pull": bson.M{"unreadEmails": email}}
+
+	res, err := collection.UpdateMany(ctx, updateFilter, updateProjection)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// log the number of notifications updated
+	logrus.Info("Updated ", res.ModifiedCount, " notifications")
+
+	return nil
 }

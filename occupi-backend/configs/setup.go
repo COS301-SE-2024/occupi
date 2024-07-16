@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"log"
 	"time"
 
 	"github.com/allegro/bigcache/v3"
@@ -46,7 +45,6 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Connect to MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Fatal(err)
 		logrus.Fatal(err)
 		client.Disconnect(ctx)
 	}
@@ -117,4 +115,31 @@ func CreateRabbitConnection() *amqp.Connection {
 	logrus.Info("Connected to RabbitMQ!")
 
 	return conn
+}
+
+func CreateRabbitChannel(conn *amqp.Connection) *amqp.Channel {
+	// Create a channel
+	ch, err := conn.Channel()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return ch
+}
+
+func CreateRabbitQueue(ch *amqp.Channel) amqp.Queue {
+	// Declare a queue
+	q, err := ch.QueueDeclare(
+		"notification_queue",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return q
 }
