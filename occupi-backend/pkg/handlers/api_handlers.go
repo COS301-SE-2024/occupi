@@ -3,9 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
@@ -359,19 +360,69 @@ func HandleValidationErrors(ctx *gin.Context, err error) {
 func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectionName string) {
 	var queryInput models.QueryInput
 	if err := ctx.ShouldBindJSON(&queryInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		// try to bind the query input to the struct
+		queryInput = models.QueryInput{}
+		operatorStr := ctx.Query("operator")
+		if operatorStr != "" {
+			queryInput.Operator = operatorStr
+		}
+
+		orderAscStr := ctx.Query("order_asc")
+		if orderAscStr != "" {
+			queryInput.OrderAsc = orderAscStr
+		}
+
+		orderDescStr := ctx.Query("order_desc")
+		if orderDescStr != "" {
+			queryInput.OrderDesc = orderDescStr
+		}
+
+		projectionStr := ctx.Query("projection")
+		if projectionStr != "" {
+			queryInput.Projection = strings.Split(ctx.Query("projection"), ",")
+		}
+
+		limitStr := ctx.Query("limit")
+		if limitStr != "" {
+			limit, err := strconv.ParseInt(limitStr, 10, 64) // Base 10, 64-bit size
+			if err != nil {
+				// Handle the error if the conversion fails, maybe set an error response
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid limit format", constants.InvalidRequestPayloadCode, "Invalid limit format", nil))
+				return
+			}
+			queryInput.Limit = limit
+		}
+
+		pageStr := ctx.Query("page")
+		if pageStr != "" {
+			page, err := strconv.ParseInt(pageStr, 10, 64) // Base 10, 64-bit size
+			if err != nil {
+				// Handle the error if the conversion fails, maybe set an error response
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid page format", constants.InvalidRequestPayloadCode, "Invalid page format", nil))
+				return
+			}
+			queryInput.Page = page
+		}
+
+		// For Filter, which expects a map[string]interface{}, unmarshal the JSON string
+		filterStr := ctx.Query("filter")
+		if filterStr != "" {
+			var filterMap map[string]interface{}
+			if err := json.Unmarshal([]byte(filterStr), &filterMap); err != nil {
+				// Handle JSON unmarshal error, maybe set an error response
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid filter format", constants.InvalidRequestPayloadCode, "Invalid filter format", nil))
+				return
+			}
+			queryInput.Filter = filterMap
+		}
 	}
 
 	sanitizedFilter := utils.SantizeFilter(queryInput)
-	fmt.Println(sanitizedFilter)
 	sanitizedSort := utils.SanitizeSort(queryInput)
-	fmt.Println(sanitizedSort)
 
 	sanitizedProjection := utils.SantizeProjection(queryInput)
 
 	projection := utils.ConstructProjection(queryInput, sanitizedProjection)
-	fmt.Println(projection)
 
 	limit, page, skip := utils.GetLimitPageSkip(queryInput)
 
@@ -435,24 +486,4 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched push tokens!", pushTokens))
-}
-
-func TestRabbit(ctx *gin.Context, appsession *models.AppSession) {
-	scheduledNotification := models.ScheduledNotification{
-		Title:                "Booking Starting Soon",
-		Message:              utils.ConstructBookingStartingInScheduledString(utils.PrependEmailtoSlice([]string{"test@example.com"}, "creator@example.com"), "now"),
-		SendTime:             time.Now().Add(30 * time.Second),
-		Emails:               []string{"test@example.com"},
-		UnsentExpoPushTokens: []string{"lmao u thot", "smh smh lol"},
-		UnreadEmails:         []string{"test@example.com"},
-	}
-
-	err := database.PublishMessage(appsession, scheduledNotification)
-	if err != nil {
-		logrus.Error("Failed to publish message because: ", err)
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully sent notifications!", nil))
 }

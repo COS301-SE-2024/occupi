@@ -34,9 +34,9 @@ import (
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/reciever"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
@@ -57,7 +57,7 @@ func main() {
 	appsession := createAppSession()
 
 	// start the consumer
-	go database.StartConsumeMessage(appsession)
+	go reciever.StartConsumeMessage(appsession)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
