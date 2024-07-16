@@ -4,16 +4,22 @@ import "time"
 
 // structure of user
 type User struct {
-	ID                   string     `json:"_id" bson:"_id,omitempty"`
-	OccupiID             string     `json:"occupiId" bson:"occupiId"`
-	Password             string     `json:"password" bson:"password"`
-	Email                string     `json:"email" bson:"email"`
-	Role                 string     `json:"role" bson:"role"`
-	OnSite               bool       `json:"onSite" bson:"onSite"`
-	IsVerified           bool       `json:"isVerified" bson:"isVerified"`
-	NextVerificationDate time.Time  `json:"nextVerificationDate" bson:"nextVerificationDate"`
-	TwoFAEnabled         bool       `json:"twoFAEnabled" bson:"twoFAEnabled"`
-	KnownLocations       []Location `json:"locations" bson:"locations"`
+	ID                   string         `json:"_id" bson:"_id,omitempty"`
+	OccupiID             string         `json:"occupiId" bson:"occupiId"`
+	Password             string         `json:"password" bson:"password"`
+	Email                string         `json:"email" bson:"email"`
+	Role                 string         `json:"role" bson:"role"`
+	OnSite               bool           `json:"onSite" bson:"onSite"`
+	IsVerified           bool           `json:"isVerified" bson:"isVerified"`
+	NextVerificationDate time.Time      `json:"nextVerificationDate" bson:"nextVerificationDate"`
+	TwoFAEnabled         bool           `json:"twoFAEnabled" bson:"twoFAEnabled"`
+	KnownLocations       []Location     `json:"locations" bson:"locations"`
+	Details              *Details       `json:"details" bson:"details, omitempty"`
+	Notifications        *Notifications `json:"notifications" bson:"notifications, omitempty"`
+	Security             *Security      `json:"security" bson:"security, omitempty"`
+	Status               string         `json:"status" bson:"status, omitempty"`
+	Position             string         `json:"position" bson:"position, omitempty"`
+	DepartmentNo         string         `json:"departmentNo" bson:"departmentNo, omitempty"`
 }
 
 type UserDetails struct {

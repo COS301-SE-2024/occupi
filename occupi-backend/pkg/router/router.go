@@ -26,11 +26,11 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 	router.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:	[]string{"*"},
-		AllowMethods:	[]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:	[]string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:	[]string{"Content-Length"},
-		MaxAge:			12 * time.Hour,
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:  []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders: []string{"Content-Length"},
+		MaxAge:        12 * time.Hour,
 	}))
 
 	ping := router.Group("/ping")
@@ -63,6 +63,7 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 		api.GET("/user-details", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetUserDetails(ctx, appsession) })
 		api.PUT("/update-user", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateUserDetails(ctx, appsession) })
 		api.GET("/filter-users", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FilterUsers(ctx, appsession) })
+		api.GET("/get-users", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.GetUsers(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{
