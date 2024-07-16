@@ -35,17 +35,16 @@ const AuthService = {
     }
   },
 
-
-  getUserDetails: async (email: string) => {
+  getUserDetails : async (email: string) => {
     try {
       console.log(API_USER_URL);
-      const response = await axios.get(`${API_USER_URL}/user-details`, {
-        params: { email:email }, headers: {
+      const response = await axios.get(`${API_USER_URL}/user-details?email=${encodeURIComponent(email)}`, {
+        headers: {
           Accept: "application/json",
         },
       });
       console.log("Full user details response:", response);
-      if (response.data.status === 200) {
+      if (response.status === 200) {
         return response.data.data; // The user details are in the 'data' field
       } else {
         throw new Error(response.data.message || 'Failed to get user details');
@@ -53,11 +52,13 @@ const AuthService = {
     } catch (error) {
       console.error("Error in getUserDetails:", error);
       if (axios.isAxiosError(error) && error.response) {
-        throw error.response.data;
+        throw new Error(error.response.data.message || 'Failed to get user details');
       }
       throw new Error('An unexpected error occurred while fetching user details');
     }
   },
+  
+ 
 
 
   verifyOtpLogin: async (email: string, otp: string) => {
