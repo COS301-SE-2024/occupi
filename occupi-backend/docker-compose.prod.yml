@@ -16,6 +16,38 @@ services:
       - /etc/letsencrypt/live/occupi.tech/privkey.pem:/etc/letsencrypt/live/occupi.tech/privkey.pem:ro
     restart: on-failure:5
 
+  mongo-prod:
+    image: mongo:latest
+    container_name: mongo-prod
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+    ports:
+      - "27017:27017"
+    restart: on-failure:5
+    volumes:
+      - mongo-prod:/data/db
+    networks:
+      - webnet
+
+  rabbitmq-prod:
+    image: rabbitmq:latest
+    container_name: rabbitmq-prod
+    ports:
+      - "50000:5672"
+    restart: on-failure:5
+    environment:
+      RABBITMQ_DEFAULT_USER: $RABBITMQ_DEFAULT_USER
+      RABBITMQ_DEFAULT_PASS: $RABBITMQ_DEFAULT_PASS
+    volumes:
+      - rabbitmq-prod:/var/lib/rabbitmq
+    networks:
+      - webnet
+
+volumes:
+  mongo-prod:
+  rabbitmq-prod:
+
 networks:
   webnet:
     external: true
