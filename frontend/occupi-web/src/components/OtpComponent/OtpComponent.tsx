@@ -1,5 +1,4 @@
-
-import React,{useState, useRef} from 'react'
+import React, { useState, useRef } from 'react'
 
 type OtpComponentProps = {
   setOtp: (otp: string[], validity: boolean) => void;
@@ -39,30 +38,35 @@ const OtpComponent = (props: OtpComponentProps) => {
       if (index > 0) {
         inputsRef.current[index - 1]?.focus();
         props.setOtp(otp, false);
-
       }
     }
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center">
       {err !== "" && <h5 className="text-text_col_red_salmon font-normal text-base mt-3 mb-1">{err}</h5>}
-      {otp.map((data, index) => (
-        <input
-        role='textbox'
-          key={index}
-          type="text"
-          maxLength={1}
-          value={data}
-          onChange={(e) => handleChange(e.target, index)}
-          onKeyDown={(e) => handleKeyDown(e, index)}
-          ref={(element) => inputsRef.current[index] = element}
-          className={'h-[3.48vw] w-[3.48vw] rounded-[15px] bg-secondary p-[8px]  mb-[5px] mt-6 text-center ' +
-            (index !== 5 ? " mr-[1.81vw]" : "") +
-            (err !== "" ? " border-[2px] border-red_salmon " : "")
-          }
-        />
-      ))}
+      <div className="flex space-x-2 md:space-x-4">
+        {otp.map((data, index) => (
+          <input
+            key={index}
+            role='textbox'
+            type="text"
+            maxLength={1}
+            value={data}
+            onChange={(e) => handleChange(e.target, index)}
+            onKeyDown={(e) => handleKeyDown(e, index)}
+            ref={(element) => inputsRef.current[index] = element}
+            className={`
+              w-[10vw] h-[10vw]
+              min-w-[40px] min-h-[40px]
+              max-w-[60px] max-h-[60px]
+              rounded-[15px] bg-secondary
+              p-[8px] mb-[10px] mt-6 text-center
+              ${err !== "" ? "border-[2px] border-red_salmon" : ""}
+            `}
+          />
+        ))}
+      </div>
     </div>
   );
 }

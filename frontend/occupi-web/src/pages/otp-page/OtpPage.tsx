@@ -1,5 +1,5 @@
 // OtpPage.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { OccupiLogo, login_image } from "@assets/index";
 import { GradientButton, OtpComponent } from "@components/index";
@@ -11,21 +11,37 @@ const OtpPage = () => {
   const navigate = useNavigate();
   const { setUserDetails } = useUser();
 
-  const { email } = location.state as { email: string };
-
+  const [email, setEmail] = useState<string>("");
   const [otp, setOTP] = useState<{ otp: string, validity: boolean }>({ otp: "", validity: false });
   const [isloading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
+  useEffect(() => {
+    const state = location.state as { email?: string } | null;
+    if (state && state.email) {
+      setEmail(state.email);
+    } else {
+      setError("Email not provided. Please start the login process again.");
+      // Optionally, redirect to login page after a short delay
+      // setTimeout(() => navigate('/login'), 3000);
+    }
+  }, [location.state, navigate]);
+
   async function verifyOTP() {
+    if (!email) {
+      setError("Email not available. Please start the login process again.");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
     try {
       const response = await AuthService.verifyOtpLogin(email, otp.otp.replace(/,/g, ""));
       console.log("OTP verification response:", response);
       
-      const userDetails = await AuthService.getUserDetails(email);
-      setUserDetails(userDetails);
+      // Uncomment these lines if you want to fetch and set user details
+      // const userDetails = await AuthService.getUserDetails(email);
+      // setUserDetails(userDetails);
 
       navigate("/dashboard/overview");
     } catch (error) {
@@ -37,28 +53,30 @@ const OtpPage = () => {
   }
 
   return (
-    <div className="flex justify-center w-screen h-screen items-center">
-      <div className="w-[60vw] h-[40vw] flex justify-center items-center">
-        <div className="w-[70vw] h-[35vw]">
-          <img className="min-w-[100%] h-[100%] inline m-auto object-cover" src={login_image} alt="welcomes" />
+    <div className="flex flex-col md:flex-row justify-center w-screen h-screen items-center p-4">
+      <div className="w-full md:w-[60vw] h-auto md:h-[40vw] flex justify-center items-center mb-8 md:mb-0">
+        <div className="w-full md:w-[70vw] h-auto md:h-[35vw]">
+          <img className="w-full h-full object-cover" src={login_image} alt="welcomes" />
         </div>
       </div>
-      <div className="w-[30vw] ml-10 mr-3 flex flex-col items-center">
-        <div className="w-[10vw] h-[10vw] mt-[1rem]">
+      <div className="w-full md:w-[30vw] md:ml-10 md:mr-3 flex flex-col items-center px-4">
+        <div className="w-[30vw] max-w-[150px] h-auto aspect-square mb-6">
           <OccupiLogo />
         </div>
-        <h2 className="w-[30vw] text-text_col font-semibold text-5xl mt-2">We sent you an email with a code</h2>
-        <h3 className="w-[30vw] text-text_col font-extralight text-2xl mt-4">Please enter it to continue</h3>
+        <h2 className="text-text_col font-semibold text-3xl md:text-4xl lg:text-5xl text-center mb-4">We sent you an email with a code</h2>
+        <h3 className="text-text_col font-extralight text-xl md:text-2xl text-center mb-6">
+          {email ? `Please enter it to continue (${email})` : "Please enter it to continue"}
+        </h3>
 
         <OtpComponent setOtp={(otp_val: string[], validity: boolean) => {
           setOTP({ ...otp, otp: otp_val.join(""), validity: validity });
         }} />
 
-        <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Complete" isClickable={otp.validity} clickEvent={verifyOTP} />
+        <div className="mt-5 w-full max-w-md">
+          <GradientButton isLoading={isloading} Text="Complete" isClickable={otp.validity && !!email} clickEvent={verifyOTP} />
         </div>
 
-        {error && <p className="text-red-500 mt-2">{error}</p>}
+        {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
       </div>
     </div>
   );
