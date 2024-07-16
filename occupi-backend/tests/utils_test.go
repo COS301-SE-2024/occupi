@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/ipinfo/go/v2/ipinfo"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -1272,46 +1274,169 @@ func TestFormatTwoFAEmailBody(t *testing.T) {
 
 func TestSantizeFilter(t *testing.T) {
 	tests := []struct {
-		name       string
-		queryInput models.QueryInput
-		want       primitive.M
+		name     string
+		input    models.QueryInput
+		expected primitive.M
 	}{
 		{
+			name:     "Empty Filter",
+			input:    models.QueryInput{},
+			expected: bson.M{},
+		},
+		{
 			name: "Removes password field from filter",
-			queryInput: models.QueryInput{
+			input: models.QueryInput{
 				Filter: map[string]interface{}{
 					"username": "testuser",
 					"password": "password123",
 				},
 			},
-			want: bson.M{
+			expected: bson.M{
 				"username": "testuser",
 			},
 		},
 		{
 			name: "Filter without password field",
-			queryInput: models.QueryInput{
+			input: models.QueryInput{
 				Filter: map[string]interface{}{
 					"username": "testuser",
 				},
 			},
-			want: bson.M{
+			expected: bson.M{
 				"username": "testuser",
 			},
 		},
 		{
 			name: "Nil filter",
-			queryInput: models.QueryInput{
+			input: models.QueryInput{
 				Filter: nil,
 			},
-			want: bson.M{},
+			expected: bson.M{},
+		},
+		{
+			name: "Filter with Password",
+			input: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username": "testuser",
+					"password": "secret",
+				},
+			},
+			expected: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Filter with Operator",
+			input: models.QueryInput{
+				Operator: "gt",
+				Filter: map[string]interface{}{
+					"age": 30,
+				},
+			},
+			expected: bson.M{
+				"age": bson.M{"$gt": 30},
+			},
+		},
+		{
+			name: "Filter with Invalid Operator",
+			input: models.QueryInput{
+				Operator: "invalid",
+				Filter: map[string]interface{}{
+					"age": 30,
+				},
+			},
+			expected: bson.M{
+				"age": 30,
+			},
+		},
+		{
+			name: "Filter with UnsentExpoPushTokens",
+			input: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username":             "testuser",
+					"unsentExpoPushTokens": []string{"token1", "token2"},
+				},
+			},
+			expected: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Valid Filter with Multiple Conditions",
+			input: models.QueryInput{
+				Operator: "in",
+				Filter: map[string]interface{}{
+					"status": []string{"active", "inactive"},
+				},
+			},
+			expected: bson.M{
+				"status": bson.M{"$in": []string{"active", "inactive"}},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := utils.SantizeFilter(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SantizeFilter() = %v, want %v", got, tt.want)
+			result := utils.SantizeFilter(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("SantizeFilter() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestSanitizeSort(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    models.QueryInput
+		expected primitive.M
+	}{
+		{
+			name:     "Empty Sort",
+			input:    models.QueryInput{},
+			expected: bson.M{},
+		},
+		{
+			name: "Sort by OrderAsc",
+			input: models.QueryInput{
+				OrderAsc: "username",
+			},
+			expected: bson.M{"username": 1},
+		},
+		{
+			name: "Sort by OrderDesc",
+			input: models.QueryInput{
+				OrderDesc: "age",
+			},
+			expected: bson.M{"age": -1},
+		},
+		{
+			name: "Sort by Both OrderAsc and OrderDesc",
+			input: models.QueryInput{
+				OrderAsc:  "username",
+				OrderDesc: "age",
+			},
+			expected: bson.M{"username": 1, "age": -1},
+		},
+		{
+			name: "Filter with Password and UnsentExpoPushTokens",
+			input: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username":             "testuser",
+					"password":             "secret",
+					"unsentExpoPushTokens": []string{"token1", "token2"},
+				},
+				OrderAsc: "username",
+			},
+			expected: bson.M{"username": 1},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.SanitizeSort(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("SanitizeSort() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
@@ -1319,44 +1444,57 @@ func TestSantizeFilter(t *testing.T) {
 
 func TestSantizeProjection(t *testing.T) {
 	tests := []struct {
-		name       string
-		queryInput models.QueryInput
-		want       []string
+		name     string
+		input    models.QueryInput
+		expected []string
 	}{
 		{
-			name: "Removes password field from projection",
-			queryInput: models.QueryInput{
-				Projection: []string{"username", "password", "email"},
-			},
-			want: []string{"username", "email"},
+			name:     "Empty Projection",
+			input:    models.QueryInput{},
+			expected: []string{},
 		},
 		{
-			name: "Projection without password field",
-			queryInput: models.QueryInput{
-				Projection: []string{"username", "email"},
+			name: "Projection without Password and UnsentExpoPushTokens",
+			input: models.QueryInput{
+				Projection: []string{"username", "age"},
 			},
-			want: []string{"username", "email"},
+			expected: []string{"username", "age"},
 		},
 		{
-			name: "Empty projection",
-			queryInput: models.QueryInput{
-				Projection: []string{},
+			name: "Projection with Password",
+			input: models.QueryInput{
+				Projection: []string{"username", "password", "age"},
 			},
-			want: []string{},
+			expected: []string{"username", "age"},
 		},
 		{
-			name: "Nil projection",
-			queryInput: models.QueryInput{
-				Projection: nil,
+			name: "Projection with UnsentExpoPushTokens",
+			input: models.QueryInput{
+				Projection: []string{"username", "unsentExpoPushTokens", "age"},
 			},
-			want: []string{},
+			expected: []string{"username", "age"},
+		},
+		{
+			name: "Projection with Emails",
+			input: models.QueryInput{
+				Projection: []string{"username", "emails", "age"},
+			},
+			expected: []string{"username", "age"},
+		},
+		{
+			name: "Projection with Password, UnsentExpoPushTokens, and Emails",
+			input: models.QueryInput{
+				Projection: []string{"username", "password", "unsentExpoPushTokens", "emails", "age"},
+			},
+			expected: []string{"username", "age"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := utils.SantizeProjection(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SantizeProjection() = %v, want %v", got, tt.want)
+			result := utils.SantizeProjection(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("SantizeProjection() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
@@ -1367,61 +1505,86 @@ func TestConstructProjection(t *testing.T) {
 		name                string
 		queryInput          models.QueryInput
 		sanitizedProjection []string
-		want                bson.M
+		expected            bson.M
 	}{
 		{
-			name: "Construct projection with password field in sanitized projection",
-			queryInput: models.QueryInput{
-				Projection: []string{"username", "password", "email"},
-			},
-			sanitizedProjection: []string{"username", "password", "email"},
-			want: bson.M{
-				"_id":      0,
-				"username": 1,
-				"password": 0,
-				"email":    1,
-			},
-		},
-		{
-			name: "Construct projection without password field in sanitized projection",
-			queryInput: models.QueryInput{
-				Projection: []string{"username", "email"},
-			},
-			sanitizedProjection: []string{"username", "email"},
-			want: bson.M{
-				"_id":      0,
-				"username": 1,
-				"email":    1,
-			},
-		},
-		{
-			name: "Empty projection",
-			queryInput: models.QueryInput{
-				Projection: []string{},
-			},
+			name:                "Empty Projection",
+			queryInput:          models.QueryInput{},
 			sanitizedProjection: []string{},
-			want: bson.M{
-				"_id":      0,
-				"password": 0,
+			expected: bson.M{
+				"password":             0,
+				"unsentExpoPushTokens": 0,
+				"emails":               0,
+				"_id":                  0,
 			},
 		},
 		{
-			name: "Nil projection",
+			name: "Sanitized Projection without Password and UnsentExpoPushTokens",
 			queryInput: models.QueryInput{
-				Projection: nil,
+				Projection: []string{"username", "age"},
 			},
-			sanitizedProjection: []string{},
-			want: bson.M{
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
 				"_id":      0,
-				"password": 0,
+			},
+		},
+		{
+			name: "Sanitized Projection with Password",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "age"},
+			},
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
+			},
+		},
+		{
+			name: "Sanitized Projection with UnsentExpoPushTokens",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "unsentExpoPushTokens", "age"},
+			},
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
+			},
+		},
+		{
+			name: "Sanitized Projection with Emails",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "emails", "age"},
+			},
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
+			},
+		},
+		{
+			name: "Sanitized Projection with Password, UnsentExpoPushTokens, and Emails",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "unsentExpoPushTokens", "emails", "age"},
+			},
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := utils.ConstructProjection(tt.queryInput, tt.sanitizedProjection); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ConstructProjection() = %v, want %v", got, tt.want)
+			result := utils.ConstructProjection(tt.queryInput, tt.sanitizedProjection)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("ConstructProjection() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
@@ -1669,6 +1832,287 @@ func TestSanitizeInputArray(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := utils.SanitizeInputArray(tt.input)
 			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestConstructBookingScheduledString(t *testing.T) {
+	tests := []struct {
+		name     string
+		emails   []string
+		expected string
+	}{
+		{
+			name:     "Single Email",
+			emails:   []string{"email1@example.com"},
+			expected: "A booking with email1@example.com has been scheduled",
+		},
+		{
+			name:     "Two Emails",
+			emails:   []string{"email1@example.com", "email2@example.com"},
+			expected: "A booking with email1@example.com and email2@example.com has been scheduled",
+		},
+		{
+			name:     "Three Emails",
+			emails:   []string{"email1@example.com", "email2@example.com", "email3@example.com"},
+			expected: "A booking with email1@example.com, email2@example.com and 2 others has been scheduled",
+		},
+		{
+			name:     "Four Emails",
+			emails:   []string{"email1@example.com", "email2@example.com", "email3@example.com", "email4@example.com"},
+			expected: "A booking with email1@example.com, email2@example.com and 3 others has been scheduled",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ConstructBookingScheduledString(tt.emails)
+			if result != tt.expected {
+				t.Errorf("ConstructBookingScheduledString() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConstructBookingStartingInScheduledString(t *testing.T) {
+	tests := []struct {
+		name      string
+		emails    []string
+		startTime string
+		expected  string
+	}{
+		{
+			name:      "Single Email, Starts in Now",
+			emails:    []string{"email1@example.com"},
+			startTime: "now",
+			expected:  "A booking with email1@example.com starts in a few seconds",
+		},
+		{
+			name:      "Two Emails, Starts in 10 minutes",
+			emails:    []string{"email1@example.com", "email2@example.com"},
+			startTime: "10 minutes",
+			expected:  "A booking with email1@example.com and email2@example.com starts in 10 minutes",
+		},
+		{
+			name:      "Three Emails, Starts in 30 minutes",
+			emails:    []string{"email1@example.com", "email2@example.com", "email3@example.com"},
+			startTime: "30 minutes",
+			expected:  "A booking with email1@example.com, email2@example.com and 2 others starts in 30 minutes",
+		},
+		{
+			name:      "Four Emails, Starts in an hour",
+			emails:    []string{"email1@example.com", "email2@example.com", "email3@example.com", "email4@example.com"},
+			startTime: "an hour",
+			expected:  "A booking with email1@example.com, email2@example.com and 3 others starts in an hour",
+		},
+		{
+			name:      "No Emails",
+			emails:    []string{},
+			startTime: "10 minutes",
+			expected:  "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Capture log output
+			var logOutput string
+			hook := test.NewLocal(logrus.StandardLogger())
+			defer hook.Reset()
+
+			result := utils.ConstructBookingStartingInScheduledString(tt.emails, tt.startTime)
+
+			if tt.name == "No Emails" {
+				if result != tt.expected {
+					t.Errorf("ConstructBookingStartingInScheduledString() = %v, want %v", result, tt.expected)
+				}
+				for _, entry := range hook.AllEntries() {
+					logOutput += entry.Message
+				}
+				if logOutput != "No emails provided" {
+					t.Errorf("Expected log output to be 'No emails provided', but got %s", logOutput)
+				}
+			} else {
+				if result != tt.expected {
+					t.Errorf("ConstructBookingStartingInScheduledString() = %v, want %v", result, tt.expected)
+				}
+			}
+		})
+	}
+}
+
+func TestPrependEmailtoSlice(t *testing.T) {
+	tests := []struct {
+		name     string
+		emails   []string
+		email    string
+		expected []string
+	}{
+		{
+			name:     "Prepend to Empty Slice",
+			emails:   []string{},
+			email:    "newemail@example.com",
+			expected: []string{"newemail@example.com"},
+		},
+		{
+			name:     "Prepend to Non-Empty Slice",
+			emails:   []string{"email1@example.com", "email2@example.com"},
+			email:    "newemail@example.com",
+			expected: []string{"newemail@example.com", "email1@example.com", "email2@example.com"},
+		},
+		{
+			name:     "Prepend to Slice with One Element",
+			emails:   []string{"email1@example.com"},
+			email:    "newemail@example.com",
+			expected: []string{"newemail@example.com", "email1@example.com"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.PrependEmailtoSlice(tt.emails, tt.email)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("PrependEmailtoSlice() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConvertToStringArray(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    interface{}
+		expected []string
+	}{
+		{
+			name:     "Single String",
+			input:    "singleString",
+			expected: []string{"singleString"},
+		},
+		{
+			name:     "Slice of Strings",
+			input:    []string{"string1", "string2", "string3"},
+			expected: []string{"string1", "string2", "string3"},
+		},
+		{
+			name:     "Invalid Type",
+			input:    123,
+			expected: []string{},
+		},
+		{
+			name:     "Nil Input",
+			input:    nil,
+			expected: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Capture log output
+			var logOutput string
+			hook := test.NewLocal(logrus.StandardLogger())
+			defer hook.Reset()
+
+			result := utils.ConvertToStringArray(tt.input)
+
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("ConvertToStringArray() = %v, want %v", result, tt.expected)
+			}
+
+			if tt.name == "Invalid Type" {
+				for _, entry := range hook.AllEntries() {
+					logOutput += entry.Message
+				}
+				if logOutput != "Invalid input type" {
+					t.Errorf("Expected log output to be 'Invalid input type', but got %s", logOutput)
+				}
+			}
+		})
+	}
+}
+
+func TestConvertArrayToCommaDelimitedString(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		expected string
+	}{
+		{
+			name:     "Empty Slice",
+			input:    []string{},
+			expected: "",
+		},
+		{
+			name:     "Single Element",
+			input:    []string{"one"},
+			expected: "one",
+		},
+		{
+			name:     "Multiple Elements",
+			input:    []string{"one", "two", "three"},
+			expected: "one,two,three",
+		},
+		{
+			name:     "Elements with Spaces",
+			input:    []string{"one", "two with space", "three"},
+			expected: "one,two with space,three",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ConvertArrayToCommaDelimitedString(tt.input)
+			if result != tt.expected {
+				t.Errorf("ConvertArrayToCommaDelimitedString() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConvertCommaDelimitedStringToArray(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{
+			name:     "Empty String",
+			input:    "",
+			expected: []string{""},
+		},
+		{
+			name:     "Single Element",
+			input:    "one",
+			expected: []string{"one"},
+		},
+		{
+			name:     "Multiple Elements",
+			input:    "one,two,three",
+			expected: []string{"one", "two", "three"},
+		},
+		{
+			name:     "Elements with Spaces",
+			input:    "one,two with space,three",
+			expected: []string{"one", "two with space", "three"},
+		},
+		{
+			name:     "Trailing Comma",
+			input:    "one,two,three,",
+			expected: []string{"one", "two", "three", ""},
+		},
+		{
+			name:     "Leading Comma",
+			input:    ",one,two,three",
+			expected: []string{"", "one", "two", "three"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ConvertCommaDelimitedStringToArray(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("ConvertCommaDelimitedStringToArray() = %v, want %v", result, tt.expected)
+			}
 		})
 	}
 }
