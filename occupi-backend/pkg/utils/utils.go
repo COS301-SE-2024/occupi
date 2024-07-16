@@ -305,11 +305,47 @@ func SantizeFilter(queryInput models.QueryInput) primitive.M {
 	}
 	delete(queryInput.Filter, "password")
 	delete(queryInput.Filter, "unsentExpoPushTokens")
-	delete(queryInput.Filter, "emails")
 
-	filter := bson.M(queryInput.Filter)
+	// ensure the operator is valid if present
+	if queryInput.Operator != "" && queryInput.Operator != "gt" &&
+		queryInput.Operator != "gte" && queryInput.Operator != "lt" &&
+		queryInput.Operator != "lte" && queryInput.Operator != "eq" &&
+		queryInput.Operator != "ne" && queryInput.Operator != "in" && queryInput.Operator != "nin" {
+		// default to "" if invalid operator
+		queryInput.Operator = ""
+	}
+
+	var filter primitive.M
+
+	if queryInput.Operator == "" {
+		return bson.M(queryInput.Filter)
+	} else { // accepts gt, gte, lt, lte, eq, ne, in, nin operators
+		filter = bson.M{}
+		for key, value := range queryInput.Filter {
+			filter[key] = bson.M{fmt.Sprintf("$%s", queryInput.Operator): value}
+		}
+	}
 
 	return filter
+}
+
+func SanitizeSort(queryInput models.QueryInput) primitive.M {
+	// Remove password field from filter if present
+	if queryInput.Filter == nil {
+		queryInput.Filter = make(map[string]interface{})
+	}
+	delete(queryInput.Filter, "password")
+	delete(queryInput.Filter, "unsentExpoPushTokens")
+
+	if queryInput.OrderAsc != "" && queryInput.OrderDesc != "" {
+		return bson.M{queryInput.OrderAsc: 1, queryInput.OrderDesc: -1}
+	} else if queryInput.OrderAsc != "" {
+		return bson.M{queryInput.OrderAsc: 1}
+	} else if queryInput.OrderDesc != "" {
+		return bson.M{queryInput.OrderDesc: -1}
+	} else {
+		return bson.M{}
+	}
 }
 
 func SantizeProjection(queryInput models.QueryInput) []string {

@@ -917,7 +917,7 @@ func SetTwoFAEnabled(ctx context.Context, db *mongo.Database, email string, enab
 }
 
 // filter collection based on the filter provided and return specific fields based on the projection provided
-func FilterCollectionWithProjection(ctx *gin.Context, appsession *models.AppSession, filter primitive.M, projection bson.M, collectionName string, limit int64, skip int64) ([]bson.M, int64, error) {
+func FilterCollectionWithProjection(ctx *gin.Context, appsession *models.AppSession, collectionName string, filter models.FilterStruct) ([]bson.M, int64, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -925,13 +925,16 @@ func FilterCollectionWithProjection(ctx *gin.Context, appsession *models.AppSess
 	}
 
 	findOptions := options.Find()
-	findOptions.SetProjection(projection)
-	findOptions.SetLimit(limit)
-	findOptions.SetSkip(skip)
+	findOptions.SetProjection(filter.Projection)
+	findOptions.SetLimit(filter.Limit)
+	findOptions.SetSkip(filter.Skip)
+	if filter.Sort != nil {
+		findOptions.SetSort(filter.Sort)
+	}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection(collectionName)
 
-	cursor, err := collection.Find(ctx, filter, findOptions)
+	cursor, err := collection.Find(ctx, filter.Filter, findOptions)
 	if err != nil {
 		logrus.Error(err)
 		return nil, 0, err
@@ -942,7 +945,7 @@ func FilterCollectionWithProjection(ctx *gin.Context, appsession *models.AppSess
 		return nil, 0, err
 	}
 
-	totalResults, err := collection.CountDocuments(ctx, filter)
+	totalResults, err := collection.CountDocuments(ctx, filter.Filter)
 	if err != nil {
 		return nil, 0, err
 	}

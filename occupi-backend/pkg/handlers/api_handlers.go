@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"time"
@@ -362,15 +363,27 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 		return
 	}
 
-	filter := utils.SantizeFilter(queryInput)
+	sanitizedFilter := utils.SantizeFilter(queryInput)
+	fmt.Println(sanitizedFilter)
+	sanitizedSort := utils.SanitizeSort(queryInput)
+	fmt.Println(sanitizedSort)
 
 	sanitizedProjection := utils.SantizeProjection(queryInput)
 
 	projection := utils.ConstructProjection(queryInput, sanitizedProjection)
+	fmt.Println(projection)
 
 	limit, page, skip := utils.GetLimitPageSkip(queryInput)
 
-	res, totalResults, err := database.FilterCollectionWithProjection(ctx, appsession, filter, projection, collectionName, limit, skip)
+	filter := models.FilterStruct{
+		Filter:     sanitizedFilter,
+		Projection: projection,
+		Limit:      limit,
+		Skip:       skip,
+		Sort:       sanitizedSort,
+	}
+
+	res, totalResults, err := database.FilterCollectionWithProjection(ctx, appsession, collectionName, filter)
 
 	if err != nil {
 		logrus.Error("Failed to filter collection because: ", err)
