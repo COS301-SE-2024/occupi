@@ -17,7 +17,7 @@ from tensorflow.keras.optimizers import Adam
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 # Load the data
-df = pd.read_csv('Monthly_OfficeCapacity.csv')
+df = pd.read_csv('../datasets/Monthly_OfficeCapacity.csv')
 
 # Convert Month to numerical
 month_map = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
@@ -139,138 +139,6 @@ X_lstm, y_lstm = np.array(X_lstm), np.array(y_lstm)
 # Print shapes to verify dimensions
 print("X_lstm shape:", X_lstm.shape)
 print("y_lstm shape:", y_lstm.shape)
-
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split, cross_val_score, TimeSeriesSplit
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.svm import SVR
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import RFE
-import matplotlib.pyplot as plt
-import xgboost as xgb
-from sklearn.impute import SimpleImputer
-from prophet import Prophet
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
-from tensorflow.keras.optimizers import Adam
-from statsmodels.tsa.statespace.sarimax import SARIMAX
-
-# Load the data
-df = pd.read_csv('Monthly_OfficeCapacity.csv')
-
-# Convert Month to numerical
-month_map = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
-             'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
-df['Month_Num'] = df['Month'].map(month_map)
-
-# Sort the dataframe by date
-df['Date'] = pd.to_datetime(df['Year'].astype(str) + '-' + df['Month_Num'].astype(str) + '-01')
-df = df.sort_values('Date')
-
-# Feature engineering
-df['Rolling_Mean_3'] = df['Occupancy'].rolling(window=3).mean()
-df['Rolling_Mean_6'] = df['Occupancy'].rolling(window=6).mean()
-df['Rolling_Mean_12'] = df['Occupancy'].rolling(window=12).mean()
-df['Day_of_Week'] = df['Date'].dt.dayofweek
-df['Week_of_Year'] = df['Date'].dt.isocalendar().week
-df['Is_Weekend'] = df['Day_of_Week'].isin([5, 6]).astype(int)
-
-# Forward fill NaN values
-df = df.ffill()
-
-# Prepare features and target
-target = 'Occupancy'
-features = ['Month_Num', 'Year', 'Is_Holiday', 'Rolling_Mean_3', 'Rolling_Mean_6', 'Rolling_Mean_12',
-            'Day_of_Week', 'Week_of_Year', 'Is_Weekend']
-X = df[features]
-y = df[target]
-
-# Split the data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=False)
-
-# Define preprocessing steps
-preprocessor = Pipeline([
-    ('imputer', SimpleImputer(strategy='median')),
-    ('scaler', StandardScaler()),
-])
-
-# Define models
-models = {
-    'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42),
-    'Gradient Boosting': GradientBoostingRegressor(random_state=42),
-    'SVR': SVR(kernel='rbf'),
-    'XGBoost': xgb.XGBRegressor(random_state=42)
-}
-
-# Train and evaluate models
-for name, model in models.items():
-    pipeline = Pipeline([
-        ('preprocessor', preprocessor),
-        ('feature_selection', RFE(estimator=RandomForestRegressor(n_estimators=10, random_state=42), n_features_to_select=min(len(features), X.shape[1]))),
-        ('regressor', model)
-    ])
-    
-    # Cross-validation
-    tscv = TimeSeriesSplit(n_splits=5)
-    scores = cross_val_score(pipeline, X_train, y_train, cv=tscv, scoring='r2')
-    print(f"\n{name} Cross-validation scores:", scores)
-    print(f"{name} Average cross-validation score:", scores.mean())
-    
-    # Train the model and make predictions
-    pipeline.fit(X_train, y_train)
-    y_pred = pipeline.predict(X_test)
-    
-    # Evaluate the model
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-    print(f"{name} Mean Squared Error:", mse)
-    print(f"{name} R2 Score:", r2)
-
-# Prophet model
-# Prophet model
-prophet_df = df[['Date', target, 'Is_Holiday']].rename(columns={'Date': 'ds', target: 'y'})
-prophet_df['Quarter'] = df['Date'].dt.quarter  # Add Quarter information
-
-model = Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False)
-model.add_regressor('Is_Holiday')
-model.add_regressor('Quarter')
-model.fit(prophet_df)
-
-# Create future dataframe for the length of y_test
-future = model.make_future_dataframe(periods=len(y_test), freq='MS')
-
-# Ensure future dataframe doesn't exceed the original data length
-future = future.iloc[:len(df)]
-
-future['Is_Holiday'] = df['Is_Holiday'].values
-future['Quarter'] = df['Date'].dt.quarter.values
-
-forecast = model.predict(future)
-prophet_pred = forecast.tail(len(y_test))['yhat']
-prophet_mse = mean_squared_error(y_test, prophet_pred)
-prophet_r2 = r2_score(y_test, prophet_pred)
-print("\nProphet Mean Squared Error:", prophet_mse)
-print("Prophet R2 Score:", prophet_r2)
-
-# Print shapes for debugging
-print("df shape:", df.shape)
-print("prophet_df shape:", prophet_df.shape)
-print("future shape:", future.shape)
-print("y_test shape:", y_test.shape)
-
-# LSTM model Adjust the data scaling:
-scaler = StandardScaler()
-scaled_occupancy = scaler.fit_transform(df[['Occupancy']])
-scaled_features = StandardScaler().fit_transform(df[features])
-scaled_data = np.hstack((scaled_occupancy, scaled_features))
-
-# Remove any rows with NaN values
-scaled_data = scaled_data[~np.isnan(scaled_data).any(axis=1)]
-
-print("Scaled data shape after removing NaNs:", scaled_data.shape)
 
 # Modify the LSTM model architecture:
 X_train_lstm, X_test_lstm, y_train_lstm, y_test_lstm = train_test_split(X_lstm, y_lstm, test_size=0.2, random_state=42, shuffle=False)
