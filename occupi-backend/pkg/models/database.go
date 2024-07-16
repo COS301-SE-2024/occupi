@@ -132,4 +132,5 @@ type ScheduledNotification struct {
 	SendTime             time.Time `json:"send_time" bson:"send_time"`
 	UnsentExpoPushTokens []string  `json:"unsentExpoPushTokens" bson:"unsentExpoPushTokens"`
 	Emails               []string  `json:"emails" bson:"emails"`
+	UnreadEmails         []string  `json:"unreadEmails" bson:"unreadEmails"`
 }

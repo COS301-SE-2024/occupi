@@ -304,6 +304,8 @@ func SantizeFilter(queryInput models.QueryInput) primitive.M {
 		queryInput.Filter = make(map[string]interface{})
 	}
 	delete(queryInput.Filter, "password")
+	delete(queryInput.Filter, "unsentExpoPushTokens")
+	delete(queryInput.Filter, "emails")
 
 	filter := bson.M(queryInput.Filter)
 
@@ -314,7 +316,7 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 	// Remove password field from projection if present
 	sanitizedProjection := []string{}
 	for _, field := range queryInput.Projection {
-		if field != "password" {
+		if field != "password" && field != "unsentExpoPushTokens" && field != "emails" {
 			sanitizedProjection = append(sanitizedProjection, field)
 		}
 	}
@@ -324,15 +326,24 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 
 func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
 	const passwordField = "password"
+	const unsentExpoPushTokensField = "unsentExpoPushTokens"
+	const emailsField = "emails"
 	projection := bson.M{}
 	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
 		projection[passwordField] = 0 // Exclude password by default
+		projection[unsentExpoPushTokensField] = 0
+		projection[emailsField] = 0
 	} else {
 		for _, field := range sanitizedProjection {
-			if field != passwordField {
-				projection[field] = 1
-			} else if field == passwordField {
+			switch field {
+			case passwordField:
 				projection[passwordField] = 0
+			case unsentExpoPushTokensField:
+				projection[unsentExpoPushTokensField] = 0
+			case emailsField:
+				projection[emailsField] = 0
+			default:
+				projection[field] = 1
 			}
 		}
 	}
@@ -357,32 +368,67 @@ func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
 	return limit, page, skip
 }
 
-func ConstructBookingScheduledString(emails []string, creator string, startTime string) string {
+func ConstructBookingScheduledString(emails []string) string {
 	n := len(emails)
-	if n == 0 {
-		return fmt.Sprintf("A Booking with %s starts in %s", creator, startTime)
+	if n == 0 { // this cannot happen as the creator is always included in the emails
+		logrus.Error("No emails provided")
+		return ""
 	}
 
 	switch n {
 	case 1:
-		return fmt.Sprintf("A booking with %s and %s starts in %s", creator, emails[0], startTime)
+		return fmt.Sprintf("A booking with %s has been scheduled", emails[0])
 	case 2:
-		return fmt.Sprintf("A booking with %s, %s and %d others starts in %s", creator, emails[0], n-1, startTime)
+		return fmt.Sprintf("A booking with %s and %s has been scheduled", emails[0], emails[1])
 	default:
-		return fmt.Sprintf("A booking with %s, %s and %d others starts in %s", creator, emails[0], n-1, startTime)
+		return fmt.Sprintf("A booking with %s, %s and %d others has been scheduled", emails[0], emails[1], n-1)
 	}
+}
+
+func ConstructBookingStartingInScheduledString(emails []string, startTime string) string {
+	n := len(emails)
+	if n == 0 { // this cannot happen as the creator is always included in the emails
+		logrus.Error("No emails provided")
+		return ""
+	}
+
+	if startTime == "now" {
+		startTime = "a few seconds"
+	}
+
+	switch n {
+	case 1:
+		return fmt.Sprintf("A booking with %s starts in %s", emails[0], startTime)
+	case 2:
+		return fmt.Sprintf("A booking with %s and %s starts in %s", emails[0], emails[1], startTime)
+	default:
+		return fmt.Sprintf("A booking with %s, %s and %d others starts in %s", emails[0], emails[1], n-1, startTime)
+	}
+}
+
+func PrependEmailtoSlice(emails []string, email string) []string {
+	emails = append([]string{email}, emails...)
+	return emails
 }
 
 func ConvertToStringArray(input interface{}) []string {
 	// Convert the input to a slice of strings
-	var output []string
-	switch input.(type) {
-	case []interface{}:
-		for _, val := range input.([]interface{}) {
-			output = append(output, val.(string))
-		}
+	var stringArray []string
+	switch input := input.(type) {
+	case string:
+		stringArray = append(stringArray, input)
 	case []string:
-		output = input.([]string)
+		stringArray = append(stringArray, input...)
+	default:
+		logrus.Error("Invalid input type")
 	}
-	return output
+	return stringArray
+}
+
+func ConvertArrayToCommaDelimitedString(input []string) string {
+	return strings.Join(input, ",")
+}
+
+func ConvertCommaDelimitedStringToArray(input string) []string {
+	return strings.Split(input, ",")
 }

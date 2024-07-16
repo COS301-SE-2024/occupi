@@ -31,10 +31,10 @@ import (
 	nrgin "github.com/newrelic/go-agent/v3/integrations/nrgin"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
@@ -53,16 +53,11 @@ func main() {
 	// setup logger to log all server interactions
 	utils.SetupLogger()
 
-	// connect to the database
-	var db *mongo.Client
-	if configs.GetEnv() != "devlocalhost" {
-		db = configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	} else {
-		db = configs.ConnectToDatabase()
-	}
+	// create a new app session
+	appsession := createAppSession()
 
-	// create cache
-	cache := configs.CreateCache()
+	// start the consumer
+	go database.StartConsumeMessage(appsession)
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -70,6 +65,34 @@ func main() {
 	// Create a Gin router
 	ginRouter := gin.Default()
 
+	// Set CORS
+	addCORSPolicy(ginRouter)
+
+	// Set trusted proxies
+	setTrustedProxies(ginRouter)
+
+	// adding rate limiting middleware
+	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	// adding newrelic middleware
+	attachNewRelicMiddleware(ginRouter)
+
+	// Register routes
+	router.OccupiRouter(ginRouter, appsession)
+
+	// Run the server
+	runServer(ginRouter)
+}
+
+func createAppSession() *models.AppSession {
+	// create a new app session
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	cache := configs.CreateCache()
+	appsession := models.New(db, cache)
+	return appsession
+}
+
+func addCORSPolicy(ginRouter *gin.Engine) {
 	// Set CORS
 	ginRouter.Use(cors.New(cors.Config{
 		AllowOrigins:     configs.GetAllowOrigins(),
@@ -79,16 +102,17 @@ func main() {
 		AllowCredentials: configs.GetAllowCredentials(),
 		MaxAge:           time.Duration(configs.GetMaxAge()) * time.Second,
 	}))
+}
 
+func setTrustedProxies(ginRouter *gin.Engine) {
 	// Set trusted proxies
 	err := ginRouter.SetTrustedProxies(configs.GetTrustedProxies())
 	if err != nil {
 		logrus.Fatal("Failed to set trusted proxies: ", err)
 	}
+}
 
-	// adding rate limiting middleware
-	middleware.AttachRateLimitMiddleware(ginRouter)
-
+func attachNewRelicMiddleware(ginRouter *gin.Engine) {
 	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
 		// Create a newrelic application
 		app, err := newrelic.NewApplication(
@@ -103,10 +127,9 @@ func main() {
 		// adding newrelic middleware
 		ginRouter.Use(nrgin.Middleware(app))
 	}
+}
 
-	// Register routes
-	router.OccupiRouter(ginRouter, models.New(db, cache))
-
+func runServer(ginRouter *gin.Engine) {
 	certFile := configs.GetCertFileName()
 	keyFile := configs.GetKeyFileName()
 

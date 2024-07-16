@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -11,44 +12,25 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
-func createChannelAndQueue(appsession *models.AppSession) (*amqp.Channel, amqp.Queue, error) {
-	ch, err := appsession.RabbitMQ.Channel()
-
-	if err != nil {
-		logrus.Error("Failed to create channel: ", err)
-		return nil, amqp.Queue{}, err
-	}
-
-	defer ch.Close()
-
-	q, err := ch.QueueDeclare(
-		"notification_queue",
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return nil, amqp.Queue{}, err
-	}
-
-	return ch, q, nil
-}
-
 func PublishMessage(appsession *models.AppSession, notification models.ScheduledNotification) error {
-	// publish message to the queue
-	ch, q, err := createChannelAndQueue(appsession)
-	if err != nil {
-		return err
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	body := fmt.Sprintf("%s|%s|%s|%s", notification.Title, notification.Message, notification.SendTime.Format(time.RFC3339), notification.UnsentExpoPushTokens)
-	err = ch.Publish(
+	body := fmt.Sprintf(
+		"%s|%s|%s|%s|%s|%s",
+		notification.Title,
+		notification.Message,
+		notification.SendTime.Format(time.RFC3339),
+		notification.UnsentExpoPushTokens,
+		utils.ConvertArrayToCommaDelimitedString(notification.Emails),
+		utils.ConvertArrayToCommaDelimitedString(notification.UnreadEmails),
+	)
+	err := appsession.RabbitCh.PublishWithContext(ctx,
 		"",
-		q.Name,
+		appsession.RabbitQ.Name,
 		false,
 		false,
 		amqp.Publishing{
@@ -59,15 +41,9 @@ func PublishMessage(appsession *models.AppSession, notification models.Scheduled
 
 }
 
-func ConsumeMessage(appsession *models.AppSession) {
-	ch, q, err := createChannelAndQueue(appsession)
-	if err != nil {
-		logrus.Error("Failed to create channel and queue: ", err)
-		return
-	}
-
-	msgs, err := ch.Consume(
-		q.Name,
+func StartConsumeMessage(appsession *models.AppSession) {
+	msgs, err := appsession.RabbitCh.Consume(
+		appsession.RabbitQ.Name,
 		"",
 		true,
 		false,
@@ -83,21 +59,22 @@ func ConsumeMessage(appsession *models.AppSession) {
 	go func() {
 		for d := range msgs {
 			parts := strings.Split(string(d.Body), "|")
-			if len(parts) != 4 {
+			if len(parts) != 6 {
 				continue
 			}
-			title, message, sendTimeStr, unsentExpoTokens := parts[0], parts[1], parts[2], parts[3]
+			title, message, sendTimeStr, unsentExpoTokens, emails, unreadEmails := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]
 			sendTime, err := time.Parse(time.RFC3339, sendTimeStr)
 			if err != nil {
 				continue
 			}
-			unsentExpoTokensArr := strings.Split(unsentExpoTokens, ",")
 
 			notification := models.ScheduledNotification{
 				Title:                title,
 				Message:              message,
 				SendTime:             sendTime,
-				UnsentExpoPushTokens: unsentExpoTokensArr,
+				UnsentExpoPushTokens: utils.ConvertCommaDelimitedStringToArray(unsentExpoTokens),
+				Emails:               utils.ConvertCommaDelimitedStringToArray(emails),
+				UnreadEmails:         utils.ConvertCommaDelimitedStringToArray(unreadEmails),
 			}
 
 			// to account for discrepancies in time, we should allow for a range of 5 seconds before and after the scheduled time
@@ -123,7 +100,12 @@ func ConsumeMessage(appsession *models.AppSession) {
 }
 
 func SendPushNotification(notification models.ScheduledNotification, appsession *models.AppSession) error {
-	fmt.Printf("Sending push notification with title: %s, message: %s, emails: %s\n", notification.Title, notification.Message, notification.Emails)
+	fmt.Printf("Sending push notification with title: %s, message: %s\n", notification.Title, notification.Message)
+	fmt.Printf("Notification time: %s\n", notification.SendTime.Format(time.RFC3339))
+	fmt.Printf("Tokens: %s\n", notification.UnsentExpoPushTokens)
+	fmt.Printf("Emails: %s\n", notification.Emails)
+	fmt.Printf("Unread emails: %s\n", notification.UnreadEmails)
+
 	/*
 		for _, token := range notification.UnsentExpoPushTokens {
 			// To check the token is valid
