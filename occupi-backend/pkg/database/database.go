@@ -11,6 +11,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/sender"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -1063,7 +1064,7 @@ func AddScheduledNotification(ctx *gin.Context, appsession *models.AppSession, n
 	// set the notification id
 	notification.ID = res.InsertedID.(primitive.ObjectID).Hex()
 
-	err = PublishMessage(appsession, notification)
+	err = sender.PublishMessage(appsession, notification)
 	if err != nil {
 		logrus.Error("Failed to publish message because: ", err)
 		return false, err
@@ -1072,7 +1073,7 @@ func AddScheduledNotification(ctx *gin.Context, appsession *models.AppSession, n
 	return true, nil
 }
 
-func DeleteExpoPushTokensFromScheduledNotification(ctx *gin.Context, appsession *models.AppSession, notification models.ScheduledNotification) (bool, error) {
+func DeleteExpoPushTokensFromScheduledNotification(ctx context.Context, appsession *models.AppSession, notification models.ScheduledNotification) (bool, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -1084,7 +1085,7 @@ func DeleteExpoPushTokensFromScheduledNotification(ctx *gin.Context, appsession 
 	filter := bson.M{"_id": notification.ID}
 
 	// only delete the expo push tokens not in the provided list
-	update := bson.M{"$pull": bson.M{"expoPushTokens": bson.M{"$in": notification.UnsentExpoPushTokens}}}
+	update := bson.M{"$pull": bson.M{"unsentExpoPushTokens": bson.M{"$in": notification.UnsentExpoPushTokens}}}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
