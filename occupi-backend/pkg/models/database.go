@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // structure of user
 type User struct {
@@ -133,4 +138,12 @@ type ScheduledNotification struct {
 	UnsentExpoPushTokens []string  `json:"unsentExpoPushTokens" bson:"unsentExpoPushTokens"`
 	Emails               []string  `json:"emails" bson:"emails"`
 	UnreadEmails         []string  `json:"unreadEmails" bson:"unreadEmails"`
+}
+
+type FilterStruct struct {
+	Filter     primitive.M
+	Projection bson.M
+	Limit      int64
+	Skip       int64
+	Sort       primitive.M
 }

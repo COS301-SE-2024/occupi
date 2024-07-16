@@ -1325,8 +1325,15 @@ func TestFilterUsersWithProjection(t *testing.T) {
 				gin.SetMode(configs.GetGinRunMode())
 				ctx, _ := gin.CreateTestContext(nil)
 
+				filter := models.FilterStruct{
+					Filter:     tt.filter,
+					Projection: tt.projection,
+					Limit:      tt.limit,
+					Skip:       tt.skip,
+				}
+
 				// Execute the function
-				results, count, err := database.FilterCollectionWithProjection(ctx, tt.appSession, tt.filter, tt.projection, "Users", tt.limit, tt.skip)
+				results, count, err := database.FilterCollectionWithProjection(ctx, tt.appSession, "Users", filter)
 
 				// Validate results
 				if !reflect.DeepEqual(results, tt.expectedResult) {
@@ -1393,8 +1400,15 @@ func TestFilterUsersWithProjectionSuccess(t *testing.T) {
 		}
 	}
 
+	filter_arg := models.FilterStruct{
+		Filter:     filter,
+		Projection: projection,
+		Limit:      int64(limit),
+		Skip:       int64(skip),
+	}
+
 	// Execute the function
-	results, count, err := database.FilterCollectionWithProjection(ctx, appSession, filter, projection, "Users", int64(limit), int64(skip))
+	results, count, err := database.FilterCollectionWithProjection(ctx, appSession, "Users", filter_arg)
 
 	// Validate results
 	if err != nil {

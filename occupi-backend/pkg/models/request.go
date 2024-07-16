@@ -30,6 +30,9 @@ type ErrorMsg struct {
 }
 
 type QueryInput struct {
+	Operator   string                 `json:"operator"` // eq, ne, gt, gte, lt, lte, in, nin
+	OrderAsc   string                 `json:"order_asc"`
+	OrderDesc  string                 `json:"order_desc"`
 	Filter     map[string]interface{} `json:"filter"`
 	Projection []string               `json:"projection"`
 	Limit      int64                  `json:"limit"`
