@@ -1,253 +1,179 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, cross_val_score, TimeSeriesSplit
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.svm import SVR
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.feature_selection import RFE
 import matplotlib.pyplot as plt
-import xgboost as xgb
-from sklearn.impute import SimpleImputer
-from prophet import Prophet
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from xgboost import XGBRegressor
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
-from tensorflow.keras.optimizers import Adam
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.callbacks import EarlyStopping
+from sklearn.metrics import mean_squared_error, r2_score
+from scipy.stats import randint, uniform
 
-# Load the data
-df = pd.read_csv('../datasets/Monthly_OfficeCapacity.csv')
+# Load the CSV file
+file_path = '../datasets/Monthly_OfficeCapacity (1).csv'  # Update with the correct path
 
-# Convert Month to numerical
-month_map = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
-             'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
-df['Month_Num'] = df['Month'].map(month_map)
+# Ensure the file path is correct
+try:
+    df = pd.read_csv(file_path)
+except FileNotFoundError:
+    print(f"File not found. Please check the path: {file_path}")
+    exit(1)
 
-# Sort the dataframe by date
-df['Date'] = pd.to_datetime(df['Year'].astype(str) + '-' + df['Month_Num'].astype(str) + '-01')
-df = df.sort_values('Date')
+# Calculate the monthly average for office capacity
+monthly_avg = df.groupby('Month')['Occupancy'].mean().reset_index()
+monthly_avg.columns = ['Month', 'Average_Occupancy']
 
-# Feature engineering
-df['Rolling_Mean_3'] = df['Occupancy'].rolling(window=3).mean()
-df['Rolling_Mean_6'] = df['Occupancy'].rolling(window=6).mean()
-df['Rolling_Mean_12'] = df['Occupancy'].rolling(window=12).mean()
-df['Day_of_Week'] = df['Date'].dt.dayofweek
-df['Week_of_Year'] = df['Date'].dt.isocalendar().week
-df['Is_Weekend'] = df['Day_of_Week'].isin([5, 6]).astype(int)
+# Display the result
+print("Monthly Average Office Capacity")
+print(monthly_avg)
 
-# Forward fill NaN values
-df = df.ffill()
+# Feature Engineering
+# Creating lagged features and encoding categorical variables
+df['Lag1'] = df['Occupancy'].shift(1)
+df['Lag2'] = df['Occupancy'].shift(2)
+df = pd.get_dummies(df, columns=['Month', 'Season', 'Quarter', 'Is_Holiday'], drop_first=True)
 
-# Prepare features and target
-target = 'Occupancy'
-features = ['Month_Num', 'Year', 'Is_Holiday', 'Rolling_Mean_3', 'Rolling_Mean_6', 'Rolling_Mean_12',
-            'Day_of_Week', 'Week_of_Year', 'Is_Weekend']
-X = df[features]
-y = df[target]
+# Drop NaN values created by shifting
+df = df.dropna()
 
-# Split the data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=False)
+# Prepare feature matrix X and target vector y
+X = df.drop(columns=['id', 'Occupancy'])
+y = df['Occupancy']
 
-# Define preprocessing steps
-preprocessor = Pipeline([
-    ('imputer', SimpleImputer(strategy='median')),
-    ('scaler', StandardScaler()),
-])
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Define models
+# Scale the features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Define and train models with hyperparameter tuning
+
+# Random Forest
+rf = RandomForestRegressor()
+rf_param_dist = {
+    'n_estimators': randint(100, 300),
+    'max_depth': randint(10, 30),
+    'min_samples_split': randint(2, 10),
+    'min_samples_leaf': randint(1, 4)
+}
+rf_random_search = RandomizedSearchCV(estimator=rf, param_distributions=rf_param_dist, n_iter=50, cv=5, n_jobs=-1, verbose=2, random_state=42)
+rf_random_search.fit(X_train, y_train)
+rf_best_model = rf_random_search.best_estimator_
+
+# Gradient Boosting
+gb = GradientBoostingRegressor()
+gb_param_dist = {
+    'n_estimators': randint(100, 300),
+    'learning_rate': uniform(0.01, 0.1),
+    'max_depth': randint(3, 7),
+    'subsample': uniform(0.8, 0.2),
+    'min_samples_split': randint(2, 10),
+    'min_samples_leaf': randint(1, 4)
+}
+gb_random_search = RandomizedSearchCV(estimator=gb, param_distributions=gb_param_dist, n_iter=50, cv=5, n_jobs=-1, verbose=2, random_state=42)
+gb_random_search.fit(X_train, y_train)
+gb_best_model = gb_random_search.best_estimator_
+
+# XGBoost
+xgb = XGBRegressor()
+xgb_param_dist = {
+    'n_estimators': randint(100, 300),
+    'learning_rate': uniform(0.01, 0.1),
+    'max_depth': randint(3, 10),
+    'subsample': uniform(0.7, 0.3),
+    'colsample_bytree': uniform(0.7, 0.3),
+    'min_child_weight': randint(1, 10)
+}
+xgb_random_search = RandomizedSearchCV(estimator=xgb, param_distributions=xgb_param_dist, n_iter=50, cv=5, n_jobs=-1, verbose=2, random_state=42)
+xgb_random_search.fit(X_train, y_train)
+xgb_best_model = xgb_random_search.best_estimator_
+
+# Neural Network
+def create_model():
+    model = Sequential()
+    model.add(Dense(128, input_dim=X_train_scaled.shape[1], activation='relu'))
+    model.add(Dropout(0.2))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(1, activation='linear'))
+    model.compile(optimizer='adam', loss='mse', metrics=['mse'])
+    return model
+
+model = create_model()
+early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+history = model.fit(X_train_scaled, y_train, validation_split=0.2, epochs=200, batch_size=32, callbacks=[early_stopping], verbose=1)
+
+# Evaluate models
 models = {
-    'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42),
-    'Gradient Boosting': GradientBoostingRegressor(random_state=42),
-    'SVR': SVR(kernel='rbf'),
-    'XGBoost': xgb.XGBRegressor(random_state=42)
+    "Random Forest": rf_best_model,
+    "Gradient Boosting": gb_best_model,
+    "XGBoost": xgb_best_model,
+    "Neural Network": model
 }
 
-# Train and evaluate models
+results = {}
+
 for name, model in models.items():
-    pipeline = Pipeline([
-        ('preprocessor', preprocessor),
-        ('feature_selection', RFE(estimator=RandomForestRegressor(n_estimators=10, random_state=42), n_features_to_select=min(len(features), X.shape[1]))),
-        ('regressor', model)
-    ])
+    if name == "Neural Network":
+        y_pred = model.predict(X_test_scaled)
+    else:
+        y_pred = model.predict(X_test)
     
-    # Cross-validation
-    tscv = TimeSeriesSplit(n_splits=5)
-    scores = cross_val_score(pipeline, X_train, y_train, cv=tscv, scoring='r2')
-    print(f"\n{name} Cross-validation scores:", scores)
-    print(f"{name} Average cross-validation score:", scores.mean())
-    
-    # Train the model and make predictions
-    pipeline.fit(X_train, y_train)
-    y_pred = pipeline.predict(X_test)
-    
-    # Evaluate the model
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
-    print(f"{name} Mean Squared Error:", mse)
-    print(f"{name} R2 Score:", r2)
-
-# Prophet model
-# Prophet model
-prophet_df = df[['Date', target, 'Is_Holiday']].rename(columns={'Date': 'ds', target: 'y'})
-prophet_df['Quarter'] = df['Date'].dt.quarter  # Add Quarter information
-
-model = Prophet(yearly_seasonality=True, weekly_seasonality=False, daily_seasonality=False)
-model.add_regressor('Is_Holiday')
-model.add_regressor('Quarter')
-model.fit(prophet_df)
-
-# Create future dataframe for the length of y_test
-future = model.make_future_dataframe(periods=len(y_test), freq='MS')
-
-# Ensure future dataframe doesn't exceed the original data length
-future = future.iloc[:len(df)]
-
-future['Is_Holiday'] = df['Is_Holiday'].values
-future['Quarter'] = df['Date'].dt.quarter.values
-
-forecast = model.predict(future)
-prophet_pred = forecast.tail(len(y_test))['yhat']
-prophet_mse = mean_squared_error(y_test, prophet_pred)
-prophet_r2 = r2_score(y_test, prophet_pred)
-print("\nProphet Mean Squared Error:", prophet_mse)
-print("Prophet R2 Score:", prophet_r2)
-
-# Print shapes for debugging
-print("df shape:", df.shape)
-print("prophet_df shape:", prophet_df.shape)
-print("future shape:", future.shape)
-print("y_test shape:", y_test.shape)
-
-# LSTM model Adjust the data scaling:
-scaler = StandardScaler()
-scaled_occupancy = scaler.fit_transform(df[['Occupancy']])
-scaled_features = StandardScaler().fit_transform(df[features])
-scaled_data = np.hstack((scaled_occupancy, scaled_features))
-
-# Remove any rows with NaN values
-scaled_data = scaled_data[~np.isnan(scaled_data).any(axis=1)]
-
-print("Scaled data shape after removing NaNs:", scaled_data.shape)
-
-X_lstm, y_lstm = [], []
-for i in range(12, len(scaled_data)):
-    X_lstm.append(scaled_data[i-12:i, :])
-    y_lstm.append(scaled_data[i, 0])
-X_lstm, y_lstm = np.array(X_lstm), np.array(y_lstm)
-
-# Print shapes to verify dimensions
-print("X_lstm shape:", X_lstm.shape)
-print("y_lstm shape:", y_lstm.shape)
-
-# Modify the LSTM model architecture:
-X_train_lstm, X_test_lstm, y_train_lstm, y_test_lstm = train_test_split(X_lstm, y_lstm, test_size=0.2, random_state=42, shuffle=False)
-
-X_test_lstm = X_lstm[-len(y_test):]
-y_test_lstm = y_lstm[-len(y_test):]
-
-model = Sequential([
-    LSTM(50, return_sequences=True, input_shape=(X_train_lstm.shape[1], X_train_lstm.shape[2])),
-    LSTM(50),
-    Dense(1)
-])
-model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
-model.fit(X_train_lstm, y_train_lstm, epochs=50, batch_size=32, validation_split=0.1, verbose=1)
-
-lstm_pred = model.predict(X_test_lstm)
-lstm_pred = lstm_pred.reshape(-1, 1)  # Reshape to 2D array
-
-# Inverse transform only the occupancy column
-lstm_pred_inverse = scaler.inverse_transform(np.hstack((lstm_pred, np.zeros((lstm_pred.shape[0], X.shape[1]-1)))))[:, 0]
-y_test_lstm = y_test_lstm.reshape(-1, 1)
-y_test_lstm_inverse = scaler.inverse_transform(np.hstack((y_test_lstm, np.zeros((y_test_lstm.shape[0], X.shape[1]-1)))))[:, 0]
-
-# Calculate metrics
-lstm_mse = mean_squared_error(y_test_lstm_inverse, lstm_pred_inverse)
-lstm_r2 = r2_score(y_test_lstm_inverse, lstm_pred_inverse)
-print("\nLSTM Mean Squared Error:", lstm_mse)
-print("LSTM R2 Score:", lstm_r2)
-
-# SARIMA model
-sarima_model = SARIMAX(df['Occupancy'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12), enforce_stationarity=False, enforce_invertibility=False)
-sarima_results = sarima_model.fit()
-sarima_pred = sarima_results.forecast(steps=len(y_test))
-sarima_mse = mean_squared_error(y_test, sarima_pred)
-sarima_r2 = r2_score(y_test, sarima_pred)
-print("\nSARIMA Mean Squared Error:", sarima_mse)
-print("SARIMA R2 Score:", sarima_r2)
-
-# Visualize results
-plt.figure(figsize=(12, 6))
-plt.plot(y_test.index, y_test.values, label='Actual')
-plt.plot(y_test.index, y_pred, label='Best ML Model')
-plt.plot(y_test.index, prophet_pred.values, label='Prophet')
-plt.plot(y_test.index[-len(lstm_pred_inverse):], lstm_pred_inverse, label='LSTM')
-plt.plot(y_test.index, sarima_pred, label='SARIMA')
-plt.title('Model Comparisons')
-plt.legend()
-plt.show()
-
-# Feature importance for the best model (assuming Gradient Boosting)
-selected_features = pipeline.named_steps['feature_selection'].get_support()
-selected_feature_names = np.array(features)[selected_features]
-feature_importance = pipeline.named_steps['regressor'].feature_importances_
-feature_importance = 100.0 * (feature_importance / feature_importance.max())
-sorted_idx = np.argsort(feature_importance)
-pos = np.arange(sorted_idx.shape[0]) + .5
-
-plt.figure(figsize=(12, 6))
-plt.barh(pos, feature_importance[sorted_idx], align='center')
-plt.yticks(pos, selected_feature_names[sorted_idx])
-plt.xlabel('Relative Importance')
-plt.title('Feature Importance (Gradient Boosting)')
-plt.show()
-
-# Remove NaN values
-mask = ~np.isnan(lstm_pred) & ~np.isnan(y_test_lstm)
-lstm_pred = lstm_pred[mask]
-y_test_lstm = y_test_lstm[mask]
-
-if len(lstm_pred) > 0:
-    lstm_mse = mean_squared_error(y_test_lstm, lstm_pred)
-    lstm_r2 = r2_score(y_test_lstm, lstm_pred)
-    print("\nLSTM Mean Squared Error:", lstm_mse)
-    print("LSTM R2 Score:", lstm_r2)
-else:
-    print("\nWarning: All LSTM predictions are NaN. Unable to calculate metrics.")
+    accuracy = r2 * 100
     
+    results[name] = {
+        "Mean Squared Error": mse,
+        "R^2": r2,
+        "Accuracy (%)": accuracy
+}
 
-# SARIMA model
-sarima_model = SARIMAX(df['Occupancy'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12), enforce_stationarity=False, enforce_invertibility=False)
-sarima_results = sarima_model.fit()
-sarima_pred = sarima_results.forecast(steps=len(y_test))
-sarima_mse = mean_squared_error(y_test, sarima_pred)
-sarima_r2 = r2_score(y_test, sarima_pred)
-print("\nSARIMA Mean Squared Error:", sarima_mse)
-print("SARIMA R2 Score:", sarima_r2)
+# Output the results
+import json
+results_json = json.dumps(results, indent=4)
+print("Model Tuning Results")
+print(results_json)
 
-# Visualize results
+# Plot training history for Neural Network
 plt.figure(figsize=(12, 6))
-plt.plot(y_test.index, y_test.values, label='Actual')
-plt.plot(y_test.index, y_pred, label='Best ML Model')
-plt.plot(y_test.index, prophet_pred.values, label='Prophet')
-plt.plot(y_test.index[-len(lstm_pred_inverse):], lstm_pred_inverse, label='LSTM')
-plt.plot(y_test.index, sarima_pred, label='SARIMA')
-plt.title('Model Comparisons')
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Mean Squared Error')
+plt.title('Training History')
 plt.legend()
 plt.show()
 
-# Feature importance for the best model (assuming Gradient Boosting)
-selected_features = pipeline.named_steps['feature_selection'].get_support()
-selected_feature_names = np.array(features)[selected_features]
-feature_importance = pipeline.named_steps['regressor'].feature_importances_
-feature_importance = 100.0 * (feature_importance / feature_importance.max())
-sorted_idx = np.argsort(feature_importance)
-pos = np.arange(sorted_idx.shape[0]) + .5
+# Visualization of predictions
+plt.figure(figsize=(18, 6))
 
-plt.figure(figsize=(12, 6))
-plt.barh(pos, feature_importance[sorted_idx], align='center')
-plt.yticks(pos, selected_feature_names[sorted_idx])
-plt.xlabel('Relative Importance')
-plt.title('Feature Importance (Gradient Boosting)')
+# Random Forest predictions
+plt.subplot(1, 3, 1)
+plt.scatter(y_test, models["Random Forest"].predict(X_test), alpha=0.3)
+plt.plot([y.min(), y.max()], [y.min(), y.max()], '--r', linewidth=2)
+plt.xlabel('Actual Occupancy')
+plt.ylabel('Predicted Occupancy')
+plt.title('Random Forest Predictions')
+
+# Gradient Boosting predictions
+plt.subplot(1, 3, 2)
+plt.scatter(y_test, models["Gradient Boosting"].predict(X_test), alpha=0.3)
+plt.plot([y.min(), y.max()], [y.min(), y.max()], '--r', linewidth=2)
+plt.xlabel('Actual Occupancy')
+plt.ylabel('Predicted Occupancy')
+plt.title('Gradient Boosting Predictions')
+
+# XGBoost predictions
+plt.subplot(1, 3, 3)
+plt.scatter(y_test, models["XGBoost"].predict(X_test), alpha=0.3)
+plt.plot([y.min(), y.max()], [y.min(), y.max()], '--r', linewidth=2)
+plt.xlabel('Actual Occupancy')
+plt.ylabel('Predicted Occupancy')
+plt.title('XGBoost Predictions')
+
+plt.tight_layout()
 plt.show()
