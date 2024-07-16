@@ -210,7 +210,7 @@ func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// Get all bookings for the userBooking
+	// Get all the user details
 	user, err := database.GetUserDetails(ctx, appsession, email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get user details", constants.InternalServerErrorCode, "Failed to get user details", nil))
@@ -259,35 +259,15 @@ func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched rooms!", rooms))
 }
 
-// func FilterUsers(ctx *gin.Context, appsession *models.AppSession) {
-// 	var filterRequest models.FilterUsers
-// 	if ctx.Query("DepartmentNo") == "" {
-// 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Department Number", nil))
-// 		return
-// 	}
-// 	// Extract query parameters
-// 	filterRequest.DepartmentNo = ctx.Query("DepartmentNo")
+func GetUsers(ctx *gin.Context, appsession *models.AppSession) {
+	users, err := database.GetAllUsers(ctx, appsession)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
+		return
+	}
 
-// 	// Get all users matching a filter
-// 	users, err := database.FilterUsers(ctx, appsession, filterRequest)
-
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users!", users))
-// }
-
-// func GetUsers(ctx *gin.Context, appsession *models.AppSession) {
-// 	users, err := database.GetAllUsers(ctx, appsession)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users!", users))
-// }
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users!", users))
+}
 
 // Helper function to handle validation of requests
 func HandleValidationErrors(ctx *gin.Context, err error) {
