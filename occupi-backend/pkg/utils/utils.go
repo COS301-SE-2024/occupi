@@ -457,6 +457,7 @@ func ConvertToStringArray(input interface{}) []string {
 		stringArray = append(stringArray, input...)
 	default:
 		logrus.Error("Invalid input type")
+		stringArray = []string{}
 	}
 	return stringArray
 }
