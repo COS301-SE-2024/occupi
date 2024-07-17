@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   useColorScheme,
   Alert,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import {
   View,
@@ -21,12 +21,13 @@ import {
 import { Ionicons, Feather, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
 
+import { sendPushNotification } from "@/utils/utils";
 
 const BookingDetails = () => {
   const navigation = useNavigation();
@@ -48,15 +49,15 @@ const BookingDetails = () => {
   // console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
   const steps = ["Booking details", "Invite attendees", "Receipt"];
-  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
   const bookroomendpoint = process.env.EXPO_PUBLIC_BOOK_ROOM;
 
   useEffect(() => {
     const getbookingInfo = async () => {
       let userinfo = await SecureStore.getItemAsync('UserData');
-      // console.log(result);
       // if (result !== undefined) {
       let jsoninfo = JSON.parse(userinfo);
+      console.log("data",jsoninfo?.data.details.name);
       setCreatorEmail(jsoninfo?.data?.email);
       let result: string = await SecureStore.getItemAsync('BookingInfo');
       console.log("CurrentRoom:", jsoninfo?.data?.email);
@@ -96,6 +97,8 @@ const BookingDetails = () => {
     };
     console.log("hereeeeee", body);
     let authToken = await SecureStore.getItemAsync('Token');
+    let userinfo = await SecureStore.getItemAsync('UserData');
+    let jsoninfo = JSON.parse(userinfo);
     try {
       setLoading(true);
       const response = await fetch(`${apiUrl}${bookroomendpoint}`, {
@@ -111,6 +114,7 @@ const BookingDetails = () => {
       const data = await response.json();
       console.log(data);
       if (response.ok) {
+        sendPushNotification(['ExponentPushToken[5cpRYINQu42bhcKM5b7Vsb]','ExponentPushToken[ARLofOIiMGuJjE2EQTWQWq]'], "New Booking", `${jsoninfo?.data.details.name} has invited you to a booking.`);
         setCurrentStep(2);
         setLoading(false);
         toast.show({

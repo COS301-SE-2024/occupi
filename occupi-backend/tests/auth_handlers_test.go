@@ -7,18 +7,23 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 )
 
 func TestInvalidLogoutHandler(t *testing.T) {
 	// connect to the database
-	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	appsession := &models.AppSession{
+		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
+		Cache: configs.CreateCache(),
+	}
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -26,8 +31,12 @@ func TestInvalidLogoutHandler(t *testing.T) {
 	// Create a Gin router
 	ginRouter := gin.Default()
 
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, appsession)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("POST", "/auth/logout", nil)
@@ -49,8 +58,10 @@ func TestInvalidLogoutHandler(t *testing.T) {
 
 func TestValidLogoutHandler(t *testing.T) {
 	// connect to the database
-	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	appsession := &models.AppSession{
+		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
+		Cache: configs.CreateCache(),
+	}
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -58,8 +69,12 @@ func TestValidLogoutHandler(t *testing.T) {
 	// Create a Gin router
 	ginRouter := gin.Default()
 
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, appsession)
 
 	// Create a request to pass to the handler
 	req, err := http.NewRequest("POST", "/auth/logout", nil)
@@ -110,8 +125,10 @@ func TestValidLogoutHandler(t *testing.T) {
 
 func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	// connect to the database
-	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	appsession := &models.AppSession{
+		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
+		Cache: configs.CreateCache(),
+	}
 
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -119,8 +136,12 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	// Create a Gin router
 	ginRouter := gin.Default()
 
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register routes
-	router.OccupiRouter(ginRouter, db, cache)
+	router.OccupiRouter(ginRouter, appsession)
 
 	// read domains
 	domains := configs.GetOccupiDomains()
