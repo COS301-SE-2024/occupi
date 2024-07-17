@@ -6,9 +6,13 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "4001:4000"
+      - "4001:5173"
     networks:
       - webnet
+    volumes:
+      - /etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:/etc/letsencrypt/live/dev.occupi.tech/fullchain.pem:ro
+      - /etc/letsencrypt/live/dev.occupi.tech/privkey.pem:/etc/letsencrypt/live/dev.occupi.tech/privkey.pem:ro
+    restart: on-failure:5
 
 networks:
   webnet:

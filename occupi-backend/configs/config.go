@@ -31,7 +31,19 @@ const (
 	OtpExpiration       = "OTP_EXPIRATION"
 	FrontendURL         = "FRONTEND_URL"
 	ConfigLicense       = "CONFIG_LICENSE"
+	CacheEviction       = "CACHE_EVICTION"
 	OtpGenReqEviction   = "OTP_GEN_REQ_EVICTION"
+	AllowOriginsVal     = "ALLOW_ORIGINS"
+	AllowMethodsVal     = "ALLOW_METHODS"
+	AllowHeadersVal     = "ALLOW_HEADERS"
+	ExposeHeadersVal    = "EXPOSE_HEADERS"
+	Caval               = "ALLOW_CREDENTIALS"
+	MaxAgeVal           = "MAX_AGE"
+	IPCIT               = "IP_CLIENT_INFO_TOKEN"
+	RabbitMQUsername    = "RABBITMQ_USERNAME"
+	RabbitMQPassword    = "RABBITMQ_PASSWORD"
+	RabbitMQHost        = "RABBITMQ_HOST"
+	RabbitMQPort        = "RABBITMQ_PORT"
 )
 
 // init viper
@@ -252,6 +264,15 @@ func GetConfigLicense() string {
 	return license
 }
 
+// gets the cache eviction time as defined in the config.yaml file in seconds
+func GetCacheEviction() int {
+	time := viper.GetInt(CacheEviction)
+	if time == 0 {
+		time = 600
+	}
+	return time
+}
+
 // gets the otp request eviction time as defined in the config.yaml file in seconds
 func GetOTPReqEviction() int {
 	time := viper.GetInt(OtpGenReqEviction)
@@ -259,4 +280,101 @@ func GetOTPReqEviction() int {
 		time = 60
 	}
 	return time
+}
+
+// gets allow origins as defined in the config.yaml file
+func GetAllowOrigins() []string {
+	origins := viper.GetString(AllowOriginsVal)
+	if origins != "" {
+		originList := strings.Split(origins, ",")
+		return originList
+	}
+	return []string{"*"}
+}
+
+// gets allow methods as defined in the config.yaml file
+func GetAllowMethods() []string {
+	methods := viper.GetString(AllowMethodsVal)
+	if methods != "" {
+		methodList := strings.Split(methods, ",")
+		return methodList
+	}
+	return []string{"*"}
+}
+
+// gets allow headers as defined in the config.yaml file
+func GetAllowHeaders() []string {
+	headers := viper.GetString(AllowHeadersVal)
+	if headers != "" {
+		headerList := strings.Split(headers, ",")
+		return headerList
+	}
+	return []string{"*"}
+}
+
+// gets expose headers as defined in the config.yaml file
+func GetExposeHeaders() []string {
+	headers := viper.GetString(ExposeHeadersVal)
+	if headers != "" {
+		headerList := strings.Split(headers, ",")
+		return headerList
+	}
+	return []string{"*"}
+}
+
+// gets allow credentials as defined in the config.yaml file
+func GetAllowCredentials() bool {
+	credentials := viper.GetBool(Caval)
+	return credentials
+}
+
+// gets max age as defined in the config.yaml file
+func GetMaxAge() int {
+	age := viper.GetInt(MaxAgeVal)
+	return age
+}
+
+// gets the IP client info token as defined in the config.yaml file
+func GetIPClientInfoToken() string {
+	val := viper.GetString(IPCIT)
+	if val == "" {
+		val = "IP_CLIENT_INFO_TOKEN"
+	}
+	return val
+}
+
+// gets the rabbitmq username as defined in the config.yaml file
+func GetRabbitMQUsername() string {
+	username := viper.GetString(RabbitMQUsername)
+	if username == "" {
+		username = "RABBITMQ_USERNAME"
+	}
+	return username
+}
+
+// gets the rabbitmq password as defined in the config.yaml file
+func GetRabbitMQPassword() string {
+	password := viper.GetString(RabbitMQPassword)
+	if password == "" {
+		password = "RABBITMQ_PASSWORD"
+	}
+	return password
+}
+
+// gets the rabbitmq host as defined in the config.yaml file
+func GetRabbitMQHost() string {
+	host := viper.GetString(RabbitMQHost)
+	if host == "" {
+		host = "RABBITMQ_HOST"
+	}
+	return host
+}
+
+// gets the rabbitmq port as defined in the config.yaml file
+func GetRabbitMQPort() string {
+	port := viper.GetString(RabbitMQPort)
+	if port == "" {
+		port = "RABBITMQ_PORT"
+	}
+	return port
 }

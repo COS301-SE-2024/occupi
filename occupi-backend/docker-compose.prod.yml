@@ -11,9 +11,38 @@ services:
       - webnet
     ports:
       - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - /etc/letsencrypt/live/occupi.tech/fullchain.pem:/etc/letsencrypt/live/occupi.tech/fullchain.pem:ro
       - /etc/letsencrypt/live/occupi.tech/privkey.pem:/etc/letsencrypt/live/occupi.tech/privkey.pem:ro
+    restart: on-failure:5
+    depends_on:
+        rabbitmq-dev:
+          condition: service_healthy
+
+  rabbitmq-prod:
+    image: rabbitmq:latest
+    container_name: rabbitmq-prod
+    ports:
+      - "5672:5672"
+    restart: on-failure:5
+    environment:
+      RABBITMQ_DEFAULT_USER: $RABBITMQ_DEFAULT_USER
+      RABBITMQ_DEFAULT_PASS: $RABBITMQ_DEFAULT_PASS
+    volumes:
+      - rabbitmq-prod:/var/lib/rabbitmq
+    networks:
+      - webnet
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+volumes:
+  mongo-prod:
+  rabbitmq-prod:
 
 networks:
   webnet:

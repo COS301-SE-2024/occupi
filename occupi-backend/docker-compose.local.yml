@@ -1,0 +1,15 @@
+services:
+  rabbitmq-dev-local-local:
+    image: rabbitmq:latest
+    container_name: rabbitmq-dev-local-local
+    ports:
+      - "5674:5672"
+    restart: on-failure:5
+    environment:
+      RABBITMQ_DEFAULT_USER: $RABBITMQ_DEFAULT_USER
+      RABBITMQ_DEFAULT_PASS: $RABBITMQ_DEFAULT_PASS
+    volumes:
+      - rabbitmq-dev-local-local:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq-dev-local-local:

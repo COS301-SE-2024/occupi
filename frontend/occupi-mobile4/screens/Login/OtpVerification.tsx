@@ -67,7 +67,7 @@ const OTPVerification = () => {
     console.log(pin);
     setLoading(true);
     try {
-      const response = await fetch('https://dev.occupi.tech/auth/verify-otp', {
+      const response = await fetch('https://dev.occupi.tech/auth/verify-otp-mobile-login', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -82,6 +82,7 @@ const OTPVerification = () => {
       const data = await response.json();
       if (response.ok) {
         setLoading(false);
+        console.log(data);
         toast.show({
               placement: 'top',
               render: ({ id }) => {
