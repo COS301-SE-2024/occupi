@@ -330,7 +330,15 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	// append location to known locations array
-	update := bson.M{"$set": bson.M{"isVerified": true, "nextVerificationDate": time.Now().AddDate(0, 0, 30), "knownLocations": bson.A{*location}}}
+	update := bson.M{
+		"$set": bson.M{
+			"isVerified":           true,
+			"nextVerificationDate": time.Now().AddDate(0, 0, 30),
+		},
+		"$push": bson.M{
+			"knownLocations": location,
+		},
+	}
 
 	_, err = collection.UpdateOne(ctx, filter, update)
 	if err != nil {
