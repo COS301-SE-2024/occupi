@@ -40,8 +40,8 @@ const OtpPage = () => {
       console.log("OTP verification response:", response);
       
       // Uncomment these lines if you want to fetch and set user details
-      // const userDetails = await AuthService.getUserDetails(email);
-      // setUserDetails(userDetails);
+      const userDetails = await AuthService.getUserDetails(email);
+      setUserDetails(userDetails);
 
       navigate("/dashboard/overview");
     } catch (error) {
