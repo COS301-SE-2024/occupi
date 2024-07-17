@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ScrollView, useColorScheme, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native';
 import {
-    Icon, View, Text, Input, InputField, Image, Box, ChevronDownIcon, Toast,
+    Icon, View, Text, Input, InputField, Image, Box, ChevronDownIcon, Toast, Stack,
     ToastTitle,
     useToast,
 } from '@gluestack-ui/themed';
@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../../components/NavBar';
 import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
+import { Skeleton } from 'moti/skeleton';
 
 const groupDataInPairs = (data) => {
     const pairs = [];
@@ -57,6 +58,7 @@ const ViewBookings = () => {
     // const [selectedSort, setSelectedSort] = useState("newest");
     const [email, setEmail] = useState('');
     const router = useRouter();
+    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
     const viewbookingsendpoint = process.env.EXPO_PUBLIC_VIEW_BOOKINGS;
@@ -78,19 +80,10 @@ const ViewBookings = () => {
                 const data = await response.json();
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
-                    // console.log(data);
-                    // toast.show({
-                    //     placement: 'top',
-                    //     render: ({ id }) => {
-                    //         return (
-                    //             <Toast nativeID={id} variant="accent" action="success">
-                    //                 <ToastTitle>{data.message}</ToastTitle>
-                    //             </Toast>
-                    //         );
-                    //     },
-                    // });
+                    setLoading(false);
                 } else {
                     console.log(data);
+                    setLoading(false);
                     toast.show({
                         placement: 'top',
                         render: ({ id }) => {
@@ -173,19 +166,10 @@ const ViewBookings = () => {
                 // console.log(data);
                 if (response.ok) {
                     setRoomData(data.data || []); // Ensure data is an array
-                    // console.log(data);
-                    // toast.show({
-                    //     placement: 'top',
-                    //     render: ({ id }) => {
-                    //         return (
-                    //             <Toast nativeID={id} variant="accent" action="success">
-                    //                 <ToastTitle>{data.message}</ToastTitle>
-                    //             </Toast>
-                    //         );
-                    //     },
-                    // });
+                    setLoading(false);
                 } else {
                     console.log(data);
+                    setLoading(false);
                     toast.show({
                         placement: 'top',
                         render: ({ id }) => {
@@ -289,126 +273,140 @@ const ViewBookings = () => {
                     </TouchableOpacity>
                 </View>
             </View>
-            {layout === "grid" ? (
-                <ScrollView
-                    style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
-                    showsVerticalScrollIndicator={false}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                    }
-                >
-                    {roomPairs.map((pair, index) => (
-                        <View
-                            key={index}
-                            style={{
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                marginBottom: 20,
-                            }}
-                        >
-                            {pair.map((room) => (
-                                <TouchableOpacity
-                                    onPress={() => handleRoomClick(JSON.stringify(room))}
-                                    style={{
-                                        flex: 1,
-                                        borderWidth: 1,
-                                        borderColor: cardBackgroundColor,
-                                        borderRadius: 12,
-                                        backgroundColor: cardBackgroundColor,
-                                        marginHorizontal: 4,
-                                        width: '45%'
-                                    }}>
-                                    <Image
-                                        w="$full"
-                                        h="$24"
-                                        alt="image"
-                                        borderRadius={10}
-                                        source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-                                    />
-                                    <View
-                                        // key={room.title}
+
+            {loading === true ? (
+                <>
+                    <View mt='$4'>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                    <View mt='$2'>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                    <View mt='$2'>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                </>
+            ) :
+                layout === "grid" ? (
+                    <ScrollView
+                        style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        }
+                    >
+                        {roomPairs.map((pair, index) => (
+                            <View
+                                key={index}
+                                style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    marginBottom: 20,
+                                }}
+                            >
+                                {pair.map((room) => (
+                                    <TouchableOpacity
+                                        onPress={() => handleRoomClick(JSON.stringify(room))}
                                         style={{
-                                            padding: 10,
-                                        }}
-                                    >
-                                        <View>
-                                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
-                                            <View flexDirection="row" alignItems="center">
-                                                <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
-                                            </View>
-                                            <Text color={isDarkMode ? '#fff' : '#000'} fontWeight="$light" my="$1">Your booking time:</Text>
-                                        </View>
-                                        <View flexDirection="row" alignItems="center" justifyContent="space-between">
+                                            flex: 1,
+                                            borderWidth: 1,
+                                            borderColor: cardBackgroundColor,
+                                            borderRadius: 12,
+                                            backgroundColor: cardBackgroundColor,
+                                            marginHorizontal: 4,
+                                            width: '45%'
+                                        }}>
+                                        <Image
+                                            w="$full"
+                                            h="$24"
+                                            alt="image"
+                                            borderRadius={10}
+                                            source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
+                                        />
+                                        <View
+                                            // key={room.title}
+                                            style={{
+                                                padding: 10,
+                                            }}
+                                        >
                                             <View>
-                                                <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)} </Text>
+                                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
+                                                <View flexDirection="row" alignItems="center">
+                                                    <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
+                                                </View>
+                                                <Text color={isDarkMode ? '#fff' : '#000'} fontWeight="$light" my="$1">Your booking time:</Text>
+                                            </View>
+                                            <View flexDirection="row" alignItems="center" justifyContent="space-between">
+                                                <View>
+                                                    <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)} </Text>
+                                                    <Text>{extractTimeFromDate(room.start)}-{extractTimeFromDate(room.end)}</Text>
+                                                </View>
+                                                <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        ))}
+                    </ScrollView>
+                ) : (
+                    <ScrollView
+                        style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        }
+                    >
+                        {roomData.map((room) => (
+                            <TouchableOpacity
+                                onPress={() => handleRoomClick(JSON.stringify(room))}
+                                style={{
+                                    flex: 1,
+                                    borderWidth: 1,
+                                    borderColor: cardBackgroundColor,
+                                    borderRadius: 12,
+                                    height: 160,
+                                    backgroundColor: cardBackgroundColor,
+                                    marginVertical: 4,
+                                    flexDirection: "row"
+
+                                }}>
+                                <Image
+                                    width={"50%"}
+                                    h="$full"
+                                    alt="image"
+                                    borderRadius={10}
+                                    source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
+                                />
+                                <View
+                                    // key={room.title}
+                                    w="$48"
+                                    style={{
+                                        padding: 10,
+                                        flexDirection: "column",
+                                        justifyContent: "space-between"
+                                    }}
+                                >
+                                    <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
+                                    <View flexDirection="row" alignItems="center">
+                                        <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
+                                    </View>
+                                    <View flexDirection="column">
+                                        <Text my="$1" fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}>Your booking time:</Text>
+                                        <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
+                                            <View>
+                                                <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)}</Text>
                                                 <Text>{extractTimeFromDate(room.start)}-{extractTimeFromDate(room.end)}</Text>
                                             </View>
                                             <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
                                         </View>
                                     </View>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    ))}
-                </ScrollView>
-            ) : (
-                <ScrollView
-                    style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
-                    showsVerticalScrollIndicator={false}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                    }
-                >
-                    {roomData.map((room) => (
-                        <TouchableOpacity
-                            onPress={() => handleRoomClick(JSON.stringify(room))}
-                            style={{
-                                flex: 1,
-                                borderWidth: 1,
-                                borderColor: cardBackgroundColor,
-                                borderRadius: 12,
-                                height: 160,
-                                backgroundColor: cardBackgroundColor,
-                                marginVertical: 4,
-                                flexDirection: "row"
 
-                            }}>
-                            <Image
-                                width={"50%"}
-                                h="$full"
-                                alt="image"
-                                borderRadius={10}
-                                source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-                            />
-                            <View
-                                // key={room.title}
-                                w="$48"
-                                style={{
-                                    padding: 10,
-                                    flexDirection: "column",
-                                    justifyContent: "space-between"
-                                }}
-                            >
-                                <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
-                                <View flexDirection="row" alignItems="center">
-                                    <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
                                 </View>
-                                <View flexDirection="column">
-                                    <Text my="$1" fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}>Your booking time:</Text>
-                                    <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
-                                        <View>
-                                            <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)}</Text>
-                                            <Text>{extractTimeFromDate(room.start)}-{extractTimeFromDate(room.end)}</Text>
-                                        </View>
-                                        <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
-                                    </View>
-                                </View>
-
-                            </View>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            )}
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                )}
             <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
         </View>
     );
