@@ -67,7 +67,7 @@ const SignInForm = () => {
   } = useForm<SignInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
-  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
   const loginUrl = process.env.EXPO_PUBLIC_LOGIN;
   const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
   console.log(apiUrl + "" +loginUrl);
@@ -94,6 +94,10 @@ const SignInForm = () => {
 
   async function storeToken(value) {
     await SecureStore.setItemAsync('Token', value);
+  }
+
+  async function storeUserEmail(value) {
+    await SecureStore.setItemAsync('Email', value);
   }
 
 
@@ -188,7 +192,6 @@ const SignInForm = () => {
         try {
           let authToken = await SecureStore.getItemAsync('Token');
           // console.log(authToken);
-
           const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${_data.email}`, {
             method: 'GET',
             headers: {
