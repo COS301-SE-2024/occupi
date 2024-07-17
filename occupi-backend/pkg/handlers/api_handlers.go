@@ -3,11 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
@@ -360,7 +358,7 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 
 		projectionStr := ctx.Query("projection")
 		if projectionStr != "" {
-			queryInput.Projection = strings.Split(ctx.Query("projection"), ",")
+			queryInput.Projection = utils.ConvertCommaDelimitedStringToArray(projectionStr)
 		}
 
 		limitStr := ctx.Query("limit")
@@ -446,8 +444,18 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 	var emails models.RequestEmails
 	if err := ctx.ShouldBindJSON(&emails); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		emailsStr := ctx.Query("emails")
+		if emailsStr != "" {
+			emails.Emails = utils.ConvertCommaDelimitedStringToArray(emailsStr)
+		} else {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"Unexpected fields found or invalid format",
+				nil))
+			return
+		}
 	}
 
 	// sanitize the emails
@@ -462,7 +470,7 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 	pushTokens, err := database.GetUsersPushTokens(ctx, appsession, emails.Emails)
 
 	if err != nil {
-    logrus.Error("Failed to get users: ", err)
+		logrus.Error("Failed to get users: ", err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get push tokens", constants.InternalServerErrorCode, "Failed to get push tokens", nil))
 		return
 	}
