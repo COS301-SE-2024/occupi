@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"net"
 	"time"
 
 	"github.com/allegro/bigcache/v3"
@@ -11,6 +12,7 @@ import (
 	"fmt"
 	"net/url"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -36,21 +38,30 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 		uri = fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
 	}
 
+	fmt.Printf("URI: %s\n", uri) // debug
+
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
+		fmt.Println("Error connecting to MongoDB") // debug
 		logrus.Fatal(err)
+		errv := client.Disconnect(ctx)
+		logrus.Fatal(errv)
 	}
 
 	// Check the connection
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
+		fmt.Println("Error pinging MongoDB") // debug
 		logrus.Fatal(err)
 	}
 
+	fmt.Println("Connected to MongoDB!") // debug
 	logrus.Info("Connected to MongoDB!")
 
 	return client
@@ -90,4 +101,76 @@ func CreateIPInfoClient() *ipinfo.Client {
 	client := ipinfo.NewClient(nil, cache, GetIPClientInfoToken())
 
 	return client
+}
+
+// get ip info
+func GetIPInfo(ip string, client *ipinfo.Client) (*ipinfo.Core, error) {
+	// check if run mode is test mode
+	if GetGinRunMode() == "test" {
+		return &ipinfo.Core{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		}, nil
+	}
+
+	info, err := client.GetIPInfo(net.ParseIP(ip))
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	return info, nil
+}
+
+func CreateRabbitConnection() *amqp.Connection {
+	// RabbitMQ connection parameters
+	rabbitMQUsername := GetRabbitMQUsername()
+	rabbitMQPassword := GetRabbitMQPassword()
+	rabbitMQHost := GetRabbitMQHost()
+	rabbitMQPort := GetRabbitMQPort()
+
+	// Construct the connection URI
+	uri := fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+
+	fmt.Printf("URI: %s\n", uri) // debug
+
+	// Connect to RabbitMQ
+	conn, err := amqp.Dial(uri)
+	if err != nil {
+		fmt.Println("Error connecting to RabbitMQ", err) // debug
+		logrus.Fatal(err)
+	}
+
+	fmt.Println("Connected to RabbitMQ")
+	logrus.Info("Connected to RabbitMQ!")
+
+	return conn
+}
+
+func CreateRabbitChannel(conn *amqp.Connection) *amqp.Channel {
+	// Create a channel
+	ch, err := conn.Channel()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return ch
+}
+
+func CreateRabbitQueue(ch *amqp.Channel) amqp.Queue {
+	// Declare a queue
+	q, err := ch.QueueDeclare(
+		"notification_queue",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return q
 }

@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 
 const OverviewComponent = () => {
   return (
-    <div className=" ">
+    <div className="">
    <Header/>
    {/* <OccupiLoader/> */}
 
@@ -14,12 +14,14 @@ const OverviewComponent = () => {
           <GraphContainer
             width="55vw"
             height="500px"
-            mainComponent={<Line_Chart />}
+            mainComponent={<div className=" mt-4 ">
+              <Line_Chart />
+            </div>}
           />
 
           <StatCard
             width="18rem"
-            height="500px"
+            height="100%"
             icon={<img src={Cal} alt="Calendar" />}
             title="Total bookings today"
             count="143 people"
@@ -31,36 +33,35 @@ const OverviewComponent = () => {
             comparisonText="Up from yesterday"
           />
 
-
         </div>
       </div>
 
       <motion.div
         // whileHover={{gap: "10px"}}
-        className="flex w-11/12 mr-auto ml-auto h-8 text-text_col text-3xl font-semibold leading-none mt-32 items-center cursor-auto"
+        className="flex w-11/12 mr-auto ml-auto h-8 text-text_col text-3xl font-semibold leading-none mt-10 items-center cursor-auto"
       >
         Most Visitations <ChevronRight size={24} className="mt-2" />
       </motion.div>
 
-      <div className="lg:flex md:flex-row sm:flex-row mt-5 gap-10">
-        <div className="mt-20 ml-14 ">
+      <div className="lg:flex md:flex-row sm:flex-row mt-5 mb-5 gap-10 w-11/12 mr-auto ml-auto">
+        {/* <div className="mt-20 ml-14 "> */}
           <GraphContainer
             width="55vw"
             height="500px"
             mainComponent={
-              <div className=" relative">
-                <div className=" mt-14 mb-20 ">
+              <div className=" ">
+                <div className=" mt-8 ">
                   <BarGraph />
                 </div>
               </div>
             }
           />
-        </div>
+        {/* </div> */}
 
-        <div className="mt-20">
+        {/* <div className="mt-3"> */}
         <StatCard
             width="18rem"
-            height="500px"
+            height="100%"
             icon={<img src={Bf} alt="Building" />}
             title="Total visitations today"
             count="79 people"
@@ -72,8 +73,7 @@ const OverviewComponent = () => {
             comparisonText="Down from yesterday"
           />
 
-          
-        </div>
+        {/* </div> */}
       </div>
     </div>
   );

@@ -31,9 +31,15 @@ func TestEmailExistsPerformance(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appsessionWithCache := models.New(db, cache)
+	appsessionWithCache := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 	// Create a new AppSession without the cache
-	appsessionWithoutCache := models.New(db, nil)
+	appsessionWithoutCache := &models.AppSession{
+		DB:    db,
+		Cache: nil,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
@@ -78,7 +84,10 @@ func TestEmailExists_WithCache(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, cache)
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
@@ -116,9 +125,12 @@ func TestAddUser_WithCache(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, cache)
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 
-	user := models.RequestUser{
+	user := models.RegisterUser{
 		Email:      "test_withcache@example.com",
 		Password:   "password",
 		EmployeeID: "12345",
@@ -154,7 +166,10 @@ func TestAddOTP_WithCache(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, cache)
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 
 	email := "test_withcache@example.com"
 	otp := "123456"
@@ -192,9 +207,15 @@ func TestOTPExistsPerformance(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appsessionWithCache := models.New(db, cache)
+	appsessionWithCache := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 	// Create a new AppSession without the cache
-	appsessionWithoutCache := models.New(db, nil)
+	appsessionWithoutCache := &models.AppSession{
+		DB:    db,
+		Cache: nil,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("OTPS")
@@ -242,7 +263,10 @@ func TestOTPExists_WithCache(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, cache)
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("OTPS")
@@ -290,7 +314,10 @@ func TestDeleteOTP_withCache(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, cache)
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("OTPS")
@@ -412,9 +439,15 @@ func TestGetPasswordPerformance(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appsessionWithCache := models.New(db, cache)
+	appsessionWithCache := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 	// Create a new AppSession without the cache
-	appsessionWithoutCache := models.New(db, nil)
+	appsessionWithoutCache := &models.AppSession{
+		DB:    db,
+		Cache: nil,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
@@ -462,7 +495,10 @@ func TestGetPassword_withCache(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, cache)
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
@@ -509,9 +545,15 @@ func TestCheckIfUserIsAdminPerformance(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appsessionWithCache := models.New(db, cache)
+	appsessionWithCache := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 	// Create a new AppSession without the cache
-	appsessionWithoutCache := models.New(db, nil)
+	appsessionWithoutCache := &models.AppSession{
+		DB:    db,
+		Cache: nil,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
@@ -561,7 +603,10 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, cache)
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
@@ -636,9 +681,15 @@ func TestCheckIfUserIsLoggingInFromKnownLocationPerformance(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appsessionWithCache := models.New(db, cache)
+	appsessionWithCache := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 	// Create a new AppSession without the cache
-	appsessionWithoutCache := models.New(db, nil)
+	appsessionWithoutCache := &models.AppSession{
+		DB:    db,
+		Cache: nil,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
@@ -693,7 +744,10 @@ func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, cache)
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: cache,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
