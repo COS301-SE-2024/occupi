@@ -138,7 +138,7 @@ func CreateRabbitConnection() *amqp.Connection {
 	// Connect to RabbitMQ
 	conn, err := amqp.Dial(uri)
 	if err != nil {
-		fmt.Println("Error connecting to RabbitMQ") // debug
+		fmt.Println("Error connecting to RabbitMQ", err) // debug
 		logrus.Fatal(err)
 	}
 

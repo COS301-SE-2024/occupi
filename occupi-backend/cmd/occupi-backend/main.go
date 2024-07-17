@@ -46,7 +46,7 @@ import (
 // occupi backend entry point
 func main() {
 	// Define the environment flag
-	env := flag.String("env", "dev.localhost", "Environment to use (dev.localhost, dev.deployed, prod)")
+	env := flag.String("env", "dev.localhost", "Environment to use (dev.localhost, dev.localhost.docker, dev.deployed, prod)")
 	flag.Parse()
 
 	// init viper
