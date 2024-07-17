@@ -16,7 +16,22 @@ import {
   ProfileComponent
 } from "@components/index";
 
-export default function OccupancyModal() {
+interface User {
+  id: string;
+  name: string;
+  role: string;
+  team: string;
+  status: string;
+  email: string;
+  bookings: number;
+  avatar: string;
+}
+
+interface OccupancyModalProps {
+  user: User;
+}
+
+export default function OccupancyModal({ user }: OccupancyModalProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
@@ -35,13 +50,19 @@ export default function OccupancyModal() {
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                User Office Occupancy Stats
+              {user.name}'s Office Occupancy Stats
               </ModalHeader>
               <ModalBody className="text-text_col">
+                
                 <div className="flex flex-col gap-6">
                   {/* User Profile and Key Stats Section */}
                   <div className=" border flex justify-between items-start bg-secondary p-4 rounded-lg">
-                    <ProfileComponent />
+                  <ProfileComponent 
+                      profileImage={user.avatar}
+                      email={user.email}
+                      name={user.name}
+                      officeStatus={user.status.toLowerCase() as "onsite" | "offsite" | "booked"}
+                    />
                     <KeyStats />
                   </div>
 
