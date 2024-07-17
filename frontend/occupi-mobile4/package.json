@@ -52,6 +52,7 @@
     "expo-system-ui": "~3.0.6",
     "expo-web-browser": "~13.0.3",
     "lucide-react-native": "^0.395.0",
+    "moti": "^0.29.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.52.0",
