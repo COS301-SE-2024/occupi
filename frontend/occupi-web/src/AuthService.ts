@@ -38,7 +38,7 @@ const AuthService = {
   getUserDetails : async (email: string) => {
     try {
       console.log(API_USER_URL);
-      const response = await axios.get(`${API_USER_URL}/user-details?email=${encodeURIComponent(email)}`, {
+      const response = await axios.get(`${API_USER_URL}/user-details?email=${email}`, {
         headers: {
           Accept: "application/json",
         },
