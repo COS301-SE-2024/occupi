@@ -1,24 +1,16 @@
 package router
 
 import (
-	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
 // creates available endpoints and attaches handlers for each endpoint
 func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
-	// creating a new valid session for management of shared variables
-
-	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
-	router.Use(sessions.Sessions("occupi-sessions-store", store))
-
 	ping := router.Group("/ping")
 	{
 		ping.GET("", func(ctx *gin.Context) { handlers.PingHandler(ctx) })

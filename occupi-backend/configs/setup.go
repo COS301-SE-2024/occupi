@@ -152,3 +152,55 @@ func CreateRabbitQueue(ch *amqp.Channel) amqp.Queue {
 
 	return q
 }
+
+func CreateRabbitConnection() *amqp.Connection {
+	// RabbitMQ connection parameters
+	rabbitMQUsername := GetRabbitMQUsername()
+	rabbitMQPassword := GetRabbitMQPassword()
+	rabbitMQHost := GetRabbitMQHost()
+	rabbitMQPort := GetRabbitMQPort()
+
+	// Construct the connection URI
+	uri := fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+
+	fmt.Printf("URI: %s\n", uri) // debug
+
+	// Connect to RabbitMQ
+	conn, err := amqp.Dial(uri)
+	if err != nil {
+		fmt.Println("Error connecting to RabbitMQ") // debug
+		logrus.Fatal(err)
+	}
+
+	fmt.Println("Connected to RabbitMQ")
+	logrus.Info("Connected to RabbitMQ!")
+
+	return conn
+}
+
+func CreateRabbitChannel(conn *amqp.Connection) *amqp.Channel {
+	// Create a channel
+	ch, err := conn.Channel()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return ch
+}
+
+func CreateRabbitQueue(ch *amqp.Channel) amqp.Queue {
+	// Declare a queue
+	q, err := ch.QueueDeclare(
+		"notification_queue",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return q
+}
