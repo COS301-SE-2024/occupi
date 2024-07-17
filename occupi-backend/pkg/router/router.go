@@ -1,27 +1,17 @@
 package router
 
 import (
-	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/allegro/bigcache/v3"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // creates available endpoints and attaches handlers for each endpoint
-func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache) {
-	// creating a new valid session for management of shared variables
-	appsession := models.New(db, cache)
 
-	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
-	router.Use(sessions.Sessions("occupi-sessions-store", store))
-
+func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	ping := router.Group("/ping")
 	{
 		ping.GET("", func(ctx *gin.Context) { handlers.PingHandler(ctx) })
@@ -51,7 +41,9 @@ func OccupiRouter(router *gin.Engine, db *mongo.Client, cache *bigcache.BigCache
 		api.GET("/view-rooms", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewRooms(ctx, appsession) })
 		api.GET("/user-details", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetUserDetails(ctx, appsession) })
 		api.PUT("/update-user", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateUserDetails(ctx, appsession) })
-		api.GET("/filter-users", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FilterUsers(ctx, appsession) })
+		api.GET("/get-users", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Users") })
+		api.GET("/get-push-tokens", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetPushTokens(ctx, appsession) })
+		api.GET("/get-notifications", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Notifications") })
 	}
 	auth := router.Group("/auth")
 	{

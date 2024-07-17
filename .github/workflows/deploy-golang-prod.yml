@@ -95,6 +95,21 @@ jobs:
           script: |
               cd /home/${{ secrets.VM_USERNAME }}/occupi-backend-prod/occupi-backend
               echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml down
-              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml pull
-              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml up -d
+              MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+              MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+              docker compose -f docker-compose.prod.yml down
+              MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+              MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+              docker compose -f docker-compose.prod.yml pull
+              MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+              MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+              docker compose -f docker-compose.prod.yml up -d

@@ -49,7 +49,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
     const [checkedIn, setCheckedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
-    const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+    const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
     const checkinendpoint = process.env.EXPO_PUBLIC_CHECK_IN;
     const cancelbookingendpoint = process.env.EXPO_PUBLIC_CANCEL_BOOKING;
 

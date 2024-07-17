@@ -11,7 +11,10 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+
 	"github.com/stretchr/testify/assert"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -27,18 +30,24 @@ import (
 )
 
 func TestMockDatabase(t *testing.T) {
-	// connect to the database
-	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
-
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()
 
+	// connect to the database
+	appsession := &models.AppSession{
+		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
+		Cache: configs.CreateCache(),
+	}
+
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register the route
-	router.OccupiRouter(r, db, cache)
+	router.OccupiRouter(r, appsession)
 
 	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
@@ -96,7 +105,8 @@ func TestGetAllData(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		users := database.GetAllData(ctx, models.New(nil, nil))
+		appsession := &models.AppSession{}
+		users := database.GetAllData(ctx, appsession)
 
 		// Validate the result
 		assert.Nil(t, users)
@@ -106,7 +116,10 @@ func TestGetAllData(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, onSiteTrueDocs...))
 
 		// Call the function under test
-		users := database.GetAllData(ctx, models.New(mt.Client, nil))
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		users := database.GetAllData(ctx, appsession)
 
 		// Validate the result
 		expected := []bson.M{
@@ -141,7 +154,8 @@ func TestEmailExists(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		exists := database.EmailExists(ctx, models.New(nil, nil), email)
+		appsession := &models.AppSession{}
+		exists := database.EmailExists(ctx, appsession, email)
 
 		// Validate the result
 		assert.False(t, exists)
@@ -153,7 +167,10 @@ func TestEmailExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists := database.EmailExists(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		exists := database.EmailExists(ctx, appsession, email)
 
 		// Validate the result
 		assert.True(t, exists)
@@ -166,8 +183,13 @@ func TestEmailExists(t *testing.T) {
 
 		cache := configs.CreateCache()
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		exists := database.EmailExists(ctx, models.New(mt.Client, cache), email)
+		exists := database.EmailExists(ctx, appsession, email)
 
 		// Validate the result
 		assert.True(t, exists)
@@ -182,7 +204,10 @@ func TestEmailExists(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch))
 
 		// Call the function under test
-		exists := database.EmailExists(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		exists := database.EmailExists(ctx, appsession, email)
 
 		// Validate the result
 		assert.False(t, exists)
@@ -195,7 +220,10 @@ func TestEmailExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists := database.EmailExists(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		exists := database.EmailExists(ctx, appsession, email)
 
 		// Validate the result
 		assert.False(t, exists)
@@ -221,7 +249,7 @@ func TestAddUser(t *testing.T) {
 	// Optionally, set any values in the context.
 	ctx.Set("test", "test")
 
-	user := models.RequestUser{
+	user := models.RegisterUser{
 		EmployeeID: "12345",
 		Password:   "password123",
 		Email:      "test@example.com",
@@ -229,7 +257,8 @@ func TestAddUser(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		success, err := database.AddUser(ctx, models.New(nil, nil), user)
+		appsession := &models.AppSession{}
+		success, err := database.AddUser(ctx, appsession, user)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -240,7 +269,10 @@ func TestAddUser(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.AddUser(ctx, models.New(mt.Client, nil), user)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.AddUser(ctx, appsession, user)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -252,8 +284,13 @@ func TestAddUser(t *testing.T) {
 
 		cache := configs.CreateCache()
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		success, err := database.AddUser(ctx, models.New(mt.Client, cache), user)
+		success, err := database.AddUser(ctx, appsession, user)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -273,7 +310,10 @@ func TestAddUser(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.AddUser(ctx, models.New(mt.Client, nil), user)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.AddUser(ctx, appsession, user)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -307,7 +347,8 @@ func TestOTPExists(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, models.New(nil, nil), email, otp)
+		appsession := &models.AppSession{}
+		exists, err := database.OTPExists(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -322,7 +363,10 @@ func TestOTPExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		exists, err := database.OTPExists(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -355,8 +399,13 @@ func TestOTPExists(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, otpA)
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, models.New(mt.Client, cache), email, otp)
+		exists, err := database.OTPExists(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -371,7 +420,10 @@ func TestOTPExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		exists, err := database.OTPExists(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -404,8 +456,13 @@ func TestOTPExists(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, otpA)
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, models.New(mt.Client, cache), email, otp)
+		exists, err := database.OTPExists(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -416,7 +473,10 @@ func TestOTPExists(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OTPS", mtest.FirstBatch))
 
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		exists, err := database.OTPExists(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -430,7 +490,10 @@ func TestOTPExists(t *testing.T) {
 		}))
 
 		// Call the function under test
-		exists, err := database.OTPExists(ctx, models.New(mt.Client, nil), email, otp)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		exists, err := database.OTPExists(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -462,7 +525,8 @@ func TestAddOTP(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		success, err := database.AddOTP(ctx, models.New(nil, nil), email, otp)
+		appsession := &models.AppSession{}
+		success, err := database.AddOTP(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -473,7 +537,10 @@ func TestAddOTP(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.AddOTP(ctx, models.New(mt.Client, nil), email, otp)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.AddOTP(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -487,8 +554,13 @@ func TestAddOTP(t *testing.T) {
 
 		cache := configs.CreateCache()
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		success, err := database.AddOTP(ctx, models.New(mt.Client, cache), email, otp)
+		success, err := database.AddOTP(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -508,7 +580,10 @@ func TestAddOTP(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.AddOTP(ctx, models.New(mt.Client, nil), email, otp)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.AddOTP(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -540,7 +615,8 @@ func TestDeleteOTP(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		success, err := database.DeleteOTP(ctx, models.New(nil, nil), email, otp)
+		appsession := &models.AppSession{}
+		success, err := database.DeleteOTP(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -551,7 +627,10 @@ func TestDeleteOTP(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.DeleteOTP(ctx, models.New(mt.Client, nil), email, otp)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.DeleteOTP(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -567,7 +646,10 @@ func TestDeleteOTP(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.DeleteOTP(ctx, models.New(mt.Client, nil), email, otp)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.DeleteOTP(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -598,7 +680,8 @@ func TestVerifyUser(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, models.New(nil, nil), email, ctx.ClientIP())
+		appsession := &models.AppSession{}
+		success, err := database.VerifyUser(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.Error(t, err)
@@ -613,7 +696,10 @@ func TestVerifyUser(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.VerifyUser(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -631,8 +717,13 @@ func TestVerifyUser(t *testing.T) {
 
 		cache := configs.CreateCache()
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, models.New(mt.Client, cache), email, ctx.ClientIP())
+		success, err := database.VerifyUser(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -671,8 +762,13 @@ func TestVerifyUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, models.New(mt.Client, cache), email, ctx.ClientIP())
+		success, err := database.VerifyUser(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -705,7 +801,10 @@ func TestVerifyUser(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.VerifyUser(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.VerifyUser(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.Error(t, err)
@@ -737,7 +836,8 @@ func TestGetPassword(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		pass, err := database.GetPassword(ctx, models.New(nil, nil), email)
+		appsession := &models.AppSession{}
+		pass, err := database.GetPassword(ctx, appsession, email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -751,7 +851,10 @@ func TestGetPassword(t *testing.T) {
 		}))
 
 		// Call the function under test
-		pass, err := database.GetPassword(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		pass, err := database.GetPassword(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -783,8 +886,13 @@ func TestGetPassword(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, pass)
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		passwordv, err := database.GetPassword(ctx, models.New(mt.Client, cache), email)
+		passwordv, err := database.GetPassword(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -798,7 +906,10 @@ func TestGetPassword(t *testing.T) {
 		}))
 
 		// Call the function under test
-		pass, err := database.GetPassword(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		pass, err := database.GetPassword(ctx, appsession, email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -829,7 +940,8 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		isVerified, err := database.CheckIfUserIsVerified(ctx, models.New(nil, nil), email)
+		appsession := &models.AppSession{}
+		isVerified, err := database.CheckIfUserIsVerified(ctx, appsession, email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -843,7 +955,10 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isVerified, err := database.CheckIfUserIsVerified(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isVerified, err := database.CheckIfUserIsVerified(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -857,7 +972,10 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isVerified, err := database.CheckIfUserIsVerified(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isVerified, err := database.CheckIfUserIsVerified(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -871,7 +989,10 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isVerified, err := database.CheckIfUserIsVerified(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isVerified, err := database.CheckIfUserIsVerified(ctx, appsession, email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -902,7 +1023,8 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		success, err := database.UpdateVerificationStatusTo(ctx, models.New(nil, nil), email, true)
+		appsession := &models.AppSession{}
+		success, err := database.UpdateVerificationStatusTo(ctx, appsession, email, true)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -913,7 +1035,10 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
-		success, err := database.UpdateVerificationStatusTo(ctx, models.New(mt.Client, nil), email, true)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.UpdateVerificationStatusTo(ctx, appsession, email, true)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -929,7 +1054,10 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		}))
 
 		// Call the function under test
-		success, err := database.UpdateVerificationStatusTo(ctx, models.New(mt.Client, nil), email, true)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.UpdateVerificationStatusTo(ctx, appsession, email, true)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -960,7 +1088,8 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(nil, nil), email)
+		appsession := &models.AppSession{}
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -974,7 +1103,10 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1006,8 +1138,13 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, cache), email)
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1021,7 +1158,10 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1053,8 +1193,13 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, cache), email)
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1074,7 +1219,10 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		}))
 
 		// Call the function under test
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, models.New(mt.Client, nil), email)
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
 
 		// Validate the result
 		assert.Error(t, err)
@@ -1606,8 +1754,15 @@ func TestFilterUsersWithProjection(t *testing.T) {
 				gin.SetMode(configs.GetGinRunMode())
 				ctx, _ := gin.CreateTestContext(nil)
 
+				filter := models.FilterStruct{
+					Filter:     tt.filter,
+					Projection: tt.projection,
+					Limit:      tt.limit,
+					Skip:       tt.skip,
+				}
+
 				// Execute the function
-				results, count, err := database.FilterUsersWithProjection(ctx, tt.appSession, tt.filter, tt.projection, tt.limit, tt.skip)
+				results, count, err := database.FilterCollectionWithProjection(ctx, tt.appSession, "Users", filter)
 
 				// Validate results
 				if !reflect.DeepEqual(results, tt.expectedResult) {
@@ -1639,7 +1794,9 @@ func TestFilterUsersWithProjectionSuccess(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(w)
 
 	// Create a new AppSession with the cache
-	appSession := models.New(db, nil)
+	appSession := &models.AppSession{
+		DB: db,
+	}
 
 	// Mock the DB response
 	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
@@ -1674,8 +1831,15 @@ func TestFilterUsersWithProjectionSuccess(t *testing.T) {
 		}
 	}
 
+	filter_arg := models.FilterStruct{
+		Filter:     filter,
+		Projection: projection,
+		Limit:      int64(limit),
+		Skip:       int64(skip),
+	}
+
 	// Execute the function
-	results, count, err := database.FilterUsersWithProjection(ctx, appSession, filter, projection, int64(limit), int64(skip))
+	results, count, err := database.FilterCollectionWithProjection(ctx, appSession, "Users", filter_arg)
 
 	// Validate results
 	if err != nil {
@@ -1718,7 +1882,8 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Call the function under test
-		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(nil, nil), email, ctx.ClientIP())
+		appsession := &models.AppSession{}
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.Error(t, err)
@@ -1732,7 +1897,10 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		}))
 
 		// Call the function under test
-		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1756,7 +1924,10 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		}))
 
 		// Call the function under test
-		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1777,7 +1948,10 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		}))
 
 		// Call the function under test
-		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, nil), email, ctx.ClientIP())
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1819,8 +1993,13 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, cache), email, ctx.ClientIP())
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1859,8 +2038,13 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
 
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
 		// Call the function under test
-		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(mt.Client, cache), email, ctx.ClientIP())
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.NoError(t, err)
@@ -1878,11 +2062,109 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		}))
 
 		// Call the function under test
-		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, models.New(nil, nil), email, ctx.ClientIP())
+		appsession := &models.AppSession{}
+		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
 		assert.Error(t, err)
 		assert.False(t, yes)
 		assert.Nil(t, info)
+	})
+}
+
+func TestGetUsersPushTokens(t *testing.T) {
+	users := []models.User{
+		{
+			Email:         "TestGetUsersPushTokens1@example.com",
+			ExpoPushToken: "b1b2b3b4b5b6b7b8b9b0",
+		},
+		{
+			Email:         "TestGetUsersPushTokens2@example.com",
+			ExpoPushToken: "a1a2a3a4a5a6a7a8a9a0",
+		},
+	}
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := &models.AppSession{
+		DB: db,
+	}
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// Insert test users into the database
+	for _, user := range users {
+		_, err := collection.InsertOne(ctx, user)
+
+		if err != nil {
+			t.Fatalf("Failed to insert test user into database: %v", err)
+		}
+	}
+
+	// Test case: Database is nil
+	t.Run("Database is nil", func(t *testing.T) {
+		emails := []string{"test@example.com"}
+
+		appsession := &models.AppSession{}
+		results, err := database.GetUsersPushTokens(ctx, appsession, emails)
+		assert.Nil(t, results)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	// Test case: Empty emails
+	t.Run("Empty emails", func(t *testing.T) {
+		emails := []string{}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.Nil(t, results)
+		assert.NotNil(t, err)
+		assert.EqualError(t, err, "no emails provided")
+	})
+
+	// Test case: No matching users
+	t.Run("No matching users", func(t *testing.T) {
+		emails := []string{"TestGetUsersPushTokens3@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.Nil(t, results)
+		assert.Nil(t, err)
+	})
+
+	// Test case: Successful query with one user
+	t.Run("Successful query with one user a", func(t *testing.T) {
+		emails := []string{"TestGetUsersPushTokens1@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.NoError(t, err)
+		assert.Len(t, results, 1)
+		assert.Equal(t, users[0].ExpoPushToken, results[0]["expoPushToken"])
+	})
+
+	t.Run("Successful query with one user b", func(t *testing.T) {
+		emails := []string{"TestGetUsersPushTokens2@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.NoError(t, err)
+		assert.Len(t, results, 1)
+		assert.Equal(t, users[1].ExpoPushToken, results[0]["expoPushToken"])
+	})
+
+	// Test case: Successful query with two users
+	t.Run("Successful query with two users", func(t *testing.T) {
+		emails := []string{"TestGetUsersPushTokens1@example.com", "TestGetUsersPushTokens2@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		assert.NoError(t, err)
+		assert.Len(t, results, 2)
+		assert.Equal(t, users[0].ExpoPushToken, results[0]["expoPushToken"])
+		assert.Equal(t, users[1].ExpoPushToken, results[1]["expoPushToken"])
 	})
 }
