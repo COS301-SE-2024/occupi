@@ -27,6 +27,8 @@ import (
 	"time"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	nrgin "github.com/newrelic/go-agent/v3/integrations/nrgin"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -76,6 +78,9 @@ func main() {
 
 	// adding newrelic middleware
 	attachNewRelicMiddleware(ginRouter)
+
+	// attach session middleware
+	attachSessionMiddleware(ginRouter)
 
 	// Register routes
 	router.OccupiRouter(ginRouter, appsession)
@@ -127,6 +132,12 @@ func attachNewRelicMiddleware(ginRouter *gin.Engine) {
 		// adding newrelic middleware
 		ginRouter.Use(nrgin.Middleware(app))
 	}
+}
+
+func attachSessionMiddleware(ginRouter *gin.Engine) {
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
 }
 
 func runServer(ginRouter *gin.Engine) {
