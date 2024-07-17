@@ -18,7 +18,7 @@ services:
       - /etc/letsencrypt/live/dev.occupi.tech/privkey.pem:/etc/letsencrypt/live/dev.occupi.tech/privkey.pem:ro
     restart: on-failure:5
     depends_on:
-        rabbitmq-dev-local:
+        rabbitmq-dev:
           condition: service_healthy
       
   rabbitmq-dev:
