@@ -18,7 +18,7 @@ const NavBar = () => {
     setCurrentTab(tabName);
     router.replace(route);
   };
-  console.log(currentTab);
+  // console.log(currentTab);
 
   return (
     <BlurView
