@@ -322,7 +322,7 @@ func SantizeFilter(queryInput models.QueryInput) primitive.M {
 	} else { // accepts gt, gte, lt, lte, eq, ne, in, nin operators
 		filter = bson.M{}
 		for key, value := range queryInput.Filter {
-			filter[key] = bson.M{fmt.Sprintf("$%s", queryInput.Operator): value}
+			filter[key] = bson.M{"$" + queryInput.Operator: value}
 		}
 	}
 
@@ -337,13 +337,14 @@ func SanitizeSort(queryInput models.QueryInput) primitive.M {
 	delete(queryInput.Filter, "password")
 	delete(queryInput.Filter, "unsentExpoPushTokens")
 
-	if queryInput.OrderAsc != "" && queryInput.OrderDesc != "" {
+	switch {
+	case queryInput.OrderAsc != "" && queryInput.OrderDesc != "":
 		return bson.M{queryInput.OrderAsc: 1, queryInput.OrderDesc: -1}
-	} else if queryInput.OrderAsc != "" {
+	case queryInput.OrderAsc != "":
 		return bson.M{queryInput.OrderAsc: 1}
-	} else if queryInput.OrderDesc != "" {
+	case queryInput.OrderDesc != "":
 		return bson.M{queryInput.OrderDesc: -1}
-	} else {
+	default:
 		return bson.M{}
 	}
 }
@@ -362,20 +363,20 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 
 func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
 	const passwordField = "password"
-	const unsentExpoPushTokensField = "unsentExpoPushTokens"
+	const uEPTField = "unsentExpoPushTokens"
 	const emailsField = "emails"
 	projection := bson.M{}
 	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
 		projection[passwordField] = 0 // Exclude password by default
-		projection[unsentExpoPushTokensField] = 0
+		projection[uEPTField] = 0
 		projection[emailsField] = 0
 	} else {
 		for _, field := range sanitizedProjection {
 			switch field {
 			case passwordField:
 				projection[passwordField] = 0
-			case unsentExpoPushTokensField:
-				projection[unsentExpoPushTokensField] = 0
+			case uEPTField:
+				projection[uEPTField] = 0
 			case emailsField:
 				projection[emailsField] = 0
 			default:

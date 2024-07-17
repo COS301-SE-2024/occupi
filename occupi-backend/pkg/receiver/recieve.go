@@ -1,8 +1,8 @@
-package reciever
+package receiver
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -53,19 +53,22 @@ func StartConsumeMessage(appsession *models.AppSession) {
 			// to account for discrepancies in time, we should allow for a range of 5 seconds before and after the scheduled time
 			// whereby we can send the notification, after that, we should discard the notification, else if there
 			// is still more than 5 seconds before the scheduled time, we should wait until the time is right
-			if time.Now().After(sendTime.Add(-5*time.Second)) && time.Now().Before(sendTime.Add(5*time.Second)) {
+			now := time.Now()
+
+			switch {
+			case now.After(sendTime.Add(-5*time.Second)) && now.Before(sendTime.Add(5*time.Second)):
 				err := SendPushNotification(notification, appsession)
 				if err != nil {
 					logrus.Error("Failed to send push notification: ", err)
 				}
-			} else if time.Now().Before(sendTime.Add(-5 * time.Second)) {
+			case now.Before(sendTime.Add(-5 * time.Second)):
 				// wait until the time is right
 				time.Sleep(time.Until(sendTime))
 				err := SendPushNotification(notification, appsession)
 				if err != nil {
 					logrus.Error("Failed to send push notification: ", err)
 				}
-			} else {
+			default:
 				logrus.Error("Failed to send push notification: ", "notification time has passed")
 			}
 		}
@@ -118,7 +121,7 @@ func SendPushNotification(notification models.ScheduledNotification, appsession 
 
 	if !success {
 		logrus.Error("Failed to update notification: ", err)
-		return fmt.Errorf("failed to update notification")
+		return errors.New("failed to update notification")
 	}
 
 	return nil

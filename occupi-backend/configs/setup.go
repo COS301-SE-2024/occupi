@@ -50,7 +50,8 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	if err != nil {
 		fmt.Println("Error connecting to MongoDB") // debug
 		logrus.Fatal(err)
-		client.Disconnect(ctx)
+		errv := client.Disconnect(ctx)
+		logrus.Fatal(errv)
 	}
 
 	// Check the connection
@@ -60,7 +61,7 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 		logrus.Fatal(err)
 	}
 
-	fmt.Println("Connected to MongoDB!") //debug
+	fmt.Println("Connected to MongoDB!") // debug
 	logrus.Info("Connected to MongoDB!")
 
 	return client

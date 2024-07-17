@@ -10,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -33,6 +35,9 @@ func TestProtectedRoute(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -65,6 +70,9 @@ func TestProtectedRouteAuthHeader(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -99,6 +107,9 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 	// Create a Gin router
 	r := gin.Default()
 
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
@@ -125,6 +136,9 @@ func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 	// Create a Gin router
 	r := gin.Default()
 
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
@@ -150,6 +164,9 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -197,6 +214,9 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -247,6 +267,9 @@ func TestAdminRoute(t *testing.T) {
 	// Create a Gin router
 	r := gin.Default()
 
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
@@ -278,6 +301,9 @@ func TestAdminRouteAuthHeader(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -312,6 +338,9 @@ func TestUnauthorizedAccess(t *testing.T) {
 	// Create a Gin router
 	r := gin.Default()
 
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
@@ -336,6 +365,9 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -364,6 +396,9 @@ func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -394,6 +429,9 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 	// Create a Gin router
 	r := gin.Default()
 
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
@@ -423,6 +461,9 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// Create a Gin router
 	r := gin.Default()
 
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
@@ -450,6 +491,9 @@ func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -479,6 +523,9 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -524,6 +571,9 @@ func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 
 	// Create a Gin router
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -574,6 +624,9 @@ func TestRateLimit(t *testing.T) {
 
 	// adding rate limiting middleware
 	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register routes
 	router.OccupiRouter(ginRouter, appsession)
@@ -628,6 +681,9 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 
 	// adding rate limiting middleware
 	middleware.AttachRateLimitMiddleware(ginRouter)
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register routes
 	router.OccupiRouter(ginRouter, appsession)
