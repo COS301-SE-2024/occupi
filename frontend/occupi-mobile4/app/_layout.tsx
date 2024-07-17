@@ -6,6 +6,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 import { GluestackUIProvider } from "@gluestack-ui/themed";
+import { NavBarProvider } from '@/components/NavBarProvider';
 import { config } from "@gluestack-ui/config"; // Optional if you want to use default theme
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -31,6 +32,7 @@ export default function RootLayout() {
 
   return (
     <GluestackUIProvider config={config} theme={theme}>
+      <NavBarProvider>
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -56,6 +58,7 @@ export default function RootLayout() {
         <Stack.Screen name="set-security" options={{ headerShown: false }} />
         <Stack.Screen name="notiftester" options={{ headerShown: false }} />
       </Stack>
+      </NavBarProvider>
     </GluestackUIProvider>
   );
 }
