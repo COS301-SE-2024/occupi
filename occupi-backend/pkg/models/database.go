@@ -60,9 +60,8 @@ type Details struct {
 }
 
 type Notifications struct {
-	Allow           *bool `json:"allow" bson:"allow"`
+	Invites         *bool `json:"invites" bson:"invites"`
 	BookingReminder *bool `json:"bookingReminder" bson:"bookingReminder"`
-	MaxCapacity     *bool `json:"maxCapacity" bson:"maxCapacity"`
 }
 
 type Security struct {
