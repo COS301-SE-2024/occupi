@@ -1796,10 +1796,16 @@ func TestGetUsersPushTokens(t *testing.T) {
 		{
 			Email:         "TestGetUsersPushTokens1@example.com",
 			ExpoPushToken: "b1b2b3b4b5b6b7b8b9b0",
+			Notifications: &models.Notifications{
+				Invites: true,
+			},
 		},
 		{
 			Email:         "TestGetUsersPushTokens2@example.com",
 			ExpoPushToken: "a1a2a3a4a5a6a7a8a9a0",
+			Notifications: &models.Notifications{
+				Invites: true,
+			},
 		},
 	}
 	// Create database connection and cache
