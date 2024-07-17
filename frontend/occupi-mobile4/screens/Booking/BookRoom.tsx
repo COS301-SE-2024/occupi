@@ -12,6 +12,7 @@ import {
 import Navbar from '../../components/NavBar';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
+import { Skeleton } from 'moti/skeleton';
 
 const groupDataInPairs = (data) => {
   if (!data) return [];
@@ -39,6 +40,7 @@ const BookRoom = () => {
   const toast = useToast();
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [layout, setLayout] = useState("row");
+  const [loading, setLoading] = useState(true);
   const [roomData, setRoomData] = useState<Room[]>([]);
   const toggleLayout = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
@@ -62,18 +64,10 @@ const BookRoom = () => {
         // console.log(data);
         if (response.ok) {
           setRoomData(data.data || []); // Ensure data is an array
-          // toast.show({
-          //   placement: 'top',
-          //   render: ({ id }) => {
-          //     return (
-          //       <Toast nativeID={id} variant="accent" action="success">
-          //         <ToastTitle>{data.message}</ToastTitle>
-          //       </Toast>
-          //     );
-          //   },
-          // });
+          setLoading(false);
         } else {
           console.log(data);
+          setLoading(false);
           toast.show({
             placement: 'top',
             render: ({ id }) => {
@@ -142,7 +136,20 @@ const BookRoom = () => {
             </TouchableOpacity>
           </View>
         </View>
-        {layout === "grid" ? (
+        {loading === true ? (
+                <>
+                    <View mt='$4' paddingHorizontal={11}>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                    <View mt='$2' paddingHorizontal={11}>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                    <View mt='$2' paddingHorizontal={11}>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                </>
+            ) :
+        layout === "grid" ? (
           <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11, marginBottom: 84 }} showsVerticalScrollIndicator={false}>
             {roomPairs.map((pair, index) => (
               <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>

@@ -96,6 +96,10 @@ const SignInForm = () => {
     await SecureStore.setItemAsync('Token', value);
   }
 
+  async function storeUserEmail(value) {
+    await SecureStore.setItemAsync('Email', value);
+  }
+
 
   const handleBiometricSignIn = async () => {
     const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
@@ -188,7 +192,6 @@ const SignInForm = () => {
         try {
           let authToken = await SecureStore.getItemAsync('Token');
           // console.log(authToken);
-
           const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${_data.email}`, {
             method: 'GET',
             headers: {
