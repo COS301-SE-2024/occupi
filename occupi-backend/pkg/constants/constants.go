@@ -13,4 +13,11 @@ const (
 	EmailsSentLimit           = 50
 	RecipientsLimit           = 10
 	RateLimitCode             = "RATE_LIMIT"
+	TwoFAEnabledEmail         = "twoFAEnabled"
+	VerifyEmail               = "verifyEmail"
+	ReverifyEmail             = "reverifyEmail"
+	ResetPassword             = "resetPassword"
+	ChangePassword            = "changePassword"
+	ChangeEmail               = "changeEmail"
+	ConfirmIPAddress          = "confirmIPAddress"
 )

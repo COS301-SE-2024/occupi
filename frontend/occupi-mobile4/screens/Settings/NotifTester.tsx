@@ -17,7 +17,10 @@ Notifications.setNotificationHandler({
 
 async function sendPushNotification(expoPushToken: string) {
   const message = {
-    to: expoPushToken,
+    trigger: {
+      seconds: 10
+    },
+    to: "ExponentPushToken[ARLofOIiMGuJjE2EQTWQWq]",
     sound: 'default',
     title: 'Original Title',
     body: 'And here is the body!',

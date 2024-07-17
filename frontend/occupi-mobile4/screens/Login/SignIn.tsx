@@ -38,7 +38,6 @@ import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import GradientButton from '@/components/GradientButton';
@@ -68,6 +67,10 @@ const SignInForm = () => {
   } = useForm<SignInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const loginUrl = process.env.EXPO_PUBLIC_LOGIN;
+  const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
+  console.log(apiUrl + "" +loginUrl);
   const isEmailFocused = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -91,6 +94,10 @@ const SignInForm = () => {
 
   async function storeToken(value) {
     await SecureStore.setItemAsync('Token', value);
+  }
+
+  async function storeUserEmail(value) {
+    await SecureStore.setItemAsync('Email', value);
   }
 
 
@@ -155,7 +162,7 @@ const SignInForm = () => {
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
     try {
-      const response = await fetch('https://dev.occupi.tech/auth/login-mobile', {
+      const response = await fetch(`${apiUrl}${loginUrl}`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -185,8 +192,7 @@ const SignInForm = () => {
         try {
           let authToken = await SecureStore.getItemAsync('Token');
           // console.log(authToken);
-
-          const response = await fetch(`https://dev.occupi.tech/api/user-details?email=${_data.email}`, {
+          const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${_data.email}`, {
             method: 'GET',
             headers: {
               Accept: 'application/json',
