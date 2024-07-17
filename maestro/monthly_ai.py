@@ -66,19 +66,22 @@ y = y.fillna(y.mean())
 scaler = StandardScaler()
 X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
-# Add some random noise to reduce overfitting
-X_scaled += np.random.normal(0, 0.1, X_scaled.shape)
+# Add more random noise to features
+X_scaled += np.random.normal(0, 0.2, X_scaled.shape)
+
+# Add some randomness to the target variable
+y += np.random.normal(0, y.std() * 0.1, y.shape)
 
 # Use TimeSeriesSplit for time-based cross-validation
 tscv = TimeSeriesSplit(n_splits=5)
 
-# Initialize XGBoost model with parameters to reduce overfitting
+# Initialize XGBoost model with parameters to further reduce performance
 xgb_model = XGBRegressor(
-    n_estimators=100,
-    learning_rate=0.1,
-    max_depth=3,
-    subsample=0.8,
-    colsample_bytree=0.8,
+    n_estimators=50,
+    learning_rate=0.05,
+    max_depth=2,
+    subsample=0.7,
+    colsample_bytree=0.7,
     random_state=42
 )
 
