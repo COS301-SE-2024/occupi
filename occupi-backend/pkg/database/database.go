@@ -335,7 +335,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 			"isVerified":           true,
 			"nextVerificationDate": time.Now().AddDate(0, 0, 30),
 		},
-		"$push": bson.M{
+		"$addToSet": bson.M{
 			"knownLocations": location,
 		},
 	}
@@ -602,9 +602,8 @@ func AddFieldToUpdateMap(updateFields bson.M, fieldName string, fieldValue inter
 	case *models.Notifications:
 		if value != nil {
 			nestedFields := bson.M{}
-			AddFieldToUpdateMap(nestedFields, "allow", value.Allow)
+			AddFieldToUpdateMap(nestedFields, "invites", value.Invites)
 			AddFieldToUpdateMap(nestedFields, "bookingReminder", value.BookingReminder)
-			AddFieldToUpdateMap(nestedFields, "maxCapacity", value.MaxCapacity)
 			if len(nestedFields) > 0 {
 				updateFields[fieldName] = nestedFields
 			}
@@ -942,7 +941,7 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 		return false, info, nil
 	}
 
-	// Check if the user is an admin
+	// Check if the user exists in the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	filter := bson.M{"email": email}
 	var user models.User
@@ -979,7 +978,7 @@ func GetUsersPushTokens(ctx *gin.Context, appsession *models.AppSession, emails 
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
-	filter := bson.M{"email": bson.M{"$in": emails}}
+	filter := bson.M{"email": bson.M{"$in": emails}, "notifications.invites": true}
 
 	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
@@ -1064,14 +1063,11 @@ func ReadNotifications(ctx *gin.Context, appsession *models.AppSession, email st
 
 	updateProjection := bson.M{"$pull": bson.M{"unreadEmails": email}}
 
-	res, err := collection.UpdateMany(ctx, updateFilter, updateProjection)
+	_, err := collection.UpdateMany(ctx, updateFilter, updateProjection)
 	if err != nil {
 		logrus.Error(err)
 		return err
 	}
-
-	// log the number of notifications updated
-	logrus.Info("Updated ", res.ModifiedCount, " notifications")
 
 	return nil
 }
