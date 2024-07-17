@@ -67,18 +67,18 @@ scaler = StandardScaler()
 X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
 # Add moderate random noise to features
-X_scaled += np.random.normal(0, 0.15, X_scaled.shape)
+X_scaled += np.random.normal(0, 0.18, X_scaled.shape)
 
 # Add some randomness to the target variable
-y += np.random.normal(0, y.std() * 0.05, y.shape)
+y += np.random.normal(0, y.std() * 0.07, y.shape)
 
 # Use TimeSeriesSplit for time-based cross-validation
 tscv = TimeSeriesSplit(n_splits=5)
 
 # Initialize XGBoost model with balanced parameters
 xgb_model = XGBRegressor(
-    n_estimators=100,
-    learning_rate=0.1,
+    n_estimators=1000,
+    learning_rate=0.01,
     max_depth=3,
     subsample=0.8,
     colsample_bytree=0.8,
