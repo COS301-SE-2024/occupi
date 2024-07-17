@@ -43,7 +43,7 @@ return (
             <DropdownItem key="profile" className="h-14 gap-2">
                 <p className="font-bold text-text_col">Signed in as</p>
                 <p className="font-bold text-text_col">{userDetails?.email}</p>
-                <p className="text-text_col">Email: {userDetails?.email}</p>
+                {/* <p className="text-text_col">Email: {userDetails?.email}</p> */}
             </DropdownItem>
             <DropdownItem key="/notifications" shortcut="⌘N" startContent={<Bell />}>Notifications</DropdownItem>
             <DropdownItem key="/settings" shortcut="⌘S" startContent={<SettingsIcon />}>Settings</DropdownItem>
