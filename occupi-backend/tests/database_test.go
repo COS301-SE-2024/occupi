@@ -10,7 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+
 	"github.com/stretchr/testify/assert"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -37,6 +40,10 @@ func TestMockDatabase(t *testing.T) {
 		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
 		Cache: configs.CreateCache(),
 	}
+
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)

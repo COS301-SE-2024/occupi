@@ -14,6 +14,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -39,6 +41,9 @@ func TestViewBookingsHandler(t *testing.T) {
 		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
 		Cache: configs.CreateCache(),
 	}
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -180,6 +185,9 @@ func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
 		Cache: configs.CreateCache(),
 	}
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register the route
 	router.OccupiRouter(r, appsession)
@@ -594,6 +602,9 @@ func TestPingRoute(t *testing.T) {
 		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
 		Cache: configs.CreateCache(),
 	}
+
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register routes
 	router.OccupiRouter(ginRouter, appsession)

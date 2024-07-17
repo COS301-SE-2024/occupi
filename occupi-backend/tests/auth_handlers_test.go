@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -28,6 +30,10 @@ func TestInvalidLogoutHandler(t *testing.T) {
 
 	// Create a Gin router
 	ginRouter := gin.Default()
+
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register routes
 	router.OccupiRouter(ginRouter, appsession)
@@ -62,6 +68,10 @@ func TestValidLogoutHandler(t *testing.T) {
 
 	// Create a Gin router
 	ginRouter := gin.Default()
+
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register routes
 	router.OccupiRouter(ginRouter, appsession)
@@ -125,6 +135,10 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 
 	// Create a Gin router
 	ginRouter := gin.Default()
+
+	// creating a new valid session for management of shared variables
+	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
+	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
 
 	// Register routes
 	router.OccupiRouter(ginRouter, appsession)
