@@ -35,8 +35,9 @@ The API also allows you to retrieve information about these resources.
       - [ViewBookings](#ViewBookings)
       - [CancelBooking](#CancelBooking)
       - [CheckIn](#CheckIn)
-      - [Users](#users)
-      - [Roles](#roles)
+      - [Get Users](#Get-users)
+      - [Get Notifications](#Get-notifications)
+      - [Get push tokens](#Get-push-tokens)
 
 ## Base URL
 
@@ -984,16 +985,16 @@ If there are any errors during the process, appropriate error messages are retur
 - **Code:** 500
 - **Content:** `{ "status":  500, "message": "Failed to update user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update user details"} }`
 
-### FilterUsers
+### Get Users
 
-This endpoint is used to filter users in the Occupi system.
-The client needs to provide the filter criteria.
+This endpoint is used to get users in the Occupi system.
+The client can provide a filter criteria if they want to.
 Upon a successful request, a list of users that match the filter criteria is returned.
 If there are any errors during the process, appropriate error messages are returned.
 
 - **URL**
 
-  `/api/filter-users`
+  `/api/get-users`
 
 - **Method**
     
@@ -1005,30 +1006,120 @@ If there are any errors during the process, appropriate error messages are retur
 
 ```json copy
 {
+    "operator": "eq", // eq, ne, gt, gte, lt, lte, in, nin default to eq
     "filter": {
-        "onSite": true
+        "onSite": true // this is a filter to filter by
     },
-    "projection": ["email", "role"],
+    "order_asc": "role", // column to sort in ascending order
+    "order_desc": "email", // column to sort in descending order
+    "projection": ["email", "role"], // this is which columns you want returned
     "limit": 50, // default is 50 and is the maximum
     "page": 1 // default is 1, but can be incremented to get the next page
 }
 
+```
+or as a url(note that the order in which you place the parameters does not matter, place them as you please)
+```copy
+https://dev.occupi.tech/api/filter-users?filter={"onSite": true}&projection=email,role&limit=50&page=1
 ```
 
 **Success Response**
 
 - **Code:** 200
 
-- **Content:** `{ "status":  200, "message": "Successfully fetched users!", "data": []"list of all users"], "meta": {"currentPage": 1,"totalPages": 20,"totalResults": 7}, }`
-
-**Error Response**
-
-- **Code:** 400
-
-- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Expected Department Number"}, }`
+- **Content:** `{ "status":  200, "message": "Successfully fetched users!", "data": ["list of all users"], "meta": {"currentPage": 1,"totalPages": 20,"totalResults": 7}, }`
 
 **Error Response**
 
 - **Code:** 500
 
 - **Content:** `{ "status":  500, "message": "Failed to get users", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get users"} }`
+
+### Get Notifications
+
+This endpoint is used to get notifications in the Occupi system.
+The client can provide a filter criteria if they want to.
+Upon a successful request, a list of notifications that match the filter criteria is returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/get-notifications`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+    "operator": "eq", // eq, ne, gt, gte, lt, lte, in, nin default to eq
+    "filter": {
+        "emails": ["test@example.com"] // this is a filter to filter by
+    },
+    "order_asc": "message", // column to sort in ascending order
+    "order_desc": "title", // column to sort in descending order
+    "projection": ["message", "title", "unreadEmails"], // this is which columns you want returned
+    "limit": 50, // default is 50 and is the maximum
+    "page": 1 // default is 1, but can be incremented to get the next page
+}
+
+```
+or as a url(note that the order in which you place the parameters does not matter, place them as you please)
+```copy
+https://dev.occupi.tech/api/get-notifications?filter={"emails": ["test@example.com"]}&projection=message,title,unreadEmails&limit=50&page=1
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched notifications!", "data": ["list of all notifications"], "meta": {"currentPage": 1,"totalPages": 20,"totalResults": 7}, }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Failed to get notifications", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get notifications"} }`
+
+### Get push tokens
+
+This endpoint is used to get the expo push tokens for the given emails
+
+- **URL**
+
+  `/api/get-push-tokens`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "emails": ["test@example.com"]
+}
+
+```
+or as a url(note that the order in which you place the parameters does not matter, place them as you please)
+```copy
+https://dev.occupi.tech/api/get-push-tokens?emails=test@example.com,test1@example.com,test2@example.com
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched tokens!", "data": ["list of all tokens"] }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Failed to get tokens", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get tokens"} }`

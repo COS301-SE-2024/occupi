@@ -97,7 +97,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 
 // handler for registering a new user on occupi /auth/register
 func Register(ctx *gin.Context, appsession *models.AppSession) {
-	var requestUser models.RequestUser
+	var requestUser models.RegisterUser
 	if err := ctx.ShouldBindBodyWithJSON(&requestUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,

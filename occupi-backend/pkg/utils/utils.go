@@ -107,11 +107,29 @@ func SanitizeInput(input string) string {
 	return p.Sanitize(input)
 }
 
+// sanitizes the given input of array of strings
+func SanitizeInputArray(input []string) []string {
+	for i, val := range input {
+		input[i] = SanitizeInput(val)
+	}
+	return input
+}
+
 // validates an email against a regex pattern
 func ValidateEmail(email string) bool {
 	// Regex pattern for email validation
 	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
+}
+
+// validates emails against a regex pattern
+func ValidateEmails(emails []string) bool {
+	for _, email := range emails {
+		if !ValidateEmail(email) {
+			return false
+		}
+	}
+	return true
 }
 
 // validates a password against a regex pattern
@@ -286,17 +304,56 @@ func SantizeFilter(queryInput models.QueryInput) primitive.M {
 		queryInput.Filter = make(map[string]interface{})
 	}
 	delete(queryInput.Filter, "password")
+	delete(queryInput.Filter, "unsentExpoPushTokens")
 
-	filter := bson.M(queryInput.Filter)
+	// ensure the operator is valid if present
+	if queryInput.Operator != "" && queryInput.Operator != "gt" &&
+		queryInput.Operator != "gte" && queryInput.Operator != "lt" &&
+		queryInput.Operator != "lte" && queryInput.Operator != "eq" &&
+		queryInput.Operator != "ne" && queryInput.Operator != "in" && queryInput.Operator != "nin" {
+		// default to "" if invalid operator
+		queryInput.Operator = ""
+	}
+
+	var filter primitive.M
+
+	if queryInput.Operator == "" {
+		return bson.M(queryInput.Filter)
+	} else { // accepts gt, gte, lt, lte, eq, ne, in, nin operators
+		filter = bson.M{}
+		for key, value := range queryInput.Filter {
+			filter[key] = bson.M{"$" + queryInput.Operator: value}
+		}
+	}
 
 	return filter
+}
+
+func SanitizeSort(queryInput models.QueryInput) primitive.M {
+	// Remove password field from filter if present
+	if queryInput.Filter == nil {
+		queryInput.Filter = make(map[string]interface{})
+	}
+	delete(queryInput.Filter, "password")
+	delete(queryInput.Filter, "unsentExpoPushTokens")
+
+	switch {
+	case queryInput.OrderAsc != "" && queryInput.OrderDesc != "":
+		return bson.M{queryInput.OrderAsc: 1, queryInput.OrderDesc: -1}
+	case queryInput.OrderAsc != "":
+		return bson.M{queryInput.OrderAsc: 1}
+	case queryInput.OrderDesc != "":
+		return bson.M{queryInput.OrderDesc: -1}
+	default:
+		return bson.M{}
+	}
 }
 
 func SantizeProjection(queryInput models.QueryInput) []string {
 	// Remove password field from projection if present
 	sanitizedProjection := []string{}
 	for _, field := range queryInput.Projection {
-		if field != "password" {
+		if field != "password" && field != "unsentExpoPushTokens" && field != "emails" {
 			sanitizedProjection = append(sanitizedProjection, field)
 		}
 	}
@@ -306,18 +363,29 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 
 func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
 	const passwordField = "password"
+	const uEPTField = "unsentExpoPushTokens"
+	const emailsField = "emails"
 	projection := bson.M{}
 	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
 		projection[passwordField] = 0 // Exclude password by default
+		projection[uEPTField] = 0
+		projection[emailsField] = 0
 	} else {
 		for _, field := range sanitizedProjection {
-			if field != passwordField {
-				projection[field] = 1
-			} else if field == passwordField {
+			switch field {
+			case passwordField:
 				projection[passwordField] = 0
+			case uEPTField:
+				projection[uEPTField] = 0
+			case emailsField:
+				projection[emailsField] = 0
+			default:
+				projection[field] = 1
 			}
 		}
 	}
+	// exclude _id field by default
+	projection["_id"] = 0
 
 	return projection
 }
@@ -335,4 +403,70 @@ func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
 	skip := (page - 1) * limit
 
 	return limit, page, skip
+}
+
+func ConstructBookingScheduledString(emails []string) string {
+	n := len(emails)
+	if n == 0 { // this cannot happen as the creator is always included in the emails
+		logrus.Error("No emails provided")
+		return ""
+	}
+
+	switch n {
+	case 1:
+		return fmt.Sprintf("A booking with %s has been scheduled", emails[0])
+	case 2:
+		return fmt.Sprintf("A booking with %s and %s has been scheduled", emails[0], emails[1])
+	default:
+		return fmt.Sprintf("A booking with %s, %s and %d others has been scheduled", emails[0], emails[1], n-1)
+	}
+}
+
+func ConstructBookingStartingInScheduledString(emails []string, startTime string) string {
+	n := len(emails)
+	if n == 0 { // this cannot happen as the creator is always included in the emails
+		logrus.Error("No emails provided")
+		return ""
+	}
+
+	if startTime == "now" {
+		startTime = "a few seconds"
+	}
+
+	switch n {
+	case 1:
+		return fmt.Sprintf("A booking with %s starts in %s", emails[0], startTime)
+	case 2:
+		return fmt.Sprintf("A booking with %s and %s starts in %s", emails[0], emails[1], startTime)
+	default:
+		return fmt.Sprintf("A booking with %s, %s and %d others starts in %s", emails[0], emails[1], n-1, startTime)
+	}
+}
+
+func PrependEmailtoSlice(emails []string, email string) []string {
+	emails = append([]string{email}, emails...)
+	return emails
+}
+
+func ConvertToStringArray(input interface{}) []string {
+	// Convert the input to a slice of strings
+	var stringArray []string
+	switch input := input.(type) {
+	case string:
+		stringArray = append(stringArray, input)
+	case []string:
+		stringArray = append(stringArray, input...)
+	default:
+		logrus.Error("Invalid input type")
+		stringArray = []string{}
+	}
+	return stringArray
+}
+
+func ConvertArrayToCommaDelimitedString(input []string) string {
+	return strings.Join(input, ",")
+}
+
+func ConvertCommaDelimitedStringToArray(input string) []string {
+	return strings.Split(input, ",")
 }
