@@ -66,7 +66,7 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 
 // Create cache
 func CreateCache() *bigcache.BigCache {
-	if GetGinRunMode() == "dev.localhost" || GetGinRunMode() == "dev.deployed" || GetGinRunMode() == "dev.localhost.docker" {
+	if GetGinRunMode() == "devlocalhost" || GetGinRunMode() == "devdeployed" || GetGinRunMode() == "devlocalhostdocker" {
 		return nil
 	}
 
