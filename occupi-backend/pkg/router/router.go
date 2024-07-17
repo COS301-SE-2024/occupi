@@ -10,6 +10,7 @@ import (
 )
 
 // creates available endpoints and attaches handlers for each endpoint
+
 func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	ping := router.Group("/ping")
 	{

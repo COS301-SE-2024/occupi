@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"net"
 	"time"
 
 	"github.com/allegro/bigcache/v3"
@@ -99,6 +100,26 @@ func CreateIPInfoClient() *ipinfo.Client {
 	client := ipinfo.NewClient(nil, cache, GetIPClientInfoToken())
 
 	return client
+}
+
+// get ip info
+func GetIPInfo(ip string, client *ipinfo.Client) (*ipinfo.Core, error) {
+	// check if run mode is test mode
+	if GetGinRunMode() == "test" {
+		return &ipinfo.Core{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		}, nil
+	}
+
+	info, err := client.GetIPInfo(net.ParseIP(ip))
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	return info, nil
 }
 
 func CreateRabbitConnection() *amqp.Connection {
