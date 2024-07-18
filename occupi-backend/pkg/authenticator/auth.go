@@ -17,7 +17,7 @@ type Claims struct {
 }
 
 // GenerateToken generates a JWT token for the user
-func GenerateToken(email string, role string, optionalExpiryTime ...time.Duration) (string, time.Time, error) {
+func GenerateToken(email string, role string, optionalExpiryTime ...time.Duration) (string, time.Time, *Claims, error) {
 	var expirationTime time.Time
 
 	if len(optionalExpiryTime) == 0 {
@@ -38,10 +38,10 @@ func GenerateToken(email string, role string, optionalExpiryTime ...time.Duratio
 	tokenString, err := token.SignedString([]byte(configs.GetJWTSecret()))
 	if err != nil {
 		logrus.Error("Error generating token: ", err)
-		return "", expirationTime, errors.New("error generating token")
+		return "", expirationTime, nil, errors.New("error generating token")
 	}
 
-	return tokenString, expirationTime, nil
+	return tokenString, expirationTime, claims, nil
 }
 
 // ValidateToken validates the JWT token
