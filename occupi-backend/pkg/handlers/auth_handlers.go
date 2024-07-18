@@ -444,21 +444,90 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 		"Two-factor authentication enabled successfully",
 		nil))
 }
-
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-	var request models.RequestEmail
+    var request models.SecuritySettingsRequest
 
-	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid email address",
-			constants.InvalidRequestPayloadCode,
-			"Expected a valid format for email address",
-			nil))
-		return
-	}
+    if err := ctx.ShouldBindJSON(&request); err != nil {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid request payload",
+            constants.InvalidRequestPayloadCode,
+            "Expected valid format for security settings request",
+            nil))
+        return
+    }
 
-	handlePasswordReset(ctx, appsession, request.Email)
+    // Validate email
+    valid, err := ValidateEmailExists(ctx, appsession, request.Email)
+    if !valid {
+        if err != nil {
+            ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+            logrus.Error(err)
+        }
+        return
+    }
+
+    // Validate current password
+    var requestUser models.RequestUser
+        
+    valid, err = ValidatePasswordCorrectness(ctx, appsession, requestUser)
+    if !valid {
+        if err != nil {
+            ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+            logrus.Error(err)
+        }
+        return
+    }
+
+    // Validate new password
+    if err := utils.ValidatePassword(request.NewPassword); err  {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Invalid password",
+            constants.InvalidRequestPayloadCode,
+            "New password does not meet requirements",
+            nil))
+        return
+    }
+
+    // Confirm new password
+    if request.NewPassword != request.NewPasswordConfirm {
+        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+            http.StatusBadRequest,
+            "Passwords do not match",
+            constants.InvalidRequestPayloadCode,
+            "New password and confirmation do not match",
+            nil))
+        return
+    }
+
+    // Hash new password
+    newPasswordHash, err := utils.Argon2IDHash(request.NewPassword)
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+            http.StatusInternalServerError,
+            "Password hashing failed",
+            constants.InternalServerErrorCode,
+            "Unable to process the new password",
+            nil))
+        return
+    }
+
+    // Update password in database
+		success, err := database.UpdateUserPassword(ctx, appsession.DB, requestUser.Email, newPasswordHash)
+		if err != nil || !success {
+			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+				http.StatusInternalServerError,
+				"Password update failed",
+				constants.InternalServerErrorCode,
+				"Unable to update the password in the database",
+				nil))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "Password successfully updated",
+		})
 }
 
 func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
@@ -476,7 +545,7 @@ func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
 	handlePasswordReset(ctx, appsession, request.Email)
 }
 
-// handler for logging out a user
+// handler for logging out a request
 func Logout(ctx *gin.Context) {
 	_ = utils.ClearSession(ctx)
 
