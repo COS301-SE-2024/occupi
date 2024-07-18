@@ -540,23 +540,23 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// Log the user in and Generate a JWT token
+	// Log the user in and Generate a JWT token use CookiesHandler function
 	
-	token, _, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, "user")
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
-			http.StatusInternalServerError,
-			"Token generation failed",
-			constants.InternalServerErrorCode,
-			"Unable to generate a token for the user",
-			nil))
-		return
-	}
+// Log the user in and Generate a JWT token
+token, expi, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, "user")
+if err != nil {
+	ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+		http.StatusInternalServerError,
+		"Token generation failed",
+		constants.InternalServerErrorCode,
+		"Unable to generate a token for the user",
+		nil))
+	return
+}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Password reset successful. You are now logged in.",
-		"token":   token,
-	})
+// Use CookiesHandler to handle the response
+CookiesHandler(ctx, token, expi, resetRequest.UseCookies)
+
 }
 
 func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
