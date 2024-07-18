@@ -492,7 +492,12 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	var securitySettings models.SecuritySettingsRequest
 	if err := ctx.ShouldBindJSON(&securitySettings); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
 		return
 	}
 
@@ -500,7 +505,12 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	if (securitySettings.CurrentPassword == "" && (securitySettings.NewPassword != "" || securitySettings.NewPasswordConfirm != "")) ||
 		(securitySettings.NewPassword == "" && (securitySettings.CurrentPassword != "" || securitySettings.NewPasswordConfirm != "")) ||
 		(securitySettings.NewPasswordConfirm == "" && (securitySettings.CurrentPassword != "" || securitySettings.NewPassword != "")) {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Current password, new password and new password confirm must all be provided", nil))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Current password, new password and new password confirm must all be provided",
+			nil))
 		return
 	}
 
@@ -514,14 +524,24 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 		securitySettings = securitySetting
 	}
 
-	// if 2fa string is set, ensure it's either "true" or "false"
-	if securitySettings.Twofa != "" && securitySettings.Twofa != "true" && securitySettings.Twofa != "false" {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "2fa must be either 'true' or 'false'", nil))
+	// if 2fa string is set, ensure it's either "on" or "off"
+	if securitySettings.Twofa != "" && securitySettings.Twofa != "on" && securitySettings.Twofa != "off" {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"2fa must be either 'true' or 'false'",
+			nil))
 		return
 	}
 
 	if err := database.UpdateSecuritySettings(ctx, appsession, securitySettings); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update security settings", constants.InternalServerErrorCode, "Failed to update security settings", nil))
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to update security settings",
+			constants.InternalServerErrorCode,
+			"Failed to update security settings",
+			nil))
 		return
 	}
 

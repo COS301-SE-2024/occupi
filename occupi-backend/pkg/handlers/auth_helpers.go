@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -343,6 +344,7 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) (models.SecuritySettingsRequest, error) {
 	// sanitize input
 	securitySettings.Email = utils.SanitizeInput(securitySettings.Email)
+	securitySettings.CurrentPassword = utils.SanitizeInput(securitySettings.CurrentPassword)
 	securitySettings.NewPassword = utils.SanitizeInput(securitySettings.NewPassword)
 	securitySettings.NewPasswordConfirm = utils.SanitizeInput(securitySettings.NewPasswordConfirm)
 
@@ -356,7 +358,7 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
 			nil))
-		return models.SecuritySettingsRequest{}, nil
+		return models.SecuritySettingsRequest{}, errors.New("invalid password")
 	}
 
 	// check if the passwords match
@@ -367,7 +369,7 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 			constants.InvalidRequestPayloadCode,
 			"Passwords do not match",
 			nil))
-		return models.SecuritySettingsRequest{}, nil
+		return models.SecuritySettingsRequest{}, errors.New("passwords do not match")
 	}
 
 	// check if the current password is correct
@@ -390,7 +392,7 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 			constants.InvalidAuthCode,
 			"Password is incorrect",
 			nil))
-		return models.SecuritySettingsRequest{}, nil
+		return models.SecuritySettingsRequest{}, errors.New("password is incorrect")
 	}
 
 	// hash the new password
@@ -398,7 +400,7 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return models.SecuritySettingsRequest{}, nil
+		return models.SecuritySettingsRequest{}, err
 	}
 
 	securitySettings.NewPassword = hashedPassword
