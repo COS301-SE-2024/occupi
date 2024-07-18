@@ -459,19 +459,19 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	}
 	
 
-    var request models.SecuritySettingsRequest
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid request payload",
-			constants.InvalidRequestPayloadCode,
-			"Expected valid format for security settings request",
-			nil))
-		return
-	}
+    // var request models.SecuritySettingsRequest
+	// if err := ctx.ShouldBindJSON(&request); err != nil {
+	// 	ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+	// 		http.StatusBadRequest,
+	// 		"Invalid request payload",
+	// 		constants.InvalidRequestPayloadCode,
+	// 		"Expected valid format for security settings request",
+	// 		nil))
+	// 	return
+	// }
 
 	// Validate email
-	valid, err := ValidateEmailExists(ctx, appsession, request.Email)
+	valid, err := ValidateEmailExists(ctx, appsession, resetRequest.Email)
 	if !valid {
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -496,7 +496,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
     // Validate new password
-	validationResult, err := ValidatePasswordEntryAndReturn(ctx, appsession, request.NewPassword)
+	validationResult, err := ValidatePasswordEntryAndReturn(ctx, appsession, resetRequest.NewPassword)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -517,7 +517,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Hash new password
-	newPasswordHash, err := utils.Argon2IDHash(request.NewPassword)
+	newPasswordHash, err := utils.Argon2IDHash(resetRequest.NewPassword)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
@@ -529,7 +529,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
     // Update password in database
-	success, err := database.UpdateUserPassword(ctx, appsession.DB, request.Email, newPasswordHash)
+	success, err := database.UpdateUserPassword(ctx, appsession.DB, resetRequest.Email, newPasswordHash)
 	if err != nil || !success {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
@@ -542,7 +542,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Log the user in and Generate a JWT token
 	
-	token, _, err := GenerateJWTTokenAndStartSession(ctx, appsession, request.Email, "user")
+	token, _, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, "user")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
