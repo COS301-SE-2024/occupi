@@ -446,20 +446,20 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-	// take in the otp , their email and then log users in
-	var users models.RequestUserOTP
-	if err := ctx.ShouldBindJSON(&users); err != nil {
+	var resetRequest models.ResetPassword
+
+	if err := ctx.ShouldBindJSON(&resetRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,	
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and otp fields",
+			"Expected email, otp, and new_password fields",
 			nil))
 		return
 	}
+	
 
     var request models.SecuritySettingsRequest
-
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -480,8 +480,8 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// Validate otp
-	if valid, err := ValidateOTPExists(ctx, appsession, users.Email, users.OTP); !valid {
+	// Validate OTP
+	if valid, err := ValidateOTPExists(ctx, appsession, resetRequest.Email, resetRequest.OTP); !valid {
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
@@ -490,21 +490,31 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 			http.StatusBadRequest,
 			"Invalid OTP",
 			constants.InvalidAuthCode,
-			"Otp expired or invalid",
+			"OTP expired or invalid",
 			nil))
 		return
 	}
 
     // Validate new password
-        
-    valid, err = ValidatePasswordEntry(ctx, appsession, request.NewPassword)
-    if !valid {
-        if err != nil {
-            ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-            logrus.Error(err)
-        }
-        return
-    }
+	validationResult, err := ValidatePasswordEntryAndReturn(ctx, appsession, request.NewPassword)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Password validation failed",
+			"ValidationErrorCode",
+			err.Error(),
+			nil))
+		return
+	}
+	if validationResult != "valid" {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid password",
+			"InvalidPasswordErrorCode",
+			"The provided password does not meet the required criteria",
+			nil))
+		return
+	}
 
 	// Hash new password
 	newPasswordHash, err := utils.Argon2IDHash(request.NewPassword)
@@ -519,19 +529,33 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
     // Update password in database
-		success, err := database.UpdateUserPassword(ctx, appsession.DB, request.Email, newPasswordHash)
-		if err != nil || !success {
-			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
-				http.StatusInternalServerError,
-				"Password update failed",
-				constants.InternalServerErrorCode,
-				"Unable to update the password in the database",
-				nil))
-			return
-		}
+	success, err := database.UpdateUserPassword(ctx, appsession.DB, request.Email, newPasswordHash)
+	if err != nil || !success {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Password update failed",
+			constants.InternalServerErrorCode,
+			"Unable to update the password in the database",
+			nil))
+		return
+	}
+
+	// Log the user in and Generate a JWT token
+	
+	token, _, err := GenerateJWTTokenAndStartSession(ctx, appsession, request.Email, "user")
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Token generation failed",
+			constants.InternalServerErrorCode,
+			"Unable to generate a token for the user",
+			nil))
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Password successfully updated",
+		"message": "Password reset successful. You are now logged in.",
+		"token":   token,
 	})
 }
 
