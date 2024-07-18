@@ -62,10 +62,10 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		auth.POST("/logout", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Logout(ctx) })
 		// it's typically used by users who can't log in because they've forgotten their password.
 
-		auth.POST("/forgot-password-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Basic, true) })
-		auth.POST("/forgot-password-admin-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Admin, true) })
-		auth.POST("/forgot-password-mobile-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Basic, false) })
-		auth.POST("/forgot-password-mobile-admin-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Admin, false) })
+		auth.POST("/reset-password-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Basic, true) })
+		auth.POST("/reset-password-admin-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Admin, true) })
+		auth.POST("/reset-password-mobile-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Basic, false) })
+		auth.POST("/reset-password-mobile-admin-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Admin, false) })
 		auth.POST("/forgot-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ForgotPassword(ctx, appsession) })
 		auth.POST("/verify-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.VerifyTwoFA(ctx, appsession) })
 		auth.POST("/verify-otp-enable-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) {
