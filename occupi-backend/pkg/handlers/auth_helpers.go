@@ -405,3 +405,33 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 
 	return securitySettings, nil
 }
+
+// CookiesHandler decides whether to send the JWT token in the Authorization header or as a cookie based on a condition.
+func CookiesHandler(ctx *gin.Context, token string, expirationTime time.Time, cookies bool) {
+	if !cookies {
+		// Send the JWT token in the Authorization header
+		ctx.Header("Authorization", "Bearer "+token)
+		ctx.JSON(http.StatusOK, SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			gin.H{"token": token},
+		))
+	} else {
+		// Set the JWT token in a cookie
+		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
+		ctx.JSON(http.StatusOK, SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			nil,
+		))
+	}
+}
+
+// SuccessResponse creates a standardized success response structure.
+func SuccessResponse(statusCode int, message string, data interface{}) gin.H {
+	return gin.H{
+		"status":  statusCode,
+		"message": message,
+		"data":    data,
+	}
+}
