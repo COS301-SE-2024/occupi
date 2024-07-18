@@ -41,7 +41,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.GET("/view-rooms", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.ViewRooms(ctx, appsession) })
 		api.GET("/user-details", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetUserDetails(ctx, appsession) })
 		api.PUT("/update-user", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateUserDetails(ctx, appsession) })
-		api.GET("/get-users", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Users") })
+		api.GET("/get-users", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Users") })
 		api.GET("/get-push-tokens", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetPushTokens(ctx, appsession) })
 		api.GET("/get-notifications", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Notifications") })
 	}

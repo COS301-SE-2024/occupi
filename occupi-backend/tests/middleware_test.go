@@ -611,7 +611,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 
 func TestAccessUnprotectedRouteWithSessionForContext(t *testing.T) {
 	// set gin run mode
-	gin.SetMode(gin.TestMode)
+	gin.SetMode(configs.GetGinRunMode())
 
 	// Create a Gin router
 	r := gin.Default()

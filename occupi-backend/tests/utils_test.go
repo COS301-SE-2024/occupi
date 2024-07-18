@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/ipinfo/go/v2/ipinfo"
@@ -2221,61 +2222,308 @@ func TestGetClaimsFromCTX(t *testing.T) {
 }
 
 func TestIsSessionSet(t *testing.T) {
-	gin.SetMode(gin.TestMode)
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
 
 	tests := []struct {
-		name          string
-		sessionValues map[string]interface{}
-		expected      bool
+		name              string
+		expected          bool
+		setSessionHandler gin.HandlerFunc
 	}{
 		{
-			name:          "Session not set",
-			sessionValues: map[string]interface{}{},
-			expected:      false,
+			name:              "Session not set",
+			expected:          false,
+			setSessionHandler: func(c *gin.Context) {},
 		},
 		{
-			name:          "Email not set in session",
-			sessionValues: map[string]interface{}{"role": "user"},
-			expected:      false,
+			name:     "Email not set in session",
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
 		},
 		{
-			name:          "Role not set in session",
-			sessionValues: map[string]interface{}{"email": "test@example.com"},
-			expected:      false,
+			name:     "Role not set in session",
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
 		},
 		{
-			name:          "Email and Role set in session",
-			sessionValues: map[string]interface{}{"email": "test@example.com", "role": "user"},
-			expected:      true,
+			name:     "Email and Role set in session",
+			expected: true,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create a memory store and a Gin context with the session
-			store := memstore.NewStore([]byte("secret"))
+			// Create a Gin router
+			r := gin.Default()
+
+			store := cookie.NewStore([]byte("secret"))
+			r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+			// Define a test handler to apply middleware
+			r.GET("/test", func(c *gin.Context) {
+				tt.setSessionHandler(c)
+				res := utils.IsSessionSet(c)
+
+				assert.Equal(t, tt.expected, res)
+			})
+
+			// Create a test context
 			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
+			req := httptest.NewRequest("GET", "/test", nil)
+			r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
 
-			// Create a request and set up the session
-			req := httptest.NewRequest("GET", "/", nil)
-			c.Request = req
+			// Check the response
+			assert.Equal(t, 200, w.Code)
+		})
+	}
+}
 
-			session := sessions.NewSession(store, "session")
-			session.Options(sessions.Options{Path: "/", MaxAge: 3600, HttpOnly: true})
-			for key, value := range tt.sessionValues {
-				session.Set(key, value)
-			}
-			session.Save()
+func TestSetSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
 
-			// Set the session in the context
-			c.Request = req.WithContext(sessions.SetSession(session, req.Context()))
+	// Create a Gin router
+	r := gin.Default()
 
-			// Call the function under test
-			result := IsSessionSet(c)
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
 
-			// Check the expected result
-			assert.Equal(t, tt.expected, result)
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		claims := &authenticator.Claims{
+			Email: "test@example.com",
+			Role:  "basic",
+		}
+		res := utils.SetSession(c, claims)
+
+		assert.Nil(t, res)
+
+		session := sessions.Default(c)
+
+		email := session.Get("email")
+		role := session.Get("role")
+
+		assert.NotNil(t, email)
+		assert.NotNil(t, role)
+
+		assert.Equal(t, "test@example.com", email.(string))
+		assert.Equal(t, "basic", role.(string))
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestClearSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Set("role", "basic")
+		session.Set("email", "test@example.com")
+		err := session.Save()
+		assert.Nil(t, err)
+
+		res := utils.ClearSession(c)
+
+		assert.Nil(t, res)
+
+		session_ := sessions.Default(c)
+		email := session_.Get("email")
+		role := session_.Get("role")
+
+		assert.Nil(t, email)
+		assert.Nil(t, role)
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestGetSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Set("role", "basic")
+		session.Set("email", "test@example.com")
+		err := session.Save()
+		assert.Nil(t, err)
+
+		email, role := utils.GetSession(c)
+
+		assert.NotNil(t, email)
+		assert.NotNil(t, role)
+
+		assert.Equal(t, "test@example.com", email)
+		assert.Equal(t, "basic", role)
+
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestCompareSessionAndClaims(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	tests := []struct {
+		name              string
+		claims            *authenticator.Claims
+		expected          bool
+		setSessionHandler gin.HandlerFunc
+	}{
+		{
+			name:              "Session not set",
+			claims:            &authenticator.Claims{},
+			expected:          false,
+			setSessionHandler: func(c *gin.Context) {},
+		},
+		{
+			name: "Email not set in session",
+			claims: &authenticator.Claims{
+				Role: "basic",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Role not set in session",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Email and Role set in session",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+				Role:  "basic",
+			},
+			expected: true,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Email not equal claims email",
+			claims: &authenticator.Claims{
+				Email: "notequal@example.com",
+				Role:  "basic",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Role not equal claims role",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+				Role:  "admin",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a Gin router
+			r := gin.Default()
+
+			store := cookie.NewStore([]byte("secret"))
+			r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+			// Define a test handler to apply middleware
+			r.GET("/test", func(c *gin.Context) {
+				tt.setSessionHandler(c)
+				res := utils.CompareSessionAndClaims(c, tt.claims)
+
+				assert.Equal(t, tt.expected, res)
+			})
+
+			// Create a test context
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/test", nil)
+			r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+			// Check the response
+			assert.Equal(t, 200, w.Code)
 		})
 	}
 }
