@@ -1,7 +1,6 @@
-import React, { createContext, useState, useContext,ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 interface UserDetails {
-  // Define the structure of your user details here
   email: string;
   // Add other fields as needed
 }
@@ -14,7 +13,20 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(() => {
+    // Initialize state from localStorage
+    const savedDetails = localStorage.getItem('userDetails');
+    return savedDetails ? JSON.parse(savedDetails) : null;
+  });
+
+  useEffect(() => {
+    // Update localStorage whenever userDetails changes
+    if (userDetails) {
+      localStorage.setItem('userDetails', JSON.stringify(userDetails));
+    } else {
+      localStorage.removeItem('userDetails');
+    }
+  }, [userDetails]);
 
   const setUserDetailsWithLog = (details: UserDetails | null) => {
     console.log("Setting user details in context:", details);
@@ -22,7 +34,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <UserContext.Provider value={{ userDetails, setUserDetails:setUserDetailsWithLog }}>
+    <UserContext.Provider value={{ userDetails, setUserDetails: setUserDetailsWithLog }}>
       {children}
     </UserContext.Provider>
   );
