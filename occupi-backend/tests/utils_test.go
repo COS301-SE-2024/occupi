@@ -1843,6 +1843,11 @@ func TestConstructBookingScheduledString(t *testing.T) {
 		expected string
 	}{
 		{
+			name:     "No Email",
+			emails:   []string{},
+			expected: "",
+		},
+		{
 			name:     "Single Email",
 			emails:   []string{"email1@example.com"},
 			expected: "A booking with email1@example.com has been scheduled",

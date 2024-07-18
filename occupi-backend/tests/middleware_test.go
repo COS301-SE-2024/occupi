@@ -609,6 +609,47 @@ func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 	)
 }
 
+func TestAccessUnprotectedRouteWithSessionForContext(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(gin.TestMode)
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		// Add ctx to session with role and email
+		session := sessions.Default(c)
+		session.Set("role", "Basic")
+		session.Set("email", "test@example.com")
+		err := session.Save()
+		assert.Nil(t, err)
+
+		// Call middleware
+		middleware.UnProtectedRoute(c)
+
+		// Ensure that the context is not aborted
+		assert.False(t, c.IsAborted())
+
+		// Ensure that email and role have been deleted from the session
+		assert.Nil(t, session.Get("role"))
+		assert.Nil(t, session.Get("email"))
+
+		c.Status(200)
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
 func TestRateLimit(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{

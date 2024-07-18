@@ -2,7 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
-	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -86,19 +86,6 @@ func GenerateBookingID() string {
 	}
 	employeeID := fmt.Sprintf("BOOKOCCUPI%d%04d", currentYear, randomNum)
 	return employeeID
-}
-
-// generates a random auth0 state
-func GenerateRandomState() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-
-	state := base64.StdEncoding.EncodeToString(b)
-
-	return state, nil
 }
 
 // sanitizes the given input
@@ -362,23 +349,20 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 }
 
 func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
-	const passwordField = "password"
-	const uEPTField = "unsentExpoPushTokens"
-	const emailsField = "emails"
 	projection := bson.M{}
 	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
-		projection[passwordField] = 0 // Exclude password by default
-		projection[uEPTField] = 0
-		projection[emailsField] = 0
+		projection["password"] = 0 // Exclude password by default
+		projection["unsentExpoPushTokens"] = 0
+		projection["emails"] = 0
 	} else {
 		for _, field := range sanitizedProjection {
 			switch field {
-			case passwordField:
-				projection[passwordField] = 0
-			case uEPTField:
-				projection[uEPTField] = 0
-			case emailsField:
-				projection[emailsField] = 0
+			case "password":
+				projection[field] = 0
+			case "unsentExpoPushTokens":
+				projection[field] = 0
+			case "emails":
+				projection[field] = 0
 			default:
 				projection[field] = 1
 			}
@@ -469,4 +453,19 @@ func ConvertArrayToCommaDelimitedString(input []string) string {
 
 func ConvertCommaDelimitedStringToArray(input string) []string {
 	return strings.Split(input, ",")
+}
+
+func RandomError() error {
+	// probability of returning error should be 50/50
+	num, err := generateRandomNumber()
+
+	if err != nil {
+		return errors.New("Failed to generate random number")
+	}
+
+	if num%2 == 0 {
+		return errors.New("Random error")
+	} else {
+		return nil
+	}
 }
