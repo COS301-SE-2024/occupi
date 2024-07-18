@@ -11,7 +11,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/gin-contrib/sessions"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -421,14 +420,26 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 		return
 	}
 
-	if collectionName == "Notifications" {
-		// get the users email from the session
-		session := sessions.Default(ctx)
-		if email, err := session.Get("email").(string); err {
-			logrus.Error("Failed to get email from session because: ", err)
-			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		} else {
-			err := database.ReadNotifications(ctx, appsession, email)
+	if collectionName != "Notifications" {
+		ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "success", res, gin.H{
+			"totalResults": len(res), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
+		return
+	}
+
+	// get the users email from the session
+	if utils.IsSessionSet(ctx) {
+		email, _ := utils.GetSession(ctx)
+		err := database.ReadNotifications(ctx, appsession, email)
+
+		if err != nil {
+			logrus.Error("Failed to read notifications because: ", err)
+			// it's not a critical error so we don't return an error response
+		}
+	} else {
+		claims, err := utils.GetClaimsFromCTX(ctx)
+
+		if err == nil {
+			err := database.ReadNotifications(ctx, appsession, claims.Email)
 
 			if err != nil {
 				logrus.Error("Failed to read notifications because: ", err)

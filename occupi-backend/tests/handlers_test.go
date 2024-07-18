@@ -48,7 +48,7 @@ func TestViewBookingsHandler(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -193,7 +193,7 @@ func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 	router.OccupiRouter(r, appsession)
 
 	// Generate a token
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	// Ping-auth test to ensure everything is set up correctly
 	w := httptest.NewRecorder()
