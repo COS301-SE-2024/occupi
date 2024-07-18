@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
@@ -78,20 +77,8 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 		return
 	}
 
-	if !cookies {
-		ctx.Header("Authorization", "Bearer "+token)
-		ctx.JSON(http.StatusOK, utils.SuccessResponse(
-			http.StatusOK,
-			"Successful login!",
-			gin.H{"token": token}))
-	} else {
-		// set the jwt token in the cookie
-		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
-		ctx.JSON(http.StatusOK, utils.SuccessResponse(
-			http.StatusOK,
-			"Successful login!",
-			nil))
-	}
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, expirationTime, cookies)
 }
 
 // handler for registering a new user on occupi /auth/register
@@ -273,20 +260,8 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 		return
 	}
 
-	if !cookies {
-		ctx.Header("Authorization", "Bearer "+token)
-		ctx.JSON(http.StatusOK, utils.SuccessResponse(
-			http.StatusOK,
-			"Successful login!",
-			gin.H{"token": token}))
-	} else {
-		// set the jwt token in the cookie
-		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
-		ctx.JSON(http.StatusOK, utils.SuccessResponse(
-			http.StatusOK,
-			"Successful login!",
-			nil))
-	}
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, expirationTime, cookies)
 }
 
 // common handler logic for reset
@@ -445,7 +420,7 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 		nil))
 }
 
-func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
+func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
 	var resetRequest models.ResetPassword
 
 	if err := ctx.ShouldBindJSON(&resetRequest); err != nil {
@@ -457,17 +432,6 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 			nil))
 		return
 	}
-
-	// var request models.SecuritySettingsRequest
-	// if err := ctx.ShouldBindJSON(&request); err != nil {
-	// 	ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-	// 		http.StatusBadRequest,
-	// 		"Invalid request payload",
-	// 		constants.InvalidRequestPayloadCode,
-	// 		"Expected valid format for security settings request",
-	// 		nil))
-	// 	return
-	// }
 
 	// Validate email
 	valid, err := ValidateEmailExists(ctx, appsession, resetRequest.Email)
@@ -518,23 +482,20 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// Log the user in and Generate a JWT token use CookiesHandler function
-	
-// Log the user in and Generate a JWT token
-token, expi, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, "user")
-if err != nil {
-	ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
-		http.StatusInternalServerError,
-		"Token generation failed",
-		constants.InternalServerErrorCode,
-		"Unable to generate a token for the user",
-		nil))
-	return
-}
+	// Log the user in and Generate a JWT token
+	token, expi, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, role)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Token generation failed",
+			constants.InternalServerErrorCode,
+			"Unable to generate a token for the user",
+			nil))
+		return
+	}
 
-// Use CookiesHandler to handle the response
-CookiesHandler(ctx, token, expi, resetRequest.UseCookies)
-
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, expi, cookies)
 }
 
 func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
