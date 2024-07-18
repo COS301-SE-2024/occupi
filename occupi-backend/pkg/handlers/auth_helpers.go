@@ -125,6 +125,31 @@ func ValidatePasswordEntry(ctx *gin.Context, appsession *models.AppSession, pass
 	return true, nil
 }
 
+func ValidatePasswordEntryAndReturn(ctx *gin.Context, appsession *models.AppSession, password string) (string, error) {
+	// sanitize input
+	password = utils.SanitizeInput(password)
+
+	// validate password
+	if !utils.ValidatePassword(password) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid password",
+			constants.InvalidRequestPayloadCode,
+			"Password does neet meet requirements",
+			nil))
+		return "", nil
+	}
+
+	password, err := utils.Argon2IDHash(password)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return "", nil
+	}
+
+	return password, nil
+}
+
 func ValidatePasswordCorrectness(ctx *gin.Context, appsession *models.AppSession, requestUser models.RequestUser) (bool, error) {
 	// sanitize input
 	requestUser.Password = utils.SanitizeInput(requestUser.Password)
