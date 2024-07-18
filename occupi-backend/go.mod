@@ -26,6 +26,7 @@ require (
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
