@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
@@ -19,6 +21,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
 
@@ -460,12 +463,95 @@ func RandomError() error {
 	num, err := generateRandomNumber()
 
 	if err != nil {
-		return errors.New("Failed to generate random number")
+		return errors.New("failed to generate random number")
 	}
 
 	if num%2 == 0 {
-		return errors.New("Random error")
+		return errors.New("random error")
 	} else {
 		return nil
 	}
+}
+
+func GetClaimsFromCTX(ctx *gin.Context) (*authenticator.Claims, error) {
+	// attempt to get email from jwt cookie token or auth header
+	tokenStr, _ := ctx.Cookie("token")
+	headertokenStr := ctx.GetHeader("Authorization")
+	if tokenStr == "" && headertokenStr == "" {
+		return nil, errors.New("no token provided")
+	}
+
+	if tokenStr == "" {
+		tokenStr = headertokenStr
+	}
+
+	claims, err := authenticator.ValidateToken(tokenStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return claims, nil
+}
+
+func IsSessionSet(ctx *gin.Context) bool {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	if email == nil || role == nil {
+		return false
+	}
+
+	return true
+}
+
+func SetSession(ctx *gin.Context, claims *authenticator.Claims) error {
+	session := sessions.Default(ctx)
+
+	session.Set("email", claims.Email)
+	session.Set("role", claims.Role)
+
+	if err := session.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ClearSession(ctx *gin.Context) error {
+	session := sessions.Default(ctx)
+
+	session.Clear()
+	if err := session.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetSession(ctx *gin.Context) (string, string) {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	return email.(string), role.(string)
+}
+
+func CompareSessionAndClaims(ctx *gin.Context, claims *authenticator.Claims) bool {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	if email == nil || role == nil {
+		return false
+	}
+
+	if email != claims.Email || role != claims.Role {
+		return false
+	}
+
+	return true
 }

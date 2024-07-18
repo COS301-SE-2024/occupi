@@ -1,13 +1,16 @@
 package tests
 
 import (
+	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/ipinfo/go/v2/ipinfo"
@@ -17,6 +20,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -2118,6 +2123,159 @@ func TestConvertCommaDelimitedStringToArray(t *testing.T) {
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("ConvertCommaDelimitedStringToArray() = %v, want %v", result, tt.expected)
 			}
+		})
+	}
+}
+
+func TestRandomErr(t *testing.T) {
+	// use a for loop to check if we can cover all the possible errors
+	for i := 0; i < 10; i++ {
+		t.Run(fmt.Sprintf("TestRandomError %d", i), func(t *testing.T) {
+			err := utils.RandomError()
+			if err != nil {
+				// Check if the error is one of the expected errors
+				assert.True(t, err.Error() == "failed to generate random number" || err.Error() == "random error")
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestGetClaimsFromCTX(t *testing.T) {
+	gin.SetMode(configs.GetGinRunMode())
+
+	token, _, claims, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	tests := []struct {
+		name           string
+		tokenCookie    string
+		tokenHeader    string
+		expectedClaims *authenticator.Claims
+		expectedError  string
+	}{
+		{
+			name:          "No token provided",
+			tokenCookie:   "",
+			tokenHeader:   "",
+			expectedError: "no token provided",
+		},
+		{
+			name:           "InValid token from cookie",
+			tokenCookie:    "validToken",
+			tokenHeader:    "",
+			expectedClaims: nil,
+			expectedError:  "error validating token",
+		},
+		{
+			name:           "InValid token from header",
+			tokenCookie:    "",
+			tokenHeader:    "validToken",
+			expectedClaims: nil,
+			expectedError:  "error validating token",
+		},
+		{
+			name:           "Valid token from cookie",
+			tokenCookie:    token,
+			tokenHeader:    "",
+			expectedClaims: claims,
+			expectedError:  "",
+		},
+		{
+			name:           "Valid token from header",
+			tokenCookie:    "",
+			tokenHeader:    token,
+			expectedClaims: claims,
+			expectedError:  "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a Gin context with the necessary headers and cookies
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			if tt.tokenCookie != "" {
+				c.Request = httptest.NewRequest("GET", "/", nil)
+				c.Request.AddCookie(&http.Cookie{Name: "token", Value: tt.tokenCookie})
+			} else {
+				c.Request = httptest.NewRequest("GET", "/", nil)
+				c.Request.Header.Set("Authorization", tt.tokenHeader)
+			}
+
+			// Call the function under test
+			returnedclaims, err := utils.GetClaimsFromCTX(c)
+
+			// Check the expected error
+			if tt.expectedError != "" {
+				assert.NotNil(t, err)
+				assert.EqualError(t, err, tt.expectedError)
+			} else {
+				assert.Nil(t, err)
+			}
+
+			// Check the expected claims
+			assert.Equal(t, tt.expectedClaims, returnedclaims)
+		})
+	}
+}
+
+func TestIsSessionSet(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name          string
+		sessionValues map[string]interface{}
+		expected      bool
+	}{
+		{
+			name:          "Session not set",
+			sessionValues: map[string]interface{}{},
+			expected:      false,
+		},
+		{
+			name:          "Email not set in session",
+			sessionValues: map[string]interface{}{"role": "user"},
+			expected:      false,
+		},
+		{
+			name:          "Role not set in session",
+			sessionValues: map[string]interface{}{"email": "test@example.com"},
+			expected:      false,
+		},
+		{
+			name:          "Email and Role set in session",
+			sessionValues: map[string]interface{}{"email": "test@example.com", "role": "user"},
+			expected:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a memory store and a Gin context with the session
+			store := memstore.NewStore([]byte("secret"))
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+
+			// Create a request and set up the session
+			req := httptest.NewRequest("GET", "/", nil)
+			c.Request = req
+
+			session := sessions.NewSession(store, "session")
+			session.Options(sessions.Options{Path: "/", MaxAge: 3600, HttpOnly: true})
+			for key, value := range tt.sessionValues {
+				session.Set(key, value)
+			}
+			session.Save()
+
+			// Set the session in the context
+			c.Request = req.WithContext(sessions.SetSession(session, req.Context()))
+
+			// Call the function under test
+			result := IsSessionSet(c)
+
+			// Check the expected result
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }

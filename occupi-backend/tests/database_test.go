@@ -48,7 +48,7 @@ func TestMockDatabase(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/resource-auth", nil)

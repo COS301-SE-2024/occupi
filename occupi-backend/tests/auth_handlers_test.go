@@ -83,7 +83,7 @@ func TestValidLogoutHandler(t *testing.T) {
 	}
 
 	// Set up cookies for the request, "token" and "occupi-sessions-store"
-	token, _, err := authenticator.GenerateToken("example@gmail.com", constants.Basic)
+	token, _, _, err := authenticator.GenerateToken("example@gmail.com", constants.Basic)
 	if err != nil {
 		t.Fatal("Error generating token: ", err)
 	}
@@ -166,7 +166,7 @@ func TestValidLogoutHandlerFromDomains(t *testing.T) {
 			req.Host = domain
 
 			// Set up cookies for the request, "token" and "occupi-sessions-store"
-			token, _, err := authenticator.GenerateToken("example@gmail.com", constants.Basic)
+			token, _, _, err := authenticator.GenerateToken("example@gmail.com", constants.Basic)
 			if err != nil {
 				t.Errorf("Error generating token: %s", err)
 			}

@@ -42,7 +42,7 @@ func TestProtectedRoute(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -77,7 +77,7 @@ func TestProtectedRouteAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -120,7 +120,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized or Invalid auth token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
 func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
@@ -149,7 +149,7 @@ func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized or Invalid auth token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
@@ -171,7 +171,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -187,7 +187,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
 	)
 
-	token2, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
+	token2, _, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
 
 	w1 := httptest.NewRecorder()
 
@@ -221,7 +221,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -238,7 +238,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
 	)
 
-	token2, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
+	token2, _, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
 
 	w1 := httptest.NewRecorder()
 
@@ -273,7 +273,7 @@ func TestAdminRoute(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
+	token, _, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -308,7 +308,7 @@ func TestAdminRouteAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
+	token, _, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -350,7 +350,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized or Invalid auth token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
 func TestUnauthorizedAdminAccess(t *testing.T) {
@@ -372,7 +372,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -403,7 +403,7 @@ func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -467,7 +467,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-open", nil)
@@ -498,7 +498,7 @@ func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-open", nil)
@@ -530,7 +530,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -578,7 +578,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
