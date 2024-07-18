@@ -495,7 +495,6 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
     // Validate new password
-    var requestUser models.RequestUser
         
     valid, err = ValidatePasswordEntry(ctx, appsession, request.NewPassword)
     if !valid {
