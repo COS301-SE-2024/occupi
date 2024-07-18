@@ -79,12 +79,12 @@ const Dashboard = () => {
     }
   };
 
-  async function saveUserEmail(value) {
-    await SecureStore.setItemAsync('email', value);
-  }
+  // async function saveUserEmail(value) {
+  //   await SecureStore.setItemAsync('email', value);
+  // }
 
 
-  saveUserEmail('kamogelomoeketse@gmail.com');
+  // saveUserEmail('kamogelomoeketse@gmail.com');
 
 
   const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
