@@ -132,7 +132,13 @@ func CreateRabbitConnection() *amqp.Connection {
 	rabbitMQPort := GetRabbitMQPort()
 
 	// Construct the connection URI
-	uri := fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+	var uri string
+
+	if rabbitMQUsername == "RABBITMQ_USERNAME" || rabbitMQPassword == "RABBITMQ_PASSWORD" {
+		uri = fmt.Sprintf("amqp://%s:%s", rabbitMQHost, rabbitMQPort)
+	} else {
+		uri = fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+	}
 
 	// Connect to RabbitMQ
 	conn, err := amqp.Dial(uri)
