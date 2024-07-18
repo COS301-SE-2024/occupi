@@ -1046,6 +1046,108 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		// Verify the update
 	})
 
+	mt.Run("Update verification status successfully in cache to true", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email:      email,
+			IsVerified: false,
+		}
+
+		// Add password to cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email, userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the password is in the cache
+		user, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
+		success, err := database.UpdateVerificationStatusTo(ctx, appsession, email, true)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in cache
+		user, err = cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.True(t, userB.IsVerified)
+	})
+
+	mt.Run("Update verification status successfully in cache to false", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email:      email,
+			IsVerified: true,
+		}
+
+		// Add password to cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := cache.Set(email, userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the password is in the cache
+		user, err := cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: cache,
+		}
+
+		success, err := database.UpdateVerificationStatusTo(ctx, appsession, email, false)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in cache
+		user, err = cache.Get(email)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.False(t, userB.IsVerified)
+	})
+
 	mt.Run("UpdateOne error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
 			Code:    11000,
@@ -1575,6 +1677,172 @@ func TestFilterUsersWithProjectionSuccess(t *testing.T) {
 
 	if results[0]["email"] != email {
 		t.Fatalf("FilterUsersWithProjection() email = %v, want %v", results[0]["email"], email)
+	}
+}
+
+func TestFilterUsersWithProjectionAndSortAscSuccess(t *testing.T) {
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := &models.AppSession{
+		DB: db,
+	}
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := primitive.M{
+		"email": primitive.Regex{
+			Pattern: "^" + "TestFilterUsersWithProjectionAndSortAscSuccess", // "^" ensures the pattern matches the beginning of the string
+			Options: "i",                                                    // "i" makes the regex case-insensitive (optional)
+		},
+	}
+	projection := bson.M{"email": 1}
+	limit := 10
+	skip := 0
+	sort := bson.M{"email": 1}
+
+	// Create test users
+	users := []models.UserDetails{
+		{
+			Email: "TestFilterUsersWithProjectionAndSortAscSuccess3@example.com",
+		},
+		{
+			Email: "TestFilterUsersWithProjectionAndSortAscSuccess2@example.com",
+		},
+		{
+			Email: "TestFilterUsersWithProjectionAndSortAscSuccess1@example.com",
+		},
+		{
+			Email: "TestFilterUsersWithProjectionAndSortAscSuccess4@example.com",
+		},
+	}
+
+	// Insert test users into the database
+	for _, user := range users {
+		_, err := collection.InsertOne(ctx, user)
+
+		if err != nil {
+			t.Fatalf("Failed to insert test user into database: %v", err)
+		}
+	}
+
+	filter_arg := models.FilterStruct{
+		Filter:     filter,
+		Projection: projection,
+		Limit:      int64(limit),
+		Skip:       int64(skip),
+		Sort:       sort,
+	}
+
+	// Execute the function
+	results, count, err := database.FilterCollectionWithProjection(ctx, appSession, "Users", filter_arg)
+
+	// Validate results
+	if err != nil {
+		t.Fatalf("FilterUsersWithProjection() error = %v", err)
+	}
+
+	if count != 4 {
+		t.Fatalf("FilterUsersWithProjection() count = %v, want %v", count, 1)
+	}
+
+	if len(results) != 4 {
+		t.Fatalf("FilterUsersWithProjection() results count = %v, want %v", len(results), 1)
+	}
+
+	if results[0]["email"] != "TestFilterUsersWithProjectionAndSortAscSuccess1@example.com" {
+		t.Fatalf("FilterUsersWithProjection() email = %v, want %v", results[0]["email"], "TestFilterUsersWithProjectionAndSortAscSuccess1@example.com")
+	}
+}
+
+func TestFilterUsersWithProjectionAndSortDescSuccess(t *testing.T) {
+	// Create database connection and cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the cache
+	appSession := &models.AppSession{
+		DB: db,
+	}
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := primitive.M{
+		"email": primitive.Regex{
+			Pattern: "^" + "TestFilterUsersWithProjectionAndSortDescSuccess", // "^" ensures the pattern matches the beginning of the string
+			Options: "i",                                                     // "i" makes the regex case-insensitive (optional)
+		},
+	}
+	projection := bson.M{"email": 1}
+	limit := 10
+	skip := 0
+	sort := bson.M{"email": -1}
+
+	// Create test users
+	users := []models.UserDetails{
+		{
+			Email: "TestFilterUsersWithProjectionAndSortDescSuccess3@example.com",
+		},
+		{
+			Email: "TestFilterUsersWithProjectionAndSortDescSuccess2@example.com",
+		},
+		{
+			Email: "TestFilterUsersWithProjectionAndSortDescSuccess1@example.com",
+		},
+		{
+			Email: "TestFilterUsersWithProjectionAndSortDescSuccess4@example.com",
+		},
+	}
+
+	// Insert test users into the database
+	for _, user := range users {
+		_, err := collection.InsertOne(ctx, user)
+
+		if err != nil {
+			t.Fatalf("Failed to insert test user into database: %v", err)
+		}
+	}
+
+	filter_arg := models.FilterStruct{
+		Filter:     filter,
+		Projection: projection,
+		Limit:      int64(limit),
+		Skip:       int64(skip),
+		Sort:       sort,
+	}
+
+	// Execute the function
+	results, count, err := database.FilterCollectionWithProjection(ctx, appSession, "Users", filter_arg)
+
+	// Validate results
+	if err != nil {
+		t.Fatalf("FilterUsersWithProjection() error = %v", err)
+	}
+
+	if count != 4 {
+		t.Fatalf("FilterUsersWithProjection() count = %v, want %v", count, 1)
+	}
+
+	if len(results) != 4 {
+		t.Fatalf("FilterUsersWithProjection() results count = %v, want %v", len(results), 1)
+	}
+
+	if results[0]["email"] != "TestFilterUsersWithProjectionAndSortDescSuccess4@example.com" {
+		t.Fatalf("FilterUsersWithProjection() email = %v, want %v", results[0]["email"], "TestFilterUsersWithProjectionAndSortDescSuccess4@example.com")
 	}
 }
 
