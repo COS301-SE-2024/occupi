@@ -5,9 +5,6 @@ services:
     ports:
       - "5674:5672"
     restart: on-failure:5
-    environment:
-      RABBITMQ_DEFAULT_USER: $RABBITMQ_DEFAULT_USER
-      RABBITMQ_DEFAULT_PASS: $RABBITMQ_DEFAULT_PASS
     volumes:
       - rabbitmq-dev-local-local:/var/lib/rabbitmq
 
