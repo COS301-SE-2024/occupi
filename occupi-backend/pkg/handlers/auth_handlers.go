@@ -444,6 +444,7 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 		"Two-factor authentication enabled successfully",
 		nil))
 }
+
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 	// take in the otp , their email and then log users in
 	var users models.RequestUserOTP
@@ -459,25 +460,25 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 
     var request models.SecuritySettingsRequest
 
-    if err := ctx.ShouldBindJSON(&request); err != nil {
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Invalid request payload",
-            constants.InvalidRequestPayloadCode,
-            "Expected valid format for security settings request",
-            nil))
-        return
-    }
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected valid format for security settings request",
+			nil))
+		return
+	}
 
-    // Validate email
-    valid, err := ValidateEmailExists(ctx, appsession, request.Email)
-    if !valid {
-        if err != nil {
-            ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-            logrus.Error(err)
-        }
-        return
-    }
+	// Validate email
+	valid, err := ValidateEmailExists(ctx, appsession, request.Email)
+	if !valid {
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
+		}
+		return
+	}
 
 	// Validate otp
 	if valid, err := ValidateOTPExists(ctx, appsession, users.Email, users.OTP); !valid {
@@ -505,17 +506,17 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Hash new password
-    newPasswordHash, err := utils.Argon2IDHash(request.NewPassword)
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
-            http.StatusInternalServerError,
-            "Password hashing failed",
-            constants.InternalServerErrorCode,
-            "Unable to process the new password",
-            nil))
-        return
-    }
+	// Hash new password
+	newPasswordHash, err := utils.Argon2IDHash(request.NewPassword)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Password hashing failed",
+			constants.InternalServerErrorCode,
+			"Unable to process the new password",
+			nil))
+		return
+	}
 
     // Update password in database
 		success, err := database.UpdateUserPassword(ctx, appsession.DB, request.Email, newPasswordHash)
@@ -529,9 +530,9 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
 			return
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{
-			"message": "Password successfully updated",
-		})
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Password successfully updated",
+	})
 }
 
 func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
