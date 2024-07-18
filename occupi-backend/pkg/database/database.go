@@ -1082,8 +1082,10 @@ func UpdateSecuritySettings(ctx context.Context, appsession *models.AppSession, 
 		update["$set"].(bson.M)["password"] = securitySettings.NewPassword
 	}
 
-	if securitySettings.Twofa != "" {
-		update["$set"].(bson.M)["security.mfa"] = securitySettings.Twofa
+	if securitySettings.Twofa == "on" {
+		update["$set"].(bson.M)["security.mfa"] = true
+	} else if securitySettings.Twofa == "off" {
+		update["$set"].(bson.M)["security.mfa"] = false
 	}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
