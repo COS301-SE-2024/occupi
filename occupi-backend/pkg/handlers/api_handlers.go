@@ -488,3 +488,75 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched push tokens!", pushTokens))
 }
+
+func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
+	var securitySettings models.SecuritySettingsRequest
+	if err := ctx.ShouldBindJSON(&securitySettings); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+		return
+	}
+
+	//validate email
+	if !utils.ValidateEmail(securitySettings.Email) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid email format", nil))
+		return
+	}
+
+	// Check if the user exists
+	if !database.EmailExists(ctx, appsession, securitySettings.Email) {
+		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
+		return
+	}
+
+	// Validate the given passwords if they exist
+	if securitySettings.CurrentPassword != "" && securitySettings.NewPassword != "" && securitySettings.NewPasswordConfirm != "" {
+		if !utils.ValidatePassword(securitySettings.CurrentPassword) {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid password format", nil))
+			return
+		}
+
+		if !utils.ValidatePassword(securitySettings.NewPassword) {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid password format", nil))
+			return
+		}
+
+		if !utils.ValidatePassword(securitySettings.NewPasswordConfirm) {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid password format", nil))
+			return
+		}
+
+		// Check if the new passwords match
+		if securitySettings.NewPassword != securitySettings.NewPasswordConfirm {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Passwords do not match", nil))
+			return
+		}
+
+		// check if the current password matches the one in the database
+		password, err := database.GetPassword(ctx, appsession, securitySettings.Email)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get password", constants.InternalServerErrorCode, "Failed to get password", nil))
+			return
+		}
+
+		// validate the password match
+		res, err := utils.CompareArgon2IDHash(securitySettings.CurrentPassword, password)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to compare passwords", constants.InternalServerErrorCode, "Failed to compare passwords", nil))
+			return
+		}
+
+		if !res {
+			ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(http.StatusUnauthorized, "Invalid request payload", constants.InvalidRequestPayloadCode, "Passwords do not match", nil))
+			return
+		}
+	}
+
+	if err := database.UpdateSecuritySettings(ctx, appsession, securitySettings); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update security settings", constants.InternalServerErrorCode, "Failed to update security settings", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated security settings!", nil))
+}
