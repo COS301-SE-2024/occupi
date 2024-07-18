@@ -518,7 +518,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
     }
 
     // Update password in database
-		success, err := database.UpdateUserPassword(ctx, appsession.DB, requestUser.Email, newPasswordHash)
+		success, err := database.UpdateUserPassword(ctx, appsession.DB, request.Email, newPasswordHash)
 		if err != nil || !success {
 			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 				http.StatusInternalServerError,
