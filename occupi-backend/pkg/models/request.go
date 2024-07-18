@@ -48,3 +48,11 @@ type RequestEmail struct {
 type RequestEmails struct {
 	Emails []string `json:"emails" binding:"required"`
 }
+
+type SecuritySettingsRequest struct {
+	Email              string `json:"email" binding:"required,email"`
+	Twofa              bool   `json:"2fa"`
+	CurrentPassword    string `json:"currentPassword"`
+	NewPassword        string `json:"newPassword"`
+	NewPasswordConfirm string `json:"newPasswordConfirm"`
+}
