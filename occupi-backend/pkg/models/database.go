@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // structure of user
 type User struct {
@@ -20,6 +25,7 @@ type User struct {
 	Status               string         `json:"status" bson:"status, omitempty"`
 	Position             string         `json:"position" bson:"position, omitempty"`
 	DepartmentNo         string         `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ExpoPushToken        string         `json:"expoPushToken" bson:"expoPushToken"`
 }
 
 type UserDetails struct {
@@ -54,9 +60,8 @@ type Details struct {
 }
 
 type Notifications struct {
-	Allow           *bool `json:"allow" bson:"allow"`
-	BookingReminder *bool `json:"bookingReminder" bson:"bookingReminder"`
-	MaxCapacity     *bool `json:"maxCapacity" bson:"maxCapacity"`
+	Invites         bool `json:"invites" bson:"invites"`
+	BookingReminder bool `json:"bookingReminder" bson:"bookingReminder"`
 }
 
 type Security struct {
@@ -128,4 +133,22 @@ type ResetToken struct {
 	Email      string    `bson:"email"`
 	Token      string    `bson:"token"`
 	ExpireWhen time.Time `bson:"expireWhen"`
+}
+
+type ScheduledNotification struct {
+	ID                   string    `json:"_id" bson:"_id,omitempty"`
+	Title                string    `json:"title" bson:"title"`
+	Message              string    `json:"message" bson:"message"`
+	SendTime             time.Time `json:"send_time" bson:"send_time"`
+	UnsentExpoPushTokens []string  `json:"unsentExpoPushTokens" bson:"unsentExpoPushTokens"`
+	Emails               []string  `json:"emails" bson:"emails"`
+	UnreadEmails         []string  `json:"unreadEmails" bson:"unreadEmails"`
+}
+
+type FilterStruct struct {
+	Filter     primitive.M
+	Projection bson.M
+	Limit      int64
+	Skip       int64
+	Sort       primitive.M
 }

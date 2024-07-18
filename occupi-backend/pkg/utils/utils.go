@@ -2,7 +2,7 @@ package utils
 
 import (
 	"crypto/rand"
-	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
@@ -19,6 +21,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
 
@@ -88,23 +91,18 @@ func GenerateBookingID() string {
 	return employeeID
 }
 
-// generates a random auth0 state
-func GenerateRandomState() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-
-	state := base64.StdEncoding.EncodeToString(b)
-
-	return state, nil
-}
-
 // sanitizes the given input
 func SanitizeInput(input string) string {
 	p := bluemonday.UGCPolicy()
 	return p.Sanitize(input)
+}
+
+// sanitizes the given input of array of strings
+func SanitizeInputArray(input []string) []string {
+	for i, val := range input {
+		input[i] = SanitizeInput(val)
+	}
+	return input
 }
 
 // validates an email against a regex pattern
@@ -112,6 +110,16 @@ func ValidateEmail(email string) bool {
 	// Regex pattern for email validation
 	var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
+}
+
+// validates emails against a regex pattern
+func ValidateEmails(emails []string) bool {
+	for _, email := range emails {
+		if !ValidateEmail(email) {
+			return false
+		}
+	}
+	return true
 }
 
 // validates a password against a regex pattern
@@ -286,17 +294,56 @@ func SantizeFilter(queryInput models.QueryInput) primitive.M {
 		queryInput.Filter = make(map[string]interface{})
 	}
 	delete(queryInput.Filter, "password")
+	delete(queryInput.Filter, "unsentExpoPushTokens")
 
-	filter := bson.M(queryInput.Filter)
+	// ensure the operator is valid if present
+	if queryInput.Operator != "" && queryInput.Operator != "gt" &&
+		queryInput.Operator != "gte" && queryInput.Operator != "lt" &&
+		queryInput.Operator != "lte" && queryInput.Operator != "eq" &&
+		queryInput.Operator != "ne" && queryInput.Operator != "in" && queryInput.Operator != "nin" {
+		// default to "" if invalid operator
+		queryInput.Operator = ""
+	}
+
+	var filter primitive.M
+
+	if queryInput.Operator == "" {
+		return bson.M(queryInput.Filter)
+	} else { // accepts gt, gte, lt, lte, eq, ne, in, nin operators
+		filter = bson.M{}
+		for key, value := range queryInput.Filter {
+			filter[key] = bson.M{"$" + queryInput.Operator: value}
+		}
+	}
 
 	return filter
+}
+
+func SanitizeSort(queryInput models.QueryInput) primitive.M {
+	// Remove password field from filter if present
+	if queryInput.Filter == nil {
+		queryInput.Filter = make(map[string]interface{})
+	}
+	delete(queryInput.Filter, "password")
+	delete(queryInput.Filter, "unsentExpoPushTokens")
+
+	switch {
+	case queryInput.OrderAsc != "" && queryInput.OrderDesc != "":
+		return bson.M{queryInput.OrderAsc: 1, queryInput.OrderDesc: -1}
+	case queryInput.OrderAsc != "":
+		return bson.M{queryInput.OrderAsc: 1}
+	case queryInput.OrderDesc != "":
+		return bson.M{queryInput.OrderDesc: -1}
+	default:
+		return bson.M{}
+	}
 }
 
 func SantizeProjection(queryInput models.QueryInput) []string {
 	// Remove password field from projection if present
 	sanitizedProjection := []string{}
 	for _, field := range queryInput.Projection {
-		if field != "password" {
+		if field != "password" && field != "unsentExpoPushTokens" && field != "emails" {
 			sanitizedProjection = append(sanitizedProjection, field)
 		}
 	}
@@ -305,19 +352,27 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 }
 
 func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
-	const passwordField = "password"
 	projection := bson.M{}
 	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
-		projection[passwordField] = 0 // Exclude password by default
+		projection["password"] = 0 // Exclude password by default
+		projection["unsentExpoPushTokens"] = 0
+		projection["emails"] = 0
 	} else {
 		for _, field := range sanitizedProjection {
-			if field != passwordField {
+			switch field {
+			case "password":
+				projection[field] = 0
+			case "unsentExpoPushTokens":
+				projection[field] = 0
+			case "emails":
+				projection[field] = 0
+			default:
 				projection[field] = 1
-			} else if field == passwordField {
-				projection[passwordField] = 0
 			}
 		}
 	}
+	// exclude _id field by default
+	projection["_id"] = 0
 
 	return projection
 }
@@ -335,4 +390,168 @@ func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
 	skip := (page - 1) * limit
 
 	return limit, page, skip
+}
+
+func ConstructBookingScheduledString(emails []string) string {
+	n := len(emails)
+	if n == 0 { // this cannot happen as the creator is always included in the emails
+		logrus.Error("No emails provided")
+		return ""
+	}
+
+	switch n {
+	case 1:
+		return fmt.Sprintf("A booking with %s has been scheduled", emails[0])
+	case 2:
+		return fmt.Sprintf("A booking with %s and %s has been scheduled", emails[0], emails[1])
+	default:
+		return fmt.Sprintf("A booking with %s, %s and %d others has been scheduled", emails[0], emails[1], n-1)
+	}
+}
+
+func ConstructBookingStartingInScheduledString(emails []string, startTime string) string {
+	n := len(emails)
+	if n == 0 { // this cannot happen as the creator is always included in the emails
+		logrus.Error("No emails provided")
+		return ""
+	}
+
+	if startTime == "now" {
+		startTime = "a few seconds"
+	}
+
+	switch n {
+	case 1:
+		return fmt.Sprintf("A booking with %s starts in %s", emails[0], startTime)
+	case 2:
+		return fmt.Sprintf("A booking with %s and %s starts in %s", emails[0], emails[1], startTime)
+	default:
+		return fmt.Sprintf("A booking with %s, %s and %d others starts in %s", emails[0], emails[1], n-1, startTime)
+	}
+}
+
+func PrependEmailtoSlice(emails []string, email string) []string {
+	emails = append([]string{email}, emails...)
+	return emails
+}
+
+func ConvertToStringArray(input interface{}) []string {
+	// Convert the input to a slice of strings
+	var stringArray []string
+	switch input := input.(type) {
+	case string:
+		stringArray = append(stringArray, input)
+	case []string:
+		stringArray = append(stringArray, input...)
+	default:
+		logrus.Error("Invalid input type")
+		stringArray = []string{}
+	}
+	return stringArray
+}
+
+func ConvertArrayToCommaDelimitedString(input []string) string {
+	return strings.Join(input, ",")
+}
+
+func ConvertCommaDelimitedStringToArray(input string) []string {
+	return strings.Split(input, ",")
+}
+
+func RandomError() error {
+	// probability of returning error should be 50/50
+	num, err := generateRandomNumber()
+
+	if err != nil {
+		return errors.New("failed to generate random number")
+	}
+
+	if num%2 == 0 {
+		return errors.New("random error")
+	} else {
+		return nil
+	}
+}
+
+func GetClaimsFromCTX(ctx *gin.Context) (*authenticator.Claims, error) {
+	// attempt to get email from jwt cookie token or auth header
+	tokenStr, _ := ctx.Cookie("token")
+	headertokenStr := ctx.GetHeader("Authorization")
+	if tokenStr == "" && headertokenStr == "" {
+		return nil, errors.New("no token provided")
+	}
+
+	if tokenStr == "" {
+		tokenStr = headertokenStr
+	}
+
+	claims, err := authenticator.ValidateToken(tokenStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return claims, nil
+}
+
+func IsSessionSet(ctx *gin.Context) bool {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	if email == nil || role == nil {
+		return false
+	}
+
+	return true
+}
+
+func SetSession(ctx *gin.Context, claims *authenticator.Claims) error {
+	session := sessions.Default(ctx)
+
+	session.Set("email", claims.Email)
+	session.Set("role", claims.Role)
+
+	if err := session.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ClearSession(ctx *gin.Context) error {
+	session := sessions.Default(ctx)
+
+	session.Clear()
+	if err := session.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetSession(ctx *gin.Context) (string, string) {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	return email.(string), role.(string)
+}
+
+func CompareSessionAndClaims(ctx *gin.Context, claims *authenticator.Claims) bool {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	if email == nil || role == nil {
+		return false
+	}
+
+	if email != claims.Email || role != claims.Role {
+		return false
+	}
+
+	return true
 }

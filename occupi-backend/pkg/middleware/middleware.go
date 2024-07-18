@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -12,34 +11,12 @@ import (
 	"github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
-
-	"github.com/gin-contrib/sessions"
 )
 
 // ProtectedRoute is a middleware that checks if
 // the user has already been authenticated previously.
 func ProtectedRoute(ctx *gin.Context) {
-	tokenStr, err := ctx.Cookie("token")
-	// Retrieve token from Authorization header
-	headertokenStr := ctx.GetHeader("Authorization")
-	if (err != nil || tokenStr == "") && headertokenStr == "" {
-		// If token is not found in cookies or JSON payload, return unauthorized
-		ctx.JSON(http.StatusUnauthorized,
-			utils.ErrorResponse(
-				http.StatusUnauthorized,
-				"Bad Request",
-				constants.InvalidAuthCode,
-				"User not authorized",
-				nil))
-		ctx.Abort()
-		return
-	}
-
-	if tokenStr == "" {
-		tokenStr = headertokenStr
-	}
-
-	claims, err := authenticator.ValidateToken(tokenStr)
+	claims, err := utils.GetClaimsFromCTX(ctx)
 
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized,
@@ -47,18 +24,16 @@ func ProtectedRoute(ctx *gin.Context) {
 				http.StatusUnauthorized,
 				"Bad Request",
 				constants.InvalidAuthCode,
-				"Invalid token",
+				"User not authorized or Invalid auth token",
 				nil))
 		ctx.Abort()
 		return
 	}
 
 	// check if email and role session variables are set
-	session := sessions.Default(ctx)
-	if session.Get("email") == nil || session.Get("role") == nil {
-		session.Set("email", claims.Email)
-		session.Set("role", claims.Role)
-		if err := session.Save(); err != nil {
+	if !utils.IsSessionSet(ctx) {
+		err := utils.SetSession(ctx, claims)
+		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -67,7 +42,7 @@ func ProtectedRoute(ctx *gin.Context) {
 	}
 
 	// check that session variables and token claims match
-	if session.Get("email") != claims.Email || session.Get("role") != claims.Role {
+	if !utils.CompareSessionAndClaims(ctx, claims) {
 		ctx.JSON(http.StatusUnauthorized,
 			utils.ErrorResponse(
 				http.StatusUnauthorized,
@@ -85,47 +60,23 @@ func ProtectedRoute(ctx *gin.Context) {
 // ProtectedRoute is a middleware that checks if
 // the user has not been authenticated previously.
 func UnProtectedRoute(ctx *gin.Context) {
-	tokenStr, err := ctx.Cookie("token")
+	_, err := utils.GetClaimsFromCTX(ctx)
 	if err == nil {
-		_, err := authenticator.ValidateToken(tokenStr)
-
-		if err == nil {
-			ctx.JSON(http.StatusUnauthorized,
-				utils.ErrorResponse(
-					http.StatusUnauthorized,
-					"Bad Request",
-					constants.InvalidAuthCode,
-					"User already authorized",
-					nil))
-			ctx.Abort()
-			return
-		}
-	}
-
-	// Retrieve token from Authorization header
-	headertokenStr := ctx.GetHeader("Authorization")
-	if headertokenStr != "" {
-		_, err := authenticator.ValidateToken(headertokenStr)
-
-		if err == nil {
-			ctx.JSON(http.StatusUnauthorized,
-				utils.ErrorResponse(
-					http.StatusUnauthorized,
-					"Bad Request",
-					constants.InvalidAuthCode,
-					"User already authorized",
-					nil))
-			ctx.Abort()
-			return
-		}
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User already authorized",
+				nil))
+		ctx.Abort()
+		return
 	}
 
 	// check if email and role session variables are set
-	session := sessions.Default(ctx)
-	if session.Get("email") != nil || session.Get("role") != nil {
-		session.Delete("email")
-		session.Delete("role")
-		if err := session.Save(); err != nil {
+	if utils.IsSessionSet(ctx) {
+		err := utils.ClearSession(ctx)
+		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -139,9 +90,8 @@ func UnProtectedRoute(ctx *gin.Context) {
 // AdminRoute is a middleware that checks if
 // the user has the admin role.
 func AdminRoute(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	role := session.Get("role")
-	if role != constants.Admin {
+	claims, err := utils.GetClaimsFromCTX(ctx)
+	if err != nil || claims.Role != constants.Admin {
 		ctx.JSON(http.StatusUnauthorized,
 			utils.ErrorResponse(
 				http.StatusUnauthorized,

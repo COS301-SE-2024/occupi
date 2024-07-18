@@ -12,7 +12,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/ipinfo/go/v2/ipinfo"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,10 +53,6 @@ func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string,
 		return false, err
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Please check your email for an otp.",
-		nil))
 	return true, nil
 }
 
@@ -92,24 +87,20 @@ func GenerateJWTTokenAndStartSession(ctx *gin.Context, appsession *models.AppSes
 	var token string
 	var expirationTime time.Time
 	var err error
+	var claims *authenticator.Claims
 	if role == constants.Admin {
-		token, expirationTime, err = authenticator.GenerateToken(email, constants.Admin)
+		token, expirationTime, claims, err = authenticator.GenerateToken(email, constants.Admin)
 	} else {
-		token, expirationTime, err = authenticator.GenerateToken(email, constants.Basic)
+		token, expirationTime, claims, err = authenticator.GenerateToken(email, constants.Basic)
 	}
 
 	if err != nil {
 		return "", time.Time{}, err
 	}
 
-	session := sessions.Default(ctx)
-	session.Set("email", email)
-	if role == constants.Admin {
-		session.Set("role", constants.Admin)
-	} else {
-		session.Set("role", constants.Basic)
-	}
-	if err := session.Save(); err != nil {
+	err = utils.SetSession(ctx, claims)
+
+	if err != nil {
 		return "", time.Time{}, err
 	}
 
