@@ -1072,24 +1072,25 @@ func ReadNotifications(ctx *gin.Context, appsession *models.AppSession, email st
 	return nil
 }
 
-func UpdateSecuritySettings(
-	ctx context.Context,
-	appsession *models.AppSession,
-	securitySettings models.SecuritySettingsRequest,
-) (bool, error) {
+func UpdateSecuritySettings(ctx context.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) error {
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	filter := bson.M{"email": securitySettings.Email}
-	var update bson.M
+	update := bson.M{"$set": bson.M{}}
+
 	if securitySettings.NewPassword != "" {
-		update = bson.M{}
+		update["$set"].(bson.M)["password"] = securitySettings.NewPassword
+	}
+
+	if securitySettings.Twofa != "" {
+		update["$set"].(bson.M)["security.mfa"] = securitySettings.Twofa
 	}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

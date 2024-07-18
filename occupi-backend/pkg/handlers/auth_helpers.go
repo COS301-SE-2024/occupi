@@ -125,7 +125,7 @@ func ValidatePasswordEntry(ctx *gin.Context, appsession *models.AppSession, pass
 	return true, nil
 }
 
-func ValidatePasswordEntryAndReturn(ctx *gin.Context, appsession *models.AppSession, password string) (string, error) {
+func ValidatePasswordEntryAndReturnHash(ctx *gin.Context, appsession *models.AppSession, password string) (string, error) {
 	// sanitize input
 	password = utils.SanitizeInput(password)
 
@@ -338,4 +338,70 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, nil
 	}
 	return true, nil
+}
+
+func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) (models.SecuritySettingsRequest, error) {
+	// sanitize input
+	securitySettings.Email = utils.SanitizeInput(securitySettings.Email)
+	securitySettings.NewPassword = utils.SanitizeInput(securitySettings.NewPassword)
+	securitySettings.NewPasswordConfirm = utils.SanitizeInput(securitySettings.NewPasswordConfirm)
+
+	// validate current password
+	if !utils.ValidatePassword(securitySettings.CurrentPassword) ||
+		!utils.ValidatePassword(securitySettings.NewPassword) ||
+		!utils.ValidatePassword(securitySettings.NewPasswordConfirm) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid password",
+			constants.InvalidRequestPayloadCode,
+			"Password does neet meet requirements",
+			nil))
+		return models.SecuritySettingsRequest{}, nil
+	}
+
+	// check if the passwords match
+	if securitySettings.NewPassword != securitySettings.NewPasswordConfirm {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Passwords do not match",
+			constants.InvalidRequestPayloadCode,
+			"Passwords do not match",
+			nil))
+		return models.SecuritySettingsRequest{}, nil
+	}
+
+	// check if the current password is correct
+	password, err := database.GetPassword(ctx, appsession, securitySettings.Email)
+
+	if err != nil {
+		return models.SecuritySettingsRequest{}, err
+	}
+
+	match, err := utils.CompareArgon2IDHash(securitySettings.CurrentPassword, password)
+
+	if err != nil {
+		return models.SecuritySettingsRequest{}, err
+	}
+
+	if !match {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(
+			http.StatusUnauthorized,
+			"Invalid password",
+			constants.InvalidAuthCode,
+			"Password is incorrect",
+			nil))
+		return models.SecuritySettingsRequest{}, nil
+	}
+
+	// hash the new password
+	hashedPassword, err := utils.Argon2IDHash(securitySettings.NewPassword)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return models.SecuritySettingsRequest{}, nil
+	}
+
+	securitySettings.NewPassword = hashedPassword
+
+	return securitySettings, nil
 }
