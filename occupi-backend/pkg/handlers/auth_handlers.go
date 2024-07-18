@@ -11,7 +11,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -479,13 +478,7 @@ func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
 
 // handler for logging out a user
 func Logout(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	session.Clear()
-	if err := session.Save(); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
+	_ = utils.ClearSession(ctx)
 
 	// Clear the Authorization header
 	ctx.Header("Authorization", "")
