@@ -445,6 +445,18 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 		nil))
 }
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
+	// take in the otp , their email and then log users in
+	var users models.RequestUserOTP
+	if err := ctx.ShouldBindJSON(&users); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,	
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected email and otp fields",
+			nil))
+		return
+	}
+
     var request models.SecuritySettingsRequest
 
     if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -467,37 +479,30 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
         return
     }
 
-    // Validate current password
+	// Validate otp
+	if valid, err := ValidateOTPExists(ctx, appsession, users.Email, users.OTP); !valid {
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
+		}
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid OTP",
+			constants.InvalidAuthCode,
+			"Otp expired or invalid",
+			nil))
+		return
+	}
+
+    // Validate new password
     var requestUser models.RequestUser
         
-    valid, err = ValidatePasswordCorrectness(ctx, appsession, requestUser)
+    valid, err = ValidatePasswordEntry(ctx, appsession, request.NewPassword)
     if !valid {
         if err != nil {
             ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
             logrus.Error(err)
         }
-        return
-    }
-
-    // Validate new password
-    if err := utils.ValidatePassword(request.NewPassword); err  {
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Invalid password",
-            constants.InvalidRequestPayloadCode,
-            "New password does not meet requirements",
-            nil))
-        return
-    }
-
-    // Confirm new password
-    if request.NewPassword != request.NewPasswordConfirm {
-        ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-            http.StatusBadRequest,
-            "Passwords do not match",
-            constants.InvalidRequestPayloadCode,
-            "New password and confirmation do not match",
-            nil))
         return
     }
 
