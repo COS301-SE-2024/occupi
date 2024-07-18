@@ -44,7 +44,6 @@ type ResetPassword struct {
 	NewPassword        string `json:"newPassword" binding:"required,min=8"`
 	NewPasswordConfirm string `json:"newPasswordConfirm" binding:"required,min=8"`
 	OTP                string `json:"otp" binding:"required,len=6"`
-	UseCookies  		bool  `json:"use_cookies"`
 }
 
 // expected email structure from api requests
