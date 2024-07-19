@@ -13,6 +13,7 @@ import * as SecureStore from 'expo-secure-store';
 import { StatusBar, useColorScheme, Dimensions } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
 import { Skeleton } from 'moti/skeleton';
+import axios from 'axios';
 
 const Notifications = () => {
     const colorScheme = useColorScheme();
@@ -26,28 +27,31 @@ const Notifications = () => {
         const getNotifications = async () => {
             let userEmail = await SecureStore.getItemAsync('Email');
             let authToken = await SecureStore.getItemAsync('Token');
-            const baseUrl = 'https://dev.occupi.tech/api/get-notifications';
+            // const baseUrl = 'https://dev.occupi.tech/api/get-notifications';
             const params = new URLSearchParams();
             params.append('filter', '{"emails":["kamogelomoeketse@gmail.com"]}');
 
-            const url = `${baseUrl}?${params.toString()}`;
+            // const url = `${baseUrl}?${params.toString()}`;
 
             try {
-                const response = await fetch(baseUrl, {
-                    method: 'GET',
+                const response = await axios.get('https://dev.occupi.tech/api/get-notifications', {
+                    params: {
+                        filter: { 
+                            emails: [{userEmail}] 
+                        }
+                    },
                     headers: {
-                        Accept: 'application/json',
+                        'Accept': 'application/json',
                         'Content-Type': 'application/json',
                         'Authorization': `${authToken}`
                     },
-                    credentials: "include"
+                    withCredentials: true
                 });
-                const data = await response.json();
+                const data = response.data;
                 console.log(`Response Data: ${JSON.stringify(data.data)}`);
                 // console.log(data);
-                if (response.ok) {
+                if (response.status === 200) {
                     setNotifications(data.data || []); // Ensure data is an array
-                    // console.log(data);
                     setLoading(false);
                 } else {
                     console.log(data);
