@@ -562,3 +562,12 @@ func GetClientIP(ctx *gin.Context) string {
 	}
 	return ctx.ClientIP()
 }
+
+func GetClientTime(ctx *gin.Context) time.Time {
+	loc, exists := ctx.Get("timezone")
+	if !exists {
+		return time.Now()
+	}
+
+	return time.Now().In(loc.(*time.Location))
+}

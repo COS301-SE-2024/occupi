@@ -139,6 +139,7 @@ type ScheduledNotification struct {
 	ID                   string    `json:"_id" bson:"_id,omitempty"`
 	Title                string    `json:"title" bson:"title"`
 	Message              string    `json:"message" bson:"message"`
+	Sent                 bool      `json:"sent" bson:"sent"`
 	SendTime             time.Time `json:"send_time" bson:"send_time"`
 	UnsentExpoPushTokens []string  `json:"unsentExpoPushTokens" bson:"unsentExpoPushTokens"`
 	Emails               []string  `json:"emails" bson:"emails"`

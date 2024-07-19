@@ -172,7 +172,8 @@ func TimezoneMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		time.Local = loc
+		// Store the location in the context
+		ctx.Set("timezone", loc)
 		ctx.Next()
 	}
 }
