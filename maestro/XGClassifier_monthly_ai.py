@@ -22,12 +22,16 @@ df['MonthlyAverage'] = df.groupby('MonthNum')['Occupancy'].transform('mean')
 
 # Define occupancy levels
 def get_occupancy_level(occupancy):
-    if occupancy < df['MonthlyAverage'].quantile(0.38):  # Adjusted from 0.4
-        return 'Low'
-    elif occupancy < df['MonthlyAverage'].quantile(0.62):  # Adjusted from 0.6
-        return 'Medium'
+    if occupancy < df['MonthlyAverage'].quantile(0.2):
+        return 1
+    elif occupancy < df['MonthlyAverage'].quantile(0.4):
+        return 2
+    elif occupancy < df['MonthlyAverage'].quantile(0.6):
+        return 3
+    elif occupancy < df['MonthlyAverage'].quantile(0.8):
+        return 4
     else:
-        return 'High'
+        return 5
 
 # Apply function to determine Occupancy Level
 df['OccupancyLevel'] = df['MonthlyAverage'].apply(get_occupancy_level)
