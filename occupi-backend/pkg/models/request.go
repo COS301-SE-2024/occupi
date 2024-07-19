@@ -39,6 +39,13 @@ type QueryInput struct {
 	Page       int64                  `json:"page"`
 }
 
+type ResetPassword struct {
+	Email              string `json:"email" binding:"required,email"`
+	NewPassword        string `json:"newPassword" binding:"required,min=8"`
+	NewPasswordConfirm string `json:"newPasswordConfirm" binding:"required,min=8"`
+	OTP                string `json:"otp" binding:"required,len=6"`
+}
+
 // expected email structure from api requests
 type RequestEmail struct {
 	Email string `json:"email" binding:"required,email"`
@@ -47,4 +54,12 @@ type RequestEmail struct {
 // expected email structure from api requests
 type RequestEmails struct {
 	Emails []string `json:"emails" binding:"required"`
+}
+
+type SecuritySettingsRequest struct {
+	Email              string `json:"email" binding:"required,email"`
+	Twofa              string `json:"2fa"`
+	CurrentPassword    string `json:"currentPassword"`
+	NewPassword        string `json:"newPassword"`
+	NewPasswordConfirm string `json:"newPasswordConfirm"`
 }
