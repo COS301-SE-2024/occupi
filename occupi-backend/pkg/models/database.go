@@ -65,8 +65,8 @@ type Notifications struct {
 }
 
 type Security struct {
-	MFA        *bool `json:"mfa" bson:"mfa"`
-	Biometrics *bool `json:"biometrics" bson:"biometrics"`
+	MFA        bool `json:"mfa" bson:"mfa"`
+	Biometrics bool `json:"biometrics" bson:"biometrics"`
 }
 
 type Location struct {
@@ -89,6 +89,7 @@ type Booking struct {
 	Start     time.Time `json:"start" bson:"start" binding:"required"`
 	End       time.Time `json:"end" bson:"end" binding:"required"`
 }
+
 type Cancel struct {
 	BookingID string    `json:"bookingId" bson:"bookingId" binding:"required"`
 	RoomID    string    `json:"roomId" bson:"roomId" binding:"required"`

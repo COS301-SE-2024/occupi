@@ -428,3 +428,17 @@ func AllocateAuthTokens(ctx *gin.Context, token string, expirationTime time.Time
 		))
 	}
 }
+
+func AttemptToGetEmail(ctx *gin.Context, appsession *models.AppSession) (string, error) {
+	// get the users email from the session
+	if utils.IsSessionSet(ctx) {
+		email, _ := utils.GetSession(ctx)
+		return email, nil
+	} else {
+		claims, err := utils.GetClaimsFromCTX(ctx)
+		if err != nil {
+			return "", err
+		}
+		return claims.Email, nil
+	}
+}
