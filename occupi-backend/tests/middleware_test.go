@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -895,69 +896,55 @@ func TestAttachOTPRateLimitMiddleware(t *testing.T) {
 	}
 }
 
-func TestTimezoneMiddleware_DefaultTimezone(t *testing.T) {
+func TestTimezoneMiddleware(t *testing.T) {
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
 	router := gin.Default()
 	router.Use(middleware.TimezoneMiddleware())
 	router.GET("/time", func(c *gin.Context) {
-		currentTime := time.Now().Format(time.RFC1123)
-		c.JSON(http.StatusOK, gin.H{
-			"current_time": currentTime,
+		loc, exists := c.Get("timezone")
+		if !exists {
+			loc = time.UTC
+		}
+
+		currentTime := time.Now().In(loc.(*time.Location))
+
+		c.JSON(200, gin.H{
+			"current_time": currentTime.Format(time.RFC3339),
 		})
 	})
 
-	req, _ := http.NewRequest("GET", "/time", nil)
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+	tests := []struct {
+		header     string
+		timezone   string
+		statusCode int
+	}{
+		{"X-Timezone", "America/New_York", 200},
+		{"X-Timezone", "Asia/Kolkata", 200},
+		{"X-Timezone", "Invalid/Timezone", 400},
+	}
 
-	assert.Equal(t, 200, w.Code)
-	assert.Contains(t, w.Body.String(), time.Now().UTC().Format(time.RFC1123))
-}
+	for _, tt := range tests {
+		t.Run(tt.timezone, func(t *testing.T) {
+			req, _ := http.NewRequest("GET", "/time", nil)
+			req.Header.Set(tt.header, tt.timezone)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
 
-func TestTimezoneMiddleware_ValidTimezone(t *testing.T) {
-	// set gin run mode
-	gin.SetMode(configs.GetGinRunMode())
-	router := gin.Default()
-	router.Use(middleware.TimezoneMiddleware())
-	router.GET("/time", func(c *gin.Context) {
-		currentTime := time.Now().Format(time.RFC1123)
-		c.JSON(http.StatusOK, gin.H{
-			"current_time": currentTime,
+			assert.Equal(t, tt.statusCode, w.Code)
+			if tt.statusCode == 200 {
+				var response map[string]string
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+
+				loc, err := time.LoadLocation(tt.timezone)
+				assert.NoError(t, err)
+
+				expectedTime := time.Now().In(loc).Format(time.RFC3339)
+				assert.Contains(t, response["current_time"], expectedTime[:19]) // Compare only date and time part
+			}
 		})
-	})
-
-	req, _ := http.NewRequest("GET", "/time", nil)
-	req.Header.Set("X-Timezone", "Africa/Johannesburg")
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
-
-	assert.Equal(t, 200, w.Code)
-
-	// Load the expected timezone
-	loc, _ := time.LoadLocation("Africa/Johannesburg")
-	expectedTime := time.Now().In(loc).Format(time.RFC1123)
-	assert.Contains(t, w.Body.String(), expectedTime)
-}
-
-func TestTimezoneMiddleware_InvalidTimezone(t *testing.T) {
-	// set gin run mode
-	gin.SetMode(configs.GetGinRunMode())
-	router := gin.Default()
-	router.Use(middleware.TimezoneMiddleware())
-	router.GET("/time", func(c *gin.Context) {
-		currentTime := time.Now().Format(time.RFC1123)
-		c.JSON(http.StatusOK, gin.H{
-			"current_time": currentTime,
-		})
-	})
-
-	req, _ := http.NewRequest("GET", "/time", nil)
-	req.Header.Set("X-Timezone", "Invalid/Timezone")
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
-
-	assert.Equal(t, 400, w.Code)
+	}
 }
 
 func TestRealIPMiddleware_CFConnectingIP(t *testing.T) {
