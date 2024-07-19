@@ -38,7 +38,7 @@ export class DataService {
 
   public async fetchUsers(page: number = 1, limit: number = 50, filter: object = {}): Promise<User[]> {
     try {
-      const response = await axios.get<ApiResponse>(`${this.baseUrl}/filter-users`, {
+      const response = await axios.get<ApiResponse>(`${this.baseUrl}/get-users`, {
         params: {
           filter: JSON.stringify(filter),
           projection: JSON.stringify(["id", "name", "role", "team", "status", "email"]),

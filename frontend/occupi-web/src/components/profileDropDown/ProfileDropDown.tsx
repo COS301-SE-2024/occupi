@@ -1,8 +1,8 @@
 // ProfileDropdown.tsx
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, User } from "@nextui-org/react";
-import { Logout, Bell, SettingsIcon, Faq } from "@assets/index";
+import { Bell, SettingsIcon, Faq } from "@assets/index";
 import { useNavigate } from "react-router-dom";
-import {useUser} from "UserContext";
+import { useUser } from "UserContext";
 import AuthService from "AuthService";
 
 const ProfileDropdown = () => {

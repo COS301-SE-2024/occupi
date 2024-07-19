@@ -19,7 +19,7 @@ const LoginForm = (): JSX.Element => {
   }>({ email: "", password: "", valid_email: false, valid_password: false });
   const [isloading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [requiresOtp, setRequiresOtp] = useState(false);
+  const [, setRequiresOtp] = useState(false);
 
   const handleLogin = async () => {
     setIsLoading(true);
@@ -59,17 +59,17 @@ console.log("Login:", form.email, form.password);
 
 
 
-  const handleOtpVerificationSuccess = async () => {
-    setRequiresOtp(false);
-    const userDetails = await AuthService.getUserDetails(form.email);
-    console.log("User details from API:", userDetails);
+  // const handleOtpVerificationSuccess = async () => {
+  //   setRequiresOtp(false);
+  //   const userDetails = await AuthService.getUserDetails(form.email);
+  //   console.log("User details from API:", userDetails);
   
-      setUserDetails(userDetails);
-  };
+  //     setUserDetails(userDetails);
+  // };
 
-  const handleOtpVerificationFailure = (error: string) => {
-    setError(error);
-  };
+  // const handleOtpVerificationFailure = (error: string) => {
+  //   setError(error);
+  // };
 
 
   const handleWebAuthnRegistration = async () => {
