@@ -103,13 +103,14 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	scheduledNotification := models.ScheduledNotification{
 		Title:                "Booking Starting Soon",
 		Message:              utils.ConstructBookingStartingInScheduledString(utils.PrependEmailtoSlice(booking.Emails, booking.Creator), "3 mins"),
+		Sent:                 false,
 		SendTime:             booking.Start.Add(-3 * time.Minute),
 		Emails:               booking.Emails,
 		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
 		UnreadEmails:         booking.Emails,
 	}
 
-	success, errv := database.AddScheduledNotification(ctx, appsession, scheduledNotification, true)
+	success, errv := database.AddNotification(ctx, appsession, scheduledNotification, true)
 
 	if errv != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
@@ -124,13 +125,14 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	notification := models.ScheduledNotification{
 		Title:                "Booking Invitation",
 		Message:              utils.ConstructBookingScheduledString(utils.PrependEmailtoSlice(booking.Emails, booking.Creator)),
-		SendTime:             time.Now(),
+		Sent:                 true,
+		SendTime:             utils.GetClientTime(ctx),
 		Emails:               booking.Emails,
 		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
 		UnreadEmails:         booking.Emails,
 	}
 
-	success, errv = database.AddScheduledNotification(ctx, appsession, notification, false)
+	success, errv = database.AddNotification(ctx, appsession, notification, false)
 
 	if errv != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))

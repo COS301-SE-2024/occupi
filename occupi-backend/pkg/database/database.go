@@ -994,7 +994,7 @@ func GetUsersPushTokens(ctx *gin.Context, appsession *models.AppSession, emails 
 	return results, nil
 }
 
-func AddScheduledNotification(ctx *gin.Context, appsession *models.AppSession, notification models.ScheduledNotification, pushNotification bool) (bool, error) {
+func AddNotification(ctx *gin.Context, appsession *models.AppSession, notification models.ScheduledNotification, pushNotification bool) (bool, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -1026,27 +1026,52 @@ func AddScheduledNotification(ctx *gin.Context, appsession *models.AppSession, n
 	return true, nil
 }
 
-func DeleteExpoPushTokensFromScheduledNotification(ctx context.Context, appsession *models.AppSession, notification models.ScheduledNotification) (bool, error) {
+func GetScheduledNotifications(ctx context.Context, appsession *models.AppSession) ([]models.ScheduledNotification, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
-		return false, errors.New("database is nil")
+		return nil, errors.New("database is nil")
 	}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
 
-	filter := bson.M{"_id": notification.ID}
+	// filter where sent flag is false
+	filter := bson.M{"sent": false}
 
-	// only delete the expo push tokens not in the provided list
-	update := bson.M{"$pull": bson.M{"unsentExpoPushTokens": bson.M{"$in": notification.UnsentExpoPushTokens}}}
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	var notifications []models.ScheduledNotification
+	if err = cursor.All(ctx, &notifications); err != nil {
+		return nil, err
+	}
+
+	return notifications, nil
+}
+
+func MarkNotificationAsSent(ctx context.Context, appsession *models.AppSession, notificationID string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
+
+	// update the notification to sent
+	filter := bson.M{"_id": notificationID}
+	update := bson.M{"$set": bson.M{"sent": true}}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }
 
 func ReadNotifications(ctx *gin.Context, appsession *models.AppSession, email string) error {
@@ -1072,7 +1097,7 @@ func ReadNotifications(ctx *gin.Context, appsession *models.AppSession, email st
 	return nil
 }
 
-func UpdateSecuritySettings(ctx context.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) error {
+func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) error {
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	filter := bson.M{"email": securitySettings.Email}

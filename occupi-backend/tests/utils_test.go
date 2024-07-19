@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -24,6 +25,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
@@ -2569,4 +2571,60 @@ func TestGetClientIP_NotSetInContext(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.JSONEq(t, `{"client_ip":"203.0.113.2"}`, w.Body.String())
+}
+
+func TestGetClientTime(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	router := gin.Default()
+	router.Use(middleware.TimezoneMiddleware())
+	router.GET("/client-time", func(c *gin.Context) {
+		clientTime := utils.GetClientTime(c)
+		c.JSON(200, gin.H{
+			"client_time": clientTime.Format(time.RFC3339),
+		})
+	})
+
+	tests := []struct {
+		header     string
+		timezone   string
+		statusCode int
+	}{
+		{"X-Timezone", "America/New_York", 200},
+		{"X-Timezone", "Asia/Kolkata", 200},
+		{"X-Timezone", "Invalid/Timezone", 400},
+		{"", "", 200}, // Default to UTC
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.timezone, func(t *testing.T) {
+			req, _ := http.NewRequest("GET", "/client-time", nil)
+			if tt.header != "" {
+				req.Header.Set(tt.header, tt.timezone)
+			}
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.statusCode, w.Code)
+			if tt.statusCode == 200 {
+				var response map[string]string
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+
+				var expectedTime time.Time
+				if tt.timezone != "" && tt.timezone != "Invalid/Timezone" {
+					loc, err := time.LoadLocation(tt.timezone)
+					assert.NoError(t, err)
+					expectedTime = time.Now().In(loc)
+				} else {
+					expectedTime = time.Now()
+				}
+				clientTime, err := time.Parse(time.RFC3339, response["client_time"])
+				assert.NoError(t, err)
+
+				// Allow for a few seconds difference due to execution time
+				assert.WithinDuration(t, expectedTime, clientTime, 2*time.Second)
+			}
+		})
+	}
 }
