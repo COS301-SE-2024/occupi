@@ -147,25 +147,6 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.ID))
 }
 
-// ViewBookings handles the retrieval of all bookings for a user
-func ViewBookings(ctx *gin.Context, appsession *models.AppSession) {
-	// Extract the email query parameter
-	email := ctx.Query("email")
-	if email == "" || !utils.ValidateEmail(email) {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Email Address", nil))
-		return
-	}
-
-	// Get all bookings for the userBooking
-	bookings, err := database.GetUserBookings(ctx, appsession, email)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get bookings", constants.InternalServerErrorCode, "Failed to get bookings", nil))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched bookings!", bookings))
-}
-
 func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	var cancelRequest map[string]interface{}
 	if err := ctx.ShouldBindJSON(&cancelRequest); err != nil {
@@ -251,75 +232,50 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
-	// Extract the email query parameter
-	email := ctx.Query("email")
-	if email == "" || !utils.ValidateEmail(email) {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Expected Email Address", nil))
-		return
-	}
-
-	if !database.EmailExists(ctx, appsession, email) {
-		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
-		return
+	var request models.RequestEmail
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		emailStr := ctx.Query("email")
+		if emailStr == "" {
+			email, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			}
+			request.Email = email
+		}
+		request.Email = emailStr
 	}
 
 	// Get all the user details
-	user, err := database.GetUserDetails(ctx, appsession, email)
+	user, err := database.GetUserDetails(ctx, appsession, request.Email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusNotFound, "Failed to get user details", constants.InternalServerErrorCode, "Failed to get user details", nil))
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get user details", constants.InternalServerErrorCode, "Failed to get user details", nil))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched user details!", user))
 }
+
 func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
-	var user models.UserDetails
+	var user models.UserDetailsRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
 		return
 	}
 
-	// Check if the user exists
-	if !database.EmailExists(ctx, appsession, user.Email) {
-		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "User not found", constants.InternalServerErrorCode, "User not found", nil))
-		return
-	}
-	var err error
 	// Update the user details in the database
-	_, err = database.UpdateUserDetails(ctx, appsession, user)
+	_, err := database.UpdateUserDetails(ctx, appsession, user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update user details", constants.InternalServerErrorCode, "Failed to update user details", nil))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated user details!", nil))
-}
-
-func ViewRooms(ctx *gin.Context, appsession *models.AppSession) {
-	// Fetch floor number from query parameters
-	floorNo := ctx.Query("floorNo")
-	if floorNo == "" {
-		floorNo = "0"
-	}
-
-	var rooms []models.Room
-	rooms, err := database.GetAllRooms(ctx, appsession, floorNo)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get rooms", constants.InternalServerErrorCode, "Failed to get rooms", nil))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched rooms!", rooms))
-}
-
-func GetUsers(ctx *gin.Context, appsession *models.AppSession) {
-	users, err := database.GetAllUsers(ctx, appsession)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get users", constants.InternalServerErrorCode, "Failed to get users", nil))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users!", users))
 }
 
 // Helper function to handle validation of requests
@@ -414,6 +370,33 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 		Sort:       sanitizedSort,
 	}
 
+	if collectionName == "RoomBooking" {
+		// check that the .Filter in filter has the email key set and that the value is the same as the email in the appsession otherwise set the email key to the email in the appsession
+		if filter.Filter["email"] == nil || filter.Filter["email"] == "" {
+			email, err := AttemptToGetEmail(ctx, appsession)
+
+			if err != nil {
+				logrus.Error("Failed to get email because: ", err)
+				ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+				return
+			}
+
+			filter.Filter["email"] = email
+		} else {
+			email, err := AttemptToGetEmail(ctx, appsession)
+
+			if err != nil {
+				logrus.Error("Failed to get email because: ", err)
+				ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+				return
+			}
+
+			if filter.Filter["email"] != email {
+				filter.Filter["email"] = email
+			}
+		}
+	}
+
 	res, totalResults, err := database.FilterCollectionWithProjection(ctx, appsession, collectionName, filter)
 
 	if err != nil {
@@ -422,26 +405,11 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 		return
 	}
 
-	if collectionName != "Notifications" {
-		ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "success", res, gin.H{
-			"totalResults": len(res), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
-		return
-	}
-
-	// get the users email from the session
-	if utils.IsSessionSet(ctx) {
-		email, _ := utils.GetSession(ctx)
-		err := database.ReadNotifications(ctx, appsession, email)
-
-		if err != nil {
-			logrus.Error("Failed to read notifications because: ", err)
-			// it's not a critical error so we don't return an error response
-		}
-	} else {
-		claims, err := utils.GetClaimsFromCTX(ctx)
+	if collectionName == "Notifications" {
+		email, err := AttemptToGetEmail(ctx, appsession)
 
 		if err == nil {
-			err := database.ReadNotifications(ctx, appsession, claims.Email)
+			err := database.ReadNotifications(ctx, appsession, email)
 
 			if err != nil {
 				logrus.Error("Failed to read notifications because: ", err)
@@ -503,6 +471,25 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// check if the email is set
+	if securitySettings.Email == "" {
+		// get the email from the appsession
+		email, err := AttemptToGetEmail(ctx, appsession)
+
+		if err != nil {
+			logrus.Error("Failed to get email because: ", err)
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"Email must be provided",
+				nil))
+			return
+		}
+
+		securitySettings.Email = email
+	}
+
 	// check that if current password is provided, new password and new password confirm are also provided and vice versa
 	if (securitySettings.CurrentPassword == "" && (securitySettings.NewPassword != "" || securitySettings.NewPasswordConfirm != "")) ||
 		(securitySettings.NewPassword == "" && (securitySettings.CurrentPassword != "" || securitySettings.NewPasswordConfirm != "")) ||
@@ -548,4 +535,110 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated security settings!", nil))
+}
+
+func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		emailStr := ctx.Query("email")
+		if emailStr == "" {
+			email, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			}
+			request.Email = email
+		}
+		request.Email = emailStr
+	}
+
+	securitySettings, err := database.GetSecuritySettings(ctx, appsession, request.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to get security settings",
+			constants.InternalServerErrorCode,
+			"Failed to get security settings",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched security settings!", securitySettings))
+}
+
+func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
+	var notificationsSettings models.NotificationsRequest
+	if err := ctx.ShouldBindJSON(&notificationsSettings); err != nil {
+		email, err := AttemptToGetEmail(ctx, appsession)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"Invalid JSON payload",
+				nil))
+			return
+		}
+		notificationsSettings.Email = email
+
+		invitesStr := ctx.Query("invites")
+		if invitesStr != "" {
+			notificationsSettings.Invites = invitesStr
+		}
+
+		bookingReminderStr := ctx.Query("bookingReminder")
+		if bookingReminderStr != "" {
+			notificationsSettings.BookingReminder = bookingReminderStr
+		}
+	}
+
+	// update the notification settings
+	if err := database.UpdateNotificationSettings(ctx, appsession, notificationsSettings); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to update notification settings",
+			constants.InternalServerErrorCode,
+			"Failed to update notification settings",
+			nil))
+		return
+	}
+}
+
+func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		emailStr := ctx.Query("email")
+		if emailStr == "" {
+			email, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			}
+			request.Email = email
+		}
+		request.Email = emailStr
+	}
+
+	notificationSettings, err := database.GetNotificationSettings(ctx, appsession, request.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to get notification settings",
+			constants.InternalServerErrorCode,
+			"Failed to get notification settings",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched notification settings!", notificationSettings))
 }

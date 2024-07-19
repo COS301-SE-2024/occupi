@@ -20,4 +20,6 @@ const (
 	ChangePassword            = "changePassword"
 	ChangeEmail               = "changeEmail"
 	ConfirmIPAddress          = "confirmIPAddress"
+	Off                       = "off"
+	On                        = "on"
 )
