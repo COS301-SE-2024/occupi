@@ -319,7 +319,7 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	}
 
 	// check if the users ip address is logging in from a known location
-	isIPValid, unrecognizedLogger, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
+	isIPValid, unrecognizedLogger, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, utils.GetClientIP(ctx))
 
 	if err != nil {
 		return false, err

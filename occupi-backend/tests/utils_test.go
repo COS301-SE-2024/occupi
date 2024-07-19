@@ -2527,3 +2527,46 @@ func TestCompareSessionAndClaims(t *testing.T) {
 		})
 	}
 }
+
+func TestGetClientIP_SetInContext(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		c.Set("ClientIP", "203.0.113.1")
+		c.Next()
+	})
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP := utils.GetClientIP(c)
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.1"}`, w.Body.String())
+}
+
+func TestGetClientIP_NotSetInContext(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP := utils.GetClientIP(c)
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.RemoteAddr = "203.0.113.2:12345"
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.2"}`, w.Body.String())
+}
