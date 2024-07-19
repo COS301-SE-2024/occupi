@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TouchableOpacity,
   StyleSheet,
@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { useColorScheme, Switch } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
+import * as SecureStore from 'expo-secure-store';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -41,18 +42,34 @@ const Notifications = () => {
   //retrieve user settings ad assign variables accordingly
   const [isEnabled1, setIsEnabled1] = useState(false);
   const [isEnabled2, setIsEnabled2] = useState(false);
-  const [isEnabled3, setIsEnabled3] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
+
+  useEffect(() => {
+    const getNotificationDetails = async () => {
+      let settings = await SecureStore.getItemAsync('Notifications');
+      const settingsObject = JSON.parse(settings);
+      if (settingsObject.invites === "on") {
+        setIsEnabled1(true);
+      } else {
+        setIsEnabled1(false);
+      }
+      
+      if (settingsObject.bookingReminder === "on") {
+        setIsEnabled2(true);
+        } else {
+        setIsEnabled2(false);
+      }
+      console.log(settings);
+    }
+    getNotificationDetails();
+  }, [])
+
   const toggleSwitch1 = () => {
     setIsEnabled1(previousState => !previousState)
     setIsSaved(false);
   };
   const toggleSwitch2 = () => {
     setIsEnabled2(previousState => !previousState)
-    setIsSaved(false);
-  };
-  const toggleSwitch3 = () => {
-    setIsEnabled3(previousState => !previousState)
     setIsSaved(false);
   };
 
@@ -121,16 +138,6 @@ const Notifications = () => {
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch2}
             value={isEnabled2}
-          />
-        </View>
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14}  backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-          <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when building is full</Text>
-          <Switch
-            trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled3 ? 'greenyellow' : 'white'}
-            ios_backgroundColor="lightgray"
-            onValueChange={toggleSwitch3}
-            value={isEnabled3}
           />
         </View>
       </View>
