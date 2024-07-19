@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TouchableOpacity,
   StyleSheet,
@@ -33,6 +33,7 @@ import { useColorScheme, Switch } from 'react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import GradientButton from '@/components/GradientButton';
+import * as SecureStore from 'expo-secure-store';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const COLORS = {
@@ -60,18 +61,25 @@ const Security = () => {
   //retrieve user settings ad assign variables accordingly
   const [isEnabled1, setIsEnabled1] = useState(false);
   const [isEnabled2, setIsEnabled2] = useState(false);
-  const [isEnabled3, setIsEnabled3] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
+
+  useEffect(() => {
+    const getSecurityDetails = async () => {
+      let settings = await SecureStore.getItemAsync('Security');
+      const settingsObject = JSON.parse(settings);
+      
+      console.log(settings);
+    }
+    getSecurityDetails();
+  }, [])
+  
+
   const toggleSwitch1 = () => {
     setIsEnabled1(previousState => !previousState);
     setIsSaved(false);
   };
   const toggleSwitch2 = () => {
     setIsEnabled2(previousState => !previousState);
-    setIsSaved(false);
-  };
-  const toggleSwitch3 = () => {
-    setIsEnabled3(previousState => !previousState);
     setIsSaved(false);
   };
 
@@ -215,16 +223,6 @@ const Security = () => {
                 ios_backgroundColor="lightgray"
                 onValueChange={toggleSwitch2}
                 value={isEnabled2}
-              />
-            </View>
-            <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-              <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Force logout on app close</Text>
-              <Switch
-                trackColor={{ false: 'lightgray', true: 'lightgray' }}
-                thumbColor={isEnabled3 ? 'greenyellow' : 'white'}
-                ios_backgroundColor="lightgray"
-                onValueChange={toggleSwitch3}
-                value={isEnabled3}
               />
             </View>
             <Text my="$2" color={colorScheme === 'dark' ? 'white' : 'black'}>Change password</Text>
