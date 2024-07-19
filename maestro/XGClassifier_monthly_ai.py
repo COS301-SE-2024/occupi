@@ -115,8 +115,9 @@ X[numeric_cols] = X[numeric_cols].fillna(X[numeric_cols].mean())
 
 # Fill NaN values for days to/from holiday with a placeholder (e.g., a large number)
 placeholder_value = 999  # This value should be sensibly chosen based on the context
-df['DaysToHoliday'].fillna(placeholder_value, inplace=True)
-df['DaysFromHoliday'].fillna(placeholder_value, inplace=True)
+df['DaysToHoliday'] = df['DaysToHoliday'].fillna(placeholder_value)
+df['DaysFromHoliday'] = df['DaysFromHoliday'].fillna(placeholder_value)
+
 
 # Ensure all numeric columns are filled before scaling
 X[numeric_cols] = X[numeric_cols].fillna(X[numeric_cols].mean())
@@ -146,16 +147,6 @@ random_y = np.random.choice(y, n_random_samples)
 X_scaled = pd.concat([X_scaled, pd.DataFrame(random_X, columns=X_scaled.columns)], ignore_index=True)
 y = pd.concat([pd.Series(y), pd.Series(random_y)], ignore_index=True)
 
-# Adjust class thresholds to make classification harder
-def get_occupancy_level(occupancy):
-    if occupancy < df['MonthlyAverage'].quantile(0.4):  # Changed from 0.33
-        return 'Low'
-    elif occupancy < df['MonthlyAverage'].quantile(0.6):  # Changed from 0.67
-        return 'Medium'
-    else:
-        return 'High'
-
-df['OccupancyLevel'] = df['MonthlyAverage'].apply(get_occupancy_level)
 
 # Reduce model complexity
 xgb_model = XGBClassifier(
