@@ -158,7 +158,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 // handler for generating a new otp for a user and resending it via email
-func ResendOTP(ctx *gin.Context, appsession *models.AppSession) {
+func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType string) {
 	var request models.RequestEmail
 	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -179,8 +179,17 @@ func ResendOTP(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	var emailType string
+	switch resendType {
+	case constants.VerifyEmail:
+		emailType = constants.VerifyEmail
+	case constants.ResetPassword:
+		emailType = constants.ResetPassword
+	default:
+		emailType = constants.VerifyEmail
+	}
 	// sned the otp to verify the email
-	_, err := SendOTPEmail(ctx, appsession, request.Email, constants.VerifyEmail)
+	_, err := SendOTPEmail(ctx, appsession, request.Email, emailType)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
@@ -434,41 +443,6 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 
 	// Use AllocateAuthTokens to handle the response
 	AllocateAuthTokens(ctx, token, expi, cookies)
-}
-
-func ForgotPassword(ctx *gin.Context, appsession *models.AppSession) {
-	var request models.RequestEmail
-	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid email address",
-			constants.InvalidRequestPayloadCode,
-			"Expected a valid format for email address",
-			nil))
-		return
-	}
-
-	// validate email exists
-	if valid, err := ValidateEmailExists(ctx, appsession, request.Email); !valid {
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-			logrus.Error(err)
-		}
-		return
-	}
-
-	// send the otp to reset the password
-	_, err := SendOTPEmail(ctx, appsession, request.Email, constants.ResetPassword)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Password reset OTP sent to your email",
-		nil))
 }
 
 // handler for logging out a request
