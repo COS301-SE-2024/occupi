@@ -1,7 +1,10 @@
 package middleware
 
 import (
+	"net"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -109,7 +112,7 @@ func AdminRoute(ctx *gin.Context) {
 // Rate limit otp verification requests to 1 requests per minute
 func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSession) {
 	// Check if the user has already sent an OTP request
-	_, err := appsession.OtpReqCache.Get(ctx.ClientIP())
+	_, err := appsession.OtpReqCache.Get(utils.GetClientIP(ctx))
 
 	if err == nil {
 		ctx.JSON(http.StatusTooManyRequests,
@@ -124,7 +127,7 @@ func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSessio
 	}
 
 	// Add the user's IP address to the cache
-	err = appsession.OtpReqCache.Set(ctx.ClientIP(), []byte("sent"))
+	err = appsession.OtpReqCache.Set(utils.GetClientIP(ctx), []byte("sent"))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
@@ -146,4 +149,53 @@ func AttachRateLimitMiddleware(ginRouter *gin.Engine) {
 
 	// Apply the middleware to the router
 	ginRouter.Use(middleware)
+}
+
+// TimezoneMiddleware is a middleware that sets the timezone for the request.
+func TimezoneMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		timezone := ctx.GetHeader("X-Timezone")
+		if timezone == "" {
+			timezone = "UTC" // Default to UTC if no timezone is provided
+		}
+
+		loc, err := time.LoadLocation(timezone)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest,
+				utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Bad Request",
+					constants.BadRequestCode,
+					"Invalid timezone",
+					nil))
+			ctx.Abort()
+			return
+		}
+
+		time.Local = loc
+		ctx.Next()
+	}
+}
+
+func RealIPMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Check headers set by Cloudflare and Nginx
+		ip := ctx.GetHeader("CF-Connecting-IP")
+		if ip == "" {
+			ip = ctx.GetHeader("X-Real-IP")
+		}
+		if ip == "" {
+			ip = ctx.GetHeader("X-Forwarded-For")
+			if ip != "" {
+				// X-Forwarded-For may contain a list of IPs
+				ips := strings.Split(ip, ",")
+				ip = strings.TrimSpace(ips[0])
+			}
+		}
+		if ip == "" {
+			ip, _, _ = net.SplitHostPort(ctx.Request.RemoteAddr)
+		}
+		ctx.Set("ClientIP", ip)
+		ctx.Next()
+	}
 }

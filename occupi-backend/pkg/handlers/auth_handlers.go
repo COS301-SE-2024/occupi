@@ -246,7 +246,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 	}
 
 	// change users verification status to true
-	if _, err := database.VerifyUser(ctx, appsession, userotp.Email, ctx.ClientIP()); err != nil {
+	if _, err := database.VerifyUser(ctx, appsession, userotp.Email, utils.GetClientIP(ctx)); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
