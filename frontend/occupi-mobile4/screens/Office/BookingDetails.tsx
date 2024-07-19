@@ -134,7 +134,7 @@ const BookingDetails = () => {
             console.log(tokens);
             sendPushNotification(tokens, "New Booking", `${jsoninfo?.data.details.name} has invited you to a booking.`);
           }
-          // setCurrentStep(2);
+          setCurrentStep(2);
           setLoading(false);
           toast.show({
             placement: 'top',

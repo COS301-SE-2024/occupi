@@ -36,9 +36,10 @@ const Notifications = () => {
             try {
                 const response = await axios.get('https://dev.occupi.tech/api/get-notifications', {
                     params: {
-                        filter: { 
-                            emails: [{userEmail}] 
-                        }
+                        filter: {
+                            emails: [{ userEmail }]
+                        },
+                        order_desc: "send_time"
                     },
                     headers: {
                         'Accept': 'application/json',
@@ -48,7 +49,7 @@ const Notifications = () => {
                     withCredentials: true
                 });
                 const data = response.data;
-                console.log(`Response Data: ${JSON.stringify(data.data)}`);
+                // console.log(`Response Data: ${JSON.stringify(data.data)}`);
                 // console.log(data);
                 if (response.status === 200) {
                     setNotifications(data.data || []); // Ensure data is an array
@@ -87,30 +88,33 @@ const Notifications = () => {
     return (
 
         <View pt="$20" px="$4" flex={1} flexDirection="column" backgroundColor={colorScheme === 'dark' ? '$black' : '$white'}>
-            <View flexDirection='row' justifyContent='space-between'>
+            <View flexDirection='row' justifyContent='space-between' mb="$2">
                 <Text fontWeight="$bold" fontSize={28} color={colorScheme === 'dark' ? '$white' : '$black'}>Notifications</Text>
                 <View style={{ backgroundColor: '#ADFF2F', alignItems: 'center', padding: 8, borderRadius: 12 }}>
                     <Entypo name="sound-mix" size={26} color="black" style={{ transform: [{ rotate: '90deg' }] }} />
                 </View>
             </View>
             {loading === true ? (
-                <ScrollView>
+                <>
                 {Array.from({ length: 8 }, (_, index) => (
-                  <View mt={index === 0 ? '$4' : '$2'}>
-                    <Skeleton colorMode={colorScheme ? 'dark' : 'light'} height={80} width={"100%"} />
-                  </View>
-                ))}
-              </ScrollView>
+                        <View mt={index === 0 ? '$4' : '$2'}>
+                            <Skeleton colorMode={colorScheme === 'dark' ? 'dark' : 'light'} height={80} width={"100%"} />
+                        </View>
+                    ))}
+                </>
             ) : (
                 <ScrollView>
                     {notifications.map((notification, idx) => (
-                        <Text color={colorScheme === 'dark' ? '$white' : '$black'}>{notification.message}</Text>
+                        <View>
+                            {new Date(notification.send_time) < new Date() && (
+                                <Text py="$2" style={{ color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }}>
+                                    {notification.message} · <Text style={{ color: colorScheme === 'dark' ? 'grey' : 'grey'}}>{new Date(notification.send_time).toLocaleString()}</Text>
+                                </Text>
+                            )}
+                        </View>
                     ))}
-
                 </ScrollView>
-
             )}
-
             <Navbar />
         </View>
     )
