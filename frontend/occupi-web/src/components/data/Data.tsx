@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useEffect } from 'react';
 
 
 const columns = [
@@ -59,9 +60,14 @@ interface User {
 
 let users: User[] = [];
 
+// useEffect(() => {
+//   fetchUsers();
+// }, []);
+
+
 const fetchUsers = async (): Promise<User[]> => {
   try {
-    const response = await axios.get<ApiResponse>('/api/filter-users');
+    const response = await axios.get<ApiResponse>('/api/get-users');
 
     const fetchedUsers = response.data.data.map(user => ({
       id: user.occupiId,

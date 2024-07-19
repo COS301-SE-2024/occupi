@@ -6,7 +6,7 @@ const API_USER_URL = '/api'; // Adjust this if needed
 const AuthService = {
   login: async (email: string, password: string) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, {
+      const response = await axios.post(`${API_URL}/login-admin`, {
         email,
         password,
       });
