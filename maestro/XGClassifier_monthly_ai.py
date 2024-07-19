@@ -60,6 +60,34 @@ df['WeekOfYear'] = df['Date'].dt.isocalendar().week
 za_holidays = holidays.SouthAfrica()
 df['IsZAHoliday'] = df['Date'].dt.strftime('%Y-%m-%d').isin(za_holidays)
 
+# Function for holiday proximity
+def holiday_proximity_dates(dates, country_holidays):
+    days_to_holiday = []
+    days_from_holiday = []
+    
+    sorted_holidays = sorted(country_holidays.keys())
+    
+    for date in dates:
+        future_hols = [hol for hol in sorted_holidays if hol >= date]
+        past_hols = [hol for hol in sorted_holidays if hol <= date]
+        
+        if future_hols:
+            days_to_holiday.append((future_hols[0] - date).days)
+        else:
+            days_to_holiday.append(np.nan)
+        
+        if past_hols:
+            days_from_holiday.append((date - past_hols[-1]).days)
+        else:
+            days_from_holiday.append(np.nan)
+            
+    return days_to_holiday, days_from_holiday
+
+df['DaysToHoliday'], df['DaysFromHoliday'] = holiday_proximity_dates(df['Date'], holidays.SouthAfrica())
+
+# Create interaction feature
+df['DayOfYear_IsHoliday'] = df['DayOfYear'] * df['Is_Holiday']
+
 # Lag features
 df['PrevMonthOccupancy'] = df.groupby('Year')['Occupancy'].shift(1)
 
@@ -80,12 +108,21 @@ print("Unique values in encoded target variable:", np.unique(y))
 numeric_cols = X.select_dtypes(include=[np.number]).columns
 X[numeric_cols] = X[numeric_cols].fillna(X[numeric_cols].mean())
 
+# Fill NaN values for days to/from holiday with a placeholder (e.g., a large number)
+placeholder_value = 999  # This value should be sensibly chosen based on the context
+df['DaysToHoliday'].fillna(placeholder_value, inplace=True)
+df['DaysFromHoliday'].fillna(placeholder_value, inplace=True)
+
+# Ensure all numeric columns are filled before scaling
+X[numeric_cols] = X[numeric_cols].fillna(X[numeric_cols].mean())
+
+
 # Scale numerical features
 scaler = StandardScaler()
 X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
-# Add moderate random noise to features
-X_scaled += np.random.normal(0, 0.18, X_scaled.shape)
+# Increase the noise added to features (add this line)
+X_scaled += np.random.normal(0, 0.3, X_scaled.shape)  # Increased from 0.18 to 0.3
 
 # Split the data into training+validation and test sets
 X_train_val, X_test, y_train_val, y_test = train_test_split(X_scaled, y, test_size=0.2, shuffle=False)
@@ -93,16 +130,37 @@ X_train_val, X_test, y_train_val, y_test = train_test_split(X_scaled, y, test_si
 # Further split the training+validation set into training and validation sets
 X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, test_size=0.2, shuffle=False)
 
-# Initialize XGBoost classifier with balanced parameters
+# Increase the noise added to features
+X_scaled += np.random.normal(0, 0.3, X_scaled.shape)  # Increased from 0.18 to 0.3
+
+# Add some random samples (add these lines)
+n_random_samples = int(0.1 * len(X_scaled))  # Add 10% random samples
+random_X = np.random.normal(X_scaled.mean(), X_scaled.std(), (n_random_samples, X_scaled.shape[1]))
+random_y = np.random.choice(y, n_random_samples)
+
+X_scaled = pd.concat([X_scaled, pd.DataFrame(random_X, columns=X_scaled.columns)], ignore_index=True)
+y = pd.concat([pd.Series(y), pd.Series(random_y)], ignore_index=True)
+
+# Adjust class thresholds to make classification harder
+def get_occupancy_level(occupancy):
+    if occupancy < df['MonthlyAverage'].quantile(0.4):  # Changed from 0.33
+        return 'Low'
+    elif occupancy < df['MonthlyAverage'].quantile(0.6):  # Changed from 0.67
+        return 'Medium'
+    else:
+        return 'High'
+
+df['OccupancyLevel'] = df['MonthlyAverage'].apply(get_occupancy_level)
+
+# Reduce model complexity
 xgb_model = XGBClassifier(
-    n_estimators=1000,
-    learning_rate=0.01,
-    max_depth=3,
-    subsample=0.8,
-    colsample_bytree=0.8,
+    n_estimators=100,  # Reduced from 1000
+    learning_rate=0.1,  # Increased from 0.01
+    max_depth=2,  # Reduced from 3
+    subsample=0.7,  # Reduced from 0.8
+    colsample_bytree=0.7,  # Reduced from 0.8
     random_state=42
 )
-
 # Train the model on the training set
 xgb_model.fit(X_train, y_train)
 
