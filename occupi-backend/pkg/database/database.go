@@ -68,34 +68,6 @@ func SaveBooking(ctx *gin.Context, appsession *models.AppSession, booking models
 	return true, nil
 }
 
-// Retrieves bookings associated with a user
-func GetUserBookings(ctx *gin.Context, appsession *models.AppSession, email string) ([]models.Booking, error) {
-	// Get the bookings for the user
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
-	filter := bson.M{
-		"$or": []bson.M{
-			{"emails": bson.M{"$elemMatch": bson.M{"$eq": email}}},
-			{"creator": email},
-		},
-	}
-	cursor, err := collection.Find(ctx, filter)
-	if err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	var bookings []models.Booking
-	for cursor.Next(ctx) {
-		var booking models.Booking
-		if err := cursor.Decode(&booking); err != nil {
-			logrus.Error(err)
-			return nil, err
-		}
-		bookings = append(bookings, booking)
-	}
-	return bookings, nil
-}
-
 // Confirms the user check-in by checking certain criteria
 func ConfirmCheckIn(ctx *gin.Context, appsession *models.AppSession, checkIn models.CheckIn) (bool, error) {
 	// Save the check-in to the database
@@ -516,170 +488,124 @@ func ConfirmCancellation(ctx *gin.Context, appsession *models.AppSession, id str
 	return true, nil
 }
 
-// Gets all rooms available for booking
-func GetAllRooms(ctx *gin.Context, appsession *models.AppSession, floorNo string) ([]models.Room, error) {
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
-
-	var cursor *mongo.Cursor
-	var err error
-
-	// findOptions := options.Find()
-	// findOptions.SetLimit(10)       // Limit the results to 10
-	// findOptions.SetSkip(int64(10)) // Skip the specified number of documents for pagination
-
-	// Find all rooms on the specified floor
-	filter := bson.M{"floorNo": floorNo}
-	// cursor, err = collection.Find(context.TODO(), filter, findOptions)
-	cursor, err = collection.Find(context.TODO(), filter)
-
-	if err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-	defer cursor.Close(context.TODO())
-
-	var rooms []models.Room
-	for cursor.Next(context.TODO()) {
-		var room models.Room
-		if err := cursor.Decode(&room); err != nil {
-			logrus.Error(err)
-			return nil, err
-		}
-		rooms = append(rooms, room)
-	}
-
-	if err := cursor.Err(); err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-
-	return rooms, nil
-}
-
 // Get user information
-func GetUserDetails(ctx *gin.Context, appsession *models.AppSession, email string) (models.UserDetails, error) {
+func GetUserDetails(ctx *gin.Context, appsession *models.AppSession, email string) (models.UserDetailsRequest, error) {
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return models.UserDetailsRequest{
+			Email:        userData.Email,
+			Name:         userData.Details.Name,
+			Dob:          userData.Details.DOB.String(),
+			Gender:       userData.Details.Gender,
+			SessionEmail: userData.Email,
+			Employeeid:   userData.OccupiID,
+			Number:       userData.Details.ContactNo,
+			Pronouns:     userData.Details.Pronouns,
+		}, nil
+	}
+
 	filter := bson.M{"email": email}
-	var user models.UserDetails
+	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		logrus.Error(err)
-		return models.UserDetails{}, err
+		return models.UserDetailsRequest{}, err
 	}
-	return user, nil
-}
 
-// AddFieldToUpdateMap adds a field to the update map if it's non-zero or non-nil
-func AddFieldToUpdateMap(updateFields bson.M, fieldName string, fieldValue interface{}) {
-	switch value := fieldValue.(type) {
-	case string:
-		if value != "" {
-			updateFields[fieldName] = value
-		}
-	case bool:
-		updateFields[fieldName] = value
-	case *bool:
-		if value != nil {
-			updateFields[fieldName] = *value
-		}
-	case time.Time:
-		if !value.IsZero() {
-			updateFields[fieldName] = value
-		}
-	case *models.Details:
-		if value != nil {
-			nestedFields := bson.M{}
-			AddFieldToUpdateMap(nestedFields, "contactNo", value.ContactNo)
-			AddFieldToUpdateMap(nestedFields, "name", value.Name)
-			AddFieldToUpdateMap(nestedFields, "dob", value.DOB)
-			AddFieldToUpdateMap(nestedFields, "gender", value.Gender)
-			AddFieldToUpdateMap(nestedFields, "pronouns", value.Pronouns)
-			if len(nestedFields) > 0 {
-				updateFields[fieldName] = nestedFields
-			}
-		}
-	case *models.Notifications:
-		if value != nil {
-			nestedFields := bson.M{}
-			AddFieldToUpdateMap(nestedFields, "invites", value.Invites)
-			AddFieldToUpdateMap(nestedFields, "bookingReminder", value.BookingReminder)
-			if len(nestedFields) > 0 {
-				updateFields[fieldName] = nestedFields
-			}
-		}
-	case *models.Security:
-		if value != nil {
-			nestedFields := bson.M{}
-			AddFieldToUpdateMap(nestedFields, "mfa", value.MFA)
-			AddFieldToUpdateMap(nestedFields, "biometrics", value.Biometrics)
-			if len(nestedFields) > 0 {
-				updateFields[fieldName] = nestedFields
-			}
-		}
-	}
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return models.UserDetailsRequest{
+		Email:        user.Email,
+		Name:         user.Details.Name,
+		Dob:          user.Details.DOB.String(),
+		Gender:       user.Details.Gender,
+		SessionEmail: user.Email,
+		Employeeid:   user.OccupiID,
+		Number:       user.Details.ContactNo,
+		Pronouns:     user.Details.Pronouns,
+	}, nil
 }
 
 // UpdateUserDetails updates the user's details
-func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user models.UserDetails) (bool, error) {
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
-	filter := bson.M{"email": user.Email}
-
-	var userStruct models.UserDetails
-	err := collection.FindOne(context.TODO(), filter).Decode(&userStruct)
-	if err != nil {
-		logrus.Error("Failed to find user: ", err)
-		return false, err
+func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession, user models.UserDetailsRequest) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
 	}
 
-	updateFields := bson.M{}
-	AddFieldToUpdateMap(updateFields, "occupiId", user.OccupiID)
-	AddFieldToUpdateMap(updateFields, "password", user.Password)
-	AddFieldToUpdateMap(updateFields, "email", user.Email)
-	AddFieldToUpdateMap(updateFields, "role", user.Role)
-	AddFieldToUpdateMap(updateFields, "onSite", user.OnSite)
-	AddFieldToUpdateMap(updateFields, "isVerified", user.IsVerified)
-	AddFieldToUpdateMap(updateFields, "nextVerificationDate", user.NextVerificationDate)
-	AddFieldToUpdateMap(updateFields, "details", user.Details)
-	AddFieldToUpdateMap(updateFields, "notifications", user.Notifications)
-	AddFieldToUpdateMap(updateFields, "security", user.Security)
-	AddFieldToUpdateMap(updateFields, "status", user.Status)
-	AddFieldToUpdateMap(updateFields, "position", user.Position)
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	filter := bson.M{"email": user.SessionEmail}
+	update := bson.M{"$set": bson.M{}}
 
-	update := bson.M{"$set": updateFields}
-	_, err = collection.UpdateOne(ctx, filter, update)
+	// get user from cache
+	userData, cachErr := cache.GetUser(appsession, user.SessionEmail)
+
+	if user.Name != "" {
+		update["$set"].(bson.M)["details.name"] = user.Name
+		if cachErr == nil {
+			userData.Details.Name = user.Name
+		}
+	}
+	if user.Dob != "" {
+		layout := "2006-01-02" // Go's reference time format
+		parsedDOB, err := time.Parse(layout, user.Dob)
+		if err == nil {
+			update["$set"].(bson.M)["details.dob"] = parsedDOB
+			if cachErr == nil {
+				userData.Details.DOB = parsedDOB
+			}
+		}
+	}
+	if user.Gender != "" {
+		update["$set"].(bson.M)["details.gender"] = user.Gender
+		if cachErr == nil {
+			userData.Details.Gender = user.Gender
+		}
+	}
+	if user.Email != "" {
+		update["$set"].(bson.M)["email"] = user.Email
+		// set their verification status to false
+		update["$set"].(bson.M)["isVerified"] = false // when they login again, an otp will be sent to verify their email
+
+		if cachErr == nil {
+			userData.Email = user.Email
+			userData.IsVerified = false
+		}
+	}
+	if user.Employeeid != "" {
+		update["$set"].(bson.M)["occupiId"] = user.Employeeid
+		if cachErr == nil {
+			userData.OccupiID = user.Employeeid
+		}
+	}
+	if user.Number != "" {
+		update["$set"].(bson.M)["details.contactNo"] = user.Number
+		if cachErr == nil {
+			userData.Details.ContactNo = user.Number
+		}
+	}
+	if user.Pronouns != "" {
+		update["$set"].(bson.M)["details.pronouns"] = user.Pronouns
+		if cachErr == nil {
+			userData.Details.Pronouns = user.Pronouns
+		}
+	}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error("Failed to update user details: ", err)
 		return false, err
 	}
+
+	if cachErr == nil {
+		cache.SetUser(appsession, userData)
+	}
+
 	return true, nil
-}
-
-// Returns all users in the database
-func GetAllUsers(ctx *gin.Context, appsession *models.AppSession) ([]models.User, error) {
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
-	if collection == nil {
-		logrus.Error("Failed to get collection")
-		return nil, errors.New("failed to get collection")
-	}
-	cursor, err := collection.Find(ctx, bson.M{})
-	if err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var users []models.User
-	for cursor.Next(ctx) {
-		var user models.User
-		if err := cursor.Decode(&user); err != nil {
-			logrus.Error(err)
-			return nil, err
-		}
-		users = append(users, user)
-	}
-	return users, nil
-
 }
 
 // Checks if a user is an admin
@@ -1097,7 +1023,64 @@ func ReadNotifications(ctx *gin.Context, appsession *models.AppSession, email st
 	return nil
 }
 
+func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession, email string) (models.SecuritySettingsRequest, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return models.SecuritySettingsRequest{}, errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		var twofa string
+		if userData.TwoFAEnabled {
+			twofa = constants.On
+		} else {
+			twofa = constants.Off
+		}
+
+		return models.SecuritySettingsRequest{
+			Email: userData.Email,
+			Twofa: twofa,
+		}, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return models.SecuritySettingsRequest{}, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	var twofa string
+	if user.TwoFAEnabled {
+		twofa = constants.On
+	} else {
+		twofa = constants.Off
+	}
+
+	return models.SecuritySettingsRequest{
+		Email: user.Email,
+		Twofa: twofa,
+	}, nil
+}
+
 func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// get user from cache
+	userData, cacheErr := cache.GetUser(appsession, securitySettings.Email)
+
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	filter := bson.M{"email": securitySettings.Email}
@@ -1105,18 +1088,148 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession, sec
 
 	if securitySettings.NewPassword != "" {
 		update["$set"].(bson.M)["password"] = securitySettings.NewPassword
+		if cacheErr == nil {
+			userData.Password = securitySettings.NewPassword
+		}
 	}
 
-	if securitySettings.Twofa == "on" {
+	if securitySettings.Twofa == constants.On {
 		update["$set"].(bson.M)["security.mfa"] = true
-	} else if securitySettings.Twofa == "off" {
+		if cacheErr == nil {
+			userData.Security.MFA = true
+		}
+	} else if securitySettings.Twofa == constants.Off {
 		update["$set"].(bson.M)["security.mfa"] = false
+		if cacheErr == nil {
+			userData.Security.MFA = false
+		}
 	}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
 		return err
+	}
+
+	if cacheErr == nil {
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
+}
+
+func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession, email string) (models.NotificationsRequest, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return models.NotificationsRequest{}, errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		var bookingReminder string
+		if userData.Notifications.BookingReminder {
+			bookingReminder = constants.On
+		} else {
+			bookingReminder = constants.Off
+		}
+
+		var invites string
+		if userData.Notifications.Invites {
+			invites = constants.On
+		} else {
+			invites = constants.Off
+		}
+
+		return models.NotificationsRequest{
+			Email:           userData.Email,
+			Invites:         invites,
+			BookingReminder: bookingReminder,
+		}, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return models.NotificationsRequest{}, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	var bookingReminder string
+	if user.Notifications.BookingReminder {
+		bookingReminder = constants.On
+	} else {
+		bookingReminder = constants.Off
+	}
+
+	var invites string
+	if user.Notifications.Invites {
+		invites = constants.On
+	} else {
+		invites = constants.Off
+	}
+
+	return models.NotificationsRequest{
+		Email:           user.Email,
+		Invites:         invites,
+		BookingReminder: bookingReminder,
+	}, nil
+}
+
+func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession, notificationSettings models.NotificationsRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// get user from cache
+	userData, cacheErr := cache.GetUser(appsession, notificationSettings.Email)
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": notificationSettings.Email}
+	update := bson.M{"$set": bson.M{}}
+
+	if notificationSettings.Invites == constants.On {
+		update["$set"].(bson.M)["notifications.invites"] = true
+		if cacheErr == nil {
+			userData.Notifications.Invites = true
+		}
+	} else if notificationSettings.Invites == constants.Off {
+		update["$set"].(bson.M)["notifications.invites"] = false
+		if cacheErr == nil {
+			userData.Notifications.Invites = false
+		}
+	}
+
+	if notificationSettings.BookingReminder == constants.On {
+		update["$set"].(bson.M)["notifications.bookingReminder"] = true
+		if cacheErr == nil {
+			userData.Notifications.BookingReminder = true
+		}
+	} else if notificationSettings.BookingReminder == constants.Off {
+		update["$set"].(bson.M)["notifications.bookingReminder"] = false
+		if cacheErr == nil {
+			userData.Notifications.BookingReminder = false
+		}
+	}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// update user in cache
+	if cacheErr == nil {
+		cache.SetUser(appsession, userData)
 	}
 
 	return nil
