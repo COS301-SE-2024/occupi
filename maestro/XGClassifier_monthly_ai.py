@@ -22,9 +22,9 @@ df['MonthlyAverage'] = df.groupby('MonthNum')['Occupancy'].transform('mean')
 
 # Define occupancy levels
 def get_occupancy_level(occupancy):
-    if occupancy < df['MonthlyAverage'].quantile(0.33):
+    if occupancy < df['MonthlyAverage'].quantile(0.38):  # Adjusted from 0.4
         return 'Low'
-    elif occupancy < df['MonthlyAverage'].quantile(0.67):
+    elif occupancy < df['MonthlyAverage'].quantile(0.62):  # Adjusted from 0.6
         return 'Medium'
     else:
         return 'High'
@@ -122,7 +122,7 @@ scaler = StandardScaler()
 X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
 
 # Increase the noise added to features (add this line)
-X_scaled += np.random.normal(0, 0.3, X_scaled.shape)  # Increased from 0.18 to 0.3
+X_scaled += np.random.normal(0, 0.25, X_scaled.shape)  # Increased from 0.18 to 0.3
 
 # Split the data into training+validation and test sets
 X_train_val, X_test, y_train_val, y_test = train_test_split(X_scaled, y, test_size=0.2, shuffle=False)
@@ -154,11 +154,11 @@ df['OccupancyLevel'] = df['MonthlyAverage'].apply(get_occupancy_level)
 
 # Reduce model complexity
 xgb_model = XGBClassifier(
-    n_estimators=100,  # Reduced from 1000
-    learning_rate=0.1,  # Increased from 0.01
-    max_depth=2,  # Reduced from 3
-    subsample=0.7,  # Reduced from 0.8
-    colsample_bytree=0.7,  # Reduced from 0.8
+    n_estimators=150,  # Reduced from 100
+    learning_rate=0.08,  # Reduced from 0.01
+    max_depth=3,  # Increased from 3
+    subsample=0.75,  # Increased from 0.7
+    colsample_bytree=0.75,  # Increased from 0.7
     random_state=42
 )
 # Train the model on the training set
