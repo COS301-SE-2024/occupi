@@ -20,8 +20,42 @@ const Notifications = () => {
     const toast = useToast();
     const [notifications, setNotifications] = useState();
     const [loading, setLoading] = useState(true);
+    const todayNotifications = [];
+    const yesterdayNotifications = [];
+    const olderNotifications = [];
 
     const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+
+    const formatNotificationDate = (sendTime) => {
+        const now = new Date();
+        const notificationDate = new Date(sendTime);
+
+        const differenceInHours = Math.floor((now - notificationDate) / (1000 * 60 * 60));
+        const differenceInDays = Math.floor(differenceInHours / 24);
+
+        if (differenceInDays === 0) {
+            return differenceInHours < 1 ? 'less than an hour ago' : `${differenceInHours} hours ago`;
+        } else if (differenceInDays === 1) {
+            return 'yesterday';
+        } else {
+            return notificationDate.toLocaleDateString();
+        }
+    };
+
+    if (notifications) {
+        notifications.forEach(notification => {
+            const formattedDate = formatNotificationDate(notification.send_time);
+
+            if (formattedDate.includes('hours ago')) {
+                todayNotifications.push(notification);
+            } else if (formattedDate === 'yesterday') {
+                yesterdayNotifications.push(notification);
+            } else {
+                olderNotifications.push(notification);
+            }
+        });
+    }
+
 
     useEffect(() => {
         const getNotifications = async () => {
@@ -53,6 +87,7 @@ const Notifications = () => {
                 // console.log(data);
                 if (response.status === 200) {
                     setNotifications(data.data || []); // Ensure data is an array
+
                     setLoading(false);
                 } else {
                     console.log(data);
@@ -85,6 +120,19 @@ const Notifications = () => {
         getNotifications();
     }, [apiUrl, toast])
 
+    const renderNotifications = (notificationList) => (
+        notificationList.map((notification, idx) => (
+            <View key={idx}>
+                <View flexDirection='row' alignItems='center'>
+                    <FontAwesome6 name="circle-user" size={40} color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'} />
+                    <Text py={2} style={{ color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }}>
+                        {notification.message} · <Text style={{ color: 'grey' }}>{formatNotificationDate(notification.send_time)}</Text>
+                    </Text>
+                </View>
+            </View>
+        ))
+    );
+
     return (
 
         <View pt="$20" px="$4" flex={1} flexDirection="column" backgroundColor={colorScheme === 'dark' ? '$black' : '$white'}>
@@ -104,18 +152,16 @@ const Notifications = () => {
                 </>
             ) : (
                 <ScrollView>
-                    {notifications.map((notification, idx) => (
-                        <View>
-                            {new Date(notification.send_time) < new Date() && (
-                                <View flexDirection='$row' alignItems='center'>
-                                    <FontAwesome6 name="circle-user" size={40} color="black" />
-                                    <Text py="$2" pr="$8" style={{ color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }}>
-                                        {notification.message} · <Text style={{ color: colorScheme === 'dark' ? 'grey' : 'grey' }}>{new Date(notification.send_time).toLocaleString()}</Text>
-                                    </Text>
-                                </View>
-                            )}
-                        </View>
-                    ))}
+                    <View>
+                        <Text pr="$4" mb="$2" style={{ fontWeight: 'bold', fontSize: 16 }} color={colorScheme === 'dark' ? '$white' : '$black'}>Recent</Text>
+                        {renderNotifications(todayNotifications)}
+                        <Divider my="$2" bgColor='grey' />
+                        <Text my="$2" style={{ fontWeight: 'bold', fontSize: 16 }} color={colorScheme === 'dark' ? '$white' : '$black'}>Yesterday</Text>
+                        {renderNotifications(yesterdayNotifications)}
+                        <Divider my="$2" bgColor='grey' />
+                        <Text my="$2" style={{ fontWeight: 'bold', fontSize: 16 }} color={colorScheme === 'dark' ? '$white' : '$black'}>Older</Text>
+                        {renderNotifications(olderNotifications)}
+                    </View>
                 </ScrollView>
             )}
             <Navbar />
