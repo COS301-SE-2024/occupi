@@ -11,7 +11,7 @@ import {
 } from '@gluestack-ui/themed';
 import * as SecureStore from 'expo-secure-store';
 import { StatusBar, useColorScheme, Dimensions } from 'react-native';
-import { Entypo } from '@expo/vector-icons';
+import { Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Skeleton } from 'moti/skeleton';
 import axios from 'axios';
 
@@ -96,7 +96,7 @@ const Notifications = () => {
             </View>
             {loading === true ? (
                 <>
-                {Array.from({ length: 8 }, (_, index) => (
+                    {Array.from({ length: 8 }, (_, index) => (
                         <View mt={index === 0 ? '$4' : '$2'}>
                             <Skeleton colorMode={colorScheme === 'dark' ? 'dark' : 'light'} height={80} width={"100%"} />
                         </View>
@@ -107,9 +107,12 @@ const Notifications = () => {
                     {notifications.map((notification, idx) => (
                         <View>
                             {new Date(notification.send_time) < new Date() && (
-                                <Text py="$2" style={{ color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }}>
-                                    {notification.message} · <Text style={{ color: colorScheme === 'dark' ? 'grey' : 'grey'}}>{new Date(notification.send_time).toLocaleString()}</Text>
-                                </Text>
+                                <View flexDirection='$row' alignItems='center'>
+                                    <FontAwesome6 name="circle-user" size={40} color="black" />
+                                    <Text py="$2" pr="$8" style={{ color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }}>
+                                        {notification.message} · <Text style={{ color: colorScheme === 'dark' ? 'grey' : 'grey' }}>{new Date(notification.send_time).toLocaleString()}</Text>
+                                    </Text>
+                                </View>
                             )}
                         </View>
                     ))}
