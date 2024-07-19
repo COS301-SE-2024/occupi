@@ -57,9 +57,30 @@ type RequestEmails struct {
 }
 
 type SecuritySettingsRequest struct {
-	Email              string `json:"email" binding:"required,email"`
+	Email              string `json:"email" binding:"omitempty,email"`
 	Twofa              string `json:"2fa"`
 	CurrentPassword    string `json:"currentPassword"`
 	NewPassword        string `json:"newPassword"`
 	NewPasswordConfirm string `json:"newPasswordConfirm"`
+}
+
+type UserDetailsRequest struct {
+	Email        string `json:"email" binding:"required,email"`
+	Name         string `json:"name"`
+	Dob          string `json:"dob"`
+	Gender       string `json:"gender"`
+	SessionEmail string `json:"session_email" binding:"omitempty,email"`
+	Employeeid   string `json:"employeeid" binding:"omitempty,startswith=OCCUPI"`
+	Number       string `json:"number"`
+	Pronouns     string `json:"pronouns"`
+}
+
+type NotificationsRequest struct {
+	Email           string `json:"email" binding:"required,email"`
+	Invites         string `json:"invites"`
+	BookingReminder string `json:"bookingReminder"`
+}
+
+type ImageUploadRequest struct {
+	Image string `json:"image" binding:"required"`
 }
