@@ -38,7 +38,7 @@ df['OccupancyLevel'] = df['MonthlyAverage'].apply(get_occupancy_level)
 
 # Print the distribution of occupancy levels
 print("Occupancy Level Distribution:")
-print(df['OccupancyLevel'].value_counts(normalize=True))
+print(df['OccupancyLevel'].value_counts(normalize=True).sort_index())
 
 
 # Ensure consistency between Month, Season, and Quarter
@@ -101,6 +101,7 @@ df = df.sort_values('Date')
 # Prepare data for the predictive model
 X = df.drop(['Month', 'Occupancy', 'MonthlyAverage', 'OccupancyLevel', 'Date'], axis=1)
 y = df['OccupancyLevel']
+
 
 # Encode categorical variables
 le = LabelEncoder()
@@ -173,19 +174,19 @@ y_val_pred = xgb_model.predict(X_val)
 val_accuracy = accuracy_score(y_val, y_val_pred)
 print(f"Validation Accuracy: {val_accuracy:.2f}")
 print("Validation Classification Report:")
-print(classification_report(y_val, y_val_pred, target_names=le.classes_))
+print(classification_report(y_val, y_val_pred, target_names=['1', '2', '3', '4', '5']))
 
 # Evaluate on the test set
 y_test_pred = xgb_model.predict(X_test)
 test_accuracy = accuracy_score(y_test, y_test_pred)
 print(f"Test Accuracy: {test_accuracy:.2f}")
 print("Test Classification Report:")
-print(classification_report(y_test, y_test_pred, target_names=le.classes_))
+print(classification_report(y_test, y_test_pred, target_names=['1', '2', '3', '4', '5']))
 
 # Confusion Matrix
 cm = confusion_matrix(y_test, y_test_pred)
 plt.figure(figsize=(10,7))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Low', 'Medium', 'High'], yticklabels=['Low', 'Medium', 'High'])
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['1', '2', '3', '4', '5'], yticklabels=['1', '2', '3', '4', '5'])
 plt.title('Confusion Matrix')
 plt.ylabel('Actual')
 plt.xlabel('Predicted')
@@ -204,7 +205,7 @@ plt.show()
 plt.figure(figsize=(12, 6))
 plt.scatter(range(len(y_test)), y_test, label='Actual', alpha=0.7)
 plt.scatter(range(len(y_test_pred)), y_test_pred, label='Predicted', alpha=0.7)
-plt.yticks(range(len(le.classes_)), le.classes_)
+plt.yticks(range(1, 6))
 plt.xlabel('Sample')
 plt.ylabel('Occupancy Level')
 plt.title('Actual vs Predicted Occupancy Levels (Test Set)')
