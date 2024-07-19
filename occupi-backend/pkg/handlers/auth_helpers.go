@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -123,6 +124,31 @@ func ValidatePasswordEntry(ctx *gin.Context, appsession *models.AppSession, pass
 	}
 
 	return true, nil
+}
+
+func ValidatePasswordEntryAndReturnHash(ctx *gin.Context, appsession *models.AppSession, password string) (string, error) {
+	// sanitize input
+	password = utils.SanitizeInput(password)
+
+	// validate password
+	if !utils.ValidatePassword(password) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid password",
+			constants.InvalidRequestPayloadCode,
+			"Password does neet meet requirements",
+			nil))
+		return "", nil
+	}
+
+	password, err := utils.Argon2IDHash(password)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return "", nil
+	}
+
+	return password, nil
 }
 
 func ValidatePasswordCorrectness(ctx *gin.Context, appsession *models.AppSession, requestUser models.RequestUser) (bool, error) {
@@ -313,4 +339,92 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, nil
 	}
 	return true, nil
+}
+
+func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) (models.SecuritySettingsRequest, error) {
+	// sanitize input
+	securitySettings.Email = utils.SanitizeInput(securitySettings.Email)
+	securitySettings.CurrentPassword = utils.SanitizeInput(securitySettings.CurrentPassword)
+	securitySettings.NewPassword = utils.SanitizeInput(securitySettings.NewPassword)
+	securitySettings.NewPasswordConfirm = utils.SanitizeInput(securitySettings.NewPasswordConfirm)
+
+	// validate current password
+	if !utils.ValidatePassword(securitySettings.CurrentPassword) ||
+		!utils.ValidatePassword(securitySettings.NewPassword) ||
+		!utils.ValidatePassword(securitySettings.NewPasswordConfirm) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid password",
+			constants.InvalidRequestPayloadCode,
+			"Password does neet meet requirements",
+			nil))
+		return models.SecuritySettingsRequest{}, errors.New("invalid password")
+	}
+
+	// check if the passwords match
+	if securitySettings.NewPassword != securitySettings.NewPasswordConfirm {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Passwords do not match",
+			constants.InvalidRequestPayloadCode,
+			"Passwords do not match",
+			nil))
+		return models.SecuritySettingsRequest{}, errors.New("passwords do not match")
+	}
+
+	// check if the current password is correct
+	password, err := database.GetPassword(ctx, appsession, securitySettings.Email)
+
+	if err != nil {
+		return models.SecuritySettingsRequest{}, err
+	}
+
+	match, err := utils.CompareArgon2IDHash(securitySettings.CurrentPassword, password)
+
+	if err != nil {
+		return models.SecuritySettingsRequest{}, err
+	}
+
+	if !match {
+		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse(
+			http.StatusUnauthorized,
+			"Invalid password",
+			constants.InvalidAuthCode,
+			"Password is incorrect",
+			nil))
+		return models.SecuritySettingsRequest{}, errors.New("password is incorrect")
+	}
+
+	// hash the new password
+	hashedPassword, err := utils.Argon2IDHash(securitySettings.NewPassword)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return models.SecuritySettingsRequest{}, err
+	}
+
+	securitySettings.NewPassword = hashedPassword
+
+	return securitySettings, nil
+}
+
+// AllocateAuthTokens decides whether to send the JWT token in the Authorization header or as a cookie based on a condition.
+func AllocateAuthTokens(ctx *gin.Context, token string, expirationTime time.Time, cookies bool) {
+	if !cookies {
+		// Send the JWT token in the Authorization header
+		ctx.Header("Authorization", "Bearer "+token)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			gin.H{"token": token},
+		))
+	} else {
+		// Set the JWT token in a cookie
+		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successful login!",
+			nil,
+		))
+	}
 }

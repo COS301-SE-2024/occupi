@@ -44,6 +44,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.GET("/get-users", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Users") })
 		api.GET("/get-push-tokens", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetPushTokens(ctx, appsession) })
 		api.GET("/get-notifications", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Notifications") })
+		api.POST("/update-security-settings", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.UpdateSecuritySettings(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{
@@ -52,7 +53,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		auth.POST("/login-mobile", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession, constants.Basic, false) })
 		auth.POST("/login-admin-mobile", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession, constants.Admin, false) })
 		auth.POST("/register", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Register(ctx, appsession) })
-		auth.POST("/resend-otp", func(ctx *gin.Context) { middleware.AttachOTPRateLimitMiddleware(ctx, appsession) }, func(ctx *gin.Context) { handlers.ResendOTP(ctx, appsession) })
+		auth.POST("/resend-otp", func(ctx *gin.Context) { middleware.AttachOTPRateLimitMiddleware(ctx, appsession) }, func(ctx *gin.Context) { handlers.ResendOTP(ctx, appsession, constants.ReverifyEmail) })
 		auth.POST("/verify-otp", func(ctx *gin.Context) { handlers.VerifyOTP(ctx, appsession, false, constants.Basic, true) })
 		auth.POST("/verify-otp-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.VerifyOTP(ctx, appsession, true, constants.Basic, true) })
 		auth.POST("/verify-otp-admin-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.VerifyOTP(ctx, appsession, true, constants.Admin, true) })
@@ -61,8 +62,11 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		auth.POST("/logout", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Logout(ctx) })
 		// it's typically used by users who can't log in because they've forgotten their password.
 
-		auth.POST("/reset-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession) })
-		auth.POST("/forgot-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ForgotPassword(ctx, appsession) })
+		auth.POST("/reset-password-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Basic, true) })
+		auth.POST("/reset-password-admin-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Admin, true) })
+		auth.POST("/reset-password-mobile-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Basic, false) })
+		auth.POST("/reset-password-mobile-admin-login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResetPassword(ctx, appsession, constants.Admin, false) })
+		auth.POST("/forgot-password", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.ResendOTP(ctx, appsession, constants.ResetPassword) })
 		auth.POST("/verify-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.VerifyTwoFA(ctx, appsession) })
 		auth.POST("/verify-otp-enable-2fa", middleware.UnProtectedRoute, func(ctx *gin.Context) {
 			handlers.VerifyOTPAndEnable2FA(ctx, appsession)

@@ -488,3 +488,62 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched push tokens!", pushTokens))
 }
+
+func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
+	var securitySettings models.SecuritySettingsRequest
+	if err := ctx.ShouldBindJSON(&securitySettings); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// check that if current password is provided, new password and new password confirm are also provided and vice versa
+	if (securitySettings.CurrentPassword == "" && (securitySettings.NewPassword != "" || securitySettings.NewPasswordConfirm != "")) ||
+		(securitySettings.NewPassword == "" && (securitySettings.CurrentPassword != "" || securitySettings.NewPasswordConfirm != "")) ||
+		(securitySettings.NewPasswordConfirm == "" && (securitySettings.CurrentPassword != "" || securitySettings.NewPassword != "")) {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Current password, new password and new password confirm must all be provided",
+			nil))
+		return
+	}
+
+	// Validate the given passwords if they exist
+	if securitySettings.CurrentPassword != "" && securitySettings.NewPassword != "" && securitySettings.NewPasswordConfirm != "" {
+		securitySetting, err := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
+		if err != nil {
+			return
+		}
+
+		securitySettings = securitySetting
+	}
+
+	// if 2fa string is set, ensure it's either "on" or "off"
+	if securitySettings.Twofa != "" && securitySettings.Twofa != "on" && securitySettings.Twofa != "off" {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"2fa must be either 'true' or 'false'",
+			nil))
+		return
+	}
+
+	if err := database.UpdateSecuritySettings(ctx, appsession, securitySettings); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to update security settings",
+			constants.InternalServerErrorCode,
+			"Failed to update security settings",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated security settings!", nil))
+}
