@@ -894,3 +894,152 @@ func TestAttachOTPRateLimitMiddleware(t *testing.T) {
 		})
 	}
 }
+
+func TestTimezoneMiddleware_DefaultTimezone(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.TimezoneMiddleware())
+	router.GET("/time", func(c *gin.Context) {
+		currentTime := time.Now().Format(time.RFC1123)
+		c.JSON(http.StatusOK, gin.H{
+			"current_time": currentTime,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/time", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Contains(t, w.Body.String(), time.Now().UTC().Format(time.RFC1123))
+}
+
+func TestTimezoneMiddleware_ValidTimezone(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.TimezoneMiddleware())
+	router.GET("/time", func(c *gin.Context) {
+		currentTime := time.Now().Format(time.RFC1123)
+		c.JSON(http.StatusOK, gin.H{
+			"current_time": currentTime,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/time", nil)
+	req.Header.Set("X-Timezone", "Africa/Johannesburg")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+
+	// Load the expected timezone
+	loc, _ := time.LoadLocation("Africa/Johannesburg")
+	expectedTime := time.Now().In(loc).Format(time.RFC1123)
+	assert.Contains(t, w.Body.String(), expectedTime)
+}
+
+func TestTimezoneMiddleware_InvalidTimezone(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.TimezoneMiddleware())
+	router.GET("/time", func(c *gin.Context) {
+		currentTime := time.Now().Format(time.RFC1123)
+		c.JSON(http.StatusOK, gin.H{
+			"current_time": currentTime,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/time", nil)
+	req.Header.Set("X-Timezone", "Invalid/Timezone")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 400, w.Code)
+}
+
+func TestRealIPMiddleware_CFConnectingIP(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.RealIPMiddleware())
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP, _ := c.Get("ClientIP")
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.Header.Set("CF-Connecting-IP", "203.0.113.195")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.195"}`, w.Body.String())
+}
+
+func TestRealIPMiddleware_XRealIP(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.RealIPMiddleware())
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP, _ := c.Get("ClientIP")
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.Header.Set("X-Real-IP", "203.0.113.196")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.196"}`, w.Body.String())
+}
+
+func TestRealIPMiddleware_XForwardedFor(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.RealIPMiddleware())
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP, _ := c.Get("ClientIP")
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.Header.Set("X-Forwarded-For", "203.0.113.197, 198.51.100.1")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.197"}`, w.Body.String())
+}
+
+func TestRealIPMiddleware_RemoteAddr(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.RealIPMiddleware())
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP, _ := c.Get("ClientIP")
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.RemoteAddr = "203.0.113.198:12345"
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.198"}`, w.Body.String())
+}

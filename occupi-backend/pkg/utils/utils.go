@@ -555,3 +555,10 @@ func CompareSessionAndClaims(ctx *gin.Context, claims *authenticator.Claims) boo
 
 	return true
 }
+
+func GetClientIP(ctx *gin.Context) string {
+	if ip, exists := ctx.Get("ClientIP"); exists {
+		return ip.(string)
+	}
+	return ctx.ClientIP()
+}
