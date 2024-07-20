@@ -65,8 +65,9 @@ type Notifications struct {
 }
 
 type Security struct {
-	MFA        bool `json:"mfa" bson:"mfa"`
-	Biometrics bool `json:"biometrics" bson:"biometrics"`
+	MFA         bool `json:"mfa" bson:"mfa"`
+	Biometrics  bool `json:"biometrics" bson:"biometrics"`
+	ForceLogout bool `json:"forceLogout" bson:"forceLogout"`
 }
 
 type Location struct {
