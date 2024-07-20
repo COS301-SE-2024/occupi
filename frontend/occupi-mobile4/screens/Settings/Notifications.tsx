@@ -18,6 +18,7 @@ import { useColorScheme, Switch } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -56,15 +57,15 @@ const Notifications = () => {
         setOldInviteVal(false);
         setNewInviteVal(false);
       }
-      
+
       if (settingsObject.bookingReminder === "on") {
         setOldNotifyVal(true);
         setNewNotifyVal(true);
-        } else {
+      } else {
         setOldNotifyVal(false);
         setNewNotifyVal(false);
       }
-      console.log(settings);
+      // console.log(settings);
     }
     getNotificationDetails();
   }, [])
@@ -76,19 +77,41 @@ const Notifications = () => {
     setNewNotifyVal(previousState => !previousState)
   };
 
-  const onSave = () => {
-    const newSettings = {
-      invites: newInviteVal ? "on" : "off",
-      bookingReminder: newNotifyVal ? "on" : "off",
-    }
-    SecureStore.setItemAsync('Notifications', JSON.stringify(newSettings));
-    router.replace('/settings');
-    setOldInviteVal(newInviteVal);
-    setOldNotifyVal(newNotifyVal);
+  const onSave = async () => {
+    
+    let userEmail = await SecureStore.getItemAsync('Email');
+    let authToken = await SecureStore.getItemAsync('Token');
+
     try {
-      
+      const response = await axios.get('https://dev.occupi.tech/api/update-notification-settings', {
+        params: {
+          email: userEmail,
+          invites: newInviteVal ? "on" : "off",
+          bookingReminder: newNotifyVal ? "on" : "off"
+        },
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
+        },
+        withCredentials: true
+      });
+      const data = response.data;
+      // console.log(`Response Data: ${JSON.stringify(data.data)}`);
+      console.log(data);
+      if (response.status === 200) {
+        const newSettings = {
+          invites: newInviteVal ? "on" : "off",
+          bookingReminder: newNotifyVal ? "on" : "off",
+        }
+        console.log(newSettings);
+        SecureStore.setItemAsync('Notifications', JSON.stringify(newSettings));
+        router.replace('/settings');
+      } else {
+        console.log(data);
+      }
     } catch (error) {
-      
+      console.error('Error:', error);
     }
   };
 
@@ -103,7 +126,7 @@ const Notifications = () => {
             onPress: () => router.replace('/settings'),
             style: 'cancel',
           },
-          { text: 'Save', onPress: () =>onSave() },
+          { text: 'Save', onPress: () => onSave() },
         ],
         { cancelable: false }
       );
@@ -138,17 +161,17 @@ const Notifications = () => {
         <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
           <Switch
-            trackColor={{false: 'lightgray', true: 'lightgray'}}
+            trackColor={{ false: 'lightgray', true: 'lightgray' }}
             thumbColor={newInviteVal ? 'greenyellow' : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch1}
             value={newInviteVal}
           />
         </View>
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14}  backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
           <Switch
-            trackColor={{false: 'lightgray', true: 'lightgray'}}
+            trackColor={{ false: 'lightgray', true: 'lightgray' }}
             thumbColor={newNotifyVal ? 'greenyellow' : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch2}
