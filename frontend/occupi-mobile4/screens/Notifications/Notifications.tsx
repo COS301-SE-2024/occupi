@@ -11,7 +11,7 @@ import {
 } from '@gluestack-ui/themed';
 import * as SecureStore from 'expo-secure-store';
 import { StatusBar, useColorScheme, Dimensions } from 'react-native';
-import { Entypo, FontAwesome6 } from '@expo/vector-icons';
+import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Skeleton } from 'moti/skeleton';
 import axios from 'axios';
 
@@ -84,10 +84,9 @@ const Notifications = () => {
                 });
                 const data = response.data;
                 // console.log(`Response Data: ${JSON.stringify(data.data)}`);
-                // console.log(data);
+                console.log(data);
                 if (response.status === 200) {
                     setNotifications(data.data || []); // Ensure data is an array
-
                     setLoading(false);
                 } else {
                     console.log(data);
@@ -123,9 +122,9 @@ const Notifications = () => {
     const renderNotifications = (notificationList) => (
         notificationList.map((notification, idx) => (
             <View key={idx}>
-                <View flexDirection='row' alignItems='center'>
-                    <FontAwesome6 name="circle-user" size={40} color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'} />
-                    <Text py={2} style={{ color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }}>
+                <View pr="$2" flexDirection='row' alignItems='center'>
+                    <AntDesign name={notification.title === "Booking Invitation" ? "addusergroup" : "clockcircleo"} size={40} color={colorScheme === 'dark' ? '#FFFFFF' : '#000000'} />
+                    <Text pl={16} pr="$4" py={4} style={{ color: colorScheme === 'dark' ? '#FFFFFF' : '#000000' }}>
                         {notification.message} · <Text style={{ color: 'grey' }}>{formatNotificationDate(notification.send_time)}</Text>
                     </Text>
                 </View>
@@ -153,7 +152,7 @@ const Notifications = () => {
             ) : (
                 <ScrollView>
                     <View>
-                        <Text pr="$4" mb="$2" style={{ fontWeight: 'bold', fontSize: 16 }} color={colorScheme === 'dark' ? '$white' : '$black'}>Recent</Text>
+                        <Text mb="$2" style={{ fontWeight: 'bold', fontSize: 16 }} color={colorScheme === 'dark' ? '$white' : '$black'}>Recent</Text>
                         {renderNotifications(todayNotifications)}
                         <Divider my="$2" bgColor='grey' />
                         <Text my="$2" style={{ fontWeight: 'bold', fontSize: 16 }} color={colorScheme === 'dark' ? '$white' : '$black'}>Yesterday</Text>
