@@ -580,9 +580,14 @@ func GetClientTime(ctx *gin.Context) time.Time {
 }
 
 func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool) ([]byte, error) {
+	const (
+		pngExt  = ".png"
+		jpgExt  = ".jpg"
+		jpegExt = ".jpeg"
+	)
 	// Check the file extension
 	ext := filepath.Ext(file.Filename)
-	if ext != ".jpeg" && ext != ".jpg" && ext != ".png" {
+	if ext != jpegExt && ext != jpgExt && ext != pngExt {
 		return nil, errors.New("unsupported file type")
 	}
 
@@ -595,12 +600,12 @@ func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool)
 	// Decode the image
 	var img image.Image
 	switch ext {
-	case ".jpeg", ".jpg":
+	case jpegExt, jpgExt:
 		img, err = jpeg.Decode(src)
 		if err != nil {
 			return nil, err
 		}
-	case ".png":
+	case pngExt:
 		img, err = png.Decode(src)
 		if err != nil {
 			return nil, err
@@ -618,9 +623,9 @@ func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool)
 	// Convert the image to bytes
 	buf := new(bytes.Buffer)
 	switch ext {
-	case ".jpeg", ".jpg":
+	case jpegExt, jpgExt:
 		err = jpeg.Encode(buf, m, nil)
-	case ".png":
+	case pngExt:
 		err = png.Encode(buf, m)
 	}
 	if err != nil {
