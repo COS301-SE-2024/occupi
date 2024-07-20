@@ -17,12 +17,12 @@ The API also allows you to retrieve information about these resources.
     - [View Rooms](#ViewRooms)
     - [Cancel Booking](#CancelBooking)
     - [Check In](#CheckIn)
+    - [Get User Details](#GetUserDetails)
+    - [Update User Details](#UpdateUserDetails)
     - [Get Users](#Get-users)
     - [Get Notifications](#Get-notifications)
     - [Get push tokens](#Get-push-tokens)
     - [UpdateSecuritySettings](#UpdateSecuritySettings)
-    - [Get User Details](#GetUserDetails)
-    - [Update User Details](#UpdateUserDetails)
     - [Get Security Settings](#GetSecuritySettings)
     - [Update Notification Settings](#UpdateNotificationSettings)
     - [Get Notification Settings](#GetNotificationSettings)
@@ -319,43 +319,6 @@ If there are any errors during the process, appropriate error messages are retur
 - **Code:** 500
 - **Content:** `{ "status":  500, "message": "Failed to check in", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to checkin"} }`
 
-### ViewRooms
-
-This endpoint is used to view all rooms in the Occupi system.
-Upon a successful request, a list of all rooms is returned.
-If there are any errors during the process, appropriate error messages are returned.
-Pass floorNo as a query parameter to get rooms on a specific floor. If floorNo is not provided, all rooms on floor 0 are returned.
-
-- **URL**
-
-  `/api/view-rooms?floorNo=0`
-
-- **Method**
-    
-    `GET`
-    
-- **Request Body**
-
-- **Content**
-
-```json copy
-{}
-```
-
-**Success Response**
-
-- **Code:** 200
-- **Content:** `{ "status":  200, "message": "Successfully fetched rooms!", "data": {"list of all rooms"} }`
-
-**Error Response**
-
-- **Code:** 400
-- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
-
-**Error Response**
-
-- **Code:** 500
-- **Content:** `{ "status":  500, "message": "Failed to get rooms", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get rooms"} }`
 
 ### GetUserDetails
 
@@ -380,6 +343,7 @@ If there are any errors during the process, appropriate error messages are retur
   "email": "string"
 }
 ```
+**if you are logged in, the email is not required, it will be fetched from the token, but passing in an email allows you to fetch details for any user**
 
 **Success Response**
 
@@ -414,34 +378,24 @@ If there are any errors during the process, appropriate error messages are retur
 
 - **Method**
     
-    `PUT`
+    `POST`
 
 
 - **Request Body**
 
 - **Content**
-- Add fields that you want to update. Always include email field.
+- Add fields that you want to update. Always include session_email field.
 
 ```json copy
 {
-  "email": "John.Doe@example.com",
-  "details": {
-    "contactNo": "123456789",
-    "dob": "1970-01-01T00:00:00Z",
-    "gender": "Male",
-    "name": "John Doea",
-    "pronouns": "He/him"
-  },
-  "notifications": {
-    "allow": true,
-    "booking_reminder": false,
-    "max_capacity": true
-  },
-  "security": {
-    "2fa": false,
-    "biometrics": true
-  },
-  "position": "Head of Examples"
+  "email": "abcd@gmail.com", //new email to update to, this will set verification status to false, meaning when you login again, you'll have to verify the email
+  "name": "john doe",
+  "dob": "2002-03-08 00:00:00 +0000 UTC",
+  "gender": "male",
+  "session_email": "defg@gmail.com", // this is the email we use to identify you in the system
+  "employeeid": "OCCUPI20240000",
+  "number": "000 000 0000",
+  "pronouns": "he/him"
 }
 ```
 
@@ -623,7 +577,7 @@ This endpoint is used to update the security settings of a user in the Occupi sy
 ```json copy
 {
   "email": "test@example.com", // required
-  "2fa": "on", // optional "on" or "off"
+  "mfa": "on", // optional "on" or "off"
   "currentPassword": "password", // required if "newPassword" and "newPasswordConfirm" are provided
   "newPassword": "newPassword", // required if "currentPassword" and "newPasswordConfirm" are provided
   "newPasswordConfirm": "newPassword" // required if "currentPassword" and "newPassword" are provided
@@ -635,6 +589,128 @@ This endpoint is used to update the security settings of a user in the Occupi sy
 - **Code:** 200
 
 - **Content:** `{ "status":  200, "message": "Successfully updated security settings!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update settings"} }`
+
+### GetSecuritySettings
+
+This endpoint is used to get the security settings of a user in the Occupi system.
+
+- **URL**
+
+  `/api/get-security-settings`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "test@example.com", // required
+}
+```
+
+or
+
+```
+/api/get-security-settings?email=test@example.com
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched security settings!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update settings"} }`
+
+### UpdateNotificationSettings
+
+This endpoint is used to update the notification settings of a user in the Occupi system.
+
+- **URL**
+
+  `/api/update-notification-settings`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "test@example.com", // required
+  "invites": "on", // optional "on" or "off"
+  "bookingReminder": "on", // optional "on" or "off"
+}
+```
+
+or
+
+```
+/api/update-notification-settings?email=test@example.com&invites=on&bookingReminder=on
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully updated notification settings!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update settings"} }`
+
+### GetNotificationSettings
+
+This endpoint is used to get the notification settings of a user in the Occupi system.
+
+- **URL**
+
+  `/api/get-notification-settings`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "test@example.com", // required
+}
+```
+
+or
+
+```
+/api/get-notification-settings?email=test@example.com
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched notification settings!", "data": null }`
 
 **Error Response**
 

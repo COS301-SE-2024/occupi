@@ -66,11 +66,11 @@ type SecuritySettingsRequest struct {
 }
 
 type UserDetailsRequest struct {
-	Email        string `json:"email" binding:"required,email"`
+	Email        string `json:"email" binding:"omitempty,email"`
 	Name         string `json:"name"`
 	Dob          string `json:"dob"`
 	Gender       string `json:"gender"`
-	SessionEmail string `json:"session_email" binding:"omitempty,email"`
+	SessionEmail string `json:"session_email" binding:"required,email"`
 	Employeeid   string `json:"employeeid" binding:"omitempty,startswith=OCCUPI"`
 	Number       string `json:"number"`
 	Pronouns     string `json:"pronouns"`
