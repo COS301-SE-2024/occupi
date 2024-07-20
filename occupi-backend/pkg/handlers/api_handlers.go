@@ -516,7 +516,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// if mfa string is set, ensure it's either "on" or "off"
-	if securitySettings.Mfa != "" && securitySettings.Mfa != "on" && securitySettings.Mfa != "off" {
+	if securitySettings.Mfa != "" && securitySettings.Mfa != constants.On && securitySettings.Mfa != constants.Off {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -527,7 +527,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// if forceLogout string is set, ensure it's either "on" or "off"
-	if securitySettings.ForceLogout != "" && securitySettings.ForceLogout != "on" && securitySettings.ForceLogout != "off" {
+	if securitySettings.ForceLogout != "" && securitySettings.ForceLogout != constants.On && securitySettings.ForceLogout != constants.Off {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -613,7 +613,7 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 	}
 
 	// If invites is set, ensure it's either "on" or "off"
-	if notificationsSettings.Invites != "" && notificationsSettings.Invites != "on" && notificationsSettings.Invites != "off" {
+	if notificationsSettings.Invites != "" && notificationsSettings.Invites != constants.On && notificationsSettings.Invites != constants.Off {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -624,7 +624,7 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 	}
 
 	// If bookingReminder is set, ensure it's either "on" or "off"
-	if notificationsSettings.BookingReminder != "" && notificationsSettings.BookingReminder != "on" && notificationsSettings.BookingReminder != "off" {
+	if notificationsSettings.BookingReminder != "" && notificationsSettings.BookingReminder != constants.On && notificationsSettings.BookingReminder != constants.Off {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
