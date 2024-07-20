@@ -48,6 +48,9 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.GET("/update-notification-settings", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateNotificationSettings(ctx, appsession) })
 		api.GET("/get-security-settings", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetSecuritySettings(ctx, appsession) })
 		api.GET("/get-notification-settings", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetNotificationSettings(ctx, appsession) })
+		// limit request body size to 16MB when uploading profile image due to mongoDB document size limit
+		api.POST("/upload-profile-image", middleware.ProtectedRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadProfileImage(ctx, appsession) })
+		api.GET("/download-profile-image", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadProfileImage(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{

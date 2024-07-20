@@ -683,3 +683,137 @@ func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched notification settings!", notificationSettings))
 }
+
+func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid file format",
+			nil))
+		return
+	}
+
+	var requestEmail models.RequestEmail
+	if err := ctx.ShouldBindJSON(&requestEmail); err != nil {
+		email, err := AttemptToGetEmail(ctx, appsession)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"Email must be provided",
+				nil))
+			return
+		}
+		requestEmail.Email = email
+	}
+
+	// get user image if it exists and delete it
+	id, err := database.GetUserImage(ctx, appsession, requestEmail.Email)
+	if err == nil {
+		err = database.DeleteImageData(ctx, appsession, id)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to delete image", constants.InternalServerErrorCode, "Failed to delete image", nil))
+			return
+		}
+	}
+
+	// convert to bytes
+	fileBytesThumbnail, errThumbnail := utils.ConvertImageToBytes(file, 0, true)
+	fileBytesLow, errLow := utils.ConvertImageToBytes(file, 600, false)
+	fileBytesMid, errMid := utils.ConvertImageToBytes(file, 1200, false)
+	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, 2000, false)
+
+	if err != nil || errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to convert file to bytes", constants.InternalServerErrorCode, "Failed to convert file to bytes", nil))
+		return
+	}
+
+	// Create a ProfileImage document
+	profileImage := models.Image{
+		FileName:     file.Filename,
+		Thumbnail:    fileBytesThumbnail,
+		ImageLowRes:  fileBytesLow,
+		ImageMidRes:  fileBytesMid,
+		ImageHighRes: fileBytesHigh,
+	}
+
+	// Save the image to the database
+	new_id, err := database.UploadImageData(ctx, appsession, profileImage)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to upload image", constants.InternalServerErrorCode, "Failed to upload image", nil))
+		return
+	}
+
+	// Update the user details with the image id
+	err = database.SetUserImage(ctx, appsession, requestEmail.Email, new_id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update user image", constants.InternalServerErrorCode, "Failed to update user image", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", nil))
+}
+
+func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
+	var requestEmail models.ImageRequest
+	if err := ctx.ShouldBindJSON(&requestEmail); err != nil {
+		email := ctx.Query("email")
+		quality := ctx.Query("quality")
+		if email == "" {
+			email, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			}
+			requestEmail.Email = email
+		} else {
+			requestEmail.Email = email
+		}
+		requestEmail.Quality = quality
+
+	}
+
+	if requestEmail.Quality != "" && requestEmail.Quality != "thumbnail" && requestEmail.Quality != "low" && requestEmail.Quality != "mid" && requestEmail.Quality != "high" {
+		requestEmail.Quality = "mid"
+	} else if requestEmail.Quality == "" {
+		requestEmail.Quality = "mid"
+	}
+
+	// get the image id
+	id, err := database.GetUserImage(ctx, appsession, requestEmail.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get user", constants.InternalServerErrorCode, "Failed to get user", nil))
+		return
+	}
+
+	// get the image data
+	imageData, err := database.GetImageData(ctx, appsession, id, requestEmail.Quality)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get image", constants.InternalServerErrorCode, "Failed to get image", nil))
+		return
+	}
+
+	// set the response headers
+	ctx.Header("Content-Disposition", "attachment; filename="+imageData.FileName)
+	ctx.Header("/Content-Type", "application/octet-stream")
+	if requestEmail.Quality == "thumbnail" {
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
+	} else if requestEmail.Quality == "low" {
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
+	} else if requestEmail.Quality == "mid" {
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+	} else if requestEmail.Quality == "high" {
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
+	}
+}

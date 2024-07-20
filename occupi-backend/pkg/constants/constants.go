@@ -7,6 +7,7 @@ const (
 	IncompleteAuthCode        = "INCOMPLETE_AUTH"
 	InternalServerErrorCode   = "INTERNAL_SERVER_ERROR"
 	UnAuthorizedCode          = "UNAUTHORIZED"
+	RequestEntityTooLargeCode = "REQUEST_ENTITY_TOO_LARGE"
 	Admin                     = "admin"
 	Basic                     = "basic"
 	AdminDBAccessOption       = "authSource=admin"
