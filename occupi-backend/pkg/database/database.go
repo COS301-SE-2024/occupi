@@ -1397,7 +1397,7 @@ func GetUserImage(ctx *gin.Context, appsession *models.AppSession, email string)
 	return user.Details.ImageID, nil
 }
 
-func AddImageIdToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
+func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
