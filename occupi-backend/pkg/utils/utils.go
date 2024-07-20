@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
+	"image/png"
 	"log"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -578,21 +580,34 @@ func GetClientTime(ctx *gin.Context) time.Time {
 }
 
 func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool) ([]byte, error) {
+	// Check the file extension
+	ext := filepath.Ext(file.Filename)
+	if ext != ".jpeg" && ext != ".jpg" && ext != ".png" {
+		return nil, errors.New("unsupported file type")
+	}
+
 	src, err := file.Open()
 	if err != nil {
 		return nil, err
 	}
 	defer src.Close()
 
-	// decode jpeg into image.Image
-	img, err := jpeg.Decode(src)
-	if err != nil {
-		log.Fatal(err)
+	// Decode the image
+	var img image.Image
+	switch ext {
+	case ".jpeg", ".jpg":
+		img, err = jpeg.Decode(src)
+		if err != nil {
+			return nil, err
+		}
+	case ".png":
+		img, err = png.Decode(src)
+		if err != nil {
+			return nil, err
+		}
 	}
-	defer src.Close()
 
-	// resize to width using NearestNeighbor resampling
-	// and preserve aspect ratio
+	// Resize the image
 	var m image.Image
 	if !thumbnail {
 		m = resize.Resize(width, 0, img, resize.NearestNeighbor)
@@ -600,15 +615,17 @@ func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool)
 		m = resize.Thumbnail(200, 200, img, resize.NearestNeighbor)
 	}
 
-	// convert m to bytes
+	// Convert the image to bytes
 	buf := new(bytes.Buffer)
-	err = jpeg.Encode(buf, m, nil)
+	switch ext {
+	case ".jpeg", ".jpg":
+		err = jpeg.Encode(buf, m, nil)
+	case ".png":
+		err = png.Encode(buf, m)
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer src.Close()
-
-	src.Close()
 
 	return buf.Bytes(), nil
 }
