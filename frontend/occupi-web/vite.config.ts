@@ -36,7 +36,7 @@ export default defineConfig({
       usePolling: true,
       interval: 1000, // Adjust the interval if needed
     },
-    https:  {
+    https: process.env.NODE_ENV === 'production' ? {} : {
       key: fs.readFileSync(keyPath),
       cert: fs.readFileSync(certPath),
     },
