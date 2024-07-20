@@ -122,14 +122,15 @@ type ViewBookings struct {
 }
 
 type Room struct {
-	ID           string `json:"_id" bson:"_id,omitempty"`
-	RoomID       string `json:"roomId" bson:"roomId,omitempty"`
-	RoomNo       string `json:"roomNo" bson:"roomNo,omitempty"`
-	FloorNo      string `json:"floorNo" bson:"floorNo" binding:"required"`
-	MinOccupancy int    `json:"minOccupancy" bson:"minOccupancy,omitempty"`
-	MaxOccupancy int    `json:"maxOccupancy" bson:"maxOccupancy"`
-	Description  string `json:"description" bson:"description"`
-	RoomName     string `json:"roomName" bson:"roomName"`
+	ID           string   `json:"_id" bson:"_id,omitempty"`
+	RoomID       string   `json:"roomId" bson:"roomId,omitempty"`
+	RoomNo       string   `json:"roomNo" bson:"roomNo,omitempty"`
+	FloorNo      string   `json:"floorNo" bson:"floorNo" binding:"required"`
+	MinOccupancy int      `json:"minOccupancy" bson:"minOccupancy,omitempty"`
+	MaxOccupancy int      `json:"maxOccupancy" bson:"maxOccupancy"`
+	Description  string   `json:"description" bson:"description"`
+	RoomName     string   `json:"roomName" bson:"roomName"`
+	RoomImageIDs []string `json:"roomImageIds" bson:"roomImageIds"`
 }
 
 type ResetToken struct {

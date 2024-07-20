@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -685,7 +686,7 @@ func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
-	file, err := ctx.FormFile("file")
+	file, err := ctx.FormFile("image")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -716,19 +717,21 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	if err == nil {
 		err = database.DeleteImageData(ctx, appsession, id)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to delete image", constants.InternalServerErrorCode, "Failed to delete image", nil))
+			logrus.WithError(err).Error("Failed to delete user image")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return
 		}
 	}
 
 	// convert to bytes
-	fileBytesThumbnail, errThumbnail := utils.ConvertImageToBytes(file, 0, true)
-	fileBytesLow, errLow := utils.ConvertImageToBytes(file, 600, false)
-	fileBytesMid, errMid := utils.ConvertImageToBytes(file, 1200, false)
-	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, 2000, false)
+	fileBytesThumbnail, errThumbnail := utils.ConvertImageToBytes(file, constants.ThumbnailWidth, true)
+	fileBytesLow, errLow := utils.ConvertImageToBytes(file, constants.LowWidth, false)
+	fileBytesMid, errMid := utils.ConvertImageToBytes(file, constants.MidWidth, false)
+	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, constants.HighWidth, false)
 
 	if err != nil || errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to convert file to bytes", constants.InternalServerErrorCode, "Failed to convert file to bytes", nil))
+		logrus.WithError(err).Error("Failed to convert image to bytes")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -745,7 +748,8 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	new_id, err := database.UploadImageData(ctx, appsession, profileImage)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to upload image", constants.InternalServerErrorCode, "Failed to upload image", nil))
+		logrus.WithError(err).Error("Failed to upload image data")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -753,7 +757,8 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	err = database.SetUserImage(ctx, appsession, requestEmail.Email, new_id)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update user image", constants.InternalServerErrorCode, "Failed to update user image", nil))
+		logrus.WithError(err).Error("Failed to set user image")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -761,7 +766,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
-	var requestEmail models.ImageRequest
+	var requestEmail models.ProfileImageRequest
 	if err := ctx.ShouldBindJSON(&requestEmail); err != nil {
 		email := ctx.Query("email")
 		quality := ctx.Query("quality")
@@ -784,21 +789,69 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 
 	}
 
-	if requestEmail.Quality != "" && requestEmail.Quality != "thumbnail" && requestEmail.Quality != "low" && requestEmail.Quality != "mid" && requestEmail.Quality != "high" {
-		requestEmail.Quality = "mid"
+	if requestEmail.Quality != "" && requestEmail.Quality != constants.ThumbnailRes && requestEmail.Quality != constants.LowRes && requestEmail.Quality != constants.MidRes && requestEmail.Quality != "constants.HighRes" {
+		requestEmail.Quality = constants.MidRes
 	} else if requestEmail.Quality == "" {
-		requestEmail.Quality = "mid"
+		requestEmail.Quality = constants.MidRes
 	}
 
 	// get the image id
 	id, err := database.GetUserImage(ctx, appsession, requestEmail.Email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get user", constants.InternalServerErrorCode, "Failed to get user", nil))
+		logrus.WithError(err).Error("Failed to get user image")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
 	// get the image data
 	imageData, err := database.GetImageData(ctx, appsession, id, requestEmail.Quality)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get image data")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	// set the response headers
+	ctx.Header("Content-Disposition", "attachment; filename="+imageData.FileName)
+	ctx.Header("/Content-Type", "application/octet-stream")
+	if requestEmail.Quality == constants.ThumbnailRes {
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
+	} else if requestEmail.Quality == constants.LowRes {
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
+	} else if requestEmail.Quality == constants.MidRes {
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+	} else if requestEmail.Quality == "constants.HighRes" {
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
+	}
+}
+
+func DownloadImage(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.ImageRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		request.ID = ctx.Param("id")
+		request.Quality = ctx.Query("quality")
+		if request.ID == "" {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"ID must be provided",
+				nil))
+			return
+		}
+	}
+
+	if request.Quality != "" && request.Quality != constants.ThumbnailRes && request.Quality != constants.LowRes && request.Quality != constants.MidRes && request.Quality != "constants.HighRes" {
+		request.Quality = constants.MidRes
+	} else if request.Quality == "" {
+		request.Quality = constants.MidRes
+	}
+
+	// print the request
+	fmt.Println(request)
+
+	// get the image data
+	imageData, err := database.GetImageData(ctx, appsession, request.ID, request.Quality)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get image", constants.InternalServerErrorCode, "Failed to get image", nil))
 		return
@@ -807,13 +860,77 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	// set the response headers
 	ctx.Header("Content-Disposition", "attachment; filename="+imageData.FileName)
 	ctx.Header("/Content-Type", "application/octet-stream")
-	if requestEmail.Quality == "thumbnail" {
+	if request.Quality == constants.ThumbnailRes {
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
-	} else if requestEmail.Quality == "low" {
+	} else if request.Quality == constants.LowRes {
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
-	} else if requestEmail.Quality == "mid" {
+	} else if request.Quality == constants.MidRes {
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
-	} else if requestEmail.Quality == "high" {
+	} else if request.Quality == "constants.HighRes" {
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
 	}
+}
+
+func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload bool) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid file format",
+			nil))
+		return
+	}
+
+	// convert to bytes
+	fileBytesThumbnail, errThumbnail := utils.ConvertImageToBytes(file, constants.ThumbnailWidth, true)
+	fileBytesLow, errLow := utils.ConvertImageToBytes(file, constants.LowWidth, false)
+	fileBytesMid, errMid := utils.ConvertImageToBytes(file, constants.MidWidth, false)
+	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, constants.HighWidth, false)
+
+	if errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to convert file to bytes", constants.InternalServerErrorCode, "Failed to convert file to bytes", nil))
+		return
+	}
+
+	// Create a ProfileImage document
+	profileImage := models.Image{
+		FileName:     file.Filename,
+		Thumbnail:    fileBytesThumbnail,
+		ImageLowRes:  fileBytesLow,
+		ImageMidRes:  fileBytesMid,
+		ImageHighRes: fileBytesHigh,
+	}
+
+	// Save the image to the database
+	new_id, err := database.UploadImageData(ctx, appsession, profileImage)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to upload image", constants.InternalServerErrorCode, "Failed to upload image", nil))
+		return
+	}
+
+	if roomUpload {
+		// get room id from json body
+		roomid := ctx.Query("roomid")
+
+		if roomid == "" {
+			roomid = ctx.PostForm("roomid")
+			if roomid == "" {
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+				return
+			}
+		}
+
+		// Update the room details with the image id
+		err = database.AddImageIdToRoom(ctx, appsession, roomid, new_id)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update room image", constants.InternalServerErrorCode, "Failed to update room image", nil))
+			return
+		}
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", gin.H{"id": new_id}))
 }

@@ -23,4 +23,12 @@ const (
 	ConfirmIPAddress          = "confirmIPAddress"
 	Off                       = "off"
 	On                        = "on"
+	ThumbnailRes              = "thumbnail"
+	LowRes                    = "low"
+	MidRes                    = "mid"
+	HighRes                   = "high"
+	ThumbnailWidth            = 200
+	LowWidth                  = 600
+	MidWidth                  = 1200
+	HighWidth                 = 2000
 )

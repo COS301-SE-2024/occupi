@@ -1396,3 +1396,24 @@ func GetUserImage(ctx *gin.Context, appsession *models.AppSession, email string)
 
 	return user.Details.ImageID, nil
 }
+
+func AddImageIdToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
+
+	filter := bson.M{"roomId": roomID}
+	update := bson.M{"$addToSet": bson.M{"roomImageIds": imageID}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
