@@ -595,7 +595,11 @@ func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool)
 	if err != nil {
 		return nil, err
 	}
-	defer src.Close()
+	defer func() {
+		if ferr := src.Close(); ferr != nil {
+			err = ferr
+		}
+	}()
 
 	// Decode the image
 	var img image.Image
