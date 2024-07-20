@@ -82,6 +82,7 @@ type NotificationsRequest struct {
 	BookingReminder string `json:"bookingReminder"`
 }
 
-type ImageUploadRequest struct {
-	Image string `json:"image" binding:"required"`
+type ImageRequest struct {
+	Email   string `json:"email" binding:"omitempty,email"`
+	Quality string `json:"quality"`
 }

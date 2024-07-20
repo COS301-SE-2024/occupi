@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -197,6 +198,26 @@ func RealIPMiddleware() gin.HandlerFunc {
 			ip, _, _ = net.SplitHostPort(ctx.Request.RemoteAddr)
 		}
 		ctx.Set("ClientIP", ip)
+		ctx.Next()
+	}
+}
+
+// LimitRequestBodySize middleware to limit the size of the request body
+func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, maxSize)
+		if err := ctx.Request.ParseMultipartForm(maxSize); err != nil {
+			ctx.JSON(http.StatusRequestEntityTooLarge, utils.ErrorResponse(
+				http.StatusRequestEntityTooLarge,
+				"Request Entity Too Large",
+				constants.RequestEntityTooLargeCode,
+				fmt.Sprintf("Request body too large by %d bytes, max %d bytes", ctx.Request.ContentLength-maxSize, maxSize),
+				nil,
+			),
+			)
+			ctx.Abort()
+			return
+		}
 		ctx.Next()
 	}
 }

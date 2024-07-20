@@ -1,10 +1,14 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"log"
+	"mime/multipart"
 	"os"
 	"reflect"
 	"regexp"
@@ -16,6 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/nfnt/resize"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -570,4 +575,40 @@ func GetClientTime(ctx *gin.Context) time.Time {
 	}
 
 	return time.Now().In(loc.(*time.Location))
+}
+
+func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool) ([]byte, error) {
+	src, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	// decode jpeg into image.Image
+	img, err := jpeg.Decode(src)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer src.Close()
+
+	// resize to width using NearestNeighbor resampling
+	// and preserve aspect ratio
+	var m image.Image
+	if !thumbnail {
+		m = resize.Resize(width, 0, img, resize.NearestNeighbor)
+	} else {
+		m = resize.Thumbnail(200, 200, img, resize.NearestNeighbor)
+	}
+
+	// convert m to bytes
+	buf := new(bytes.Buffer)
+	err = jpeg.Encode(buf, m, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	src.Close()
+
+	return buf.Bytes(), nil
 }

@@ -44,16 +44,17 @@ func StartConsumeMessage(appsession *models.AppSession) {
 	go func() {
 		for d := range msgs {
 			parts := strings.Split(string(d.Body), "|")
-			if len(parts) != 6 {
+			if len(parts) != 7 {
 				continue
 			}
-			title, message, sendTimeStr, unsentExpoTokens, emails, unreadEmails := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]
+			ID, title, message, sendTimeStr, unsentExpoTokens, emails, unreadEmails := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6]
 			sendTime, err := time.Parse(time.RFC3339, sendTimeStr)
 			if err != nil {
 				continue
 			}
 
 			notification := models.ScheduledNotification{
+				ID:                   ID,
 				Title:                title,
 				Message:              message,
 				SendTime:             sendTime,
