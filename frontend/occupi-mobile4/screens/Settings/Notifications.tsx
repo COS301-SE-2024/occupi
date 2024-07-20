@@ -40,24 +40,29 @@ const SIZES = {
 const Notifications = () => {
   let colorScheme = useColorScheme();
   //retrieve user settings ad assign variables accordingly
-  const [isEnabled1, setIsEnabled1] = useState(false);
-  const [isEnabled2, setIsEnabled2] = useState(false);
-  const [isSaved, setIsSaved] = useState(true);
+  const [oldInviteVal, setOldInviteVal] = useState(false);
+  const [newInviteVal, setNewInviteVal] = useState(false);
+  const [oldNotifyVal, setOldNotifyVal] = useState(false);
+  const [newNotifyVal, setNewNotifyVal] = useState(false);
 
   useEffect(() => {
     const getNotificationDetails = async () => {
       let settings = await SecureStore.getItemAsync('Notifications');
       const settingsObject = JSON.parse(settings);
       if (settingsObject.invites === "on") {
-        setIsEnabled1(true);
+        setOldInviteVal(true);
+        setNewInviteVal(true);
       } else {
-        setIsEnabled1(false);
+        setOldInviteVal(false);
+        setNewInviteVal(false);
       }
       
       if (settingsObject.bookingReminder === "on") {
-        setIsEnabled2(true);
+        setOldNotifyVal(true);
+        setNewNotifyVal(true);
         } else {
-        setIsEnabled2(false);
+        setOldNotifyVal(false);
+        setNewNotifyVal(false);
       }
       console.log(settings);
     }
@@ -65,27 +70,37 @@ const Notifications = () => {
   }, [])
 
   const toggleSwitch1 = () => {
-    setIsEnabled1(previousState => !previousState)
-    setIsSaved(false);
+    setNewInviteVal(previousState => !previousState)
   };
   const toggleSwitch2 = () => {
-    setIsEnabled2(previousState => !previousState)
-    setIsSaved(false);
+    setNewNotifyVal(previousState => !previousState)
   };
 
   const onSave = () => {
-      //integration here
+    const newSettings = {
+      invites: newInviteVal ? "on" : "off",
+      bookingReminder: newNotifyVal ? "on" : "off",
+    }
+    SecureStore.setItemAsync('Notifications', JSON.stringify(newSettings));
+    router.replace('/settings');
+    setOldInviteVal(newInviteVal);
+    setOldNotifyVal(newNotifyVal);
+    try {
+      
+    } catch (error) {
+      
+    }
   };
 
   const handleBack = () => {
-    if (isSaved === false) {
+    if (newInviteVal !== oldInviteVal || newNotifyVal !== oldNotifyVal) {
       Alert.alert(
         'Save Changes',
         'You have unsaved changes. Would you like to save them?',
         [
           {
             text: 'Leave without saving',
-            onPress: () => router.back(),
+            onPress: () => router.replace('/settings'),
             style: 'cancel',
           },
           { text: 'Save', onPress: () =>onSave() },
@@ -124,20 +139,20 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
           <Switch
             trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled1 ? 'greenyellow' : 'white'}
+            thumbColor={newInviteVal ? 'greenyellow' : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch1}
-            value={isEnabled1}
+            value={newInviteVal}
           />
         </View>
         <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14}  backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
           <Switch
             trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled2 ? 'greenyellow' : 'white'}
+            thumbColor={newNotifyVal ? 'greenyellow' : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch2}
-            value={isEnabled2}
+            value={newNotifyVal}
           />
         </View>
       </View>
