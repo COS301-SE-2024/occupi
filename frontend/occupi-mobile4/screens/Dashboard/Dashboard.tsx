@@ -101,6 +101,54 @@ const Dashboard = () => {
           },
         });
       }
+      // try {
+      //   let authToken = await SecureStore.getItemAsync('Token');
+      //   let email = await SecureStore.getItemAsync('Email');
+      //   // console.log(authToken);
+      //   const response = await fetch(`https://dev.occupi.tech/api/get-security-settings?email=${email}`, {
+      //     method: 'GET',
+      //     headers: {
+      //       Accept: 'application/json',
+      //       'Content-Type': 'application/json',
+      //       'Authorization': `${authToken}`
+      //     },
+      //     credentials: "include"
+      //   });
+      //   const data = await response.json();
+      //   console.log(data);
+      //   if (response.ok) {
+      //     const settings = {
+      //       tfa: data.data.2fa,
+      //       bookingReminder: data.data.bookingReminder
+      //     };
+      //     console.log(settings);
+      //     await SecureStore.setItemAsync('Notifications', JSON.stringify(settings));
+      //   } else {
+      //     console.log(data);
+      //     toast.show({
+      //       placement: 'top',
+      //       render: ({ id }) => {
+      //         return (
+      //           <Toast nativeID={id} variant="accent" action="error">
+      //             <ToastTitle>{data.error.message}</ToastTitle>
+      //           </Toast>
+      //         );
+      //       },
+      //     });
+      //   }
+      // } catch (error) {
+      //   console.error('Error:', error);
+      //   toast.show({
+      //     placement: 'top',
+      //     render: ({ id }) => {
+      //       return (
+      //         <Toast nativeID={id} variant="accent" action="error">
+      //           <ToastTitle>Network Error</ToastTitle>
+      //         </Toast>
+      //       );
+      //     },
+      //   });
+      // }
     }
     getUserSettings();
     getUserDetails();
