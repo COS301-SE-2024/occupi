@@ -245,10 +245,12 @@ func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 					"Email must be provided",
 					nil))
 				return
+			} else {
+				request.Email = email
 			}
-			request.Email = email
+		} else {
+			request.Email = emailStr
 		}
-		request.Email = emailStr
 	}
 
 	// Get all the user details
@@ -513,13 +515,24 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 		securitySettings = securitySetting
 	}
 
-	// if 2fa string is set, ensure it's either "on" or "off"
-	if securitySettings.Twofa != "" && securitySettings.Twofa != "on" && securitySettings.Twofa != "off" {
+	// if mfa string is set, ensure it's either "on" or "off"
+	if securitySettings.Mfa != "" && securitySettings.Mfa != constants.On && securitySettings.Mfa != constants.Off {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"2fa must be either 'true' or 'false'",
+			"mfa must be either 'on' or 'off'",
+			nil))
+		return
+	}
+
+	// if forceLogout string is set, ensure it's either "on" or "off"
+	if securitySettings.ForceLogout != "" && securitySettings.ForceLogout != constants.On && securitySettings.ForceLogout != constants.Off {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"forceLogout must be either 'on' or 'off'",
 			nil))
 		return
 	}
@@ -551,10 +564,12 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 					"Email must be provided",
 					nil))
 				return
+			} else {
+				request.Email = email
 			}
-			request.Email = email
+		} else {
+			request.Email = emailStr
 		}
-		request.Email = emailStr
 	}
 
 	securitySettings, err := database.GetSecuritySettings(ctx, appsession, request.Email)
@@ -597,6 +612,28 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 		}
 	}
 
+	// If invites is set, ensure it's either "on" or "off"
+	if notificationsSettings.Invites != "" && notificationsSettings.Invites != constants.On && notificationsSettings.Invites != constants.Off {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"invites must be either 'on' or 'off'",
+			nil))
+		return
+	}
+
+	// If bookingReminder is set, ensure it's either "on" or "off"
+	if notificationsSettings.BookingReminder != "" && notificationsSettings.BookingReminder != constants.On && notificationsSettings.BookingReminder != constants.Off {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"bookingReminder must be either 'on' or 'off'",
+			nil))
+		return
+	}
+
 	// update the notification settings
 	if err := database.UpdateNotificationSettings(ctx, appsession, notificationsSettings); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
@@ -607,6 +644,8 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 			nil))
 		return
 	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated notification settings!", nil))
 }
 
 func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
@@ -623,10 +662,12 @@ func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
 					"Email must be provided",
 					nil))
 				return
+			} else {
+				request.Email = email
 			}
-			request.Email = email
+		} else {
+			request.Email = emailStr
 		}
-		request.Email = emailStr
 	}
 
 	notificationSettings, err := database.GetNotificationSettings(ctx, appsession, request.Email)
