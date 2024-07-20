@@ -58,7 +58,8 @@ type RequestEmails struct {
 
 type SecuritySettingsRequest struct {
 	Email              string `json:"email" binding:"omitempty,email"`
-	Twofa              string `json:"2fa"`
+	Mfa                string `json:"mfa"`
+	ForceLogout        string `json:"forceLogout"`
 	CurrentPassword    string `json:"currentPassword"`
 	NewPassword        string `json:"newPassword"`
 	NewPasswordConfirm string `json:"newPasswordConfirm"`

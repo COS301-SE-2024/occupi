@@ -1032,16 +1032,24 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession, email 
 
 	// check if user is in cache
 	if userData, err := cache.GetUser(appsession, email); err == nil {
-		var twofa string
-		if userData.TwoFAEnabled {
-			twofa = constants.On
+		var mfa string
+		if userData.Security.MFA {
+			mfa = constants.On
 		} else {
-			twofa = constants.Off
+			mfa = constants.Off
+		}
+
+		var forceLogout string
+		if userData.Security.ForceLogout {
+			forceLogout = constants.On
+		} else {
+			forceLogout = constants.Off
 		}
 
 		return models.SecuritySettingsRequest{
-			Email: userData.Email,
-			Twofa: twofa,
+			Email:       userData.Email,
+			Mfa:         mfa,
+			ForceLogout: forceLogout,
 		}, nil
 	}
 
@@ -1058,16 +1066,24 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession, email 
 	// Add the user to the cache if cache is not nil
 	cache.SetUser(appsession, user)
 
-	var twofa string
-	if user.TwoFAEnabled {
-		twofa = constants.On
+	var mfa string
+	if user.Security.MFA {
+		mfa = constants.On
 	} else {
-		twofa = constants.Off
+		mfa = constants.Off
+	}
+
+	var forceLogout string
+	if user.Security.ForceLogout {
+		forceLogout = constants.On
+	} else {
+		forceLogout = constants.Off
 	}
 
 	return models.SecuritySettingsRequest{
-		Email: user.Email,
-		Twofa: twofa,
+		Email:       user.Email,
+		Mfa:         mfa,
+		ForceLogout: forceLogout,
 	}, nil
 }
 
@@ -1093,15 +1109,27 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession, sec
 		}
 	}
 
-	if securitySettings.Twofa == constants.On {
+	if securitySettings.Mfa == constants.On {
 		update["$set"].(bson.M)["security.mfa"] = true
 		if cacheErr == nil {
 			userData.Security.MFA = true
 		}
-	} else if securitySettings.Twofa == constants.Off {
+	} else if securitySettings.Mfa == constants.Off {
 		update["$set"].(bson.M)["security.mfa"] = false
 		if cacheErr == nil {
 			userData.Security.MFA = false
+		}
+	}
+
+	if securitySettings.ForceLogout == constants.On {
+		update["$set"].(bson.M)["security.forceLogout"] = true
+		if cacheErr == nil {
+			userData.Security.ForceLogout = true
+		}
+	} else if securitySettings.ForceLogout == constants.Off {
+		update["$set"].(bson.M)["security.forceLogout"] = false
+		if cacheErr == nil {
+			userData.Security.ForceLogout = false
 		}
 	}
 
