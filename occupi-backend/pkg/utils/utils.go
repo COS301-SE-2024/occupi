@@ -1,11 +1,17 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"log"
+	"mime/multipart"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -16,6 +22,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/nfnt/resize"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -570,4 +577,60 @@ func GetClientTime(ctx *gin.Context) time.Time {
 	}
 
 	return time.Now().In(loc.(*time.Location))
+}
+
+func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool) ([]byte, error) {
+	const (
+		pngExt  = ".png"
+		jpgExt  = ".jpg"
+		jpegExt = ".jpeg"
+	)
+	// Check the file extension
+	ext := filepath.Ext(file.Filename)
+	if ext != jpegExt && ext != jpgExt && ext != pngExt {
+		return nil, errors.New("unsupported file type")
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	// Decode the image
+	var img image.Image
+	switch ext {
+	case jpegExt, jpgExt:
+		img, err = jpeg.Decode(src)
+		if err != nil {
+			return nil, err
+		}
+	case pngExt:
+		img, err = png.Decode(src)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Resize the image
+	var m image.Image
+	if !thumbnail {
+		m = resize.Resize(width, 0, img, resize.NearestNeighbor)
+	} else {
+		m = resize.Thumbnail(200, 200, img, resize.NearestNeighbor)
+	}
+
+	// Convert the image to bytes
+	buf := new(bytes.Buffer)
+	switch ext {
+	case jpegExt, jpgExt:
+		err = jpeg.Encode(buf, m, nil)
+	case pngExt:
+		err = png.Encode(buf, m)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
