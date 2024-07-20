@@ -26,6 +26,11 @@ The API also allows you to retrieve information about these resources.
     - [Get Security Settings](#GetSecuritySettings)
     - [Update Notification Settings](#UpdateNotificationSettings)
     - [Get Notification Settings](#GetNotificationSettings)
+    - [Upload Profile Image](#UploadProfileImage)
+    - [Download Profile Image](#DownloadProfileImage)
+    - [Image ID](#ImageID)
+    - [Upload Image](#UploadImage)
+    - [Upload Room Image](#UploadRoomImage)
 
 ## Api
 
@@ -718,3 +723,184 @@ or
 
 - **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update settings"} }`
 
+
+### UploadProfileImage
+
+This endpoint is used to upload a profile image for a user in the Occupi system. Images must be in jpg, jpeg, or png format otherwise an error will be returned.
+
+- **URL**
+
+  `/api/upload-profile-image`
+
+- **Method**
+    
+    `POST`
+
+- **Request Form Data**
+
+- **Content**
+
+```copy
+  "image": image_data, // required
+  "email": "abcd@gmail.com" // optional if you are logged in
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully uploaded image!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### DownloadProfileImage
+
+This endpoint is used to download a profile image for a user in the Occupi system.
+
+- **URL**
+
+  `/api/download-profile-image`
+
+- **Method**
+    
+    `GET`
+
+- **Request JSON Data**
+
+- **Content**
+
+```json copy
+  "email": "abcd@gmail.com" // optional if you are logged in
+  "quality": "mid" // optional, can be "thumbnail", "low", "medium", "high but defaults to mid
+```
+
+or
+
+```
+/api/download-profile-image?email=abcd@gmail.com&quality=mid
+```
+
+**note that the higher quality, the longer it will take to download**
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched image!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Image ID
+
+This endpoint is used to get the image in the Occupi system given an image ID as a url parameter.
+
+- **URL**
+
+  `/api/image/:id`
+
+- **Method**
+    
+    `GET`
+
+- **Request JSON Data**
+
+- **Content**
+
+```json copy
+  "quality": "mid" // optional, can be "thumbnail", "low", "medium", "high but defaults to mid
+```
+
+or
+
+```
+/api/image/000000000000000000?quality=mid
+```
+
+**the id is the id of the image which you will get when you get a room and is required for all requests on this endpoint**
+
+**note that the higher quality, the longer it will take to download**
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched image!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Upload Image
+
+This endpoint is used to upload an image in the Occupi system. Only Admins can upload images.
+
+- **URL**
+
+  `/api/upload-image`
+
+- **Method**
+    
+    `POST`
+
+- **Request Form Data**
+
+- **Content**
+
+```copy
+  "image": image_data, // required
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully uploaded image!", "data": {"id": "000000000000000000000"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Upload Room Image
+
+This endpoint is used to upload an image for a room in the Occupi system. Only Admins can upload images.
+
+- **URL**
+
+  `/api/upload-room-image`
+
+- **Method**
+    
+    `POST`
+
+- **Request Form Data**
+
+- **Content**
+
+```copy
+  "image": image_data, // required
+  "roomId": "RM000" // required
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully uploaded image!", "data": {"id": "000000000000000000000"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`

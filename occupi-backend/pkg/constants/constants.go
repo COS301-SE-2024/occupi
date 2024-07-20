@@ -7,6 +7,7 @@ const (
 	IncompleteAuthCode        = "INCOMPLETE_AUTH"
 	InternalServerErrorCode   = "INTERNAL_SERVER_ERROR"
 	UnAuthorizedCode          = "UNAUTHORIZED"
+	RequestEntityTooLargeCode = "REQUEST_ENTITY_TOO_LARGE"
 	Admin                     = "admin"
 	Basic                     = "basic"
 	AdminDBAccessOption       = "authSource=admin"
@@ -22,4 +23,12 @@ const (
 	ConfirmIPAddress          = "confirmIPAddress"
 	Off                       = "off"
 	On                        = "on"
+	ThumbnailRes              = "thumbnail"
+	LowRes                    = "low"
+	MidRes                    = "mid"
+	HighRes                   = "high"
+	ThumbnailWidth            = 200
+	LowWidth                  = 600
+	MidWidth                  = 1200
+	HighWidth                 = 2000
 )
