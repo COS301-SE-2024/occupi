@@ -78,7 +78,6 @@ const Notifications = () => {
   };
 
   const onSave = async () => {
-    
     let userEmail = await SecureStore.getItemAsync('Email');
     let authToken = await SecureStore.getItemAsync('Token');
 
