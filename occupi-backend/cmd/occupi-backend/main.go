@@ -83,6 +83,12 @@ func main() {
 	// attach session middleware
 	attachSessionMiddleware(ginRouter)
 
+	// attach timezone middleware
+	attachTimeZoneMiddelware(ginRouter)
+
+	// attach real ip middleware
+	attachRealIPMiddleware(ginRouter)
+
 	// Register routes
 	router.OccupiRouter(ginRouter, appsession)
 
@@ -139,6 +145,16 @@ func attachSessionMiddleware(ginRouter *gin.Engine) {
 	// creating a new valid session for management of shared variables
 	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
 	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
+}
+
+func attachTimeZoneMiddelware(ginRouter *gin.Engine) {
+	// TimezoneMiddleware is a middleware that sets the timezone for the request.
+	ginRouter.Use(middleware.TimezoneMiddleware())
+}
+
+func attachRealIPMiddleware(ginRouter *gin.Engine) {
+	// RealIPMiddleware is a middleware that sets the real IP for the request.
+	ginRouter.Use(middleware.RealIPMiddleware())
 }
 
 func runServer(ginRouter *gin.Engine) {
