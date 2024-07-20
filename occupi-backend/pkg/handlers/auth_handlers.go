@@ -417,6 +417,13 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 		return
 	}
 
+	// change users verification status to true
+	if _, err := database.VerifyUser(ctx, appsession, resetRequest.Email, utils.GetClientIP(ctx)); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
 	// Update password in database
 	success, err := database.UpdateUserPassword(ctx, appsession.DB, resetRequest.Email, password)
 	if err != nil || !success {
