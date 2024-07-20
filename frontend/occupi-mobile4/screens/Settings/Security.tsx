@@ -59,8 +59,10 @@ type SignUpSchemaType = z.infer<typeof signUpSchema>;
 const Security = () => {
   let colorScheme = useColorScheme();
   //retrieve user settings ad assign variables accordingly
-  const [isEnabled1, setIsEnabled1] = useState(false);
-  const [isEnabled2, setIsEnabled2] = useState(false);
+  const [oldMfa, setOldMfa] = useState(false);
+  const [newMfa, setNewMfa] = useState(false);
+  const [oldForceLogout, setOldForceLogout] = useState(false);
+  const [newForceLogout, setNewForceLogout] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
 
   useEffect(() => {
@@ -68,19 +70,31 @@ const Security = () => {
       let settings = await SecureStore.getItemAsync('Security');
       const settingsObject = JSON.parse(settings);
       
-      console.log(settings);
+      if (settingsObject.mfa === "on") {
+        setOldMfa(true);
+        setNewMfa(true);
+      } else {
+        setOldMfa(false);
+        setNewMfa(false);
+      }
+
+      if (settingsObject.forcelogout === "on") {
+        setOldForceLogout(true);
+        setNewForceLogout(true);
+      } else {
+        setOldForceLogout(false);
+        setNewForceLogout(false);
+      }
     }
     getSecurityDetails();
   }, [])
   
 
   const toggleSwitch1 = () => {
-    setIsEnabled1(previousState => !previousState);
-    setIsSaved(false);
+    setNewMfa(previousState => !previousState);
   };
   const toggleSwitch2 = () => {
-    setIsEnabled2(previousState => !previousState);
-    setIsSaved(false);
+    setNewForceLogout(previousState => !previousState);
   };
 
   const onSubmit = async (_data: SignUpSchemaType) => {
@@ -88,6 +102,7 @@ const Security = () => {
     console.log("hmmm");
     if (_data.password === _data.confirmpassword) {
       Alert.alert('Success', 'Changes saved successfully');
+      // add password change
     }
     else if (_data.currentpassword === _data.password) {
       Alert.alert('Error', 'New password cannot be the same as the current password');
@@ -97,7 +112,8 @@ const Security = () => {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = (_data: SignUpSchemaType) => {
+    console.log(_data);
     if (isSaved === false) {
       Alert.alert(
         'Save Changes',
@@ -105,7 +121,7 @@ const Security = () => {
         [
           {
             text: 'Leave without saving',
-            onPress: () => router.back(),
+            onPress: () => router.replace('/settings'),
             style: 'cancel',
           },
           { text: 'Save', onPress: () => onSubmit },
@@ -206,23 +222,23 @@ const Security = () => {
 
           <View flexDirection="column">
             <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-              <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Use faceid/touch id to enter app</Text>
-              <Switch
-                trackColor={{ false: 'lightgray', true: 'lightgray' }}
-                thumbColor={isEnabled1 ? 'greenyellow' : 'white'}
-                ios_backgroundColor="lightgray"
-                onValueChange={toggleSwitch1}
-                value={isEnabled1}
-              />
-            </View>
-            <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
               <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Use 2fa to login</Text>
               <Switch
                 trackColor={{ false: 'lightgray', true: 'lightgray' }}
-                thumbColor={isEnabled2 ? 'greenyellow' : 'white'}
+                thumbColor={newMfa ? 'greenyellow' : 'white'}
+                ios_backgroundColor="lightgray"
+                onValueChange={toggleSwitch1}
+                value={newMfa}
+              />
+            </View>
+            <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+              <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Force logout on app close</Text>
+              <Switch
+                trackColor={{ false: 'lightgray', true: 'lightgray' }}
+                thumbColor={newForceLogout ? 'greenyellow' : 'white'}
                 ios_backgroundColor="lightgray"
                 onValueChange={toggleSwitch2}
-                value={isEnabled2}
+                value={newForceLogout}
               />
             </View>
             <Text my="$2" color={colorScheme === 'dark' ? 'white' : 'black'}>Change password</Text>
