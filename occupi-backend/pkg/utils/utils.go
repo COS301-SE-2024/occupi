@@ -457,6 +457,27 @@ func ConvertToStringArray(input interface{}) []string {
 	return stringArray
 }
 
+func ConvertTokensToStringArray(tokens []primitive.M, key string) ([]string, error) {
+	var stringArray []string
+
+	for _, token := range tokens {
+		// Ensure the map contains the key
+		value, exists := token[key]
+		if !exists {
+			return nil, fmt.Errorf("key %s does not exist in token %v", key, token)
+		}
+
+		// Ensure the value is a string before appending
+		strValue, ok := value.(string)
+		if !ok {
+			return nil, fmt.Errorf("value for key %s is not a string: %v", key, value)
+		}
+		stringArray = append(stringArray, strValue)
+	}
+
+	return stringArray, nil
+}
+
 func ConvertArrayToCommaDelimitedString(input []string) string {
 	return strings.Join(input, ",")
 }
