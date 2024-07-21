@@ -55,8 +55,6 @@ const SIZES = {
   radius: 8,
 };
 
-type SignUpSchemaType = z.infer<typeof signUpSchema>;
-
 const Security = () => {
   let colorScheme = useColorScheme();
   //retrieve user settings ad assign variables accordingly
@@ -69,6 +67,7 @@ const Security = () => {
     const getSecurityDetails = async () => {
       let settings = await SecureStore.getItemAsync('Security');
       const settingsObject = JSON.parse(settings);
+      console.log(settingsObject);
 
       if (settingsObject.mfa === "on") {
         setOldMfa(true);
@@ -78,7 +77,7 @@ const Security = () => {
         setNewMfa(false);
       }
 
-      if (settingsObject.forcelogout === "on") {
+      if (settingsObject.forceLogout === "on") {
         setOldForceLogout(true);
         setNewForceLogout(true);
       } else {
@@ -97,17 +96,16 @@ const Security = () => {
     setNewForceLogout(previousState => !previousState);
   };
 
-  const onSubmit = async (_data: SignUpSchemaType) => {
+  const onSave = async () => {
     //integration here
-    if (_data.password === _data.confirmpassword) {
       let userEmail = await SecureStore.getItemAsync('Email');
       let authToken = await SecureStore.getItemAsync('Token');
 
       try {
         const response = await axios.post('https://dev.occupi.tech/api/update-security-settings', {
           email: userEmail,
-          invites: newMfa ? "on" : "off",
-          bookingReminder: newForceLogout ? "on" : "off"
+          mfa: newMfa ? "on" : "off",
+          forceLogout: newForceLogout ? "on" : "off"
         }, {
           headers: {
             'Accept': 'application/json',
@@ -121,8 +119,8 @@ const Security = () => {
         console.log(data);
         if (response.status === 200) {
           const newSettings = {
-            invites: newMfa ? "on" : "off",
-            bookingReminder: newForceLogout ? "on" : "off",
+            mfa: newMfa ? "on" : "off",
+            forceLogout: newForceLogout ? "on" : "off",
           }
           console.log(newSettings);
           SecureStore.setItemAsync('Security', JSON.stringify(newSettings));
@@ -133,16 +131,9 @@ const Security = () => {
       } catch (error) {
         console.error('Error:', error);
       }
-    }
-    else if (_data.currentpassword === _data.password) {
-      Alert.alert('Error', 'New password cannot be the same as the current password');
-    }
-    else {
-      Alert.alert('Error', 'Passwords do not match');
-    }
   };
 
-  const handleBack = (_data: SignUpSchemaType) => {
+  const handleBack = () => {
     if (newMfa !== oldMfa || newForceLogout !== oldForceLogout) {
       Alert.alert(
         'Save Changes',
@@ -153,7 +144,7 @@ const Security = () => {
             onPress: () => router.replace('/settings'),
             style: 'cancel',
           },
-          { text: 'Save', onPress: () => handleSubmit(onSubmit) },
+          { text: 'Save', onPress: () => onSave() },
         ],
         { cancelable: false }
       );
@@ -162,64 +153,6 @@ const Security = () => {
       router.back();
     }
   }
-
-  const signUpSchema = z.object({
-    currentpassword: z
-      .string()
-      .min(6, 'Must be at least 8 characters in length')
-      .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
-      .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
-      .regex(new RegExp('.*\\d.*'), 'One number')
-      .regex(
-        new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
-        'One special character'
-      ),
-    password: z
-      .string()
-      .min(6, 'Must be at least 8 characters in length')
-      .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
-      .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
-      .regex(new RegExp('.*\\d.*'), 'One number')
-      .regex(
-        new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
-        'One special character'
-      ),
-    confirmpassword: z
-      .string()
-      .min(6, 'Must be at least 8 characters in length')
-      .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
-      .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
-      .regex(new RegExp('.*\\d.*'), 'One number')
-      .regex(
-        new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
-        'One special character'
-      ),
-  });
-
-  const handleKeyPress = () => {
-    Keyboard.dismiss();
-  };
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const handleState = () => {
-    setShowPassword((showState) => {
-      return !showState;
-    });
-  };
-  const handleConfirmPwState = () => {
-    setShowConfirmPassword((showState) => {
-      return !showState;
-    });
-  };
-
-  const {
-    control,
-    formState: { errors },
-    handleSubmit,
-  } = useForm<SignUpSchemaType>({
-    resolver: zodResolver(signUpSchema),
-  });
-
   return (
 
 
@@ -235,7 +168,7 @@ const Security = () => {
               name="chevron-left"
               size="xl"
               color={colorScheme === 'dark' ? 'white' : 'black'}
-              onPress={handleSubmit(handleBack)}
+              onPress={handleBack}
             />
             <Text style={styles.headerTitle} color={colorScheme === 'dark' ? 'white' : 'black'}>
               Security
@@ -270,156 +203,12 @@ const Security = () => {
                 value={newForceLogout}
               />
             </View>
-            <Text my="$2" color={colorScheme === 'dark' ? 'white' : 'black'}>Change password</Text>
-            <FormControl isInvalid={!!errors.password} isRequired={true} mt="$4">
-              <FormControlLabel mb="$1">
-                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">Current Password</FormControlLabelText>
-              </FormControlLabel>
-              <Controller
-                defaultValue=""
-                name="currentpassword"
-                control={control}
-                rules={{
-                  validate: async (value) => {
-                    try {
-                      await signUpSchema.parseAsync({
-                        password: value,
-                      });
-                      return true;
-                    } catch (error) {
-                      return error.message;
-                    }
-                  },
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
-                    <InputField
-                      fontSize={wp('4%')}
-                      placeholder="Password"
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      onSubmitEditing={handleKeyPress}
-                      returnKeyType="done"
-                      color={colorScheme === 'dark' ? 'white' : 'black'}
-                      type={showPassword ? 'text' : 'password'}
-                    />
-                    <InputSlot onPress={handleState} pr="$3">
-                      <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
-                    </InputSlot>
-                  </Input>
-                )}
-              />
-              <FormControlError>
-                <FormControlErrorIcon size="sm" as={AlertTriangle} />
-                <FormControlErrorText>
-                  {errors?.password?.message}
-                </FormControlErrorText>
-              </FormControlError>
-            </FormControl>
-
-            <FormControl isInvalid={!!errors.password} isRequired={true} mt="$4">
-              <FormControlLabel mb="$1">
-                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">New Password</FormControlLabelText>
-              </FormControlLabel>
-              <Controller
-                defaultValue=""
-                name="password"
-                control={control}
-                rules={{
-                  validate: async (value) => {
-                    try {
-                      await signUpSchema.parseAsync({
-                        password: value,
-                      });
-                      return true;
-                    } catch (error) {
-                      return error.message;
-                    }
-                  },
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
-                    <InputField
-                      fontSize={wp('4%')}
-                      placeholder="Password"
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      onSubmitEditing={handleKeyPress}
-                      color={colorScheme === 'dark' ? 'white' : 'black'}
-                      returnKeyType="done"
-                      type={showPassword ? 'text' : 'password'}
-                    />
-                    <InputSlot onPress={handleState} pr="$3">
-                      <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
-                    </InputSlot>
-                  </Input>
-                )}
-              />
-              <FormControlError>
-                <FormControlErrorIcon size="sm" as={AlertTriangle} />
-                <FormControlErrorText>
-                  {errors?.password?.message}
-                </FormControlErrorText>
-              </FormControlError>
-            </FormControl>
-
-            <FormControl isInvalid={!!errors.confirmpassword} isRequired={true} mt="$4">
-              <FormControlLabel mb="$1">
-                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">Confirm Password</FormControlLabelText>
-              </FormControlLabel>
-              <Controller
-                defaultValue=""
-                name="confirmpassword"
-                control={control}
-                rules={{
-                  validate: async (value) => {
-                    try {
-                      await signUpSchema.parseAsync({
-                        password: value,
-                      });
-
-                      return true;
-                    } catch (error: any) {
-                      return error.message;
-                    }
-                  },
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
-                    <InputField
-                      placeholder="Confirm Password"
-                      fontSize={wp('4%')}
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      onSubmitEditing={handleKeyPress}
-                      color={colorScheme === 'dark' ? 'white' : 'black'}
-                      returnKeyType="done"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                    />
-                    <InputSlot onPress={handleConfirmPwState} pr="$3">
-                      <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
-                    </InputSlot>
-                  </Input>
-
-                )}
-              />
-              <FormControlError>
-                <FormControlErrorIcon size="sm" as={AlertTriangle} />
-                <FormControlErrorText>
-                  {errors?.confirmpassword?.message}
-                </FormControlErrorText>
-              </FormControlError>
-            </FormControl>
-
           </View>
         </View>
       </KeyboardAvoidingView>
       <View position="absolute" left={0} right={0} bottom={36}>
         <GradientButton
-          onPress={handleSubmit(onSubmit)}
+          onPress={onSave}
           text="Save"
         />
       </View>
