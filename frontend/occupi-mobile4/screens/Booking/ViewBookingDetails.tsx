@@ -238,21 +238,21 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                 </TouchableOpacity>
                 {isLoading ? (
                     <TouchableOpacity style={{ paddingHorizontal: 15 }} >
-                        <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                        <View flexDirection="row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                             <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
                         </View>
                     </TouchableOpacity>
                 ) : (
                     !checkedIn ? (
                         <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
-                            <View flexDirection="row" my="2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                            <View flexDirection="row" my="$2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                 <Feather name="check-square" size={24} color={isDarkMode ? '#fff' : '#000'} />
                                 <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check in</Text>
                             </View>
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
-                            <View flexDirection="row" my="2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                            <View flexDirection="row" my="$2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                 <MaterialIcons name="logout" size={24} color={isDarkMode ? '#fff' : '#000'} />
                                 <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check out</Text>
                             </View>

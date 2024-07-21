@@ -58,44 +58,7 @@ const SIZES = {
 type SignUpSchemaType = z.infer<typeof signUpSchema>;
 
 const ChangePassword = () => {
-  let colorScheme = useColorScheme();
-  //retrieve user settings ad assign variables accordingly
-  const [oldMfa, setOldMfa] = useState(false);
-  const [newMfa, setNewMfa] = useState(false);
-  const [oldForceLogout, setOldForceLogout] = useState(false);
-  const [newForceLogout, setNewForceLogout] = useState(false);
-
-  useEffect(() => {
-    const getSecurityDetails = async () => {
-      let settings = await SecureStore.getItemAsync('Security');
-      const settingsObject = JSON.parse(settings);
-
-      if (settingsObject.mfa === "on") {
-        setOldMfa(true);
-        setNewMfa(true);
-      } else {
-        setOldMfa(false);
-        setNewMfa(false);
-      }
-
-      if (settingsObject.forcelogout === "on") {
-        setOldForceLogout(true);
-        setNewForceLogout(true);
-      } else {
-        setOldForceLogout(false);
-        setNewForceLogout(false);
-      }
-    }
-    getSecurityDetails();
-  }, [])
-
-
-  const toggleSwitch1 = () => {
-    setNewMfa(previousState => !previousState);
-  };
-  const toggleSwitch2 = () => {
-    setNewForceLogout(previousState => !previousState);
-  };
+  let colorScheme = useColorScheme(); 
 
   const onSubmit = async (_data: SignUpSchemaType) => {
     //integration here
@@ -105,9 +68,10 @@ const ChangePassword = () => {
 
       try {
         const response = await axios.post('https://dev.occupi.tech/api/update-security-settings', {
-          email: userEmail,
-          invites: newMfa ? "on" : "off",
-          bookingReminder: newForceLogout ? "on" : "off"
+            email: userEmail,
+            currentPassword: _data.currentpassword,
+            newPassword: _data.password,
+            newPasswordConfirm: _data.confirmpassword
         }, {
           headers: {
             'Accept': 'application/json',
@@ -120,12 +84,6 @@ const ChangePassword = () => {
         // console.log(`Response Data: ${JSON.stringify(data.data)}`);
         console.log(data);
         if (response.status === 200) {
-          const newSettings = {
-            invites: newMfa ? "on" : "off",
-            bookingReminder: newForceLogout ? "on" : "off",
-          }
-          console.log(newSettings);
-          SecureStore.setItemAsync('Security', JSON.stringify(newSettings));
           router.replace('/settings');
         } else {
           console.log(data);
