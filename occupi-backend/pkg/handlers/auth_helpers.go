@@ -383,12 +383,14 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 	password, err := database.GetPassword(ctx, appsession, securitySettings.Email)
 
 	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return models.SecuritySettingsRequest{}, err
 	}
 
 	match, err := utils.CompareArgon2IDHash(securitySettings.CurrentPassword, password)
 
 	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return models.SecuritySettingsRequest{}, err
 	}
 
