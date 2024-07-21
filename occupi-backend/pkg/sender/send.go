@@ -7,16 +7,23 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
 
 func PublishMessage(appsession *models.AppSession, notification models.ScheduledNotification) error {
+	// if gin run mode is test randomly return error
+	if configs.GetGinRunMode() == "test" {
+		return utils.RandomError()
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	body := fmt.Sprintf(
-		"%s|%s|%s|%s|%s|%s",
+		"%s|%s|%s|%s|%s|%s|%s",
+		notification.ID,
 		notification.Title,
 		notification.Message,
 		notification.SendTime.Format(time.RFC3339),

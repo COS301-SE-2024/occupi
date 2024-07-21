@@ -108,6 +108,8 @@ github.com/newrelic/go-agent/v3 v3.33.1 h1:eWOtty43cyxrMKws4VNPdebgEB6ujFTf0yxPs
 github.com/newrelic/go-agent/v3 v3.33.1/go.mod h1:SMdqPzE/ghkWdY0rYGSD7Clw2daK/XH6pUnVd4albg4=
 github.com/newrelic/go-agent/v3/integrations/nrgin v1.3.1 h1:JoIIS37S/tW/6Y/5cGInNA7ngfd2lGsfX0HYh82UOPk=
 github.com/newrelic/go-agent/v3/integrations/nrgin v1.3.1/go.mod h1:/EjSYMXsMO34+imRoQlPU5hFUlP+u/dwowF+OKMw8TQ=
+github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 h1:zYyBkD/k9seD2A7fsi6Oo2LfFZAehjjQMERAvZLEDnQ=
+github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646/go.mod h1:jpp1/29i3P1S/RLdc7JQKbRpFeM1dOBd8T9ki5s+AY8=
 github.com/oliveroneill/exponent-server-sdk-golang v0.0.0-20210823140141-d050598be512 h1:/ZSmjwl1inqsiHMhn+sPlEtSHdVTf+TH3LNGGdMQ/vA=
 github.com/oliveroneill/exponent-server-sdk-golang v0.0.0-20210823140141-d050598be512/go.mod h1:Isv/48UnAjtxS8FD80Bito3ZJqZRyIMxKARIEITfW4k=
 github.com/patrickmn/go-cache v2.1.0+incompatible h1:HRMgzkcYKYpi3C8ajMPV8OFXaaRUnok+kx1WdO15EQc=

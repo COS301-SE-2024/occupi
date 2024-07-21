@@ -38,8 +38,6 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 		uri = fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
 	}
 
-	fmt.Printf("URI: %s\n", uri) // debug
-
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)
 
@@ -48,7 +46,6 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Connect to MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		fmt.Println("Error connecting to MongoDB") // debug
 		logrus.Fatal(err)
 		errv := client.Disconnect(ctx)
 		logrus.Fatal(errv)
@@ -57,11 +54,11 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Check the connection
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		fmt.Println("Error pinging MongoDB") // debug
 		logrus.Fatal(err)
+		errv := client.Disconnect(ctx)
+		logrus.Fatal(errv)
 	}
 
-	fmt.Println("Connected to MongoDB!") // debug
 	logrus.Info("Connected to MongoDB!")
 
 	return client
@@ -69,6 +66,10 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 
 // Create cache
 func CreateCache() *bigcache.BigCache {
+	if GetGinRunMode() == "devlocalhost" || GetGinRunMode() == "devdeployed" || GetGinRunMode() == "devlocalhostdocker" {
+		return nil
+	}
+
 	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to 5 seconds
 	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to 5 seconds
 	cache, err := bigcache.New(context.Background(), config)
@@ -131,14 +132,17 @@ func CreateRabbitConnection() *amqp.Connection {
 	rabbitMQPort := GetRabbitMQPort()
 
 	// Construct the connection URI
-	uri := fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+	var uri string
 
-	fmt.Printf("URI: %s\n", uri) // debug
+	if rabbitMQUsername == "RABBITMQ_USERNAME" || rabbitMQPassword == "RABBITMQ_PASSWORD" {
+		uri = fmt.Sprintf("amqp://%s:%s", rabbitMQHost, rabbitMQPort)
+	} else {
+		uri = fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+	}
 
 	// Connect to RabbitMQ
 	conn, err := amqp.Dial(uri)
 	if err != nil {
-		fmt.Println("Error connecting to RabbitMQ", err) // debug
 		logrus.Fatal(err)
 	}
 

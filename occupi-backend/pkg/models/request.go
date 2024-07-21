@@ -39,6 +39,13 @@ type QueryInput struct {
 	Page       int64                  `json:"page"`
 }
 
+type ResetPassword struct {
+	Email              string `json:"email" binding:"required,email"`
+	NewPassword        string `json:"newPassword" binding:"required,min=8"`
+	NewPasswordConfirm string `json:"newPasswordConfirm" binding:"required,min=8"`
+	OTP                string `json:"otp" binding:"required,len=6"`
+}
+
 // expected email structure from api requests
 type RequestEmail struct {
 	Email string `json:"email" binding:"required,email"`
@@ -47,4 +54,40 @@ type RequestEmail struct {
 // expected email structure from api requests
 type RequestEmails struct {
 	Emails []string `json:"emails" binding:"required"`
+}
+
+type SecuritySettingsRequest struct {
+	Email              string `json:"email" binding:"omitempty,email"`
+	Mfa                string `json:"mfa"`
+	ForceLogout        string `json:"forceLogout"`
+	CurrentPassword    string `json:"currentPassword"`
+	NewPassword        string `json:"newPassword"`
+	NewPasswordConfirm string `json:"newPasswordConfirm"`
+}
+
+type UserDetailsRequest struct {
+	Email        string `json:"email" binding:"omitempty,email"`
+	Name         string `json:"name"`
+	Dob          string `json:"dob"`
+	Gender       string `json:"gender"`
+	SessionEmail string `json:"session_email" binding:"required,email"`
+	Employeeid   string `json:"employeeid" binding:"omitempty,startswith=OCCUPI"`
+	Number       string `json:"number"`
+	Pronouns     string `json:"pronouns"`
+}
+
+type NotificationsRequest struct {
+	Email           string `json:"email" binding:"required,email"`
+	Invites         string `json:"invites"`
+	BookingReminder string `json:"bookingReminder"`
+}
+
+type ProfileImageRequest struct {
+	Email   string `json:"email" binding:"omitempty,email"`
+	Quality string `json:"quality"`
+}
+
+type ImageRequest struct {
+	ID      string `json:"id" binding:"required"`
+	Quality string `json:"quality"`
 }
