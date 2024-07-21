@@ -62,6 +62,13 @@ const ChangePassword = () => {
 
   const onSubmit = async (_data: SignUpSchemaType) => {
     //integration here
+    let userEmail = await SecureStore.getItemAsync('Email');
+    console.log(JSON.stringify({
+        email: userEmail,
+        currentPassword: _data.currentpassword,
+        newPassword: _data.password,
+        newPasswordConfirm: _data.confirmpassword
+    }));
     if (_data.password === _data.confirmpassword) {
       let userEmail = await SecureStore.getItemAsync('Email');
       let authToken = await SecureStore.getItemAsync('Token');
