@@ -7,9 +7,6 @@ on:
       "occupi-backend/cmd/**",
       "occupi-backend/configs/**",
       "occupi-backend/pkg/**",
-      "occupi-backend/.golangci.yml",
-      "occupi-backend/.dev.env.gpg",
-      "occupi-backend/tests/**",
       ".github/workflows/deploy-golang-develop.yml"
     ]
 
