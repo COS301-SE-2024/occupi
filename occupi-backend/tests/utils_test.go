@@ -383,6 +383,39 @@ func TestCompareArgon2IDHash(t *testing.T) {
 	})
 }
 
+func TestCompareArgon2IDHashAfterSanitizing(t *testing.T) {
+	password := "password123$"
+	wrongPassword := "wrongpassword"
+
+	hash, err := utils.Argon2IDHash(utils.SanitizeInput(password))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, hash)
+
+	t.Run("Correct password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(password), hash)
+		assert.NoError(t, err)
+		assert.True(t, match)
+	})
+
+	t.Run("Incorrect password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(wrongPassword), hash)
+		assert.NoError(t, err)
+		assert.False(t, match)
+	})
+
+	t.Run("Empty password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(""), hash)
+		assert.NoError(t, err)
+		assert.False(t, match)
+	})
+
+	t.Run("Empty hash sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(password), "")
+		assert.Error(t, err)
+		assert.False(t, match)
+	})
+}
+
 func TestSuccessResponse(t *testing.T) {
 	expected := gin.H{
 		"status":  http.StatusOK,

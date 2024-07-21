@@ -120,7 +120,7 @@ func ValidatePasswordEntry(ctx *gin.Context, appsession *models.AppSession, pass
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
 			nil))
-		return false, nil
+		return false, errors.New("invalid password")
 	}
 
 	return true, nil
@@ -138,14 +138,14 @@ func ValidatePasswordEntryAndReturnHash(ctx *gin.Context, appsession *models.App
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
 			nil))
-		return "", nil
+		return "", errors.New("invalid password")
 	}
 
 	password, err := utils.Argon2IDHash(password)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return "", nil
+		return "", err
 	}
 
 	return password, nil
@@ -163,7 +163,7 @@ func ValidatePasswordCorrectness(ctx *gin.Context, appsession *models.AppSession
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
 			nil))
-		return false, nil
+		return false, errors.New("invalid password")
 	}
 
 	// fetch hashed password
@@ -185,7 +185,7 @@ func ValidatePasswordCorrectness(ctx *gin.Context, appsession *models.AppSession
 			constants.InvalidAuthCode,
 			"Password is incorrect",
 			nil))
-		return false, nil
+		return false, errors.New("password is incorrect")
 	}
 
 	return true, nil
@@ -325,7 +325,14 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, err
 	}
 
-	if isVerificationDue {
+	// chec if the user has mfa enabled
+	mfaEnabled, err := database.CheckIfUserHasMFAEnabled(ctx, appsession, email)
+
+	if err != nil {
+		return false, err
+	}
+
+	if isVerificationDue || mfaEnabled {
 		_, err := SendOTPEmail(ctx, appsession, email, constants.ReverifyEmail)
 		if err != nil {
 			return false, err

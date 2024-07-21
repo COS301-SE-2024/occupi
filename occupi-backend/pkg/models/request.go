@@ -60,9 +60,9 @@ type SecuritySettingsRequest struct {
 	Email              string `json:"email" binding:"omitempty,email"`
 	Mfa                string `json:"mfa"`
 	ForceLogout        string `json:"forceLogout"`
-	CurrentPassword    string `json:"currentPassword"`
-	NewPassword        string `json:"newPassword"`
-	NewPasswordConfirm string `json:"newPasswordConfirm"`
+	CurrentPassword    string `json:"currentPassword" binding:"omitempty,min=8"`
+	NewPassword        string `json:"newPassword" binding:"omitempty,min=8"`
+	NewPasswordConfirm string `json:"newPasswordConfirm" binding:"omitempty,min=8"`
 }
 
 type UserDetailsRequest struct {
