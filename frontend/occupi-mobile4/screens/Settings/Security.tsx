@@ -35,6 +35,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import axios from 'axios';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -63,13 +64,12 @@ const Security = () => {
   const [newMfa, setNewMfa] = useState(false);
   const [oldForceLogout, setOldForceLogout] = useState(false);
   const [newForceLogout, setNewForceLogout] = useState(false);
-  const [isSaved, setIsSaved] = useState(true);
 
   useEffect(() => {
     const getSecurityDetails = async () => {
       let settings = await SecureStore.getItemAsync('Security');
       const settingsObject = JSON.parse(settings);
-      
+
       if (settingsObject.mfa === "on") {
         setOldMfa(true);
         setNewMfa(true);
@@ -88,7 +88,7 @@ const Security = () => {
     }
     getSecurityDetails();
   }, [])
-  
+
 
   const toggleSwitch1 = () => {
     setNewMfa(previousState => !previousState);
@@ -99,10 +99,40 @@ const Security = () => {
 
   const onSubmit = async (_data: SignUpSchemaType) => {
     //integration here
-    console.log("hmmm");
     if (_data.password === _data.confirmpassword) {
-      Alert.alert('Success', 'Changes saved successfully');
-      // add password change
+      let userEmail = await SecureStore.getItemAsync('Email');
+      let authToken = await SecureStore.getItemAsync('Token');
+
+      try {
+        const response = await axios.post('https://dev.occupi.tech/api/update-security-settings', {
+          email: userEmail,
+          invites: newMfa ? "on" : "off",
+          bookingReminder: newForceLogout ? "on" : "off"
+        }, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `${authToken}`
+          },
+          withCredentials: true
+        });
+        const data = response.data;
+        // console.log(`Response Data: ${JSON.stringify(data.data)}`);
+        console.log(data);
+        if (response.status === 200) {
+          const newSettings = {
+            invites: newMfa ? "on" : "off",
+            bookingReminder: newForceLogout ? "on" : "off",
+          }
+          console.log(newSettings);
+          SecureStore.setItemAsync('Security', JSON.stringify(newSettings));
+          router.replace('/settings');
+        } else {
+          console.log(data);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
     else if (_data.currentpassword === _data.password) {
       Alert.alert('Error', 'New password cannot be the same as the current password');
@@ -113,8 +143,7 @@ const Security = () => {
   };
 
   const handleBack = (_data: SignUpSchemaType) => {
-    console.log(_data);
-    if (isSaved === false) {
+    if (newMfa !== oldMfa || newForceLogout !== oldForceLogout) {
       Alert.alert(
         'Save Changes',
         'You have unsaved changes. Would you like to save them?',
@@ -124,7 +153,7 @@ const Security = () => {
             onPress: () => router.replace('/settings'),
             style: 'cancel',
           },
-          { text: 'Save', onPress: () => onSubmit },
+          { text: 'Save', onPress: () => handleSubmit(onSubmit) },
         ],
         { cancelable: false }
       );
@@ -197,7 +226,7 @@ const Security = () => {
     <View flex={1} backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+        style={{ flex: 1 }}
       >
         <View flex={1}>
           <View style={styles.header}>
@@ -206,7 +235,7 @@ const Security = () => {
               name="chevron-left"
               size="xl"
               color={colorScheme === 'dark' ? 'white' : 'black'}
-              onPress={handleBack}
+              onPress={handleSubmit(handleBack)}
             />
             <Text style={styles.headerTitle} color={colorScheme === 'dark' ? 'white' : 'black'}>
               Security
