@@ -514,10 +514,22 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// check if the password match
+	if securitySettings.NewPassword != "" && securitySettings.NewPassword != securitySettings.NewPasswordConfirm {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"New password and new password confirm do not match",
+			nil))
+		return
+	}
+
 	// Validate the given passwords if they exist
 	if securitySettings.CurrentPassword != "" && securitySettings.NewPassword != "" && securitySettings.NewPasswordConfirm != "" {
 		securitySetting, err := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
 		if err != nil {
+			logrus.Error("Failed to sanitize security settings because: ", err)
 			return
 		}
 
