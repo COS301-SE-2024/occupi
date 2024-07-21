@@ -101,13 +101,21 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	tokenArr, err := utils.ConvertTokensToStringArray(tokens, "expoPushToken")
+
+	if err != nil {
+		logrus.Error("Failed to convert tokens to string array because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
 	scheduledNotification := models.ScheduledNotification{
 		Title:                "Booking Starting Soon",
-		Message:              utils.ConstructBookingStartingInScheduledString(utils.PrependEmailtoSlice(booking.Emails, booking.Creator), "3 mins"),
+		Message:              utils.ConstructBookingStartingInScheduledString(booking.Emails, "3 mins"),
 		Sent:                 false,
 		SendTime:             booking.Start.Add(-3 * time.Minute),
 		Emails:               booking.Emails,
-		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
+		UnsentExpoPushTokens: tokenArr,
 		UnreadEmails:         booking.Emails,
 	}
 
@@ -125,11 +133,11 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	notification := models.ScheduledNotification{
 		Title:                "Booking Invitation",
-		Message:              utils.ConstructBookingScheduledString(utils.PrependEmailtoSlice(booking.Emails, booking.Creator)),
+		Message:              utils.ConstructBookingScheduledString(booking.Emails),
 		Sent:                 true,
 		SendTime:             utils.GetClientTime(ctx),
 		Emails:               booking.Emails,
-		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
+		UnsentExpoPushTokens: tokenArr,
 		UnreadEmails:         booking.Emails,
 	}
 

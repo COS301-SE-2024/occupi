@@ -42,7 +42,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.GET("/user-details", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetUserDetails(ctx, appsession) })
 		api.POST("/update-user", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateUserDetails(ctx, appsession) })
 		api.GET("/get-users", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Users") })
-		api.GET("/get-push-tokens", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetPushTokens(ctx, appsession) })
+		api.GET("/get-push-tokens", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.GetPushTokens(ctx, appsession) })
 		api.GET("/get-notifications", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.FilterCollection(ctx, appsession, "Notifications") })
 		api.POST("/update-security-settings", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateSecuritySettings(ctx, appsession) })
 		api.GET("/update-notification-settings", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.UpdateNotificationSettings(ctx, appsession) })
