@@ -4,20 +4,37 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import {
   Icon,
   View,
-  Text
+  Text,
+  Input,
+  FormControl,
+  FormControlError,
+  FormControlErrorIcon,
+  FormControlErrorText,
+  FormControlLabel,
+  FormControlLabelText,
+  InputField,
+  InputIcon,
+  InputSlot
 } from '@gluestack-ui/themed';
+import { Controller, useForm } from 'react-hook-form';
 import { router } from 'expo-router';
+import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { useColorScheme, Switch } from 'react-native';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import axios from 'axios';
 
 const COLORS = {
@@ -38,153 +55,334 @@ const SIZES = {
   radius: 8,
 };
 
+type SignUpSchemaType = z.infer<typeof signUpSchema>;
+
 const ChangePassword = () => {
   let colorScheme = useColorScheme();
   //retrieve user settings ad assign variables accordingly
-  const [oldInviteVal, setOldInviteVal] = useState(false);
-  const [newInviteVal, setNewInviteVal] = useState(false);
-  const [oldNotifyVal, setOldNotifyVal] = useState(false);
-  const [newNotifyVal, setNewNotifyVal] = useState(false);
+  const [oldMfa, setOldMfa] = useState(false);
+  const [newMfa, setNewMfa] = useState(false);
+  const [oldForceLogout, setOldForceLogout] = useState(false);
+  const [newForceLogout, setNewForceLogout] = useState(false);
 
   useEffect(() => {
-    const getNotificationDetails = async () => {
-      let settings = await SecureStore.getItemAsync('Notifications');
+    const getSecurityDetails = async () => {
+      let settings = await SecureStore.getItemAsync('Security');
       const settingsObject = JSON.parse(settings);
-      if (settingsObject.invites === "on") {
-        setOldInviteVal(true);
-        setNewInviteVal(true);
+
+      if (settingsObject.mfa === "on") {
+        setOldMfa(true);
+        setNewMfa(true);
       } else {
-        setOldInviteVal(false);
-        setNewInviteVal(false);
+        setOldMfa(false);
+        setNewMfa(false);
       }
 
-      if (settingsObject.bookingReminder === "on") {
-        setOldNotifyVal(true);
-        setNewNotifyVal(true);
+      if (settingsObject.forcelogout === "on") {
+        setOldForceLogout(true);
+        setNewForceLogout(true);
       } else {
-        setOldNotifyVal(false);
-        setNewNotifyVal(false);
+        setOldForceLogout(false);
+        setNewForceLogout(false);
       }
-      // console.log(settings);
     }
-    getNotificationDetails();
+    getSecurityDetails();
   }, [])
 
+
   const toggleSwitch1 = () => {
-    setNewInviteVal(previousState => !previousState)
+    setNewMfa(previousState => !previousState);
   };
   const toggleSwitch2 = () => {
-    setNewNotifyVal(previousState => !previousState)
+    setNewForceLogout(previousState => !previousState);
   };
 
-  const onSave = async () => {
-    let userEmail = await SecureStore.getItemAsync('Email');
-    let authToken = await SecureStore.getItemAsync('Token');
+  const onSubmit = async (_data: SignUpSchemaType) => {
+    //integration here
+    if (_data.password === _data.confirmpassword) {
+      let userEmail = await SecureStore.getItemAsync('Email');
+      let authToken = await SecureStore.getItemAsync('Token');
 
-    try {
-      const response = await axios.get('https://dev.occupi.tech/api/update-notification-settings', {
-        params: {
+      try {
+        const response = await axios.post('https://dev.occupi.tech/api/update-security-settings', {
           email: userEmail,
-          invites: newInviteVal ? "on" : "off",
-          bookingReminder: newNotifyVal ? "on" : "off"
-        },
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        withCredentials: true
-      });
-      const data = response.data;
-      // console.log(`Response Data: ${JSON.stringify(data.data)}`);
-      console.log(data);
-      if (response.status === 200) {
-        const newSettings = {
-          invites: newInviteVal ? "on" : "off",
-          bookingReminder: newNotifyVal ? "on" : "off",
-        }
-        console.log(newSettings);
-        SecureStore.setItemAsync('Notifications', JSON.stringify(newSettings));
-        router.replace('/settings');
-      } else {
-        console.log(data);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const handleBack = () => {
-    if (newInviteVal !== oldInviteVal || newNotifyVal !== oldNotifyVal) {
-      Alert.alert(
-        'Save Changes',
-        'You have unsaved changes. Would you like to save them?',
-        [
-          {
-            text: 'Leave without saving',
-            onPress: () => router.replace('/settings'),
-            style: 'cancel',
+          invites: newMfa ? "on" : "off",
+          bookingReminder: newForceLogout ? "on" : "off"
+        }, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `${authToken}`
           },
-          { text: 'Save', onPress: () => onSave() },
-        ],
-        { cancelable: false }
-      );
+          withCredentials: true
+        });
+        const data = response.data;
+        // console.log(`Response Data: ${JSON.stringify(data.data)}`);
+        console.log(data);
+        if (response.status === 200) {
+          const newSettings = {
+            invites: newMfa ? "on" : "off",
+            bookingReminder: newForceLogout ? "on" : "off",
+          }
+          console.log(newSettings);
+          SecureStore.setItemAsync('Security', JSON.stringify(newSettings));
+          router.replace('/settings');
+        } else {
+          console.log(data);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+    else if (_data.currentpassword === _data.password) {
+      Alert.alert('Error', 'New password cannot be the same as the current password');
     }
     else {
-      router.back();
+      Alert.alert('Error', 'Passwords do not match');
     }
-  }
+  };
+
+  const signUpSchema = z.object({
+    currentpassword: z
+      .string()
+      .min(6, 'Must be at least 8 characters in length')
+      .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
+      .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
+      .regex(new RegExp('.*\\d.*'), 'One number')
+      .regex(
+        new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
+        'One special character'
+      ),
+    password: z
+      .string()
+      .min(6, 'Must be at least 8 characters in length')
+      .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
+      .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
+      .regex(new RegExp('.*\\d.*'), 'One number')
+      .regex(
+        new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
+        'One special character'
+      ),
+    confirmpassword: z
+      .string()
+      .min(6, 'Must be at least 8 characters in length')
+      .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
+      .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
+      .regex(new RegExp('.*\\d.*'), 'One number')
+      .regex(
+        new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
+        'One special character'
+      ),
+  });
+
+  const handleKeyPress = () => {
+    Keyboard.dismiss();
+  };
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const handleState = () => {
+    setShowPassword((showState) => {
+      return !showState;
+    });
+  };
+  const handleConfirmPwState = () => {
+    setShowConfirmPassword((showState) => {
+      return !showState;
+    });
+  };
+
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+  } = useForm<SignUpSchemaType>({
+    resolver: zodResolver(signUpSchema),
+  });
 
   return (
-    <View flex={1} backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
-      <View style={styles.header}>
-        <Icon
-          as={Feather}
-          name="chevron-left"
-          size="xl"
-          color={colorScheme === 'dark' ? 'white' : 'black'}
-          onPress={handleBack}
-        />
-        <Text style={styles.headerTitle} color={colorScheme === 'dark' ? 'white' : 'black'}>
-          Notifications
-        </Text>
-        <Ionicons
-          name="notifications-outline"
-          size={24}
-          color={colorScheme === 'dark' ? 'white' : 'black'}
-          style={styles.icon}
-        />
-      </View>
 
-      <View flexDirection="column">
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-          <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
-          <Switch
-            trackColor={{ false: 'lightgray', true: 'lightgray' }}
-            thumbColor={newInviteVal ? 'greenyellow' : 'white'}
-            ios_backgroundColor="lightgray"
-            onValueChange={toggleSwitch1}
-            value={newInviteVal}
-          />
+
+    <View flex={1} backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <View flex={1}>
+          <View style={styles.header}>
+            <Icon
+              as={Feather}
+              name="chevron-left"
+              size="xl"
+              color={colorScheme === 'dark' ? 'white' : 'black'}
+              onPress={() => router.back()}
+            />
+            <Text style={styles.headerTitle} color={colorScheme === 'dark' ? 'white' : 'black'}>
+              Change Password
+            </Text>
+            <FontAwesome5
+              name="fingerprint"
+              size={24}
+              color={colorScheme === 'dark' ? 'white' : 'black'}
+              style={styles.icon}
+            />
+          </View>
+
+
+          <View flexDirection="column">
+            <FormControl isInvalid={!!errors.password} isRequired={true} mt="$4">
+              <FormControlLabel mb="$1">
+                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">Current Password</FormControlLabelText>
+              </FormControlLabel>
+              <Controller
+                defaultValue=""
+                name="currentpassword"
+                control={control}
+                rules={{
+                  validate: async (value) => {
+                    try {
+                      await signUpSchema.parseAsync({
+                        password: value,
+                      });
+                      return true;
+                    } catch (error) {
+                      return error.message;
+                    }
+                  },
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
+                    <InputField
+                      fontSize={wp('4%')}
+                      placeholder="Password"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      onSubmitEditing={handleKeyPress}
+                      returnKeyType="done"
+                      color={colorScheme === 'dark' ? 'white' : 'black'}
+                      type={showPassword ? 'text' : 'password'}
+                    />
+                    <InputSlot onPress={handleState} pr="$3">
+                      <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                    </InputSlot>
+                  </Input>
+                )}
+              />
+              <FormControlError>
+                <FormControlErrorIcon size="sm" as={AlertTriangle} />
+                <FormControlErrorText>
+                  {errors?.password?.message}
+                </FormControlErrorText>
+              </FormControlError>
+            </FormControl>
+
+            <FormControl isInvalid={!!errors.password} isRequired={true} mt="$4">
+              <FormControlLabel mb="$1">
+                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">New Password</FormControlLabelText>
+              </FormControlLabel>
+              <Controller
+                defaultValue=""
+                name="password"
+                control={control}
+                rules={{
+                  validate: async (value) => {
+                    try {
+                      await signUpSchema.parseAsync({
+                        password: value,
+                      });
+                      return true;
+                    } catch (error) {
+                      return error.message;
+                    }
+                  },
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
+                    <InputField
+                      fontSize={wp('4%')}
+                      placeholder="Password"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      onSubmitEditing={handleKeyPress}
+                      color={colorScheme === 'dark' ? 'white' : 'black'}
+                      returnKeyType="done"
+                      type={showPassword ? 'text' : 'password'}
+                    />
+                    <InputSlot onPress={handleState} pr="$3">
+                      <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                    </InputSlot>
+                  </Input>
+                )}
+              />
+              <FormControlError>
+                <FormControlErrorIcon size="sm" as={AlertTriangle} />
+                <FormControlErrorText>
+                  {errors?.password?.message}
+                </FormControlErrorText>
+              </FormControlError>
+            </FormControl>
+
+            <FormControl isInvalid={!!errors.confirmpassword} isRequired={true} mt="$4">
+              <FormControlLabel mb="$1">
+                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">Confirm Password</FormControlLabelText>
+              </FormControlLabel>
+              <Controller
+                defaultValue=""
+                name="confirmpassword"
+                control={control}
+                rules={{
+                  validate: async (value) => {
+                    try {
+                      await signUpSchema.parseAsync({
+                        password: value,
+                      });
+
+                      return true;
+                    } catch (error: any) {
+                      return error.message;
+                    }
+                  },
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
+                    <InputField
+                      placeholder="Confirm Password"
+                      fontSize={wp('4%')}
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      onSubmitEditing={handleKeyPress}
+                      color={colorScheme === 'dark' ? 'white' : 'black'}
+                      returnKeyType="done"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                    />
+                    <InputSlot onPress={handleConfirmPwState} pr="$3">
+                      <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                    </InputSlot>
+                  </Input>
+
+                )}
+              />
+              <FormControlError>
+                <FormControlErrorIcon size="sm" as={AlertTriangle} />
+                <FormControlErrorText>
+                  {errors?.confirmpassword?.message}
+                </FormControlErrorText>
+              </FormControlError>
+            </FormControl>
+
+          </View>
         </View>
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-          <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
-          <Switch
-            trackColor={{ false: 'lightgray', true: 'lightgray' }}
-            thumbColor={newNotifyVal ? 'greenyellow' : 'white'}
-            ios_backgroundColor="lightgray"
-            onValueChange={toggleSwitch2}
-            value={newNotifyVal}
-          />
-        </View>
-      </View>
+      </KeyboardAvoidingView>
       <View position="absolute" left={0} right={0} bottom={36}>
         <GradientButton
-          onPress={onSave}
-          text="Save"
+          onPress={handleSubmit(onSubmit)}
+          text="Change Password"
         />
       </View>
-    </View>
+    </View >
+
   );
 };
 
