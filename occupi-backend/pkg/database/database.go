@@ -877,10 +877,14 @@ func CheckIfUserIsLoggingInFromKnownLocation(ctx *gin.Context, appsession *model
 		return false, nil, err
 	}
 
+	logrus.Info("User: ", user)
+	logrus.Info("Info: ", info)
+
 	// Add the user to the cache if cache is not nil
 	cache.SetUser(appsession, user)
 
-	for _, location := range user.KnownLocations {
+	for i, location := range user.KnownLocations {
+		logrus.Info("Location: ", i, location)
 		if location.Country == info.Country && location.City == info.City && location.Region == info.Region {
 			return true, nil, nil
 		}
