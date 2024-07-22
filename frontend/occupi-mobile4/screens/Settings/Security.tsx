@@ -17,6 +17,7 @@ import { useColorScheme, Switch } from 'react-native';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
+import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
@@ -31,6 +32,7 @@ const SIZES = {
 
 const Security = () => {
   let colorScheme = useColorScheme();
+  const toast = useToast();
   //retrieve user settings ad assign variables accordingly
   const [oldMfa, setOldMfa] = useState(false);
   const [newMfa, setNewMfa] = useState(false);
@@ -117,17 +119,37 @@ const Security = () => {
       });
       const data = response.data;
       // console.log(`Response Data: ${JSON.stringify(data.data)}`);
-      console.log(data);
+      // console.log(data);
       if (response.status === 200) {
         const newSettings = {
           mfa: newMfa ? "on" : "off",
           forceLogout: newForceLogout ? "on" : "off",
         }
-        console.log(newSettings);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+        // console.log(newSettings);
         SecureStore.setItemAsync('Security', JSON.stringify(newSettings));
         router.replace('/settings');
       } else {
         console.log(data);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
       }
     } catch (error) {
       console.error('Error:', error);

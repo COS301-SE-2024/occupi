@@ -19,6 +19,8 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
+import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
+
 
 const COLORS = {
   white: '#FFFFFF',
@@ -40,6 +42,7 @@ const SIZES = {
 
 const Notifications = () => {
   let colorScheme = useColorScheme();
+  const toast = useToast();
   //retrieve user settings ad assign variables accordingly
   const [oldInviteVal, setOldInviteVal] = useState(false);
   const [newInviteVal, setNewInviteVal] = useState(false);
@@ -103,10 +106,30 @@ const Notifications = () => {
           invites: newInviteVal ? "on" : "off",
           bookingReminder: newNotifyVal ? "on" : "off",
         }
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
         console.log(newSettings);
         SecureStore.setItemAsync('Notifications', JSON.stringify(newSettings));
         router.replace('/settings');
       } else {
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
         console.log(data);
       }
     } catch (error) {
