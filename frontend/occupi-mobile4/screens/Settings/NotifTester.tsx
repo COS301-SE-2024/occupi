@@ -20,7 +20,7 @@ async function sendPushNotification(expoPushToken: string) {
     trigger: {
       seconds: 10
     },
-    to: "ExponentPushToken[ARLofOIiMGuJjE2EQTWQWq]",
+    to: expoPushToken,
     sound: 'default',
     title: 'Original Title',
     body: 'And here is the body!',
