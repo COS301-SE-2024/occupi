@@ -107,7 +107,8 @@ const BookingDetails = () => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
+          'Authorization': `${authToken}`,
+          'X-Timezone': 'Africa/Johannesburg'
         },
         body: JSON.stringify(body),
         credentials: "include"
@@ -122,7 +123,8 @@ const BookingDetails = () => {
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json',
-              'Authorization': `${authToken}`
+              'Authorization': `${authToken}`,
+              'X-Timezone': 'Africa/Johannesburg'
             },
             credentials: "include"
           });

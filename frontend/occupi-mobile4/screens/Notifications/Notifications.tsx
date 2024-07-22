@@ -28,12 +28,15 @@ const Notifications = () => {
 
     const formatNotificationDate = (sendTime) => {
         const now = new Date();
+        // console.log(now);
         const notificationDate = new Date(sendTime);
+        console.log(notificationDate);
 
         const differenceInHours = Math.floor((now - notificationDate) / (1000 * 60 * 60));
         const differenceInDays = Math.floor(differenceInHours / 24);
 
         if (differenceInDays === 0) {
+            console.log(differenceInDays);
             return differenceInHours < 1 ? 'less than an hour ago' : `${differenceInHours} hours ago`;
         } else if (differenceInDays === 1) {
             return 'yesterday';
@@ -46,7 +49,7 @@ const Notifications = () => {
         notifications.forEach(notification => {
             const formattedDate = formatNotificationDate(notification.send_time);
 
-            if (formattedDate.includes('hours ago')) {
+            if (formattedDate.includes('hours ago') || formattedDate.includes('hour ago')) {
                 todayNotifications.push(notification);
             } else if (formattedDate === 'yesterday') {
                 yesterdayNotifications.push(notification);
@@ -61,11 +64,6 @@ const Notifications = () => {
         const getNotifications = async () => {
             let userEmail = await SecureStore.getItemAsync('Email');
             let authToken = await SecureStore.getItemAsync('Token');
-            // const baseUrl = 'https://dev.occupi.tech/api/get-notifications';
-            const params = new URLSearchParams();
-            params.append('filter', '{"emails":["kamogelomoeketse@gmail.com"]}');
-
-            // const url = `${baseUrl}?${params.toString()}`;
 
             try {
                 const response = await axios.get('https://dev.occupi.tech/api/get-notifications', {
