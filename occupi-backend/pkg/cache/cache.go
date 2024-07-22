@@ -116,3 +116,56 @@ func DeleteOTP(appsession *models.AppSession, email string, otp string) {
 		return
 	}
 }
+
+func GetImage(appsession *models.AppSession, id string) (models.Image, error) {
+	if appsession.Cache == nil {
+		return models.Image{}, errors.New("cache not found")
+	}
+
+	//unmarshal the image from the cache
+	var image models.Image
+	imageData, err := appsession.Cache.Get(id)
+
+	if err != nil {
+		logrus.Error("key does not exist: ", err)
+		return models.Image{}, err
+	}
+
+	if err := bson.Unmarshal(imageData, &image); err != nil {
+		logrus.Error("Failed to unmarshall", err)
+		return models.Image{}, err
+	}
+
+	return image, nil
+}
+
+func SetImage(appsession *models.AppSession, id string, image models.Image) {
+	if appsession.Cache == nil {
+		return
+	}
+
+	// marshal the image
+	imageData, err := bson.Marshal(image)
+	if err != nil {
+		logrus.Error("failed to marshall", err)
+		return
+	}
+
+	// set the image in the cache
+	if err := appsession.Cache.Set(id, imageData); err != nil {
+		logrus.Error("failed to set user in cache", err)
+		return
+	}
+}
+
+func DeleteImage(appsession *models.AppSession, id string) {
+	if appsession.Cache == nil {
+		return
+	}
+
+	// delete the image from the cache
+	if err := appsession.Cache.Delete(id); err != nil {
+		logrus.Error("failed to delete image from cache", err)
+		return
+	}
+}
