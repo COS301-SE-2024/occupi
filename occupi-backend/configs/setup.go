@@ -66,7 +66,8 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 
 // Create cache
 func CreateCache() *bigcache.BigCache {
-	if GetGinRunMode() == "devlocalhost" || GetGinRunMode() == "devdeployed" || GetGinRunMode() == "devlocalhostdocker" {
+	if GetEnv() == "devlocalhost" || GetEnv() == "devdeployed" || GetEnv() == "devlocalhostdocker" {
+		logrus.Printf("Cache is disabled in %s mode\n", GetEnv())
 		return nil
 	}
 
@@ -76,6 +77,8 @@ func CreateCache() *bigcache.BigCache {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+
+	logrus.Info("Cache created!")
 
 	return cache
 }

@@ -9,23 +9,23 @@ import (
 
 // structure of user
 type User struct {
-	ID                   string         `json:"_id" bson:"_id,omitempty"`
-	OccupiID             string         `json:"occupiId" bson:"occupiId"`
-	Password             string         `json:"password" bson:"password"`
-	Email                string         `json:"email" bson:"email"`
-	Role                 string         `json:"role" bson:"role"`
-	OnSite               bool           `json:"onSite" bson:"onSite"`
-	IsVerified           bool           `json:"isVerified" bson:"isVerified"`
-	NextVerificationDate time.Time      `json:"nextVerificationDate" bson:"nextVerificationDate"`
-	TwoFAEnabled         bool           `json:"twoFAEnabled" bson:"twoFAEnabled"`
-	KnownLocations       []Location     `json:"locations" bson:"locations"`
-	Details              *Details       `json:"details" bson:"details, omitempty"`
-	Notifications        *Notifications `json:"notifications" bson:"notifications, omitempty"`
-	Security             *Security      `json:"security" bson:"security, omitempty"`
-	Status               string         `json:"status" bson:"status, omitempty"`
-	Position             string         `json:"position" bson:"position, omitempty"`
-	DepartmentNo         string         `json:"departmentNo" bson:"departmentNo, omitempty"`
-	ExpoPushToken        string         `json:"expoPushToken" bson:"expoPushToken"`
+	ID                   string        `json:"_id" bson:"_id,omitempty"`
+	OccupiID             string        `json:"occupiId" bson:"occupiId"`
+	Password             string        `json:"password" bson:"password"`
+	Email                string        `json:"email" bson:"email"`
+	Role                 string        `json:"role" bson:"role"`
+	OnSite               bool          `json:"onSite" bson:"onSite"`
+	IsVerified           bool          `json:"isVerified" bson:"isVerified"`
+	NextVerificationDate time.Time     `json:"nextVerificationDate" bson:"nextVerificationDate"`
+	TwoFAEnabled         bool          `json:"twoFAEnabled" bson:"twoFAEnabled"`
+	KnownLocations       []Location    `json:"knownLocations" bson:"knownLocations"`
+	Details              Details       `json:"details" bson:"details, omitempty"`
+	Notifications        Notifications `json:"notifications" bson:"notifications, omitempty"`
+	Security             Security      `json:"security" bson:"security, omitempty"`
+	Status               string        `json:"status" bson:"status, omitempty"`
+	Position             string        `json:"position" bson:"position, omitempty"`
+	DepartmentNo         string        `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ExpoPushToken        string        `json:"expoPushToken" bson:"expoPushToken"`
 }
 
 type UserDetails struct {
@@ -52,6 +52,7 @@ type FilterUsers struct {
 }
 
 type Details struct {
+	ImageID   string    `json:"imageid" bson:"imageid"` // image id in image collection
 	ContactNo string    `json:"contactNo" bson:"contactNo"`
 	Name      string    `json:"name" bson:"name"`
 	DOB       time.Time `json:"dob" bson:"dob"`
@@ -65,8 +66,9 @@ type Notifications struct {
 }
 
 type Security struct {
-	MFA        bool `json:"mfa" bson:"mfa"`
-	Biometrics bool `json:"biometrics" bson:"biometrics"`
+	MFA         bool `json:"mfa" bson:"mfa"`
+	Biometrics  bool `json:"biometrics" bson:"biometrics"`
+	ForceLogout bool `json:"forceLogout" bson:"forceLogout"`
 }
 
 type Location struct {
@@ -120,14 +122,15 @@ type ViewBookings struct {
 }
 
 type Room struct {
-	ID           string `json:"_id" bson:"_id,omitempty"`
-	RoomID       string `json:"roomId" bson:"roomId,omitempty"`
-	RoomNo       string `json:"roomNo" bson:"roomNo,omitempty"`
-	FloorNo      string `json:"floorNo" bson:"floorNo" binding:"required"`
-	MinOccupancy int    `json:"minOccupancy" bson:"minOccupancy,omitempty"`
-	MaxOccupancy int    `json:"maxOccupancy" bson:"maxOccupancy"`
-	Description  string `json:"description" bson:"description"`
-	RoomName     string `json:"roomName" bson:"roomName"`
+	ID           string   `json:"_id" bson:"_id,omitempty"`
+	RoomID       string   `json:"roomId" bson:"roomId,omitempty"`
+	RoomNo       string   `json:"roomNo" bson:"roomNo,omitempty"`
+	FloorNo      string   `json:"floorNo" bson:"floorNo" binding:"required"`
+	MinOccupancy int      `json:"minOccupancy" bson:"minOccupancy,omitempty"`
+	MaxOccupancy int      `json:"maxOccupancy" bson:"maxOccupancy"`
+	Description  string   `json:"description" bson:"description"`
+	RoomName     string   `json:"roomName" bson:"roomName"`
+	RoomImageIDs []string `json:"roomImageIds" bson:"roomImageIds"`
 }
 
 type ResetToken struct {
@@ -153,4 +156,13 @@ type FilterStruct struct {
 	Limit      int64
 	Skip       int64
 	Sort       primitive.M
+}
+
+type Image struct {
+	ID           string `json:"_id" bson:"_id,omitempty"`
+	Thumbnail    []byte `json:"image_thumbnail_res" bson:"image_thumbnail_res"`
+	ImageLowRes  []byte `json:"image_low_res" bson:"image_low_res"`
+	ImageMidRes  []byte `json:"image_mid_res" bson:"image_mid_res"`
+	ImageHighRes []byte `json:"image_high_res" bson:"image_high_res"`
+	FileName     string `json:"fileName" bson:"fileName"`
 }
