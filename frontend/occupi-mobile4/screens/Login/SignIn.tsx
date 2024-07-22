@@ -161,6 +161,11 @@ const SignInForm = () => {
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
     storeUserEmail(_data.email);
+    const body = {
+      email: _data.email,
+      password: _data.password
+    };
+    console.log(body);
     try {
       const response = await fetch(`${apiUrl}${loginUrl}`, {
         method: 'POST',
@@ -168,10 +173,7 @@ const SignInForm = () => {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          email: _data.email,
-          password: _data.password
-        }),
+        body: JSON.stringify(body),
         credentials: "include"
       });
       const data = await response.json();
