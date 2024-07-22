@@ -36,6 +36,7 @@ import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import axios from 'axios';
+import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -58,7 +59,8 @@ const SIZES = {
 type SignUpSchemaType = z.infer<typeof signUpSchema>;
 
 const ChangePassword = () => {
-  let colorScheme = useColorScheme(); 
+  let colorScheme = useColorScheme();
+  const toast = useToast();
 
   const onSubmit = async (_data: SignUpSchemaType) => {
     //integration here
@@ -91,8 +93,28 @@ const ChangePassword = () => {
         // console.log(`Response Data: ${JSON.stringify(data.data)}`);
         console.log(data);
         if (response.status === 200) {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>Password successfully changed</ToastTitle>
+                </Toast>
+              );
+            },
+          });
           router.replace('/settings');
         } else {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
           console.log(data);
         }
       } catch (error) {
