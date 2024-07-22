@@ -987,11 +987,18 @@ func MarkNotificationAsSent(ctx context.Context, appsession *models.AppSession, 
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
 
+	id, err := primitive.ObjectIDFromHex(notificationID)
+
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
 	// update the notification to sent
-	filter := bson.M{"_id": notificationID}
+	filter := bson.M{"notificationId": id}
 	update := bson.M{"$set": bson.M{"sent": true}}
 
-	_, err := collection.UpdateOne(ctx, filter, update)
+	_, err = collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
 		return err
@@ -1032,16 +1039,24 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession, email 
 
 	// check if user is in cache
 	if userData, err := cache.GetUser(appsession, email); err == nil {
-		var twofa string
-		if userData.TwoFAEnabled {
-			twofa = constants.On
+		var mfa string
+		if userData.Security.MFA {
+			mfa = constants.On
 		} else {
-			twofa = constants.Off
+			mfa = constants.Off
+		}
+
+		var forceLogout string
+		if userData.Security.ForceLogout {
+			forceLogout = constants.On
+		} else {
+			forceLogout = constants.Off
 		}
 
 		return models.SecuritySettingsRequest{
-			Email: userData.Email,
-			Twofa: twofa,
+			Email:       userData.Email,
+			Mfa:         mfa,
+			ForceLogout: forceLogout,
 		}, nil
 	}
 
@@ -1058,16 +1073,24 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession, email 
 	// Add the user to the cache if cache is not nil
 	cache.SetUser(appsession, user)
 
-	var twofa string
-	if user.TwoFAEnabled {
-		twofa = constants.On
+	var mfa string
+	if user.Security.MFA {
+		mfa = constants.On
 	} else {
-		twofa = constants.Off
+		mfa = constants.Off
+	}
+
+	var forceLogout string
+	if user.Security.ForceLogout {
+		forceLogout = constants.On
+	} else {
+		forceLogout = constants.Off
 	}
 
 	return models.SecuritySettingsRequest{
-		Email: user.Email,
-		Twofa: twofa,
+		Email:       user.Email,
+		Mfa:         mfa,
+		ForceLogout: forceLogout,
 	}, nil
 }
 
@@ -1093,15 +1116,27 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession, sec
 		}
 	}
 
-	if securitySettings.Twofa == constants.On {
+	if securitySettings.Mfa == constants.On {
 		update["$set"].(bson.M)["security.mfa"] = true
 		if cacheErr == nil {
 			userData.Security.MFA = true
 		}
-	} else if securitySettings.Twofa == constants.Off {
+	} else if securitySettings.Mfa == constants.Off {
 		update["$set"].(bson.M)["security.mfa"] = false
 		if cacheErr == nil {
 			userData.Security.MFA = false
+		}
+	}
+
+	if securitySettings.ForceLogout == constants.On {
+		update["$set"].(bson.M)["security.forceLogout"] = true
+		if cacheErr == nil {
+			userData.Security.ForceLogout = true
+		}
+	} else if securitySettings.ForceLogout == constants.Off {
+		update["$set"].(bson.M)["security.forceLogout"] = false
+		if cacheErr == nil {
+			userData.Security.ForceLogout = false
 		}
 	}
 
@@ -1233,4 +1268,178 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession,
 	}
 
 	return nil
+}
+
+func UploadImageData(ctx *gin.Context, appsession *models.AppSession, image models.Image) (string, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return "", errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
+
+	id, err := collection.InsertOne(ctx, image)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+
+	return id.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func GetImageData(ctx *gin.Context, appsession *models.AppSession, imageID string, quality string) (models.Image, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return models.Image{}, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
+
+	id, err := primitive.ObjectIDFromHex(imageID)
+
+	if err != nil {
+		logrus.Error(err)
+		return models.Image{}, err
+	}
+
+	filter := bson.M{"_id": id}
+
+	// add quality attribute to projection
+	findOptions := options.FindOne()
+	findOptions.SetProjection(bson.M{"image_" + quality + "_res": 1, "_id": 0, "fileName": 1})
+
+	var image models.Image
+	err = collection.FindOne(ctx, filter, findOptions).Decode(&image)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get image data")
+		return models.Image{}, err
+	}
+
+	return image, nil
+}
+
+func DeleteImageData(ctx *gin.Context, appsession *models.AppSession, imageID string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
+
+	filter := bson.M{"_id": imageID}
+	_, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func SetUserImage(ctx *gin.Context, appsession *models.AppSession, email, imageID string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// get user from cache
+	userData, cacheErr := cache.GetUser(appsession, email)
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"details.imageid": imageID}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// update user in cache
+	if cacheErr == nil {
+		userData.Details.ImageID = imageID
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
+}
+
+func GetUserImage(ctx *gin.Context, appsession *models.AppSession, email string) (string, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return "", errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Details.ImageID, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get user image id")
+		return "", err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.Details.ImageID, nil
+}
+
+func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
+
+	filter := bson.M{"roomId": roomID}
+	update := bson.M{"$addToSet": bson.M{"roomImageIds": imageID}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func CheckIfUserHasMFAEnabled(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Security.MFA, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return false, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.Security.MFA, nil
 }

@@ -58,18 +58,19 @@ type RequestEmails struct {
 
 type SecuritySettingsRequest struct {
 	Email              string `json:"email" binding:"omitempty,email"`
-	Twofa              string `json:"2fa"`
-	CurrentPassword    string `json:"currentPassword"`
-	NewPassword        string `json:"newPassword"`
-	NewPasswordConfirm string `json:"newPasswordConfirm"`
+	Mfa                string `json:"mfa"`
+	ForceLogout        string `json:"forceLogout"`
+	CurrentPassword    string `json:"currentPassword" binding:"omitempty,min=8"`
+	NewPassword        string `json:"newPassword" binding:"omitempty,min=8"`
+	NewPasswordConfirm string `json:"newPasswordConfirm" binding:"omitempty,min=8"`
 }
 
 type UserDetailsRequest struct {
-	Email        string `json:"email" binding:"required,email"`
+	Email        string `json:"email" binding:"omitempty,email"`
 	Name         string `json:"name"`
 	Dob          string `json:"dob"`
 	Gender       string `json:"gender"`
-	SessionEmail string `json:"session_email" binding:"omitempty,email"`
+	SessionEmail string `json:"session_email" binding:"required,email"`
 	Employeeid   string `json:"employeeid" binding:"omitempty,startswith=OCCUPI"`
 	Number       string `json:"number"`
 	Pronouns     string `json:"pronouns"`
@@ -81,6 +82,12 @@ type NotificationsRequest struct {
 	BookingReminder string `json:"bookingReminder"`
 }
 
-type ImageUploadRequest struct {
-	Image string `json:"image" binding:"required"`
+type ProfileImageRequest struct {
+	Email   string `json:"email" binding:"omitempty,email"`
+	Quality string `json:"quality"`
+}
+
+type ImageRequest struct {
+	ID      string `json:"id" binding:"required"`
+	Quality string `json:"quality"`
 }

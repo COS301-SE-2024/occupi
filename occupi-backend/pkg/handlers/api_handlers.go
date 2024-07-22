@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -100,13 +101,21 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	tokenArr, err := utils.ConvertTokensToStringArray(tokens, "expoPushToken")
+
+	if err != nil {
+		logrus.Error("Failed to convert tokens to string array because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
 	scheduledNotification := models.ScheduledNotification{
 		Title:                "Booking Starting Soon",
-		Message:              utils.ConstructBookingStartingInScheduledString(utils.PrependEmailtoSlice(booking.Emails, booking.Creator), "3 mins"),
+		Message:              utils.ConstructBookingStartingInScheduledString(booking.Emails, "3 mins"),
 		Sent:                 false,
 		SendTime:             booking.Start.Add(-3 * time.Minute),
 		Emails:               booking.Emails,
-		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
+		UnsentExpoPushTokens: tokenArr,
 		UnreadEmails:         booking.Emails,
 	}
 
@@ -124,11 +133,11 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 
 	notification := models.ScheduledNotification{
 		Title:                "Booking Invitation",
-		Message:              utils.ConstructBookingScheduledString(utils.PrependEmailtoSlice(booking.Emails, booking.Creator)),
+		Message:              utils.ConstructBookingScheduledString(booking.Emails),
 		Sent:                 true,
 		SendTime:             utils.GetClientTime(ctx),
 		Emails:               booking.Emails,
-		UnsentExpoPushTokens: utils.ConvertToStringArray(tokens),
+		UnsentExpoPushTokens: tokenArr,
 		UnreadEmails:         booking.Emails,
 	}
 
@@ -245,10 +254,12 @@ func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 					"Email must be provided",
 					nil))
 				return
+			} else {
+				request.Email = email
 			}
-			request.Email = email
+		} else {
+			request.Email = emailStr
 		}
-		request.Email = emailStr
 	}
 
 	// Get all the user details
@@ -503,23 +514,46 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// check if the password match
+	if securitySettings.NewPassword != "" && securitySettings.NewPassword != securitySettings.NewPasswordConfirm {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"New password and new password confirm do not match",
+			nil))
+		return
+	}
+
 	// Validate the given passwords if they exist
 	if securitySettings.CurrentPassword != "" && securitySettings.NewPassword != "" && securitySettings.NewPasswordConfirm != "" {
 		securitySetting, err := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
 		if err != nil {
+			logrus.Error("Failed to sanitize security settings because: ", err)
 			return
 		}
 
 		securitySettings = securitySetting
 	}
 
-	// if 2fa string is set, ensure it's either "on" or "off"
-	if securitySettings.Twofa != "" && securitySettings.Twofa != "on" && securitySettings.Twofa != "off" {
+	// if mfa string is set, ensure it's either "on" or "off"
+	if securitySettings.Mfa != "" && securitySettings.Mfa != constants.On && securitySettings.Mfa != constants.Off {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"2fa must be either 'true' or 'false'",
+			"mfa must be either 'on' or 'off'",
+			nil))
+		return
+	}
+
+	// if forceLogout string is set, ensure it's either "on" or "off"
+	if securitySettings.ForceLogout != "" && securitySettings.ForceLogout != constants.On && securitySettings.ForceLogout != constants.Off {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"forceLogout must be either 'on' or 'off'",
 			nil))
 		return
 	}
@@ -551,10 +585,12 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 					"Email must be provided",
 					nil))
 				return
+			} else {
+				request.Email = email
 			}
-			request.Email = email
+		} else {
+			request.Email = emailStr
 		}
-		request.Email = emailStr
 	}
 
 	securitySettings, err := database.GetSecuritySettings(ctx, appsession, request.Email)
@@ -597,6 +633,28 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 		}
 	}
 
+	// If invites is set, ensure it's either "on" or "off"
+	if notificationsSettings.Invites != "" && notificationsSettings.Invites != constants.On && notificationsSettings.Invites != constants.Off {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"invites must be either 'on' or 'off'",
+			nil))
+		return
+	}
+
+	// If bookingReminder is set, ensure it's either "on" or "off"
+	if notificationsSettings.BookingReminder != "" && notificationsSettings.BookingReminder != constants.On && notificationsSettings.BookingReminder != constants.Off {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"bookingReminder must be either 'on' or 'off'",
+			nil))
+		return
+	}
+
 	// update the notification settings
 	if err := database.UpdateNotificationSettings(ctx, appsession, notificationsSettings); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
@@ -607,6 +665,8 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 			nil))
 		return
 	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated notification settings!", nil))
 }
 
 func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
@@ -623,10 +683,12 @@ func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
 					"Email must be provided",
 					nil))
 				return
+			} else {
+				request.Email = email
 			}
-			request.Email = email
+		} else {
+			request.Email = emailStr
 		}
-		request.Email = emailStr
 	}
 
 	notificationSettings, err := database.GetNotificationSettings(ctx, appsession, request.Email)
@@ -641,4 +703,260 @@ func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched notification settings!", notificationSettings))
+}
+
+func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid file format",
+			nil))
+		return
+	}
+
+	var requestEmail models.RequestEmail
+	if err := ctx.ShouldBindJSON(&requestEmail); err != nil {
+		email, err := AttemptToGetEmail(ctx, appsession)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"Email must be provided",
+				nil))
+			return
+		}
+		requestEmail.Email = email
+	}
+
+	// get user image if it exists and delete it
+	id, err := database.GetUserImage(ctx, appsession, requestEmail.Email)
+	if err == nil {
+		err = database.DeleteImageData(ctx, appsession, id)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to delete user image")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return
+		}
+	}
+
+	// convert to bytes
+	fileBytesThumbnail, errThumbnail := utils.ConvertImageToBytes(file, constants.ThumbnailWidth, true)
+	fileBytesLow, errLow := utils.ConvertImageToBytes(file, constants.LowWidth, false)
+	fileBytesMid, errMid := utils.ConvertImageToBytes(file, constants.MidWidth, false)
+	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, constants.HighWidth, false)
+
+	if err != nil || errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
+		logrus.WithError(err).Error("Failed to convert image to bytes")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	// Create a ProfileImage document
+	profileImage := models.Image{
+		FileName:     file.Filename,
+		Thumbnail:    fileBytesThumbnail,
+		ImageLowRes:  fileBytesLow,
+		ImageMidRes:  fileBytesMid,
+		ImageHighRes: fileBytesHigh,
+	}
+
+	// Save the image to the database
+	newID, err := database.UploadImageData(ctx, appsession, profileImage)
+
+	if err != nil {
+		logrus.WithError(err).Error("Failed to upload image data")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	// Update the user details with the image id
+	err = database.SetUserImage(ctx, appsession, requestEmail.Email, newID)
+
+	if err != nil {
+		logrus.WithError(err).Error("Failed to set user image")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", nil))
+}
+
+func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.ProfileImageRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		email := ctx.Query("email")
+		quality := ctx.Query("quality")
+		if email == "" {
+			email, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			}
+			request.Email = email
+		} else {
+			request.Email = email
+		}
+		request.Quality = quality
+
+	}
+
+	if request.Quality != "" && request.Quality != constants.ThumbnailRes && request.Quality != constants.LowRes && request.Quality != constants.MidRes && request.Quality != constants.HighRes {
+		request.Quality = constants.MidRes
+	} else if request.Quality == "" {
+		request.Quality = constants.MidRes
+	}
+
+	// get the image id
+	id, err := database.GetUserImage(ctx, appsession, request.Email)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get user image")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	// get the image data
+	imageData, err := database.GetImageData(ctx, appsession, id, request.Quality)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get image data")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	// set the response headers
+	ctx.Header("Content-Disposition", "attachment; filename="+imageData.FileName)
+	ctx.Header("/Content-Type", "application/octet-stream")
+	switch request.Quality {
+	case constants.ThumbnailRes:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
+	case constants.LowRes:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
+	case constants.MidRes:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+	case constants.HighRes:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
+	default:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+	}
+}
+
+func DownloadImage(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.ImageRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		request.ID = ctx.Param("id")
+		request.Quality = ctx.Query("quality")
+		if request.ID == "" {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"ID must be provided",
+				nil))
+			return
+		}
+	}
+
+	if request.Quality != "" && request.Quality != constants.ThumbnailRes && request.Quality != constants.LowRes && request.Quality != constants.MidRes && request.Quality != constants.HighRes {
+		request.Quality = constants.MidRes
+	} else if request.Quality == "" {
+		request.Quality = constants.MidRes
+	}
+
+	// print the request
+	fmt.Println(request)
+
+	// get the image data
+	imageData, err := database.GetImageData(ctx, appsession, request.ID, request.Quality)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get image", constants.InternalServerErrorCode, "Failed to get image", nil))
+		return
+	}
+
+	// set the response headers
+	ctx.Header("Content-Disposition", "attachment; filename="+imageData.FileName)
+	ctx.Header("/Content-Type", "application/octet-stream")
+	switch request.Quality {
+	case constants.ThumbnailRes:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
+	case constants.LowRes:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
+	case constants.MidRes:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+	case constants.HighRes:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
+	default:
+		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+	}
+}
+
+func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload bool) {
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid file format",
+			nil))
+		return
+	}
+
+	// convert to bytes
+	fileBytesThumbnail, errThumbnail := utils.ConvertImageToBytes(file, constants.ThumbnailWidth, true)
+	fileBytesLow, errLow := utils.ConvertImageToBytes(file, constants.LowWidth, false)
+	fileBytesMid, errMid := utils.ConvertImageToBytes(file, constants.MidWidth, false)
+	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, constants.HighWidth, false)
+
+	if errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to convert file to bytes", constants.InternalServerErrorCode, "Failed to convert file to bytes", nil))
+		return
+	}
+
+	// Create a ProfileImage document
+	profileImage := models.Image{
+		FileName:     file.Filename,
+		Thumbnail:    fileBytesThumbnail,
+		ImageLowRes:  fileBytesLow,
+		ImageMidRes:  fileBytesMid,
+		ImageHighRes: fileBytesHigh,
+	}
+
+	// Save the image to the database
+	newID, err := database.UploadImageData(ctx, appsession, profileImage)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to upload image", constants.InternalServerErrorCode, "Failed to upload image", nil))
+		return
+	}
+
+	if roomUpload {
+		// get room id from json body
+		roomid := ctx.Query("roomid")
+
+		if roomid == "" {
+			roomid = ctx.PostForm("roomid")
+			if roomid == "" {
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+				return
+			}
+		}
+
+		// Update the room details with the image id
+		err = database.AddImageIDToRoom(ctx, appsession, roomid, newID)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update room image", constants.InternalServerErrorCode, "Failed to update room image", nil))
+			return
+		}
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", gin.H{"id": newID}))
 }

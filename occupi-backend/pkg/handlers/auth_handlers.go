@@ -412,8 +412,15 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 			http.StatusBadRequest,
 			"Password validation failed",
 			"ValidationErrorCode",
-			err.Error(),
+			"Password does not meet requirements",
 			nil))
+		return
+	}
+
+	// change users verification status to true
+	if _, err := database.VerifyUser(ctx, appsession, resetRequest.Email, utils.GetClientIP(ctx)); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
 		return
 	}
 
@@ -430,7 +437,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	}
 
 	// Log the user in and Generate a JWT token
-	token, expi, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, role)
+	token, exp, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, role)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
@@ -442,7 +449,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	}
 
 	// Use AllocateAuthTokens to handle the response
-	AllocateAuthTokens(ctx, token, expi, cookies)
+	AllocateAuthTokens(ctx, token, exp, cookies)
 }
 
 // handler for logging out a request
