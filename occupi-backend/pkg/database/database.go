@@ -1295,6 +1295,19 @@ func GetImageData(ctx *gin.Context, appsession *models.AppSession, imageID strin
 		return models.Image{}, errors.New("database is nil")
 	}
 
+	if imageData, err := cache.GetImage(appsession, imageID); err == nil {
+		resolutions := map[string][]byte{
+			constants.ThumbnailRes: imageData.Thumbnail,
+			constants.LowRes:       imageData.ImageLowRes,
+			constants.MidRes:       imageData.ImageMidRes,
+			constants.HighRes:      imageData.ImageHighRes,
+		}
+
+		if data, ok := resolutions[quality]; ok && len(data) > 0 {
+			return imageData, nil
+		}
+	}
+
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
 
 	id, err := primitive.ObjectIDFromHex(imageID)
@@ -1315,6 +1328,21 @@ func GetImageData(ctx *gin.Context, appsession *models.AppSession, imageID strin
 	if err != nil {
 		logrus.WithError(err).Error("Failed to get image data")
 		return models.Image{}, err
+	}
+
+	if imageData, err := cache.GetImage(appsession, imageID); err == nil {
+		switch quality {
+		case constants.ThumbnailRes:
+			imageData.Thumbnail = image.Thumbnail
+		case constants.LowRes:
+			imageData.ImageLowRes = image.ImageLowRes
+		case constants.MidRes:
+			imageData.ImageMidRes = image.ImageMidRes
+		case constants.HighRes:
+			imageData.ImageHighRes = image.ImageHighRes
+		}
+
+		cache.SetImage(appsession, imageID, imageData)
 	}
 
 	return image, nil

@@ -837,10 +837,19 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	switch request.Quality {
 	case constants.ThumbnailRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
+
+		go database.GetImageData(ctx, appsession, id, constants.LowRes)
+		go database.GetImageData(ctx, appsession, id, constants.MidRes)
+		go database.GetImageData(ctx, appsession, id, constants.HighRes)
 	case constants.LowRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
+
+		go database.GetImageData(ctx, appsession, id, constants.MidRes)
+		go database.GetImageData(ctx, appsession, id, constants.HighRes)
 	case constants.MidRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+
+		go database.GetImageData(ctx, appsession, id, constants.HighRes)
 	case constants.HighRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
 	default:
