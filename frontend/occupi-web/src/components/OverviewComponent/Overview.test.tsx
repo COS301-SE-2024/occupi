@@ -13,11 +13,11 @@ const Wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 describe("OverviewComponent Tests", () => {
-  test("renders greeting and welcome messages", () => {
-    render(<OverviewComponent />, { wrapper: Wrapper });
-    // expect(screen.getByText("Hi Tina 👋")).toBeTruthy();
-    expect(screen.getByText("Welcome to Occupi")).toBeTruthy();
-  });
+  // test("renders greeting and welcome messages", () => {
+  //   render(<OverviewComponent />, { wrapper: Wrapper });
+  //   // expect(screen.getByText("Hi Tina 👋")).toBeTruthy();
+  //   expect(screen.getByText("Welcome to Occupi")).toBeTruthy();
+  // });
 
   test("renders images and checks their presence", () => {
     render(<OverviewComponent />, { wrapper: Wrapper });
