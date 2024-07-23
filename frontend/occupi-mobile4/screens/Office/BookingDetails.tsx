@@ -26,8 +26,7 @@ import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
-
-import { sendPushNotification } from "@/utils/utils";
+import { sendPushNotification } from "@/utils/notifications";
 
 const BookingDetails = () => {
   const navigation = useNavigation();
