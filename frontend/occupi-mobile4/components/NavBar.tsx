@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { Text, Button, Icon, CalendarDaysIcon, BellIcon } from '@gluestack-ui/themed';
 import { Feather } from '@expo/vector-icons';
@@ -7,31 +7,145 @@ import { router } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useNavBar } from './NavBarProvider';
 
 const NavBar = () => {
   let colorScheme = useColorScheme();
   const styles = getStyles(colorScheme);
+  const { currentTab, setCurrentTab } = useNavBar();
+
+  const handleTabPress = (tabName, route) => {
+    setCurrentTab(tabName);
+    router.replace(route);
+  };
+  // console.log(currentTab);
+
   return (
-    <BlurView tint="light" pb={hp('3%')} backgroundColor={colorScheme === 'dark' ? 'black' : '#fff'} intensity={20} style={styles.container}>
-      <Button onPress={() => router.replace('/home')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Home" flexDirection="column">
-        <Feather name="home" size={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text numberOfLines={1} w={wp('9%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Home</Text>
+    <BlurView
+      tint="light"
+      pb={hp('3%')}
+      backgroundColor={colorScheme === 'dark' ? 'black' : '#fff'}
+      intensity={20}
+      style={styles.container}
+    >
+      <Button
+        onPress={() => handleTabPress('Home', '/home')}
+        flex={1}
+        mt={hp('1%')}
+        w={wp('20%')}
+        backgroundColor="none"
+        title="Home"
+        flexDirection="column"
+      >
+        <Feather
+          name="home"
+          size={hp('3%')}
+          color={currentTab === 'Home' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        />
+        <Text
+          numberOfLines={1}
+          w={wp('9%')}
+          fontSize={wp('3%')}
+          color={currentTab === 'Home' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        >
+          Home
+        </Text>
       </Button>
-      <Button onPress={() => router.replace('/viewbookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Search" flexDirection="column">
-        <Ionicons name="receipt-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#000'} />
-        <Text numberOfLines={1} w={wp('19%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>My bookings</Text>
+      <Button
+        onPress={() => handleTabPress('ViewBookings', '/viewbookings')}
+        flex={1}
+        mt={hp('1%')}
+        w={wp('20%')}
+        backgroundColor="none"
+        title="Search"
+        flexDirection="column"
+      >
+        <Ionicons
+          name="receipt-outline"
+          size={24}
+          color={currentTab === 'ViewBookings' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        />
+        <Text
+          numberOfLines={1}
+          w={wp('19%')}
+          fontSize={wp('3%')}
+          color={currentTab === 'ViewBookings' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        >
+          My bookings
+        </Text>
       </Button>
-      <Button onPress={() => router.replace('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Book" flexDirection="column">
-        <Icon as={CalendarDaysIcon} w={hp('3%')} h={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text numberOfLines={1} w={wp('7.4%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Book</Text>
+      <Button
+        onPress={() => handleTabPress('Book', '/bookings')}
+        flex={1}
+        mt={hp('1%')}
+        w={wp('20%')}
+        backgroundColor="none"
+        title="Book"
+        flexDirection="column"
+      >
+        <Icon
+          as={CalendarDaysIcon}
+          w={hp('3%')}
+          h={hp('3%')}
+          color={currentTab === 'Book' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        />
+        <Text
+          numberOfLines={1}
+          w={wp('7.4%')}
+          fontSize={wp('3%')}
+          color={currentTab === 'Book' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        >
+          Book
+        </Text>
       </Button>
-      <Button onPress={() => router.replace('/bookings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Notifications" flexDirection="column">
-        <Icon as={BellIcon} w={hp('3%')} h={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text pl={wp('1%')} numberOfLines={1} w={wp('20%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Notifications</Text>
+      <Button
+        onPress={() => handleTabPress('Notifications', '/notifications')}
+        flex={1}
+        mt={hp('1%')}
+        w={wp('20%')}
+        backgroundColor="none"
+        title="Notifications"
+        flexDirection="column"
+      >
+        <Icon
+          as={BellIcon}
+          w={hp('3%')}
+          h={hp('3%')}
+          color={currentTab === 'Notifications' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        />
+        <Text
+          pl={wp('1%')}
+          numberOfLines={1}
+          w={wp('20%')}
+          fontSize={wp('3%')}
+          color={currentTab === 'Notifications' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        >
+          Notifications
+        </Text>
       </Button>
-      <Button onPress={() => router.replace('/settings')} flex={1} mt={hp('1%')} w={wp('20%')} backgroundColor="none" title="Profile" flexDirection="column">
-        <FontAwesome6 name="user" size={hp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'} />
-        <Text pl={wp('1%')} numberOfLines={1} w={wp('12%')} fontSize={wp('3%')} color={colorScheme === 'dark' ? 'white' : 'black'}>Profile</Text>
+      <Button
+        onPress={() => handleTabPress('Profile', '/settings')}
+        flex={1}
+        mt={hp('1%')}
+        w={wp('20%')}
+        backgroundColor="none"
+        title="Profile"
+        flexDirection="column"
+      >
+        <FontAwesome6
+          name="user"
+          size={hp('3%')}
+          color={currentTab === 'Profile' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        />
+        <Text
+          pl={wp('1%')}
+          numberOfLines={1}
+          w={wp('12%')}
+          fontSize={wp('3%')}
+          color={currentTab === 'Profile' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+        >
+          Profile
+        </Text>
       </Button>
     </BlurView>
   );

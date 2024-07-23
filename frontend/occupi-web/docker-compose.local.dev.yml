@@ -1,0 +1,10 @@
+services:
+  occupi-web-dev:
+    image: occupi-web:latest-develop
+    container_name: occupi-web-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.local.dev
+    ports:
+      - "4000:4173"
+    restart: on-failure:5

@@ -7,9 +7,6 @@ on:
       "occupi-backend/cmd/**",
       "occupi-backend/configs/**",
       "occupi-backend/pkg/**",
-      "occupi-backend/.golangci.yml",
-      "occupi-backend/.dev.env.gpg",
-      "occupi-backend/tests/**",
       ".github/workflows/deploy-golang-develop.yml"
     ]
 
@@ -103,6 +100,21 @@ jobs:
                 script: |
                     cd /home/${{ secrets.VM_USERNAME }}/occupi-backend-dev/occupi-backend
                     echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-                    DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.dev.yml down
-                    DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.dev.yml pull
-                    DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.dev.yml up -d
+                    MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+                      MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+                      RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+                      RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+                      DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+                      docker compose -f docker-compose.dev.yml down
+                    MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+                      MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+                      RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+                      RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+                      DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+                      docker compose -f docker-compose.dev.yml pull
+                    MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+                      MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+                      RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+                      RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+                      DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+                      docker compose -f docker-compose.dev.yml up -d

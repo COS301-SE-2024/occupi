@@ -17,6 +17,9 @@ Notifications.setNotificationHandler({
 
 async function sendPushNotification(expoPushToken: string) {
   const message = {
+    trigger: {
+      seconds: 10
+    },
     to: expoPushToken,
     sound: 'default',
     title: 'Original Title',

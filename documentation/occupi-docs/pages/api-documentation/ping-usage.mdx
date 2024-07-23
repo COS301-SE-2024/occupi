@@ -1,0 +1,130 @@
+# Ping usage
+
+The ping endpoint is used to check if the server is up and running. It is a simple endpoint that returns a 200 status code if the server is up and running.
+
+# Table of Contents
+- [Ping Usage](#ping-usage)
+- [Table of Contents](#table-of-contents)
+    - [Base URL](#base-url)
+    - [Ping](#ping)
+    - [Ping](#ping-1)
+    - [Ping-Open](#ping-open)
+    - [Ping-Auth](#ping-auth)
+    - [Ping-Admin](#ping-admin)
+
+## Base URL
+
+The base URL for the Occupi API is `https://occupi.tech`, `https://dev.occupi.tech` or `http://localhost:8080` if you are in develop mode.
+
+## Ping
+
+### Ping
+
+The ping endpoint is used to check if the API is up and running.
+
+- **URL**
+
+  `/ping`
+
+- **Method**
+
+  `GET`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "pong -> I am alive and kicking", "data": {}, }`
+
+- **Error Response**
+  - **Code:** 404
+  - **Content:** `{ "message": "Resource not found" }`
+
+**_Example json to send:_**
+
+```json copy
+{}
+```
+
+### Ping-Open
+
+The ping-open endpoint is used to check if the API is up and running and also to check if the user is not authenticated. If a user is authenticated, they cannot access this endpoint.
+
+- **URL**
+
+  `/ping-open`
+
+- **Method**
+  
+    `GET`
+
+- **Success Response**
+  
+    - **Code:** 200
+    - **Content:** `{ "status":  200, "message": "pong -> I am alive and kicking and you are not auth'd, only non-auth'd users can access this endpoint", "data": {}, }`
+
+- **Error Response**
+    
+      - **Code:** 401
+      - **Content:** `{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized\"},\"message\":\"Bad Request\",\"status\":401}`
+
+**_Example json to send:_**
+  
+  ```json copy
+  {}
+  ```
+
+### Ping-Auth
+
+The ping-auth endpoint is used to check if the API is up and running and also to check if the user is authenticated.
+
+- **URL**
+
+  `/ping-auth`
+
+- **Method**
+  
+    `GET`
+
+- **Success Response**
+  
+    - **Code:** 200
+    - **Content:** `{ "status":  200, "message": "pong -> I am alive and kicking and you are auth'd", "data": {}, }`
+
+- **Error Response**
+    
+      - **Code:** 401
+      - **Content:** `{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized\"},\"message\":\"Bad Request\",\"status\":401}`
+
+**_Example json to send:_**
+  
+  ```json copy
+  {}
+  ```
+
+### Ping-Admin
+
+The ping-admin endpoint is used to check if the API is up and running and also to check if the user is an admin.
+
+- **URL**
+
+  `/ping-admin`
+
+- **Method**
+  
+    `GET`
+
+- **Success Response**
+  
+    - **Code:** 200
+    - **Content:** `{ "status":  200, "message": "pong -> I am alive and kicking and you are an admin", "data": {}, }`
+
+- **Error Response**
+    
+      - **Code:** 401
+      - **Content:** `{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized to access admin route\"},\"message\":\"Bad Request\",\"status\":401}`
+
+**_Example json to send:_**
+  
+  ```json copy
+  {}
+  ```
