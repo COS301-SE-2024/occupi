@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-// import { test, expect } from 'bun:test';
 import Appearance from './Appearance';
 
 test('Appearance Component changes theme to dark', async () => {

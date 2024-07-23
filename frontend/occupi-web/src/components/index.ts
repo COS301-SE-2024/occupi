@@ -9,7 +9,7 @@ import GraphContainer from "./graphContainer/GraphContainer";
 import TabComponent from "./tabComponent/TabComponent";
 import Appearance from "./appearance/Appearance";
 import MenuItem from './drawerComponent/menuItem/MenuItem';
-import Bookings from "./bookings/Bookings";
+// import Bookings from "./bookings/Bookings";
 import OverView from "./overView/OverView";
 import OverviewComponent from "./OverviewComponent/OverviewComponent";
 import ProfileComponent from "./ProfileComponent/ProfileComponent";
@@ -27,6 +27,7 @@ import OfficePresent from "./officePresentProbabilityChart/OfficePresent";
 import StatCard from "./statCard/StatCard";
 import Header from "./headerComponent/Header";
 import OccupiLoader from "./occupiLoader/OccupiLoader";
+import ProfileDropDown from "./profileDropDown/ProfileDropDown";
 
 export {
     DrawerComponent,
@@ -40,7 +41,7 @@ export {
     TabComponent,
     Appearance,
     MenuItem,
-    Bookings,
+    // Bookings,
     OverView,
     OverviewComponent,
     ProfileComponent,
@@ -57,5 +58,6 @@ export {
     OfficePresent,
     StatCard,
     Header,
-    OccupiLoader
+    OccupiLoader,
+    ProfileDropDown
 }
