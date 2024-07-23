@@ -40,6 +40,10 @@ const (
 	Caval               = "ALLOW_CREDENTIALS"
 	MaxAgeVal           = "MAX_AGE"
 	IPCIT               = "IP_CLIENT_INFO_TOKEN"
+	RabbitMQUsername    = "RABBITMQ_USERNAME"
+	RabbitMQPassword    = "RABBITMQ_PASSWORD"
+	RabbitMQHost        = "RABBITMQ_HOST"
+	RabbitMQPort        = "RABBITMQ_PORT"
 )
 
 // init viper
@@ -337,4 +341,40 @@ func GetIPClientInfoToken() string {
 		val = "IP_CLIENT_INFO_TOKEN"
 	}
 	return val
+}
+
+// gets the rabbitmq username as defined in the config.yaml file
+func GetRabbitMQUsername() string {
+	username := viper.GetString(RabbitMQUsername)
+	if username == "" {
+		username = "RABBITMQ_USERNAME"
+	}
+	return username
+}
+
+// gets the rabbitmq password as defined in the config.yaml file
+func GetRabbitMQPassword() string {
+	password := viper.GetString(RabbitMQPassword)
+	if password == "" {
+		password = "RABBITMQ_PASSWORD"
+	}
+	return password
+}
+
+// gets the rabbitmq host as defined in the config.yaml file
+func GetRabbitMQHost() string {
+	host := viper.GetString(RabbitMQHost)
+	if host == "" {
+		host = "RABBITMQ_HOST"
+	}
+	return host
+}
+
+// gets the rabbitmq port as defined in the config.yaml file
+func GetRabbitMQPort() string {
+	port := viper.GetString(RabbitMQPort)
+	if port == "" {
+		port = "RABBITMQ_PORT"
+	}
+	return port
 }
