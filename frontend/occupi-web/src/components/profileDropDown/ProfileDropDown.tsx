@@ -48,7 +48,7 @@ return (
             <DropdownItem key="/notifications" shortcut="⌘N" startContent={<Bell />}>Notifications</DropdownItem>
             <DropdownItem key="/settings" shortcut="⌘S" startContent={<SettingsIcon />}>Settings</DropdownItem>
             <DropdownItem key="/faq" shortcut="⌘H" startContent={<Faq />}>Help/FAQ</DropdownItem>
-            <DropdownItem key="/logout" color="danger"  onClick={handleLogout}>Logout</DropdownItem>
+            <DropdownItem  data-testid="logout" key="/logout" color="danger"  onClick={handleLogout}>Logout</DropdownItem>
         </DropdownMenu>
     </Dropdown>
 );

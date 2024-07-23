@@ -47,3 +47,5 @@ export const useUser = () => {
   }
   return context;
 };
+
+export { UserContext };
