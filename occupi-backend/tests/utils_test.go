@@ -1,21 +1,31 @@
 package tests
 
 import (
+	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/ipinfo/go/v2/ipinfo"
+	"github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
@@ -368,6 +378,39 @@ func TestCompareArgon2IDHash(t *testing.T) {
 
 	t.Run("Empty hash", func(t *testing.T) {
 		match, err := utils.CompareArgon2IDHash(password, "")
+		assert.Error(t, err)
+		assert.False(t, match)
+	})
+}
+
+func TestCompareArgon2IDHashAfterSanitizing(t *testing.T) {
+	password := "password123$"
+	wrongPassword := "wrongpassword"
+
+	hash, err := utils.Argon2IDHash(utils.SanitizeInput(password))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, hash)
+
+	t.Run("Correct password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(password), hash)
+		assert.NoError(t, err)
+		assert.True(t, match)
+	})
+
+	t.Run("Incorrect password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(wrongPassword), hash)
+		assert.NoError(t, err)
+		assert.False(t, match)
+	})
+
+	t.Run("Empty password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(""), hash)
+		assert.NoError(t, err)
+		assert.False(t, match)
+	})
+
+	t.Run("Empty hash sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(password), "")
 		assert.Error(t, err)
 		assert.False(t, match)
 	})
@@ -1272,46 +1315,169 @@ func TestFormatTwoFAEmailBody(t *testing.T) {
 
 func TestSantizeFilter(t *testing.T) {
 	tests := []struct {
-		name       string
-		queryInput models.QueryInput
-		want       primitive.M
+		name     string
+		input    models.QueryInput
+		expected primitive.M
 	}{
 		{
+			name:     "Empty Filter",
+			input:    models.QueryInput{},
+			expected: bson.M{},
+		},
+		{
 			name: "Removes password field from filter",
-			queryInput: models.QueryInput{
+			input: models.QueryInput{
 				Filter: map[string]interface{}{
 					"username": "testuser",
 					"password": "password123",
 				},
 			},
-			want: bson.M{
+			expected: bson.M{
 				"username": "testuser",
 			},
 		},
 		{
 			name: "Filter without password field",
-			queryInput: models.QueryInput{
+			input: models.QueryInput{
 				Filter: map[string]interface{}{
 					"username": "testuser",
 				},
 			},
-			want: bson.M{
+			expected: bson.M{
 				"username": "testuser",
 			},
 		},
 		{
 			name: "Nil filter",
-			queryInput: models.QueryInput{
+			input: models.QueryInput{
 				Filter: nil,
 			},
-			want: bson.M{},
+			expected: bson.M{},
+		},
+		{
+			name: "Filter with Password",
+			input: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username": "testuser",
+					"password": "secret",
+				},
+			},
+			expected: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Filter with Operator",
+			input: models.QueryInput{
+				Operator: "gt",
+				Filter: map[string]interface{}{
+					"age": 30,
+				},
+			},
+			expected: bson.M{
+				"age": bson.M{"$gt": 30},
+			},
+		},
+		{
+			name: "Filter with Invalid Operator",
+			input: models.QueryInput{
+				Operator: "invalid",
+				Filter: map[string]interface{}{
+					"age": 30,
+				},
+			},
+			expected: bson.M{
+				"age": 30,
+			},
+		},
+		{
+			name: "Filter with UnsentExpoPushTokens",
+			input: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username":             "testuser",
+					"unsentExpoPushTokens": []string{"token1", "token2"},
+				},
+			},
+			expected: bson.M{
+				"username": "testuser",
+			},
+		},
+		{
+			name: "Valid Filter with Multiple Conditions",
+			input: models.QueryInput{
+				Operator: "in",
+				Filter: map[string]interface{}{
+					"status": []string{"active", "inactive"},
+				},
+			},
+			expected: bson.M{
+				"status": bson.M{"$in": []string{"active", "inactive"}},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := utils.SantizeFilter(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SantizeFilter() = %v, want %v", got, tt.want)
+			result := utils.SantizeFilter(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("SantizeFilter() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestSanitizeSort(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    models.QueryInput
+		expected primitive.M
+	}{
+		{
+			name:     "Empty Sort",
+			input:    models.QueryInput{},
+			expected: bson.M{},
+		},
+		{
+			name: "Sort by OrderAsc",
+			input: models.QueryInput{
+				OrderAsc: "username",
+			},
+			expected: bson.M{"username": 1},
+		},
+		{
+			name: "Sort by OrderDesc",
+			input: models.QueryInput{
+				OrderDesc: "age",
+			},
+			expected: bson.M{"age": -1},
+		},
+		{
+			name: "Sort by Both OrderAsc and OrderDesc",
+			input: models.QueryInput{
+				OrderAsc:  "username",
+				OrderDesc: "age",
+			},
+			expected: bson.M{"username": 1, "age": -1},
+		},
+		{
+			name: "Filter with Password and UnsentExpoPushTokens",
+			input: models.QueryInput{
+				Filter: map[string]interface{}{
+					"username":             "testuser",
+					"password":             "secret",
+					"unsentExpoPushTokens": []string{"token1", "token2"},
+				},
+				OrderAsc: "username",
+			},
+			expected: bson.M{"username": 1},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.SanitizeSort(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("SanitizeSort() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
@@ -1319,44 +1485,57 @@ func TestSantizeFilter(t *testing.T) {
 
 func TestSantizeProjection(t *testing.T) {
 	tests := []struct {
-		name       string
-		queryInput models.QueryInput
-		want       []string
+		name     string
+		input    models.QueryInput
+		expected []string
 	}{
 		{
-			name: "Removes password field from projection",
-			queryInput: models.QueryInput{
-				Projection: []string{"username", "password", "email"},
-			},
-			want: []string{"username", "email"},
+			name:     "Empty Projection",
+			input:    models.QueryInput{},
+			expected: []string{},
 		},
 		{
-			name: "Projection without password field",
-			queryInput: models.QueryInput{
-				Projection: []string{"username", "email"},
+			name: "Projection without Password and UnsentExpoPushTokens",
+			input: models.QueryInput{
+				Projection: []string{"username", "age"},
 			},
-			want: []string{"username", "email"},
+			expected: []string{"username", "age"},
 		},
 		{
-			name: "Empty projection",
-			queryInput: models.QueryInput{
-				Projection: []string{},
+			name: "Projection with Password",
+			input: models.QueryInput{
+				Projection: []string{"username", "password", "age"},
 			},
-			want: []string{},
+			expected: []string{"username", "age"},
 		},
 		{
-			name: "Nil projection",
-			queryInput: models.QueryInput{
-				Projection: nil,
+			name: "Projection with UnsentExpoPushTokens",
+			input: models.QueryInput{
+				Projection: []string{"username", "unsentExpoPushTokens", "age"},
 			},
-			want: []string{},
+			expected: []string{"username", "age"},
+		},
+		{
+			name: "Projection with Emails",
+			input: models.QueryInput{
+				Projection: []string{"username", "emails", "age"},
+			},
+			expected: []string{"username", "age"},
+		},
+		{
+			name: "Projection with Password, UnsentExpoPushTokens, and Emails",
+			input: models.QueryInput{
+				Projection: []string{"username", "password", "unsentExpoPushTokens", "emails", "age"},
+			},
+			expected: []string{"username", "age"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := utils.SantizeProjection(tt.queryInput); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("SantizeProjection() = %v, want %v", got, tt.want)
+			result := utils.SantizeProjection(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("SantizeProjection() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
@@ -1367,57 +1546,86 @@ func TestConstructProjection(t *testing.T) {
 		name                string
 		queryInput          models.QueryInput
 		sanitizedProjection []string
-		want                bson.M
+		expected            bson.M
 	}{
 		{
-			name: "Construct projection with password field in sanitized projection",
-			queryInput: models.QueryInput{
-				Projection: []string{"username", "password", "email"},
-			},
-			sanitizedProjection: []string{"username", "password", "email"},
-			want: bson.M{
-				"username": 1,
-				"password": 0,
-				"email":    1,
-			},
-		},
-		{
-			name: "Construct projection without password field in sanitized projection",
-			queryInput: models.QueryInput{
-				Projection: []string{"username", "email"},
-			},
-			sanitizedProjection: []string{"username", "email"},
-			want: bson.M{
-				"username": 1,
-				"email":    1,
-			},
-		},
-		{
-			name: "Empty projection",
-			queryInput: models.QueryInput{
-				Projection: []string{},
-			},
+			name:                "Empty Projection",
+			queryInput:          models.QueryInput{},
 			sanitizedProjection: []string{},
-			want: bson.M{
-				"password": 0,
+			expected: bson.M{
+				"password":             0,
+				"unsentExpoPushTokens": 0,
+				"emails":               0,
+				"_id":                  0,
 			},
 		},
 		{
-			name: "Nil projection",
+			name: "Sanitized Projection without Password and UnsentExpoPushTokens",
 			queryInput: models.QueryInput{
-				Projection: nil,
+				Projection: []string{"username", "age"},
 			},
-			sanitizedProjection: []string{},
-			want: bson.M{
-				"password": 0,
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
+			},
+		},
+		{
+			name: "Sanitized Projection with Password",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "age"},
+			},
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
+			},
+		},
+		{
+			name: "Sanitized Projection with UnsentExpoPushTokens",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "unsentExpoPushTokens", "age"},
+			},
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
+			},
+		},
+		{
+			name: "Sanitized Projection with Emails",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "emails", "age"},
+			},
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
+			},
+		},
+		{
+			name: "Sanitized Projection with Password, UnsentExpoPushTokens, and Emails",
+			queryInput: models.QueryInput{
+				Projection: []string{"username", "password", "unsentExpoPushTokens", "emails", "age"},
+			},
+			sanitizedProjection: []string{"username", "age"},
+			expected: bson.M{
+				"username": 1,
+				"age":      1,
+				"_id":      0,
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := utils.ConstructProjection(tt.queryInput, tt.sanitizedProjection); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ConstructProjection() = %v, want %v", got, tt.want)
+			result := utils.ConstructProjection(tt.queryInput, tt.sanitizedProjection)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("ConstructProjection() = %v, want %v", result, tt.expected)
 			}
 		})
 	}
@@ -1571,6 +1779,884 @@ func TestFormatIPAddressConfirmationEmailBodyWithIPInfo(t *testing.T) {
 			actual := utils.FormatIPAddressConfirmationEmailBodyWithIPInfo(tt.otp, tt.email, tt.unrecognizedLogger)
 			if strings.TrimSpace(actual) != strings.TrimSpace(tt.expected) {
 				t.Errorf("expected %q, got %q", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestValidateEmails(t *testing.T) {
+	tests := []struct {
+		name   string
+		emails []string
+		want   bool
+	}{
+		{
+			name:   "All valid emails",
+			emails: []string{"test@example.com", "hello@world.com", "user.name+tag+sorting@example.com"},
+			want:   true,
+		},
+		{
+			name:   "One invalid email",
+			emails: []string{"test@example.com", "invalid-email", "user.name+tag+sorting@example.com"},
+			want:   false,
+		},
+		{
+			name:   "All invalid emails",
+			emails: []string{"invalid-email1", "invalid-email2", "invalid-email3"},
+			want:   false,
+		},
+		{
+			name:   "Empty email list",
+			emails: []string{},
+			want:   true,
+		},
+		{
+			name:   "Mixed valid and invalid emails",
+			emails: []string{"valid.email@example.com", "invalid-email"},
+			want:   false,
+		},
+		{
+			name:   "Single valid email",
+			emails: []string{"valid.email@example.com"},
+			want:   true,
+		},
+		{
+			name:   "Single invalid email",
+			emails: []string{"invalid-email"},
+			want:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := utils.ValidateEmails(tt.emails); got != tt.want {
+				t.Errorf("ValidateEmails() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSanitizeInputArray(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		expected []string
+	}{
+		{
+			name:     "Plain text",
+			input:    []string{"Hello, world!", "This is a test.", "12345"},
+			expected: []string{"Hello, world!", "This is a test.", "12345"},
+		},
+		{
+			name:     "HTML input",
+			input:    []string{"<p>Hello, world!</p>", "<h1>This is a test.</h1>", "<b>12345</b>"},
+			expected: []string{"<p>Hello, world!</p>", "<h1>This is a test.</h1>", "<b>12345</b>"},
+		},
+		{
+			name:     "HTML with allowed tags",
+			input:    []string{"<b>Hello</b>, <i>world</i>!", "<b>Hello</b>"},
+			expected: []string{"<b>Hello</b>, <i>world</i>!", "<b>Hello</b>"},
+		},
+		{
+			name:     "HTML with disallowed tags",
+			input:    []string{"<script>alert('xss')</script><b>Hello</b>", "<script>alert('attack')</script>", "<script>alert('hacked')</script>"},
+			expected: []string{"<b>Hello</b>", "", ""},
+		},
+		{
+			name:     "HTML with attributes",
+			input:    []string{"<a href=\"http://example.com\" onclick=\"evil()\">link</a>", "<a href=\"http://example.com\" onclick=\"evil()\">link</a>"},
+			expected: []string{"<a href=\"http://example.com\" rel=\"nofollow\">link</a>", "<a href=\"http://example.com\" rel=\"nofollow\">link</a>"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.SanitizeInputArray(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestConstructBookingScheduledString(t *testing.T) {
+	tests := []struct {
+		name     string
+		emails   []string
+		expected string
+	}{
+		{
+			name:     "No Email",
+			emails:   []string{},
+			expected: "",
+		},
+		{
+			name:     "Single Email",
+			emails:   []string{"email1@example.com"},
+			expected: "A booking with email1@example.com has been scheduled",
+		},
+		{
+			name:     "Two Emails",
+			emails:   []string{"email1@example.com", "email2@example.com"},
+			expected: "A booking with email1@example.com and email2@example.com has been scheduled",
+		},
+		{
+			name:     "Three Emails",
+			emails:   []string{"email1@example.com", "email2@example.com", "email3@example.com"},
+			expected: "A booking with email1@example.com, email2@example.com and 2 others has been scheduled",
+		},
+		{
+			name:     "Four Emails",
+			emails:   []string{"email1@example.com", "email2@example.com", "email3@example.com", "email4@example.com"},
+			expected: "A booking with email1@example.com, email2@example.com and 3 others has been scheduled",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ConstructBookingScheduledString(tt.emails)
+			if result != tt.expected {
+				t.Errorf("ConstructBookingScheduledString() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConstructBookingStartingInScheduledString(t *testing.T) {
+	tests := []struct {
+		name      string
+		emails    []string
+		startTime string
+		expected  string
+	}{
+		{
+			name:      "Single Email, Starts in Now",
+			emails:    []string{"email1@example.com"},
+			startTime: "now",
+			expected:  "A booking with email1@example.com starts in a few seconds",
+		},
+		{
+			name:      "Two Emails, Starts in 10 minutes",
+			emails:    []string{"email1@example.com", "email2@example.com"},
+			startTime: "10 minutes",
+			expected:  "A booking with email1@example.com and email2@example.com starts in 10 minutes",
+		},
+		{
+			name:      "Three Emails, Starts in 30 minutes",
+			emails:    []string{"email1@example.com", "email2@example.com", "email3@example.com"},
+			startTime: "30 minutes",
+			expected:  "A booking with email1@example.com, email2@example.com and 2 others starts in 30 minutes",
+		},
+		{
+			name:      "Four Emails, Starts in an hour",
+			emails:    []string{"email1@example.com", "email2@example.com", "email3@example.com", "email4@example.com"},
+			startTime: "an hour",
+			expected:  "A booking with email1@example.com, email2@example.com and 3 others starts in an hour",
+		},
+		{
+			name:      "No Emails",
+			emails:    []string{},
+			startTime: "10 minutes",
+			expected:  "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Capture log output
+			var logOutput string
+			hook := test.NewLocal(logrus.StandardLogger())
+			defer hook.Reset()
+
+			result := utils.ConstructBookingStartingInScheduledString(tt.emails, tt.startTime)
+
+			if tt.name == "No Emails" {
+				if result != tt.expected {
+					t.Errorf("ConstructBookingStartingInScheduledString() = %v, want %v", result, tt.expected)
+				}
+				for _, entry := range hook.AllEntries() {
+					logOutput += entry.Message
+				}
+				if logOutput != "No emails provided" {
+					t.Errorf("Expected log output to be 'No emails provided', but got %s", logOutput)
+				}
+			} else {
+				if result != tt.expected {
+					t.Errorf("ConstructBookingStartingInScheduledString() = %v, want %v", result, tt.expected)
+				}
+			}
+		})
+	}
+}
+
+func TestPrependEmailtoSlice(t *testing.T) {
+	tests := []struct {
+		name     string
+		emails   []string
+		email    string
+		expected []string
+	}{
+		{
+			name:     "Prepend to Empty Slice",
+			emails:   []string{},
+			email:    "newemail@example.com",
+			expected: []string{"newemail@example.com"},
+		},
+		{
+			name:     "Prepend to Non-Empty Slice",
+			emails:   []string{"email1@example.com", "email2@example.com"},
+			email:    "newemail@example.com",
+			expected: []string{"newemail@example.com", "email1@example.com", "email2@example.com"},
+		},
+		{
+			name:     "Prepend to Slice with One Element",
+			emails:   []string{"email1@example.com"},
+			email:    "newemail@example.com",
+			expected: []string{"newemail@example.com", "email1@example.com"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.PrependEmailtoSlice(tt.emails, tt.email)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("PrependEmailtoSlice() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConvertToStringArray(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    interface{}
+		expected []string
+	}{
+		{
+			name:     "Single String",
+			input:    "singleString",
+			expected: []string{"singleString"},
+		},
+		{
+			name:     "Slice of Strings",
+			input:    []string{"string1", "string2", "string3"},
+			expected: []string{"string1", "string2", "string3"},
+		},
+		{
+			name:     "Invalid Type",
+			input:    123,
+			expected: []string{},
+		},
+		{
+			name:     "Nil Input",
+			input:    nil,
+			expected: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Capture log output
+			var logOutput string
+			hook := test.NewLocal(logrus.StandardLogger())
+			defer hook.Reset()
+
+			result := utils.ConvertToStringArray(tt.input)
+
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("ConvertToStringArray() = %v, want %v", result, tt.expected)
+			}
+
+			if tt.name == "Invalid Type" {
+				for _, entry := range hook.AllEntries() {
+					logOutput += entry.Message
+				}
+				if logOutput != "Invalid input type" {
+					t.Errorf("Expected log output to be 'Invalid input type', but got %s", logOutput)
+				}
+			}
+		})
+	}
+}
+
+func TestConvertArrayToCommaDelimitedString(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		expected string
+	}{
+		{
+			name:     "Empty Slice",
+			input:    []string{},
+			expected: "",
+		},
+		{
+			name:     "Single Element",
+			input:    []string{"one"},
+			expected: "one",
+		},
+		{
+			name:     "Multiple Elements",
+			input:    []string{"one", "two", "three"},
+			expected: "one,two,three",
+		},
+		{
+			name:     "Elements with Spaces",
+			input:    []string{"one", "two with space", "three"},
+			expected: "one,two with space,three",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ConvertArrayToCommaDelimitedString(tt.input)
+			if result != tt.expected {
+				t.Errorf("ConvertArrayToCommaDelimitedString() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestConvertCommaDelimitedStringToArray(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected []string
+	}{
+		{
+			name:     "Empty String",
+			input:    "",
+			expected: []string{""},
+		},
+		{
+			name:     "Single Element",
+			input:    "one",
+			expected: []string{"one"},
+		},
+		{
+			name:     "Multiple Elements",
+			input:    "one,two,three",
+			expected: []string{"one", "two", "three"},
+		},
+		{
+			name:     "Elements with Spaces",
+			input:    "one,two with space,three",
+			expected: []string{"one", "two with space", "three"},
+		},
+		{
+			name:     "Trailing Comma",
+			input:    "one,two,three,",
+			expected: []string{"one", "two", "three", ""},
+		},
+		{
+			name:     "Leading Comma",
+			input:    ",one,two,three",
+			expected: []string{"", "one", "two", "three"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.ConvertCommaDelimitedStringToArray(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("ConvertCommaDelimitedStringToArray() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestRandomErr(t *testing.T) {
+	// use a for loop to check if we can cover all the possible errors
+	for i := 0; i < 10; i++ {
+		t.Run(fmt.Sprintf("TestRandomError %d", i), func(t *testing.T) {
+			err := utils.RandomError()
+			if err != nil {
+				// Check if the error is one of the expected errors
+				assert.True(t, err.Error() == "failed to generate random number" || err.Error() == "random error")
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestGetClaimsFromCTX(t *testing.T) {
+	gin.SetMode(configs.GetGinRunMode())
+
+	token, _, claims, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	tests := []struct {
+		name           string
+		tokenCookie    string
+		tokenHeader    string
+		expectedClaims *authenticator.Claims
+		expectedError  string
+	}{
+		{
+			name:          "No token provided",
+			tokenCookie:   "",
+			tokenHeader:   "",
+			expectedError: "no token provided",
+		},
+		{
+			name:           "InValid token from cookie",
+			tokenCookie:    "validToken",
+			tokenHeader:    "",
+			expectedClaims: nil,
+			expectedError:  "error validating token",
+		},
+		{
+			name:           "InValid token from header",
+			tokenCookie:    "",
+			tokenHeader:    "validToken",
+			expectedClaims: nil,
+			expectedError:  "error validating token",
+		},
+		{
+			name:           "Valid token from cookie",
+			tokenCookie:    token,
+			tokenHeader:    "",
+			expectedClaims: claims,
+			expectedError:  "",
+		},
+		{
+			name:           "Valid token from header",
+			tokenCookie:    "",
+			tokenHeader:    token,
+			expectedClaims: claims,
+			expectedError:  "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a Gin context with the necessary headers and cookies
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			if tt.tokenCookie != "" {
+				c.Request = httptest.NewRequest("GET", "/", nil)
+				c.Request.AddCookie(&http.Cookie{Name: "token", Value: tt.tokenCookie})
+			} else {
+				c.Request = httptest.NewRequest("GET", "/", nil)
+				c.Request.Header.Set("Authorization", tt.tokenHeader)
+			}
+
+			// Call the function under test
+			returnedclaims, err := utils.GetClaimsFromCTX(c)
+
+			// Check the expected error
+			if tt.expectedError != "" {
+				assert.NotNil(t, err)
+				assert.EqualError(t, err, tt.expectedError)
+			} else {
+				assert.Nil(t, err)
+			}
+
+			// Check the expected claims
+			assert.Equal(t, tt.expectedClaims, returnedclaims)
+		})
+	}
+}
+
+func TestIsSessionSet(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	tests := []struct {
+		name              string
+		expected          bool
+		setSessionHandler gin.HandlerFunc
+	}{
+		{
+			name:              "Session not set",
+			expected:          false,
+			setSessionHandler: func(c *gin.Context) {},
+		},
+		{
+			name:     "Email not set in session",
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name:     "Role not set in session",
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name:     "Email and Role set in session",
+			expected: true,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a Gin router
+			r := gin.Default()
+
+			store := cookie.NewStore([]byte("secret"))
+			r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+			// Define a test handler to apply middleware
+			r.GET("/test", func(c *gin.Context) {
+				tt.setSessionHandler(c)
+				res := utils.IsSessionSet(c)
+
+				assert.Equal(t, tt.expected, res)
+			})
+
+			// Create a test context
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/test", nil)
+			r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+			// Check the response
+			assert.Equal(t, 200, w.Code)
+		})
+	}
+}
+
+func TestSetSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		claims := &authenticator.Claims{
+			Email: "test@example.com",
+			Role:  "basic",
+		}
+		res := utils.SetSession(c, claims)
+
+		assert.Nil(t, res)
+
+		session := sessions.Default(c)
+
+		email := session.Get("email")
+		role := session.Get("role")
+
+		assert.NotNil(t, email)
+		assert.NotNil(t, role)
+
+		assert.Equal(t, "test@example.com", email.(string))
+		assert.Equal(t, "basic", role.(string))
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestClearSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Set("role", "basic")
+		session.Set("email", "test@example.com")
+		err := session.Save()
+		assert.Nil(t, err)
+
+		res := utils.ClearSession(c)
+
+		assert.Nil(t, res)
+
+		session_ := sessions.Default(c)
+		email := session_.Get("email")
+		role := session_.Get("role")
+
+		assert.Nil(t, email)
+		assert.Nil(t, role)
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestGetSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Set("role", "basic")
+		session.Set("email", "test@example.com")
+		err := session.Save()
+		assert.Nil(t, err)
+
+		email, role := utils.GetSession(c)
+
+		assert.NotNil(t, email)
+		assert.NotNil(t, role)
+
+		assert.Equal(t, "test@example.com", email)
+		assert.Equal(t, "basic", role)
+
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestCompareSessionAndClaims(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	tests := []struct {
+		name              string
+		claims            *authenticator.Claims
+		expected          bool
+		setSessionHandler gin.HandlerFunc
+	}{
+		{
+			name:              "Session not set",
+			claims:            &authenticator.Claims{},
+			expected:          false,
+			setSessionHandler: func(c *gin.Context) {},
+		},
+		{
+			name: "Email not set in session",
+			claims: &authenticator.Claims{
+				Role: "basic",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Role not set in session",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Email and Role set in session",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+				Role:  "basic",
+			},
+			expected: true,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Email not equal claims email",
+			claims: &authenticator.Claims{
+				Email: "notequal@example.com",
+				Role:  "basic",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Role not equal claims role",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+				Role:  "admin",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a Gin router
+			r := gin.Default()
+
+			store := cookie.NewStore([]byte("secret"))
+			r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+			// Define a test handler to apply middleware
+			r.GET("/test", func(c *gin.Context) {
+				tt.setSessionHandler(c)
+				res := utils.CompareSessionAndClaims(c, tt.claims)
+
+				assert.Equal(t, tt.expected, res)
+			})
+
+			// Create a test context
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/test", nil)
+			r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+			// Check the response
+			assert.Equal(t, 200, w.Code)
+		})
+	}
+}
+
+func TestGetClientIP_SetInContext(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		c.Set("ClientIP", "203.0.113.1")
+		c.Next()
+	})
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP := utils.GetClientIP(c)
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.1"}`, w.Body.String())
+}
+
+func TestGetClientIP_NotSetInContext(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP := utils.GetClientIP(c)
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.RemoteAddr = "203.0.113.2:12345"
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.2"}`, w.Body.String())
+}
+
+func TestGetClientTime(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	router := gin.Default()
+	router.Use(middleware.TimezoneMiddleware())
+	router.GET("/client-time", func(c *gin.Context) {
+		clientTime := utils.GetClientTime(c)
+		c.JSON(200, gin.H{
+			"client_time": clientTime.Format(time.RFC3339),
+		})
+	})
+
+	tests := []struct {
+		header     string
+		timezone   string
+		statusCode int
+	}{
+		{"X-Timezone", "America/New_York", 200},
+		{"X-Timezone", "Asia/Kolkata", 200},
+		{"X-Timezone", "Invalid/Timezone", 400},
+		{"", "", 200}, // Default to UTC
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.timezone, func(t *testing.T) {
+			req, _ := http.NewRequest("GET", "/client-time", nil)
+			if tt.header != "" {
+				req.Header.Set(tt.header, tt.timezone)
+			}
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.statusCode, w.Code)
+			if tt.statusCode == 200 {
+				var response map[string]string
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+
+				var expectedTime time.Time
+				if tt.timezone != "" && tt.timezone != "Invalid/Timezone" {
+					loc, err := time.LoadLocation(tt.timezone)
+					assert.NoError(t, err)
+					expectedTime = time.Now().In(loc)
+				} else {
+					expectedTime = time.Now()
+				}
+				clientTime, err := time.Parse(time.RFC3339, response["client_time"])
+				assert.NoError(t, err)
+
+				// Allow for a few seconds difference due to execution time
+				assert.WithinDuration(t, expectedTime, clientTime, 2*time.Second)
 			}
 		})
 	}
