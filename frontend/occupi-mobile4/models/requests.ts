@@ -1,6 +1,6 @@
 //these models describe data to be sent to the api (POST body)
 
-//Auth Requests
+/* ---Auth Requests--- */
 
 export interface Login {
 	email: string;
@@ -25,7 +25,7 @@ export interface ResetPassword {
     otp: string;
 }
 
-//API models
+/* ---API Requests--- */
 
 //Rooms & Bookings
 
@@ -54,7 +54,7 @@ export interface ViewBookings {
 
 export interface ViewRooms {
     operator: string;
-    filter: {
+    filter?: {
         floorNo: string;
     };
     order_asc?: string;
@@ -78,4 +78,47 @@ export interface CancelBooking {
 export interface CheckIn {
     bookingId: string;
     email: string;
+}
+
+
+//Users
+
+export interface UpdateDetails {
+    email?: string;
+    name?: string;
+    dob?: string;
+    gender?: string;
+    session_email: string;
+    employeeid?: string;
+    number?: string;
+    pronouns?: string;
+}
+
+export interface Notifications {
+    operator: string;
+    filter?: {
+        emails: string[];
+    };
+    order_asc?: string;
+    order_desc?: string;
+    projection?: string[];
+    limit?: number;
+    page?: number;
+}
+
+//Updating settings
+
+export interface SecuritySettings {
+    email: string;
+    mfa: "on" | "off";
+    forceLogout: "on" | "off";
+    currentPassword: string;
+    newPassword: string;
+    newPasswordConfirm: string;
+}
+
+export interface NotificationSettings {
+    email: string;
+    invites: "on" | "off";
+    bookingReminder: "on" | "off";
 }
