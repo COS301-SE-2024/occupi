@@ -1,9 +1,12 @@
 package middleware
 
 import (
+	"fmt"
+	"net"
 	"net/http"
+	"strings"
+	"time"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -12,34 +15,12 @@ import (
 	"github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
-
-	"github.com/gin-contrib/sessions"
 )
 
 // ProtectedRoute is a middleware that checks if
 // the user has already been authenticated previously.
 func ProtectedRoute(ctx *gin.Context) {
-	tokenStr, err := ctx.Cookie("token")
-	// Retrieve token from Authorization header
-	headertokenStr := ctx.GetHeader("Authorization")
-	if (err != nil || tokenStr == "") && headertokenStr == "" {
-		// If token is not found in cookies or JSON payload, return unauthorized
-		ctx.JSON(http.StatusUnauthorized,
-			utils.ErrorResponse(
-				http.StatusUnauthorized,
-				"Bad Request",
-				constants.InvalidAuthCode,
-				"User not authorized",
-				nil))
-		ctx.Abort()
-		return
-	}
-
-	if tokenStr == "" {
-		tokenStr = headertokenStr
-	}
-
-	claims, err := authenticator.ValidateToken(tokenStr)
+	claims, err := utils.GetClaimsFromCTX(ctx)
 
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized,
@@ -47,18 +28,16 @@ func ProtectedRoute(ctx *gin.Context) {
 				http.StatusUnauthorized,
 				"Bad Request",
 				constants.InvalidAuthCode,
-				"Invalid token",
+				"User not authorized or Invalid auth token",
 				nil))
 		ctx.Abort()
 		return
 	}
 
 	// check if email and role session variables are set
-	session := sessions.Default(ctx)
-	if session.Get("email") == nil || session.Get("role") == nil {
-		session.Set("email", claims.Email)
-		session.Set("role", claims.Role)
-		if err := session.Save(); err != nil {
+	if !utils.IsSessionSet(ctx) {
+		err := utils.SetSession(ctx, claims)
+		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -67,7 +46,7 @@ func ProtectedRoute(ctx *gin.Context) {
 	}
 
 	// check that session variables and token claims match
-	if session.Get("email") != claims.Email || session.Get("role") != claims.Role {
+	if !utils.CompareSessionAndClaims(ctx, claims) {
 		ctx.JSON(http.StatusUnauthorized,
 			utils.ErrorResponse(
 				http.StatusUnauthorized,
@@ -85,47 +64,23 @@ func ProtectedRoute(ctx *gin.Context) {
 // ProtectedRoute is a middleware that checks if
 // the user has not been authenticated previously.
 func UnProtectedRoute(ctx *gin.Context) {
-	tokenStr, err := ctx.Cookie("token")
+	_, err := utils.GetClaimsFromCTX(ctx)
 	if err == nil {
-		_, err := authenticator.ValidateToken(tokenStr)
-
-		if err == nil {
-			ctx.JSON(http.StatusUnauthorized,
-				utils.ErrorResponse(
-					http.StatusUnauthorized,
-					"Bad Request",
-					constants.InvalidAuthCode,
-					"User already authorized",
-					nil))
-			ctx.Abort()
-			return
-		}
-	}
-
-	// Retrieve token from Authorization header
-	headertokenStr := ctx.GetHeader("Authorization")
-	if headertokenStr != "" {
-		_, err := authenticator.ValidateToken(headertokenStr)
-
-		if err == nil {
-			ctx.JSON(http.StatusUnauthorized,
-				utils.ErrorResponse(
-					http.StatusUnauthorized,
-					"Bad Request",
-					constants.InvalidAuthCode,
-					"User already authorized",
-					nil))
-			ctx.Abort()
-			return
-		}
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User already authorized",
+				nil))
+		ctx.Abort()
+		return
 	}
 
 	// check if email and role session variables are set
-	session := sessions.Default(ctx)
-	if session.Get("email") != nil || session.Get("role") != nil {
-		session.Delete("email")
-		session.Delete("role")
-		if err := session.Save(); err != nil {
+	if utils.IsSessionSet(ctx) {
+		err := utils.ClearSession(ctx)
+		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -139,9 +94,8 @@ func UnProtectedRoute(ctx *gin.Context) {
 // AdminRoute is a middleware that checks if
 // the user has the admin role.
 func AdminRoute(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	role := session.Get("role")
-	if role != constants.Admin {
+	claims, err := utils.GetClaimsFromCTX(ctx)
+	if err != nil || claims.Role != constants.Admin {
 		ctx.JSON(http.StatusUnauthorized,
 			utils.ErrorResponse(
 				http.StatusUnauthorized,
@@ -159,7 +113,7 @@ func AdminRoute(ctx *gin.Context) {
 // Rate limit otp verification requests to 1 requests per minute
 func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSession) {
 	// Check if the user has already sent an OTP request
-	_, err := appsession.OtpReqCache.Get(ctx.ClientIP())
+	_, err := appsession.OtpReqCache.Get(utils.GetClientIP(ctx))
 
 	if err == nil {
 		ctx.JSON(http.StatusTooManyRequests,
@@ -174,7 +128,7 @@ func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSessio
 	}
 
 	// Add the user's IP address to the cache
-	err = appsession.OtpReqCache.Set(ctx.ClientIP(), []byte("sent"))
+	err = appsession.OtpReqCache.Set(utils.GetClientIP(ctx), []byte("sent"))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
@@ -196,4 +150,74 @@ func AttachRateLimitMiddleware(ginRouter *gin.Engine) {
 
 	// Apply the middleware to the router
 	ginRouter.Use(middleware)
+}
+
+// TimezoneMiddleware is a middleware that sets the timezone for the request.
+func TimezoneMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		timezone := ctx.GetHeader("X-Timezone")
+		if timezone == "" {
+			timezone = "UTC" // Default to UTC if no timezone is provided
+		}
+
+		loc, err := time.LoadLocation(timezone)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest,
+				utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Bad Request",
+					constants.BadRequestCode,
+					"Invalid timezone",
+					nil))
+			ctx.Abort()
+			return
+		}
+
+		// Store the location in the context
+		ctx.Set("timezone", loc)
+		ctx.Next()
+	}
+}
+
+func RealIPMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Check headers set by Cloudflare and Nginx
+		ip := ctx.GetHeader("CF-Connecting-IP")
+		if ip == "" {
+			ip = ctx.GetHeader("X-Real-IP")
+		}
+		if ip == "" {
+			ip = ctx.GetHeader("X-Forwarded-For")
+			if ip != "" {
+				// X-Forwarded-For may contain a list of IPs
+				ips := strings.Split(ip, ",")
+				ip = strings.TrimSpace(ips[0])
+			}
+		}
+		if ip == "" {
+			ip, _, _ = net.SplitHostPort(ctx.Request.RemoteAddr)
+		}
+		ctx.Set("ClientIP", ip)
+		ctx.Next()
+	}
+}
+
+// LimitRequestBodySize middleware to limit the size of the request body
+func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, maxSize)
+		if err := ctx.Request.ParseMultipartForm(maxSize); err != nil {
+			ctx.JSON(http.StatusRequestEntityTooLarge, utils.ErrorResponse(
+				http.StatusRequestEntityTooLarge,
+				"Request Entity Too Large",
+				constants.RequestEntityTooLargeCode,
+				fmt.Sprintf("Request body too large by %d bytes, max %d bytes", ctx.Request.ContentLength-maxSize, maxSize),
+				nil,
+			),
+			)
+			ctx.Abort()
+			return
+		}
+		ctx.Next()
+	}
 }

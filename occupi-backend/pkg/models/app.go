@@ -5,6 +5,7 @@ import (
 
 	"github.com/allegro/bigcache/v3"
 	"github.com/ipinfo/go/v2/ipinfo"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -18,10 +19,16 @@ type AppSession struct {
 	CurrentDate time.Time
 	OtpReqCache *bigcache.BigCache
 	IPInfo      *ipinfo.Client
+	RabbitMQ    *amqp.Connection
+	RabbitCh    *amqp.Channel
+	RabbitQ     amqp.Queue
 }
 
 // constructor for app session
 func New(db *mongo.Client, cache *bigcache.BigCache) *AppSession {
+	conn := configs.CreateRabbitConnection()
+	ch := configs.CreateRabbitChannel(conn)
+	q := configs.CreateRabbitQueue(ch)
 	return &AppSession{
 		DB:          db,
 		Cache:       cache,
@@ -29,5 +36,8 @@ func New(db *mongo.Client, cache *bigcache.BigCache) *AppSession {
 		CurrentDate: time.Now(),
 		OtpReqCache: configs.CreateOTPRateLimitCache(),
 		IPInfo:      configs.CreateIPInfoClient(),
+		RabbitMQ:    conn,
+		RabbitCh:    ch,
+		RabbitQ:     q,
 	}
 }

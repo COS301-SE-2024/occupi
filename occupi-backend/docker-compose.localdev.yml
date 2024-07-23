@@ -1,0 +1,32 @@
+services:
+  occupi-backend-local:
+      image: occupi-backend-local:latest
+      container_name: occupi-backend-local
+      build:
+        context: .
+        dockerfile: Dockerfile.local
+      environment:
+        - ENV=development
+      ports:
+        - "8081:8081"
+      restart: on-failure:5
+      depends_on:
+        rabbitmq-dev-local:
+          condition: service_healthy
+
+  rabbitmq-dev-local:
+    image: rabbitmq:latest
+    container_name: rabbitmq-dev-local
+    ports:
+      - "5673:5672"
+    restart: on-failure:5
+    volumes:
+      - rabbitmq-dev-local:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+volumes:
+  rabbitmq-dev-local:
