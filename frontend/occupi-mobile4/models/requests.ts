@@ -2,23 +2,23 @@
 
 /* ---Auth Requests--- */
 
-export interface Login {
+export interface LoginReq {
 	email: string;
 	password: string;
 }
 
-export interface Register {
+export interface RegisterReq {
     email: string;
     password: string;
     employee_id: string;
 }
 
-export interface VerifyOTP {
+export interface VerifyOTPReq {
     email: string;
     otp: string;
 }
 
-export interface ResetPassword {
+export interface ResetPasswordReq {
     email: string;
     newPassword: string;
     newPasswordConfirm: string;
@@ -29,7 +29,7 @@ export interface ResetPassword {
 
 //Rooms & Bookings
 
-export interface BookRoom {
+export interface BookRoomReq {
     roomId: string;
     emails: string[];
     creator: string;
@@ -39,7 +39,7 @@ export interface BookRoom {
     end: string;
 }
 
-export interface ViewBookings {
+export interface ViewBookingsReq {
     operator: string;
     filter: {
         email: string;
@@ -52,7 +52,7 @@ export interface ViewBookings {
     page?: number;
 }
 
-export interface ViewRooms {
+export interface ViewRoomsReq {
     operator: string;
     filter?: {
         floorNo: string;
@@ -64,7 +64,7 @@ export interface ViewRooms {
     page?: number;
 }
 
-export interface CancelBooking {
+export interface CancelBookingReq {
     bookingId: string;
     roomId: string;
     emails: string[];
@@ -75,7 +75,7 @@ export interface CancelBooking {
     end: string;
 }
 
-export interface CheckIn {
+export interface CheckInReq {
     bookingId: string;
     email: string;
 }
@@ -83,7 +83,7 @@ export interface CheckIn {
 
 //Users
 
-export interface UpdateDetails {
+export interface UpdateDetailsReq {
     email?: string;
     name?: string;
     dob?: string;
@@ -94,7 +94,7 @@ export interface UpdateDetails {
     pronouns?: string;
 }
 
-export interface Notifications {
+export interface NotificationsReq {
     operator: string;
     filter?: {
         emails: string[];
@@ -108,7 +108,7 @@ export interface Notifications {
 
 //Updating settings
 
-export interface SecuritySettings {
+export interface SecuritySettingsReq {
     email: string;
     mfa: "on" | "off";
     forceLogout: "on" | "off";
@@ -117,7 +117,7 @@ export interface SecuritySettings {
     newPasswordConfirm: string;
 }
 
-export interface NotificationSettings {
+export interface NotificationSettingsReq {
     email: string;
     invites: "on" | "off";
     bookingReminder: "on" | "off";
