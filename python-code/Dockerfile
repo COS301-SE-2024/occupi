@@ -1,12 +1,20 @@
-FROM tensorflow/serving
+# Use the official Python image from the Docker Hub
+FROM python:3.9-slim
 
-# Copy the models to the Docker image
-COPY models/ /models/
+# Set the working directory in the container
+WORKDIR /app
 
-# COPY the configuration file to the Docker image
-COPY models.config /models.config
+# Copy the requirements file into the container
+COPY requirements.txt requirements.txt
 
-# Set the environment variable
-ENV MODEL_CONFIG_FILE=/models.config
+# Install the dependencies
+RUN pip install -r requirements.txt
 
-ENTRYPOINT ["/usr/bin/tensorflow_model_server", "--model_config_file=/models.config"]
+# Copy the rest of the application code into the container
+COPY . .
+
+# Expose the port the app runs on
+EXPOSE 5000
+
+# Define the command to run the application
+CMD ["python", "app.py"]
