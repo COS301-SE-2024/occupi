@@ -1,0 +1,7 @@
+docker pull tensorflow/serving
+
+docker run -p 8501:8501 --name tf_serving_attendance \
+  --mount type=bind,source=models/attendance_model,target=/models/attendance_model \
+  -e MODEL_NAME=attendance_model -t tensorflow/serving
+
+C:\Users\retha\Capstone\occupi\models\attendance_model
