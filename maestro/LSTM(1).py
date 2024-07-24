@@ -75,7 +75,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
-joblib.dump(scaler, 'scaler.pkl')
+joblib.dump(scaler, 'attendance_scaler.pkl')
 
 # Original Distribution of Number Attended
 plt.figure(figsize=(14, 6))
