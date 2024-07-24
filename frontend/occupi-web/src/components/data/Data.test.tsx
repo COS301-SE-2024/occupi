@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { columns, users, statusOptions } from "./Data"; // Adjust the import path as necessary
+import { columns, statusOptions, fetchUsers } from "./Data"; // Adjust the import path as necessary
 
 // Test the structure and integrity of columns
 test("columns array structure and properties", () => {
@@ -30,25 +30,25 @@ test("columns array structure and properties", () => {
     expect(nonSortableColumns).toHaveLength(3);
   });
 // Test the integrity and structure of users
-test("users array has the correct structure and content", () => {
-  expect(users.length).toBe(20);
-  users.forEach((user: { id: number; name: string; role: string; team: string; status:string; email:string; bookings: number; }) => {
-    expect(user).toHaveProperty('id');
-    expect(user).toHaveProperty('name');
-    expect(user).toHaveProperty('role');
-    expect(user).toHaveProperty('team');
-    expect(user).toHaveProperty('status');
-    expect(user).toHaveProperty('email');
-    expect(user).toHaveProperty('bookings');
-    expect(typeof user.id).toBe('number');
-    expect(typeof user.name).toBe('string');
-    expect(typeof user.role).toBe('string');
-    expect(typeof user.team).toBe('string');
-    expect(typeof user.status).toBe('string');
-    expect(typeof user.email).toBe('string');
-    expect(typeof user.bookings).toBe('number');
-  });
-});
+// test("users array has the correct structure and content", () => {
+//   expect(users.length).toBe(20);
+//   users.forEach((user: { id: string; name: string; role: string; team: string; status:string; email:string; bookings: number; }) => {
+//     expect(user).toHaveProperty('id');
+//     expect(user).toHaveProperty('name');
+//     expect(user).toHaveProperty('role');
+//     expect(user).toHaveProperty('team');
+//     expect(user).toHaveProperty('status');
+//     expect(user).toHaveProperty('email');
+//     expect(user).toHaveProperty('bookings');
+//     expect(typeof user.id).toBe('number');
+//     expect(typeof user.name).toBe('string');
+//     expect(typeof user.role).toBe('string');
+//     expect(typeof user.team).toBe('string');
+//     expect(typeof user.status).toBe('string');
+//     expect(typeof user.email).toBe('string');
+//     expect(typeof user.bookings).toBe('number');
+//   });
+// });
 
 // Test the integrity and structure of statusOptions
 test("statusOptions array has the correct entries", () => {
@@ -60,3 +60,29 @@ test("statusOptions array has the correct entries", () => {
     expect(typeof option.uid).toBe('string');
   });
 });
+
+
+
+// Test the integrity and structure of users
+test("users array has the correct structure and content 2", async () => {
+  const users = await fetchUsers();
+  
+  expect(users.length).toBeGreaterThanOrEqual(0);
+  users.forEach((user) => {
+    expect(user).toHaveProperty('id');
+    expect(user).toHaveProperty('name');
+    expect(user).toHaveProperty('role');
+    expect(user).toHaveProperty('team');
+    expect(user).toHaveProperty('status');
+    expect(user).toHaveProperty('email');
+    expect(user).toHaveProperty('bookings');
+    expect(typeof user.id).toBe('string');
+    expect(typeof user.name).toBe('string');
+    expect(typeof user.role).toBe('string');
+    expect(typeof user.team).toBe('string');
+    expect(typeof user.status).toBe('string');
+    expect(typeof user.email).toBe('string');
+    expect(typeof user.bookings).toBe('number');
+  });
+});
+

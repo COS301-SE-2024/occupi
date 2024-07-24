@@ -42,6 +42,7 @@ const BookingDetails = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const isDark = colorScheme === "dark";
+  const [pushTokens, setPushTokens] = useState([]);
   // console.log(creatorEmail + roomId + floorNo);
   // console.log(bookingInfo?);
   // console.log(startTime);
@@ -57,7 +58,7 @@ const BookingDetails = () => {
       let userinfo = await SecureStore.getItemAsync('UserData');
       // if (result !== undefined) {
       let jsoninfo = JSON.parse(userinfo);
-      console.log("data",jsoninfo?.data.details.name);
+      console.log("data", jsoninfo?.data.details.name);
       setCreatorEmail(jsoninfo?.data?.email);
       let result: string = await SecureStore.getItemAsync('BookingInfo');
       console.log("CurrentRoom:", jsoninfo?.data?.email);
@@ -106,27 +107,51 @@ const BookingDetails = () => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
+          'Authorization': `${authToken}`,
+          'X-Timezone': 'Africa/Johannesburg'
         },
         body: JSON.stringify(body),
         credentials: "include"
       });
       const data = await response.json();
       console.log(data);
+      console.log(attendees);
       if (response.ok) {
-        sendPushNotification(['ExponentPushToken[5cpRYINQu42bhcKM5b7Vsb]','ExponentPushToken[ARLofOIiMGuJjE2EQTWQWq]'], "New Booking", `${jsoninfo?.data.details.name} has invited you to a booking.`);
-        setCurrentStep(2);
-        setLoading(false);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
+        try {
+          const response = await fetch(`${apiUrl}/api/get-push-tokens?emails=${attendees.slice(1)}`, {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `${authToken}`,
+              'X-Timezone': 'Africa/Johannesburg'
+            },
+            credentials: "include"
+          });
+          const data = await response.json();
+          console.log("PUSHH TOKENSS",data);
+          if (data.data) {
+            let tokens = data.data.map((item) => item.expoPushToken);
+            setPushTokens(tokens);
+            console.log(tokens);
+            sendPushNotification(tokens, "New Booking", `${jsoninfo?.data.details.name} has invited you to a booking.`);
+          }
+          setCurrentStep(2);
+          setLoading(false);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        } catch (error) {
+          setLoading(false);
+          console.error('Error:', error);
+        }
       } else {
         console.log(data);
         setLoading(false);
@@ -142,6 +167,7 @@ const BookingDetails = () => {
         });
       }
     } catch (error) {
+      setLoading(false);
       console.error('Error:', error);
       // setResponse('An error occurred');
     }
@@ -237,6 +263,8 @@ const BookingDetails = () => {
   const handleBiometricAuth = async () => {
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
+    console.log('Supported biometric types:', biometricType);
 
     if (!hasHardware || !isEnrolled) {
       Alert.alert(
@@ -512,7 +540,7 @@ const BookingDetails = () => {
               </View>
               <ScrollView style={{ height: 70 }}>
                 {attendees.map((email, idx) => (
-                  <Text color={isDark ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
+                  <Text key={idx} color={isDark ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                 ))}
               </ScrollView>
             </View>
