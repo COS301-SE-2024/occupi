@@ -19,7 +19,14 @@ import Line_Chart from "./linechart/Line_Chart";
 import BarGraph from "./barGraph/BarGraph";
 import BookingComponent from "./bookingComponent/BookingComponent";
 import PDFReport from "../pages/reports/PDFReport";
-
+import OccupancyModal from "./modal/Modal";
+import WeeklyAttendanceChart from "./weeklyAttendanceChart/WeeklyAttendanceChart";
+import KeyStats from "./keyStats.tsx/KeyStats";
+import OccupancyRatingChart from "./occupancyRatingChart/OccupancyRating";
+import OfficePresent from "./officePresentProbabilityChart/OfficePresent";
+import StatCard from "./statCard/StatCard";
+import Header from "./headerComponent/Header";
+import OccupiLoader from "./occupiLoader/OccupiLoader";
 
 export {
     DrawerComponent,
@@ -42,5 +49,13 @@ export {
     Line_Chart,
     BarGraph,
     BookingComponent,
-    PDFReport
+    PDFReport,
+    OccupancyModal,
+    WeeklyAttendanceChart,
+    KeyStats,
+    OccupancyRatingChart,
+    OfficePresent,
+    StatCard,
+    Header,
+    OccupiLoader
 }

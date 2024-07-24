@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import {
   Radio,
   RadioGroup,
@@ -25,6 +26,7 @@ import { router } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
+import LoadingGradientButton from '@/components/LoadingGradientButton';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -46,14 +48,50 @@ const SIZES = {
 
 const Profile = () => {
   const [selectedGenderIndex, setSelectedGenderIndex] = useState(1);
-  const [name, setName] = useState('Sabrina Carpenter');
-  const [email, setEmail] = useState('sabrina@deloitte.co.za');
-  const [employeeId, setEmployeeId] = useState('31115087');
-  const [phoneNumber, setPhoneNumber] = useState('082 083 3988');
-  const [pronouns, setPronouns] = useState('she/her');
-  const [date, setDate] = useState(new Date(2000, 6, 7));
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [pronouns, setPronouns] = useState('');
+  const [date, setDate] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   let colorScheme = useColorScheme();
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
+  const updateDetailsUrl = process.env.EXPO_PUBLIC_UPDATE_USER_DETAILS;
+  console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      let result = await SecureStore.getItemAsync('UserData');
+      console.log("UserData:",result);
+      // setUserDetails(JSON.parse(result).data);
+      let jsonresult = JSON.parse(result);
+      // console.log(jsonresult.data.details.name);
+      setName(String(jsonresult?.data?.details?.name));
+      setEmail(String(jsonresult?.data?.email));
+      setEmployeeId(String(jsonresult?.data?.occupiId));
+      setPhoneNumber(String(jsonresult?.data?.details?.contactNo));
+      setPronouns(String(jsonresult?.data?.details?.pronouns));
+      const dateString = jsonresult?.data?.details?.dob;
+      const date = new Date(dateString);
+
+      // Get the day, month, and year
+      const day = date.getDate();
+      const month = date.getMonth() + 1; // Months are zero-based
+      const year = date.getFullYear();
+
+      // Format the date as MM/DD/YYYY
+      const formatted = `${month}/${day}/${year}`;
+
+      // Set the formatted date in the state
+      setDate(formatted)
+
+      // console.log(JSON.parse(result).data.details.name);
+    };
+    getUserDetails();
+  }, []);
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -68,14 +106,72 @@ const Profile = () => {
     hideDatePicker();
   };
 
-  const onSave = () => {
-    Alert.alert(
-      'Profile Saved',
-      `Name: ${name}\nDOB: ${date.toLocaleDateString()}\nGender: ${
-        ['Male', 'Female', 'N-Bin'][selectedGenderIndex]
-      }\nEmail: ${email}\nEmployee ID: ${employeeId}\nPhone: ${phoneNumber}\nPronouns: ${pronouns}`
-    );
+  const onSave = async () => {
+    const body = {
+      "email": email,
+      "details": {
+        "contactNo": phoneNumber,
+        "gender": "Male",
+        "name": name,
+        "pronouns": pronouns
+      }
+    };
+    // console.log(JSON.stringify(body));
+    setIsLoading(true);
+    try {
+      let authToken = await SecureStore.getItemAsync('Token');
+      const response = await fetch(`${apiUrl}${updateDetailsUrl}`, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
+        },
+        body: JSON.stringify(body),
+        credentials: "include"
+      });
+      const data = await response.json();
+      console.log(data);
+      if (response.ok) {
+        console.log(response);
+        setIsLoading(false);
+        alert('Details updated successfully');
+      } else {
+        console.log(data);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Error:', error);
+      // setResponse('An error occurred');
+    }
+
+    try {
+      let authToken = await SecureStore.getItemAsync('Token');
+      const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
+        },
+        credentials: "include"
+      });
+      const data = await response.json();
+      if (response.ok) {
+        saveUserData(JSON.stringify(data));
+        console.log(data);
+      } else {
+        console.log(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
+
+  async function saveUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
 
   return (
     <SafeAreaView
@@ -85,11 +181,11 @@ const Profile = () => {
         <View style={styles.header}>
           <Icon
             as={Feather}
-            name="chevron-left"
+            name={"chevron-left"}
             size="xl"
             color={colorScheme === 'dark' ? 'white' : 'black'}
             testID="settings-link"
-            onPress={() => router.back()}
+            onPress={() => router.replace('/settings')}
           />
           <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
             My account
@@ -105,7 +201,7 @@ const Profile = () => {
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder={name}
+          value={name}
           placeholderTextColor={COLORS.gray}
           onChangeText={setName}
         />
@@ -116,7 +212,7 @@ const Profile = () => {
           style={colorScheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}
         >
           <Text style={colorScheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>
-            {date.toLocaleDateString()}
+            {date}
           </Text>
           <MaterialIcons name="calendar-today" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
         </TouchableOpacity>
@@ -128,8 +224,8 @@ const Profile = () => {
         />
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
-        <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
-          <VStack flexDirection="row" justifyContent="space-between" space="$2">
+        {/* <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
+          <VStack flexDirection="row" justifyContent="space-between" space="sm">
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
@@ -167,28 +263,30 @@ const Profile = () => {
               </RadioIndicator>
             </Radio>
           </VStack>
-        </RadioGroup>
+        </RadioGroup> */}
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder={email}
           placeholderTextColor={COLORS.gray}
+          editable={false}
           onChangeText={setEmail}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Employee ID</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Occupi ID</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder={employeeId}
           placeholderTextColor={COLORS.gray}
+          editable={false}
           onChangeText={setEmployeeId}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Number</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Cell No</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder={phoneNumber}
+          value={phoneNumber}
           placeholderTextColor={COLORS.gray}
           onChangeText={setPhoneNumber}
         />
@@ -196,15 +294,20 @@ const Profile = () => {
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Pronouns (optional)</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
-          placeholder="she/her"
+          value={pronouns}
           placeholderTextColor={COLORS.gray}
           onChangeText={setPronouns}
         />
+        {isLoading ? (
+          <LoadingGradientButton />
+        ) : (
+          <GradientButton
+            onPress={onSave}
+            text="Save"
+          />
+        )
+        }
 
-        <GradientButton
-          onPress={onSave}
-          text="Save"
-        />
       </ScrollView>
     </SafeAreaView>
   );

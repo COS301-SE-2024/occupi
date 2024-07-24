@@ -4,6 +4,7 @@ import { VStack, Box, HStack, Image, Heading, Toast, useToast, ToastTitle, Text,
 // import { useForm } from 'react-hook-form';
 // import { z } from 'zod';
 // import { zodResolver } from '@hookform/resolvers/zod';
+import * as SecureStore from 'expo-secure-store';
 import { useRouter, useLocalSearchParams  } from 'expo-router';
 import Logo from './assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
@@ -17,8 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 // type OTPSchemaType = z.infer<typeof OTPSchema>;
 
 const OTPVerification = () => {
-  const emailParams = useLocalSearchParams();
-  const email = emailParams.email ? String(emailParams.email) : '';
+  const [email, setEmail] = useState("");
   // const email = 'kamo@gmail.com';
   const [remainingTime, setRemainingTime] = useState(60); // 1 minute
   const otpSent = useState(false);
@@ -27,6 +27,8 @@ const OTPVerification = () => {
   const router = useRouter();
   const toast = useToast();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const getUserDetailsUrl = process.env.EXPO_PUBLIC_GET_USER_DETAILS;
   // console.log(email);
 
   useEffect(() => {
@@ -44,16 +46,24 @@ const OTPVerification = () => {
     };
   }, [remainingTime, otpSent]);
 
-  // const {
-  //   control,
-  //   formState: { errors },
-  //   handleSubmit,
-  //   reset,
-  // } = useForm<OTPSchemaType>({
-  //   resolver: zodResolver(OTPSchema),
-  // });
+  useEffect(() => {
+    const getUserEmail = async () => {
+      let email = await SecureStore.getItemAsync('Email');
+      // console.log("email",email);
+      setEmail(email);
+    };
+    getUserEmail();
+  }, []);
 
-  
+  async function storeToken(value) {
+    await SecureStore.setItemAsync('Token', value);
+  }
+
+  async function storeUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
+
+  // console.log("here",email);
 
   const onSubmit = async () => {
     console.log(email);
@@ -67,7 +77,7 @@ const OTPVerification = () => {
     console.log(pin);
     setLoading(true);
     try {
-      const response = await fetch('https://dev.occupi.tech/auth/verify-otp', {
+      const response = await fetch('https://dev.occupi.tech/auth/verify-otp-mobile-login', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -82,17 +92,62 @@ const OTPVerification = () => {
       const data = await response.json();
       if (response.ok) {
         setLoading(false);
-        toast.show({
+        // console.log(data.data.token);
+        storeToken(data.data.token);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          try {
+            let authToken = await SecureStore.getItemAsync('Token');
+            console.log(authToken);
+            const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`, {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `${authToken}`
+              },
+              credentials: "include"
+            });
+            const data = await response.json();
+            // console.log("here");
+            if (response.ok) {
+              storeUserData(JSON.stringify(data));
+              // console.log(`Data of ${email}: `, data);
+            } else {
+              console.log(data);
+              toast.show({
+                placement: 'top',
+                render: ({ id }) => {
+                  return (
+                    <Toast nativeID={id} variant="accent" action="error">
+                      <ToastTitle>{data.error.message}</ToastTitle>
+                    </Toast>
+                  );
+                },
+              });
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            toast.show({
               placement: 'top',
               render: ({ id }) => {
                 return (
-                  <Toast nativeID={String(id)} variant="accent" action="success">
-                    <ToastTitle>{data.message}</ToastTitle>
+                  <Toast nativeID={id} variant="accent" action="error">
+                    <ToastTitle>Network Error</ToastTitle>
                   </Toast>
                 );
               },
             });
-        router.push('/login');
+          }
+          router.replace('/home');
       } else {
         setLoading(false);
         // console.log(data);
@@ -169,8 +224,8 @@ const OTPVerification = () => {
   );
 };
 
-const MainText = (email : string) => {
-
+const MainText = (email) => {
+  // console.log("email",email.email);
   return (
     <VStack space="xs">
       <HStack space="md" alignItems="center" justifyContent="center" m="$12">
@@ -201,19 +256,7 @@ const MainText = (email : string) => {
           fontSize={wp('5%')}
           fontWeight="$light"
         >
-          We have sent the OTP code to
-          <Text
-            color="$black"
-            sx={{
-              _dark: {
-                color: '$textDark400',
-              },
-            }}
-            fontSize={wp('5%')}
-            fontWeight="$light"
-          >
-            {' '+String(email)}
-          </Text>
+          We have sent the OTP code to {email.email}
         </Text>
       </HStack>
     </VStack>

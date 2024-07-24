@@ -11,9 +11,12 @@ import {
   ToastTitle,
   Button,
   ButtonText,
-} from "@gluestack-ui/themed";
-import { LineChart } from "react-native-chart-kit";
-import { FontAwesome6 } from "@expo/vector-icons";
+} from '@gluestack-ui/themed';
+import {
+  LineChart
+} from "react-native-chart-kit";
+import { FontAwesome6 } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 // import { router } from 'expo-router';
 import {
   widthPercentageToDP as wp,
@@ -32,6 +35,7 @@ const Dashboard = () => {
   );
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === "dark");
   const [checkedIn, setCheckedIn] = useState(false);
+  const [name, setName] = useState("User");
   const toast = useToast()
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -40,10 +44,21 @@ const Dashboard = () => {
         return newNumbers;
       });
     }, 3000);
-    // console.log(numbers);
-    setIsDarkMode(colorScheme === "dark");
+    setIsDarkMode(colorScheme === 'dark');
     return () => clearInterval(intervalId);
   }, [colorScheme]);
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      let result = await SecureStore.getItemAsync('UserData');
+      console.log(result);
+      if (result !== undefined) {
+        let jsonresult = JSON.parse(result);
+        setName(String(jsonresult?.data?.details?.name)); 
+      }
+    };
+    getUserDetails();
+  }, []);
 
   const checkIn = () => {
     if (checkedIn === false) {
@@ -69,9 +84,17 @@ const Dashboard = () => {
     }
   };
 
-  const backgroundColor = isDarkMode ? "#1C1C1E" : "white";
-  const textColor = isDarkMode ? "white" : "black";
-  const cardBackgroundColor = isDarkMode ? "#2C2C2E" : "#F3F3F3";
+  // async function saveUserEmail(value) {
+  //   await SecureStore.setItemAsync('email', value);
+  // }
+
+
+  // saveUserEmail('kamogelomoeketse@gmail.com');
+
+
+  const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
+  const textColor = isDarkMode ? 'white' : 'black';
+  const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
 
   return (
     <View pt="$16" px="$4" flex={1} flexDirection="column" backgroundColor={backgroundColor}>
@@ -79,7 +102,7 @@ const Dashboard = () => {
       <View flexDirection="row" justifyContent="space-between">
         <View>
           <Text fontSize={wp('5%')} fontWeight="light" color={textColor}>
-            Hi Sabrina 👋
+            Hi {name} 👋
           </Text>
           <Text mt="$4" fontSize={wp('6%')} fontWeight="bold" color={textColor}>
             Welcome to Occupi
@@ -97,44 +120,12 @@ const Dashboard = () => {
           }}
         />
       </View>
-      <Card
-        size="lg"
-        variant="elevated"
-        mt="$4"
-        w="$full"
-        h={hp("15%")}
-        backgroundColor={cardBackgroundColor}
-        borderRadius="$20"
-      />
-      <View
-        display="flex"
-        flexDirection="row"
-        rowGap="$4"
-        mt="$1"
-        justifyContent="space-between"
-      >
-        <Card
-          flexDirection="$row"
-          justifyContent="$center"
-          alignItems="$center"
-          variant="elevated"
-          mt="$4"
-          style={{ width: wp("45%"), height: hp("12%") }}
-          backgroundColor={cardBackgroundColor}
-          borderRadius="$20"
-        >
-          <Text testID="occupancy-data" color={textColor} fontSize="$5xl">
-            {numbers[0]}
-          </Text>
-          <View flexDirection="$column">
-            <View flexDirection="$row" alignItems="$center">
-              <FontAwesome6
-                name="arrow-trend-up"
-                size={24}
-                color="yellowgreen"
-              />
-              <Text color="$yellowgreen"> {numbers[0] / 10 + 5}%</Text>
-            </View>
+      <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius={10} />
+      <View display="flex" flexDirection="row" mt="$1" justifyContent="space-between">
+        <Card flexDirection="row" justifyContent="center" alignItems="center" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
+          <Text color={textColor} fontSize={40}>{numbers[0]}</Text>
+          <View flexDirection="column">
+            <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
           </View>
         </Card>
         <Card
@@ -212,7 +203,7 @@ const Dashboard = () => {
               },
             ],
           }}
-          width={Dimensions.get("window").width -30} // from react-native
+          width={Dimensions.get("window").width - 30} // from react-native
           height={220}
           // yAxisLabel=""
           // yAxisSuffix="k"

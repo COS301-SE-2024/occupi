@@ -1,8 +1,8 @@
 [package]
 name = "occupi-desktop"
-version = "0.0.0"
+version = "0.2.0"
 description = "A system to record and predict office occupancy on a day to day basis"
-authors = ["you"]
+authors = ["Michael Chinyama", "Tinashe Austin", "Kamogelo Moeketse", "Rethagetse Manaka"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

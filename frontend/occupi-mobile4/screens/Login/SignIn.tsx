@@ -42,7 +42,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import GradientButton from '@/components/GradientButton';
@@ -72,6 +72,9 @@ const SignInForm = () => {
   } = useForm<SignInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const loginUrl = process.env.EXPO_PUBLIC_LOGIN;
+  const getUserDetailsUrl = process.env.EXPO_PUBLIC_GET_USER_DETAILS;
   const isEmailFocused = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -86,17 +89,21 @@ const SignInForm = () => {
   const checkBiometricAvailability = async () => {
     const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
     setBiometricAvailable(isBiometricAvailable);
-    console.log("Biometric hardware available:", isBiometricAvailable);
+    // console.log('Biometric hardware available:', isBiometricAvailable);
   };
 
-  const storeData = async (value) => {
-    try {
-      await AsyncStorage.setItem("email", value);
-    } catch (e) {
-      // saving error
-      console.log(e);
-    }
-  };
+  async function storeUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
+
+  async function storeToken(value) {
+    await SecureStore.setItemAsync('Token', value);
+  }
+
+  async function storeUserEmail(value) {
+    await SecureStore.setItemAsync('Email', value);
+  }
+
 
   const handleBiometricSignIn = async () => {
     const biometricType =
@@ -164,9 +171,10 @@ const SignInForm = () => {
 
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
+    storeUserEmail(_data.email);
     try {
-      const response = await fetch("https://dev.occupi.tech/auth/login", {
-        method: "POST",
+      const response = await fetch(`${apiUrl}${loginUrl}`, {
+        method: 'POST',
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
@@ -178,26 +186,70 @@ const SignInForm = () => {
         credentials: "include",
       });
       const data = await response.json();
-      const cookies = response.headers.get("Accept");
-      // CookieManager.get('https://dev.occupi.tech')
-      //   .then((cookies) => {
-      //     console.log('CookieManager.get =>', cookies);
-      //   });
-      console.log(cookies);
       if (response.ok) {
+        console.log("Data here", data);
         setLoading(false);
-        storeData(_data.email);
-        toast.show({
-          placement: "top",
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        router.replace('/home');
+        if (data.data) {
+          storeToken(data.data.token);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          try {
+            let authToken = await SecureStore.getItemAsync('Token');
+            // console.log(authToken);
+            const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${_data.email}`, {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `${authToken}`
+              },
+              credentials: "include"
+            });
+            const data = await response.json();
+            console.log("here");
+            if (response.ok) {
+              storeUserData(JSON.stringify(data));
+              console.log(`Data of ${_data.email}: `, data);
+            } else {
+              console.log(data);
+              toast.show({
+                placement: 'top',
+                render: ({ id }) => {
+                  return (
+                    <Toast nativeID={id} variant="accent" action="error">
+                      <ToastTitle>{data.error.message}</ToastTitle>
+                    </Toast>
+                  );
+                },
+              });
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            toast.show({
+              placement: 'top',
+              render: ({ id }) => {
+                return (
+                  <Toast nativeID={id} variant="accent" action="error">
+                    <ToastTitle>Network Error</ToastTitle>
+                  </Toast>
+                );
+              },
+            });
+          }
+          router.replace('/home');
+        }
+        else {
+          setLoading(false);
+          router.replace('/verify-otp');
+        }
       } else {
         setLoading(false);
         console.log(data);
@@ -213,10 +265,8 @@ const SignInForm = () => {
         });
       }
     } catch (error) {
-      console.error("Error:", error);
-      // setResponse('An error occurred');
+      console.error('Error:', error);
     }
-    // }, 3000);
     setLoading(false);
   };
 
@@ -228,6 +278,7 @@ const SignInForm = () => {
   const handleState = () => {
     setShowPassword((showState) => !showState);
   };
+
 
   return (
     <>

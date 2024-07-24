@@ -1,17 +1,22 @@
 {
   "name": "occupi-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
-    "dev": "vite && HTTPS=true react-scripts dev",
+    "dev": "NODE_ENV=development vite && HTTPS=true react-scripts dev",
     "devb": "bunx --bun vite",
     "build": "NODE_ENV=production tsc -p tsconfig.prod.json && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 20",
-    "preview": "vite preview",
+    "preview": "NODE_ENV=preview vite preview",
+    "preview-dev": "NODE_ENV=preview-dev vite preview",
+    "preview-prod": "NODE_ENV=preview-prod vite preview",
     "test": "NODE_ENV=test jest"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@headlessui/react": "^2.1.1",
     "@headlessui/tailwindcss": "^0.2.1",
     "@heroicons/react": "^2.1.4",
@@ -29,7 +34,6 @@
     "axios": "^1.7.2",
     "body-parser": "^1.20.2",
     "bun-types": "^1.1.17",
-    "canvas": "^2.11.2",
     "chalk": "^5.3.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
