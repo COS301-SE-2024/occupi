@@ -4,7 +4,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Heading } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-const GradientButton = ({ onPress, text }) => {
+const GradientButton = ({ onPress, text,testID }) => {
   return (
     <LinearGradient
       testID="gradient-button"

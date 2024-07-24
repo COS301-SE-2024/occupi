@@ -10,6 +10,7 @@ import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 
+
 const Onboarding2 = () => {
   return (
     <View style={styles.container}>
@@ -20,9 +21,9 @@ const Onboarding2 = () => {
           style={styles.image}
         />
         <Heading style={styles.heading}>Day to day Occupancy analysis</Heading>
-        <Text style={styles.text}>
-          Uses historical data to provide day to day analysis and statistics 
-        </Text>
+        <Text testID="onboarding2-text" style={styles.text}>
+  Uses historical data to provide day to day analysis and statistics 
+</Text>
         <GradientButton
           onPress={() => router.replace('/onboarding3')}
           text="Next"

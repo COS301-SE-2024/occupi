@@ -1,6 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "types": ["jest", "react-test-renderer"],
     "strict": true,
     "paths": {
       "@/*": [
@@ -9,9 +10,11 @@
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+  "**/*.ts",
+  "**/*.tsx",
+  ".expo/types/**/*.ts",
+  "expo-env.d.ts",
+  "screens/Booking/__test__/Int_BookRoom.test.tsx",
+  "screens/Booking/__test__/Int_Booking.test.js"
+]
 }

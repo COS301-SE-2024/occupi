@@ -201,12 +201,13 @@ const OTPVerification = () => {
       >
         <MainText email={email}/>
         <VStack space="md">
-        <OTPInput otp={otp} setOtp={setOtp}/>
+        <OTPInput testID="otp-input" otp={otp} setOtp={setOtp}/>
         <Text>Entered OTP: {otp.join('')}</Text>
           <Text fontSize="$md">{remainingTime} seconds remaining</Text>
           {loading ? (
             <GradientButton 
              onPress={onSubmit}
+             testID="otp-submit"
              text="Verifying OTP..." 
             />
            ) : (

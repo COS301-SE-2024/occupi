@@ -101,7 +101,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={String(id)} variant="accent" action="success">
+                            <Toast testID="success-message" nativeID={id} variant="accent" action="success">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
@@ -163,7 +163,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                     placement: 'top',
                     render: ({ id }) => {
                         return (
-                            <Toast nativeID={String(id)} variant="accent" action="success">
+                            <Toast testID="success-message" nativeID={id} variant="accent" action="success">
                                 <ToastTitle>{data.message}</ToastTitle>
                             </Toast>
                         );
@@ -194,7 +194,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
         <View pt="$16" flex="$1" backgroundColor={colorScheme === 'dark' ? 'black' : 'white'}>
             <View flexDirection="$row" alignItems="$center" >
                 <Icon as={Feather} name="chevron-left" size="40" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
-                <Text fontWeight="$bold" fontSize="$16" left="$10" color={colorScheme === 'dark' ? 'white' : 'black'}>{room.roomName}</Text>
+                <Text testID="room-name" fontWeight="$bold" fontSize="$16" left="$10" color={colorScheme === 'dark' ? 'white' : 'black'}>{room.roomName}</Text>
             </View>
             <ScrollView contentContainerStyle={{ paddingBottom: 40 }} style={{ paddingBottom: 20, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
                 <View height={400} my="$4">
@@ -228,7 +228,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                     {room.emails?.map((email, idx) => (
                         <Text color={isDarkMode ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                     ))}
-                    <Text mt="$4" mb="$1" fontSize="$16" fontWeight="$bold" color={colorScheme === 'dark' ? 'white' : 'black'}>Description</Text>
+                    <Text testID="room-description" mt="$4" mb="$1" fontSize="$16" fontWeight="$bold" color={colorScheme === 'dark' ? 'white' : 'black'}>Description</Text>
                     <Text fontSize="$14" color={colorScheme === 'dark' ? 'white' : 'black'}>The {room.roomName} is a state-of-the-art conference space designed for modern digital connectivity, seating 3-6 comfortably. Equipped with multiple HDMI ports, a high-definition projector or large LED screen, surround sound, and wireless display options, it ensures seamless presentations and video conferencing. The room features an intuitive control panel, high-speed Wi-Fi, and ample power outlets. Additional amenities include whiteboards, flip charts, adjustable lighting, and climate control, all within a professional and comfortable interior designed for productivity.</Text>
                 </View>
                 <TouchableOpacity style={{ paddingHorizontal: 15 }}>
@@ -238,14 +238,14 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                 </TouchableOpacity>
                 {isLoading ? (
                     <TouchableOpacity style={{ paddingHorizontal: 15 }} >
-                        <View flexDirection="row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                        <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                             <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
                         </View>
                     </TouchableOpacity>
                 ) : (
                     !checkedIn ? (
                         <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
-                            <View flexDirection="row" my="$2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                            <View flexDirection="row" my="2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                 <Feather name="check-square" size={24} color={isDarkMode ? '#fff' : '#000'} />
                                 <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check in</Text>
                             </View>
@@ -260,9 +260,8 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                     )
                 )}
 
-
                 {!isLoading ? (
-                    <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
+                    <TouchableOpacity testID="check-out-button" style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
                         <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                             <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="maroon">Cancel Booking</Text>
                         </View>
@@ -274,7 +273,6 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
                         </View>
                     </TouchableOpacity>
                 )}
-
 
             </ScrollView>
         </View>

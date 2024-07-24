@@ -195,6 +195,7 @@ const SignUpForm = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
+                  testID="email-input"
                 />
               </Input>
             )}
@@ -240,6 +241,7 @@ const SignUpForm = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
+                  testID="employee-input"
                 />
               </Input>
             )}
@@ -277,12 +279,14 @@ const SignUpForm = () => {
                 <InputField
                   fontSize={wp('4%')}
                   placeholder="Password"
+                  
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
                   type={showPassword ? 'text' : 'password'}
+                  testID="password-input"
                 />
                 <InputSlot onPress={handleState} pr="$3">
                   <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -330,6 +334,7 @@ const SignUpForm = () => {
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
                   type={showConfirmPassword ? 'text' : 'password'}
+                  testID="confirmpassword-input"
                 />
                 <InputSlot onPress={handleConfirmPwState} pr="$3">
                   <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -416,6 +421,7 @@ const SignUpForm = () => {
         <GradientButton
           onPress={handleSubmit(onSubmit)}
           text="Signup"
+          testID="signup-submit"
         />
       )}
     </>

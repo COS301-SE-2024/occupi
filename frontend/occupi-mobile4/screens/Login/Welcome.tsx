@@ -20,12 +20,14 @@ const Welcome = () => {
           style={styles.logo}
         />
         <Heading style={styles.heading}>Log in. Let's Plan.</Heading>
-        <Text style={styles.subHeading}>Predict. Plan. Perfect.</Text>
+        <Text testID="welcome-text" style={styles.subHeading}>Predict. Plan. Perfect.</Text>
         <GradientButton
           onPress={() => router.replace('/login')}
           text="Login"
+          testID="login-button"
+          
         />
-        <Text style={styles.registerText} onPress={() => router.push('/signup')}>Register</Text>
+        <Text testID="register-text" style={styles.registerText} onClick={() => router.push('/signup')}>Register</Text>
       </Center>
     </View>
   );

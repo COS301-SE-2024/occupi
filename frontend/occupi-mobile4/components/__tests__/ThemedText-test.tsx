@@ -1,10 +1,14 @@
-import * as React from 'react';
+import React from 'react';
 import renderer from 'react-test-renderer';
-
 import { ThemedText } from '../ThemedText';
 
-it(`renders correctly`, () => {
-  const tree = renderer.create(<ThemedText>Snapshot test!</ThemedText>).toJSON();
+jest.mock('@/hooks/useThemeColor', () => ({
+  useThemeColor: jest.fn().mockReturnValue('#000000'),
+}));
 
-  expect(tree).toMatchSnapshot();
+describe('ThemedText', () => {
+  it('renders correctly', () => {
+    const tree = renderer.create(<ThemedText>Snapshot test!</ThemedText>).toJSON();
+    expect(tree).toMatchSnapshot();
+  });
 });

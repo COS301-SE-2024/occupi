@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Box,
-  Center,
-} from '@gluestack-ui/themed';
-import { ViewPager } from '@ui-kitten/components';
-import { router } from 'expo-router';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import React, { useState, useEffect, useRef } from "react";
+import { Animated, StyleSheet, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Box, Center } from "@gluestack-ui/themed";
+import { ViewPager } from "@ui-kitten/components";
+import { router } from "expo-router";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 function HeaderLogo() {
   const spinValue = useRef(new Animated.Value(0)).current;
@@ -46,7 +47,7 @@ function HeaderLogo() {
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
+    outputRange: ["0deg", "360deg"],
   });
 
   const animatedStyle = {
@@ -56,7 +57,8 @@ function HeaderLogo() {
   return (
     <View style={styles.logoContainer}>
       <Animated.Image
-        source={require('../../screens/Login/assets/images/Occupi/occupi-white-trans.png')}
+        testID="splashscreen-text"
+        source={require("../../screens/Login/assets/images/Occupi/occupi-white-trans.png")}
         style={[styles.logo, animatedStyle]}
         resizeMode="contain"
       />
@@ -65,10 +67,9 @@ function HeaderLogo() {
 }
 
 const OnboardingScreen = ({ onFinish }) => {
-
   return (
     <LinearGradient
-      colors={['#351DB5', '#4490A5', '#6CC87F', '#C1F56C', '#FEFFB9']}
+      colors={["#351DB5", "#4490A5", "#6CC87F", "#C1F56C", "#FEFFB9"]}
       start={[0, 1]}
       end={[0, 0]}
       style={styles.container}
@@ -106,7 +107,7 @@ export default function SplashScreen() {
         onSelect={(index) => setSelectedIndex(index)}
         style={{ flex: 1 }}
       >
-        <OnboardingScreen onFinish={() => console.log('Onboarding finished')} />
+        <OnboardingScreen onFinish={() => console.log("Onboarding finished")} />
       </ViewPager>
     </View>
   );
@@ -117,24 +118,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logoContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   logo: {
-    width: wp('27%'),
-    height: wp('27%'),
+    width: wp("27%"),
+    height: wp("27%"),
   },
   buttonContainer: {
-    paddingVertical: hp('2%'),
-    paddingHorizontal: wp('8%'),
+    paddingVertical: hp("2%"),
+    paddingHorizontal: wp("8%"),
     borderRadius: 25,
-    marginTop: hp('2%'),
-    alignSelf: 'center',
-    width: wp('40%'),
+    marginTop: hp("2%"),
+    alignSelf: "center",
+    width: wp("40%"),
   },
   buttonText: {
-    color: 'white',
-    fontSize: wp('4%'),
-    textAlign: 'center',
+    color: "white",
+    fontSize: wp("4%"),
+    textAlign: "center",
   },
 });

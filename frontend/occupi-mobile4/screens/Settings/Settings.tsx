@@ -69,7 +69,7 @@ const Settings = () => {
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
     { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
-    { title: 'FAQ', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
+    { title: 'FAQ', description: '', iconName: 'info', onPress: () => router.push('faqpage'), testID="faq-link" },
   ];
 
   const renderListItem = ({ item }) => (

@@ -3,8 +3,13 @@ import { Keyboard } from 'react-native';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
-import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import {
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import {
   FormControl,
   HStack,
@@ -43,16 +48,16 @@ import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import GradientButton from '@/components/GradientButton';
 
 const signInSchema = z.object({
-  email: z.string().min(1, 'Email is required').email(),
+  email: z.string().min(1, "Email is required").email(),
   password: z
     .string()
-    .min(6, 'Must be at least 8 characters in length')
-    .regex(new RegExp('.*[A-Z].*'), 'One uppercase character')
-    .regex(new RegExp('.*[a-z].*'), 'One lowercase character')
-    .regex(new RegExp('.*\\d.*'), 'One number')
+    .min(6, "Must be at least 8 characters in length")
+    .regex(new RegExp(".*[A-Z].*"), "One uppercase character")
+    .regex(new RegExp(".*[a-z].*"), "One lowercase character")
+    .regex(new RegExp(".*\\d.*"), "One number")
     .regex(
-      new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
-      'One special character'
+      new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"),
+      "One special character"
     ),
   rememberme: z.boolean().optional(),
 });
@@ -101,24 +106,30 @@ const SignInForm = () => {
 
 
   const handleBiometricSignIn = async () => {
-    const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
-    console.log('Supported biometric types:', biometricType);
+    const biometricType =
+      await LocalAuthentication.supportedAuthenticationTypesAsync();
+    console.log("Supported biometric types:", biometricType);
 
-    if (biometricType.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION) || biometricType.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+    if (
+      biometricType.includes(
+        LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION
+      ) ||
+      biometricType.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)
+    ) {
       try {
         const result = await LocalAuthentication.authenticateAsync({
-          promptMessage: 'Login with Biometrics',
-          cancelLabel: 'Cancel',
-          fallbackLabel: 'Use Passcode',
+          promptMessage: "Login with Biometrics",
+          cancelLabel: "Cancel",
+          fallbackLabel: "Use Passcode",
           disableDeviceFallback: false,
         });
-        console.log('Biometric authentication result:', result);
+        console.log("Biometric authentication result:", result);
         if (result.success) {
           router.replace('/home');
         } else {
-          console.log('Biometric authentication failed');
+          console.log("Biometric authentication failed");
           toast.show({
-            placement: 'top',
+            placement: "top",
             render: ({ id }) => {
               return (
                 <Toast nativeID={String(id)} variant="accent" action="error">
@@ -130,9 +141,9 @@ const SignInForm = () => {
           });
         }
       } catch (error) {
-        console.error('Biometric authentication error:', error);
+        console.error("Biometric authentication error:", error);
         toast.show({
-          placement: 'top',
+          placement: "top",
           render: ({ id }) => {
             return (
               <Toast nativeID={String(id)} variant="accent" action="error">
@@ -144,9 +155,9 @@ const SignInForm = () => {
         });
       }
     } else {
-      console.log('Biometric authentication not available');
+      console.log("Biometric authentication not available");
       toast.show({
-        placement: 'top',
+        placement: "top",
         render: ({ id }) => {
           return (
             <Toast nativeID={String(id)} variant="accent" action="error">
@@ -170,8 +181,8 @@ const SignInForm = () => {
       const response = await fetch(`${apiUrl}${loginUrl}`, {
         method: 'POST',
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
+          Accept: "application/json",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
         credentials: "include"
@@ -245,7 +256,7 @@ const SignInForm = () => {
         setLoading(false);
         console.log(data);
         toast.show({
-          placement: 'top',
+          placement: "top",
           render: ({ id }) => {
             return (
               <Toast nativeID={String(id)} variant="accent" action="error">
@@ -273,15 +284,21 @@ const SignInForm = () => {
 
   return (
     <>
-      <View style={{ alignItems: 'center', marginBottom: hp('2%') }}>
+      <View style={{ alignItems: "center", marginBottom: hp("2%") }}>
         {biometricAvailable && (
           <TouchableOpacity onPress={handleBiometricSignIn}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: hp('2%') }}>
-              <Ionicons name="finger-print" size={wp('6%')} color="black" />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: hp("2%"),
+              }}
+            >
+              <Ionicons name="finger-print" size={wp("6%")} color="black" />
             </View>
           </TouchableOpacity>
         )}
-        <Text style={{ marginBottom: hp('2%'), fontSize: wp('4%') }}>Or</Text>
+        <Text style={{ marginBottom: hp("2%"), fontSize: wp("4%") }}>Or</Text>
       </View>
       <VStack justifyContent="space-between">
         <FormControl
@@ -289,7 +306,9 @@ const SignInForm = () => {
           isRequired={true}
         >
           <FormControlLabel>
-            <FormControlLabelText fontWeight="$normal">Deloitte Email Address</FormControlLabelText>
+            <FormControlLabelText fontWeight="$normal">
+              Deloitte Email Address
+            </FormControlLabelText>
           </FormControlLabel>
           <Controller
             name="email"
@@ -316,6 +335,7 @@ const SignInForm = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
+                  testID="email-input"
                 />
               </Input>
             )}
@@ -328,9 +348,15 @@ const SignInForm = () => {
           </FormControlError>
         </FormControl>
 
-        <FormControl mt={hp('2%')} isInvalid={!!errors.password} isRequired={true}>
-          <FormControlLabel mb={hp('1%')}>
-            <FormControlLabelText fontWeight="$normal">Password</FormControlLabelText>
+        <FormControl
+          mt={hp("2%")}
+          isInvalid={!!errors.password}
+          isRequired={true}
+        >
+          <FormControlLabel mb={hp("1%")}>
+            <FormControlLabelText fontWeight="$normal">
+              Password
+            </FormControlLabelText>
           </FormControlLabel>
           <Controller
             name="password"
@@ -356,7 +382,8 @@ const SignInForm = () => {
                   onBlur={onBlur}
                   onSubmitEditing={handleKeyPress}
                   returnKeyType="done"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
+                  testID="password-input"
                 />
                 <InputSlot onPress={handleState} pr="$3">
                   <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -376,8 +403,8 @@ const SignInForm = () => {
       <HStack
         alignItems="center"
         justifyContent="space-between"
-        space={wp('2%')}
-        mb={hp('3%')}
+        space={wp("2%")}
+        mb={hp("3%")}
       >
         <Controller
           name="rememberme"
@@ -394,7 +421,9 @@ const SignInForm = () => {
               <CheckboxIndicator>
                 <CheckboxIcon as={CheckIcon} color="yellowgreen" />
               </CheckboxIndicator>
-              <CheckboxLabel ml={wp('2%')} color="yellowgreen">Remember me</CheckboxLabel>
+              <CheckboxLabel ml={wp("2%")} color="yellowgreen">
+                Remember me
+              </CheckboxLabel>
             </Checkbox>
           )}
         />
@@ -410,11 +439,13 @@ const SignInForm = () => {
         <GradientButton
           onPress={handleSubmit(onSubmit)}
           text="Verifying..."
+          testID="login-submit"
         />
       ) : (
         <GradientButton
           onPress={handleSubmit(onSubmit)}
           text="Login"
+          testID="login-submit"
         />
       )}
       {/* <PostRequestExample/> */}
@@ -425,41 +456,43 @@ const SignInForm = () => {
 const Main = () => {
   return (
     <Box
-      px={wp('4%')}
+      px={wp("4%")}
       sx={{
-        '@md': {
-          px: wp('8%'),
-          borderTopLeftRadius: '$none',
-          borderTopRightRadius: '$none',
-          borderBottomRightRadius: '$none',
+        "@md": {
+          px: wp("8%"),
+          borderTopLeftRadius: "$none",
+          borderTopRightRadius: "$none",
+          borderBottomRightRadius: "$none",
         },
-        '_dark': { bg: '$backgroundDark800' },
+        _dark: { bg: "$backgroundDark800" },
       }}
-      py={hp('2%')}
+      py={hp("2%")}
       flex={1}
       bg="$white"
       justifyContent="$center"
     >
-      <VStack mt={hp('2%')} mb={hp('2%')} space="md">
+      <VStack mt={hp("2%")} mb={hp("2%")} space="md">
         <HStack space="md" alignItems="center" justifyContent="center">
           <Image
             alt="Occupi Logo"
             source={Logo}
-            style={{ width: wp('40%'), height: wp('40%') }}
+            style={{ width: wp("40%"), height: wp("40%") }}
           />
         </HStack>
-        <VStack space="xs" mt={hp('2%')} my={hp('2%')}>
+        <VStack space="xs" mt={hp("2%")} my={hp("2%")}>
           <Heading
             color="$textLight800"
-            sx={{ _dark: { color: '$textDark800' } }}
+            sx={{ _dark: { color: "$textDark800" } }}
             size="xl"
           >
             Welcome back to Occupi.
           </Heading>
-          <Text color="$black"
-            fontSize={wp('5%')}
+          <Text
+            color="$black"
+            fontSize={wp("5%")}
             fontWeight="$100"
-            sx={{ _dark: { color: '$textDark800' } }}>
+            sx={{ _dark: { color: "$textDark800" } }}
+          >
             Predict. Plan. Perfect.
           </Text>
         </VStack>
@@ -471,17 +504,19 @@ const Main = () => {
         space="xs"
         alignItems="center"
         justifyContent="center"
-        mt={hp('2%')}
+        mt={hp("2%")}
       >
         <Text
           color="$black"
-          fontSize={wp('4%')}
-          sx={{ _dark: { color: '$textDark400' } }}
+          fontSize={wp("4%")}
+          sx={{ _dark: { color: "$textDark400" } }}
         >
           New to Occupi?
         </Text>
         <StyledExpoRouterLink href="/signup">
-          <LinkText color="yellowgreen" fontSize={wp('4%')}>Register</LinkText>
+          <LinkText color="yellowgreen" fontSize={wp("4%")}>
+            Register
+          </LinkText>
         </StyledExpoRouterLink>
       </HStack>
     </Box>

@@ -215,6 +215,10 @@ const OfficeDetails = () => {
         </View> */}
 
         {/* Description */}
+        <View testID="office-data" px="$5">
+          <Text fontSize="$24" fontWeight="$bold" style={{ color: isDarkMode ? '#fff' : '#000' }}>Description</Text>
+          <Text fontSize="$16" style={{ color: isDarkMode ? '#fff' : '#000' }}>
+            {roomData2.description}
         <View px="$5">
           <Text fontSize={24} fontWeight="$bold" style={{ color: isDarkMode ? '#fff' : '#000' }}>Description</Text>
           <Text fontSize={16} style={{ color: isDarkMode ? '#fff' : '#000' }}>

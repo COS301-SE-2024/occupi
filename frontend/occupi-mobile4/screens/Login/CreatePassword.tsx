@@ -280,12 +280,14 @@ export default function CreatePassword() {
                       <InputField
                         fontSize={wp('4%')}
                         placeholder="Password"
+                        testID="new-password-input"
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
                         onSubmitEditing={handleKeyPress}
                         returnKeyType="done"
                         type={showPassword ? 'text' : 'password'}
+
                       />
                       <InputSlot onPress={handleState} mr="$2">
                         <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
@@ -340,6 +342,7 @@ export default function CreatePassword() {
                       <InputField
                         fontSize={wp('4%')}
                         placeholder="Confirm Password"
+                        testID="confirm-password-input"
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
@@ -375,6 +378,7 @@ export default function CreatePassword() {
           <GradientButton
             onPress={handleSubmit(onSubmit)}
             text="Update Password"
+            testID="create-password-submit"
           />
         </Box>
       </ScrollView>

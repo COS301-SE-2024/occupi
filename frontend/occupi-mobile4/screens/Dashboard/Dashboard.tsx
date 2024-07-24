@@ -18,7 +18,10 @@ import {
 import { FontAwesome6 } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 // import { router } from 'expo-router';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
@@ -27,14 +30,16 @@ const getRandomNumber = () => {
 
 const Dashboard = () => {
   const colorScheme = useColorScheme();
-  const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
-  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+  const [numbers, setNumbers] = useState(
+    Array.from({ length: 15 }, getRandomNumber)
+  );
+  const [isDarkMode, setIsDarkMode] = useState(colorScheme === "dark");
   const [checkedIn, setCheckedIn] = useState(false);
   const [name, setName] = useState("User");
   const toast = useToast()
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setNumbers(prevNumbers => {
+      setNumbers((prevNumbers) => {
         const newNumbers = [getRandomNumber(), ...prevNumbers.slice(0, 14)];
         return newNumbers;
       });
@@ -158,7 +163,7 @@ const Dashboard = () => {
     if (checkedIn === false) {
       setCheckedIn(true);
       toast.show({
-        placement: 'top',
+        placement: "top",
         render: ({ id }) => (
           <Toast nativeID={String(id)} variant="accent" action="info">
             <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
@@ -168,7 +173,7 @@ const Dashboard = () => {
     } else {
       setCheckedIn(false);
       toast.show({
-        placement: 'top',
+        placement: "top",
         render: ({ id }) => (
           <Toast nativeID={String(id)} variant="accent" action="info">
             <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
@@ -205,8 +210,13 @@ const Dashboard = () => {
         <Image
           alt="logo"
           p="$10"
-          source={require('../../screens/Login/assets/images/Occupi/file.png')}
-          style={{ width: wp('8%'), height: wp('8%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
+          source={require("../../screens/Login/assets/images/Occupi/file.png")}
+          style={{
+            width: wp("8%"),
+            height: wp("8%"),
+            flexDirection: "column",
+            tintColor: isDarkMode ? "white" : "black",
+          }}
         />
       </View>
       <Card size="lg" variant="elevated" mt="$4" w="$full" h={hp('15%')} backgroundColor={cardBackgroundColor} borderRadius={10} />
@@ -217,15 +227,40 @@ const Dashboard = () => {
             <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
           </View>
         </Card>
-        <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} />
+        <Card
+          size="lg"
+          variant="elevated"
+          mt="$4"
+          style={{ width: wp("45%"), height: hp("12%") }}
+          backgroundColor={cardBackgroundColor}
+          borderRadius="$20"
+        />
       </View>
-      <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
+      <View
+        flexDirection="row"
+        justifyContent="flex-end"
+        mt="$6"
+        mb="$4"
+        h="$8"
+        alignItems="center"
+      >
         {checkedIn ? (
-          <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkIn}>
+          <Button
+            w={wp("36%")}
+            borderRadius="$12"
+            backgroundColor="lightblue"
+            onPress={checkIn}
+          >
             <ButtonText color="dimgrey">Check out</ButtonText>
           </Button>
         ) : (
-          <Button w={wp('36%')} borderRadius={10} backgroundColor="greenyellow" onPress={checkIn}>
+          <Button
+            w={wp("36%")}
+            borderRadius="$12"
+            backgroundColor="greenyellow"
+            onPress={checkIn}
+            testID="checkInOutButton"
+          >
             <ButtonText color="dimgrey">Check in</ButtonText>
           </Button>
         )}
@@ -262,10 +297,10 @@ const Dashboard = () => {
                   numbers[3],
                   numbers[2],
                   numbers[1],
-                  numbers[0]
-                ]
-              }
-            ]
+                  numbers[0],
+                ],
+              },
+            ],
           }}
           width={Dimensions.get("window").width - 30} // from react-native
           height={220}
@@ -285,8 +320,8 @@ const Dashboard = () => {
             propsForDots: {
               r: "0",
               strokeWidth: "2",
-              stroke: "green"
-            }
+              stroke: "green",
+            },
           }}
           bezier
           style={{
