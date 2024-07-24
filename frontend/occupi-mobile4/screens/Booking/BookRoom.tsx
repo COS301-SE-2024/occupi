@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import { ScrollView, useColorScheme, TouchableOpacity, Text, Image } from 'react-native';
+import { Ionicons, Octicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import {
-  ScrollView,
-  useColorScheme,
-  TouchableOpacity,
-  Text,
-  Image,
-} from "react-native";
-import { Ionicons, Octicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { Toast, ToastTitle, useToast, View } from "@gluestack-ui/themed";
+  Toast,
+  ToastTitle,
+  useToast,
+  View
+} from '@gluestack-ui/themed';
 
 import Navbar from '../../components/NavBar';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -39,7 +38,7 @@ const BookRoom = () => {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const toast = useToast();
-  const [isDarkMode, setIsDarkMode] = useState(colorScheme === "dark");
+  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [layout, setLayout] = useState("row");
   const [loading, setLoading] = useState(true);
   const [roomData, setRoomData] = useState<Room[]>([]);
@@ -70,7 +69,7 @@ const BookRoom = () => {
           console.log(data);
           setLoading(false);
           toast.show({
-            placement: "top",
+            placement: 'top',
             render: ({ id }) => {
               return (
                 <Toast nativeID={id} variant="accent" action="error">
@@ -81,9 +80,9 @@ const BookRoom = () => {
           });
         }
       } catch (error) {
-        console.error("Error:", error);
+        console.error('Error:', error);
         toast.show({
-          placement: "top",
+          placement: 'top',
           render: ({ id }) => {
             return (
               <Toast nativeID={id} variant="accent" action="error">
@@ -98,12 +97,12 @@ const BookRoom = () => {
   }, [toast, apiUrl, viewroomsendpoint]);
 
   useEffect(() => {
-    setIsDarkMode(colorScheme === "dark");
+    setIsDarkMode(colorScheme === 'dark');
   }, [colorScheme]);
 
-  const backgroundColor = isDarkMode ? "black" : "white";
-  const textColor = isDarkMode ? "white" : "black";
-  const cardBackgroundColor = isDarkMode ? "#2C2C2E" : "#F3F3F3";
+  const backgroundColor = isDarkMode ? 'black' : 'white';
+  const textColor = isDarkMode ? 'white' : 'black';
+  const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
 
   const roomPairs = groupDataInPairs(roomData);
 
