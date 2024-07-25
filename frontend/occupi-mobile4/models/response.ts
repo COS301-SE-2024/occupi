@@ -6,7 +6,7 @@ export interface Error {
     message: string;
 }
 export interface Unsuccessful {
-    status: string;
+    status: 'error';
     message: string;
     error: Error;
 }
@@ -20,7 +20,7 @@ export interface LoginSuccess {
 }
 
 export interface Success {
-    status: number;
+    status: 'success';
     message: string;
     data: any;
 }
