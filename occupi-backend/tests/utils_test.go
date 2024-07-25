@@ -15,11 +15,9 @@ import (
 	"image/color"
 	"image/jpeg"
 	"image/png"
-	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"testing"
 
 
 	"github.com/gin-contrib/sessions"
@@ -2760,12 +2758,15 @@ func TestConvertImageToBytes(t *testing.T) {
 				Size:     100 * 100 * 4, // Approximate size for a 100x100 RGBA image
 			}
 
-			// Override the Open method
-			fileHeader.Open = func() (multipart.File, error) {
-				return file, nil
+			// Create a wrapper that satisfies multipart.File interface
+			fileWrapper := &fileWrapper{file}
+
+			// Mock the Open method
+			openFunc := func() (multipart.File, error) {
+				return fileWrapper, nil
 			}
 
-			got, err := ConvertImageToBytes(fileHeader, tt.width, tt.thumbnail)
+			got, err := ConvertImageToBytes(fileHeader, tt.width, tt.thumbnail, openFunc)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -2789,4 +2790,13 @@ func TestConvertImageToBytes(t *testing.T) {
 			}
 		})
 	}
+}
+
+// fileWrapper wraps *os.File to satisfy multipart.File interface
+type fileWrapper struct {
+	*os.File
+}
+
+func (fw *fileWrapper) Open() (multipart.File, error) {
+	return fw, nil
 }
