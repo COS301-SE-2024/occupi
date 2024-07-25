@@ -12,11 +12,16 @@ import (
 	"time"
 	"bytes"
 	"image"
+	"image/color"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"mime/multipart"
+	"os"
+	"path/filepath"
+	"testing"
 
-	"github.com/stretchr/testify/assert"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -25,6 +30,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	
@@ -2669,46 +2675,47 @@ func TestGetClientTime(t *testing.T) {
 	}
 }
 
+
 func TestConvertImageToBytes(t *testing.T) {
-	// Helper function to create a test image
-	createTestImage := func(format string) (*multipart.FileHeader, error) {
+	// Helper function to create a test image file
+	createTestImageFile := func(format string) (*os.File, error) {
 		// Create a simple test image
 		img := image.NewRGBA(image.Rect(0, 0, 100, 100))
+		// Fill with a color
+		for y := 0; y < 100; y++ {
+			for x := 0; x < 100; x++ {
+				img.Set(x, y, color.RGBA{255, 0, 0, 255}) // Red color
+			}
+		}
 
-		// Create a buffer to store the image
-		buf := new(bytes.Buffer)
+		// Create a temporary file
+		tmpfile, err := os.CreateTemp("", "test.*."+format)
+		if err != nil {
+			return nil, err
+		}
 
-		// Encode the image
+		// Encode and save the image
 		switch format {
-		case "jpeg":
-			err := jpeg.Encode(buf, img, nil)
-			if err != nil {
-				return nil, err
-			}
+		case "jpg", "jpeg":
+			err = jpeg.Encode(tmpfile, img, nil)
 		case "png":
-			err := png.Encode(buf, img)
-			if err != nil {
-				return nil, err
-			}
+			err = png.Encode(tmpfile, img)
+		}
+		if err != nil {
+			tmpfile.Close()
+			os.Remove(tmpfile.Name())
+			return nil, err
 		}
 
-		// Create a multipart.FileHeader
-		header := &multipart.FileHeader{
-			Filename: "test." + format,
-			Size:     int64(buf.Len()),
+		// Seek to the beginning of the file
+		_, err = tmpfile.Seek(0, 0)
+		if err != nil {
+			tmpfile.Close()
+			os.Remove(tmpfile.Name())
+			return nil, err
 		}
 
-		// Create a multipart.File
-		file := &multipart.File{
-			Reader: bytes.NewReader(buf.Bytes()),
-		}
-
-		// Set the File field of the FileHeader
-		header.Open = func() (multipart.File, error) {
-			return file, nil
-		}
-
-		return header, nil
+		return tmpfile, nil
 	}
 
 	tests := []struct {
@@ -2718,19 +2725,47 @@ func TestConvertImageToBytes(t *testing.T) {
 		thumbnail bool
 		wantErr   bool
 	}{
-		{"JPEG normal", "jpeg", 50, false, false},
+		{"JPEG normal", "jpg", 50, false, false},
 		{"PNG normal", "png", 50, false, false},
-		{"JPEG thumbnail", "jpeg", 0, true, false},
+		{"JPEG thumbnail", "jpg", 0, true, false},
 		{"PNG thumbnail", "png", 0, true, false},
 		{"Unsupported format", "gif", 50, false, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			file, err := createTestImage(tt.format)
-			assert.NoError(t, err)
+			var file *os.File
+			var err error
 
-			got, err := ConvertImageToBytes(file, tt.width, tt.thumbnail)
+			if !tt.wantErr {
+				file, err = createTestImageFile(tt.format)
+				require.NoError(t, err)
+				defer func() {
+					file.Close()
+					os.Remove(file.Name())
+				}()
+			} else {
+				// For unsupported format, create an empty file
+				file, err = os.CreateTemp("", "test.*."+tt.format)
+				require.NoError(t, err)
+				defer func() {
+					file.Close()
+					os.Remove(file.Name())
+				}()
+			}
+
+			// Create a multipart.FileHeader
+			fileHeader := &multipart.FileHeader{
+				Filename: filepath.Base(file.Name()),
+				Size:     100 * 100 * 4, // Approximate size for a 100x100 RGBA image
+			}
+
+			// Override the Open method
+			fileHeader.Open = func() (multipart.File, error) {
+				return file, nil
+			}
+
+			got, err := ConvertImageToBytes(fileHeader, tt.width, tt.thumbnail)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -2742,10 +2777,10 @@ func TestConvertImageToBytes(t *testing.T) {
 			assert.Greater(t, len(got), 0)
 
 			// Decode the result to check dimensions
-			img, _, err := image.Decode(bytes.NewReader(got))
+			resultImg, _, err := image.Decode(bytes.NewReader(got))
 			assert.NoError(t, err)
 
-			bounds := img.Bounds()
+			bounds := resultImg.Bounds()
 			if tt.thumbnail {
 				assert.LessOrEqual(t, bounds.Dx(), 200)
 				assert.LessOrEqual(t, bounds.Dy(), 200)
