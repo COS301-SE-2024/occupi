@@ -16,4 +16,4 @@ export async function UserLogin(email: string, password: string) {
     }
 }
 
-UserLogin("boygenius31115@gmail.com", "Qwert@123"); //test
+// UserLogin("boygenius31115@gmail.com", "Qwert@123"); //test
