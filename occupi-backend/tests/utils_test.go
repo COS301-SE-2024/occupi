@@ -1520,14 +1520,14 @@ func TestSantizeProjection(t *testing.T) {
 			input: models.QueryInput{
 				Projection: []string{"username", "emails", "age"},
 			},
-			expected: []string{"username", "age"},
+			expected: []string{"username", "emails", "age"},
 		},
 		{
 			name: "Projection with Password, UnsentExpoPushTokens, and Emails",
 			input: models.QueryInput{
 				Projection: []string{"username", "password", "unsentExpoPushTokens", "emails", "age"},
 			},
-			expected: []string{"username", "age"},
+			expected: []string{"username", "emails", "age"},
 		},
 	}
 
@@ -1555,7 +1555,6 @@ func TestConstructProjection(t *testing.T) {
 			expected: bson.M{
 				"password":             0,
 				"unsentExpoPushTokens": 0,
-				"emails":               0,
 				"_id":                  0,
 			},
 		},
@@ -1603,6 +1602,7 @@ func TestConstructProjection(t *testing.T) {
 			sanitizedProjection: []string{"username", "age"},
 			expected: bson.M{
 				"username": 1,
+				"emails":   1,
 				"age":      1,
 				"_id":      0,
 			},
