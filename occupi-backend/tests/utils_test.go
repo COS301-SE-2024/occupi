@@ -10,7 +10,13 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"bytes"
+	"image"
+	"image/jpeg"
+	"image/png"
+	"mime/multipart"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -21,6 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
@@ -2657,6 +2664,93 @@ func TestGetClientTime(t *testing.T) {
 
 				// Allow for a few seconds difference due to execution time
 				assert.WithinDuration(t, expectedTime, clientTime, 2*time.Second)
+			}
+		})
+	}
+}
+
+func TestConvertImageToBytes(t *testing.T) {
+	// Helper function to create a test image
+	createTestImage := func(format string) (*multipart.FileHeader, error) {
+		// Create a simple test image
+		img := image.NewRGBA(image.Rect(0, 0, 100, 100))
+
+		// Create a buffer to store the image
+		buf := new(bytes.Buffer)
+
+		// Encode the image
+		switch format {
+		case "jpeg":
+			err := jpeg.Encode(buf, img, nil)
+			if err != nil {
+				return nil, err
+			}
+		case "png":
+			err := png.Encode(buf, img)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// Create a multipart.FileHeader
+		header := &multipart.FileHeader{
+			Filename: "test." + format,
+			Size:     int64(buf.Len()),
+		}
+
+		// Create a multipart.File
+		file := &multipart.File{
+			Reader: bytes.NewReader(buf.Bytes()),
+		}
+
+		// Set the File field of the FileHeader
+		header.Open = func() (multipart.File, error) {
+			return file, nil
+		}
+
+		return header, nil
+	}
+
+	tests := []struct {
+		name      string
+		format    string
+		width     uint
+		thumbnail bool
+		wantErr   bool
+	}{
+		{"JPEG normal", "jpeg", 50, false, false},
+		{"PNG normal", "png", 50, false, false},
+		{"JPEG thumbnail", "jpeg", 0, true, false},
+		{"PNG thumbnail", "png", 0, true, false},
+		{"Unsupported format", "gif", 50, false, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			file, err := createTestImage(tt.format)
+			assert.NoError(t, err)
+
+			got, err := ConvertImageToBytes(file, tt.width, tt.thumbnail)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.NotNil(t, got)
+			assert.Greater(t, len(got), 0)
+
+			// Decode the result to check dimensions
+			img, _, err := image.Decode(bytes.NewReader(got))
+			assert.NoError(t, err)
+
+			bounds := img.Bounds()
+			if tt.thumbnail {
+				assert.LessOrEqual(t, bounds.Dx(), 200)
+				assert.LessOrEqual(t, bounds.Dy(), 200)
+			} else {
+				assert.Equal(t, int(tt.width), bounds.Dx())
 			}
 		})
 	}
