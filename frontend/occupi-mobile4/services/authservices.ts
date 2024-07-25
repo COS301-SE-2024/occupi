@@ -1,5 +1,5 @@
 import { LoginReq } from "@/models/requests";
-import { Error, LoginSuccess } from "@/models/response";
+import { LoginSuccess, Unsuccessful } from "@/models/response";
 import axios from 'axios';
 import dotenv from 'dotenv';
 
@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 // const devUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
 // console.log(devUrl);
 
-export async function login(req: LoginReq): Promise<LoginSuccess | Error> {
+export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful> {
     try {
         const response = await axios.post("https://dev.occupi.tech/auth/login-mobile", req, {
             headers: {
