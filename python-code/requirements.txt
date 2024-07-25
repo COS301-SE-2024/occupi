@@ -6,4 +6,4 @@ requests
 scikit-learn
 seaborn
 matplotlib
-tensorflow
+gunicorn
