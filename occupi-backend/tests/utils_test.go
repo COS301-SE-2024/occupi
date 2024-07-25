@@ -18,8 +18,10 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	
 
 
+	"github.com/nfnt/resize"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -2799,4 +2801,41 @@ type fileWrapper struct {
 
 func (fw *fileWrapper) Open() (multipart.File, error) {
 	return fw, nil
+}
+
+// ConvertImageToBytes reads an image from a multipart.FileHeader, resizes it if required, and returns the image as a byte slice.
+func ConvertImageToBytes(fh *multipart.FileHeader, width uint, thumbnail bool, openFunc func() (multipart.File, error)) ([]byte, error) {
+	file, err := openFunc()
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+
+	if thumbnail {
+		// Resize the image to thumbnail size if needed
+		img = resize.Thumbnail(width, width, img, resize.Lanczos3)
+	} else if width > 0 {
+		// Resize the image to the specified width, maintaining aspect ratio
+		img = resize.Resize(width, 0, img, resize.Lanczos3)
+	}
+
+	var buf bytes.Buffer
+	switch fh.Filename[len(fh.Filename)-3:] {
+	case "jpg", "jpeg":
+		err = jpeg.Encode(&buf, img, nil)
+	case "png":
+		err = png.Encode(&buf, img)
+	default:
+		return nil, fmt.Errorf("unsupported file format")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
