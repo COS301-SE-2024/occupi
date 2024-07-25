@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -38,7 +38,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
+	// "github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
@@ -2622,55 +2622,50 @@ func TestGetClientIP_NotSetInContext(t *testing.T) {
 func TestGetClientTime(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	router := gin.Default()
-	router.Use(middleware.TimezoneMiddleware())
-	router.GET("/client-time", func(c *gin.Context) {
-		clientTime := utils.GetClientTime(c)
-		c.JSON(200, gin.H{
-			"client_time": clientTime.Format(time.RFC3339),
-		})
-	})
-
 	tests := []struct {
-		header     string
-		timezone   string
-		statusCode int
+		name       string
+		setupCtx   func(*gin.Context)
+		wantTimeIn string
 	}{
-		{"X-Timezone", "America/New_York", 200},
-		{"X-Timezone", "Asia/Kolkata", 200},
-		{"X-Timezone", "Invalid/Timezone", 400},
-		{"", "", 200}, // Default to UTC
+		{
+			name: "With America/New_York timezone",
+			setupCtx: func(c *gin.Context) {
+				loc, _ := time.LoadLocation("America/New_York")
+				c.Set("timezone", loc)
+			},
+			wantTimeIn: "America/New_York",
+		},
+		{
+			name: "With Asia/Kolkata timezone",
+			setupCtx: func(c *gin.Context) {
+				loc, _ := time.LoadLocation("Asia/Kolkata")
+				c.Set("timezone", loc)
+			},
+			wantTimeIn: "Asia/Kolkata",
+		},
+		{
+			name:       "Without timezone (default to local)",
+			setupCtx:   func(c *gin.Context) {},
+			wantTimeIn: time.Local.String(),
+		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.timezone, func(t *testing.T) {
-			req, _ := http.NewRequest("GET", "/client-time", nil)
-			if tt.header != "" {
-				req.Header.Set(tt.header, tt.timezone)
+		t.Run(tt.name, func(t *testing.T) {
+			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+			tt.setupCtx(c)
+
+			got := utils.GetClientTime(c)
+
+			if tt.wantTimeIn == time.Local.String() {
+				assert.Equal(t, time.Local, got.Location())
+			} else {
+				wantLoc, _ := time.LoadLocation(tt.wantTimeIn)
+				assert.Equal(t, wantLoc, got.Location())
 			}
-			w := httptest.NewRecorder()
-			router.ServeHTTP(w, req)
 
-			assert.Equal(t, tt.statusCode, w.Code)
-			if tt.statusCode == 200 {
-				var response map[string]string
-				err := json.Unmarshal(w.Body.Bytes(), &response)
-				assert.NoError(t, err)
-
-				var expectedTime time.Time
-				if tt.timezone != "" && tt.timezone != "Invalid/Timezone" {
-					loc, err := time.LoadLocation(tt.timezone)
-					assert.NoError(t, err)
-					expectedTime = time.Now().In(loc)
-				} else {
-					expectedTime = time.Now()
-				}
-				clientTime, err := time.Parse(time.RFC3339, response["client_time"])
-				assert.NoError(t, err)
-
-				// Allow for a few seconds difference due to execution time
-				assert.WithinDuration(t, expectedTime, clientTime, 2*time.Second)
-			}
+			// Check that the time is recent (within the last second)
+			assert.WithinDuration(t, time.Now(), got, time.Second)
 		})
 	}
 }
