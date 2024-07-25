@@ -527,8 +527,8 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Validate the given passwords if they exist
 	if securitySettings.CurrentPassword != "" && securitySettings.NewPassword != "" && securitySettings.NewPasswordConfirm != "" {
-		securitySetting, err := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
-		if err != nil {
+		securitySetting, err, success := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
+		if err != nil || !success {
 			logrus.Error("Failed to sanitize security settings because: ", err)
 			return
 		}
