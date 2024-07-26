@@ -1,9 +1,8 @@
-// src/AiDashboard.tsx
 import React, { useState, useEffect } from "react";
-import { TopNav, AiDashCard } from "@components/index";
+import { TopNav,AiDashCard,PredictedCapacityGraph,CapacityComparisonGraph } from "@components/index";
+
 import { FaUsers, FaBed, FaClipboardList, FaCalendarCheck, FaUndo, FaPlus } from "react-icons/fa";
 import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Bar, BarChart, Cell } from 'recharts';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -21,10 +20,10 @@ const defaultLayouts: Layouts = {
 };
 
 const cardData = [
-  { id: 'card1', title: "Office Occupancy", icon: <FaUsers className="text-blue-500" size={24} />, stat: "65%", trend: 3.46 },
-  { id: 'card2', title: "Available Desks", icon: <FaBed className="text-green-500" size={24} />, stat: "89", trend: -2.1 },
-  { id: 'card3', title: "Reservations", icon: <FaClipboardList className="text-yellow-500" size={24} />, stat: "45", trend: 8.7 },
-  { id: 'card4', title: "Check-ins Today", icon: <FaCalendarCheck className="text-purple-500" size={24} />, stat: "23", trend: 3.4 },
+  { id: 'card1', title: "Office Occupancy", icon: <FaUsers size={24} />, stat: "65%", trend: 3.46 },
+  { id: 'card2', title: "Available Desks", icon: <FaBed size={24} />, stat: "89", trend: -2.1 },
+  { id: 'card3', title: "Reservations", icon: <FaClipboardList size={24} />, stat: "45", trend: 8.7 },
+  { id: 'card4', title: "Check-ins Today", icon: <FaCalendarCheck size={24} />, stat: "23", trend: 3.4 },
 ];
 
 const AiDashboard: React.FC = () => {
@@ -41,6 +40,7 @@ const AiDashboard: React.FC = () => {
   });
 
   const [visibleCards, setVisibleCards] = useState<string[]>(cardData.map(card => card.id));
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     localStorage.setItem('dashboardLayouts', JSON.stringify(layouts));
@@ -56,7 +56,6 @@ const AiDashboard: React.FC = () => {
     localStorage.setItem('dashboardLayouts', JSON.stringify(defaultLayouts));
   };
 
-  const [searchQuery, setSearchQuery] = useState("");
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
@@ -87,20 +86,6 @@ const AiDashboard: React.FC = () => {
     { day: 'Thu', predicted: 75, actual: 73 },
     { day: 'Fri', predicted: 85, actual: 88 },
   ];
-
-  const capacityLevels = {
-    1: '0-25%',
-    2: '26-50%',
-    3: '51-75%',
-    4: '76-100%',
-  };
-
-  const levelColors: { [key: number]: string } = {
-    1: '#4CAF50',
-    2: '#FFC107',
-    3: '#FF9800',
-    4: '#F44336',
-  };
 
   return (
     <div className="w-full overflow-auto">
@@ -155,7 +140,7 @@ const AiDashboard: React.FC = () => {
         >
           {cardData.map(card => (
             visibleCards.includes(card.id) && (
-              <div key={card.id} className="bg-text_col_alt rounded-lg shadow-md overflow-hidden">
+              <div key={card.id}>
                 <AiDashCard
                   title={card.title}
                   icon={card.icon}
@@ -167,42 +152,10 @@ const AiDashboard: React.FC = () => {
             )
           ))}
           <div key="graph1" className="bg-secondary rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-4">Predicted Capacity Levels</h3>
-            <ResponsiveContainer width="100%" height="80%">
-              <BarChart data={predictedCapacityData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis domain={[0, 4]} ticks={[0, 1, 2, 3, 4]} />
-                <Tooltip />
-                <Bar dataKey="level" fill="#8884d8">
-                  {predictedCapacityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={levelColors[entry.level]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="flex justify-center mt-4">
-              {Object.entries(capacityLevels).map(([level, range]) => (
-                <div key={level} className="flex items-center mx-2">
-                  <div className="w-4 h-4 mr-1" style={{ backgroundColor: levelColors[Number(level)] }}></div>
-                  <span className="text-xs">{range}</span>
-                </div>
-              ))}
-            </div>
+            <PredictedCapacityGraph data={predictedCapacityData} />
           </div>
           <div key="graph2" className="bg-secondary rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-4">AI Predicted vs Actual Capacity</h3>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={capacityComparisonData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="predicted" stroke="#8884d8" name="Predicted" />
-                <Line type="monotone" dataKey="actual" stroke="#82ca9d" name="Actual" />
-              </LineChart>
-            </ResponsiveContainer>
+            <CapacityComparisonGraph data={capacityComparisonData} />
           </div>
         </ResponsiveGridLayout>
       </div>
