@@ -152,7 +152,7 @@ const AiDashboard: React.FC = () => {
             )
           ))}
           <div key="graph1" className="bg-secondary rounded-lg shadow-md p-4">
-            <PredictedCapacityGraph data={predictedCapacityData} />
+            <PredictedCapacityGraph  />
           </div>
           <div key="graph2" className="bg-secondary rounded-lg shadow-md p-4">
             <CapacityComparisonGraph data={capacityComparisonData} />

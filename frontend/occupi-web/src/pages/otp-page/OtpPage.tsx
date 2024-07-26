@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { OccupiLogo, login_image } from "@assets/index";
-import { GradientButton, OtpComponent,OccupiLoader } from "@components/index";
+import { GradientButton, OtpComponent, OccupiLoader } from "@components/index";
 import AuthService from "AuthService";
 import { useUser } from "UserContext";
 

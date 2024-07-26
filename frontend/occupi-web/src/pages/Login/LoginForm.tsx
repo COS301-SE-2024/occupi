@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { loginpng, OccupiLogo } from "@assets/index";
-import { Checkbox, GradientButton, InputBox,OccupiLoader } from "@components/index";
+import { Checkbox, GradientButton, InputBox, OccupiLoader } from "@components/index";
 import { useNavigate } from "react-router-dom";
 import { registerCredential, authenticateWithCredential } from './WebAuthn';
 import AuthService from "AuthService";

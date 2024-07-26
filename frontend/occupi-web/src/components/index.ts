@@ -33,7 +33,7 @@ import RoomsComponent from "./roomsComponent/RoomsComponent";
 import FeedBackModal from "./feedbackModal/FeedBackModal";
 import PredictedCapacityGraph from "./aiDashboard/aiDashGraphs/PredictedCapacityGraph";
 import CapacityComparisonGraph from "./aiDashboard/aiDashGraphs/CapacityComparisonGraph";
-
+import DashboardWizard from "./aiDashboard/dashboardWizard/DashboardWizard";
 
 export {
     DrawerComponent,
@@ -70,5 +70,6 @@ export {
     RoomsComponent,
     FeedBackModal,
     PredictedCapacityGraph,
-    CapacityComparisonGraph
+    CapacityComparisonGraph,
+    DashboardWizard
 }
