@@ -4,6 +4,7 @@ import Feature2 from "@/public/images/Illustration-1.svg";
 import Feature3 from "@/public/images/Group.svg";
 import AppleStore from "@/public/images/app-store.svg";
 import PlayStore from "@/public/images/googleplay.svg";
+import WindowStore from "@/public/images/microsoft-store.svg";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -91,7 +92,7 @@ const VisualFeatures = () => {
               <Image
                 src={PlayStore}
                 alt="Google Play Store"
-                width={235}
+                width={335}
                 height={40}
                 className="cursor-pointer"
               />
@@ -104,6 +105,19 @@ const VisualFeatures = () => {
               <Image
                 src={AppleStore}
                 alt="Apple App Store"
+                width={635}
+                height={40}
+                className="cursor-pointer"
+              />
+            </Link>
+            <Link
+              href="https://www.apple.com/app-store/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Image
+                src={WindowStore}
+                alt="Window Store"
                 width={435}
                 height={40}
                 className="cursor-pointer"
