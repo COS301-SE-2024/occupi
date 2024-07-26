@@ -1901,7 +1901,7 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 	mt.Run("Location exists and is valid", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
-			{Key: "locations", Value: bson.A{
+			{Key: "knownLocations", Value: bson.A{
 				bson.D{
 					{Key: "city", Value: "Cape Town"},
 					{Key: "region", Value: "Western Cape"},
@@ -1925,7 +1925,7 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 	mt.Run("Location exists but ip address unkwown", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: email},
-			{Key: "locations", Value: bson.A{
+			{Key: "knownLocations", Value: bson.A{
 				bson.D{
 					{Key: "city", Value: "Durban"},
 					{Key: "region", Value: "KwaZulu-Natal"},
