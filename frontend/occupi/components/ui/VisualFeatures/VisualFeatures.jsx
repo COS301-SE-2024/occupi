@@ -1,6 +1,7 @@
 import SectionWrapper from "@/components/SectionWrapper"
-import Feature1 from "@/public/images/Feature-1.svg"
-import Feature2 from "@/public/images/Feature-2.svg"
+import Feature1 from "@/public/images/Illustration-2.svg"
+import Feature2 from "@/public/images/Illustration-1.svg"
+import Feature3 from "@/public/images/Group.svg"
 import Image from "next/image"
 
 const VisualFeatures = () => {
@@ -11,8 +12,13 @@ const VisualFeatures = () => {
             desc: "Peek into your office's past occupancy data to make informed decisions about your office's future capacity.",
             img: Feature1
         },
+        
         {
             title: "Make AI-powered predictions for office capacity",
+            desc: "By participating in Occupi, you're directly contributing to the growth of artificial intelligence. Networks like these are required to train AI models, and AI labs are some of our biggest customers.",
+        },
+        {
+            title: "What is Occupi and How Does it Work?",
             desc: "AI-powered predicitions based off of historical data enable you to plan and perfect your organizations office management",
             img: Feature2
         },
