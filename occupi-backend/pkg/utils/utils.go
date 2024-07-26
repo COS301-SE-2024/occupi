@@ -455,7 +455,7 @@ func ConvertToStringArray(input interface{}) []string {
 }
 
 func ConvertTokensToStringArray(tokens []primitive.M, key string) ([]string, error) {
-	var stringArray []string
+	stringArray := []string{}
 
 	for _, token := range tokens {
 		// Ensure the map contains the key
