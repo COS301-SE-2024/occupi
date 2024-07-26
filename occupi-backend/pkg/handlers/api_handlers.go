@@ -14,6 +14,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -382,31 +383,22 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 	}
 
 	if collectionName == "RoomBooking" {
-		// check that the .Filter in filter has the email key set and that the value is the same as the email in the appsession otherwise set the email key to the email in the appsession
-		if filter.Filter["email"] == nil || filter.Filter["email"] == "" {
-			email, err := AttemptToGetEmail(ctx, appsession)
-
-			if err != nil {
-				logrus.Error("Failed to get email because: ", err)
-				ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-				return
-			}
-
-			filter.Filter["email"] = email
-		} else {
-			email, err := AttemptToGetEmail(ctx, appsession)
-
-			if err != nil {
-				logrus.Error("Failed to get email because: ", err)
-				ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-				return
-			}
-
-			if filter.Filter["email"] != email {
-				filter.Filter["email"] = email
-			}
+		// check that the email field is set
+		if _, ok := filter.Filter["email"]; !ok {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Email must be provided", nil))
+			return
 		}
+
+		// delete email field from the filter
+		email := filter.Filter["email"]
+		delete(filter.Filter, "email")
+
+		// set emails field in the filter
+		filter.Filter["emails"] = bson.M{"$in": []string{email.(string)}}
 	}
+
+	fmt.Printf("Filter: %v\n", filter)
+	fmt.Printf("Collection Name: %v\n", collectionName)
 
 	res, totalResults, err := database.FilterCollectionWithProjection(ctx, appsession, collectionName, filter)
 
@@ -527,8 +519,8 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Validate the given passwords if they exist
 	if securitySettings.CurrentPassword != "" && securitySettings.NewPassword != "" && securitySettings.NewPasswordConfirm != "" {
-		securitySetting, err := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
-		if err != nil {
+		securitySetting, err, success := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
+		if err != nil || !success {
 			logrus.Error("Failed to sanitize security settings because: ", err)
 			return
 		}
