@@ -70,23 +70,9 @@ const AiDashboard: React.FC = () => {
     }
   };
 
-  // Sample data for graphs
-  const predictedCapacityData = [
-    { day: 'Mon', level: 2 },
-    { day: 'Tue', level: 3 },
-    { day: 'Wed', level: 4 },
-    { day: 'Thu', level: 1 },
-    { day: 'Fri', level: 2 },
-  ];
 
-  const capacityComparisonData = [
-    { day: 'Mon', predicted: 65, actual: 70 },
-    { day: 'Tue', predicted: 70, actual: 68 },
-    { day: 'Wed', predicted: 80, actual: 82 },
-    { day: 'Thu', predicted: 75, actual: 73 },
-    { day: 'Fri', predicted: 85, actual: 88 },
-  ];
 
+  
   return (
     <div className="w-full overflow-auto">
       <TopNav
@@ -155,7 +141,7 @@ const AiDashboard: React.FC = () => {
             <PredictedCapacityGraph  />
           </div>
           <div key="graph2" className="bg-secondary rounded-lg shadow-md p-4">
-            <CapacityComparisonGraph data={capacityComparisonData} />
+            <CapacityComparisonGraph />
           </div>
         </ResponsiveGridLayout>
       </div>

@@ -1,16 +1,20 @@
-import React from 'react';
 import { ResponsiveContainer, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from 'recharts';
 
-interface CapacityComparisonGraphProps {
-  data: { day: string; predicted: number; actual: number }[];
-}
 
-const CapacityComparisonGraph: React.FC<CapacityComparisonGraphProps> = ({ data }) => {
+const capacityComparisonData = [
+  { day: 'Mon', predicted: 65, actual: 70 },
+  { day: 'Tue', predicted: 70, actual: 68 },
+  { day: 'Wed', predicted: 80, actual: 82 },
+  { day: 'Thu', predicted: 75, actual: 73 },
+  { day: 'Fri', predicted: 85, actual: 88 },
+];
+
+const CapacityComparisonGraph= () => {
   return (
     <div className="h-full">
       <h3 className="text-lg font-semibold mb-4">AI Predicted vs Actual Capacity</h3>
       <ResponsiveContainer width="100%" height="90%">
-        <LineChart data={data}>
+        <LineChart data={capacityComparisonData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="day" />
           <YAxis />
