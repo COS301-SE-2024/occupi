@@ -153,7 +153,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.ID))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.RoomID))
 }
 
 func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {

@@ -52,7 +52,7 @@ func TestGetUser(t *testing.T) {
 				appsession = &models.AppSession{
 					Cache: configs.CreateCache(),
 				}
-				err := appsession.Cache.Set(email, userData)
+				err := appsession.Cache.Set(cache.UserKey(email), userData)
 
 				assert.NoError(t, err)
 			} else {
@@ -109,7 +109,7 @@ func TestSetUser(t *testing.T) {
 			if tt.name != "cache is nil" {
 
 				// check if user was set in cache
-				userData, err := appsession.Cache.Get(email)
+				userData, err := appsession.Cache.Get(cache.UserKey(email))
 				assert.NoError(t, err)
 
 				// unmarshal the user from the cache
@@ -156,7 +156,7 @@ func TestDeleteUser(t *testing.T) {
 
 				// add user to cache
 				userData, _ := bson.Marshal(user)
-				err := appsession.Cache.Set(email, userData)
+				err := appsession.Cache.Set(cache.UserKey(email), userData)
 
 				assert.NoError(t, err)
 			} else {
@@ -168,7 +168,7 @@ func TestDeleteUser(t *testing.T) {
 			if tt.name != "cache is nil" {
 
 				// check if user was deleted in cache
-				userData, err := appsession.Cache.Get(email)
+				userData, err := appsession.Cache.Get(cache.UserKey(email))
 				assert.NotNil(t, err)
 				assert.Nil(t, userData)
 			}
@@ -217,7 +217,7 @@ func TestGetOTP(t *testing.T) {
 				appsession = &models.AppSession{
 					Cache: configs.CreateCache(),
 				}
-				err := appsession.Cache.Set(email+otpv, otpData)
+				err := appsession.Cache.Set(cache.OTPKey(email, otpv), otpData)
 
 				assert.NoError(t, err)
 			} else {
@@ -277,7 +277,7 @@ func TestSetOTP(t *testing.T) {
 
 			if tt.name != "cache is nil" {
 				// check if otp was set in cache
-				otpData, err := appsession.Cache.Get(email + otpv)
+				otpData, err := appsession.Cache.Get(cache.OTPKey(email, otpv))
 				assert.NoError(t, err)
 
 				// unmarshal the otp from the cache
@@ -325,7 +325,7 @@ func TestDeleteOTPF(t *testing.T) {
 
 				// add otp to cache
 				otpData, _ := bson.Marshal(otp)
-				err := appsession.Cache.Set(email+otpv, otpData)
+				err := appsession.Cache.Set(cache.OTPKey(email, otpv), otpData)
 
 				assert.NoError(t, err)
 			} else {
@@ -336,7 +336,7 @@ func TestDeleteOTPF(t *testing.T) {
 
 			if tt.name != "cache is nil" {
 				// check if otp was deleted in cache
-				otpData, err := appsession.Cache.Get(email + otpv)
+				otpData, err := appsession.Cache.Get(cache.OTPKey(email, otpv))
 				assert.NotNil(t, err)
 				assert.Nil(t, otpData)
 			}
