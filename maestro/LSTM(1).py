@@ -10,6 +10,7 @@ from tensorflow.keras.layers import Conv1D, MaxPooling1D, LSTM, Dense, Flatten, 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
 from datetime import datetime
+import joblib
 
 # Load the dataset
 file_path = 'datasets/Attendance_data(1).csv'
@@ -74,6 +75,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
+joblib.dump(scaler, 'attendance_scaler.pkl')
 
 # Original Distribution of Number Attended
 plt.figure(figsize=(14, 6))
@@ -214,4 +216,5 @@ plt.title('Predicted Attendance Levels for the Week')
 plt.show()
 
 # Save the model in the SavedModel format
-model.export('C:/Users/retha/Capstone/occupi/models/attendance_model/1')
+model.save('attendance_model')
+# model.export('C:/Users/retha/Capstone/occupi/models/attendance_model/1')
