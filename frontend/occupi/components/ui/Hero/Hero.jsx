@@ -12,28 +12,37 @@ const Hero = () => (
                     falseState: "opacity-0"
                 }}
             >
-                <div>
-                    <div className="space-y-5 max-w-3xl mx-auto text-center">
-                        <h1 className="text-4xl bg-clip-text text-transparent bg-gradient-to-r font-extrabold mx-auto sm:text-6xl"
-                            style={{
-                                backgroundImage: "linear-gradient(179.1deg, #FFFFFF 0.77%, rgba(255, 255, 255, 0) 182.09%)"
-                            }}
-                        >
-                            Predict. Plan. Perfect.
+                
+                <div className="flex flex-col md:flex-row items-center justify-between">
+                    <GradientWrapper wrapperClassName="max-w-3xl h-[250px] top-12 inset-0 sm:h-[300px] lg:h-[650px]">
+                    <div className="md:w-1/2 md:pr-8 mb-8 md:mb-0 md:ml-20">
+                        <h1 className="text-4xl font-bold text-gray-800 mb-4 sm:text-5xl">
+                            Analyse and Predict your office capacity
                         </h1>
-                        <p className="max-w-xl mx-auto text-gray-300">
-                            Gain control of your business's growth with Occupi's comprehensive office analystics, capacity prediction, and ocuppancy prediction platform.
+                        <p className="text-xl text-white-600 mb-6">
+                            Predict. Plan. Perfect
+                        </p>
+                        <p className="inline-block bg-gray-900 text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors">
+                            Get Access →
                         </p>
                     </div>
-                    <GradientWrapper className="mt-16 sm:mt-28" wrapperClassName="max-w-3xl h-[250px] top-12 inset-0 sm:h-[300px] lg:h-[650px]">
+                    </GradientWrapper>
+                    
+                    {/* <GradientWrapper className="mt-16 sm:mt-28" wrapperClassName="max-w-3xl h-[250px] top-12 inset-0 sm:h-[300px] lg:h-[650px]"> */}
+                    <div className="md:w-1/2">
                         <Image
                             src={HeroImg}
-                            alt="occupi hero image"
+                            alt="Occupi App Screenshot"
+                            width={350}
+                            height={100}
+                            className="rounded-lg shadow-lg"
                         />
-                    </GradientWrapper>
+                    </div>
+                    {/* </GradientWrapper> */}
                 </div>
             </LayoutEffect>
         </div>
+        
     </section>
 )
 
