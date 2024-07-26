@@ -1,2 +1,5 @@
 [test]
 preload = "./happydom.ts"
+coverage = true # always enable coverage
+coverageReporter  = ["text", "lcov"]  # default ["text"]
+coverageDir = "coverage"  # default "coverage"
