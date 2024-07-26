@@ -9,6 +9,8 @@ import Analysis from "./analysis/Analysis";
 import PDFReport from "./reports/PDFReport";
 import Visitation from "./visitations/Visitations";
 import Faq from "./faq/Faq";
+import AiDashboard  from "./aiDashboard/AiDashboard";
+import Rooms from "./rooms/Rooms";
 export {
   LoginForm,
   OtpPage,
@@ -21,4 +23,6 @@ export {
   PDFReport,
   Visitation,
   Faq,
+  AiDashboard,
+  Rooms
 };

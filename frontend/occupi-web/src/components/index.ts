@@ -28,6 +28,9 @@ import StatCard from "./statCard/StatCard";
 import Header from "./headerComponent/Header";
 import OccupiLoader from "./occupiLoader/OccupiLoader";
 import ProfileDropDown from "./profileDropDown/ProfileDropDown";
+import AiDashCard from "./aiDashboard/aiDashCard/AiDashCard";
+import RoomsComponent from "./roomsComponent/RoomsComponent";
+import FeedBackModal from "./feedbackModal/FeedBackModal";
 
 export {
     DrawerComponent,
@@ -59,5 +62,8 @@ export {
     StatCard,
     Header,
     OccupiLoader,
-    ProfileDropDown
+    ProfileDropDown,
+    AiDashCard,
+    RoomsComponent,
+    FeedBackModal
 }

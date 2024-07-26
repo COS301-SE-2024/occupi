@@ -72,7 +72,7 @@ const TopNav = (props: TopNavProps) => {
         >
           <FaSearch size={24} className="text-text_col" />
         </motion.button>
-        <ProfileDropDown />
+        {/* <ProfileDropDown /> */}
       </div>
     </div>
   )

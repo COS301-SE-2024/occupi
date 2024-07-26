@@ -1,11 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { loginpng, OccupiLogo } from "@assets/index";
-import { Checkbox, GradientButton, InputBox } from "@components/index";
+import { Checkbox, GradientButton, InputBox,OccupiLoader } from "@components/index";
 import { useNavigate } from "react-router-dom";
 import { registerCredential, authenticateWithCredential } from './WebAuthn';
 import AuthService from "AuthService";
 import { useUser } from "UserContext";
-
 
 const LoginForm = (): JSX.Element => {
   const navigate = useNavigate();
@@ -17,19 +16,18 @@ const LoginForm = (): JSX.Element => {
     valid_email: boolean,
     valid_password: boolean
   }>({ email: "", password: "", valid_email: false, valid_password: false });
-  const [isloading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [, setRequiresOtp] = useState(false);
+  const [requiresOtp, setRequiresOtp] = useState<boolean>(false);
 
   const handleLogin = async () => {
     setIsLoading(true);
     setError("");
-    
+
     try {
       const response = await AuthService.login(form.email, form.password);
       console.log("Login response:", response);
-  
-console.log("Login:", form.email, form.password);
+
       if (response.message.includes('check your email for an otp')) {
         setRequiresOtp(true);
         navigate("/otp", { state: { email: form.email } });
@@ -40,10 +38,10 @@ console.log("Login:", form.email, form.password);
       setUserDetails({ email: form.email /* other fields */ });
       const userDetails = await AuthService.getUserDetails(form.email);
       console.log("User details from API:", userDetails);
-  
+
       setUserDetails(userDetails);
       console.log("UserDetails after setting:", userDetails);
-  
+
       navigate("/dashboard/overview");
     } catch (error) {
       console.error("Login or user details error:", error);
@@ -56,21 +54,6 @@ console.log("Login:", form.email, form.password);
       setIsLoading(false);
     }
   };
-
-
-
-  // const handleOtpVerificationSuccess = async () => {
-  //   setRequiresOtp(false);
-  //   const userDetails = await AuthService.getUserDetails(form.email);
-  //   console.log("User details from API:", userDetails);
-  
-  //     setUserDetails(userDetails);
-  // };
-
-  // const handleOtpVerificationFailure = (error: string) => {
-  //   setError(error);
-  // };
-
 
   const handleWebAuthnRegistration = async () => {
     try {
@@ -104,6 +87,7 @@ console.log("Login:", form.email, form.password);
 
   return (
     <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen p-4">
+      {isLoading && <OccupiLoader message={requiresOtp ? "Redirecting to OTP page..." : "Logging you in..."} />}
       <div className="w-full lg:w-1/2 flex justify-center items-center mb-8 lg:mb-0 p-4">
         <div className="w-full max-w-md aspect-square">
           <img className="w-full h-full object-contain" src={loginpng} alt="welcomes" />
@@ -140,17 +124,17 @@ console.log("Login:", form.email, form.password);
           </div>
           <p className="text-text_col_green_leaf cursor-pointer">Forgot Password?</p>
         </div>
-        
+
         {error && <p className="text-red-500 mt-2">{error}</p>}
 
         <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Login" isClickable={form.valid_email && form.valid_password} clickEvent={handleLogin}/>
+          <GradientButton isLoading={isLoading} Text="Login" isClickable={form.valid_email && form.valid_password} clickEvent={handleLogin}/>
         </div>
         <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Auth" isClickable={form.valid_email && form.valid_password} clickEvent={handleWebAuthnAuthentication}/>
+          <GradientButton isLoading={isLoading} Text="Auth" isClickable={form.valid_email && form.valid_password} clickEvent={handleWebAuthnAuthentication}/>
         </div>
         <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Register" isClickable={form.valid_email && form.valid_password} clickEvent={handleWebAuthnRegistration}/>
+          <GradientButton isLoading={isLoading} Text="Register" isClickable={form.valid_email && form.valid_password} clickEvent={handleWebAuthnRegistration}/>
         </div>
 
         <div className="flex items-center justify-center mt-5 mb-5">
