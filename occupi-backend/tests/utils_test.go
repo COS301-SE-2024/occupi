@@ -1599,7 +1599,7 @@ func TestConstructProjection(t *testing.T) {
 			queryInput: models.QueryInput{
 				Projection: []string{"username", "emails", "age"},
 			},
-			sanitizedProjection: []string{"username", "age"},
+			sanitizedProjection: []string{"username", "emails", "age"},
 			expected: bson.M{
 				"username": 1,
 				"emails":   1,
