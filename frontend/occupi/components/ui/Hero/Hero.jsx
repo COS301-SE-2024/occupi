@@ -1,6 +1,6 @@
 import GradientWrapper from "@/components/GradientWrapper"
 import Image from "next/image"
-import HeroImg from "@/public/images/hero.png"
+import HeroImg from "@/public/images/Group.svg"
 import LayoutEffect from "@/components/LayoutEffect"
 
 const Hero = () => (
