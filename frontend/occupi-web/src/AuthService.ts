@@ -1,89 +1,14 @@
-// // src/services/AuthService.ts
-// import axios, { AxiosResponse } from 'axios';
-
-// const API_URL = import.meta.env.VITE_API_URL;
-// console.log(API_URL);
-
-// if (!API_URL) {
-//   throw new Error('VITE_API_URL is not defined in the environment');
-// }
-
-// // ... rest of the AuthService code remains the same
-// // ... rest of the AuthService code remains the same
-// interface RegisterData {
-//   email: string;
-//   password: string;
-//   employee_id?: string;
-// }
-
-// interface LoginData {
-//   email: string;
-//   password: string;
-// }
-
-// interface VerifyOTPData {
-//   email: string;
-//   oTP: string;
-// }
-
-// interface ApiResponse {
-//   status: number;
-//   message: string;
-//   data: any;
-// }
-
-// const AuthService = {
-//   register: async (data: RegisterData): Promise<ApiResponse> => {
-//     try {
-//       const response: AxiosResponse<ApiResponse> = await axios.post(`${API_URL}/auth/register`, data);
-//       return response.data;
-//     } catch (error) {
-//       if (axios.isAxiosError(error) && error.response) {
-//         throw error.response.data;
-//       }
-//       throw new Error('An unexpected error occurred');
-//     }
-//   },
-
-//   login: async (data: LoginData): Promise<ApiResponse> => {
-//     try {
-//       const response: AxiosResponse<ApiResponse> = await axios.post(`${API_URL}/auth/login`, data);
-//       return response.data;
-//     } catch (error) {
-//       if (axios.isAxiosError(error) && error.response) {
-//         throw error.response.data;
-//       }
-//       throw new Error('An unexpected error occurred');
-//     }
-//   },
-
-//   verifyOTP: async (data: VerifyOTPData): Promise<ApiResponse> => {
-//     try {
-//       const response: AxiosResponse<ApiResponse> = await axios.post(`${API_URL}/auth/verify-otp`, data);
-//       return response.data;
-//     } catch (error) {
-//       if (axios.isAxiosError(error) && error.response) {
-//         throw error.response.data;
-//       }
-//       throw new Error('An unexpected error occurred');
-//     }
-//   }
-// };
-
-// export default AuthService;
-
-
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = '/auth'; // This will be proxied to https://dev.occupi.tech
+const API_USER_URL = '/api'; // Adjust this if needed
 
 const AuthService = {
   login: async (email: string, password: string) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
+      const response = await axios.post(`${API_URL}/login-admin`, {
         email,
         password,
-        // employee_id
       });
       return response.data;
     } catch (error) {
@@ -94,7 +19,68 @@ const AuthService = {
     }
   },
 
-  // We'll add login and verifyOTP methods later
+
+
+  logout: async () => {
+    try {
+      const response = await axios.post(`${API_URL}/logout`, {
+        
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response.data;
+      }
+      throw new Error('An unexpected error occurred Whilst Logging out');
+    }
+  },
+
+  getUserDetails : async (email: string) => {
+    try {
+      console.log(API_USER_URL);
+      const response = await axios.get(`${API_USER_URL}/user-details?email=${email}`, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      console.log("Full user details response:", response);
+      if (response.status === 200) {
+        return response.data.data; // The user details are in the 'data' field
+      } else {
+        throw new Error(response.data.message || 'Failed to get user details');
+      }
+    } catch (error) {
+      console.error("Error in getUserDetails:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(error.response.data.message || 'Failed to get user details');
+      }
+      throw new Error('An unexpected error occurred while fetching user details');
+    }
+  },
+  
+ 
+
+
+  verifyOtpLogin: async (email: string, otp: string) => {
+    try {
+      console.log("Verifying OTP:", email,otp);
+      const response = await axios.post(`${API_URL}/verify-otp-login`, { email, otp });
+      if (response.data.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'OTP verification failed');
+      }
+    } catch (error) {
+      console.error("Error in verifyOtpLogin:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response.data;
+      }
+      throw new Error('An unexpected error occurred during OTP verification');
+    }
+  }
+
+
+
 };
 
 export default AuthService;

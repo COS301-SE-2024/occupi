@@ -52,8 +52,107 @@ const Dashboard = () => {
         setName(String(jsonresult?.data?.details?.name)); 
       }
     };
+    const getUserSettings = async () => {
+      try {
+        let authToken = await SecureStore.getItemAsync('Token');
+        let email = await SecureStore.getItemAsync('Email');
+        // console.log(authToken);
+        const response = await fetch(`https://dev.occupi.tech/api/get-notification-settings?email=${email}`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `${authToken}`
+          },
+          credentials: "include"
+        });
+        const data = await response.json();
+        console.log(data);
+        if (response.ok) {
+          const settings = {
+            invites: data.data.invites,
+            bookingReminder: data.data.bookingReminder
+          };
+          // console.log(settings);
+          await SecureStore.setItemAsync('Notifications', JSON.stringify(settings));
+        } else {
+          console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>Network Error</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+      }
+      try {
+        let authToken = await SecureStore.getItemAsync('Token');
+        let email = await SecureStore.getItemAsync('Email');
+        // console.log(authToken);
+        const response = await fetch(`https://dev.occupi.tech/api/get-security-settings?email=${email}`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `${authToken}`
+          },
+          credentials: "include"
+        });
+        const data = await response.json();
+        console.log(data);
+        if (response.ok) {
+          const settings = {
+            mfa: data.data.mfa,
+            forcelogout: data.data.forceLogout
+          };
+          console.log(settings);
+          await SecureStore.setItemAsync('Security', JSON.stringify(settings));
+        } else {
+          console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>Network Error</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+      }
+    }
+    getUserSettings();
     getUserDetails();
-  }, []);
+  }, [toast]);
 
   const checkIn = () => {
     if (checkedIn === false) {
