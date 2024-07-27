@@ -16,7 +16,7 @@ defaults:
 
 jobs:
     build:
-        name: Build
+        name: 🏗️ Build
         runs-on: ubuntu-latest
     
         strategy:
@@ -24,44 +24,44 @@ jobs:
             python-version: [3.8, 3.9, 3.11]
     
         steps:
-        - name: Checkout repository
+        - name: ⬇️ Checkout repository
           uses: actions/checkout@v4
     
-        - name: Set up Python ${{ matrix.python-version }}
+        - name: 🏗 Set up Python ${{ matrix.python-version }}
           uses: actions/setup-python@v5
           with:
             python-version: ${{ matrix.python-version }}
     
-        - name: Install dependencies
+        - name: 📦 Install dependencies
           run: |
             python -m pip install --upgrade pip
             pip install -r requirements.txt
     
-        - name: Build completed
+        - name: ✅ Build completed
           run: echo "Build completed successfully!"
 
     build-push-docker:
-        name: Build and Push Docker Image
+        name: 🐋 Build and Push Docker Image
         runs-on: ubuntu-latest
         needs: build
 
         steps:
-            - name: Checkout code
+            - name: ⬇️ Checkout code
               uses: actions/checkout@v4
 
-            - name: Set up QEMU
+            - name: 🏗 Set up QEMU
               uses: docker/setup-qemu-action@v3
 
-            - name: Set up Docker Buildx
+            - name: 🏗 Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
-            - name: Login to DockerHub
+            - name: 🧑‍💻 Login to DockerHub
               uses: docker/login-action@v3
               with:
                 username: ${{ secrets.DOCKER_USERNAME }}
                 password: ${{ secrets.DOCKER_PASSWORD }}
-     
-            - name: Build and push Docker image
+
+            - name: 🐳 Build and push Docker image
               uses: docker/build-push-action@v5
               with:
                 context: python-code
@@ -71,15 +71,15 @@ jobs:
                 tags: ${{ secrets.DOCKER_USERNAME }}/model:latest
         
     deploy:
-          name: Deploy Python App
+          name: 🛳️ Deploy Python App
           runs-on: ubuntu-latest
           needs: build-push-docker
   
           steps:
-              - name: Checkout code
+              - name: ⬇️ Checkout code
                 uses: actions/checkout@v4
   
-              - name: Copy files to VM
+              - name: 🪷 Copy files to VM
                 uses: appleboy/scp-action@v0.1.5
                 with:
                     host: ${{ secrets.VM_IP }}
@@ -89,7 +89,7 @@ jobs:
                     target: "/home/${{ secrets.VM_USERNAME }}/model"
   
               # SSH to VM and run commands
-              - name: SSH to VM
+              - name: 🚀 SSH to VM
                 uses: appleboy/ssh-action@master
                 with:
                     host: ${{ secrets.VM_IP }}
