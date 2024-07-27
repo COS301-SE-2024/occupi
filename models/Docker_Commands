@@ -1,0 +1,8 @@
+1. docker pull tensorflow/serving
+
+The following point make sure you're in the directory models
+2. docker build -t tensorflow/serving.
+
+3. docker run -p -d 8501:8501 tensorflow/serving
+
+4. http://localhost:8501/v1/models/attendance_model
