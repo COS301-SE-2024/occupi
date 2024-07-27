@@ -5,6 +5,7 @@ on:
     branches: ["develop"]
     paths: [
         "frontend/occupi-web/**",
+        ".github/workflows/lint-test-build-web.yml"
     ]
 
   workflow_dispatch:

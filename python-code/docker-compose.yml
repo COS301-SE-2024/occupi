@@ -1,0 +1,22 @@
+services:
+  model:
+    image: $DOCKER_USERNAME/model:latest
+    container_name: model
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - webnet
+    restart: on-failure:5
+
+networks:
+  webnet:
+    external: true
