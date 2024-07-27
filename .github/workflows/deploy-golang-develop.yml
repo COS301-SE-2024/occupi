@@ -18,52 +18,52 @@ defaults:
 
 jobs:
   build-test:
-    name: Build
+    name: 🏗️ Build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: ⬇️ Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Go
+    - name: 🏗 Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'  # Specify the Go version you are using
 
-    - name: Build the code
+    - name: 🚀 Build the code
       run: |
         go build -v cmd/occupi-backend/main.go
 
   build-push-docker:
-    name: Build and Push Develop Docker Image
+    name: 🐋 Build and Push Develop Docker Image
     runs-on: ubuntu-latest
     needs: build-test
 
     steps:
-    - name: Checkout code
+    - name: ⬇️ Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up QEMU
+    - name: 🏗 Set up QEMU
       uses: docker/setup-qemu-action@v3
 
-    - name: Set up Docker Buildx
+    - name: 🏗 Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Login to DockerHub
+    - name: 🧑‍💻 Login to DockerHub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Decrypt default variables
+    - name: 🔓 Decrypt default variables
       run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/config.yaml.gpg > configs/config.yaml
   
-    - name: Decrypt test variables
+    - name: 🔓 Decrypt test variables
       run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/dev.deployed.yaml.gpg > configs/dev.deployed.yaml
                 
-    - name: Build and push Docker image
+    - name: 🐳 Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: occupi-backend
@@ -73,15 +73,15 @@ jobs:
         tags: ${{ secrets.DOCKER_USERNAME }}/occupi-backend:latest-develop
 
   deploy:
-        name: Deploy for Develop
+        name: 🛳️ Deploy for Develop
         runs-on: ubuntu-latest
         needs: build-push-docker
 
         steps:
-            - name: Checkout code
+            - name: ⬇️ Checkout code
               uses: actions/checkout@v4
 
-            - name: Copy files to VM
+            - name: 🪷 Copy files to VM
               uses: appleboy/scp-action@v0.1.5
               with:
                     host: ${{ secrets.VM_IP }}
@@ -91,7 +91,7 @@ jobs:
                     target: "/home/${{ secrets.VM_USERNAME }}/occupi-backend-dev"
 
             # SSH to VM and run commands
-            - name: SSH to VM
+            - name: 🚀 SSH to VM
               uses: appleboy/ssh-action@master
               with:
                 host: ${{ secrets.VM_IP }}
