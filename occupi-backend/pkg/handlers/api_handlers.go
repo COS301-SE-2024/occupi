@@ -154,7 +154,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.ID))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.RoomID))
 }
 
 func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
@@ -829,10 +829,16 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	switch request.Quality {
 	case constants.ThumbnailRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
+
+		go PreloadAllImageResolutions(ctx, appsession, id)
 	case constants.LowRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
+
+		go PreloadMidAndHighResolutions(ctx, appsession, id)
 	case constants.MidRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+
+		go PreloadHighResolution(ctx, appsession, id)
 	case constants.HighRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
 	default:
