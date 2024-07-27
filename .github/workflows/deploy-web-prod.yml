@@ -1,4 +1,4 @@
-name: Deploy Prod Dashboard
+name: Build 🏗️ and Deploy 🛳️ Web App to Production 🚝
 
 on:
   push:

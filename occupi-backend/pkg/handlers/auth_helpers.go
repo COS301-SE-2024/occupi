@@ -334,6 +334,13 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, err
 	}
 
+	// update verification status in database to false
+	_, err = database.UpdateVerificationStatusTo(ctx, appsession, email, false)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return false, err
+	}
+
 	// check if the users ip address is logging in from a known location
 	isIPValid, unrecognizedLogger, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, utils.GetClientIP(ctx))
 

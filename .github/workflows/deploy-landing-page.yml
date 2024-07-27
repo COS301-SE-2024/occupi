@@ -1,4 +1,4 @@
-name: Deploy Landing page
+name: Build 🏗️ and Deploy Landing Page 🛳️
 
 on:
   push:

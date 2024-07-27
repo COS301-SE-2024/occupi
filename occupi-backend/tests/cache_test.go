@@ -16,6 +16,105 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
 
+func TestSaveBooking_WithCache(t *testing.T) {
+	// Create database connection and Cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	Cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the Cache
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: Cache,
+	}
+
+	booking := models.Booking{
+		OccupiID: "OCCUPI01",
+	}
+
+	success, err := database.SaveBooking(ctx, appSession, booking)
+	assert.True(t, success)
+	assert.Nil(t, err)
+
+	// Verify the booking is in the Cache
+	cachedBooking1, err := Cache.Get(cache.RoomBookingKey(booking.OccupiID))
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedBooking1)
+
+	// sleep for 2 * Cache expiry time to ensure the Cache expires
+	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
+
+	// Verify the booking is not in the Cache
+	cachedBooking2, err := Cache.Get(cache.UserKey(booking.OccupiID))
+	assert.NotNil(t, err)
+	assert.Nil(t, cachedBooking2)
+}
+
+func TestConfirmCheckin_WithCache(t *testing.T) {
+	// Create database connection and Cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	Cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the Cache
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: Cache,
+	}
+
+	checkin := models.CheckIn{
+		BookingID: "ROOM01",
+		Creator:   "TestConfirmCheckin_WithCache@example.com",
+	}
+
+	booking := models.Booking{
+		OccupiID:  checkin.BookingID,
+		Creator:   checkin.Creator,
+		CheckedIn: false,
+	}
+
+	collection := db.Database(configs.GetMongoDBName()).Collection("RoomBooking")
+	_, err := collection.InsertOne(ctx, booking)
+
+	assert.Nil(t, err)
+
+	// marshall and add the booking to cache
+	bookingData, err := bson.Marshal(booking)
+
+	assert.Nil(t, err)
+
+	err = Cache.Set(cache.RoomBookingKey(booking.OccupiID), bookingData)
+
+	assert.Nil(t, err)
+
+	success, err := database.ConfirmCheckIn(ctx, appSession, checkin)
+	assert.True(t, success)
+	assert.Nil(t, err)
+
+	// Verify the booking is in the Cache
+	cachedBooking1, err := Cache.Get(cache.RoomBookingKey(checkin.BookingID))
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedBooking1)
+
+	// sleep for 2 * Cache expiry time to ensure the Cache expires
+	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
+
+	// Verify the booking is not in the Cache
+	cachedBooking2, err := Cache.Get(cache.UserKey(checkin.BookingID))
+	assert.NotNil(t, err)
+	assert.Nil(t, cachedBooking2)
+}
+
 func TestEmailExistsPerformance(t *testing.T) {
 	email := "TestEmailExistsPerformance@example.com"
 
@@ -110,6 +209,101 @@ func TestEmailExists_WithCache(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
+}
+
+func TestBookingExistsPerformance(t *testing.T) {
+	id := "OCCUPI0101"
+
+	// Create database connection and Cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	Cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the Cache
+	appsessionWithCache := &models.AppSession{
+		DB:    db,
+		Cache: Cache,
+	}
+	// Create a new AppSession without the Cache
+	appsessionWithoutCache := &models.AppSession{
+		DB:    db,
+		Cache: nil,
+	}
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("RoomBooking")
+	bookingStruct := models.Booking{
+		OccupiID: id,
+	}
+	_, err := collection.InsertOne(ctx, bookingStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test booking into database: %v", err)
+	}
+
+	// Test performance with Cache
+	startTime := time.Now()
+	for i := 0; i < 1000; i++ {
+		database.BookingExists(ctx, appsessionWithCache, id)
+	}
+	durationWithCache := time.Since(startTime)
+
+	// Test performance without Cache
+	startTime = time.Now()
+	for i := 0; i < 1000; i++ {
+		database.BookingExists(ctx, appsessionWithoutCache, id)
+	}
+	durationWithoutCache := time.Since(startTime)
+
+	// Assert that the Cache improves the speed
+	if durationWithoutCache <= durationWithCache {
+		t.Errorf("Cache did not improve performance: duration with Cache %v, duration without Cache %v", durationWithCache, durationWithoutCache)
+	}
+}
+
+func TestBookingExists_WithCache(t *testing.T) {
+	id := "OCCUPI0101"
+	// Create database connection and Cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	Cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the Cache
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: Cache,
+	}
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("RoomBooking")
+	bookingStruct := models.Booking{
+		OccupiID: id,
+	}
+	_, err := collection.InsertOne(ctx, bookingStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test booking into database: %v", err)
+	}
+
+	// call the function to test
+	exists := database.BookingExists(ctx, appSession, id)
+
+	// Verify the response
+	assert.True(t, exists)
+
+	// Verify the booking is in the Cache
+	cachedBooking, err := Cache.Get(cache.RoomBookingKey(id))
+
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedBooking)
 }
 
 func TestAddUser_WithCache(t *testing.T) {

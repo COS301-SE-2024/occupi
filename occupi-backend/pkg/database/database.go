@@ -87,10 +87,10 @@ func ConfirmCheckIn(ctx *gin.Context, appsession *models.AppSession, checkIn mod
 	// Save the check-in to the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
-	// Find the booking by bookingId, roomId, and creator
+	// Find the booking by bookingId, occupiId, and creator
 	filter := bson.M{
-		"_id":     checkIn.BookingID,
-		"creator": checkIn.Creator,
+		"occupiId": checkIn.BookingID,
+		"creator":  checkIn.Creator,
 	}
 
 	update := bson.M{"$set": bson.M{"checkedIn": true}}
@@ -154,7 +154,7 @@ func BookingExists(ctx *gin.Context, appsession *models.AppSession, id string) b
 	// Check if the booking exists in the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
-	filter := bson.M{"_id": id}
+	filter := bson.M{"occupiId": id}
 	var existingbooking models.Booking
 	err := collection.FindOne(ctx, filter).Decode(&existingbooking)
 	if err != nil {
@@ -395,11 +395,6 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 		if !time.Now().After(userData.NextVerificationDate) {
 			return false, nil
 		}
-		_, err := UpdateVerificationStatusTo(ctx, appsession, email, false)
-		if err != nil {
-			logrus.Error(err)
-			return false, err
-		}
 		return true, nil
 	}
 
@@ -418,11 +413,6 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 
 	if !time.Now().After(user.NextVerificationDate) {
 		return false, nil
-	}
-	_, err = UpdateVerificationStatusTo(ctx, appsession, email, false)
-	if err != nil {
-		logrus.Error(err)
-		return false, err
 	}
 	return true, nil
 }

@@ -1,4 +1,4 @@
-name: Deploy Develop Dashboard
+name: Build 🏗️ and Deploy Web 🛳️ to Develop 🚈
 
 on:
   push:

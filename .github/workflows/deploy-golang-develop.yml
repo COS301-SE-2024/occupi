@@ -1,4 +1,4 @@
-name: Build and Deploy Dev golang
+name: Build 🏗️ and Deploy Golang App 🛳️ to Develop 🚈
 
 on:
   push:
