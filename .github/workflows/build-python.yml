@@ -1,4 +1,4 @@
-name: Build Python App
+name: Build Python App 🏗️
 
 on:
     pull_request:

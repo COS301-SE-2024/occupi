@@ -1,4 +1,4 @@
-name: Deploy Docs site to Live site
+name: Build 🏗️ and Deploy Documentation 🛳️
 
 on:
   push:
