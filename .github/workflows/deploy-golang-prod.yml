@@ -1,4 +1,4 @@
-name: Build and Deploy Prod golang
+name: Build🏗️ and Deploy Golang App 🛳️ to Prod 🚝
 
 on:
   push:
