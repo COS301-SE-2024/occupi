@@ -68,9 +68,6 @@ const SignInForm = () => {
   } = useForm<SignInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const loginUrl = process.env.EXPO_PUBLIC_LOGIN;
-  const getUserDetailsUrl = process.env.EXPO_PUBLIC_GET_USER_DETAILS;
   const isEmailFocused = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -162,104 +159,17 @@ const SignInForm = () => {
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
     storeUserEmail(_data.email);
-    const response = UserLogin()
-    // const body = {
-    //   email: _data.email,
-    //   password: _data.password
-    // };
-    // console.log(body);
-    // try {
-    //   const response = await fetch(`${apiUrl}${loginUrl}`, {
-    //     method: 'POST',
-    //     headers: {
-    //       Accept: 'application/json',
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify(body),
-    //     credentials: "include"
-    //   });
-    //   const data = await response.json();
-    //   if (response.ok) {
-    //     console.log("Data here", data);
-    //     setLoading(false);
-    //     if (data.data) {
-    //       storeToken(data.data.token);
-    //       toast.show({
-    //         placement: 'top',
-    //         render: ({ id }) => {
-    //           return (
-    //             <Toast nativeID={String(id)} variant="accent" action="success">
-    //               <ToastTitle>{data.message}</ToastTitle>
-    //             </Toast>
-    //           );
-    //         },
-    //       });
-    //       try {
-    //         let authToken = await SecureStore.getItemAsync('Token');
-    //         // console.log(authToken);
-    //         const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${_data.email}`, {
-    //           method: 'GET',
-    //           headers: {
-    //             Accept: 'application/json',
-    //             'Content-Type': 'application/json',
-    //             'Authorization': `${authToken}`
-    //           },
-    //           credentials: "include"
-    //         });
-    //         const data = await response.json();
-    //         console.log("here");
-    //         if (response.ok) {
-    //           storeUserData(JSON.stringify(data));
-    //           console.log(`Data of ${_data.email}: `, data);
-    //         } else {
-    //           console.log(data);
-    //           toast.show({
-    //             placement: 'top',
-    //             render: ({ id }) => {
-    //               return (
-    //                 <Toast nativeID={id} variant="accent" action="error">
-    //                   <ToastTitle>{data.error.message}</ToastTitle>
-    //                 </Toast>
-    //               );
-    //             },
-    //           });
-    //         }
-    //       } catch (error) {
-    //         console.error('Error:', error);
-    //         toast.show({
-    //           placement: 'top',
-    //           render: ({ id }) => {
-    //             return (
-    //               <Toast nativeID={id} variant="accent" action="error">
-    //                 <ToastTitle>Network Error</ToastTitle>
-    //               </Toast>
-    //             );
-    //           },
-    //         });
-    //       }
-    //       router.replace('/home');
-    //     }
-    //     else {
-    //       setLoading(false);
-    //       router.replace('/verify-otp');
-    //     }
-    //   } else {
-    //     setLoading(false);
-    //     console.log(data);
-    //     toast.show({
-    //       placement: 'top',
-    //       render: ({ id }) => {
-    //         return (
-    //           <Toast nativeID={String(id)} variant="accent" action="error">
-    //             <ToastTitle>{data.message}</ToastTitle>
-    //           </Toast>
-    //         );
-    //       },
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error('Error:', error);
-    // }
+    const response = await UserLogin(_data.email, _data.password);
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
+      }
+    });
     setLoading(false);
   };
 
