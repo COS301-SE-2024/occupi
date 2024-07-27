@@ -392,7 +392,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	}
 
 	// Update password in database
-	success, err := database.UpdateUserPassword(ctx, appsession.DB, resetRequest.Email, password)
+	success, err := database.UpdateUserPassword(ctx, appsession, resetRequest.Email, password)
 	if err != nil || !success {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,

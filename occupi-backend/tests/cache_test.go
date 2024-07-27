@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -18,9 +19,9 @@ import (
 func TestEmailExistsPerformance(t *testing.T) {
 	email := "TestEmailExistsPerformance@example.com"
 
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -28,12 +29,12 @@ func TestEmailExistsPerformance(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appsessionWithCache := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
-	// Create a new AppSession without the cache
+	// Create a new AppSession without the Cache
 	appsessionWithoutCache := &models.AppSession{
 		DB:    db,
 		Cache: nil,
@@ -49,31 +50,31 @@ func TestEmailExistsPerformance(t *testing.T) {
 		t.Fatalf("Failed to insert test email into database: %v", err)
 	}
 
-	// Test performance with cache
+	// Test performance with Cache
 	startTime := time.Now()
 	for i := 0; i < 1000; i++ {
 		database.EmailExists(ctx, appsessionWithCache, email)
 	}
 	durationWithCache := time.Since(startTime)
 
-	// Test performance without cache
+	// Test performance without Cache
 	startTime = time.Now()
 	for i := 0; i < 1000; i++ {
 		database.EmailExists(ctx, appsessionWithoutCache, email)
 	}
 	durationWithoutCache := time.Since(startTime)
 
-	// Assert that the cache improves the speed
+	// Assert that the Cache improves the speed
 	if durationWithoutCache <= durationWithCache {
-		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+		t.Errorf("Cache did not improve performance: duration with Cache %v, duration without Cache %v", durationWithCache, durationWithoutCache)
 	}
 }
 
 func TestEmailExists_WithCache(t *testing.T) {
 	email := "TestEmailExists_WithCache@example.com"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -81,10 +82,10 @@ func TestEmailExists_WithCache(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appSession := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
 
 	// Mock the DB response
@@ -104,17 +105,17 @@ func TestEmailExists_WithCache(t *testing.T) {
 	// Verify the response
 	assert.True(t, exists)
 
-	// Verify the user is in the cache
-	cachedUser, err := cache.Get(email)
+	// Verify the user is in the Cache
+	cachedUser, err := Cache.Get(cache.UserKey(email))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
 }
 
 func TestAddUser_WithCache(t *testing.T) {
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -122,10 +123,10 @@ func TestAddUser_WithCache(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appSession := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
 
 	user := models.RegisterUser{
@@ -138,24 +139,24 @@ func TestAddUser_WithCache(t *testing.T) {
 	assert.True(t, success)
 	assert.Nil(t, err)
 
-	// Verify the user is in the cache
-	cachedUser, err := cache.Get(user.Email)
+	// Verify the user is in the Cache
+	cachedUser, err := Cache.Get(cache.UserKey(user.Email))
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
 
-	// sleep for 2 * cache expiry time to ensure the cache expires
+	// sleep for 2 * Cache expiry time to ensure the Cache expires
 	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
 
-	// Verify the user is not in the cache
-	cachedUser, err = cache.Get(user.Email)
+	// Verify the user is not in the Cache
+	cachedUser, err = Cache.Get(cache.UserKey(user.Email))
 	assert.NotNil(t, err)
 	assert.Nil(t, cachedUser)
 }
 
 func TestAddOTP_WithCache(t *testing.T) {
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -163,10 +164,10 @@ func TestAddOTP_WithCache(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appSession := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
 
 	email := "test_withcache@example.com"
@@ -176,16 +177,16 @@ func TestAddOTP_WithCache(t *testing.T) {
 	assert.True(t, success)
 	assert.Nil(t, err)
 
-	// Verify the otp is in the cache
-	cachedUser, err := cache.Get(email + otp)
+	// Verify the otp is in the Cache
+	cachedUser, err := Cache.Get(cache.OTPKey(email, otp))
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
 
-	// sleep for 2 * cache expiry time to ensure the cache expires
+	// sleep for 2 * Cache expiry time to ensure the Cache expires
 	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
 
-	// Verify the user is not in the cache
-	cachedUser, err = cache.Get(email + otp)
+	// Verify the user is not in the Cache
+	cachedUser, err = Cache.Get(cache.OTPKey(email, otp))
 	assert.NotNil(t, err)
 	assert.Nil(t, cachedUser)
 }
@@ -194,9 +195,9 @@ func TestOTPExistsPerformance(t *testing.T) {
 	email := "TestOTPExistsPerformance@example.com"
 	otp := "123456"
 
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -204,12 +205,12 @@ func TestOTPExistsPerformance(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appsessionWithCache := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
-	// Create a new AppSession without the cache
+	// Create a new AppSession without the Cache
 	appsessionWithoutCache := &models.AppSession{
 		DB:    db,
 		Cache: nil,
@@ -227,32 +228,32 @@ func TestOTPExistsPerformance(t *testing.T) {
 		t.Fatalf("Failed to insert test otp into database: %v", err)
 	}
 
-	// Test performance with cache
+	// Test performance with Cache
 	startTime := time.Now()
 	for i := 0; i < 1000; i++ {
 		database.OTPExists(ctx, appsessionWithCache, email, otp)
 	}
 	durationWithCache := time.Since(startTime)
 
-	// Test performance without cache
+	// Test performance without Cache
 	startTime = time.Now()
 	for i := 0; i < 1000; i++ {
 		database.OTPExists(ctx, appsessionWithoutCache, email, otp)
 	}
 	durationWithoutCache := time.Since(startTime)
 
-	// Assert that the cache improves the speed
+	// Assert that the Cache improves the speed
 	if durationWithoutCache <= durationWithCache {
-		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+		t.Errorf("Cache did not improve performance: duration with Cache %v, duration without Cache %v", durationWithCache, durationWithoutCache)
 	}
 }
 
 func TestOTPExists_WithCache(t *testing.T) {
 	email := "TestOTPExists_WithCache@example.com"
 	otp := "123456"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -260,10 +261,10 @@ func TestOTPExists_WithCache(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appSession := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
 
 	// Mock the DB response
@@ -278,8 +279,8 @@ func TestOTPExists_WithCache(t *testing.T) {
 		t.Fatalf("Failed to insert test otp into database: %v", err)
 	}
 
-	// Verify the otp is not in the cache before calling the function
-	nocachedOTP, err := cache.Get(email + otp)
+	// Verify the otp is not in the Cache before calling the function
+	nocachedOTP, err := Cache.Get(cache.OTPKey(email, otp))
 
 	assert.NotNil(t, err)
 	assert.Nil(t, nocachedOTP)
@@ -291,8 +292,8 @@ func TestOTPExists_WithCache(t *testing.T) {
 	assert.True(t, exists)
 	assert.Nil(t, err)
 
-	// Verify the user is in the cache
-	cachedUser, err := cache.Get(email + otp)
+	// Verify the otp is in the Cache
+	cachedUser, err := Cache.Get(cache.OTPKey(email, otp))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
@@ -301,9 +302,9 @@ func TestOTPExists_WithCache(t *testing.T) {
 func TestDeleteOTP_withCache(t *testing.T) {
 	email := "TestDeleteOTP_withCache@example.com"
 	otp := "123456"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -311,10 +312,10 @@ func TestDeleteOTP_withCache(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appSession := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
 
 	// Mock the DB response
@@ -329,17 +330,17 @@ func TestDeleteOTP_withCache(t *testing.T) {
 		t.Fatalf("Failed to insert test otp into database: %v", err)
 	}
 
-	// add otp to cache
+	// add otp to Cache
 	if otpData, err := bson.Marshal(otpStruct); err != nil {
 		t.Fatal(err)
 	} else {
-		if err := cache.Set(email+otp, otpData); err != nil {
+		if err := Cache.Set(cache.OTPKey(email, otp), otpData); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	// Verify the otp is in the cache before calling the function
-	nocachedOTP, err := cache.Get(email + otp)
+	// Verify the otp is in the Cache before calling the function
+	nocachedOTP, err := Cache.Get(cache.OTPKey(email, otp))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, nocachedOTP)
@@ -351,8 +352,8 @@ func TestDeleteOTP_withCache(t *testing.T) {
 	assert.True(t, success)
 	assert.Nil(t, err)
 
-	// Verify the otp is not in the cache
-	cachedUser, err := cache.Get(email + otp)
+	// Verify the otp is not in the Cache
+	cachedUser, err := Cache.Get(cache.OTPKey(email, otp))
 
 	assert.NotNil(t, err)
 	assert.Nil(t, cachedUser)
@@ -361,9 +362,9 @@ func TestDeleteOTP_withCache(t *testing.T) {
 func TestGetPasswordPerformance(t *testing.T) {
 	email := "TestGetPasswordPerformance@example.com"
 	password := "password"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -371,12 +372,12 @@ func TestGetPasswordPerformance(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appsessionWithCache := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
-	// Create a new AppSession without the cache
+	// Create a new AppSession without the Cache
 	appsessionWithoutCache := &models.AppSession{
 		DB:    db,
 		Cache: nil,
@@ -394,32 +395,32 @@ func TestGetPasswordPerformance(t *testing.T) {
 		t.Fatalf("Failed to insert test user into database: %v", err)
 	}
 
-	// Test performance with cache
+	// Test performance with Cache
 	startTime := time.Now()
 	for i := 0; i < 1000; i++ {
 		database.GetPassword(ctx, appsessionWithCache, email)
 	}
 	durationWithCache := time.Since(startTime)
 
-	// Test performance without cache
+	// Test performance without Cache
 	startTime = time.Now()
 	for i := 0; i < 1000; i++ {
 		database.GetPassword(ctx, appsessionWithoutCache, email)
 	}
 	durationWithoutCache := time.Since(startTime)
 
-	// Assert that the cache improves the speed
+	// Assert that the Cache improves the speed
 	if durationWithoutCache <= durationWithCache {
-		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+		t.Errorf("Cache did not improve performance: duration with Cache %v, duration without Cache %v", durationWithCache, durationWithoutCache)
 	}
 }
 
 func TestGetPassword_withCache(t *testing.T) {
 	email := "TestGetPassword_withCache@example.com"
 	password := "password"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -427,10 +428,10 @@ func TestGetPassword_withCache(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appSession := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
 
 	// Mock the DB response
@@ -445,8 +446,8 @@ func TestGetPassword_withCache(t *testing.T) {
 		t.Fatalf("Failed to insert test user into database: %v", err)
 	}
 
-	// Verify the user is not in the cache before calling the function
-	nocachedUser, err := cache.Get(email)
+	// Verify the user is not in the Cache before calling the function
+	nocachedUser, err := Cache.Get(cache.UserKey(email))
 
 	assert.NotNil(t, err)
 	assert.Nil(t, nocachedUser)
@@ -458,8 +459,8 @@ func TestGetPassword_withCache(t *testing.T) {
 	assert.Equal(t, password, passwordv)
 	assert.Nil(t, err)
 
-	// Verify the user is in the cache
-	cachedUser, err := cache.Get(email)
+	// Verify the user is in the Cache
+	cachedUser, err := Cache.Get(cache.UserKey(email))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
@@ -467,9 +468,9 @@ func TestGetPassword_withCache(t *testing.T) {
 
 func TestCheckIfUserIsAdminPerformance(t *testing.T) {
 	email := "TestCheckIfUserIsAdminPerformance@example.com"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -477,12 +478,12 @@ func TestCheckIfUserIsAdminPerformance(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appsessionWithCache := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
-	// Create a new AppSession without the cache
+	// Create a new AppSession without the Cache
 	appsessionWithoutCache := &models.AppSession{
 		DB:    db,
 		Cache: nil,
@@ -500,7 +501,7 @@ func TestCheckIfUserIsAdminPerformance(t *testing.T) {
 		t.Fatalf("Failed to insert test user into database: %v", err)
 	}
 
-	// Test performance with cache
+	// Test performance with Cache
 	startTime := time.Now()
 	for i := 0; i < 1000; i++ {
 		database.CheckIfUserIsAdmin(ctx, appsessionWithCache, email)
@@ -508,7 +509,7 @@ func TestCheckIfUserIsAdminPerformance(t *testing.T) {
 
 	durationWithCache := time.Since(startTime)
 
-	// Test performance without cache
+	// Test performance without Cache
 	startTime = time.Now()
 	for i := 0; i < 1000; i++ {
 		database.CheckIfUserIsAdmin(ctx, appsessionWithoutCache, email)
@@ -516,18 +517,18 @@ func TestCheckIfUserIsAdminPerformance(t *testing.T) {
 
 	durationWithoutCache := time.Since(startTime)
 
-	// Assert that the cache improves the speed
+	// Assert that the Cache improves the speed
 	if durationWithoutCache <= durationWithCache {
-		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+		t.Errorf("Cache did not improve performance: duration with Cache %v, duration without Cache %v", durationWithCache, durationWithoutCache)
 	}
 }
 
 func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	email1 := "TestCheckIfUserIsAdmin_WithCache1@example.com"
 	email2 := "TestCheckIfUserIsAdmin_WithCache2@example.com"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -535,10 +536,10 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appSession := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
 
 	// Mock the DB response
@@ -563,13 +564,13 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 		t.Fatalf("Failed to insert test user into database: %v", err)
 	}
 
-	// Verify the user is not in the cache before calling the function
-	nocachedUser1, err := cache.Get(email1)
+	// Verify the user is not in the Cache before calling the function
+	nocachedUser1, err := Cache.Get(cache.UserKey(email1))
 
 	assert.NotNil(t, err)
 	assert.Nil(t, nocachedUser1)
 
-	nocachedUser2, err := cache.Get(email2)
+	nocachedUser2, err := Cache.Get(cache.UserKey(email2))
 
 	assert.NotNil(t, err)
 	assert.Nil(t, nocachedUser2)
@@ -581,8 +582,8 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	assert.True(t, isAdmin1)
 	assert.Nil(t, err)
 
-	// Verify the user is in the cache
-	cachedUser1, err := cache.Get(email1)
+	// Verify the user is in the Cache
+	cachedUser1, err := Cache.Get(cache.UserKey(email1))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser1)
@@ -594,8 +595,8 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	assert.False(t, isAdmin2)
 	assert.Nil(t, err)
 
-	// Verify the user is in the cache
-	cachedUser2, err := cache.Get(email2)
+	// Verify the user is in the Cache
+	cachedUser2, err := Cache.Get(cache.UserKey(email2))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser2)
@@ -603,9 +604,9 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 
 func TestCheckIfUserIsLoggingInFromKnownLocationPerformance(t *testing.T) {
 	email := "TestCheckIfUserIsLoggingInFromKnownLocationPerformance@example.com"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -613,12 +614,12 @@ func TestCheckIfUserIsLoggingInFromKnownLocationPerformance(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appsessionWithCache := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
-	// Create a new AppSession without the cache
+	// Create a new AppSession without the Cache
 	appsessionWithoutCache := &models.AppSession{
 		DB:    db,
 		Cache: nil,
@@ -642,7 +643,7 @@ func TestCheckIfUserIsLoggingInFromKnownLocationPerformance(t *testing.T) {
 		t.Fatalf("Failed to insert test user into database: %v", err)
 	}
 
-	// Test performance with cache
+	// Test performance with Cache
 	startTime := time.Now()
 	for i := 0; i < 1000; i++ {
 		database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsessionWithCache, email, "8.8.8.8")
@@ -650,7 +651,7 @@ func TestCheckIfUserIsLoggingInFromKnownLocationPerformance(t *testing.T) {
 
 	durationWithCache := time.Since(startTime)
 
-	// Test performance without cache
+	// Test performance without Cache
 	startTime = time.Now()
 	for i := 0; i < 1000; i++ {
 		database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsessionWithoutCache, email, "8.8.8.8")
@@ -658,17 +659,17 @@ func TestCheckIfUserIsLoggingInFromKnownLocationPerformance(t *testing.T) {
 
 	durationWithoutCache := time.Since(startTime)
 
-	// Assert that the cache improves the speed
+	// Assert that the Cache improves the speed
 	if durationWithoutCache <= durationWithCache {
-		t.Errorf("Cache did not improve performance: duration with cache %v, duration without cache %v", durationWithCache, durationWithoutCache)
+		t.Errorf("Cache did not improve performance: duration with Cache %v, duration without Cache %v", durationWithCache, durationWithoutCache)
 	}
 }
 
 func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
 	email := "TestCheckIfUserIsLoggingInFromKnownLocation_withCache@example.com"
-	// Create database connection and cache
+	// Create database connection and Cache
 	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
+	Cache := configs.CreateCache()
 
 	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	w := httptest.NewRecorder()
@@ -676,10 +677,10 @@ func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
 	// Create a response writer and context
 	ctx, _ := gin.CreateTestContext(w)
 
-	// Create a new AppSession with the cache
+	// Create a new AppSession with the Cache
 	appSession := &models.AppSession{
 		DB:    db,
-		Cache: cache,
+		Cache: Cache,
 	}
 
 	// Mock the DB response
@@ -700,8 +701,8 @@ func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
 		t.Fatalf("Failed to insert test user into database: %v", err)
 	}
 
-	// Verify the user is not in the cache before calling the function
-	nocachedUser, err := cache.Get(email)
+	// Verify the user is not in the Cache before calling the function
+	nocachedUser, err := Cache.Get(cache.UserKey(email))
 
 	assert.NotNil(t, err)
 	assert.Nil(t, nocachedUser)
@@ -714,8 +715,8 @@ func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, info)
 
-	// Verify the user is in the cache
-	cachedUser, err := cache.Get(email)
+	// Verify the user is in the Cache
+	cachedUser, err := Cache.Get(cache.UserKey(email))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
