@@ -21,14 +21,14 @@ jobs:
     
         strategy:
           matrix:
-            python-version: [3.8, 3.9, 3.10, 3.11]
+            python-version: [3.8, 3.9, 3.11]
     
         steps:
         - name: Checkout repository
-          uses: actions/checkout@v3
+          uses: actions/checkout@v4
     
         - name: Set up Python ${{ matrix.python-version }}
-          uses: actions/setup-python@v4
+          uses: actions/setup-python@v5
           with:
             python-version: ${{ matrix.python-version }}
     
@@ -41,7 +41,7 @@ jobs:
           run: echo "Build completed successfully!"
 
     build-push-docker:
-        name: Deploy Python App
+        name: Build and Push Docker Image
         runs-on: ubuntu-latest
         needs: build
 
@@ -71,7 +71,7 @@ jobs:
                 tags: ${{ secrets.DOCKER_USERNAME }}/model:latest
         
     deploy:
-          name: Deploy Web
+          name: Deploy Python App
           runs-on: ubuntu-latest
           needs: build-push-docker
   
