@@ -2,6 +2,8 @@
 //the purpose of this file is to refine and process the data and return these to the View
 
 import { login } from "../services/authservices";
+import { router } from 'expo-router';
+
 
 export async function UserLogin(email: string, password: string) {
     try {
@@ -9,8 +11,14 @@ export async function UserLogin(email: string, password: string) {
             email: email,
             password: password
         });
-        console.log(response);
-        return response;
+        if (response.status === 200) {
+            console.log(response.message);
+            router.replace('/home');
+            return response.message;
+        }
+        else {
+            return response.message;
+        }
     } catch (error) {
         console.error('Error:', error);
     }
