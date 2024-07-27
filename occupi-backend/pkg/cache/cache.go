@@ -172,7 +172,7 @@ func GetImage(appsession *models.AppSession, id string) (models.Image, error) {
 		return models.Image{}, errors.New("cache not found")
 	}
 
-	//unmarshal the image from the cache
+	// unmarshal the image from the cache
 	var image models.Image
 	imageData, err := appsession.Cache.Get(ImageKey(id))
 
