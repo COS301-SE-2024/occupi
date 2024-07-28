@@ -2,7 +2,7 @@
 //the purpose of this file is to refine and process the data and return these to the View
 
 import { login } from "../services/authservices";
-import { fetchUserDetails } from "./user";
+import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
 import { storeUserEmail, storeToken, setState } from "../services/securestore";
 
@@ -15,12 +15,14 @@ export async function UserLogin(email: string, password: string) {
             password: password
         });
         if (response.status === 200) {
-            console.log('responseee',response);
+            // console.log('responseee',response);
             if (response.data.token) {
                 setState('logged_in');
                 storeToken(response.data.token);
                 // console.log('here');
                 fetchUserDetails(email, response.data.token);
+                fetchNotificationSettings(email);
+                fetchSecuritySettings(email);
                 router.replace('/home');
             }
             

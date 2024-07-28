@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { User } from '@/models/data';
 
 export async function storeUserData(value : string) {
     await SecureStore.setItemAsync('UserData', value);
@@ -16,14 +17,24 @@ export async function setState(value : string) {
     await SecureStore.setItemAsync('AppState', value);
 }
 
+export async function storeNotificationSettings(value : string) {
+    await SecureStore.setItemAsync('Notifications', value);
+}
+
+export async function storeSecuritySettings(value : string) {
+  await SecureStore.setItemAsync('Security', value);
+}
+
 export async function getUserData() {
-    let result = await SecureStore.getItemAsync('UserData');
-    return result;
-  }
+    let result : string | null = await SecureStore.getItemAsync('UserData');
+    return result ? JSON.parse(result) : null;
+}
 
 export async function getToken() {
     let result = await SecureStore.getItemAsync('Token');
-    return result;
+    const tokenVal = result;
+    console.log('token',result);
+    return tokenVal;
   }
 
 export async function getUserEmail() {
