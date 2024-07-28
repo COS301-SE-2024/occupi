@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
@@ -472,5 +473,66 @@ func AttemptToGetEmail(ctx *gin.Context, appsession *models.AppSession) (string,
 			return "", err
 		}
 		return claims.Email, nil
+	}
+}
+
+func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
+	claims, err := utils.GetClaimsFromCTX(ctx)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	_ = utils.ClearSession(ctx)
+
+	// Clear the Authorization header
+	ctx.Header("Authorization", "")
+
+	// Alternatively, completely remove the Authorization header
+	ctx.Writer.Header().Del("Authorization")
+
+	// List of domains to clear cookies from
+	domains := configs.GetOccupiDomains()
+
+	// Iterate over each domain and clear the "token" and "occupi-sessions-store" cookies
+	for _, domain := range domains {
+		ctx.SetCookie("token", "", -1, "/", domain, false, true)
+		ctx.SetCookie("occupi-sessions-store", "", -1, "/", domain, false, true)
+	}
+
+	// generate a jwt token for the user
+	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, email, claims.Role)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	originToken := ctx.GetString("tokenOrigin")
+	var cookies bool
+
+	if originToken == "cookie" {
+		cookies = true
+	} else {
+		cookies = false
+	}
+
+	if !cookies {
+		// Send the JWT token in the Authorization header
+		ctx.Header("Authorization", "Bearer "+token)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successfully updated user details!",
+			gin.H{"token": token},
+		))
+	} else {
+		// Set the JWT token in a cookie
+		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Successfully updated user details!",
+			nil,
+		))
 	}
 }

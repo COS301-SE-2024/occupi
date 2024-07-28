@@ -287,6 +287,12 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// if user is updating their email, create a new token for them
+	if user.Email != "" {
+		AttemptToSignNewEmail(ctx, appsession, user.Email)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated user details!", nil))
 }
 
