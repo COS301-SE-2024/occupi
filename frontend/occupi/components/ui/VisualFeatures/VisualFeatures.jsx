@@ -1,7 +1,11 @@
 import SectionWrapper from "@/components/SectionWrapper";
 import Feature1 from "@/public/images/Illustration-2.svg";
 import Feature2 from "@/public/images/Illustration-1.svg";
-import Feature3 from "@/public/images/Group.svg";
+import Frame6 from "@/public/images/Frame-6.svg";
+import Frame7 from "@/public/images/Frame-7.svg";
+import Frame8 from "@/public/images/Frame-4.svg";
+import Frame3 from "@/public/images/Frame-3.svg";
+import Frame5 from "@/public/images/Frame-5.svg";
 import AppleStore from "@/public/images/app-store.svg";
 import PlayStore from "@/public/images/googleplay.svg";
 import WindowStore from "@/public/images/microsoft-store.svg";
@@ -67,7 +71,6 @@ const VisualFeatures = () => {
             ))}
           </ul>
         </div>
-        
       </div>
       <div className="custom-screen text-gray-300">
         <div className="max-w-xl mx-auto text-center">
@@ -80,10 +83,118 @@ const VisualFeatures = () => {
             to train AI models, and AI labs are some of our biggest customers.
           </p>
         </div>
+      </div>
+
+      <div className="custom-screen text-gray-300">
+        <div className="flex flex-wrap">
+          <div className="w-full md:w-1/2 px-4">
+            <div className="max-w-xl mx-auto text-center">
+              <h2 className="text-gray-50 text-3xl font-semibold sm:text-4xl mt-10">
+                Use Occupi Web or Desktop for your Analytics
+              </h2>
+              
+            </div>
+            
+          </div>
+          <div className="pl-8 mt-10">
+              <Image
+                            src={Frame8}
+                            alt="Occupi App Screenshot"
+                            width={550}
+                            height={100}
+                            className="rounded-lg shadow-lg"
+                        />
+                </div>
+        </div>
+      </div>
+
+      <div className="custom-screen text-gray-300">
+        <div className="flex flex-wrap">
+        <div className="pl-8">
+              <Image
+                            src={Frame6}
+                            alt="Occupi App Screenshot"
+                            width={550}
+                            height={100}
+                            className="rounded-lg shadow-lg"
+                        />
+                </div>
+          <div className="w-full md:w-1/2 px-4">
+            <div className="max-w-xl mx-auto text-center">
+              <h2 className="text-gray-50 text-3xl font-semibold sm:text-4xl mt-10">
+                Use Occupi Web or Desktop for your Analytics
+              </h2>
+              
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+
+      <div className="custom-screen text-gray-300">
+        <div className="flex flex-wrap">
+        
+          <div className="w-full md:w-1/2 px-4">
+            <div className="max-w-xl mx-auto text-center">
+              <h2 className="text-gray-50 text-3xl font-semibold sm:text-4xl mt-10">
+                Use Occupi Web or Desktop for your Analytics
+              </h2>
+              
+            </div>
+            
+          </div>
+          <div className="pl-8">
+              <Image
+                            src={Frame5}
+                            alt="Occupi App Screenshot"
+                            width={550}
+                            height={100}
+                            className="rounded-lg shadow-lg"
+                        />
+                </div>
+        </div>
+      </div>
+
+      <div className="custom-screen text-gray-300">
         <div className="max-w-xl mx-auto text-center">
-          <h2 className="text-gray-50 text-4xl font-semibold sm:text-5xl mt-20">
-            Join Occupi Today.
+          <h2 className="text-gray-50 text-3xl font-semibold sm:text-4xl mt-10">
+            Make AI-powered predictions for office capacity
           </h2>
+          <p className="mt-3">
+            By participating in Occupi, you're directly contributing to the
+            growth of artificial intelligence. Networks like these are required
+            to train AI models, and AI labs are some of our biggest customers.
+          </p>
+           <div className="pl-8">
+              <Image
+                            src={Frame7}
+                            alt="Occupi App Screenshot"
+                            width={550}
+                            height={100}
+                            className="rounded-lg shadow-lg mt-10"
+                        />
+                </div>
+
+        </div>
+       
+
+       
+      </div>
+
+      
+      
+      <div className="custom-screen text-gray-300">
+        <div className="max-w-xl mx-auto text-center">
+        <div className="w-full mt-20">
+    <Image
+        src={Frame3}
+        alt="Occupi App Screenshot"
+        width={850}
+        height={100}
+        className="w-full rounded-lg shadow-lg"
+    />
+</div>
           <div className="flex justify-center items-center mt-6 space-x-4 ml-20">
             <Link
               href="https://play.google.com/store"
