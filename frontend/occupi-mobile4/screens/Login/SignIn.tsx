@@ -37,7 +37,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import * as SecureStore from 'expo-secure-store';
 import Logo from '../../screens/Login/assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import GradientButton from '@/components/GradientButton';
@@ -84,19 +83,6 @@ const SignInForm = () => {
     setBiometricAvailable(isBiometricAvailable);
     // console.log('Biometric hardware available:', isBiometricAvailable);
   };
-
-  async function storeUserData(value) {
-    await SecureStore.setItemAsync('UserData', value);
-  }
-
-  async function storeToken(value) {
-    await SecureStore.setItemAsync('Token', value);
-  }
-
-  async function storeUserEmail(value) {
-    await SecureStore.setItemAsync('Email', value);
-  }
-
 
   const handleBiometricSignIn = async () => {
     const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
@@ -158,7 +144,6 @@ const SignInForm = () => {
 
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
-    storeUserEmail(_data.email);
     const response = await UserLogin(_data.email, _data.password);
     toast.show({
       placement: 'top',
