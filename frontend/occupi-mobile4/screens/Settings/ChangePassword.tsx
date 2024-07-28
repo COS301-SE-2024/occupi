@@ -37,6 +37,7 @@ import * as SecureStore from 'expo-secure-store';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import axios from 'axios';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
+import { updateSecurity } from '@/utils/user';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -63,63 +64,23 @@ const ChangePassword = () => {
   const toast = useToast();
 
   const onSubmit = async (_data: SignUpSchemaType) => {
-    //integration here
-    let userEmail = await SecureStore.getItemAsync('Email');
-    console.log(JSON.stringify({
-        email: userEmail,
+    if (_data.password === _data.confirmpassword) {
+      const settings = {
         currentPassword: _data.currentpassword,
         newPassword: _data.password,
         newPasswordConfirm: _data.confirmpassword
-    }));
-    if (_data.password === _data.confirmpassword) {
-      let userEmail = await SecureStore.getItemAsync('Email');
-      let authToken = await SecureStore.getItemAsync('Token');
-
-      try {
-        const response = await axios.post('https://dev.occupi.tech/api/update-security-settings', {
-            email: userEmail,
-            currentPassword: _data.currentpassword,
-            newPassword: _data.password,
-            newPasswordConfirm: _data.confirmpassword
-        }, {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `${authToken}`
-          },
-          withCredentials: true
-        });
-        const data = response.data;
-        // console.log(`Response Data: ${JSON.stringify(data.data)}`);
-        console.log(data);
-        if (response.status === 200) {
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={String(id)} variant="accent" action="success">
-                  <ToastTitle>Password successfully changed</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          router.replace('/settings');
-        } else {
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={String(id)} variant="accent" action="success">
-                  <ToastTitle>{data.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          console.log(data);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      }
+      };
+      const response = await updateSecurity('password', settings)
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action={response === "Successfully changed password" ? 'success' : 'error'}>
+              <ToastTitle>{response}</ToastTitle>
+            </Toast>
+          );
+        },
+      });
     }
     else if (_data.currentpassword === _data.password) {
       Alert.alert('Error', 'New password cannot be the same as the current password');

@@ -18,6 +18,7 @@ import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
+import { updateSecurity } from '@/utils/user';
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
@@ -42,8 +43,9 @@ const Security = () => {
   useEffect(() => {
     const getSecurityDetails = async () => {
       let settings = await SecureStore.getItemAsync('Security');
+      console.log(settings);
       const settingsObject = JSON.parse(settings);
-      console.log(settingsObject);
+      console.log('current settings',settingsObject);
 
       if (settingsObject.mfa === "on") {
         setOldMfa(true);
@@ -101,59 +103,22 @@ const Security = () => {
 
   const onSave = async () => {
     //integration here
-    let userEmail = await SecureStore.getItemAsync('Email');
-    let authToken = await SecureStore.getItemAsync('Token');
-
-    try {
-      const response = await axios.post('https://dev.occupi.tech/api/update-security-settings', {
-        email: userEmail,
-        mfa: newMfa ? "on" : "off",
-        forceLogout: newForceLogout ? "on" : "off"
-      }, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        withCredentials: true
-      });
-      const data = response.data;
-      // console.log(`Response Data: ${JSON.stringify(data.data)}`);
-      // console.log(data);
-      if (response.status === 200) {
-        const newSettings = {
-          mfa: newMfa ? "on" : "off",
-          forceLogout: newForceLogout ? "on" : "off",
-        }
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        // console.log(newSettings);
-        SecureStore.setItemAsync('Security', JSON.stringify(newSettings));
-        router.replace('/settings');
-      } else {
-        console.log(data);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    const settings = {
+      mfa: newMfa ? "on" : "off",
+      forceLogout: newForceLogout ? "on" : "off"
+    };
+    const response = await updateSecurity('settings', settings)
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === "Settings updated successfully" ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
+      },
+    });
+    // console.log(newSettings);
   };
 
   const handleBack = () => {
