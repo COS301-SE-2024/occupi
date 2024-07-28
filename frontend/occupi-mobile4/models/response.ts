@@ -20,7 +20,7 @@ export interface LoginSuccess {
 }
 
 export interface Success {
-    status: 'success';
+    status: number;
     message: string;
     data: any;
 }
