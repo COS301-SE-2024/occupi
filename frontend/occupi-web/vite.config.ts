@@ -18,7 +18,9 @@ if (process.env.NODE_ENV === 'preview-dev') {
 }
 
 export default defineConfig({
-  plugins: [react(), tsconfigPaths(), mkcert()],
+  plugins: [react(), tsconfigPaths(), mkcert({
+    hosts: ['localhost', 'dev.occupi.tech', 'app.occupi.tech'],
+  })],
 
   resolve: {
     alias: {
