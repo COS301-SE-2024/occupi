@@ -2,21 +2,32 @@
 //the purpose of this file is to refine and process the data and return these to the View
 
 import { login } from "../services/authservices";
+import { fetchUserDetails } from "./user";
 import { router } from 'expo-router';
+import { storeUserEmail, storeToken, setState } from "../services/securestore";
 
 
 export async function UserLogin(email: string, password: string) {
+    storeUserEmail(email);
     try {
         const response = await login({
             email: email,
             password: password
         });
         if (response.status === 200) {
-            console.log(response.message);
-            router.replace('/home');
+            console.log('responseee',response);
+            if (response.data.token) {
+                setState('logged_in');
+                storeToken(response.data.token);
+                // console.log('here');
+                fetchUserDetails(email, response.data.token);
+                router.replace('/home');
+            }
+            
             return response.message;
         }
         else {
+            console.log('woahhh',response)
             return response.message;
         }
     } catch (error) {
@@ -24,4 +35,4 @@ export async function UserLogin(email: string, password: string) {
     }
 }
 
-// UserLogin("boygenius31115@gmail.com", "Qwert@123"); //test
+// UserLogin("kamogelomoeketse@gmail.com", "Qwerty@123"); //test
