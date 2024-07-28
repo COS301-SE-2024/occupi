@@ -1716,6 +1716,883 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 	})
 }
 
+func TestConfirmCancellation(t *testing.T) {
+	// Setup mock MongoDB instance
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a new HTTP request with the POST method.
+	req, _ := http.NewRequest("POST", "/", nil)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a new context with the Request and ResponseWriter.
+	ctx, _ := gin.CreateTestContext(w)
+	ctx.Request = req
+
+	// Optionally, set any values in the context.
+	ctx.Set("test", "test")
+
+	checkin := models.CheckIn{
+		Creator:   "test@example.com",
+		BookingID: "123456",
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		success, err := database.ConfirmCancellation(ctx, appsession, checkin.BookingID, checkin.Creator)
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.False(t, success)
+	})
+
+	mt.Run("Confirm cancellation successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.ConfirmCancellation(ctx, appsession, checkin.BookingID, checkin.Creator)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update
+	})
+
+	mt.Run("Confirm cancellation successfully in Cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		bookingStruct := models.Booking{
+			OccupiID: checkin.BookingID,
+			Creator:  checkin.Creator,
+		}
+
+		// Add checkin to Cache
+		if checkinData, err := bson.Marshal(bookingStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.RoomBookingKey(bookingStruct.OccupiID), checkinData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the checkin is in the Cache
+		checkinv, err := Cache.Get(cache.RoomBookingKey(bookingStruct.OccupiID))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, checkinv)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Call the function under test
+		success, err := database.ConfirmCancellation(ctx, appsession, checkin.BookingID, checkin.Creator)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		checkinv2, err := Cache.Get(cache.RoomBookingKey(checkin.BookingID))
+
+		assert.NotNil(t, err)
+		assert.Nil(t, checkinv2)
+	})
+
+	mt.Run("UpdateOne error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.ConfirmCancellation(ctx, appsession, checkin.BookingID, checkin.Creator)
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.False(t, success)
+	})
+}
+
+func TestGetUserDetails(t *testing.T) {
+	// Setup mock MongoDB instance
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a new HTTP request with the POST method.
+	req, _ := http.NewRequest("POST", "/", nil)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a new context with the Request and ResponseWriter.
+	ctx, _ := gin.CreateTestContext(w)
+	ctx.Request = req
+
+	// Optionally, set any values in the context.
+	ctx.Set("test", "test")
+
+	userStruct := models.User{
+		OccupiID:             "123456",
+		Password:             "hashedpassword123",
+		Email:                "test@example.com",
+		Role:                 constants.Admin,
+		OnSite:               true,
+		IsVerified:           true,
+		NextVerificationDate: time.Now(), // this will be updated once the email is verified
+		TwoFAEnabled:         false,
+		KnownLocations: []models.Location{
+			{
+				City:    "Cape Town",
+				Region:  "Western Cape",
+				Country: "South Africa",
+			},
+		},
+		Details: models.Details{
+			ImageID:  "",
+			Name:     "Michael",
+			DOB:      time.Now(),
+			Gender:   "Male",
+			Pronouns: "He/Him",
+		},
+		Notifications: models.Notifications{
+			Invites:         true,
+			BookingReminder: true,
+		},
+		Security: models.Security{
+			MFA:         false,
+			Biometrics:  false,
+			ForceLogout: false,
+		},
+		Status:        "5",
+		Position:      "Chief Executive Engineer",
+		DepartmentNo:  "01",
+		ExpoPushToken: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		user, err := database.GetUserDetails(ctx, appsession, userStruct.Email)
+
+		// empty user
+		usere := models.UserDetailsRequest{}
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Equal(t, usere, user)
+	})
+
+	mt.Run("Get user details successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "occupiID", Value: userStruct.OccupiID},
+			{Key: "password", Value: userStruct.Password},
+			{Key: "email", Value: userStruct.Email},
+			{Key: "role", Value: userStruct.Role},
+			{Key: "onSite", Value: userStruct.OnSite},
+			{Key: "isVerified", Value: userStruct.IsVerified},
+			{Key: "nextVerificationDate", Value: userStruct.NextVerificationDate},
+			{Key: "twoFAEnabled", Value: userStruct.TwoFAEnabled},
+			{Key: "knownLocations", Value: userStruct.KnownLocations},
+			{Key: "details", Value: userStruct.Details},
+			{Key: "notifications", Value: userStruct.Notifications},
+			{Key: "security", Value: userStruct.Security},
+			{Key: "status", Value: userStruct.Status},
+			{Key: "position", Value: userStruct.Position},
+			{Key: "departmentNo", Value: userStruct.DepartmentNo},
+			{Key: "expoPushToken", Value: userStruct.ExpoPushToken},
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		user, err := database.GetUserDetails(ctx, appsession, userStruct.Email)
+
+		expectedUser := models.UserDetailsRequest{
+			Email:    userStruct.Email,
+			Name:     userStruct.Details.Name,
+			Gender:   userStruct.Details.Gender,
+			Pronouns: userStruct.Details.Pronouns,
+			Number:   userStruct.Details.ContactNo,
+		}
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.NotNil(t, user)
+		assert.Equal(t, expectedUser.Email, user.Email)
+		assert.Equal(t, expectedUser.Name, user.Name)
+		assert.Equal(t, expectedUser.Gender, user.Gender)
+		assert.Equal(t, expectedUser.Pronouns, user.Pronouns)
+		assert.Equal(t, expectedUser.Number, user.Number)
+	})
+
+	mt.Run("Get user details successfully from Cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		// Add user to Cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(userStruct.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		usera, err := Cache.Get(cache.UserKey(userStruct.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, usera)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Call the function under test
+		user, err := database.GetUserDetails(ctx, appsession, userStruct.Email)
+
+		expectedUser := models.UserDetailsRequest{
+			Email:    userStruct.Email,
+			Name:     userStruct.Details.Name,
+			Gender:   userStruct.Details.Gender,
+			Pronouns: userStruct.Details.Pronouns,
+			Number:   userStruct.Details.ContactNo,
+		}
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.NotNil(t, user)
+		assert.Equal(t, expectedUser.Email, user.Email)
+		assert.Equal(t, expectedUser.Name, user.Name)
+		assert.Equal(t, expectedUser.Gender, user.Gender)
+		assert.Equal(t, expectedUser.Pronouns, user.Pronouns)
+		assert.Equal(t, expectedUser.Number, user.Number)
+	})
+
+	mt.Run("FindOne error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		user, err := database.GetUserDetails(ctx, appsession, userStruct.Email)
+
+		// empty user
+		usere := models.UserDetailsRequest{}
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Equal(t, usere, user)
+	})
+}
+
+func TestUpdateUserDetails(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		success, err := database.UpdateUserDetails(ctx, appsession, models.UserDetailsRequest{})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.False(t, success)
+	})
+
+	mt.Run("Update user name successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		userDetails := models.UserDetailsRequest{
+			SessionEmail: "test@example.com",
+			Name:         "Michael",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		success, err := database.UpdateUserDetails(ctx, appsession, userDetails)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("Update user name in Cache successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		userDetails := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				Name: "null",
+			},
+		}
+
+		// Add user to Cache
+		if userData, err := bson.Marshal(userDetails); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updateUser := models.UserDetailsRequest{
+			SessionEmail: userDetails.Email,
+			Name:         "Michael",
+		}
+
+		// Call the function under test
+		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, updateUser.Name, userB.Details.Name)
+	})
+
+	mt.Run("Update user dob successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		userDetails := models.UserDetailsRequest{
+			SessionEmail: "test@example.com",
+			Dob:          time.Now().String(),
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		success, err := database.UpdateUserDetails(ctx, appsession, userDetails)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("Update user dob in Cache successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		userDetails := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				DOB: time.Now(),
+			},
+		}
+
+		// Add user to Cache
+		if userData, err := bson.Marshal(userDetails); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updateUser := models.UserDetailsRequest{
+			SessionEmail: userDetails.Email,
+			Dob:          time.Now().Add(1 * time.Hour).String(),
+		}
+
+		// Call the function under test
+		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
+
+		// Validate the result
+
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+	})
+
+	mt.Run("Update gender successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		userDetails := models.UserDetailsRequest{
+			SessionEmail: "test@example.com",
+			Gender:       "Male",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		success, err := database.UpdateUserDetails(ctx, appsession, userDetails)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("Update gender in Cache successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		userDetails := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				Gender: "null",
+			},
+		}
+
+		// Add user to Cache
+		if userData, err := bson.Marshal(userDetails); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updateUser := models.UserDetailsRequest{
+			SessionEmail: userDetails.Email,
+			Gender:       "Male",
+		}
+
+		// Call the function under test
+		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, updateUser.Gender, userB.Details.Gender)
+	})
+
+	mt.Run("Update email successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		userDetails := models.UserDetailsRequest{
+			SessionEmail: "test@example.com",
+			Email:        "test@example.com",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		success, err := database.UpdateUserDetails(ctx, appsession, userDetails)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("Update email in Cache successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		userDetails := models.User{
+			Email:      "test@example.com",
+			IsVerified: true,
+		}
+
+		// Add user to Cache
+		if userData, err := bson.Marshal(userDetails); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updateUser := models.UserDetailsRequest{
+			SessionEmail: userDetails.Email,
+			Email:        "test1@example.com",
+		}
+
+		// Call the function under test
+		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		user, err = Cache.Get(cache.UserKey(updateUser.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, updateUser.Email, userB.Email)
+		assert.False(t, userB.IsVerified)
+	})
+
+	mt.Run("Update employee id successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		userDetails := models.UserDetailsRequest{
+			SessionEmail: "test@example.com",
+			Employeeid:   "123456",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		success, err := database.UpdateUserDetails(ctx, appsession, userDetails)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("Update employee id in Cache successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		userDetails := models.User{
+			Email:    "test@example.com",
+			OccupiID: "null",
+		}
+
+		// Add user to Cache
+		if userData, err := bson.Marshal(userDetails); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updateUser := models.UserDetailsRequest{
+			SessionEmail: userDetails.Email,
+			Employeeid:   "123456",
+		}
+
+		// Call the function under test
+		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, updateUser.Employeeid, userB.OccupiID)
+	})
+
+	mt.Run("Update number successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		userDetails := models.UserDetailsRequest{
+			SessionEmail: "test@example.com",
+			Number:       "011 123 4567",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		success, err := database.UpdateUserDetails(ctx, appsession, userDetails)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("Update email in Cache successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		userDetails := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				ContactNo: "null",
+			},
+		}
+
+		// Add user to Cache
+		if userData, err := bson.Marshal(userDetails); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updateUser := models.UserDetailsRequest{
+			SessionEmail: userDetails.Email,
+			Number:       "011 123 4567",
+		}
+
+		// Call the function under test
+		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, updateUser.Number, userB.Details.ContactNo)
+	})
+
+	mt.Run("Update pronouns successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		userDetails := models.UserDetailsRequest{
+			SessionEmail: "test@example.com",
+			Pronouns:     "He/Him",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		success, err := database.UpdateUserDetails(ctx, appsession, userDetails)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("Update pronouns in Cache successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		userDetails := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				Pronouns: "null",
+			},
+		}
+
+		// Add user to Cache
+		if userData, err := bson.Marshal(userDetails); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updateUser := models.UserDetailsRequest{
+			SessionEmail: userDetails.Email,
+			Pronouns:     "He/Him",
+		}
+
+		// Call the function under test
+		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, updateUser.Pronouns, userB.Details.Pronouns)
+	})
+
+	mt.Run("Update Error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		userDetails := models.UserDetailsRequest{
+			SessionEmail: "test@example.com",
+			Name:         "Michael",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		success, err := database.UpdateUserDetails(ctx, appsession, userDetails)
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.False(t, success)
+	})
+}
+
 func TestCheckIfUserIsAdmin(t *testing.T) {
 	// Setup mock MongoDB instance
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
@@ -1950,7 +2827,8 @@ func TestGetEmailByResetToken(t *testing.T) {
 func TestCheckResetToken(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
-	gin.SetMode(gin.TestMode)
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 
 	mt.Run("valid token", func(mt *mtest.T) {
@@ -2004,8 +2882,20 @@ func TestCheckResetToken(t *testing.T) {
 func TestUpdateUserPassword(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
-	gin.SetMode(gin.TestMode)
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("nil database", func(mt *mtest.T) {
+		email := "test@example.com"
+		newPassword := "newpassword123"
+
+		appsession := &models.AppSession{}
+		success, err := database.UpdateUserPassword(ctx, appsession, email, newPassword)
+
+		assert.Error(t, err)
+		assert.False(t, success)
+	})
 
 	mt.Run("success", func(mt *mtest.T) {
 		email := "test@example.com"
@@ -2020,6 +2910,61 @@ func TestUpdateUserPassword(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.True(t, success)
+	})
+
+	mt.Run("Update user password successfully in Cache", func(mt *mtest.T) {
+		email := "test@example.com"
+		newPassword := "newpassword123"
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		userStruct := models.User{
+			Email:    email,
+			Password: "oldpassword",
+		}
+
+		// add user to Cache
+		if userData, err := bson.Marshal(userStruct); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		userA, err := Cache.Get(cache.UserKey(email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userA)
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		success, err := database.UpdateUserPassword(ctx, appsession, email, newPassword)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the update in Cache
+		userB, err := Cache.Get(cache.UserKey(email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userB)
+
+		// unmarshal the user data
+		var user models.User
+		if err := bson.Unmarshal(userB, &user); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, newPassword, user.Password)
 	})
 
 	mt.Run("error", func(mt *mtest.T) {
@@ -2045,7 +2990,8 @@ func TestUpdateUserPassword(t *testing.T) {
 func TestClearResetToken(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
-	gin.SetMode(gin.TestMode)
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 
 	mt.Run("success", func(mt *mtest.T) {
@@ -2604,7 +3550,9 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		}))
 
 		// Call the function under test
-		appsession := &models.AppSession{}
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
 		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
 
 		// Validate the result
@@ -2714,5 +3662,280 @@ func TestGetUsersPushTokens(t *testing.T) {
 		assert.Len(t, results, 2)
 		assert.Equal(t, users[0].ExpoPushToken, results[0]["expoPushToken"])
 		assert.Equal(t, users[1].ExpoPushToken, results[1]["expoPushToken"])
+	})
+
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	mt.Run("Handle find error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		emails := []string{"TestGetUsersPushTokens1@example.com", "TestGetUsersPushTokens2@example.com"}
+		results, err := database.GetUsersPushTokens(ctx, appSession, emails)
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Nil(t, results)
+	})
+}
+
+func TestAddNotification(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("nil database", func(mt *mtest.T) {
+		appSession := &models.AppSession{}
+		success, err := database.AddNotification(ctx, appSession, models.ScheduledNotification{}, false)
+
+		assert.NotNil(t, err)
+		assert.False(t, success)
+	})
+
+	mt.Run("success add not push notification", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.AddNotification(ctx, appSession, models.ScheduledNotification{}, false)
+
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("success add push notification", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.AddNotification(ctx, appSession, models.ScheduledNotification{}, true)
+
+		assert.NoError(t, err)
+		assert.True(t, success)
+	})
+
+	mt.Run("error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "duplicate key error",
+		}))
+
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+		success, err := database.AddNotification(ctx, appSession, models.ScheduledNotification{}, false)
+
+		assert.Error(t, err)
+		assert.False(t, success)
+	})
+}
+
+func TestGetScheduledNotifications(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Database is nil", func(mt *mtest.T) {
+		// Call the function under test with a nil database
+		appSession := &models.AppSession{}
+		result, err := database.GetScheduledNotifications(ctx, appSession)
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Nil(mt, result)
+		assert.Equal(mt, "database is nil", err.Error())
+	})
+
+	mt.Run("Retrieve scheduled notifications successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedNotifications := []models.ScheduledNotification{
+			{
+				Title: "Test Notification",
+				Sent:  false,
+			},
+			{
+				Title: "Another Test Notification",
+				Sent:  false,
+			},
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, "Notifications.mock", mtest.FirstBatch, bson.D{
+			{Key: "title", Value: expectedNotifications[0].Title},
+			{Key: "sent", Value: expectedNotifications[0].Sent},
+		})
+		getMoreBatch := mtest.CreateCursorResponse(0, "Notifications.mock", mtest.NextBatch, bson.D{
+			{Key: "title", Value: expectedNotifications[1].Title},
+			{Key: "sent", Value: expectedNotifications[1].Sent},
+		})
+		mt.AddMockResponses(firstBatch, getMoreBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetScheduledNotifications(ctx, appSession)
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedNotifications, result)
+	})
+
+	mt.Run("Find returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetScheduledNotifications(ctx, appSession)
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Nil(mt, result)
+		assert.Contains(mt, err.Error(), "find error")
+	})
+}
+
+func TestMarkNotificationAsSent(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Database is nil", func(mt *mtest.T) {
+		// Call the function under test with a nil database
+		appSession := &models.AppSession{}
+		err := database.MarkNotificationAsSent(ctx, appSession, "60b725f10c9e9d63e5ecf26a")
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Equal(mt, "database is nil", err.Error())
+	})
+
+	mt.Run("Invalid notification ID", func(mt *mtest.T) {
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test with an invalid notification ID
+		err := database.MarkNotificationAsSent(ctx, appSession, "invalid_id")
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Contains(mt, err.Error(), "the provided hex string is not a valid ObjectID")
+	})
+
+	mt.Run("Mark notification as sent successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful update
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.MarkNotificationAsSent(ctx, appSession, "60b725f10c9e9d63e5ecf26a")
+
+		// Validate the result
+		assert.NoError(mt, err)
+	})
+
+	mt.Run("UpdateOne returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates an update error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "update error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.MarkNotificationAsSent(ctx, appSession, "60b725f10c9e9d63e5ecf26a")
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Contains(mt, err.Error(), "update error")
+	})
+}
+
+func TestReadNotifications(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Database is nil", func(mt *mtest.T) {
+		// Call the function under test with a nil database
+		appSession := &models.AppSession{}
+		err := database.ReadNotifications(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Equal(mt, "database is nil", err.Error())
+	})
+
+	mt.Run("Update many notifications successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful update
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.ReadNotifications(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+	})
+
+	mt.Run("UpdateMany returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates an update error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "update error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.ReadNotifications(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Contains(mt, err.Error(), "update error")
 	})
 }

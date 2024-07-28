@@ -21,7 +21,7 @@ on:
 
 jobs:
     test-api:
-        name: 🧪 Test API
+        name: 🧪 Test API 🔌
         runs-on: ubuntu-latest
 
         # set working directory
@@ -109,7 +109,7 @@ jobs:
 
       # Test job
     test-web:
-        name: 🧪 Test web
+        name: 🧪 Test web 💻
         runs-on: ubuntu-latest
 
         # set working directory
@@ -141,7 +141,7 @@ jobs:
             verbose: true
 
     test-mobile:
-        name: 🧪 Test mobile
+        name: 🧪 Test mobile 📱
         runs-on: ubuntu-latest
 
         # set working directory
