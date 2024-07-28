@@ -16,9 +16,11 @@ export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful>
             },
             withCredentials: true
         });
+        // console.log(response.data);
         return response.data as LoginSuccess;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
+            // console.log(error.response.data);
             return error.response.data as Unsuccessful;
         } else {
             throw error;
