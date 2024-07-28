@@ -21,7 +21,7 @@ jobs:
     
         strategy:
           matrix:
-            python-version: [3.8, 3.9, 3.11]
+            python-version: [3.8, 3.9, 3.10, 3.11]
     
         steps:
         - name: ⬇️ Checkout repository
@@ -30,7 +30,7 @@ jobs:
         - name: 🏗 Set up Python ${{ matrix.python-version }}
           uses: actions/setup-python@v5
           with:
-            python-version: ${{ matrix.python-version }}
+            python-version: '${{ matrix.python-version }}'
     
         - name: 📦 Install dependencies
           run: |
@@ -85,7 +85,7 @@ jobs:
                     host: ${{ secrets.VM_IP }}
                     username: ${{ secrets.VM_USERNAME }}
                     key: ${{ secrets.VM_SSH_KEY }}
-                    source: "python-code/docker-compose.yml,python-code/Dockerfile"
+                    source: "python-code/docker-compose.yml,python-code/Dockerfile,models/attendance_model"
                     target: "/home/${{ secrets.VM_USERNAME }}/model"
   
               # SSH to VM and run commands
@@ -98,6 +98,6 @@ jobs:
                     script: |
                         cd /home/${{ secrets.VM_USERNAME }}/model/python-code
                         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-                        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml down
-                        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml pull
-                        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml up -d
+                        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} VM_USERNAME=${{ secrets.VM_USERNAME }} docker compose -f docker-compose.yml down
+                        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} VM_USERNAME=${{ secrets.VM_USERNAME }} docker compose -f docker-compose.yml pull
+                        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} VM_USERNAME=${{ secrets.VM_USERNAME }} docker compose -f docker-compose.yml up -d
