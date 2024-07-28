@@ -485,8 +485,9 @@ func ConfirmCancellation(ctx *gin.Context, appsession *models.AppSession, id str
 
 	// Find the booking by bookingId, roomId, and check if the email is in the emails object
 	filter := bson.M{
-		"_id":     id,
-		"creator": email}
+		"occupiId": id,
+		"creator":  email,
+	}
 
 	// Delete the booking
 	_, err := collection.DeleteOne(ctx, filter)
