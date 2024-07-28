@@ -110,11 +110,11 @@ export interface NotificationsReq {
 
 export interface SecuritySettingsReq {
     email: string;
-    mfa: "on" | "off";
-    forceLogout: "on" | "off";
-    currentPassword: string;
-    newPassword: string;
-    newPasswordConfirm: string;
+    mfa?: "on" | "off";
+    forceLogout?: "on" | "off";
+    currentPassword?: string;
+    newPassword?: string;
+    newPasswordConfirm?: string;
 }
 
 export interface NotificationSettingsReq {

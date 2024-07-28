@@ -27,8 +27,8 @@ const Settings = () => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
       let jsonresult = JSON.parse(result);
-      setName(String(jsonresult.data.details.name));
-      setPosition(String(jsonresult.data.position));
+      setName(String(jsonresult.name));
+      setPosition(String(jsonresult.position));
     };
     getUserDetails();
   }, []);
