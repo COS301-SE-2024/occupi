@@ -67,6 +67,7 @@ const VisualFeatures = () => {
             ))}
           </ul>
         </div>
+        
       </div>
       <div className="custom-screen text-gray-300">
         <div className="max-w-xl mx-auto text-center">
