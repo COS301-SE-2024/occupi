@@ -24,27 +24,12 @@ import {
 } from 'react-native-responsive-screen';
 import PagerView from 'react-native-pager-view';
 import { useRouter } from 'expo-router';
-
-interface Room {
-    _id: string;
-    roomName: string;
-    roomId: string;
-    roomNo: number;
-    floorNo: number;
-    minOccupancy: number;
-    maxOccupancy: number;
-    description: string;
-    emails: string[];
-    date: string;
-    start: string;
-    end: string;
-    creator: string;
-}
+import { Booking } from '@/models/data';
 
 const ViewBookingDetails = (bookingId:string, roomName:string) => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
-    const [room, setRoom] = useState<Room>({});
+    const [room, setRoom] = useState<Booking>({});
     const router = useRouter();
     const [checkedIn, setCheckedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -73,8 +58,8 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
 
     const checkin = async () => {
         const body = {
-            "bookingId": room._id,
-            "creator": room.creator
+            "bookingId": room?.occupiId,
+            "creator": room?.creator
         };
         setIsLoading(true);
         console.log(body);
@@ -129,7 +114,7 @@ const ViewBookingDetails = (bookingId:string, roomName:string) => {
 
     const cancelBooking = async () => {
         const body = {
-            "bookingId": room._id,
+            "bookingId": room.occupiId,
             "creator": room.creator,
             "roomId": room.roomId,
             "emails": room.emails,

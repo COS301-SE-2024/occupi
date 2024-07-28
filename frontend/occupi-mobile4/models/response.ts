@@ -6,6 +6,7 @@ export interface Error {
     message: string;
 }
 export interface Unsuccessful {
+    data: null;
     status: 'error';
     message: string;
     error: Error;

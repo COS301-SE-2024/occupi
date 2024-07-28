@@ -3,7 +3,7 @@ import { SecuritySettingsReq, NotificationSettingsReq } from "@/models/requests"
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-export async function getUserDetails(email : string, authtoken : string): Promise<Success | Unsuccessful> {
+export async function getUserDetails(email: string, authtoken: string): Promise<Success | Unsuccessful> {
     // console.log(authtoken);
     try {
         const response = await axios.get(`https://dev.occupi.tech/api/user-details`, {
@@ -29,7 +29,7 @@ export async function getUserDetails(email : string, authtoken : string): Promis
     }
 }
 
-export async function getNotificationSettings(email : string): Promise<Success | Unsuccessful> {
+export async function getNotificationSettings(email: string): Promise<Success | Unsuccessful> {
     let authToken = await SecureStore.getItemAsync('Token');
     // console.log(authToken);
     try {
@@ -56,7 +56,38 @@ export async function getNotificationSettings(email : string): Promise<Success |
     }
 }
 
-export async function getSecuritySettings(email : string): Promise<Success | Unsuccessful> {
+export async function getUserBookings(email: string): Promise<Success | Unsuccessful> {
+    let authToken = await SecureStore.getItemAsync('Token');
+    // console.log(authToken);
+    try {
+        const response = await axios.get(`https://dev.occupi.tech/api/view-bookings?filter={"email":"${email}"}`, {
+            // params: {
+            //     filter: {
+            //         email: "kamogelomoeketse@gmail.com"
+            //     }
+            // },
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `${authToken}`
+            },
+            withCredentials: true
+        });
+        // console.log('ress', response.data);
+        return response.data as Success;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            console.log('ress', error.response.data);
+            return error.response.data as Unsuccessful;
+        } else {
+            throw error;
+        }
+    }
+}
+
+getUserBookings('kamogelomoeketse@gmail.com');
+
+export async function getSecuritySettings(email: string): Promise<Success | Unsuccessful> {
     let authToken = await SecureStore.getItemAsync('Token');
     // console.log(authToken);
     try {
@@ -109,7 +140,7 @@ export async function updateSecuritySettings(req: SecuritySettingsReq): Promise<
 export async function updateNotificationSettings(req: NotificationSettingsReq): Promise<Success | Unsuccessful> {
     let authToken = await SecureStore.getItemAsync('Token');
     try {
-        const response = await axios.get("https://dev.occupi.tech/api/update-notification-settings",{
+        const response = await axios.get("https://dev.occupi.tech/api/update-notification-settings", {
             params: {
                 req
             },

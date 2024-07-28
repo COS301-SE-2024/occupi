@@ -16,7 +16,6 @@ import {
   LineChart
 } from "react-native-chart-kit";
 import { FontAwesome6 } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fetchUsername } from '@/utils/user';
@@ -31,8 +30,27 @@ const Dashboard = () => {
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [checkedIn, setCheckedIn] = useState(false);
-  const name = useState(fetchUsername());
-  const toast = useToast()
+  const [username, setUsername] = useState('');
+  const toast = useToast();
+
+  useEffect(() => {
+    const getUsername = async () => {
+      try {
+        const name = await fetchUsername();
+        if (name) {
+          setUsername(name);
+        } else {
+          setUsername('Guest'); // Default value if no username is found
+        }
+      } catch (error) {
+        console.error('Error fetching username:', error);
+        setUsername('Guest'); // Default in case of an error
+      }
+    };
+    getUsername();
+  }, []);
+  
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers(prevNumbers => {
@@ -86,7 +104,7 @@ const Dashboard = () => {
       <View flexDirection="row" justifyContent="space-between">
         <View>
           <Text fontSize={wp('5%')} fontWeight="light" color={textColor}>
-            Hi {name} 👋
+            Hi {username} 👋
           </Text>
           <Text mt="$4" fontSize={wp('6%')} fontWeight="bold" color={textColor}>
             Welcome to Occupi
