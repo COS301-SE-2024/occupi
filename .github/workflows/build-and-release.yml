@@ -265,6 +265,3 @@ jobs:
               with:
                 path: dist
                 merge-multiple: true
-
-            - name: Release all downloaded artifacts in dist folder
-              run: 
