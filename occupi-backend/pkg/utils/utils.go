@@ -506,8 +506,12 @@ func GetClaimsFromCTX(ctx *gin.Context) (*authenticator.Claims, error) {
 		return nil, errors.New("no token provided")
 	}
 
+	// set in ctx origin of token, whether it was from cookie or header
+	ctx.Set("tokenOrigin", "cookie")
+
 	if tokenStr == "" {
 		tokenStr = headertokenStr
+		ctx.Set("tokenOrigin", "header")
 	}
 
 	claims, err := authenticator.ValidateToken(tokenStr)

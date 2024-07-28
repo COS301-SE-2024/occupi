@@ -2250,6 +2250,13 @@ func TestGetClaimsFromCTX(t *testing.T) {
 				assert.Nil(t, err)
 			}
 
+			// check that originToken has been set properly in context
+			if tt.tokenCookie != "" {
+				assert.Equal(t, "cookie", c.GetString("tokenOrigin"))
+			} else if tt.tokenHeader != "" {
+				assert.Equal(t, "header", c.GetString("tokenOrigin"))
+			}
+
 			// Check the expected claims
 			assert.Equal(t, tt.expectedClaims, returnedclaims)
 		})
