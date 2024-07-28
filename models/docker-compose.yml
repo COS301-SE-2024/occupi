@@ -1,0 +1,19 @@
+services:
+  tensorflow-serving:
+    image: tensorflow/serving:latest
+    container_name: tensorflow-serving
+    ports:
+      - "8501:8501"
+    environment:
+      MODEL_NAME: attendance_model
+    volumes:
+      - /attendance_model:/models/attendance_model
+    command: >
+      sh -c 'tensorflow_model_server --port=8501 --model_name=${MODEL_NAME} --model_base_path=/models/${MODEL_NAME}'
+    networks:
+      - webnet
+    restart: on-failure:5
+
+networks:
+  webnet:
+    external: true

@@ -6,3 +6,9 @@ The following point make sure you're in the directory models
 3. docker run -p -d 8501:8501 tensorflow/serving
 
 4. http://localhost:8501/v1/models/attendance_model
+
+
+the only 3 commands you need are:
+1. docker compose -f docker-compose.yml down
+2. docker compose -f docker-compose.yml pull
+3. docker compose -f docker-compose.yml up -d
