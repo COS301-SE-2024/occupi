@@ -16,7 +16,7 @@ const Hero = () => (
                 <div className="flex flex-col md:flex-row items-center justify-between">
                     <GradientWrapper wrapperClassName="max-w-3xl h-[250px] top-12 inset-0 sm:h-[300px] lg:h-[650px]">
                     <div className="md:w-1/2 md:pr-8 mb-8 md:mb-0 md:ml-20">
-                        <h1 className="text-4xl font-bold text-gray-800 mb-4 sm:text-5xl">
+                        <h1 className="text-4xl font-bold text-white-800 mb-4 sm:text-5xl">
                             Analyse and Predict your office capacity
                         </h1>
                         <p className="text-xl text-white-600 mb-6">
