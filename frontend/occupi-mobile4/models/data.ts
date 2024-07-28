@@ -10,6 +10,19 @@ export interface Room {
     roomNo: string; 
 }
 
+export interface Booking {
+    checkedIn: boolean;
+    creator: string;
+    date: string;
+    emails: string[];
+    end: string;
+    floorNo: string;
+    occupiId: string;
+    roomId: string;
+    roomName: string;
+    start: string;
+}
+
 export interface User {
     email: string;
     name: string;
