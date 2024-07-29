@@ -8,7 +8,6 @@ export async function fetchUserDetails(email: string, token: string) {
     try {
         const response = await getUserDetails(email, token);
         if (response.status === 200) {
-            // console.log(response.data);
             storeUserData(JSON.stringify(response.data));
         }
         else {
@@ -116,36 +115,36 @@ export async function updateNotifications(values: any) {
     let userData = await SecureStore.getItemAsync('UserData');
     let user = JSON.parse(userData || "");
     let email = user.email;
-        try {
-            const request = {
-                email: email,
-                invites: values.mfa,
-                bookingReminder: values.forceLogout
-            }
-            const response = await updateNotificationSettings(request);
-            if (response.status === 200) {
-                const settings = {
-                    invites: values.invites,
-                    bookingReminder: values.bookingReminder
-                };
-                console.log('settings response', response);
-                console.log(settings);
-                storeNotificationSettings(JSON.stringify(settings));
-                router.replace('/settings')
-                return "Settings updated successfully"
-            }
-            else {
-                console.log(response)
-                return response.message;
-            }
-        } catch (error) {
-            console.error('Error:', error);
+    try {
+        const request = {
+            email: email,
+            invites: values.mfa,
+            bookingReminder: values.forceLogout
         }
+        const response = await updateNotificationSettings(request);
+        if (response.status === 200) {
+            const settings = {
+                invites: values.invites,
+                bookingReminder: values.bookingReminder
+            };
+            console.log('settings response', response);
+            console.log(settings);
+            storeNotificationSettings(JSON.stringify(settings));
+            router.replace('/settings')
+            return "Settings updated successfully"
+        }
+        else {
+            console.log(response)
+            return response.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
 }
 
 export async function fetchUsername() {
     let userData = await SecureStore.getItemAsync('UserData');
-    let user = JSON.parse(userData || "");
+    let user = JSON.parse(userData || "{}");
     // console.log(user.name);
     return user.name;
 }

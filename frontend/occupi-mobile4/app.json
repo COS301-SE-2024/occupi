@@ -18,7 +18,7 @@
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSFaceIDUsageDescription": "This app uses Face ID or Touch ID to confirm bookings."
+        "NSFaceIDUsageDescription": "Face ID helps to verify your identity, providing a quick and secure way to log into your account."
       }
     },
     "android": {
@@ -44,6 +44,12 @@
         "expo-secure-store",
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+        }
+      ],
+      [
+         "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
         }
       ]
     ],
