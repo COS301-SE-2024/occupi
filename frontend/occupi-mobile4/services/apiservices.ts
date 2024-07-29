@@ -85,7 +85,7 @@ export async function getUserBookings(email: string): Promise<Success | Unsucces
     }
 }
 
-getUserBookings('kamogelomoeketse@gmail.com');
+// getUserBookings('kamogelomoeketse@gmail.com');
 
 export async function getSecuritySettings(email: string): Promise<Success | Unsuccessful> {
     let authToken = await SecureStore.getItemAsync('Token');

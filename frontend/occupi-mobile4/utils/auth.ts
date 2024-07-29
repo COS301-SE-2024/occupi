@@ -1,10 +1,10 @@
 //this folder contains functions that will call the service functions which make api requests for authentication
 //the purpose of this file is to refine and process the data and return these to the View
 
-import { login } from "../services/authservices";
+import { login, logout } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
-import { storeUserEmail, storeToken, setState } from "../services/securestore";
+import { storeUserEmail, storeToken, setState, deleteToken, deleteUserData, deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings } from "../services/securestore";
 
 
 export async function UserLogin(email: string, password: string) {
@@ -25,11 +25,35 @@ export async function UserLogin(email: string, password: string) {
                 fetchSecuritySettings(email);
                 router.replace('/home');
             }
-            
+
             return response.message;
         }
         else {
-            console.log('woahhh',response)
+            console.log('woahhh', response)
+            return response.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+export async function UserLogout() {
+    // console.log('hhhh');
+    try {
+        const response = await logout();
+        if (response.status === 200) {
+            // console.log('responseee',response);
+            setState('logged_out');
+            deleteNotificationSettings();
+            deleteSecuritySettings();
+            deleteUserData();
+            deleteToken();
+            deleteUserEmail();
+            router.replace('/login');
+            return response.message;
+        }
+        else {
+            console.log('woahhh', response)
             return response.message;
         }
     } catch (error) {
