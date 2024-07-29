@@ -1,7 +1,8 @@
 import { LoginReq } from "@/models/requests";
-import { LoginSuccess, Unsuccessful } from "@/models/response";
+import { LoginSuccess, Unsuccessful, Success } from "@/models/response";
 import axios from 'axios';
 import dotenv from 'dotenv';
+import * as SecureStore from 'expo-secure-store';
 
 // dotenv.config();
 // const devUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
@@ -18,6 +19,30 @@ export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful>
         });
         // console.log(response.data);
         return response.data as LoginSuccess;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            // console.log(error.response.data);
+            return error.response.data as Unsuccessful;
+        } else {
+            throw error;
+        }
+    }
+}
+
+export async function logout(): Promise<Success | Unsuccessful> {
+    let authToken = await SecureStore.getItemAsync('Token');
+    console.log('token',authToken);
+    try {
+        const response = await axios.post("https://dev.occupi.tech/auth/logout", {},{
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `${authToken}`
+            },
+            withCredentials: true
+        });
+        // console.log(response.data);
+        return response.data as Success;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
             // console.log(error.response.data);
