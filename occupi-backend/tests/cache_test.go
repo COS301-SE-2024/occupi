@@ -1089,3 +1089,117 @@ func TestGetUserDetails_withCache(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
 }
+
+func TestGetSecuritySettingsPerformance(t *testing.T) {
+	userStruct := models.User{
+		Email: "test@example.com",
+		Security: models.Security{
+			MFA:         false,
+			Biometrics:  false,
+			ForceLogout: false,
+		},
+	}
+
+	// Create database connection and Cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	Cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the Cache
+	appsessionWithCache := &models.AppSession{
+		DB:    db,
+		Cache: Cache,
+	}
+	// Create a new AppSession without the Cache
+	appsessionWithoutCache := &models.AppSession{
+		DB:    db,
+		Cache: nil,
+	}
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Test performance with Cache
+	startTime := time.Now()
+	for i := 0; i < 1000; i++ {
+		database.GetSecuritySettings(ctx, appsessionWithCache, userStruct.Email)
+	}
+	durationWithCache := time.Since(startTime)
+
+	// Test performance without Cache
+	startTime = time.Now()
+	for i := 0; i < 1000; i++ {
+		database.GetSecuritySettings(ctx, appsessionWithoutCache, userStruct.Email)
+	}
+	durationWithoutCache := time.Since(startTime)
+
+	// Assert that the Cache improves the speed
+	if durationWithoutCache <= durationWithCache {
+		t.Errorf("Cache did not improve performance: duration with Cache %v, duration without Cache %v", durationWithCache, durationWithoutCache)
+	}
+}
+
+func TestGetSecuritySettings_withCache(t *testing.T) {
+	userStruct := models.User{
+		Email: "test@example.com",
+		Security: models.Security{
+			MFA:         false,
+			Biometrics:  false,
+			ForceLogout: false,
+		},
+	}
+	// Create database connection and Cache
+	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
+	Cache := configs.CreateCache()
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a response writer and context
+	ctx, _ := gin.CreateTestContext(w)
+
+	// Create a new AppSession with the Cache
+	appSession := &models.AppSession{
+		DB:    db,
+		Cache: Cache,
+	}
+
+	// Mock the DB response
+	collection := db.Database(configs.GetMongoDBName()).Collection("Users")
+
+	_, err := collection.InsertOne(ctx, userStruct)
+	if err != nil {
+		t.Fatalf("Failed to insert test user into database: %v", err)
+	}
+
+	// Verify the user is not in the Cache before calling the function
+	nocachedUser, err := Cache.Get(cache.UserKey(userStruct.Email))
+
+	assert.NotNil(t, err)
+	assert.Nil(t, nocachedUser)
+
+	// call the function to test
+	user, err := database.GetSecuritySettings(ctx, appSession, userStruct.Email)
+
+	// Verify the response
+	assert.Equal(t, userStruct.Email, user.Email)
+	assert.Equal(t, "off", user.Mfa)
+	assert.Equal(t, "off", user.ForceLogout)
+	assert.Nil(t, err)
+
+	// Verify the user is in the Cache
+	cachedUser, err := Cache.Get(cache.UserKey(userStruct.Email))
+
+	assert.Nil(t, err)
+	assert.NotNil(t, cachedUser)
+}
