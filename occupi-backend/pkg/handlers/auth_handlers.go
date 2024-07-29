@@ -185,10 +185,7 @@ func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType strin
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Please check your email for the OTP to verify your account.",
-		nil))
+	// SendOTPEmail has logic that will send back a json response so no need to worry about the logic here
 }
 
 // handler for verifying a users otp /api/verify-otp
