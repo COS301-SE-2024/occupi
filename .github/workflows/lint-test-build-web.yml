@@ -1,10 +1,11 @@
-name: Lint, Test, Build Web
+name: Lint🌸, Test🧪, Build🏗️ Web
 
 on:
   pull_request:
     branches: ["develop"]
     paths: [
         "frontend/occupi-web/**",
+        ".github/workflows/lint-test-build-web.yml"
     ]
 
   workflow_dispatch:
@@ -16,59 +17,65 @@ defaults:
 jobs:
   # Lint job
   lint:
+    name: 🌸 Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: ⬇️ Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
+      - name: 🏗 Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest # or "latest", "canary", <sha>
         
-      - name: Install dependencies with Bun
+      - name: 📦 Install dependencies with Bun
         run: bun install
 
-      - name: Lint with ESLint
+      - name: 🌸 Lint with ESLint
         run: bun run lint
 
   # Test job
   test:
+    name: 🧪 Test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: ⬇️ Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
+      - name: 🏗 Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest # or "latest", "canary", <sha>
 
-      - name: Install dependencies with Bun
+      - name: 📦 Install dependencies with Bun
         run: bun install
 
-      - name: Test with Jest
-        run: bun test --coverage
+      - name: 🧪 Test with Jest
+        run: bun test --coverage --coverage-reporter=lcov --coverage-dir=coverage
 
-      - name: Upload coverage reports to Codecov
+      - name: 📋 Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: true
+          verbose: true
 
   # Build job
   build:
+    name: 🏗️ Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: ⬇️ Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
+      - name: 🏗 Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest # or "latest", "canary", <sha>
 
-      - name: Install dependencies with Bun
+      - name: 📦 Install dependencies with Bun
         run: bun install
 
-      - name: Build with Next.js
+      - name: 🚀 Build with Next.js
         run: bun run build

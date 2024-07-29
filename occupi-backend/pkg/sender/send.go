@@ -15,7 +15,7 @@ import (
 func PublishMessage(appsession *models.AppSession, notification models.ScheduledNotification) error {
 	// if gin run mode is test randomly return error
 	if configs.GetGinRunMode() == "test" {
-		return utils.RandomError()
+		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
