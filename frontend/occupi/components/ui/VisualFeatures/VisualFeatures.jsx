@@ -178,7 +178,7 @@ const VisualFeatures = () => {
         <h2 className="text-gray-50 text-3xl font-semibold sm:text-4xl mt-10">
           Use Occupi Desktop for more detailed prediction output.
         </h2>
-        <p className="mt-3">
+        <p className="mt-3 ">
           Leveraging historical data and real-time inputs, the system
           helps office managers make informed decisions about space
           utilization, enhancing both immediate and long-term planning.
@@ -234,7 +234,7 @@ const VisualFeatures = () => {
       space management by utilizing advanced machine learning algorithms
       and predictive models.
     </h2>
-    <p className="mt-3">
+    <p className="mt-3 mt-12">
       As Y2Kode, we have developed this innovative solution for mobile for
       everyday office users, as well as a web application, and a desktop
       application for providing managerial services and delivering more
