@@ -3939,3 +3939,379 @@ func TestReadNotifications(t *testing.T) {
 		assert.Contains(mt, err.Error(), "update error")
 	})
 }
+
+func TestGetSecuritySettings(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Database is nil", func(mt *mtest.T) {
+		// Call the function under test with a nil database
+		appSession := &models.AppSession{}
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		emptySettings := models.SecuritySettingsRequest{}
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Equal(mt, emptySettings, result)
+		assert.Equal(mt, "database is nil", err.Error())
+	})
+
+	mt.Run("Retrieve security settings with mfa on and force logout off successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.SecuritySettingsRequest{
+			Email:       "test@example.com",
+			Mfa:         "on",
+			ForceLogout: "off",
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "security", Value: bson.D{
+				{Key: "mfa", Value: true},
+				{Key: "forceLogout", Value: false},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve security settings with mfa off and force logout off successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.SecuritySettingsRequest{
+			Email:       "test@example.com",
+			Mfa:         "off",
+			ForceLogout: "off",
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "security", Value: bson.D{
+				{Key: "mfa", Value: false},
+				{Key: "forceLogout", Value: false},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve security settings with mfa off and force logout on successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.SecuritySettingsRequest{
+			Email:       "test@example.com",
+			Mfa:         "off",
+			ForceLogout: "on",
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "security", Value: bson.D{
+				{Key: "mfa", Value: false},
+				{Key: "forceLogout", Value: true},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve security settings with mfa on and force logout on successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.SecuritySettingsRequest{
+			Email:       "test@example.com",
+			Mfa:         "on",
+			ForceLogout: "on",
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "security", Value: bson.D{
+				{Key: "mfa", Value: true},
+				{Key: "forceLogout", Value: true},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve security settings with mfa on and force logout off successfully from cache", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.SecuritySettingsRequest{
+			Email:       "test@example.com",
+			Mfa:         "on",
+			ForceLogout: "off",
+		}
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		user := models.User{
+			Email: "test@example.com",
+			Security: models.Security{
+				MFA:         true,
+				ForceLogout: false,
+			},
+		}
+
+		// add user to Cache
+		if userData, err := bson.Marshal(user); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		userA, err := Cache.Get(cache.UserKey(user.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userA)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve security settings with mfa off and force logout off successfully from cache", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.SecuritySettingsRequest{
+			Email:       "test@example.com",
+			Mfa:         "off",
+			ForceLogout: "off",
+		}
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		user := models.User{
+			Email: "test@example.com",
+			Security: models.Security{
+				MFA:         false,
+				ForceLogout: false,
+			},
+		}
+
+		// add user to Cache
+		if userData, err := bson.Marshal(user); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		userA, err := Cache.Get(cache.UserKey(user.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userA)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve security settings with mfa off and force logout on successfully from cache", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.SecuritySettingsRequest{
+			Email:       "test@example.com",
+			Mfa:         "off",
+			ForceLogout: "on",
+		}
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		user := models.User{
+			Email: "test@example.com",
+			Security: models.Security{
+				MFA:         false,
+				ForceLogout: true,
+			},
+		}
+
+		// add user to Cache
+		if userData, err := bson.Marshal(user); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		userA, err := Cache.Get(cache.UserKey(user.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userA)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve security settings with mfa on and force logout on successfully from cache", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.SecuritySettingsRequest{
+			Email:       "test@example.com",
+			Mfa:         "on",
+			ForceLogout: "on",
+		}
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache := configs.CreateCache()
+
+		user := models.User{
+			Email: "test@example.com",
+			Security: models.Security{
+				MFA:         true,
+				ForceLogout: true,
+			},
+		}
+
+		// add user to Cache
+		if userData, err := bson.Marshal(user); err != nil {
+			t.Fatal(err)
+		} else {
+			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Assert that the user is in the Cache
+		userA, err := Cache.Get(cache.UserKey(user.Email))
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userA)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Find returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		emptySettings := models.SecuritySettingsRequest{}
+
+		// Call the function under test
+		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Equal(mt, emptySettings, result)
+		assert.Contains(mt, err.Error(), "find error")
+	})
+}
