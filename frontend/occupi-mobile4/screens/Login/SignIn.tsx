@@ -98,7 +98,7 @@ const SignInForm = () => {
         });
         console.log('Biometric authentication result:', result);
         if (result.success) {
-          router.replace('/home');
+          // router.replace('/home');
         } else {
           console.log('Biometric authentication failed');
           toast.show({

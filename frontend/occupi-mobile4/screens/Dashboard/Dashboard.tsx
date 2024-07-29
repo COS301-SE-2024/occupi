@@ -37,6 +37,7 @@ const Dashboard = () => {
     const getUsername = async () => {
       try {
         const name = await fetchUsername();
+        console.log(name);
         if (name) {
           setUsername(name);
         } else {

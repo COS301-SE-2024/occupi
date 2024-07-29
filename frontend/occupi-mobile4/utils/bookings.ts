@@ -2,7 +2,7 @@ import { Booking } from "@/models/data";
 import { getUserBookings } from "../services/apiservices";
 import * as SecureStore from 'expo-secure-store';
 
-export async function fetchUserBookings(): Promise<Room[]> {
+export async function fetchUserBookings(): Promise<Booking[]> {
     let email = await SecureStore.getItemAsync('Email');
     try {
         const response = await getUserBookings(email);

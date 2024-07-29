@@ -8,19 +8,22 @@ import {
   Icon,
   Divider,
   Pressable,
+  Toast,
+  ToastTitle,
 } from '@gluestack-ui/themed';
-import { useNavigation } from '@react-navigation/native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';
 import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
+import { useToast } from '@gluestack-ui/themed';
+import { UserLogout } from '@/utils/auth';
 
 const Settings = () => {
   const [name, setName] = useState('');
   const [position, setPosition] = useState('');
-  const navigation = useNavigation();
+  const toast = useToast();
   let colorScheme = useColorScheme();
 
   useEffect(() => {
@@ -34,35 +37,18 @@ const Settings = () => {
   }, []);
 
   const handleLogout = async () => {
-    let authToken = await SecureStore.getItemAsync('Token');
-    try {
-      const response = await fetch('https://dev.occupi.tech/auth/logout', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        credentials: "include"
-      });
-      const data = await response.json();
-      if (response.ok) {
-        console.log(data);
-        alert("logged out successfully");
-        router.replace('/login');
-      } else {
-        console.log(data);
-        alert("unable to logout");
+    const response = await UserLogout();
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === 'Logged out successfully!' ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
       }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    });
   }
-  // console.log("details"+name);
-
-  const handleNavigate = (screen) => {
-    navigation.navigate(screen);
-  };
 
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
