@@ -19,20 +19,13 @@ jest.mock('axios', () => {
     __esModule: true,
     default: {
       get: jest.fn((url, config) => {
-        console.log(`Mocked GET call to URL: ${url} with config:`, config);  // Debug output
-        // Place correct conditions and returns based on actual usage
-        if (url.includes('user-details')) {
-          return Promise.resolve({ data: { success: true, details: 'User Details' } });
-        }
-        if (url.includes('get-notification-settings')) {
-          return Promise.resolve({ data: { success: true, settings: {} } });
+        console.log(`Mocked GET call to URL: ${url} with config:`, config);
+        if (url.includes('view-bookings')) {
+          return Promise.resolve({ data: { success: true, bookings: [] } });
         }
         return Promise.reject({ response: { data: { message: 'URL not matched in mock' } } });
       }),
-      post: jest.fn((url, data, config) => {
-        console.log(`Mocked POST call to URL: ${url} with data:`, data, 'and config:', config);  // Debug output
-        return Promise.resolve({ data: { success: true, message: 'Updated successfully' } });
-      }),
+      post: jest.fn(),
       isAxiosError: originalAxios.isAxiosError,
     },
   };
