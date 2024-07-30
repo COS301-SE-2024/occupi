@@ -42,6 +42,11 @@ export async function getUserEmail() {
   return result;
 }
 
+export async function getCurrentRoom() {
+  let result = await SecureStore.getItemAsync('CurrentRoom');
+  return result;
+}
+
 export async function deleteUserData() {
   await SecureStore.deleteItemAsync('UserData');
 }
