@@ -15,6 +15,12 @@
     "preset": "jest-expo",
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui/themed)"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
     ]
   },
   "dependencies": {
@@ -79,7 +85,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@types/axios": "^0.14.0",
     "@types/jest": "^29.5.12",
+    "@types/node": "^22.0.0",
     "@types/react": "~18.2.45",
     "@types/react-test-renderer": "^18.0.7",
     "eslint": "^8.57.0",
@@ -87,6 +95,7 @@
     "jest": "^29.7.0",
     "jest-expo": "~51.0.1",
     "react-test-renderer": "18.2.0",
+    "ts-jest": "^29.2.3",
     "ts-node": "^10.9.2",
     "typescript": "~5.3.3"
   },
