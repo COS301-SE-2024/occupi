@@ -351,7 +351,8 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, err
 	}
 
-	if isVerificationDue {
+	switch {
+	case isVerificationDue:
 		// update verification status in database to false
 		_, err = database.UpdateVerificationStatusTo(ctx, appsession, email, false)
 		if err != nil {
@@ -362,18 +363,22 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 			return false, err
 		}
 		return false, nil
-	} else if mfaEnabled {
+
+	case mfaEnabled:
 		if _, err := SendOTPEmail(ctx, appsession, email, constants.ReverifyEmail); err != nil {
 			return false, err
 		}
 		return false, nil
-	} else if !isIPValid {
+
+	case !isIPValid:
 		if _, err := SendOTPEMailForIPInfo(ctx, appsession, email, constants.ConfirmIPAddress, unrecognizedLogger); err != nil {
 			return false, err
 		}
 		return false, nil
+
+	default:
+		return true, nil
 	}
-	return true, nil
 }
 
 func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) (models.SecuritySettingsRequest, error, bool) {
