@@ -1,5 +1,5 @@
 import { Success, Unsuccessful } from "@/models/response";
-import { SecuritySettingsReq, NotificationSettingsReq } from "@/models/requests";
+import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq } from "@/models/requests";
 // import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import axios, { AxiosError } from 'axios';
@@ -33,166 +33,201 @@ export const getUserDetails = async (email: string, authToken: string): Promise<
 };
 
 export async function getNotificationSettings(email: string): Promise<Success | Unsuccessful> {
-    let authToken = await SecureStore.getItemAsync('Token');
-    // console.log(authToken);
-    try {
-        const response = await axios.get(`https://dev.occupi.tech/api/get-notification-settings`, {
-            params: {
-                email: email
-            },
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `${authToken}`
-            },
-            withCredentials: true
-        });
-        // console.log(response.data);
-        return response.data as Success;
-   } catch (error) {
-  console.error(`Error in ${Function}:`, error);
-  if (axios.isAxiosError(error) && error.response?.data) {
-    return error.response.data as Unsuccessful;
+  let authToken = await SecureStore.getItemAsync('Token');
+  // console.log(authToken);
+  try {
+    const response = await axios.get(`https://dev.occupi.tech/api/get-notification-settings`, {
+      params: {
+        email: email
+      },
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `${authToken}`
+      },
+      withCredentials: true
+    });
+    // console.log(response.data);
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in ${Function}:`, error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
   }
-  return {
-    data: null,
-    status: 'error',
-    message: 'An unexpected error occurred',
-    error: {
-      code: 'UNKNOWN_ERROR',
-      details: 'An unexpected error occurred',
-      message: 'An unexpected error occurred'
-    }
-  } as Unsuccessful;
-}
 }
 
-export const getUserBookings = async (email: string) => {
-    try {
-      const authToken = await SecureStore.getItemAsync("authToken");
-      if (!authToken) {
-        console.error("No auth token found");
-        return { success: false, message: "Authentication failed" };
+export const getUserBookings = async (email: string): Promise<Success | Unsuccessful> => {
+  try {
+    const authToken = await SecureStore.getItemAsync("Token");
+    const response = await axios.get(
+      `https://dev.occupi.tech/api/view-bookings?filter={"email":"${email}"}`,
+      {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: authToken,
+        },
+        withCredentials: true,
       }
-      const response = await axios.get(
-        `https://dev.occupi.tech/api/view-bookings?filter={"email":"${email}"}`,
-        {
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: authToken,
-          },
-          withCredentials: true,
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error in getUserBookings:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        return error.response.data;
-      }
-      return { success: false, message: "An unexpected error occurred" };
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error in getUserBookings:", error);
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data;
     }
-  };
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+};
 
-// getUserBookings('kamogelomoeketse@gmail.com');
+export async function checkin(req: CheckInReq): Promise<Success | Unsuccessful> {
+  let authToken = await SecureStore.getItemAsync('Token');
+  console.log(req);
+  try {
+    const response = await axios.post("https://dev.occupi.tech/api/check-in", req, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in ${Function}:`, error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      console.log(error.response.data)
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+}
 
 export async function getSecuritySettings(email: string): Promise<Success | Unsuccessful> {
-    let authToken = await SecureStore.getItemAsync('Token');
-    // console.log(authToken);
-    try {
-        const response = await axios.get(`https://dev.occupi.tech/api/get-security-settings`, {
-            params: {
-                email: email
-            },
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `${authToken}`
-            },
-            withCredentials: true
-        });
-        // console.log(response.data);
-        return response.data as Success;
-   } catch (error) {
-  console.error(`Error in ${Function}:`, error);
-  if (axios.isAxiosError(error) && error.response?.data) {
-    return error.response.data as Unsuccessful;
-  }
-  return {
-    data: null,
-    status: 'error',
-    message: 'An unexpected error occurred',
-    error: {
-      code: 'UNKNOWN_ERROR',
-      details: 'An unexpected error occurred',
-      message: 'An unexpected error occurred'
+  let authToken = await SecureStore.getItemAsync('Token');
+  // console.log(authToken);
+  try {
+    const response = await axios.get(`https://dev.occupi.tech/api/get-security-settings`, {
+      params: {
+        email: email
+      },
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `${authToken}`
+      },
+      withCredentials: true
+    });
+    // console.log(response.data);
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in ${Function}:`, error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
     }
-  } as Unsuccessful;
-}
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
 }
 
 export async function updateSecuritySettings(req: SecuritySettingsReq): Promise<Success | Unsuccessful> {
-    let authToken = await SecureStore.getItemAsync('Token');
-    try {
-        const response = await axios.post("https://dev.occupi.tech/api/update-security-settings", req, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': authToken
-            },
-            withCredentials: true
-        });
-        // console.log(response.data);
-        return response.data as Success;
-   } catch (error) {
-  console.error(`Error in ${Function}:`, error);
-  if (axios.isAxiosError(error) && error.response?.data) {
-    return error.response.data as Unsuccessful;
-  }
-  return {
-    data: null,
-    status: 'error',
-    message: 'An unexpected error occurred',
-    error: {
-      code: 'UNKNOWN_ERROR',
-      details: 'An unexpected error occurred',
-      message: 'An unexpected error occurred'
+  let authToken = await SecureStore.getItemAsync('Token');
+  try {
+    const response = await axios.post("https://dev.occupi.tech/api/update-security-settings", req, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    // console.log(response.data);
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in ${Function}:`, error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
     }
-  } as Unsuccessful;
-}
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
 }
 
 export async function updateNotificationSettings(req: NotificationSettingsReq): Promise<Success | Unsuccessful> {
-    let authToken = await SecureStore.getItemAsync('Token');
-    try {
-        const response = await axios.get("https://dev.occupi.tech/api/update-notification-settings", {
-            params: {
-                req
-            },
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': authToken
-            },
-            withCredentials: true
-        });
-        // console.log(response.data);
-        return response.data as Success;
-   } catch (error) {
-  console.error(`Error in ${Function}:`, error);
-  if (axios.isAxiosError(error) && error.response?.data) {
-    return error.response.data as Unsuccessful;
-  }
-  return {
-    data: null,
-    status: 'error',
-    message: 'An unexpected error occurred',
-    error: {
-      code: 'UNKNOWN_ERROR',
-      details: 'An unexpected error occurred',
-      message: 'An unexpected error occurred'
+  let authToken = await SecureStore.getItemAsync('Token');
+  try {
+    const response = await axios.get("https://dev.occupi.tech/api/update-notification-settings", {
+      params: {
+        req
+      },
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    // console.log(response.data);
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in ${Function}:`, error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
     }
-  } as Unsuccessful;
-}
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
 }
