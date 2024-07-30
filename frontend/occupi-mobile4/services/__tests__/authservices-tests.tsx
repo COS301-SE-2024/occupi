@@ -13,6 +13,7 @@ const mockedSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 describe('authservice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedSecureStore.getItemAsync.mockResolvedValue('mock-token');
   });
 
   describe('login', () => {
@@ -23,9 +24,7 @@ describe('authservice', () => {
 
     it('should return LoginSuccess on successful login', async () => {
       const mockResponse: LoginSuccess = {
-        data: {
-          token: 'mock-token',
-        },
+        data: { token: 'mock-token' },
         message: 'Login successful',
         status: 200,
       };
@@ -42,7 +41,7 @@ describe('authservice', () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it('should return Unsuccessful on failed login', async () => {
+    it('should throw error on failed login', async () => {
       const mockError: Unsuccessful = {
         data: null,
         status: 'error',
@@ -55,16 +54,16 @@ describe('authservice', () => {
       };
     
       mockedAxios.post.mockRejectedValueOnce({
-        response: { data: mockError },
         isAxiosError: true,
+        response: { data: mockError }
       });
     
-      const result = await login({
-        email: 'test@example.com',
-        password: 'wrongpassword'
-      });
-    
-      expect(result).toEqual(mockError);
+      await expect(login(loginReq)).rejects.toEqual(
+        expect.objectContaining({
+          isAxiosError: true,
+          response: { data: mockError }
+        })
+      );
     });
 
     it('should throw error on network failure', async () => {
@@ -103,7 +102,7 @@ describe('authservice', () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it('should return Unsuccessful on failed logout', async () => {
+    it('should throw error on failed logout', async () => {
       const mockError: Unsuccessful = {
         data: null,
         status: 'error',
@@ -116,15 +115,17 @@ describe('authservice', () => {
       };
     
       mockedAxios.post.mockRejectedValueOnce({
-        response: { data: mockError },
         isAxiosError: true,
+        response: { data: mockError }
       });
     
-      const result = await logout();
-    
-      expect(result).toEqual(mockError);
+      await expect(logout()).rejects.toEqual(
+        expect.objectContaining({
+          isAxiosError: true,
+          response: { data: mockError }
+        })
+      );
     });
-
 
     it('should throw error on network failure', async () => {
       const networkError = new Error('Network error');
