@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios';
 import * as SecureStore from "expo-secure-store";
 import {
   getUserDetails,
@@ -8,47 +8,41 @@ import {
   updateSecuritySettings,
   updateNotificationSettings,
 } from "../apiservices";
-import { NotificationSettingsReq } from "@/models/requests";
+import { NotificationSettingsReq } from '@/models/requests';
 
-jest.mock("axios");
+jest.mock('axios');
 jest.mock("expo-secure-store");
 
-jest.mock('axios', () => {
-  const originalAxios = jest.requireActual('axios');
-  return {
-    __esModule: true,
-    default: {
-      get: jest.fn((url, config) => {
-        console.log(`Mocked GET call to URL: ${url} with config:`, config);
-        if (url.includes('view-bookings')) {
-          return Promise.resolve({ data: { success: true, bookings: [] } });
-        }
-        return Promise.reject({ response: { data: { message: 'URL not matched in mock' } } });
-      }),
-      post: jest.fn(),
-      isAxiosError: originalAxios.isAxiosError,
-    },
-  };
-});
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("User API Functions", () => {
   const mockEmail = "test@example.com";
   const mockAuthToken = "mockAuthToken";
   const mockSuccessResponse = { success: true, data: {} };
-  const mockErrorResponse = { success: false, message: "Error" };
+  const mockErrorResponse = {
+    data: null,
+    status: 'error',
+    message: 'An unexpected error occurred',
+    error: {
+      code: 'UNKNOWN_ERROR',
+      details: 'An unexpected error occurred',
+      message: 'An unexpected error occurred'
+    }
+  };
 
   beforeEach(() => {
     jest.resetAllMocks();
     (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockAuthToken);
+    mockedAxios.isAxiosError.mockImplementation((payload: any) => true);
   });
 
   describe("getUserDetails", () => {
     it("should return success response when API call is successful", async () => {
-      (axios.get as jest.Mock).mockResolvedValue({ data: mockSuccessResponse });
+      mockedAxios.get.mockResolvedValue({ data: mockSuccessResponse });
 
       const result = await getUserDetails(mockEmail, mockAuthToken);
 
-      expect(axios.get).toHaveBeenCalledWith(
+      expect(mockedAxios.get).toHaveBeenCalledWith(
         "https://dev.occupi.tech/api/user-details",
         expect.objectContaining({
           params: { email: mockEmail },
@@ -59,7 +53,7 @@ describe("User API Functions", () => {
     });
 
     it("should return error response when API call fails", async () => {
-      (axios.get as jest.Mock).mockRejectedValue({
+      mockedAxios.get.mockRejectedValue({
         response: { data: mockErrorResponse },
       });
 
