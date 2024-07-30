@@ -98,29 +98,39 @@ describe("User API Functions", () => {
 
   describe("getUserBookings", () => {
     it("should return success response when API call is successful", async () => {
-      (axios.get as jest.Mock).mockResolvedValue({ data: mockSuccessResponse });
+      const mockAuthToken = "mockAuthToken";
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockAuthToken);
+      (axios.get as jest.Mock).mockResolvedValue({ data: { success: true, bookings: [] } });
+  
       const result = await getUserBookings(mockEmail);
+  
       expect(axios.get).toHaveBeenCalledWith(
         `https://dev.occupi.tech/api/view-bookings?filter={"email":"${mockEmail}"}`,
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: mockAuthToken }),
         })
       );
-      expect(result).toEqual(mockSuccessResponse);
+      expect(result).toEqual({ success: true, bookings: [] });
     });
   
     it("should return error response when API call fails", async () => {
+      const mockAuthToken = "mockAuthToken";
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockAuthToken);
       (axios.get as jest.Mock).mockRejectedValue({
-        response: { data: mockErrorResponse },
+        response: { data: { success: false, message: "Error" } },
       });
+  
       const result = await getUserBookings(mockEmail);
-      expect(result).toEqual(mockErrorResponse);
+  
+      expect(result).toEqual({ success: false, message: "Error" });
     });
   
     it("should handle case when auth token is not found", async () => {
       (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(null);
+  
       const result = await getUserBookings(mockEmail);
-      expect(result).toEqual({ success: false, message: "An unexpected error occurred" });
+  
+      expect(result).toEqual({ success: false, message: "Authentication failed" });
     });
   });
 
