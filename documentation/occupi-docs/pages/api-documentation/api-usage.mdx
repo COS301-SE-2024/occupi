@@ -31,7 +31,6 @@ The API also allows you to retrieve information about these resources.
     - [Image ID](#ImageID)
     - [Upload Image](#UploadImage)
     - [Upload Room Image](#UploadRoomImage)
-    - [Add Room](#AddRoom)
 
 ## Api
 
@@ -905,45 +904,3 @@ This endpoint is used to upload an image for a room in the Occupi system. Only A
 - **Code:** 500
 
 - **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
-
-### Add Room
-
-This endpoint is used to add a room in the Occupi system. Only Admins can add rooms.
-
-- **URL**
-
-  `/api/add-room`
-
-- **Method**
-    
-    `PUT`
-
-- **Request Body**
-
-- **Content**
-
-```json copy
-{
-  "roomId": "RM000", // required ensure that the room id is unique and starts with RM and no room with the same id exists
-  "roomNo": "1", // required ensure that the room number is unique and no room with the same number exists
-  "floorNo": 3, // required 
-  "minOccupancy": 1, // required
-  "maxOccupancy": 10, // required
-  "description": "This is a room", // required
-  "resources": ["projector", "whiteboard"], // required
-  "roomName": "Room 1", // required
-}
-```
-
-**Success Response**
-
-- **Code:** 200
-
-- **Content:** `{ "status":  200, "message": "Successfully added room!", "data": null }`
-
-**Error Response**
-
-- **Code:** 500
-
-- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
-

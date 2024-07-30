@@ -1,4 +1,4 @@
-name: Build 🏗️ and Deploy Documentation 🛳️
+name: Deploy Docs site to Live site
 
 on:
   push:
@@ -10,8 +10,7 @@ on:
       "documentation/occupi-docs/next.config.js",
       "documentation/occupi-docs/package.json",
       "documentation/occupi-docs/theme.config.tsx",
-      "documentation/occupi-docs/tsconfig.json",
-      ".github/workflows/deploy-docs.yml"
+      "documentation/occupi-docs/tsconfig.json"
     ]
 
   workflow_dispatch:
@@ -23,45 +22,44 @@ defaults:
 jobs:
   # Build job
   build-test:
-    name: 🏗️ Build
     runs-on: ubuntu-latest
     steps:
-      - name: ⬇️ Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🏗 Setup Bun
+      - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest # or "latest", "canary", <sha>
 
-      - name: 📦 Install dependencies with Bun
+      - name: Install dependencies with Bun
         run: bun install
 
-      - name: 🚀 Build with Next.js
+      - name: Build with Next.js
         run: bun run build
 
   build-push-docker:
-    name: 🐋 Build and Push Documentation Docker Image
+    name: Build and Push Documentation Docker Image
     runs-on: ubuntu-latest
     needs: build-test
 
     steps:
-    - name: ⬇️ Checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: 🏗 Set up QEMU
+    - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
-    - name: 🏗 Set up Docker Buildx
+    - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: 🧑‍💻 Login to DockerHub
+    - name: Login to DockerHub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: 🐳 Build and push Docker image
+    - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: documentation/occupi-docs
@@ -71,15 +69,15 @@ jobs:
         tags: ${{ secrets.DOCKER_USERNAME }}/occupi-documentation:latest
 
   deploy:
-          name: 🛳️ Deploy Documentation
+          name: Deploy Documentation
           runs-on: ubuntu-latest
           needs: build-push-docker
   
           steps:
-              - name: ⬇️ Checkout code
+              - name: Checkout code
                 uses: actions/checkout@v4
   
-              - name: 🪷 Copy files to VM
+              - name: Copy files to VM
                 uses: appleboy/scp-action@v0.1.5
                 with:
                       host: ${{ secrets.VM_IP }}
@@ -89,7 +87,7 @@ jobs:
                       target: "/home/${{ secrets.VM_USERNAME }}/occupi-docs"
   
               # SSH to VM and run commands
-              - name: 🚀 SSH to VM
+              - name: SSH to VM
                 uses: appleboy/ssh-action@master
                 with:
                   host: ${{ secrets.VM_IP }}

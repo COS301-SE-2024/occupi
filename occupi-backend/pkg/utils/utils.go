@@ -350,7 +350,7 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 	// Remove password field from projection if present
 	sanitizedProjection := []string{}
 	for _, field := range queryInput.Projection {
-		if field != "password" && field != "unsentExpoPushTokens" {
+		if field != "password" && field != "unsentExpoPushTokens" && field != "emails" {
 			sanitizedProjection = append(sanitizedProjection, field)
 		}
 	}
@@ -363,12 +363,15 @@ func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []str
 	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
 		projection["password"] = 0 // Exclude password by default
 		projection["unsentExpoPushTokens"] = 0
+		projection["emails"] = 0
 	} else {
 		for _, field := range sanitizedProjection {
 			switch field {
 			case "password":
 				projection[field] = 0
 			case "unsentExpoPushTokens":
+				projection[field] = 0
+			case "emails":
 				projection[field] = 0
 			default:
 				projection[field] = 1
@@ -455,7 +458,7 @@ func ConvertToStringArray(input interface{}) []string {
 }
 
 func ConvertTokensToStringArray(tokens []primitive.M, key string) ([]string, error) {
-	stringArray := []string{}
+	var stringArray []string
 
 	for _, token := range tokens {
 		// Ensure the map contains the key
@@ -506,12 +509,8 @@ func GetClaimsFromCTX(ctx *gin.Context) (*authenticator.Claims, error) {
 		return nil, errors.New("no token provided")
 	}
 
-	// set in ctx origin of token, whether it was from cookie or header
-	ctx.Set("tokenOrigin", "cookie")
-
 	if tokenStr == "" {
 		tokenStr = headertokenStr
-		ctx.Set("tokenOrigin", "header")
 	}
 
 	claims, err := authenticator.ValidateToken(tokenStr)

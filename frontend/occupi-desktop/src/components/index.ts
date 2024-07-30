@@ -9,7 +9,7 @@ import GraphContainer from "./graphContainer/GraphContainer";
 import TabComponent from "./tabComponent/TabComponent";
 import Appearance from "./appearance/Appearance";
 import MenuItem from './drawerComponent/menuItem/MenuItem';
-// import Bookings from "./bookings/Bookings";
+import Bookings from "./bookings/Bookings";
 import OverView from "./overView/OverView";
 import OverviewComponent from "./OverviewComponent/OverviewComponent";
 import ProfileComponent from "./ProfileComponent/ProfileComponent";
@@ -33,7 +33,7 @@ export {
     TabComponent,
     Appearance,
     MenuItem,
-    // Bookings,
+    Bookings,
     OverView,
     OverviewComponent,
     ProfileComponent,
