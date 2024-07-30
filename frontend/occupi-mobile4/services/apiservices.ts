@@ -56,34 +56,33 @@ export async function getNotificationSettings(email: string): Promise<Success | 
     }
 }
 
-export async function getUserBookings(email: string): Promise<Success | Unsuccessful> {
-    let authToken = await SecureStore.getItemAsync('Token');
-    // console.log(authToken);
+export const getUserBookings = async (email: string) => {
     try {
-        const response = await axios.get(`https://dev.occupi.tech/api/view-bookings?filter={"email":"${email}"}`, {
-            // params: {
-            //     filter: {
-            //         email: "kamogelomoeketse@gmail.com"
-            //     }
-            // },
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `${authToken}`
-            },
-            withCredentials: true
-        });
-        // console.log('ress', response.data);
-        return response.data as Success;
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            console.log('ress', error.response.data);
-            return error.response.data as Unsuccessful;
-        } else {
-            throw error;
+      const authToken = await SecureStore.getItemAsync("authToken");
+      if (!authToken) {
+        console.error("No auth token found");
+        return { success: false, message: "Authentication failed" };
+      }
+      const response = await axios.get(
+        `https://dev.occupi.tech/api/view-bookings?filter={"email":"${email}"}`,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: authToken,
+          },
+          withCredentials: true,
         }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error in getUserBookings:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        return error.response.data;
+      }
+      return { success: false, message: "An unexpected error occurred" };
     }
-}
+  };
 
 // getUserBookings('kamogelomoeketse@gmail.com');
 
