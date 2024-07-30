@@ -7,3 +7,5 @@ docker run --rm sullo/nikto
 docker run --rm sullo/nikto -h http://www.example.com
 # To save the report in a specific format, mount /tmp as a volume:
 docker run --rm -v $(pwd):/tmp sullo/nikto -h http://www.example.com -o /tmp/out.json
+
+docker run --rm -v /mnt/c/Users/bbdnet3218/Documents/GitHub/occupi/testing/security:/security sullo/nikto -h http://localhost:8080 -o /security/nikto.json

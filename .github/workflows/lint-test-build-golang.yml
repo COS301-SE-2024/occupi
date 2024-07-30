@@ -113,7 +113,7 @@ jobs:
 
     - name: 🧪 Run tests
       run: |
-        gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
+        gotestsum --format testname --junitfile tmp/test-results/gotestsum-report.xml -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
 
     - name: 📋 Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
@@ -121,6 +121,16 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: true
         verbose: true
+    
+    - name: 📋 Upload test results to BuildPulse for flaky test detection 🚩
+      uses: buildpulse/buildpulse-action@main
+      with:
+        account: ${{ secrets.BUILDPULSE_ACCOUNT_ID }}
+        repository: ${{ secrets.BUILDPULSE_REPOSITORY_ID }}
+        path: |
+          tmp/test-results/gotestsum-report.xml
+        key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+        secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   build:
     name: 🏗️ Build
