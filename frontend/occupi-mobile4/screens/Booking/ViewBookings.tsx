@@ -206,8 +206,9 @@ const ViewBookings = () => {
                                     marginBottom: 20,
                                 }}
                             >
-                                {pair.map((room) => (
+                                {pair.map((room, idx) => (
                                     <TouchableOpacity
+                                        key={idx}
                                         onPress={() => handleRoomClick(JSON.stringify(room))}
                                         style={{
                                             flex: 1,
@@ -259,8 +260,9 @@ const ViewBookings = () => {
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                         }
                     >
-                        {roomData?.map((room) => (
+                        {roomData?.map((room, idx) => (
                             <TouchableOpacity
+                                key={idx}
                                 onPress={() => handleRoomClick(JSON.stringify(room))}
                                 style={{
                                     flex: 1,

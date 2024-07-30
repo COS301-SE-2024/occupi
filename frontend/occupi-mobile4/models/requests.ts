@@ -73,6 +73,7 @@ export interface CancelBookingReq {
     date: string;
     start: string;
     end: string;
+    roomName: string;
 }
 
 export interface CheckInReq {

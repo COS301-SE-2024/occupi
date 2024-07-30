@@ -25,7 +25,7 @@ import {
 import PagerView from 'react-native-pager-view';
 import { useRouter } from 'expo-router';
 import { Booking } from '@/models/data';
-import { userCheckin } from '@/utils/bookings';
+import { userCancelBooking, userCheckin } from '@/utils/bookings';
 
 const ViewBookingDetails = () => {
     const colorScheme = useColorScheme();
@@ -70,70 +70,23 @@ const ViewBookingDetails = () => {
                 );
             }
         });
-        setIsLoading(false);
+        setIsLoading(false);    
     };
 
     const cancelBooking = async () => {
-        const body = {
-            "bookingId": room?.occupiId,
-            "creator": room?.creator,
-            "roomId": room?.roomId,
-            "emails": room?.emails,
-            "roomName": room?.roomName,
-            "floorNo": room?.floorNo,
-            "date": room?.date,
-            "start": room?.start,
-            "end": room?.end
-
-        };
         setIsLoading(true);
-        console.log(body);
-        let authToken = await SecureStore.getItemAsync('Token');
-        try {
-            const response = await fetch(`${apiUrl}${cancelbookingendpoint}`, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                    'Authorization': `${authToken}`
-                },
-                body: JSON.stringify(body),
-                credentials: "include"
-            });
-            const data = await response.json();
-            console.log(data);
-            // const cookies = response.headers.get('Accept');
-            //   console.log(cookies);
-            if (response.ok) {
-                toast.show({
-                    placement: 'top',
-                    render: ({ id }) => {
-                        return (
-                            <Toast nativeID={String(id)} variant="accent" action="success">
-                                <ToastTitle>{data.message}</ToastTitle>
-                            </Toast>
-                        );
-                    },
-                });
-                setIsLoading(false);
-                router.replace("/home");
-            } else {
-                setIsLoading(false);
-                console.log(data);
-                toast.show({
-                    placement: 'top',
-                    render: ({ id }) => {
-                        return (
-                            <Toast nativeID={String(id)} variant="accent" action="error">
-                                <ToastTitle>{data.message}</ToastTitle>
-                            </Toast>
-                        );
-                    },
-                });
+        const response = await userCancelBooking();
+        toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+                return (
+                    <Toast nativeID={String(id)} variant="accent" action={response === 'Successfully cancelled booking!' ? 'success' : 'error'}>
+                        <ToastTitle>{response}</ToastTitle>
+                    </Toast>
+                );
             }
-        } catch (error) {
-            console.error('Error:', error);
-        }
+        });
+        setIsLoading(false);    
     };
 
     return (
