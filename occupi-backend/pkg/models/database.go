@@ -131,7 +131,6 @@ type Room struct {
 	Description  string   `json:"description" bson:"description"`
 	RoomName     string   `json:"roomName" bson:"roomName"`
 	RoomImageIDs []string `json:"roomImageIds" bson:"roomImageIds"`
-	Resources    []string `json:"resources" bson:"resources"`
 }
 
 type ResetToken struct {
