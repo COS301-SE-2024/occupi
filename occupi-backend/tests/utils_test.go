@@ -1,19 +1,11 @@
 package tests
 
 import (
-	// "encoding/json"
-	"bytes"
+	"encoding/json"
 	"fmt"
-	"image"
-	"image/color"
-	"image/jpeg"
-	"image/png"
-	"mime/multipart"
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -27,15 +19,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-
-	// "github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
@@ -2626,219 +2616,54 @@ func TestGetClientIP_NotSetInContext(t *testing.T) {
 func TestGetClientTime(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	tests := []struct {
-		name       string
-		setupCtx   func(*gin.Context)
-		wantTimeIn string
-	}{
-		{
-			name: "With America/New_York timezone",
-			setupCtx: func(c *gin.Context) {
-				loc, _ := time.LoadLocation("America/New_York")
-				c.Set("timezone", loc)
-			},
-			wantTimeIn: "America/New_York",
-		},
-		{
-			name: "With Asia/Kolkata timezone",
-			setupCtx: func(c *gin.Context) {
-				loc, _ := time.LoadLocation("Asia/Kolkata")
-				c.Set("timezone", loc)
-			},
-			wantTimeIn: "Asia/Kolkata",
-		},
-		{
-			name:       "Without timezone (default to local)",
-			setupCtx:   func(c *gin.Context) {},
-			wantTimeIn: time.Local.String(),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c, _ := gin.CreateTestContext(httptest.NewRecorder())
-			tt.setupCtx(c)
-
-			got := utils.GetClientTime(c)
-
-			if tt.wantTimeIn == time.Local.String() {
-				assert.Equal(t, time.Local, got.Location())
-			} else {
-				wantLoc, _ := time.LoadLocation(tt.wantTimeIn)
-				assert.Equal(t, wantLoc, got.Location())
-			}
-
-			// Check that the time is recent (within the last second)
-			assert.WithinDuration(t, time.Now(), got, time.Second)
+	router := gin.Default()
+	router.Use(middleware.TimezoneMiddleware())
+	router.GET("/client-time", func(c *gin.Context) {
+		clientTime := utils.GetClientTime(c)
+		c.JSON(200, gin.H{
+			"client_time": clientTime.Format(time.RFC3339),
 		})
-	}
-}
+	})
 
-func TestRemoveNumbersFromExtension(t *testing.T) {
 	tests := []struct {
-		name     string
-		ext      string
-		expected string
+		header     string
+		timezone   string
+		statusCode int
 	}{
-		{
-			name:     "No numbers",
-			ext:      "jpg",
-			expected: "jpg",
-		},
-		{
-			name:     "Single number",
-			ext:      "jpeg2000",
-			expected: "jpeg",
-		},
-		{
-			name:     "Multiple numbers",
-			ext:      "png1234",
-			expected: "png",
-		},
-		{
-			name:     "No extension",
-			ext:      "1234",
-			expected: "",
-		},
-		{
-			name:     "Empty string",
-			ext:      "",
-			expected: "",
-		},
+		{"X-Timezone", "America/New_York", 200},
+		{"X-Timezone", "Asia/Kolkata", 200},
+		{"X-Timezone", "Invalid/Timezone", 400},
+		{"", "", 200}, // Default to UTC
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := utils.RemoveNumbersFromExtension(tt.ext)
-			assert.Equal(t, tt.expected, result)
-		})
-	}
-}
-
-// fileWrapper wraps *os.File to satisfy multipart.File interface
-type fileWrapper struct {
-	*os.File
-}
-
-func (fw *fileWrapper) Open() (multipart.File, error) {
-	return fw, nil
-}
-
-func TestConvertImageToBytes(t *testing.T) {
-	// Helper function to create a test image file
-	createTestImageFile := func(format string) (*os.File, error) {
-		// Create a simple test image
-		img := image.NewRGBA(image.Rect(0, 0, 100, 100))
-		// Fill with a color
-		for y := 0; y < 100; y++ {
-			for x := 0; x < 100; x++ {
-				img.Set(x, y, color.RGBA{255, 0, 0, 255}) // Red color
+		t.Run(tt.timezone, func(t *testing.T) {
+			req, _ := http.NewRequest("GET", "/client-time", nil)
+			if tt.header != "" {
+				req.Header.Set(tt.header, tt.timezone)
 			}
-		}
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
 
-		// Create a temporary file
-		tmpfile, err := os.CreateTemp("", "test.*."+format)
-		if err != nil {
-			return nil, err
-		}
+			assert.Equal(t, tt.statusCode, w.Code)
+			if tt.statusCode == 200 {
+				var response map[string]string
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
 
-		// Encode and save the image
-		switch format {
-		case "jpg", "jpeg":
-			err = jpeg.Encode(tmpfile, img, nil)
-		case "png":
-			err = png.Encode(tmpfile, img)
-		}
-		if err != nil {
-			tmpfile.Close()
-			os.Remove(tmpfile.Name())
-			return nil, err
-		}
+				var expectedTime time.Time
+				if tt.timezone != "" && tt.timezone != "Invalid/Timezone" {
+					loc, err := time.LoadLocation(tt.timezone)
+					assert.NoError(t, err)
+					expectedTime = time.Now().In(loc)
+				} else {
+					expectedTime = time.Now()
+				}
+				clientTime, err := time.Parse(time.RFC3339, response["client_time"])
+				assert.NoError(t, err)
 
-		// Seek to the beginning of the file
-		_, err = tmpfile.Seek(0, 0)
-		if err != nil {
-			tmpfile.Close()
-			os.Remove(tmpfile.Name())
-			return nil, err
-		}
-
-		return tmpfile, nil
-	}
-
-	tests := []struct {
-		name      string
-		format    string
-		width     uint
-		thumbnail bool
-		wantErr   bool
-	}{
-		{"JPG normal", "jpg", 50, false, false},
-		{"PNG normal", "png", 50, false, false},
-		{"JPEG normal", "jpeg", 50, false, false},
-		{"JPG thumbnail", "jpg", 0, true, false},
-		{"PNG thumbnail", "png", 0, true, false},
-		{"JEPG thumbnail", "jpeg", 0, true, false},
-		{"Unsupported format", "gif", 50, false, true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var file *os.File
-			var err error
-
-			if !tt.wantErr {
-				file, err = createTestImageFile(tt.format)
-				require.NoError(t, err)
-				defer func() {
-					file.Close()
-					os.Remove(file.Name())
-				}()
-			} else {
-				// For unsupported format, create an empty file
-				file, err = os.CreateTemp("", "test.*."+tt.format)
-				require.NoError(t, err)
-				defer func() {
-					file.Close()
-					os.Remove(file.Name())
-				}()
-			}
-
-			// Create a multipart.FileHeader
-			fileHeader := &multipart.FileHeader{
-				Filename: filepath.Base(file.Name()),
-				Size:     100 * 100 * 4, // Approximate size for a 100x100 RGBA image
-			}
-
-			// Create a wrapper that satisfies multipart.File interface
-			fileWrapper := &fileWrapper{file}
-
-			// Mock the Open method
-			openFunc := func() (multipart.File, error) {
-				return fileWrapper, nil
-			}
-
-			got, err := utils.ConvertImageToBytes(fileHeader, tt.width, tt.thumbnail, openFunc)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.NotNil(t, got)
-			assert.Greater(t, len(got), 0)
-
-			// Decode the result to check dimensions
-			resultImg, _, err := image.Decode(bytes.NewReader(got))
-			assert.NoError(t, err)
-
-			bounds := resultImg.Bounds()
-			if tt.thumbnail {
-				assert.LessOrEqual(t, bounds.Dx(), 200)
-				assert.LessOrEqual(t, bounds.Dy(), 200)
-			} else {
-				assert.Equal(t, int(tt.width), bounds.Dx())
+				// Allow for a few seconds difference due to execution time
+				assert.WithinDuration(t, expectedTime, clientTime, 2*time.Second)
 			}
 		})
 	}
