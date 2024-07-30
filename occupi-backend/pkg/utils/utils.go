@@ -601,41 +601,48 @@ func GetClientTime(ctx *gin.Context) time.Time {
 	return time.Now().In(loc.(*time.Location))
 }
 
-func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool) ([]byte, error) {
+// ConvertImageToBytes reads an image from a multipart.FileHeader, resizes it if required, and returns the image as a byte slice.
+func ConvertImageToBytes(fh *multipart.FileHeader, width uint, thumbnail bool, openFunc ...func() (multipart.File, error)) ([]byte, error) {
 	const (
 		pngExt  = ".png"
 		jpgExt  = ".jpg"
 		jpegExt = ".jpeg"
 	)
 	// Check the file extension
-	ext := filepath.Ext(file.Filename)
+	ext := filepath.Ext(fh.Filename)
+	ext = RemoveNumbersFromExtension(ext)
 	if ext != jpegExt && ext != jpgExt && ext != pngExt {
 		return nil, errors.New("unsupported file type")
 	}
 
-	src, err := file.Open()
+	var file multipart.File
+	var err error
+
+	if len(openFunc) == 0 {
+		file, err = fh.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if ferr := file.Close(); ferr != nil {
+				err = ferr
+			}
+		}()
+	} else {
+		file, err = openFunc[0]()
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if ferr := file.Close(); ferr != nil {
+				err = ferr
+			}
+		}()
+	}
+
+	img, _, err := image.Decode(file)
 	if err != nil {
 		return nil, err
-	}
-	defer func() {
-		if ferr := src.Close(); ferr != nil {
-			err = ferr
-		}
-	}()
-
-	// Decode the image
-	var img image.Image
-	switch ext {
-	case jpegExt, jpgExt:
-		img, err = jpeg.Decode(src)
-		if err != nil {
-			return nil, err
-		}
-	case pngExt:
-		img, err = png.Decode(src)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	// Resize the image
@@ -653,10 +660,18 @@ func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool)
 		err = jpeg.Encode(buf, m, nil)
 	case pngExt:
 		err = png.Encode(buf, m)
+	default:
+		return nil, errors.New("unsupported file format")
 	}
 	if err != nil {
 		return nil, err
 	}
 
 	return buf.Bytes(), nil
+}
+
+func RemoveNumbersFromExtension(ext string) string {
+	// Remove numbers from the file extension
+	extension := strings.TrimRight(ext, "0123456789")
+	return extension
 }
