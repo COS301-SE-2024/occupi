@@ -34,19 +34,19 @@ const mockedSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
     });
   
     describe('getUserData', () => {
-      it('should return parsed user data when it exists', async () => {
-        const userData = { id: 1, name: 'John Doe' };
-        mockedSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(userData));
-        const result = await getUserData();
-        expect(result).toEqual(userData);
+        it('should return parsed user data when it exists', async () => {
+          const userData = { id: 1, name: 'John Doe' };
+          mockedSecureStore.getItemAsync.mockResolvedValue(JSON.stringify(userData));
+          const result = await getUserData();
+          expect(result).toEqual(userData);
+        });
+      
+        it('should return null when token does not exist', async () => {
+          mockedSecureStore.getItemAsync.mockResolvedValue(null);
+          const result = await getUserData(); // Corrected this line
+          expect(result).toBeNull();
+        });
       });
-  
-      it('should return null when token does not exist', async () => {
-        mockedSecureStore.getItemAsync.mockResolvedValue(null);
-        const result = await getToken();
-        expect(result).toBeNull();
-      });
-    });
   
     describe('getToken', () => {
       it('should return token when it exists', async () => {
