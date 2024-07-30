@@ -1,33 +1,36 @@
 import { Success, Unsuccessful } from "@/models/response";
 import { SecuritySettingsReq, NotificationSettingsReq } from "@/models/requests";
-import axios from 'axios';
+// import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import axios, { AxiosError } from 'axios';
 
-export async function getUserDetails(email: string, authtoken: string): Promise<Success | Unsuccessful> {
-    // console.log(authtoken);
-    try {
-        const response = await axios.get(`https://dev.occupi.tech/api/user-details`, {
-            params: {
-                email: email
-            },
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': authtoken
-            },
-            withCredentials: true
-        });
-        // console.log(response.data);
-        return response.data as Success;
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            // console.log(error.response.data);
-            return error.response.data as Unsuccessful;
-        } else {
-            throw error;
-        }
+export const getUserDetails = async (email: string, authToken: string): Promise<Success | Unsuccessful> => {
+  try {
+    const response = await axios.get("https://dev.occupi.tech/api/user-details", {
+      params: { email },
+      headers: { Authorization: authToken },
+    });
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in getUserDetails:`, error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<Unsuccessful>;
+      if (axiosError.response?.data) {
+        return axiosError.response.data;
+      }
     }
-}
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    };
+  }
+};
 
 export async function getNotificationSettings(email: string): Promise<Success | Unsuccessful> {
     let authToken = await SecureStore.getItemAsync('Token');
@@ -46,14 +49,22 @@ export async function getNotificationSettings(email: string): Promise<Success | 
         });
         // console.log(response.data);
         return response.data as Success;
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            // console.log(error.response.data);
-            return error.response.data as Unsuccessful;
-        } else {
-            throw error;
-        }
+   } catch (error) {
+  console.error(`Error in ${Function}:`, error);
+  if (axios.isAxiosError(error) && error.response?.data) {
+    return error.response.data as Unsuccessful;
+  }
+  return {
+    data: null,
+    status: 'error',
+    message: 'An unexpected error occurred',
+    error: {
+      code: 'UNKNOWN_ERROR',
+      details: 'An unexpected error occurred',
+      message: 'An unexpected error occurred'
     }
+  } as Unsuccessful;
+}
 }
 
 export const getUserBookings = async (email: string) => {
@@ -103,14 +114,22 @@ export async function getSecuritySettings(email: string): Promise<Success | Unsu
         });
         // console.log(response.data);
         return response.data as Success;
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            // console.log(error.response.data);
-            return error.response.data as Unsuccessful;
-        } else {
-            throw error;
-        }
+   } catch (error) {
+  console.error(`Error in ${Function}:`, error);
+  if (axios.isAxiosError(error) && error.response?.data) {
+    return error.response.data as Unsuccessful;
+  }
+  return {
+    data: null,
+    status: 'error',
+    message: 'An unexpected error occurred',
+    error: {
+      code: 'UNKNOWN_ERROR',
+      details: 'An unexpected error occurred',
+      message: 'An unexpected error occurred'
     }
+  } as Unsuccessful;
+}
 }
 
 export async function updateSecuritySettings(req: SecuritySettingsReq): Promise<Success | Unsuccessful> {
@@ -126,14 +145,22 @@ export async function updateSecuritySettings(req: SecuritySettingsReq): Promise<
         });
         // console.log(response.data);
         return response.data as Success;
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            // console.log(error.response.data);
-            return error.response.data as Unsuccessful;
-        } else {
-            throw error;
-        }
+   } catch (error) {
+  console.error(`Error in ${Function}:`, error);
+  if (axios.isAxiosError(error) && error.response?.data) {
+    return error.response.data as Unsuccessful;
+  }
+  return {
+    data: null,
+    status: 'error',
+    message: 'An unexpected error occurred',
+    error: {
+      code: 'UNKNOWN_ERROR',
+      details: 'An unexpected error occurred',
+      message: 'An unexpected error occurred'
     }
+  } as Unsuccessful;
+}
 }
 
 export async function updateNotificationSettings(req: NotificationSettingsReq): Promise<Success | Unsuccessful> {
@@ -152,12 +179,20 @@ export async function updateNotificationSettings(req: NotificationSettingsReq): 
         });
         // console.log(response.data);
         return response.data as Success;
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            // console.log(error.response.data);
-            return error.response.data as Unsuccessful;
-        } else {
-            throw error;
-        }
+   } catch (error) {
+  console.error(`Error in ${Function}:`, error);
+  if (axios.isAxiosError(error) && error.response?.data) {
+    return error.response.data as Unsuccessful;
+  }
+  return {
+    data: null,
+    status: 'error',
+    message: 'An unexpected error occurred',
+    error: {
+      code: 'UNKNOWN_ERROR',
+      details: 'An unexpected error occurred',
+      message: 'An unexpected error occurred'
     }
+  } as Unsuccessful;
+}
 }
