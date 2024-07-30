@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { StyledProvider, Theme } from '@gluestack-ui/themed';
-import Welcome from '../Welcome'; // Adjust the path to your component
+import Welcome from '../Welcome';
+import GradientButton from '@/components/GradientButton'; 
 
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper'); // To prevent warnings about Animated module
 jest.mock('expo-router', () => ({
@@ -10,6 +11,7 @@ jest.mock('expo-router', () => ({
     push: jest.fn(),
   },
 }));
+
 
 const renderWithProvider = (component) => {
   return render(
