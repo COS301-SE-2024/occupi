@@ -54,7 +54,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.GET("/image/:id", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadImage(ctx, appsession) })
 		api.POST("/upload-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadImage(ctx, appsession, false) })
 		api.POST("/upload-room-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadImage(ctx, appsession, true) })
-		api.PUT("/add-room", func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) }) //middleware.ProtectedRoute, middleware.AdminRoute,
+		api.PUT("/add-room", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{
