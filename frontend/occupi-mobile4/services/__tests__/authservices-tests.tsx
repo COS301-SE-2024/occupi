@@ -51,16 +51,19 @@ describe('authservice', () => {
           code: 'AUTH_ERROR',
           details: 'Invalid email or password',
           message: 'Authentication failed',
-        },
+        }
       };
-
+    
       mockedAxios.post.mockRejectedValueOnce({
         response: { data: mockError },
         isAxiosError: true,
       });
-
-      const result = await login(loginReq);
-
+    
+      const result = await login({
+        email: 'test@example.com',
+        password: 'wrongpassword'
+      });
+    
       expect(result).toEqual(mockError);
     });
 
