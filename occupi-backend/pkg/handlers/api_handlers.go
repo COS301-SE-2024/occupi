@@ -964,3 +964,36 @@ func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload boo
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", gin.H{"id": newID}))
 }
+
+func AddRoom(ctx *gin.Context, appsession *models.AppSession) {
+	var room models.RequestRoom
+	if err := ctx.ShouldBindJSON(&room); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// Save the room to the database
+	roomID, err := database.AddRoom(ctx, appsession, room)
+	if err != nil {
+		var msg string
+		if err.Error() == "room already exists" {
+			msg = "Room already exists"
+		} else {
+			msg = "Failed to add room"
+		}
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to add room",
+			constants.InternalServerErrorCode,
+			"Failed to add room",
+			gin.H{"message": msg}))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully added room!", gin.H{"roomid": roomID}))
+}

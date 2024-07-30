@@ -1501,3 +1501,46 @@ func CheckIfUserHasMFAEnabled(ctx *gin.Context, appsession *models.AppSession, e
 
 	return user.Security.MFA, nil
 }
+
+func AddRoom(ctx *gin.Context, appsession *models.AppSession, rroom models.RequestRoom) (string, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return "", errors.New("database is nil")
+	}
+
+	room := models.Room{
+		RoomID:       rroom.RoomID,
+		RoomNo:       rroom.RoomNo,
+		FloorNo:      rroom.FloorNo,
+		MinOccupancy: rroom.MinOccupancy,
+		MaxOccupancy: rroom.MaxOccupancy,
+		Description:  rroom.Description,
+		RoomName:     rroom.RoomName,
+		RoomImageIDs: []string{},
+	}
+
+	// filter - ensure no room exists with the same roomid or roomno before inserting
+	filter := bson.M{"$or": []bson.M{
+		{"roomId": rroom.RoomID},
+		{"roomNo": rroom.RoomNo},
+	}}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
+
+	// check if room already exists
+	var existingRoom models.Room
+	err := collection.FindOne(ctx, filter).Decode(&existingRoom)
+
+	if err == nil {
+		return "", errors.New("room already exists")
+	}
+
+	res, err := collection.InsertOne(ctx, room)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to add room")
+		return "", err
+	}
+
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
+}
