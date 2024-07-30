@@ -9,6 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "lint": "expo lint"
   },
   "jest": {
@@ -22,6 +23,9 @@
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
     ]
+    "collectCoverage": true,
+    "coverageReporters": ["lcov", "text"],
+    "coverageDirectory": "coverage"
   },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
