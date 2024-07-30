@@ -34,7 +34,7 @@ export async function getToken() {
   let result = await SecureStore.getItemAsync('Token');
   const tokenVal = result;
   // console.log('token', result);
-  return tokenVal;
+  return tokenVal  || undefined;
 }
 
 export async function getUserEmail() {

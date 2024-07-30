@@ -70,6 +70,19 @@ export async function getNotificationSettings(email: string): Promise<Success | 
 export const getUserBookings = async (email: string): Promise<Success | Unsuccessful> => {
   try {
     const authToken = await SecureStore.getItemAsync("Token");
+    if (!authToken) {
+      return {
+        data: null,
+        status: 'error',
+        message: 'Authentication failed',
+        error: {
+          code: 'AUTH_ERROR',
+          details: 'No authentication token found',
+          message: 'Authentication failed'
+        }
+      };
+    }
+    
     const response = await axios.get(
       `https://dev.occupi.tech/api/view-bookings?filter={"email":"${email}"}`,
       {
