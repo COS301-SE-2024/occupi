@@ -25,6 +25,9 @@ package main
 
 import (
 	"flag"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -166,6 +169,11 @@ func runServer(ginRouter *gin.Engine) {
 	logrus.Infof("Server running in %s mode", configs.GetGinRunMode())
 	logrus.Infof("Server running with cert file: %s", certFile)
 	logrus.Infof("Server running with key file: %s", keyFile)
+
+	// profile the server using pprof
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	// Listening on the port with TLS if env is prod or dev.deployed
 	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {

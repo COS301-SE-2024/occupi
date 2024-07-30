@@ -1,0 +1,85 @@
+name: Load Test System 🏋️💪
+
+# trigger action to run once a week on Sunday at 12:00 AM
+on:
+    schedule:
+        - cron: "0 0 * * 0"
+
+    workflow_dispatch:
+
+defaults:
+    run:
+        working-directory: testing/load
+
+jobs:
+    load_test_backend:
+        name: 🏋️💪 Load Test Backend 🔌
+        runs-on: ubuntu-latest
+    
+        steps:
+        - name: ⬇️ Checkout repository
+          uses: actions/checkout@v4
+    
+        - name: 🏗 Install k6
+          run: |
+                sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+                echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+                sudo apt-get update
+                sudo apt-get install k6
+
+        - name: 👩‍💻 Login to k6
+          run: k6 login cloud --token ${{ secrets.K6_CLOUD_TOKEN }}
+
+        - name: 🏋️💪 Run load test
+          run: k6 cloud backend.js
+
+        - name: ✅ Load test completed
+          run: echo "Load test completed successfully!"
+
+    load_test_web:
+        name: 🏋️💪 Load Test Web 🌐
+        runs-on: ubuntu-latest
+    
+        steps:
+        - name: ⬇️ Checkout repository
+          uses: actions/checkout@v4
+    
+        - name: 🏗 Install k6
+          run: |
+                sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+                echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+                sudo apt-get update
+                sudo apt-get install k6
+
+        - name: 👩‍💻 Login to k6
+          run: k6 login cloud --token ${{ secrets.K6_CLOUD_TOKEN }}
+
+        - name: 🏋️💪 Run load test
+          run: k6 cloud web.js
+
+        - name: ✅ Load test completed
+          run: echo "Load test completed successfully!"
+
+    load_test_landing_page:
+        name: 🏋️💪 Load Test Landing Page 🏠
+        runs-on: ubuntu-latest
+    
+        steps:
+        - name: ⬇️ Checkout repository
+          uses: actions/checkout@v4
+    
+        - name: 🏗 Install k6
+          run: |
+                sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+                echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+                sudo apt-get update
+                sudo apt-get install k6
+
+        - name: 👩‍💻 Login to k6
+          run: k6 login cloud --token ${{ secrets.K6_CLOUD_TOKEN }}
+
+        - name: 🏋️💪 Run load test
+          run: k6 cloud landing-page.js
+
+        - name: ✅ Load test completed
+          run: echo "Load test completed successfully!"
