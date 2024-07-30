@@ -21,7 +21,10 @@
     },
     "setupFilesAfterEnv": [
       "@testing-library/jest-native/extend-expect"
-    ]
+    ],
+    "collectCoverage": true,
+    "coverageReporters": ["lcov", "text"],
+    "coverageDirectory": "coverage"
   },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
