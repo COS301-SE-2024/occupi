@@ -94,37 +94,76 @@ describe("User API Functions", () => {
     it("should return success response when API call is successful", async () => {
       const mockAuthToken = "mockAuthToken";
       (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockAuthToken);
-      (axios.get as jest.Mock).mockResolvedValue({ data: { success: true, bookings: [] } });
-  
+      (axios.get as jest.Mock).mockResolvedValue({ 
+        data: { 
+          data: { bookings: [] },
+          status: 'success',
+          message: 'Bookings retrieved successfully'
+        } 
+      });
+    
       const result = await getUserBookings(mockEmail);
-  
+    
       expect(axios.get).toHaveBeenCalledWith(
         `https://dev.occupi.tech/api/view-bookings?filter={"email":"${mockEmail}"}`,
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: mockAuthToken }),
         })
       );
-      expect(result).toEqual({ success: true, bookings: [] });
+      expect(result).toEqual({ 
+        data: { bookings: [] },
+        status: 'success',
+        message: 'Bookings retrieved successfully'
+      });
     });
-  
+    
     it("should return error response when API call fails", async () => {
       const mockAuthToken = "mockAuthToken";
       (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockAuthToken);
       (axios.get as jest.Mock).mockRejectedValue({
-        response: { data: { success: false, message: "Error" } },
+        response: { 
+          data: { 
+            data: null,
+            status: 'error',
+            message: 'Failed to retrieve bookings',
+            error: {
+              code: 'API_ERROR',
+              details: 'API call failed',
+              message: 'Failed to retrieve bookings'
+            }
+          } 
+        },
       });
-  
+    
       const result = await getUserBookings(mockEmail);
-  
-      expect(result).toEqual({ success: false, message: "Error" });
+    
+      expect(result).toEqual({ 
+        data: null,
+        status: 'error',
+        message: 'Failed to retrieve bookings',
+        error: {
+          code: 'API_ERROR',
+          details: 'API call failed',
+          message: 'Failed to retrieve bookings'
+        }
+      });
     });
   
     it("should handle case when auth token is not found", async () => {
       (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(null);
-  
+    
       const result = await getUserBookings(mockEmail);
-  
-      expect(result).toEqual({ success: false, message: "Authentication failed" });
+    
+      expect(result).toEqual({
+        data: null,
+        status: 'error',
+        message: 'Authentication failed',
+        error: {
+          code: 'AUTH_ERROR',
+          details: 'No authentication token found',
+          message: 'Authentication failed'
+        }
+      });
     });
   });
 
