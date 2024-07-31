@@ -1,8 +1,8 @@
 module github.com/COS301-SE-2024/occupi/occupi-backend
 
-go 1.21
+go 1.22
 
-toolchain go1.21.6
+toolchain go1.22.5
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	github.com/go-webauthn/webauthn v0.11.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
@@ -84,11 +85,11 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
