@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/ipinfo/go/v2/ipinfo/cache"
 
@@ -186,4 +187,32 @@ func CreateRabbitQueue(ch *amqp.Channel) amqp.Queue {
 	}
 
 	return q
+}
+
+func CreateWebAuthnInstance() *webauthn.WebAuthn {
+	// WebAuthn parameters
+	rpID := GetRPID()
+	rpName := GetRPName()
+	rpOrigin := GetRPOrigin()
+	rpIcon := GetRPIcon()
+	rpChallengeLength := GetRPChallengeLength()
+	rpTimeout := GetRPTimeout()
+	rpIDLength := GetRPIDLength()
+
+	// Create a new WebAuthn instance
+	webAuthn := webauthn.New(&webauthn.Config{
+		RPID:              rpID,
+		RPName:            rpName,
+		RPOrigin:          rpOrigin,
+		RPIcon:            rpIcon,
+		RPChallengeLength: rpChallengeLength,
+		RPTimeout:         rpTimeout,
+		RPIDLength:        rpIDLength,
+		Attestation:       webauthn.ConveyAttestationNone,
+		AuthenticatorSelection: webauthn.AuthenticatorSelection{
+			UserVerification: webauthn.VerificationRequired,
+		},
+	})
+
+	return webAuthn
 }
