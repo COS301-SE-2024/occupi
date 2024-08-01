@@ -11,6 +11,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/sender"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -1087,8 +1088,11 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession, email 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	filter := bson.M{"email": email}
+	findOptions := options.FindOne()
+	// exclude the security.credentials field only
+	findOptions.SetProjection(bson.M{"security.credentials": 0})
 	var user models.User
-	err := collection.FindOne(ctx, filter).Decode(&user)
+	err := collection.FindOne(ctx, filter, findOptions).Decode(&user)
 	if err != nil {
 		logrus.Error(err)
 		return models.SecuritySettingsRequest{}, err
@@ -1543,4 +1547,61 @@ func AddRoom(ctx *gin.Context, appsession *models.AppSession, rroom models.Reque
 	}
 
 	return res.InsertedID.(primitive.ObjectID).Hex(), nil
+}
+
+func GetUserCredentials(ctx *gin.Context, appsession *models.AppSession, email string) (webauthn.Credential, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return webauthn.Credential{}, errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Security.Credentials, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return webauthn.Credential{}, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.Security.Credentials, nil
+}
+
+func AddUserCredential(ctx *gin.Context, appsession *models.AppSession, email string, credential *webauthn.Credential) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// get user from cache
+	userData, cacheErr := cache.GetUser(appsession, email)
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"security.credentials": credential}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// update user in cache
+	if cacheErr == nil {
+		userData.Security.Credentials = *credential
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
 }

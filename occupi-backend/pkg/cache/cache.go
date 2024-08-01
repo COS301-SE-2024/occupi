@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -216,6 +217,61 @@ func DeleteImage(appsession *models.AppSession, id string) {
 	// delete the image from the cache
 	if err := appsession.Cache.Delete(ImageKey(id)); err != nil {
 		logrus.Error("failed to delete image from cache", err)
+		return
+	}
+}
+
+func SetSession(appsession *models.AppSession, session *webauthn.SessionData, email string) error {
+	if appsession.Cache == nil {
+		return errors.New("cache not found")
+	}
+
+	// marshal the session
+	sessionData, err := bson.Marshal(session)
+	if err != nil {
+		logrus.Error("failed to marshall", err)
+		return err
+	}
+
+	// set the session in the cache
+	if err := appsession.Cache.Set(SessionKey(email), sessionData); err != nil {
+		logrus.Error("failed to set session in cache", err)
+		return err
+	}
+
+	return nil
+}
+
+func GetSession(appsession *models.AppSession, email string) (*webauthn.SessionData, error) {
+	if appsession.Cache == nil {
+		return nil, errors.New("cache not found")
+	}
+
+	// unmarshal the session from the cache
+	var session webauthn.SessionData
+	sessionData, err := appsession.Cache.Get(SessionKey(email))
+
+	if err != nil {
+		logrus.Error("key does not exist: ", err)
+		return nil, err
+	}
+
+	if err := bson.Unmarshal(sessionData, &session); err != nil {
+		logrus.Error("failed to unmarshall", err)
+		return nil, err
+	}
+
+	return &session, nil
+}
+
+func DeleteSession(appsession *models.AppSession, email string) {
+	if appsession.Cache == nil {
+		return
+	}
+
+	// delete the session from the cache
+	if err := appsession.Cache.Delete(SessionKey(email)); err != nil {
+		logrus.Error("failed to delete session from cache", err)
 		return
 	}
 }
