@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,6 +23,7 @@ type AppSession struct {
 	RabbitMQ    *amqp.Connection
 	RabbitCh    *amqp.Channel
 	RabbitQ     amqp.Queue
+	webAuthn    *webauthn.WebAuthn
 }
 
 // constructor for app session
@@ -39,5 +41,6 @@ func New(db *mongo.Client, cache *bigcache.BigCache) *AppSession {
 		RabbitMQ:    conn,
 		RabbitCh:    ch,
 		RabbitQ:     q,
+		webAuthn:    configs.CreateWebAuthnInstance(),
 	}
 }
