@@ -23,7 +23,7 @@ type AppSession struct {
 	RabbitMQ    *amqp.Connection
 	RabbitCh    *amqp.Channel
 	RabbitQ     amqp.Queue
-	webAuthn    *webauthn.WebAuthn
+	WebAuthn    *webauthn.WebAuthn
 }
 
 // constructor for app session
@@ -41,6 +41,42 @@ func New(db *mongo.Client, cache *bigcache.BigCache) *AppSession {
 		RabbitMQ:    conn,
 		RabbitCh:    ch,
 		RabbitQ:     q,
-		webAuthn:    configs.CreateWebAuthnInstance(),
+		WebAuthn:    configs.CreateWebAuthnInstance(),
+	}
+}
+
+type WebAuthnUser struct {
+	ID          []byte
+	Name        string
+	DisplayName string
+	Credentials []webauthn.Credential
+}
+
+// WebAuthnCredentials implements webauthn.User.
+func (u WebAuthnUser) WebAuthnCredentials() []webauthn.Credential {
+	return u.Credentials
+}
+
+// WebAuthnDisplayName implements webauthn.User.
+func (u WebAuthnUser) WebAuthnDisplayName() string {
+	return u.DisplayName
+}
+
+// WebAuthnID implements webauthn.User.
+func (u WebAuthnUser) WebAuthnID() []byte {
+	return u.ID
+}
+
+// WebAuthnName implements webauthn.User.
+func (u WebAuthnUser) WebAuthnName() string {
+	return u.Name
+}
+
+func NewWebAuthnUser(id []byte, name, displayName string, credentials webauthn.Credential) WebAuthnUser {
+	return WebAuthnUser{
+		ID:          id,
+		Name:        name,
+		DisplayName: displayName,
+		Credentials: []webauthn.Credential{credentials},
 	}
 }
