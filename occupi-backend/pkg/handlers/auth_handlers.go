@@ -77,6 +77,12 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	AllocateAuthTokens(ctx, token, expirationTime, cookies)
 }
 
+func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
+
+}
+
+func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {}
+
 // handler for registering a new user on occupi /auth/register
 func Register(ctx *gin.Context, appsession *models.AppSession) {
 	var requestUser models.RegisterUser

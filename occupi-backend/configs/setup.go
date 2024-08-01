@@ -193,26 +193,24 @@ func CreateWebAuthnInstance() *webauthn.WebAuthn {
 	// WebAuthn parameters
 	rpID := GetRPID()
 	rpName := GetRPName()
-	rpOrigin := GetRPOrigin()
-	rpIcon := GetRPIcon()
-	rpChallengeLength := GetRPChallengeLength()
-	rpTimeout := GetRPTimeout()
-	rpIDLength := GetRPIDLength()
+	rpOrigins := GetRPOrigins()
+
+	var webAuthn *webauthn.WebAuthn
+	var err error
 
 	// Create a new WebAuthn instance
-	webAuthn := webauthn.New(&webauthn.Config{
-		RPID:              rpID,
-		RPName:            rpName,
-		RPOrigin:          rpOrigin,
-		RPIcon:            rpIcon,
-		RPChallengeLength: rpChallengeLength,
-		RPTimeout:         rpTimeout,
-		RPIDLength:        rpIDLength,
-		Attestation:       webauthn.ConveyAttestationNone,
-		AuthenticatorSelection: webauthn.AuthenticatorSelection{
-			UserVerification: webauthn.VerificationRequired,
-		},
-	})
+	wConfig := &webauthn.Config{
+		RPID:          rpID,
+		RPDisplayName: rpName,
+		RPOrigins:     rpOrigins,
+	}
+
+	if webAuthn, err = webauthn.New(wConfig); err != nil {
+		fmt.Printf("Failed to create WebAuthn instance: %s\n", err)
+		logrus.WithError(err).Fatal("Failed to create WebAuthn instance")
+	}
+
+	fmt.Println("WebAuthn instance created!")
 
 	return webAuthn
 }
