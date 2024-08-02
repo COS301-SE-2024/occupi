@@ -31,6 +31,7 @@ export interface ResetPasswordReq {
 
 export interface BookRoomReq {
     roomId: string;
+    roomName: string;
     emails: string[];
     creator: string;
     floorNo: string; //string integer

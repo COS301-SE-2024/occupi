@@ -1,5 +1,5 @@
 import { Success, Unsuccessful } from "@/models/response";
-import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq } from "@/models/requests";
+import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq } from "@/models/requests";
 // import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import axios, { AxiosError } from 'axios';
@@ -119,6 +119,38 @@ export async function checkin(req: CheckInReq): Promise<Success | Unsuccessful> 
   console.log(req);
   try {
     const response = await axios.post("https://dev.occupi.tech/api/check-in", req, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in ${Function}:`, error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      console.log(error.response.data)
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+}
+
+export async function bookRoom(req: BookRoomReq): Promise<Success | Unsuccessful> {
+  let authToken = await SecureStore.getItemAsync('Token');
+  console.log(req);
+  try {
+    const response = await axios.post("https://dev.occupi.tech/api/book-room", req, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
