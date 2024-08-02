@@ -181,8 +181,64 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	))
 }
 
-func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
+func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
+	var requestEmail models.RequestEmail
+	if err := ctx.ShouldBindBodyWithJSON(&requestEmail); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected email field",
+			nil))
+		return
+	}
 
+	// fetch sessionData from the cache
+	sessionData, err := cache.GetSession(appsession, requestEmail.Email)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error fetching session data from cache")
+		return
+	}
+
+	// get the user's credentials from the database
+	cred, err := database.GetUserCredentials(ctx, appsession, requestEmail.Email)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error fetching user credentials from database")
+		return
+	}
+
+	user := models.NewWebAuthnUser([]byte(requestEmail.Email), requestEmail.Email, requestEmail.Email, cred)
+
+	credential, err := appsession.WebAuthn.FinishRegistration(user, *sessionData, ctx.Request)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error finishing login")
+		return
+	}
+
+	err = database.AddUserCredential(ctx, appsession, requestEmail.Email, credential)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error finishing login")
+		return
+	}
+
+	// generate a jwt token for the user
+	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, requestEmail.Email, role)
+
+	if err != nil {
+		logrus.WithError(err).Error("Error generating JWT token")
+		return
+	}
+
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, expirationTime, cookies)
 }
 
 // handler for registering a new user on occupi /auth/register
