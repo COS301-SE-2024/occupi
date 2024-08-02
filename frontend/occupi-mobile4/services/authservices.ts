@@ -1,4 +1,4 @@
-import { LoginReq } from "@/models/requests";
+import { LoginReq, VerifyOTPReq } from "@/models/requests";
 import { LoginSuccess, Unsuccessful, Success } from "@/models/response";
 import axios from 'axios';
 import dotenv from 'dotenv';
@@ -11,6 +11,27 @@ import * as SecureStore from 'expo-secure-store';
 export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful> {
     try {
         const response = await axios.post("https://dev.occupi.tech/auth/login-mobile", req, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            withCredentials: true
+        });
+        // console.log(response.data);
+        return response.data as LoginSuccess;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            // console.log(error.response.data);
+            return error.response.data as Unsuccessful;
+        } else {
+            throw error;
+        }
+    }
+}
+
+export async function verifyOtplogin(req: VerifyOTPReq): Promise<LoginSuccess | Unsuccessful> {
+    try {
+        const response = await axios.post("https://dev.occupi.tech/auth/verify-otp-mobile-login", req, {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'

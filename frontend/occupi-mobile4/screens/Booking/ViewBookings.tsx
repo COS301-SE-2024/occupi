@@ -52,10 +52,10 @@ const ViewBookings = () => {
           try {
             const roomData = await fetchUserBookings();
             if (roomData) {
-                // console.log(roomData);
+                console.log(roomData);
               setRoomData(roomData);
             } else {
-                setRoomData([]); // Default value if no username is found
+                setRoomData([]);
             }
           } catch (error) {
             console.error('Error fetching bookings:', error);

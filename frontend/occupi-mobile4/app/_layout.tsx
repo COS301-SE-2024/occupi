@@ -54,6 +54,7 @@ export default function RootLayout() {
         <Stack.Screen name="booking-details" options={{ headerShown: false }} />
         <Stack.Screen name="viewbookingdetails" options={{ headerShown: false }} />
         <Stack.Screen name="faqpage" options={{ headerShown: false }} />
+        <Stack.Screen name="set-details" options={{ headerShown: false }} />
         <Stack.Screen name="set-notifications" options={{ headerShown: false }} />
         <Stack.Screen name="set-security" options={{ headerShown: false }} />
         <Stack.Screen name="notiftester" options={{ headerShown: false }} />
