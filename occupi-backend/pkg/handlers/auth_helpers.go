@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
@@ -21,13 +21,11 @@ func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string,
 	// generate a random otp for the user and send email
 	otp, err := utils.GenerateOTP()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
 	// save otp to database
 	if _, err := database.AddOTP(ctx, appsession, email, otp); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
@@ -53,14 +51,9 @@ func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string,
 	}
 
 	if err := mail.SendMail(email, subject, body); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Please check your email for an otp.",
-		nil))
 	return true, nil
 }
 
@@ -68,13 +61,11 @@ func SendOTPEMailForIPInfo(ctx *gin.Context, appsession *models.AppSession, emai
 	// generate a random otp for the user and send email
 	otp, err := utils.GenerateOTP()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
 	// save otp to database
 	if _, err := database.AddOTP(ctx, appsession, email, otp); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
@@ -82,7 +73,6 @@ func SendOTPEMailForIPInfo(ctx *gin.Context, appsession *models.AppSession, emai
 	body := utils.FormatIPAddressConfirmationEmailBodyWithIPInfo(otp, email, unrecognizedLogger)
 
 	if err := mail.SendMail(email, subject, body); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
@@ -106,14 +96,12 @@ func GenerateJWTTokenAndStartSession(ctx *gin.Context, appsession *models.AppSes
 	}
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return "", time.Time{}, err
 	}
 
 	err = utils.SetSession(ctx, claims)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return "", time.Time{}, err
 	}
 
@@ -132,7 +120,7 @@ func ValidatePasswordEntry(ctx *gin.Context, appsession *models.AppSession, pass
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
 			nil))
-		return false, nil
+		return false, errors.New("invalid password")
 	}
 
 	return true, nil
@@ -150,7 +138,7 @@ func ValidatePasswordEntryAndReturnHash(ctx *gin.Context, appsession *models.App
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
 			nil))
-		return "", nil
+		return "", errors.New("invalid password")
 	}
 
 	password, err := utils.Argon2IDHash(password)
@@ -175,20 +163,18 @@ func ValidatePasswordCorrectness(ctx *gin.Context, appsession *models.AppSession
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
 			nil))
-		return false, nil
+		return false, errors.New("invalid password")
 	}
 
 	// fetch hashed password
 	hashedPassword, err := database.GetPassword(ctx, appsession, requestUser.Email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
 	// check if they match
 	match, err := utils.CompareArgon2IDHash(requestUser.Password, hashedPassword)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
@@ -199,7 +185,7 @@ func ValidatePasswordCorrectness(ctx *gin.Context, appsession *models.AppSession
 			constants.InvalidAuthCode,
 			"Password is incorrect",
 			nil))
-		return false, nil
+		return false, errors.New("password is incorrect")
 	}
 
 	return true, nil
@@ -295,7 +281,6 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	// check if the user is verified
 	verified, err := database.CheckIfUserIsVerified(ctx, appsession, email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
@@ -313,7 +298,6 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	if role == constants.Admin {
 		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return false, err
 		}
 
@@ -331,7 +315,6 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	// check if the next verification date is due
 	isVerificationDue, err := database.CheckIfNextVerificationDateIsDue(ctx, appsession, email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
@@ -339,7 +322,6 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	isIPValid, unrecognizedLogger, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, utils.GetClientIP(ctx))
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
@@ -347,41 +329,26 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	mfaEnabled, err := database.CheckIfUserHasMFAEnabled(ctx, appsession, email)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
 
-	switch {
-	case isVerificationDue:
-		// update verification status in database to false
-		_, err = database.UpdateVerificationStatusTo(ctx, appsession, email, false)
+	if isVerificationDue || mfaEnabled {
+		_, err := SendOTPEmail(ctx, appsession, email, constants.ReverifyEmail)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-			return false, err
-		}
-		if _, err := SendOTPEmail(ctx, appsession, email, constants.ReverifyEmail); err != nil {
 			return false, err
 		}
 		return false, nil
-
-	case mfaEnabled:
-		if _, err := SendOTPEmail(ctx, appsession, email, constants.ReverifyEmail); err != nil {
+	} else if !isIPValid {
+		_, err := SendOTPEMailForIPInfo(ctx, appsession, email, constants.ConfirmIPAddress, unrecognizedLogger)
+		if err != nil {
 			return false, err
 		}
 		return false, nil
-
-	case !isIPValid:
-		if _, err := SendOTPEMailForIPInfo(ctx, appsession, email, constants.ConfirmIPAddress, unrecognizedLogger); err != nil {
-			return false, err
-		}
-		return false, nil
-
-	default:
-		return true, nil
 	}
+	return true, nil
 }
 
-func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) (models.SecuritySettingsRequest, error, bool) {
+func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSession, securitySettings models.SecuritySettingsRequest) (models.SecuritySettingsRequest, error) {
 	// sanitize input
 	securitySettings.Email = utils.SanitizeInput(securitySettings.Email)
 	securitySettings.CurrentPassword = utils.SanitizeInput(securitySettings.CurrentPassword)
@@ -398,7 +365,7 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 			constants.InvalidRequestPayloadCode,
 			"Password does neet meet requirements",
 			nil))
-		return models.SecuritySettingsRequest{}, nil, false
+		return models.SecuritySettingsRequest{}, errors.New("invalid password")
 	}
 
 	// check if the passwords match
@@ -409,7 +376,7 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 			constants.InvalidRequestPayloadCode,
 			"Passwords do not match",
 			nil))
-		return models.SecuritySettingsRequest{}, nil, false
+		return models.SecuritySettingsRequest{}, errors.New("passwords do not match")
 	}
 
 	// check if the current password is correct
@@ -417,14 +384,14 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return models.SecuritySettingsRequest{}, err, false
+		return models.SecuritySettingsRequest{}, err
 	}
 
 	match, err := utils.CompareArgon2IDHash(securitySettings.CurrentPassword, password)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return models.SecuritySettingsRequest{}, err, false
+		return models.SecuritySettingsRequest{}, err
 	}
 
 	if !match {
@@ -434,7 +401,7 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 			constants.InvalidAuthCode,
 			"Password is incorrect",
 			nil))
-		return models.SecuritySettingsRequest{}, nil, false
+		return models.SecuritySettingsRequest{}, errors.New("password is incorrect")
 	}
 
 	// hash the new password
@@ -442,12 +409,12 @@ func SanitizeSecuritySettingsPassword(ctx *gin.Context, appsession *models.AppSe
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return models.SecuritySettingsRequest{}, err, false
+		return models.SecuritySettingsRequest{}, err
 	}
 
 	securitySettings.NewPassword = hashedPassword
 
-	return securitySettings, nil, true
+	return securitySettings, nil
 }
 
 // AllocateAuthTokens decides whether to send the JWT token in the Authorization header or as a cookie based on a condition.
@@ -482,66 +449,5 @@ func AttemptToGetEmail(ctx *gin.Context, appsession *models.AppSession) (string,
 			return "", err
 		}
 		return claims.Email, nil
-	}
-}
-
-func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
-	claims, err := utils.GetClaimsFromCTX(ctx)
-
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
-	_ = utils.ClearSession(ctx)
-
-	// Clear the Authorization header
-	ctx.Header("Authorization", "")
-
-	// Alternatively, completely remove the Authorization header
-	ctx.Writer.Header().Del("Authorization")
-
-	// List of domains to clear cookies from
-	domains := configs.GetOccupiDomains()
-
-	// Iterate over each domain and clear the "token" and "occupi-sessions-store" cookies
-	for _, domain := range domains {
-		ctx.SetCookie("token", "", -1, "/", domain, false, true)
-		ctx.SetCookie("occupi-sessions-store", "", -1, "/", domain, false, true)
-	}
-
-	// generate a jwt token for the user
-	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, email, claims.Role)
-
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
-	originToken := ctx.GetString("tokenOrigin")
-	var cookies bool
-
-	if originToken == "cookie" {
-		cookies = true
-	} else {
-		cookies = false
-	}
-
-	if !cookies {
-		// Send the JWT token in the Authorization header
-		ctx.Header("Authorization", "Bearer "+token)
-		ctx.JSON(http.StatusOK, utils.SuccessResponse(
-			http.StatusOK,
-			"Successfully updated user details!",
-			gin.H{"token": token},
-		))
-	} else {
-		// Set the JWT token in a cookie
-		ctx.SetCookie("token", token, int(time.Until(expirationTime).Seconds()), "/", "", false, true)
-		ctx.JSON(http.StatusOK, utils.SuccessResponse(
-			http.StatusOK,
-			"Successfully updated user details!",
-			nil,
-		))
 	}
 }

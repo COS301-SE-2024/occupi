@@ -46,7 +46,6 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Connect to MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		fmt.Printf("Failed to connect to MongoDB: %s\n", err)
 		logrus.Fatal(err)
 		errv := client.Disconnect(ctx)
 		logrus.Fatal(errv)
@@ -55,13 +54,11 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Check the connection
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		fmt.Printf("Failed to connect to MongoDB: %s\n", err)
 		logrus.Fatal(err)
 		errv := client.Disconnect(ctx)
 		logrus.Fatal(errv)
 	}
 
-	fmt.Println("Connected to MongoDB")
 	logrus.Info("Connected to MongoDB!")
 
 	return client
@@ -70,7 +67,6 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 // Create cache
 func CreateCache() *bigcache.BigCache {
 	if GetEnv() == "devlocalhost" || GetEnv() == "devdeployed" || GetEnv() == "devlocalhostdocker" {
-		fmt.Printf("Cache is disabled in %s mode\n", GetEnv())
 		logrus.Printf("Cache is disabled in %s mode\n", GetEnv())
 		return nil
 	}
@@ -82,7 +78,6 @@ func CreateCache() *bigcache.BigCache {
 		logrus.Fatal(err)
 	}
 
-	fmt.Println("Cache created!")
 	logrus.Info("Cache created!")
 
 	return cache
@@ -151,7 +146,6 @@ func CreateRabbitConnection() *amqp.Connection {
 	// Connect to RabbitMQ
 	conn, err := amqp.Dial(uri)
 	if err != nil {
-		fmt.Printf("Failed to connect to RabbitMQ: %s\n", err)
 		logrus.Fatal(err)
 	}
 
