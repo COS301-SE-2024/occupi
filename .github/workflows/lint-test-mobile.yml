@@ -1,4 +1,4 @@
-name: Lint🌸 and Test🧪 Mobile
+name: Lint and Test Mobile
 
 on:
   pull_request:
@@ -17,47 +17,37 @@ defaults:
     
 jobs:
   lint:
-    name: 🌸 Lint
     runs-on: ubuntu-latest
 
     steps:
-    - name: ⬇️ Checkout Repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: 🏗 Set up Node.js
+    - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 18
 
-    - name: 📦 Install Dependencies
+    - name: Install Dependencies
       run: npm install --legacy-peer-deps
 
-    - name: 🌸 Lint
+    - name: Lint
       run: npm run lint
       
   test:
-    name: 🧪 Test
     runs-on: ubuntu-latest
 
     steps:
-    - name: ⬇️ Checkout Repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: 🏗 Set up Node.js
+    - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 18
 
-    - name: 📦 Install Dependencies
+    - name: Install Dependencies
       run: npm install --legacy-peer-deps
 
-    - name: 🧪 Run Tests
-      run: npm run test:coverage
-
-    - name: 📋 Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage/lcov.info
-        fail_ci_if_error: true
-        verbose: true
+    - name: Run Tests
+      run: npm run test

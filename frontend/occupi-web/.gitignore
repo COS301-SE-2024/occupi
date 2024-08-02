@@ -32,5 +32,3 @@ dist-ssr
 
 *.crt
 *.key
-
-coverage/
