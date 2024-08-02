@@ -94,6 +94,7 @@ export const getUserBookings = async (email: string): Promise<Success | Unsucces
         withCredentials: true,
       }
     );
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error in getUserBookings:", error);

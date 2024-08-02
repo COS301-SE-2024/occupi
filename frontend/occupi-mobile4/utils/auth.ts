@@ -1,7 +1,7 @@
 //this folder contains functions that will call the service functions which make api requests for authentication
 //the purpose of this file is to refine and process the data and return these to the View
 
-import { login, logout } from "../services/authservices";
+import { login, logout, verifyOtplogin } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
 import { storeUserEmail, storeToken, setState, deleteToken, deleteUserData, deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings } from "../services/securestore";
@@ -15,11 +15,44 @@ export async function UserLogin(email: string, password: string) {
             password: password
         });
         if (response.status === 200) {
-            // console.log('responseee',response);
-            if (response.data.token) {
+            console.log('responseee',response);
+            if (response.data !== null) {
                 setState('logged_in');
                 storeToken(response.data.token);
-                // console.log('here');
+                console.log('here');
+                fetchUserDetails(email, response.data.token);
+                fetchNotificationSettings(email);
+                fetchSecuritySettings(email);
+                router.replace('/home');
+            } 
+            else {
+                setState('verify_otp_login');
+                router.replace('verify-otp')
+            }
+
+            return response.message;
+        }
+        else {
+            console.log('woahhh', response)
+            return response.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+export async function VerifyUserOtpLogin(email : string, otp : string) {
+    try {
+        const response = await verifyOtplogin({
+            email: email,
+            otp: otp
+        });
+        if (response.status === 200) {
+            console.log('responseee',response);
+            if (response.data !== null) {
+                setState('logged_in');
+                storeToken(response.data.token);
+                console.log('here');
                 fetchUserDetails(email, response.data.token);
                 fetchNotificationSettings(email);
                 fetchSecuritySettings(email);
@@ -35,7 +68,7 @@ export async function UserLogin(email: string, password: string) {
     } catch (error) {
         console.error('Error:', error);
     }
-}
+} 
 
 export async function UserLogout() {
     // console.log('hhhh');

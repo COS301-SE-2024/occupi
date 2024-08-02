@@ -19,6 +19,8 @@ import { FontAwesome6 } from '@expo/vector-icons';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fetchUsername } from '@/utils/user';
+import { Booking } from '@/models/data';
+import { fetchUserBookings } from '@/utils/bookings';
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
@@ -30,6 +32,7 @@ const Dashboard = () => {
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [checkedIn, setCheckedIn] = useState(false);
+  const [roomData, setRoomData] = useState<Booking>();
   const [username, setUsername] = useState('');
   const toast = useToast();
 
@@ -48,6 +51,20 @@ const Dashboard = () => {
         setUsername('Guest'); // Default in case of an error
       }
     };
+
+    const getRoomData = async () => {
+      try {
+        const roomData = await fetchUserBookings();
+        if (roomData) {
+            // console.log(roomData);
+          setRoomData(roomData[0]);
+          console.log(roomData[0]);
+        } 
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      }
+    };
+    getRoomData();
     getUsername();
   }, []);
   

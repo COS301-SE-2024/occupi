@@ -10,6 +10,7 @@ import Logo from './assets/images/Occupi/file.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
+import { VerifyUserOtpLogin } from '@/utils/auth';
 
 // const OTPSchema = z.object({
 //   OTP: z.string().min(6, 'OTP must be at least 6 characters in length'),
@@ -76,97 +77,17 @@ const OTPVerification = () => {
     // setValidationError(null);
     console.log(pin);
     setLoading(true);
-    try {
-      const response = await fetch('https://dev.occupi.tech/auth/verify-otp-mobile-login', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email,
-          otp: pin
-        }),
-        credentials: "include"
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setLoading(false);
-        // console.log(data.data.token);
-        storeToken(data.data.token);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={String(id)} variant="accent" action="success">
-                  <ToastTitle>{data.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          try {
-            let authToken = await SecureStore.getItemAsync('Token');
-            console.log(authToken);
-            const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`, {
-              method: 'GET',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `${authToken}`
-              },
-              credentials: "include"
-            });
-            const data = await response.json();
-            // console.log("here");
-            if (response.ok) {
-              storeUserData(JSON.stringify(data));
-              // console.log(`Data of ${email}: `, data);
-            } else {
-              console.log(data);
-              toast.show({
-                placement: 'top',
-                render: ({ id }) => {
-                  return (
-                    <Toast nativeID={id} variant="accent" action="error">
-                      <ToastTitle>{data.error.message}</ToastTitle>
-                    </Toast>
-                  );
-                },
-              });
-            }
-          } catch (error) {
-            console.error('Error:', error);
-            toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="error">
-                    <ToastTitle>Network Error</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
-          }
-          router.replace('/home');
-      } else {
-        setLoading(false);
-        // console.log(data);
-        toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={String(id)} variant="accent" action="error">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
+    const response = await VerifyUserOtpLogin(email,pin);
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
       }
-    } catch (error) {
-      console.error('Error:', error);
-      // setResponse('An error occurred');
-    }
-    // }, 3000);
+    });
     setLoading(false);
   };
 

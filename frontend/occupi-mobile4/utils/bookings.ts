@@ -9,7 +9,7 @@ export async function fetchUserBookings(): Promise<Booking[]> {
     try {
         const response = await getUserBookings(email);
         if (response.status === 200) {
-            // console.log('response', response.data);
+            console.log('response', response.data);
             return response.data;
             // console.log(settings);
         }
