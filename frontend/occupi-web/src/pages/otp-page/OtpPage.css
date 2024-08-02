@@ -1,0 +1,39 @@
+.box .image-container {
+  @apply h-[100] w-[100];
+}
+.box .image {
+  @apply h-[100] w-[100] absolute object-cover right-[650px] top-[197px];
+  /* left: 156px; */
+}
+.box {
+  @apply h-[846px] relative w-[430px] ml-[900px];
+}
+.box .group {
+  @apply h-[846px] w-[436px] left-0 top-0;
+  /* position: fixed; */
+}
+.box .overlap {
+  @apply h-[400px] absolute w-[434px] left-0 top-0;
+}
+.box .frame {
+  @apply h-[295px] absolute w-[393px] left-[17px] top-0;
+}
+.box .div {
+  @apply h-[181px] absolute w-[434px] left-0 top-[219px];
+}
+.box .text-wrapper {
+  @apply text-[rgba(10,10,10,1)] text-[50px] not-italic font-semibold h-[152px] left-[-100px] tracking-[-0.5px] leading-[50px] absolute w-[500px] text-left top-10;
+  font-family: "Inter", Helvetica;
+}
+.box .text-wrapper-2 {
+  @apply text-[color:var(--colours-gray-1000)] text-[length:var(--inter-extra-light-24-font-size)] font-[number:var(--inter-extra-light-24-font-weight)] h-[29px] left-[-100px] tracking-[var(--inter-extra-light-24-letter-spacing)] leading-[var(--inter-extra-light-24-line-height)] absolute w-[430px] text-left top-[155px];
+  font-family: var(--inter-extra-light-24-font-family);
+  font-style: var(--inter-extra-light-24-font-style);
+}
+.box .group-2 {
+  @apply h-[73px] absolute w-[434px] left-0 top-[490px];
+}
+.button-container {
+  @apply flex justify-end mt-0;
+  /* Adjust the spacing as needed */
+}

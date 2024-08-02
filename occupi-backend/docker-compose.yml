@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  occupi-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: occupi-backend
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/go/src/COS301-SE-2024/occupi/occupi-backend
+
+  occupi-nginx:
+    image: nginx:latest
+    container_name: occupi-nginx
+    ports:
+      - "13000:13000"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cert.pem:/etc/nginx/ssl/cert.pem:ro
+      - ./key.pem:/etc/nginx/ssl/key.pem:ro
+    depends_on:
+      - occupi-backend
