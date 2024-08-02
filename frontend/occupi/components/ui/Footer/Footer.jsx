@@ -59,7 +59,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-400 hover:text-white transition-colors">
+                <Link href="../FAQs/FAQs.jsx" className="text-gray-400 hover:text-white transition-colors">
                   FAQ
                 </Link>
               </li>
@@ -109,11 +109,11 @@ const Footer = () => {
         >
           <p>&copy; {currentYear} Occupi. All rights reserved.</p>
           <p className="mt-2">
-            <Link href="/privacy" className="hover:text-white transition-colors">
+            <Link href="https://www.freeprivacypolicy.com/live/8f124563-97fc-43fa-bf37-7a82ba153ea3" className="hover:text-white transition-colors">
               Privacy Policy
             </Link>{" "}
             |{" "}
-            <Link href="/terms" className="hover:text-white transition-colors">
+            <Link href="https://www.freeprivacypolicy.com/live/af283d60-4488-40b7-8899-0744f2973ac9" className="hover:text-white transition-colors">
               Terms of Service
             </Link>
           </p>
