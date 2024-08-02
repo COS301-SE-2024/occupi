@@ -11,7 +11,7 @@ const Navbar = () => {
         { name: "Features", href: "/#features" },
         { name: "About", href: "/#about" },
         { name: "Developers", href: "/#developers" },
-        { name: "FAQs", href: "/#faqs" },
+        { name: "FAQs", href: "../FAQs/FAQs.jsx" },
     ]
 
     useEffect(() => {

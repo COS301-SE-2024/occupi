@@ -1,7 +1,21 @@
-import LayoutEffect from "@/components/LayoutEffect"
-import SectionWrapper from "@/components/SectionWrapper"
+import React, { useEffect } from 'react';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
+import SectionWrapper from "@/components/SectionWrapper";
 
 const Features = () => {
+    const controls = useAnimation();
+    const [ref, inView] = useInView({
+        triggerOnce: true,
+        threshold: 0.1,
+    });
+
+    useEffect(() => {
+        if (inView) {
+            controls.start("visible");
+            console.log("Features section is in view");
+        }
+    }, [controls, inView]);
 
     const featuresList = [
         {
@@ -54,59 +68,97 @@ const Features = () => {
         },
     ]
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2,
+                delayChildren: 0.3,
+            },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                type: "spring",
+                stiffness: 100,
+                damping: 10,
+                duration: 0.5,
+            },
+        },
+    };
+
     return (
         <SectionWrapper>
-            <div id="features" className="custom-screen text-gray-300">
-                <LayoutEffect
-                    className="duration-1000 delay-300"
-                    isInviewState={{
-                        trueState: "opacity-1",
-                        falseState: "opacity-0 translate-y-6"
-                    }}
+            <motion.div
+                id="features"
+                className="custom-screen text-gray-300"
+                ref={ref}
+                initial="hidden"
+                animate={controls}
+                variants={containerVariants}
+            >
+                <motion.div
+                    className="max-w-xl mx-auto text-center"
+                    variants={containerVariants}
                 >
-                    <div className="max-w-xl mx-auto text-center">
-                        <h2 className="text-gray-50 text-3xl font-semibold sm:text-4xl">
-                            Start growing your email marketing with Mailgo
-                        </h2>
-                        <p className="mt-3">
-                            Mailgo makes it easy for you to create beautiful emails that get noticed and opened, track results, and build relationships with your customers.
-                        </p>
-                    </div>
-                </LayoutEffect>
-                <LayoutEffect
-                    className="duration-1000 delay-500"
-                    isInviewState={{
-                        trueState: "opacity-1",
-                        falseState: "opacity-0"
-                    }}
+                    <motion.h2
+                        className="text-gray-50 text-3xl font-semibold sm:text-4xl"
+                        variants={itemVariants}
+                    >
+                        Start growing your email marketing with Mailgo
+                    </motion.h2>
+                    <motion.p
+                        className="mt-3"
+                        variants={itemVariants}
+                    >
+                        Mailgo makes it easy for you to create beautiful emails that get noticed and opened, track results, and build relationships with your customers.
+                    </motion.p>
+                </motion.div>
+                <motion.div
+                    className="relative mt-12"
+                    variants={containerVariants}
                 >
-                    <div className="relative mt-12">
-                        <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                            {
-                                featuresList.map((item, idx) => (
-                                    <li key={idx} className="space-y-3 p-4 rounded-xl border border-gray-800"
-                                        style={{
-                                            background: "radial-gradient(157.73% 157.73% at 50% -29.9%, rgba(203, 213, 225, 0.16) 0%, rgba(203, 213, 225, 0) 100%)"
-                                        }}
-                                    >
-                                        <div className="w-12 h-12 flex items-center justify-center bg-gray-700 rounded-lg text-gray-50">
-                                            {item.icon}
-                                        </div>
-                                        <h3 className="text-lg text-gray-50 font-semibold">
-                                            {item.title}
-                                        </h3>
-                                        <p>
-                                            {item.desc}
-                                        </p>
-                                    </li>
-                                ))
-                            }
-                        </ul>
-                    </div>
-                </LayoutEffect>
-            </div>
+                    <motion.ul
+                        className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+                        variants={containerVariants}
+                    >
+                        {featuresList.map((item, idx) => (
+                            <motion.li
+                                key={idx}
+                                className="space-y-3 p-4 rounded-xl border border-gray-800"
+                                style={{
+                                    background: "radial-gradient(157.73% 157.73% at 50% -29.9%, rgba(203, 213, 225, 0.16) 0%, rgba(203, 213, 225, 0) 100%)"
+                                }}
+                                variants={itemVariants}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                <motion.div
+                                    className="w-12 h-12 flex items-center justify-center bg-gray-700 rounded-lg text-gray-50"
+                                    whileHover={{ rotate: 360 }}
+                                    transition={{ duration: 0.5 }}
+                                >
+                                    {item.icon}
+                                </motion.div>
+                                <h3 className="text-lg text-gray-50 font-semibold">
+                                    {item.title}
+                                </h3>
+                                <p>
+                                    {item.desc}
+                                </p>
+                            </motion.li>
+                        ))}
+                    </motion.ul>
+                </motion.div>
+            </motion.div>
         </SectionWrapper>
-    )
-}
+    );
+};
 
-export default Features
+export default Features;

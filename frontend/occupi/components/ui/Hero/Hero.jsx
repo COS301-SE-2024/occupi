@@ -1,8 +1,53 @@
-import { motion } from "framer-motion"
-import GradientWrapper from "@/components/GradientWrapper"
-import Image from "next/image"
-import HeroImg from "@/public/images/Group.svg"
-import LayoutEffect from "@/components/LayoutEffect"
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
+import GradientWrapper from "@/components/GradientWrapper";
+import Image from "next/image";
+import HeroImg from "@/public/images/Group.svg";
+import LayoutEffect from "@/components/LayoutEffect";
+
+const AnimatedText = () => {
+    const [index, setIndex] = useState(0);
+    const words = ["", "Predict", "Plan", "Perfect"];
+    const [showFull, setShowFull] = useState(false);
+
+    useEffect(() => {
+        if (index < words.length) {
+            const timer = setTimeout(() => setIndex(index + 1), 1000);
+            return () => clearTimeout(timer);
+        } else if (!showFull) {
+            const timer = setTimeout(() => setShowFull(true), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [index, showFull]);
+
+    return (
+        <div className="h-8">
+            <AnimatePresence mode="wait">
+                {!showFull ? (
+                    <motion.span
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.5 }}
+                        className="text-xl text-white"
+                    >
+                        {words[index % words.length]}
+                    </motion.span>
+                ) : (
+                    <motion.span
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="text-xl text-white"
+                    >
+                        Predict. Plan. Perfect.
+                    </motion.span>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
 
 const Hero = () => {
     const containerVariants = {
@@ -16,7 +61,7 @@ const Hero = () => {
                 staggerChildren: 0.2
             }
         }
-    }
+    };
 
     const itemVariants = {
         hidden: { opacity: 0, y: 20 },
@@ -25,12 +70,12 @@ const Hero = () => {
             y: 0,
             transition: { duration: 0.5 }
         }
-    }
+    };
 
     const buttonVariants = {
         hover: { scale: 1.05, transition: { duration: 0.2 } },
         tap: { scale: 0.95, transition: { duration: 0.1 } }
-    }
+    };
 
     const imageVariants = {
         hidden: { opacity: 0, x: 100 },
@@ -39,7 +84,7 @@ const Hero = () => {
             x: 0,
             transition: { duration: 0.8, ease: "easeOut" }
         }
-    }
+    };
 
     return (
         <section>
@@ -61,21 +106,16 @@ const Hero = () => {
                             <motion.div className="md:w-1/2 md:pr-8 mb-8 md:mb-0 md:ml-20">
                                 <motion.h1
                                     variants={itemVariants}
-                                    className="text-4xl font-bold text-white-800 mb-4 sm:text-5xl"
+                                    className="text-4xl font-bold text-white mb-4 sm:text-5xl"
                                 >
                                     Analyse and Predict your office capacity
                                 </motion.h1>
-                                <motion.p
-                                    variants={itemVariants}
-                                    className="text-xl text-white-600 mb-6"
-                                >
-                                    Predict. Plan. Perfect
-                                </motion.p>
+                                <AnimatedText />
                                 <motion.p
                                     variants={buttonVariants}
                                     whileHover="hover"
                                     whileTap="tap"
-                                    className="inline-block bg-gray-900 text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+                                    className="inline-block bg-gray-900 text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors cursor-pointer mt-6"
                                 >
                                     Get Access →
                                 </motion.p>
@@ -98,7 +138,7 @@ const Hero = () => {
                 </LayoutEffect>
             </div>
         </section>
-    )
-}
+    );
+};
 
-export default Hero
+export default Hero;
