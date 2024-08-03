@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   useColorScheme,
   Alert,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import {
   View,
@@ -21,12 +21,13 @@ import {
 import { Ionicons, Feather, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
 
+import { sendPushNotification } from "@/utils/utils";
 
 const BookingDetails = () => {
   const navigation = useNavigation();
@@ -41,6 +42,7 @@ const BookingDetails = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const isDark = colorScheme === "dark";
+  const [pushTokens, setPushTokens] = useState([]);
   // console.log(creatorEmail + roomId + floorNo);
   // console.log(bookingInfo?);
   // console.log(startTime);
@@ -48,7 +50,7 @@ const BookingDetails = () => {
   // console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
   const steps = ["Booking details", "Invite attendees", "Receipt"];
-  const apiUrl = process.env.EXPO_PUBLIC_LOCAL_API_URL;
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
   const bookroomendpoint = process.env.EXPO_PUBLIC_BOOK_ROOM;
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
@@ -63,9 +65,9 @@ const BookingDetails = () => {
   useEffect(() => {
     const getbookingInfo = async () => {
       let userinfo = await SecureStore.getItemAsync('UserData');
-      // console.log(result);
       // if (result !== undefined) {
       let jsoninfo = JSON.parse(userinfo);
+      console.log("data", jsoninfo?.data.details.name);
       setCreatorEmail(jsoninfo?.data?.email);
       let result: string = await SecureStore.getItemAsync('BookingInfo');
       console.log("CurrentRoom:", jsoninfo?.data?.email);
@@ -105,6 +107,8 @@ const BookingDetails = () => {
     };
     console.log("hereeeeee", body);
     let authToken = await SecureStore.getItemAsync('Token');
+    let userinfo = await SecureStore.getItemAsync('UserData');
+    let jsoninfo = JSON.parse(userinfo);
     try {
       setLoading(true);
       const response = await fetch(`${apiUrl}${bookroomendpoint}`, {
@@ -112,26 +116,51 @@ const BookingDetails = () => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
+          'Authorization': `${authToken}`,
+          'X-Timezone': 'Africa/Johannesburg'
         },
         body: JSON.stringify(body),
         credentials: "include"
       });
       const data = await response.json();
       console.log(data);
+      console.log(attendees);
       if (response.ok) {
-        setCurrentStep(2);
-        setLoading(false);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
+        try {
+          const response = await fetch(`${apiUrl}/api/get-push-tokens?emails=${attendees.slice(1)}`, {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `${authToken}`,
+              'X-Timezone': 'Africa/Johannesburg'
+            },
+            credentials: "include"
+          });
+          const data = await response.json();
+          console.log("PUSHH TOKENSS",data);
+          if (data.data) {
+            let tokens = data.data.map((item) => item.expoPushToken);
+            setPushTokens(tokens);
+            console.log(tokens);
+            sendPushNotification(tokens, "New Booking", `${jsoninfo?.data.details.name} has invited you to a booking.`);
+          }
+          setCurrentStep(2);
+          setLoading(false);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        } catch (error) {
+          setLoading(false);
+          console.error('Error:', error);
+        }
       } else {
         console.log(data);
         setLoading(false);
@@ -147,6 +176,7 @@ const BookingDetails = () => {
         });
       }
     } catch (error) {
+      setLoading(false);
       console.error('Error:', error);
       // setResponse('An error occurred');
     }
@@ -242,6 +272,8 @@ const BookingDetails = () => {
   const handleBiometricAuth = async () => {
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
+    console.log('Supported biometric types:', biometricType);
 
     if (!hasHardware || !isEnrolled) {
       Alert.alert(
@@ -513,7 +545,7 @@ const BookingDetails = () => {
               </View>
               <ScrollView style={{ height: 70 }}>
                 {attendees.map((email, idx) => (
-                  <Text color={isDark ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
+                  <Text key={idx} color={isDark ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                 ))}
               </ScrollView>
             </View>

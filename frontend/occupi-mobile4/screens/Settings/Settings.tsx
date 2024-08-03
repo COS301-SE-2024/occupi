@@ -49,7 +49,7 @@ const Settings = () => {
       const data = await response.json();
       if (response.ok) {
         console.log(data);
-        alert("logged out siccessfully");
+        alert("logged out successfully");
         router.replace('/login');
       } else {
         console.log(data);

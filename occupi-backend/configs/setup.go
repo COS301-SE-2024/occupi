@@ -1,14 +1,18 @@
 package configs
 
 import (
+	"net"
 	"time"
 
 	"github.com/allegro/bigcache/v3"
+	"github.com/ipinfo/go/v2/ipinfo"
+	"github.com/ipinfo/go/v2/ipinfo/cache"
 
 	"context"
 	"fmt"
 	"net/url"
 
+	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -37,18 +41,27 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	// Connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
+		fmt.Printf("Failed to connect to MongoDB: %s\n", err)
 		logrus.Fatal(err)
+		errv := client.Disconnect(ctx)
+		logrus.Fatal(errv)
 	}
 
 	// Check the connection
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
+		fmt.Printf("Failed to connect to MongoDB: %s\n", err)
 		logrus.Fatal(err)
+		errv := client.Disconnect(ctx)
+		logrus.Fatal(errv)
 	}
 
+	fmt.Println("Connected to MongoDB")
 	logrus.Info("Connected to MongoDB!")
 
 	return client
@@ -56,12 +69,21 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 
 // Create cache
 func CreateCache() *bigcache.BigCache {
+	if GetEnv() == "devlocalhost" || GetEnv() == "devdeployed" || GetEnv() == "devlocalhostdocker" {
+		fmt.Printf("Cache is disabled in %s mode\n", GetEnv())
+		logrus.Printf("Cache is disabled in %s mode\n", GetEnv())
+		return nil
+	}
+
 	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to 5 seconds
 	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to 5 seconds
 	cache, err := bigcache.New(context.Background(), config)
 	if err != nil {
 		logrus.Fatal(err)
 	}
+
+	fmt.Println("Cache created!")
+	logrus.Info("Cache created!")
 
 	return cache
 }
@@ -76,4 +98,92 @@ func CreateOTPRateLimitCache() *bigcache.BigCache {
 	}
 
 	return cache
+}
+
+// create ipinfo client
+func CreateIPInfoClient() *ipinfo.Client {
+	// engine
+	engine := cache.NewInMemory().WithExpiration(10 * time.Minute)
+	// create ipinfo cache
+	cache := ipinfo.NewCache(engine)
+
+	client := ipinfo.NewClient(nil, cache, GetIPClientInfoToken())
+
+	return client
+}
+
+// get ip info
+func GetIPInfo(ip string, client *ipinfo.Client) (*ipinfo.Core, error) {
+	// check if run mode is test mode
+	if GetGinRunMode() == "test" {
+		return &ipinfo.Core{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		}, nil
+	}
+
+	info, err := client.GetIPInfo(net.ParseIP(ip))
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	return info, nil
+}
+
+func CreateRabbitConnection() *amqp.Connection {
+	// RabbitMQ connection parameters
+	rabbitMQUsername := GetRabbitMQUsername()
+	rabbitMQPassword := GetRabbitMQPassword()
+	rabbitMQHost := GetRabbitMQHost()
+	rabbitMQPort := GetRabbitMQPort()
+
+	// Construct the connection URI
+	var uri string
+
+	if rabbitMQUsername == "RABBITMQ_USERNAME" || rabbitMQPassword == "RABBITMQ_PASSWORD" {
+		uri = fmt.Sprintf("amqp://%s:%s", rabbitMQHost, rabbitMQPort)
+	} else {
+		uri = fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+	}
+
+	// Connect to RabbitMQ
+	conn, err := amqp.Dial(uri)
+	if err != nil {
+		fmt.Printf("Failed to connect to RabbitMQ: %s\n", err)
+		logrus.Fatal(err)
+	}
+
+	fmt.Println("Connected to RabbitMQ")
+	logrus.Info("Connected to RabbitMQ!")
+
+	return conn
+}
+
+func CreateRabbitChannel(conn *amqp.Connection) *amqp.Channel {
+	// Create a channel
+	ch, err := conn.Channel()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return ch
+}
+
+func CreateRabbitQueue(ch *amqp.Channel) amqp.Queue {
+	// Declare a queue
+	q, err := ch.QueueDeclare(
+		"notification_queue",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return q
 }

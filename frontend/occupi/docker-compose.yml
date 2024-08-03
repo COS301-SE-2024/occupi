@@ -9,6 +9,7 @@ services:
       - "5000:3000"
     networks:
       - webnet
+    restart: on-failure:5
 
 networks:
   webnet:
