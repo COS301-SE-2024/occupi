@@ -13,10 +13,11 @@
     "@next/font": "13.1.6",
     "eslint": "8.33.0",
     "eslint-config-next": "13.1.6",
-    "framer-motion": "^9.0.3",
+    "framer-motion": "^9.1.7",
     "next": "13.1.6",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-icons": "^5.2.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.13",
