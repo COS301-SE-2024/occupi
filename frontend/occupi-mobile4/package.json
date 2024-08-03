@@ -9,13 +9,17 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "lint": "expo lint"
   },
   "jest": {
     "preset": "jest-expo",
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui/themed)"
-    ]
+    ],
+    "collectCoverage": true,
+    "coverageReporters": ["lcov", "text"],
+    "coverageDirectory": "coverage"
   },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
@@ -52,6 +56,7 @@
     "expo-system-ui": "~3.0.6",
     "expo-web-browser": "~13.0.3",
     "lucide-react-native": "^0.395.0",
+    "moti": "^0.29.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.52.0",

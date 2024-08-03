@@ -7,9 +7,11 @@ toolchain go1.21.6
 require (
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-contrib/sessions v1.0.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.20.0
+	github.com/ipinfo/go/v2 v2.10.0
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/newrelic/go-agent/v3 v3.33.1
 	github.com/oliveroneill/exponent-server-sdk-golang v0.0.0-20210823140141-d050598be512
@@ -22,8 +24,10 @@ require (
 )
 
 require (
-	github.com/gin-contrib/cors v1.7.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
@@ -88,7 +92,6 @@ require (
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

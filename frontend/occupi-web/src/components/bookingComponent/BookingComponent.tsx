@@ -153,7 +153,10 @@ export default function App() {
             {cellValue}
           </Chip>
         );
+
+        
       case "actions":
+        
         return (
           <div className="relative flex items-center gap-2">
             <Tooltip content="View User Details">
@@ -163,7 +166,7 @@ export default function App() {
         {/* <EyeIcon />Hello */}
         
       </div>
-      <OccupancyModal/>
+      <OccupancyModal user={user}/>
               </span>
             </Tooltip>
             {/* <Tooltip content="Edit user">
@@ -174,7 +177,7 @@ export default function App() {
             <Tooltip content="Email user">
               <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
                 <a
-                  href={`mailto:user@example.com`}
+                  href={`mailto:${user.email}`}
                   className="text-lg text-default-400 cursor-pointer active:opacity-50"
                 >
                   <FontAwesomeIcon icon={faEnvelope} />

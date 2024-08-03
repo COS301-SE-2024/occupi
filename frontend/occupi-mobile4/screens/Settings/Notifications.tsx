@@ -15,6 +15,16 @@ import { useColorScheme, Switch } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
+import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
+
+
+const COLORS = {
+  white: '#FFFFFF',
+  black: '#000000',
+  gray: '#BEBEBE',
+  primary: '#3366FF',
+};
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
@@ -29,11 +39,37 @@ const SIZES = {
 
 const Notifications = () => {
   let colorScheme = useColorScheme();
+  const toast = useToast();
   //retrieve user settings ad assign variables accordingly
-  const [isEnabled1, setIsEnabled1] = useState(false);
-  const [isEnabled2, setIsEnabled2] = useState(false);
-  const [isEnabled3, setIsEnabled3] = useState(false);
-  const [isSaved, setIsSaved] = useState(true);
+  const [oldInviteVal, setOldInviteVal] = useState(false);
+  const [newInviteVal, setNewInviteVal] = useState(false);
+  const [oldNotifyVal, setOldNotifyVal] = useState(false);
+  const [newNotifyVal, setNewNotifyVal] = useState(false);
+
+  useEffect(() => {
+    const getNotificationDetails = async () => {
+      let settings = await SecureStore.getItemAsync('Notifications');
+      const settingsObject = JSON.parse(settings);
+      if (settingsObject.invites === "on") {
+        setOldInviteVal(true);
+        setNewInviteVal(true);
+      } else {
+        setOldInviteVal(false);
+        setNewInviteVal(false);
+      }
+
+      if (settingsObject.bookingReminder === "on") {
+        setOldNotifyVal(true);
+        setNewNotifyVal(true);
+      } else {
+        setOldNotifyVal(false);
+        setNewNotifyVal(false);
+      }
+      // console.log(settings);
+    }
+    getNotificationDetails();
+  }, [])
+
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
   useEffect(() => {
@@ -45,34 +81,81 @@ const Notifications = () => {
     getAccentColour();
   }, []);
   const toggleSwitch1 = () => {
-    setIsEnabled1(previousState => !previousState)
-    setIsSaved(false);
+    setNewInviteVal(previousState => !previousState)
   };
   const toggleSwitch2 = () => {
-    setIsEnabled2(previousState => !previousState)
-    setIsSaved(false);
-  };
-  const toggleSwitch3 = () => {
-    setIsEnabled3(previousState => !previousState)
-    setIsSaved(false);
+    setNewNotifyVal(previousState => !previousState)
   };
 
-  const onSave = () => {
-      //integration here
+  const onSave = async () => {
+    let userEmail = await SecureStore.getItemAsync('Email');
+    let authToken = await SecureStore.getItemAsync('Token');
+
+    try {
+      const response = await axios.get('https://dev.occupi.tech/api/update-notification-settings', {
+        params: {
+          email: userEmail,
+          invites: newInviteVal ? "on" : "off",
+          bookingReminder: newNotifyVal ? "on" : "off"
+        },
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
+        },
+        withCredentials: true
+      });
+      const data = response.data;
+      // console.log(`Response Data: ${JSON.stringify(data.data)}`);
+      console.log(data);
+      if (response.status === 200) {
+        const newSettings = {
+          invites: newInviteVal ? "on" : "off",
+          bookingReminder: newNotifyVal ? "on" : "off",
+        }
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+        console.log(newSettings);
+        SecureStore.setItemAsync('Notifications', JSON.stringify(newSettings));
+        router.replace('/settings');
+      } else {
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action="success">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+        console.log(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const handleBack = () => {
-    if (isSaved === false) {
+    if (newInviteVal !== oldInviteVal || newNotifyVal !== oldNotifyVal) {
       Alert.alert(
         'Save Changes',
         'You have unsaved changes. Would you like to save them?',
         [
           {
             text: 'Leave without saving',
-            onPress: () => router.back(),
+            onPress: () => router.replace('/settings'),
             style: 'cancel',
           },
-          { text: 'Save', onPress: () =>onSave() },
+          { text: 'Save', onPress: () => onSave() },
         ],
         { cancelable: false }
       );
@@ -107,31 +190,21 @@ const Notifications = () => {
         <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
           <Switch
-            trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled1 ? `${accentColour}` : 'white'}
+            trackColor={{ false: 'lightgray', true: 'lightgray' }}
+            thumbColor={newInviteVal ? `${accentColour}` : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch1}
-            value={isEnabled1}
+            value={newInviteVal}
           />
         </View>
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14}  backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
           <Switch
-            trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled2 ? `${accentColour}` : 'white'}
+            trackColor={{ false: 'lightgray', true: 'lightgray' }}
+            thumbColor={newNotifyVal ? `${accentColour}` : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch2}
-            value={isEnabled2}
-          />
-        </View>
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14}  backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-          <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when building is full</Text>
-          <Switch
-            trackColor={{false: 'lightgray', true: 'lightgray'}}
-            thumbColor={isEnabled3 ? `${accentColour}` : 'white'}
-            ios_backgroundColor="lightgray"
-            onValueChange={toggleSwitch3}
-            value={isEnabled3}
+            value={newNotifyVal}
           />
         </View>
       </View>
