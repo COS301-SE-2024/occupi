@@ -32,7 +32,7 @@ def predict():
         weekend = is_weekend(current_date)
         special_event = is_special_event(current_date)
         # Set factor based on special event
-        factor = 1.5 if special_event else 1.0
+        # factor = 1.5 if special_event else 1.0
 
         predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler, factor)
         
@@ -71,7 +71,7 @@ def predict_week():
             special_event = is_special_event(date)
             
             # Set factor based on special event
-            factor = 1.5 if special_event else 1.0
+            # factor = 1.5 if special_event else 1.0
             
             # Get prediction
             predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler, factor)
