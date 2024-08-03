@@ -32,12 +32,13 @@ const SIZES = {
 };
 
 const Appearance = () => {
-    let colorScheme = useColorScheme();
     //retrieve user settings ad assign variables accordingly
     const onSave = () => {
         //integration here
     };
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
+    const [theme, setTheme] = useState<string>('');
+    let colorScheme = theme;
 
     useEffect(() => {
         const getAccentColour = async () => {
@@ -75,6 +76,7 @@ const Appearance = () => {
         router.back();
         // }
     }
+    console.log(theme);
 
     return (
         <View flex={1} backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
@@ -100,36 +102,48 @@ const Appearance = () => {
             <View mt="$4" flexDirection="column" >
                 <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Mode</Text>
                 <View p="$8" justifyContent='space-between' flexDirection='row' borderRadius={18} my="$2" height={hp('28%')} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-                    <View alignItems='center' w="$25%">
-                        <Image
-                            h={hp('18%')}
-                            resizeMode='stretch'
-                            borderRadius="$15"
-                            alt="white"
-                            source={require('./assets/white.png')}
-                        />
-                        <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>Light</Text>
-                    </View>
-                    <View alignItems='center' w="$25%">
-                        <Image
-                            h={hp('18%')}
-                            resizeMode='stretch'
-                            borderRadius="$15"
-                            alt="white"
-                            source={require('./assets/black.png')}
-                        />
-                        <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>Dark</Text>
-                    </View>
-                    <View alignItems='center' w="$25%">
-                        <Image
-                            h={hp('18%')}
-                            resizeMode='stretch'
-                            borderRadius="$15"
-                            alt="white"
-                            source={require('./assets/system.png')}
-                        />
-                        <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>System</Text>
-                    </View>
+                    <TouchableOpacity onPress={() => setTheme("light")} style={{ width: wp('25%') }}>
+                        <View alignItems='center'>
+                            <Image
+                                h={hp('18%')}
+                                resizeMode='stretch'
+                                borderRadius="$15"
+                                borderColor={theme === 'light' ? accentColour : colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
+                                borderWidth={3}
+                                alt="white"
+                                source={require('./assets/white.png')}
+                            />
+                            <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>Light</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setTheme("dark")} style={{ width: wp('25%') }}>
+                        <View alignItems='center'>
+                            <Image
+                                h={hp('18%')}
+                                resizeMode='stretch'
+                                borderColor={theme === 'dark' ? accentColour : colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
+                                borderRadius="$15"
+                                borderWidth={3}
+                                alt="white"
+                                source={require('./assets/black.png')}
+                            />
+                            <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>Dark</Text>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setTheme("system")} style={{ width: wp('25%') }}>
+                        <View alignItems='center'>
+                            <Image
+                                h={hp('18%')}
+                                resizeMode='stretch'
+                                borderColor={theme === 'system' ? accentColour : colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
+                                borderRadius="$15"
+                                borderWidth={3}
+                                alt="white"
+                                source={require('./assets/system.png')}
+                            />
+                            <Text mt={8} fontWeight={'$light'} color={colorScheme === 'dark' ? 'white' : 'black'}>System</Text>
+                        </View>
+                    </TouchableOpacity>
 
 
                 </View>
