@@ -1,10 +1,11 @@
 //this folder contains functions that will call the service functions which make api requests for authentication
 //the purpose of this file is to refine and process the data and return these to the View
 
-import { login, logout, verifyOtplogin } from "../services/authservices";
+import { login, logout, register, verifyOtplogin } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
 import { storeUserEmail, storeToken, setState, deleteToken, deleteUserData, deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings } from "../services/securestore";
+import { retrievePushToken } from "./notifications";
 
 
 export async function UserLogin(email: string, password: string) {
@@ -30,6 +31,29 @@ export async function UserLogin(email: string, password: string) {
                 router.replace('verify-otp')
             }
 
+            return response.message;
+        }
+        else {
+            console.log('woahhh', response)
+            return response.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+export async function userRegister(email: string, password: string, employeeId: string) {
+    let expoPushToken = await retrievePushToken();
+    try {
+        const response = await register({
+            email: email,
+            password: password,
+            // employee_id: employeeId,
+            expoPushToken: expoPushToken
+        });
+        if (response.status === 200) {
+            console.log('responseee',response);
+            setState('verify_otp_register');
             return response.message;
         }
         else {

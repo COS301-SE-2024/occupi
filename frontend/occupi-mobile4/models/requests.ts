@@ -10,7 +10,8 @@ export interface LoginReq {
 export interface RegisterReq {
     email: string;
     password: string;
-    employee_id: string;
+    employee_id?: string;
+    expoPushToken: string;
 }
 
 export interface VerifyOTPReq {
