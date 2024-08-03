@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -73,6 +70,16 @@ const Notifications = () => {
     getNotificationDetails();
   }, [])
 
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      console.log(accentcolour);
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
   const toggleSwitch1 = () => {
     setNewInviteVal(previousState => !previousState)
   };
@@ -184,7 +191,7 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
           <Switch
             trackColor={{ false: 'lightgray', true: 'lightgray' }}
-            thumbColor={newInviteVal ? 'greenyellow' : 'white'}
+            thumbColor={newInviteVal ? `${accentColour}` : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch1}
             value={newInviteVal}
@@ -194,7 +201,7 @@ const Notifications = () => {
           <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
           <Switch
             trackColor={{ false: 'lightgray', true: 'lightgray' }}
-            thumbColor={newNotifyVal ? 'greenyellow' : 'white'}
+            thumbColor={newNotifyVal ? `${accentColour}` : 'white'}
             ios_backgroundColor="lightgray"
             onValueChange={toggleSwitch2}
             value={newNotifyVal}
