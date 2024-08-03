@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "9000:9000"
+    depends_on:
+      - model
+
+  model:
+    image: tensorflow/serving:latest
+    environment:
+      - MODEL_NAME=attendance_model
+    volumes:
+      - ../models/attendance_model:/models/attendance_model
+    ports:
+      - "8501:8501"

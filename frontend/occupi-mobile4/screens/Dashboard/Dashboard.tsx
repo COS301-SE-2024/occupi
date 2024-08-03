@@ -70,6 +70,15 @@ const Dashboard = () => {
   }, []);
 
 
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers(prevNumbers => {
