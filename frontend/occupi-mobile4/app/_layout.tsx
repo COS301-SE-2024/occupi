@@ -58,6 +58,7 @@ export default function RootLayout() {
         <Stack.Screen name="set-security" options={{ headerShown: false }} />
         <Stack.Screen name="notiftester" options={{ headerShown: false }} />
         <Stack.Screen name="changepassword" options={{ headerShown: false }} />
+        <Stack.Screen name="set-details" options={{ headerShown: false }} />
       </Stack>
       </NavBarProvider>
     </GluestackUIProvider>
