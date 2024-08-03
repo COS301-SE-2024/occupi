@@ -89,6 +89,18 @@ func CreateCache() *bigcache.BigCache {
 	return cache
 }
 
+// Create cache for sessions
+func CreateSessionCache() *bigcache.BigCache {
+	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to x seconds
+	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to x seconds
+	cache, err := bigcache.New(context.Background(), config)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return cache
+}
+
 // create cache for rate limiting otp regenration requests
 func CreateOTPRateLimitCache() *bigcache.BigCache {
 	config := bigcache.DefaultConfig(time.Duration(GetOTPReqEviction()) * time.Second) // Set the eviction time to x seconds
