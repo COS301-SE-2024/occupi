@@ -2,26 +2,23 @@ package tests
 
 import (
 	// "encoding/json"
-	"fmt"
-	"net"
-	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"strings"
-	"testing"
-	"time"
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/jpeg"
 	"image/png"
 	"mime/multipart"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
-	
+	"reflect"
+	"strings"
+	"testing"
+	"time"
 
-
-	"github.com/nfnt/resize"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -33,11 +30,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+
 	// "github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -1533,14 +1530,14 @@ func TestSantizeProjection(t *testing.T) {
 			input: models.QueryInput{
 				Projection: []string{"username", "emails", "age"},
 			},
-			expected: []string{"username", "age"},
+			expected: []string{"username", "emails", "age"},
 		},
 		{
 			name: "Projection with Password, UnsentExpoPushTokens, and Emails",
 			input: models.QueryInput{
 				Projection: []string{"username", "password", "unsentExpoPushTokens", "emails", "age"},
 			},
-			expected: []string{"username", "age"},
+			expected: []string{"username", "emails", "age"},
 		},
 	}
 
@@ -1568,7 +1565,6 @@ func TestConstructProjection(t *testing.T) {
 			expected: bson.M{
 				"password":             0,
 				"unsentExpoPushTokens": 0,
-				"emails":               0,
 				"_id":                  0,
 			},
 		},
@@ -1613,9 +1609,10 @@ func TestConstructProjection(t *testing.T) {
 			queryInput: models.QueryInput{
 				Projection: []string{"username", "emails", "age"},
 			},
-			sanitizedProjection: []string{"username", "age"},
+			sanitizedProjection: []string{"username", "emails", "age"},
 			expected: bson.M{
 				"username": 1,
+				"emails":   1,
 				"age":      1,
 				"_id":      0,
 			},
@@ -2263,6 +2260,13 @@ func TestGetClaimsFromCTX(t *testing.T) {
 				assert.Nil(t, err)
 			}
 
+			// check that originToken has been set properly in context
+			if tt.tokenCookie != "" {
+				assert.Equal(t, "cookie", c.GetString("tokenOrigin"))
+			} else if tt.tokenHeader != "" {
+				assert.Equal(t, "header", c.GetString("tokenOrigin"))
+			}
+
 			// Check the expected claims
 			assert.Equal(t, tt.expectedClaims, returnedclaims)
 		})
@@ -2670,6 +2674,55 @@ func TestGetClientTime(t *testing.T) {
 	}
 }
 
+func TestRemoveNumbersFromExtension(t *testing.T) {
+	tests := []struct {
+		name     string
+		ext      string
+		expected string
+	}{
+		{
+			name:     "No numbers",
+			ext:      "jpg",
+			expected: "jpg",
+		},
+		{
+			name:     "Single number",
+			ext:      "jpeg2000",
+			expected: "jpeg",
+		},
+		{
+			name:     "Multiple numbers",
+			ext:      "png1234",
+			expected: "png",
+		},
+		{
+			name:     "No extension",
+			ext:      "1234",
+			expected: "",
+		},
+		{
+			name:     "Empty string",
+			ext:      "",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.RemoveNumbersFromExtension(tt.ext)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+// fileWrapper wraps *os.File to satisfy multipart.File interface
+type fileWrapper struct {
+	*os.File
+}
+
+func (fw *fileWrapper) Open() (multipart.File, error) {
+	return fw, nil
+}
 
 func TestConvertImageToBytes(t *testing.T) {
 	// Helper function to create a test image file
@@ -2720,10 +2773,12 @@ func TestConvertImageToBytes(t *testing.T) {
 		thumbnail bool
 		wantErr   bool
 	}{
-		{"JPEG normal", "jpg", 50, false, false},
+		{"JPG normal", "jpg", 50, false, false},
 		{"PNG normal", "png", 50, false, false},
-		{"JPEG thumbnail", "jpg", 0, true, false},
+		{"JPEG normal", "jpeg", 50, false, false},
+		{"JPG thumbnail", "jpg", 0, true, false},
 		{"PNG thumbnail", "png", 0, true, false},
+		{"JEPG thumbnail", "jpeg", 0, true, false},
 		{"Unsupported format", "gif", 50, false, true},
 	}
 
@@ -2763,7 +2818,7 @@ func TestConvertImageToBytes(t *testing.T) {
 				return fileWrapper, nil
 			}
 
-			got, err := ConvertImageToBytes(fileHeader, tt.width, tt.thumbnail, openFunc)
+			got, err := utils.ConvertImageToBytes(fileHeader, tt.width, tt.thumbnail, openFunc)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -2787,50 +2842,4 @@ func TestConvertImageToBytes(t *testing.T) {
 			}
 		})
 	}
-}
-
-// fileWrapper wraps *os.File to satisfy multipart.File interface
-type fileWrapper struct {
-	*os.File
-}
-
-func (fw *fileWrapper) Open() (multipart.File, error) {
-	return fw, nil
-}
-
-// ConvertImageToBytes reads an image from a multipart.FileHeader, resizes it if required, and returns the image as a byte slice.
-func ConvertImageToBytes(fh *multipart.FileHeader, width uint, thumbnail bool, openFunc func() (multipart.File, error)) ([]byte, error) {
-	file, err := openFunc()
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
-
-	if thumbnail {
-		// Resize the image to thumbnail size if needed
-		img = resize.Thumbnail(width, width, img, resize.Lanczos3)
-	} else if width > 0 {
-		// Resize the image to the specified width, maintaining aspect ratio
-		img = resize.Resize(width, 0, img, resize.Lanczos3)
-	}
-
-	var buf bytes.Buffer
-	switch fh.Filename[len(fh.Filename)-3:] {
-	case "jpg", "jpeg":
-		err = jpeg.Encode(&buf, img, nil)
-	case "png":
-		err = png.Encode(&buf, img)
-	default:
-		return nil, fmt.Errorf("unsupported file format")
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
 }
