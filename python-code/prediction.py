@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 import logging
 
 # Define the URL for the TensorFlow Serving API
-url = 'http://localhost:8501/v1/models/attendance_model:predict'
+url = 'http://model:8501/v1/models/attendance_model:predict'
 
 # Define the attendance levels based on the bin ranges
 attendance_levels = ["0-300", "300-600", "600-900", "900-1200", "1200-1500", "1500-1800", "1800+"]
