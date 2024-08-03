@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, ScrollView } from 'react-native';
+import { StyleSheet, View, Image, ScrollView } from 'react-native';
 import {
   VStack,
   HStack,
@@ -10,6 +10,7 @@ import {
   Pressable,
   Toast,
   ToastTitle,
+  Text
 } from '@gluestack-ui/themed';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -54,8 +55,9 @@ const Settings = () => {
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
-    { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
+    { title: 'Appearance', description: 'Customize your viewing experience', iconName: 'image', onPress: () => router.push('/set-appearance') },
     { title: 'FAQ', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
+    { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
   ];
 
   const renderListItem = ({ item }) => (
@@ -70,7 +72,7 @@ const Settings = () => {
           </Box>
           <VStack>
             <Text style={[styles.title, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.title}</Text>
-            <Text style={[styles.description, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
+            <Text fontWeight={'$light'} style={[styles.description, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
           </VStack>
         </View>
         {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="lg" color={colorScheme === 'dark' ? 'white' : 'black'} />}
@@ -102,7 +104,7 @@ const Settings = () => {
           {data.map((item, index) => (
             <View key={index}>
               {renderListItem({ item })}
-              {index < data.length - 1 && <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />}
+              <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
             </View>
           ))}
         </VStack>
@@ -213,7 +215,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: wp('3.5%'),
-    fontWeight: 'light',
   },
 });
 

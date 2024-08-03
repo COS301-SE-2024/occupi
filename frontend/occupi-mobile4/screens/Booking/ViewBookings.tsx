@@ -64,6 +64,15 @@ const ViewBookings = () => {
         };
         getRoomData();
       }, []);
+    const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+    useEffect(() => {
+        const getAccentColour = async () => {
+            let accentcolour = await SecureStore.getItemAsync('accentColour');
+            setAccentColour(accentcolour);
+        };
+        getAccentColour();
+    }, []);
 
 
     const onRefresh = React.useCallback(() => {
@@ -164,11 +173,11 @@ const ViewBookings = () => {
                     </View>
                     <TouchableOpacity onPress={toggleLayout}>
                         {layout === "row" ? (
-                            <Box backgroundColor="$#ADFF2F" alignSelf="center" p="$2" borderRadius="$lg">
+                            <Box backgroundColor={`${accentColour}`} alignSelf="center" p="$2" borderRadius="$lg">
                                 <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
                             </Box>
                         ) : (
-                            <Box backgroundColor="$#ADFF2F" alignSelf="center" p="$2" borderRadius="$lg">
+                            <Box backgroundColor={`${accentColour}`} alignSelf="center" p="$2" borderRadius="$lg">
                                 <Octicons name="rows" size={22} color="#2C2C2E" />
                             </Box>
                         )}
