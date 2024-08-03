@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -221,8 +220,8 @@ func DeleteImage(appsession *models.AppSession, id string) {
 	}
 }
 
-func SetSession(appsession *models.AppSession, session *webauthn.SessionData, email string) error {
-	if appsession.Cache == nil {
+func SetSession(appsession *models.AppSession, session models.WebAuthnSession, uuid string) error {
+	if appsession.SessionCache == nil {
 		return errors.New("cache not found")
 	}
 
@@ -234,7 +233,7 @@ func SetSession(appsession *models.AppSession, session *webauthn.SessionData, em
 	}
 
 	// set the session in the cache
-	if err := appsession.Cache.Set(SessionKey(email), sessionData); err != nil {
+	if err := appsession.SessionCache.Set(SessionKey(uuid), sessionData); err != nil {
 		logrus.Error("failed to set session in cache", err)
 		return err
 	}
@@ -242,14 +241,14 @@ func SetSession(appsession *models.AppSession, session *webauthn.SessionData, em
 	return nil
 }
 
-func GetSession(appsession *models.AppSession, email string) (*webauthn.SessionData, error) {
-	if appsession.Cache == nil {
+func GetSession(appsession *models.AppSession, uuid string) (*models.WebAuthnSession, error) {
+	if appsession.SessionCache == nil {
 		return nil, errors.New("cache not found")
 	}
 
 	// unmarshal the session from the cache
-	var session webauthn.SessionData
-	sessionData, err := appsession.Cache.Get(SessionKey(email))
+	var session models.WebAuthnSession
+	sessionData, err := appsession.SessionCache.Get(SessionKey(uuid))
 
 	if err != nil {
 		logrus.Error("key does not exist: ", err)
@@ -264,13 +263,13 @@ func GetSession(appsession *models.AppSession, email string) (*webauthn.SessionD
 	return &session, nil
 }
 
-func DeleteSession(appsession *models.AppSession, email string) {
-	if appsession.Cache == nil {
+func DeleteSession(appsession *models.AppSession, uuid string) {
+	if appsession.SessionCache == nil {
 		return
 	}
 
 	// delete the session from the cache
-	if err := appsession.Cache.Delete(SessionKey(email)); err != nil {
+	if err := appsession.SessionCache.Delete(SessionKey(uuid)); err != nil {
 		logrus.Error("failed to delete session from cache", err)
 		return
 	}

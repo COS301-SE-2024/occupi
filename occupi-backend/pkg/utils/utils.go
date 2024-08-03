@@ -21,6 +21,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/nfnt/resize"
 	"github.com/sirupsen/logrus"
@@ -659,4 +660,14 @@ func ConvertImageToBytes(file *multipart.FileHeader, width uint, thumbnail bool)
 	}
 
 	return buf.Bytes(), nil
+}
+
+func GenerateUUID() string {
+	uuid, err := uuid.NewRandom()
+
+	if err != nil {
+		return ""
+	}
+
+	return uuid.String()
 }

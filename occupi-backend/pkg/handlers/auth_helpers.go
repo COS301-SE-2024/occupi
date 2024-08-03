@@ -565,8 +565,17 @@ func WebAuthNAuthentication(ctx *gin.Context, appsession *models.AppSession, req
 		return fmt.Errorf("error beginning WebAuthn login: %v", err)
 	}
 
+	uuid := utils.GenerateUUID()
+
+	session := models.WebAuthnSession{
+		Uuid:        uuid,
+		Email:       requestUser.Email,
+		Cred:        cred,
+		SessionData: sessionData,
+	}
+
 	// Save the session data - cache will expire in x defined minutes according to the config
-	if err := cache.SetSession(appsession, sessionData, requestUser.Email); err != nil {
+	if err := cache.SetSession(appsession, session, requestUser.Email); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return fmt.Errorf("error saving WebAuthn session data: %v", err)
 	}

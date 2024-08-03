@@ -14,16 +14,17 @@ import (
 
 // state management for the web app during runtime
 type AppSession struct {
-	DB          *mongo.Client
-	Cache       *bigcache.BigCache
-	EmailsSent  int
-	CurrentDate time.Time
-	OtpReqCache *bigcache.BigCache
-	IPInfo      *ipinfo.Client
-	RabbitMQ    *amqp.Connection
-	RabbitCh    *amqp.Channel
-	RabbitQ     amqp.Queue
-	WebAuthn    *webauthn.WebAuthn
+	DB           *mongo.Client
+	Cache        *bigcache.BigCache
+	EmailsSent   int
+	CurrentDate  time.Time
+	OtpReqCache  *bigcache.BigCache
+	IPInfo       *ipinfo.Client
+	RabbitMQ     *amqp.Connection
+	RabbitCh     *amqp.Channel
+	RabbitQ      amqp.Queue
+	WebAuthn     *webauthn.WebAuthn
+	SessionCache *bigcache.BigCache
 }
 
 // constructor for app session
@@ -32,16 +33,17 @@ func New(db *mongo.Client, cache *bigcache.BigCache) *AppSession {
 	ch := configs.CreateRabbitChannel(conn)
 	q := configs.CreateRabbitQueue(ch)
 	return &AppSession{
-		DB:          db,
-		Cache:       cache,
-		EmailsSent:  0,
-		CurrentDate: time.Now(),
-		OtpReqCache: configs.CreateOTPRateLimitCache(),
-		IPInfo:      configs.CreateIPInfoClient(),
-		RabbitMQ:    conn,
-		RabbitCh:    ch,
-		RabbitQ:     q,
-		WebAuthn:    configs.CreateWebAuthnInstance(),
+		DB:           db,
+		Cache:        cache,
+		EmailsSent:   0,
+		CurrentDate:  time.Now(),
+		OtpReqCache:  configs.CreateOTPRateLimitCache(),
+		IPInfo:       configs.CreateIPInfoClient(),
+		RabbitMQ:     conn,
+		RabbitCh:     ch,
+		RabbitQ:      q,
+		WebAuthn:     configs.CreateWebAuthnInstance(),
+		SessionCache: configs.CreateSessionCache(),
 	}
 }
 
