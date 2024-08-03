@@ -41,7 +41,7 @@ const Dashboard = () => {
     const getUsername = async () => {
       try {
         const name = await fetchUsername();
-        console.log(name);
+        // console.log(name);
         if (name) {
           setUsername(name);
         } else {
@@ -59,7 +59,7 @@ const Dashboard = () => {
         if (roomData) {
           // console.log(roomData);
           setRoomData(roomData[0]);
-          console.log(roomData[0]);
+          // console.log(roomData[0]);
         }
       } catch (error) {
         console.error('Error fetching bookings:', error);

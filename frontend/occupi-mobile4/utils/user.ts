@@ -145,6 +145,6 @@ export async function updateNotifications(values: any) {
 export async function fetchUsername() {
     let userData = await SecureStore.getItemAsync('UserData');
     let user = JSON.parse(userData || "{}");
-    console.log(user.name);
+    // console.log(user.name);
     return user.name;
 }
