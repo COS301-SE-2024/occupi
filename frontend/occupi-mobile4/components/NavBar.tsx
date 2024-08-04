@@ -8,10 +8,13 @@ import { BlurView } from 'expo-blur';
 import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useNavBar } from './NavBarProvider';
+import { useTheme } from './ThemeContext';
 
 const NavBar = () => {
-  let colorScheme = useColorScheme();
-  const styles = getStyles(colorScheme);
+  const colorscheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorscheme : theme;
+  const styles = getStyles(currentTheme);
   const { currentTab, setCurrentTab } = useNavBar();
 
   const handleTabPress = (tabName, route) => {
@@ -24,7 +27,7 @@ const NavBar = () => {
     <BlurView
       tint="light"
       pb={hp('3%')}
-      backgroundColor={colorScheme === 'dark' ? 'black' : '#fff'}
+      backgroundColor={currentTheme === 'dark' ? 'black' : '#fff'}
       intensity={20}
       style={styles.container}
     >
@@ -40,13 +43,13 @@ const NavBar = () => {
         <Feather
           name="home"
           size={hp('3%')}
-          color={currentTab === 'Home' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Home' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           numberOfLines={1}
           w={wp('9%')}
           fontSize={wp('3%')}
-          color={currentTab === 'Home' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Home' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         >
           Home
         </Text>
@@ -63,13 +66,13 @@ const NavBar = () => {
         <Ionicons
           name="receipt-outline"
           size={24}
-          color={currentTab === 'ViewBookings' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'ViewBookings' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           numberOfLines={1}
           w={wp('19%')}
           fontSize={wp('3%')}
-          color={currentTab === 'ViewBookings' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'ViewBookings' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         >
           My bookings
         </Text>
@@ -87,13 +90,13 @@ const NavBar = () => {
           as={CalendarDaysIcon}
           w={hp('3%')}
           h={hp('3%')}
-          color={currentTab === 'Book' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Book' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           numberOfLines={1}
           w={wp('7.4%')}
           fontSize={wp('3%')}
-          color={currentTab === 'Book' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Book' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         >
           Book
         </Text>
@@ -111,14 +114,14 @@ const NavBar = () => {
           as={BellIcon}
           w={hp('3%')}
           h={hp('3%')}
-          color={currentTab === 'Notifications' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Notifications' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           pl={wp('1%')}
           numberOfLines={1}
           w={wp('20%')}
           fontSize={wp('3%')}
-          color={currentTab === 'Notifications' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Notifications' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         >
           Notifications
         </Text>
@@ -135,14 +138,14 @@ const NavBar = () => {
         <FontAwesome6
           name="user"
           size={hp('3%')}
-          color={currentTab === 'Profile' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Profile' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           pl={wp('1%')}
           numberOfLines={1}
           w={wp('12%')}
           fontSize={wp('3%')}
-          color={currentTab === 'Profile' ? 'yellowgreen' : colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Profile' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
         >
           Profile
         </Text>
@@ -151,7 +154,7 @@ const NavBar = () => {
   );
 };
 
-const getStyles = (colorScheme) => StyleSheet.create({
+const getStyles = (currentTheme) => StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 0,
@@ -161,10 +164,10 @@ const getStyles = (colorScheme) => StyleSheet.create({
     paddingBottom: hp('3%'),
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: colorScheme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.5)',
+    backgroundColor: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.5)',
     paddingVertical: hp('1%'),
     borderTopWidth: 1,
-    borderTopColor: colorScheme === 'dark' ? '#444' : '#ccc',
+    borderTopColor: currentTheme === 'dark' ? '#444' : '#ccc',
     borderLeftColor: '#ccc',
     borderRightColor: '#ccc',
   }

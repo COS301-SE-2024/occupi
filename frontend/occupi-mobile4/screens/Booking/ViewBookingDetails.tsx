@@ -26,18 +26,18 @@ import PagerView from 'react-native-pager-view';
 import { useRouter } from 'expo-router';
 import { Booking } from '@/models/data';
 import { userCancelBooking, userCheckin } from '@/utils/bookings';
+import { useTheme } from '@/components/ThemeContext';
 
 const ViewBookingDetails = () => {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === 'dark';
+    const colorscheme = useColorScheme();
+    const { theme } = useTheme();
+    const currentTheme = theme === "system" ? colorscheme : theme;
+    const isDarkMode = currentTheme === 'dark';
     const [room, setRoom] = useState<Booking>();
     const router = useRouter();
     const [checkedIn, setCheckedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
-    const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-    const checkinendpoint = process.env.EXPO_PUBLIC_CHECK_IN;
-    const cancelbookingendpoint = process.env.EXPO_PUBLIC_CANCEL_BOOKING;
 
     // console.log("HERE:" + room);
 
@@ -47,7 +47,7 @@ const ViewBookingDetails = () => {
             //   console.log("CurrentRoom:",result);
             // setUserDetails(JSON.parse(result).data);
             let jsonresult = JSON.parse(result);
-            console.log(jsonresult);
+            // console.log(jsonresult);
             setRoom(jsonresult);
             setCheckedIn(jsonresult.checkedIn);
         };
@@ -90,10 +90,10 @@ const ViewBookingDetails = () => {
     };
 
     return (
-        <View pt="$16" flex="$1" backgroundColor={colorScheme === 'dark' ? 'black' : 'white'}>
+        <View pt="$16" flex="$1" backgroundColor={currentTheme === 'dark' ? 'black' : 'white'}>
             <View flexDirection="$row" alignItems="$center" >
-                <Icon as={Feather} name="chevron-left" size="40" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
-                <Text fontWeight="$bold" fontSize="$16" left="$10" color={colorScheme === 'dark' ? 'white' : 'black'}>{room?.roomName}</Text>
+                <Icon as={Feather} name="chevron-left" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
+                <Text fontWeight="$bold" fontSize="$16" left="$10" color={currentTheme === 'dark' ? 'white' : 'black'}>{room?.roomName}</Text>
             </View>
             <ScrollView contentContainerStyle={{ paddingBottom: 40 }} style={{ paddingBottom: 20, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
                 <View height={400} my="$4">
@@ -127,8 +127,8 @@ const ViewBookingDetails = () => {
                     {room?.emails?.map((email, idx) => (
                         <Text color={isDarkMode ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                     ))}
-                    <Text mt="$4" mb="$1" fontSize="$16" fontWeight="$bold" color={colorScheme === 'dark' ? 'white' : 'black'}>Description</Text>
-                    <Text fontSize="$14" color={colorScheme === 'dark' ? 'white' : 'black'}>The {room?.roomName} is a state-of-the-art conference space designed for modern digital connectivity, seating 3-6 comfortably. Equipped with multiple HDMI ports, a high-definition projector or large LED screen, surround sound, and wireless display options, it ensures seamless presentations and video conferencing. The room features an intuitive control panel, high-speed Wi-Fi, and ample power outlets. Additional amenities include whiteboards, flip charts, adjustable lighting, and climate control, all within a professional and comfortable interior designed for productivity.</Text>
+                    <Text mt="$4" mb="$1" fontSize="$16" fontWeight="$bold" color={currentTheme === 'dark' ? 'white' : 'black'}>Description</Text>
+                    <Text fontSize="$14" color={currentTheme === 'dark' ? 'white' : 'black'}>The {room?.roomName} is a state-of-the-art conference space designed for modern digital connectivity, seating 3-6 comfortably. Equipped with multiple HDMI ports, a high-definition projector or large LED screen, surround sound, and wireless display options, it ensures seamless presentations and video conferencing. The room features an intuitive control panel, high-speed Wi-Fi, and ample power outlets. Additional amenities include whiteboards, flip charts, adjustable lighting, and climate control, all within a professional and comfortable interior designed for productivity.</Text>
                 </View>
                 <TouchableOpacity style={{ paddingHorizontal: 15 }}>
                     <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">

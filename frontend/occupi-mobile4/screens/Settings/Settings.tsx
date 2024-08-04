@@ -20,12 +20,15 @@ import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
 import { useToast } from '@gluestack-ui/themed';
 import { UserLogout } from '@/utils/auth';
+import { useTheme } from '@/components/ThemeContext';
 
 const Settings = () => {
   const [name, setName] = useState('');
   const [position, setPosition] = useState('');
   const toast = useToast();
-  let colorScheme = useColorScheme();
+  const colorscheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorscheme : theme;
 
   useEffect(() => {
     const getUserDetails = async () => {
@@ -63,53 +66,53 @@ const Settings = () => {
   const renderListItem = ({ item }) => (
     <Pressable
       onPress={item.onPress}
-      style={[styles.listItem, colorScheme === 'dark' ? styles.darkItem : styles.lightItem]}
+      style={[styles.listItem, currentTheme === 'dark' ? styles.darkItem : styles.lightItem]}
     >
       <HStack space={3} justifyContent="space-between" alignItems="center">
         <View flexDirection="row">
-          <Box mr="$6" p="$3" borderRadius="$full" backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '$gainsboro'}>
-            <Icon as={Feather} name={item.iconName} size="lg" color={colorScheme === 'dark' ? 'white' : 'black'} />
+          <Box mr="$6" p="$3" borderRadius="$full" backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '$gainsboro'}>
+            <Icon as={Feather} name={item.iconName} size="lg" color={currentTheme === 'dark' ? 'white' : 'black'} />
           </Box>
           <VStack>
-            <Text style={[styles.title, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.title}</Text>
-            <Text fontWeight={'$light'} style={[styles.description, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
+            <Text style={[styles.title, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{item.title}</Text>
+            <Text fontWeight={'$light'} style={[styles.description, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
           </VStack>
         </View>
-        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="lg" color={colorScheme === 'dark' ? 'white' : 'black'} />}
+        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="lg" color={currentTheme === 'dark' ? 'white' : 'black'} />}
       </HStack>
     </Pressable>
   );
 
   return (
     <>
-      <ScrollView style={[styles.container, colorScheme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
+      <ScrollView style={[styles.container, currentTheme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
         <Box style={styles.profileContainer}>
           <Center style={styles.imageContainer}>
             <Image
               source={{ uri: 'https://bookingagentinfo.com/wp-content/uploads/2022/09/Sabrina-Carpenter-1.jpg' }}
               style={styles.profileImage}
             />
-            <Icon as={MaterialIcons} name="camera-alt" size="md" color={colorScheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
+            <Icon as={MaterialIcons} name="camera-alt" size="md" color={currentTheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
           </Center>
           <Box style={styles.profileInfo}>
             <HStack space="xs" alignItems="center">
-              <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
-              {/* <Icon as={Feather} name="edit" size="sm" color={colorScheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
+              <Text style={[styles.profileName, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
+              {/* <Icon as={Feather} name="edit" size="sm" color={currentTheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
             </HStack>
-            <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text>
+            <Text style={[styles.profileTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text>
           </Box>
         </Box>
-        <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
+        <Divider my={2} style={currentTheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
         <VStack space="2xs" marginBottom={80}>
           {data.map((item, index) => (
             <View key={index}>
               {renderListItem({ item })}
-              <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
+              <Divider my={2} style={currentTheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
             </View>
           ))}
         </VStack>
         <Center style={styles.footerContainer}>
-          <Text style={[styles.versionText, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
+          <Text style={[styles.versionText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
         </Center>
       </ScrollView>
       <Navbar />

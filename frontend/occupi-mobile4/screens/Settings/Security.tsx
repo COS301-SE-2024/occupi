@@ -18,6 +18,7 @@ import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
 import { updateSecurity } from '@/utils/user';
+import { useTheme } from '@/components/ThemeContext';
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
@@ -31,7 +32,9 @@ const SIZES = {
 };
 
 const Security = () => {
-  let colorScheme = useColorScheme();
+  const colorScheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorScheme : theme;
   const toast = useToast();
   //retrieve user settings ad assign variables accordingly
 
@@ -53,9 +56,9 @@ const Security = () => {
   useEffect(() => {
     const getSecurityDetails = async () => {
       let settings = await SecureStore.getItemAsync('Security');
-      console.log(settings);
+      // console.log(settings);
       const settingsObject = JSON.parse(settings);
-      console.log('current settings',settingsObject);
+      // console.log('current settings',settingsObject);
 
       if (settingsObject.mfa === "on") {
         setOldMfa(true);
@@ -152,31 +155,31 @@ const Security = () => {
     }
   }
   return (
-    <View flex={1} backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
+    <View flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
       <View flex={1}>
         <View style={styles.header}>
           <Icon
             as={Feather}
             name="chevron-left"
             size="xl"
-            color={colorScheme === 'dark' ? 'white' : 'black'}
+            color={currentTheme === 'dark' ? 'white' : 'black'}
             onPress={handleBack}
           />
-          <Text style={styles.headerTitle} color={colorScheme === 'dark' ? 'white' : 'black'}>
+          <Text style={styles.headerTitle} color={currentTheme === 'dark' ? 'white' : 'black'}>
             Security
           </Text>
           <FontAwesome5
             name="fingerprint"
             size={24}
-            color={colorScheme === 'dark' ? 'white' : 'black'}
+            color={currentTheme === 'dark' ? 'white' : 'black'}
             style={styles.icon}
           />
         </View>
 
 
         <View flexDirection="column">
-          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-            <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Use 2fa to login</Text>
+          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+            <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Use 2fa to login</Text>
             <Switch
               trackColor={{ false: 'lightgray', true: 'lightgray' }}
               thumbColor={newMfa ? `${accentColour}` : 'white'}
@@ -185,8 +188,8 @@ const Security = () => {
               value={newMfa}
             />
           </View>
-          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-            <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Force logout on app close</Text>
+          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+            <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Force logout on app close</Text>
             <Switch
               trackColor={{ false: 'lightgray', true: 'lightgray' }}
               thumbColor={newForceLogout ? `${accentColour}` : 'white'}
@@ -196,8 +199,8 @@ const Security = () => {
             />
           </View>
           <TouchableOpacity onPress={() => handleBiometricAuth()}>
-            <View flexDirection="row" my="$2" borderRadius={14} alignItems="center" justifyContent="center" backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h="$12">
-              <Text fontWeight="bold" color={colorScheme === 'dark' ? '#fff' : '#000'}>Change Password</Text>
+            <View flexDirection="row" my="$2" borderRadius={14} alignItems="center" justifyContent="center" backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h="$12">
+              <Text fontWeight="bold" color={currentTheme === 'dark' ? '#fff' : '#000'}>Change Password</Text>
             </View>
           </TouchableOpacity>
         </View>
