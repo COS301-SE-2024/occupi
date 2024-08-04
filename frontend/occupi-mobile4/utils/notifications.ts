@@ -2,7 +2,9 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-
+import * as SecureStore from 'expo-secure-store';
+import { NotificationsReq } from '@/models/requests';
+import { getNotifications } from '@/services/apiservices';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -90,3 +92,26 @@ async function registerForPushNotificationsAsync() {
     });
   }
 }
+
+export async function getUserNotifications() {
+  let email = await SecureStore.getItemAsync('Email');
+  
+  try {
+    const request : NotificationsReq = {
+      filter: {
+          emails: [email]
+      }
+  };
+      const response = await getNotifications(request);
+      if (response.status === 200) {
+          // console.log('notifications', response.data);
+          return response.data
+      }
+      else {
+          console.log(response)
+          return response.data;
+      }
+  } catch (error) {
+      console.error('Error:', error);
+  }
+} 
