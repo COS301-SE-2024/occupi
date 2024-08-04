@@ -16,7 +16,8 @@ import {
 import {
   LineChart
 } from "react-native-chart-kit";
-import { FontAwesome6, Octicons, SimpleLineIcons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
+import { FontAwesome6 } from '@expo/vector-icons';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fetchUsername } from '@/utils/user';
@@ -28,14 +29,22 @@ const getRandomNumber = () => {
   return Math.floor(Math.random() * 20) + 300;
 };
 
-const Dashboard = () => {
-  const colorScheme = useColorScheme();
+const Dashboard = (theme: string) => {
+  // const [theme, setTheme] = useState('dark');
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
-  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+  const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
   const [checkedIn, setCheckedIn] = useState(false);
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
   const toast = useToast();
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
 
   useEffect(() => {
     const getUsername = async () => {
@@ -72,13 +81,7 @@ const Dashboard = () => {
 
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
-  useEffect(() => {
-    const getAccentColour = async () => {
-      let accentcolour = await SecureStore.getItemAsync('accentColour');
-      setAccentColour(accentcolour);
-    };
-    getAccentColour();
-  }, []);
+  
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers(prevNumbers => {
@@ -86,9 +89,9 @@ const Dashboard = () => {
         return newNumbers;
       });
     }, 3000);
-    setIsDarkMode(colorScheme === 'dark');
+    setIsDarkMode(theme === 'dark');
     return () => clearInterval(intervalId);
-  }, [colorScheme]);
+  }, [theme]);
 
   const checkIn = () => {
     if (checkedIn === false) {
@@ -209,7 +212,7 @@ const Dashboard = () => {
               <ButtonText color="dimgrey">Check out</ButtonText>
             </Button>
           ) : (
-            <Button w={wp('36%')} borderRadius={10} backgroundColor="greenyellow" onPress={checkIn}>
+            <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
               <ButtonText color="dimgrey">Check in</ButtonText>
             </Button>
           )}
