@@ -15,14 +15,14 @@ import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Skeleton } from 'moti/skeleton';
 import axios from 'axios';
 import { useTheme } from '@/components/ThemeContext';
+import { getUserNotifications } from '@/utils/notifications';
 
 const Notifications = () => {
     const colorscheme = useColorScheme();
     const { theme } = useTheme();
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
     const currentTheme = theme === "system" ? colorscheme : theme;
-    const toast = useToast();
-    const [notifications, setNotifications] = useState();
+    const [notifications, setNotifications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const todayNotifications = [];
     const yesterdayNotifications = [];
@@ -58,9 +58,10 @@ const Notifications = () => {
     };
 
     if (notifications) {
+        console.log('yurpp');
         notifications.forEach(notification => {
             const formattedDate = formatNotificationDate(notification.send_time);
-
+    
             if (formattedDate.includes('hours ago') || formattedDate.includes('hour ago')) {
                 todayNotifications.push(notification);
             } else if (formattedDate === 'yesterday') {
@@ -74,60 +75,13 @@ const Notifications = () => {
 
     useEffect(() => {
         const getNotifications = async () => {
-            let userEmail = await SecureStore.getItemAsync('Email');
-            let authToken = await SecureStore.getItemAsync('Token');
-
-            try {
-                const response = await axios.get('https://dev.occupi.tech/api/get-notifications', {
-                    params: {
-                        filter: {
-                            emails: [{ userEmail }]
-                        },
-                        order_desc: "send_time"
-                    },
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Authorization': `${authToken}`
-                    },
-                    withCredentials: true
-                });
-                const data = response.data;
-                // console.log(`Response Data: ${JSON.stringify(data.data)}`);
-                // console.log(data);
-                if (response.status === 200) {
-                    setNotifications(data.data || []); // Ensure data is an array
-                    setLoading(false);
-                } else {
-                    console.log(data);
-                    setLoading(false);
-                    toast.show({
-                        placement: 'top',
-                        render: ({ id }) => {
-                            return (
-                                <Toast nativeID={id} variant="accent" action="error">
-                                    <ToastTitle>{data.error.message}</ToastTitle>
-                                </Toast>
-                            );
-                        },
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                toast.show({
-                    placement: 'top',
-                    render: ({ id }) => {
-                        return (
-                            <Toast nativeID={id} variant="accent" action="error">
-                                <ToastTitle>Network Error: {error.message}</ToastTitle>
-                            </Toast>
-                        );
-                    },
-                });
-            }
+            const notifications = await getUserNotifications();
+            console.log(notifications);
+            setNotifications(notifications);
+            setLoading(false);
         };
         getNotifications();
-    }, [apiUrl, toast])
+    }, [])
 
     const renderNotifications = (notificationList) => (
         notificationList.map((notification, idx) => (
