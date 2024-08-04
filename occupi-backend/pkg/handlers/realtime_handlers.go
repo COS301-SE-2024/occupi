@@ -20,8 +20,8 @@ var (
 // Initialize the Centrifugo client
 func init() {
 	client = gocent.New(gocent.Config{
-		Addr: "http://localhost:8000/api", // Replace with your Centrifugo API address
-		Key:  "your_api_key",              // Replace with your Centrifugo API key
+		Addr: "http://localhost:8000/api",            // Replace with your Centrifugo API address
+		Key:  "151e30af-ed0b-4234-b57a-1e9b94a2ffbe", // Replace with your Centrifugo API key
 	})
 }
 
