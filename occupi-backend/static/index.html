@@ -10,12 +10,17 @@
     <button id="login">Login</button>
 
     <script>
+        // the console.log statements are for debugging purposes and for your eyes only👀, they can be removed
+        let isWebAuthnSupported = false;
 
         window.addEventListener('load', async () => {
             if (!window.PublicKeyCredential) {
                 alert('WebAuthn is not supported in this browser');
+                //default to password login
             } else {
                 console.log('WebAuthn is supported in this browser');
+                isWebAuthnSupported = true;
+                // use webauthn yayy :)
             }
         });
 
@@ -43,11 +48,13 @@
             return Uint8Array.from(atob(value), c => c.charCodeAt(0));
         }
         
+        // there shouldn't be a reason to have an event listener here, please call login as that is the only function that is needed
+        // and it calls register if the user is not registered
         const register = async () => {
                     const response = await fetch('http://localhost:8080/auth/register-admin-begin', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: 'michael.chinyama.bbd@gmail.com' })
+                        body: JSON.stringify({ email: 'test@example.com' })// this user should be an admin, the backend will check for this
                     });
                     const res = await response.json();
                     res.data.options.publicKey.challenge = bufferDecode(res.data.options.publicKey.challenge);
@@ -75,10 +82,21 @@
                 };
 
         const login = async () => {
+                    if (!isWebAuthnSupported) {
+                        const res = await fetch('http://localhost:8080/auth/login-admin', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: 'test@example.com', password: 'password' })// this user should be an admin, the backend will check for this
+                        });
+
+                        // handle response appropriately
+                        console.log(res);
+                        return;
+                    }
                     const response = await fetch('http://localhost:8080/auth/login-admin-begin', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: 'michael.chinyama.bbd@gmail.com' })
+                        body: JSON.stringify({ email: 'test@example.com' })// this user should be an admin, the backend will check for this
                     });
                     const res = await response.json();
 

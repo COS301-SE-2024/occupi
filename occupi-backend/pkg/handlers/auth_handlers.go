@@ -18,7 +18,7 @@ import (
 )
 
 // handler for logging a new user on occupi /auth/login
-func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool, shouldWebAuthN bool) {
+func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
 	var requestUser models.RequestUser
 	if err := ctx.ShouldBindBodyWithJSON(&requestUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
@@ -68,14 +68,6 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 		return
 	}
 
-	if shouldWebAuthN {
-		err := WebAuthNAuthentication(ctx, appsession, requestUser)
-		if err != nil {
-			logrus.WithError(err).Error("Error with WebAuthN authentication")
-		}
-		return
-	}
-
 	// generate a jwt token for the user
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, requestUser.Email, role)
 
@@ -100,6 +92,22 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// validate email exists
+	if valid, err := ValidateEmailExists(ctx, appsession, requestEmail.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	// pre-login checks
+	if success, err := PreLoginAccountChecks(ctx, appsession, requestEmail.Email, constants.Admin); !success {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
 	// Begin WebAuthn login process
 	cred, err := database.GetUserCredentials(ctx, appsession, requestEmail.Email)
 	if err != nil || len(cred.ID) == 0 {
@@ -121,7 +129,7 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	uuid := utils.GenerateUUID()
 
 	session := models.WebAuthnSession{
-		Uuid:        uuid,
+		UUID:        uuid,
 		Email:       requestEmail.Email,
 		Cred:        cred,
 		SessionData: sessionData,
@@ -205,6 +213,22 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// validate email exists
+	if valid, err := ValidateEmailExists(ctx, appsession, requestEmail.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	// pre-login checks
+	if success, err := PreLoginAccountChecks(ctx, appsession, requestEmail.Email, constants.Admin); !success {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
 	webauthnUser := models.NewWebAuthnUser([]byte(requestEmail.Email), requestEmail.Email, requestEmail.Email, webauthn.Credential{})
 	options, sessionData, err := appsession.WebAuthn.BeginRegistration(webauthnUser)
 	if err != nil {
@@ -216,7 +240,7 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	uuid := utils.GenerateUUID()
 
 	session := models.WebAuthnSession{
-		Uuid:        uuid,
+		UUID:        uuid,
 		Email:       requestEmail.Email,
 		Cred:        webauthn.Credential{},
 		SessionData: sessionData,

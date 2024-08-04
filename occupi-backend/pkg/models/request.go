@@ -106,7 +106,7 @@ type RequestRoom struct {
 }
 
 type WebAuthnSession struct {
-	Uuid        string                `json:"uuid"`
+	UUID        string                `json:"uuid"`
 	Email       string                `json:"email"`
 	Cred        webauthn.Credential   `json:"cred"`
 	SessionData *webauthn.SessionData `json:"sessionData"`
