@@ -19,6 +19,10 @@ def is_special_event(date):
     special_events_dates = [(7, 4), (12, 25), (4, 23), (12, 9), (8, 5), (3, 6), (11, 27), (3, 10), (7, 26)]  # Example: 4th of July, Christmas
     return 1 if (date.month, date.day) in special_events_dates else 0
 
+@app.route('/', methods=['GET'])
+def ping():
+    return jsonify({'response': 'Prediction API is up and running'})
+
 @app.route('/predict', methods=['GET'])
 def predict():
     try:
