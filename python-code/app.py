@@ -21,7 +21,7 @@ def is_special_event(date):
 
 @app.route('/', methods=['GET'])
 def ping():
-    return jsonify({'response': 'Prediction API is up and running'})
+    return jsonify({'response': 'Prediction API is up and running'}), 200
 
 @app.route('/predict', methods=['GET'])
 def predict():
