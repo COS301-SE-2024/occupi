@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -29,7 +30,7 @@ func Enter(ctx *gin.Context, appsession *models.AppSession) {
 	mu.Lock()
 	defer mu.Unlock()
 	counter++
-	publishCounter()
+	publishCounter(ctx)
 	ctx.JSON(http.StatusOK, gin.H{"counter": counter})
 }
 
@@ -40,13 +41,15 @@ func Exit(ctx *gin.Context, appsession *models.AppSession) {
 	if counter > 0 {
 		counter--
 	}
-	publishCounter()
+	publishCounter(ctx)
 	ctx.JSON(http.StatusOK, gin.H{"counter": counter})
 }
 
 // publishCounter publishes the current counter value to Centrifugo
-func publishCounter() {
-	_, err := client.Publish("public:counter", gocent.Raw(`{"counter": `+fmt.Sprintf("%d", counter)+`}`))
+func publishCounter(ctx *gin.Context) {
+	data := map[string]int{"counter": counter}
+	jsonData, _ := json.Marshal(data)
+	_, err := client.Publish(ctx, "public:counter", jsonData)
 	if err != nil {
 		fmt.Printf("error publishing message: %v\n", err)
 	}
