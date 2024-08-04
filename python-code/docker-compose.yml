@@ -21,7 +21,7 @@ services:
     environment:
       MODEL_NAME: attendance_model
     volumes:
-      - $ATTENDANCE_MODEL_PATH:/models/attendance_model
+      - attendance_model:/models/attendance_model
     ports:
       - "8501:8501"
     command: >

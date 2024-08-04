@@ -377,11 +377,6 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 		logrus.WithError(err).Error("Error sending OTP email")
 		return
 	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Registration successful! Please check your email for the OTP to verify your account.",
-		nil))
 }
 
 // handler for generating a new otp for a user and resending it via email
