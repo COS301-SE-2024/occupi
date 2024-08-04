@@ -34,7 +34,7 @@ def predict():
         # Set factor based on special event
         # factor = 1.5 if special_event else 1.0
 
-        predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler, factor)
+        predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler)
         
         return jsonify({
             'Day_of_Week': day_of_week,
@@ -74,7 +74,7 @@ def predict_week():
             # factor = 1.5 if special_event else 1.0
             
             # Get prediction
-            predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler, factor)
+            predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler)
             
             # Append the results
             predictions.append({
