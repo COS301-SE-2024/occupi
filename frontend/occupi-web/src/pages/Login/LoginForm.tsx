@@ -2,7 +2,6 @@ import { useState } from "react";
 import { loginpng, OccupiLogo } from "@assets/index";
 import { Checkbox, GradientButton, InputBox } from "@components/index";
 import { useNavigate } from "react-router-dom";
-import { registerCredential, authenticateWithCredential } from './WebAuthn';
 import AuthService from "AuthService";
 import { useUser } from "UserContext";
 
@@ -24,19 +23,64 @@ const LoginForm = (): JSX.Element => {
   const handleLogin = async () => {
     setIsLoading(true);
     setError("");
-    
-    try {
-      const response = await AuthService.login(form.email, form.password);
-      console.log("Login response:", response);
-  
-console.log("Login:", form.email, form.password);
-      if (response.message.includes('check your email for an otp')) {
-        setRequiresOtp(true);
-        navigate("/otp", { state: { email: form.email } });
 
+    if (form.email === "") {
+      setError("Please fill in email field");
+      setIsLoading(false);
+      return;
+    }
+
+    if(!window.PublicKeyCredential){
+      if (form.password === "") {
+        setError("Please fill in password field");
         setIsLoading(false);
         return;
       }
+
+      try{
+        const response = await AuthService.login(form.email, form.password);
+        console.log("Login response:", response);
+    
+  console.log("Login:", form.email, form.password);
+        if (response.message.includes('check your email for an otp')) {
+          setRequiresOtp(true);
+          navigate("/otp", { state: { email: form.email } });
+
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        if (typeof error === 'object' && error !== null && 'message' in error) {
+          setError(error.message as string);
+        } else {
+          setError("An unexpected error occurred");
+        }
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      try {
+        const response = await AuthService.webauthnLogin(form.email);
+
+        if (response.message.includes('check your email for an otp')) {
+          setRequiresOtp(true);
+          navigate("/otp", { state: { email: form.email } });
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        if (typeof error === 'object' && error !== null && 'message' in error) {
+          setError(error.message as string);
+        } else {
+          setError("An unexpected error occurred");
+        }
+        setIsLoading(false);
+        return;
+      }
+    }
+    
+    try {
       setUserDetails({ email: form.email /* other fields */ });
       const userDetails = await AuthService.getUserDetails(form.email);
       console.log("User details from API:", userDetails);
@@ -52,51 +96,6 @@ console.log("Login:", form.email, form.password);
       } else {
         setError("An unexpected error occurred");
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-
-
-  // const handleOtpVerificationSuccess = async () => {
-  //   setRequiresOtp(false);
-  //   const userDetails = await AuthService.getUserDetails(form.email);
-  //   console.log("User details from API:", userDetails);
-  
-  //     setUserDetails(userDetails);
-  // };
-
-  // const handleOtpVerificationFailure = (error: string) => {
-  //   setError(error);
-  // };
-
-
-  const handleWebAuthnRegistration = async () => {
-    try {
-      setIsLoading(true);
-      const credential = await registerCredential();
-      console.log('Credential registered:', credential);
-      // Handle success (e.g., show success message, redirect)
-    } catch (error) {
-      console.error('Error registering credential:', error);
-      // Handle error (e.g., show error message)
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleWebAuthnAuthentication = async () => {
-    try {
-      setIsLoading(true);
-      const assertion = await authenticateWithCredential();
-      if (assertion) {
-        console.log('Authentication successful:', assertion);
-        navigate("/dashboard/overview");
-      }
-    } catch (error) {
-      console.error('Error authenticating with credential:', error);
-      // Handle error (e.g., show error message)
     } finally {
       setIsLoading(false);
     }
@@ -144,13 +143,7 @@ console.log("Login:", form.email, form.password);
         {error && <p className="text-red-500 mt-2">{error}</p>}
 
         <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Login" isClickable={form.valid_email && form.valid_password} clickEvent={handleLogin}/>
-        </div>
-        <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Auth" isClickable={form.valid_email && form.valid_password} clickEvent={handleWebAuthnAuthentication}/>
-        </div>
-        <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Register" isClickable={form.valid_email && form.valid_password} clickEvent={handleWebAuthnRegistration}/>
+          <GradientButton isLoading={isloading} Text="Login" isClickable={form.valid_email} clickEvent={handleLogin}/>
         </div>
 
         <div className="flex items-center justify-center mt-5 mb-5">
