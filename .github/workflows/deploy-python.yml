@@ -5,7 +5,8 @@ on:
         branches: ["develop"]
         paths: [
             "python-code/**",
-            ".github/workflows/build-python.yml"
+            "models/**",
+            ".github/workflows/deeploy-python.yml"
         ]
 
     workflow_dispatch:
