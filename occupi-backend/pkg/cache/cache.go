@@ -219,3 +219,58 @@ func DeleteImage(appsession *models.AppSession, id string) {
 		return
 	}
 }
+
+func SetSession(appsession *models.AppSession, session models.WebAuthnSession, uuid string) error {
+	if appsession.SessionCache == nil {
+		return errors.New("cache not found")
+	}
+
+	// marshal the session
+	sessionData, err := bson.Marshal(session)
+	if err != nil {
+		logrus.Error("failed to marshall", err)
+		return err
+	}
+
+	// set the session in the cache
+	if err := appsession.SessionCache.Set(SessionKey(uuid), sessionData); err != nil {
+		logrus.Error("failed to set session in cache", err)
+		return err
+	}
+
+	return nil
+}
+
+func GetSession(appsession *models.AppSession, uuid string) (*models.WebAuthnSession, error) {
+	if appsession.SessionCache == nil {
+		return nil, errors.New("cache not found")
+	}
+
+	// unmarshal the session from the cache
+	var session models.WebAuthnSession
+	sessionData, err := appsession.SessionCache.Get(SessionKey(uuid))
+
+	if err != nil {
+		logrus.Error("key does not exist: ", err)
+		return nil, err
+	}
+
+	if err := bson.Unmarshal(sessionData, &session); err != nil {
+		logrus.Error("failed to unmarshall", err)
+		return nil, err
+	}
+
+	return &session, nil
+}
+
+func DeleteSession(appsession *models.AppSession, uuid string) {
+	if appsession.SessionCache == nil {
+		return
+	}
+
+	// delete the session from the cache
+	if err := appsession.SessionCache.Delete(SessionKey(uuid)); err != nil {
+		logrus.Error("failed to delete session from cache", err)
+		return
+	}
+}

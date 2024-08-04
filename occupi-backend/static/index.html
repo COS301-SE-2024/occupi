@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAuthn Demo</title>
+</head>
+<body>
+    <h1>WebAuthn Demo</h1>
+    <button id="login">Login</button>
+
+    <script>
+        // the console.log statements are for debugging purposes and for your eyes only👀, they can be removed
+        let isWebAuthnSupported = false;
+
+        window.addEventListener('load', async () => {
+            if (!window.PublicKeyCredential) {
+                alert('WebAuthn is not supported in this browser');
+                //default to password login
+            } else {
+                console.log('WebAuthn is supported in this browser');
+                isWebAuthnSupported = true;
+                // use webauthn yayy :)
+            }
+        });
+
+        function bufferEncode(value) {
+            return btoa(String.fromCharCode.apply(null, new Uint8Array(value)))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+        }
+
+        function bufferDecode(value) {
+            // Replace URL-safe characters with standard Base64 characters
+            console.log(value);
+            if (value === null) {
+                return null;
+            }
+            value = value.replace(/-/g, '+').replace(/_/g, '/');
+            
+            // Add necessary padding
+            while (value.length % 4) {
+                value += '=';
+            }
+
+            // Decode Base64 string
+            return Uint8Array.from(atob(value), c => c.charCodeAt(0));
+        }
+        
+        // there shouldn't be a reason to have an event listener here, please call login as that is the only function that is needed
+        // and it calls register if the user is not registered
+        const register = async () => {
+                    const response = await fetch('http://localhost:8080/auth/register-admin-begin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: 'test@example.com' })// this user should be an admin, the backend will check for this
+                    });
+                    const res = await response.json();
+                    res.data.options.publicKey.challenge = bufferDecode(res.data.options.publicKey.challenge);
+                    res.data.options.publicKey.user.id = bufferDecode(res.data.options.publicKey.user.id);
+        
+                    const credential = await navigator.credentials.create({ publicKey: res.data.options.publicKey });
+
+                    console.log(credential);
+
+                    const credentialJSON = JSON.stringify({
+                        id: credential.id,
+                        rawId: bufferEncode(credential.rawId),
+                        type: credential.type,
+                        response: {
+                            attestationObject: bufferEncode(credential.response.attestationObject),
+                            clientDataJSON: bufferEncode(credential.response.clientDataJSON),
+                        },
+                    });
+
+                    await fetch(`http://localhost:8080/auth/register-admin-finish/${res.data.uuid}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: credentialJSON
+                    });
+                };
+
+        const login = async () => {
+                    if (!isWebAuthnSupported) {
+                        const res = await fetch('http://localhost:8080/auth/login-admin', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: 'test@example.com', password: 'password' })// this user should be an admin, the backend will check for this
+                        });
+
+                        // handle response appropriately
+                        console.log(res);
+                        return;
+                    }
+                    const response = await fetch('http://localhost:8080/auth/login-admin-begin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: 'test@example.com' })// this user should be an admin, the backend will check for this
+                    });
+                    const res = await response.json();
+
+                    console.log(res);
+        
+                    // if backend returns this message: "Error getting user credentials, please register for WebAuthn",
+                    // then do an automatic call to register function
+                    if (res.message === "Error getting user credentials, please register for WebAuthn") {
+                        register();
+                        return;
+                    }
+        
+                    console.log(res.data.options);
+        
+                    res.data.options.publicKey.challenge = bufferDecode(res.data.options.publicKey.challenge);
+                    res.data.options.publicKey.allowCredentials.forEach(function (listItem) {
+                      listItem.id = bufferDecode(listItem.id)
+                    });
+        
+                    const assertion = await navigator.credentials.get({ publicKey: res.data.options.publicKey });
+
+                    const assertionJSON = JSON.stringify({
+                        id: assertion.id,
+                        rawId: bufferEncode(assertion.rawId),
+                        type: assertion.type,
+                        response: {
+                            authenticatorData: bufferEncode(assertion.response.authenticatorData),
+                            clientDataJSON: bufferEncode(assertion.response.clientDataJSON),
+                            signature: bufferEncode(assertion.response.signature),
+                            userHandle: bufferEncode(assertion.response.userHandle),
+                        },
+                    });
+                    
+                    await fetch(`http://localhost:8080/auth/login-admin-finish/${res.data.uuid}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ assertion })
+                    });
+                }
+                
+
+        document.getElementById('login').addEventListener('click', login);
+    </script>
+</body>
+</html>
