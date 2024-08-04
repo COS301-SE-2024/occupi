@@ -1,18 +1,35 @@
-version: '3.8'
-
 services:
-  web:
-    build: .
+  attendance-model:
+    image: $DOCKER_USERNAME/attendance-model:latest
+    container_name: attendance-model
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - webnet
     ports:
       - "9000:9000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: on-failure:5
     depends_on:
       - model
 
   model:
     image: tensorflow/serving:latest
+    container_name: model
     environment:
-      - MODEL_NAME=attendance_model
+      MODEL_NAME: attendance_model
     volumes:
-      - ../models/attendance_model:/models/attendance_model
+      - $ATTENDANCE_MODEL_PATH:/models/attendance_model
     ports:
       - "8501:8501"
+    command: >
+      sh -c 'tensorflow_model_server --port=8501 --model_name=attendance_model --model_base_path=/models/attendance_model'
+    networks:
+      - webnet
+    restart: on-failure:5
+
+networks:
+  webnet:
+    external: true
