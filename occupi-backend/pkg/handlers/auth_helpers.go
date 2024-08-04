@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -546,44 +544,4 @@ func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, emai
 			nil,
 		))
 	}
-}
-
-func WebAuthNAuthentication(ctx *gin.Context, appsession *models.AppSession, requestUser models.RequestUser) error {
-	// Begin WebAuthn login process
-	cred, err := database.GetUserCredentials(ctx, appsession, requestUser.Email)
-	if err != nil {
-		ctx.JSON(http.StatusOK, utils.SuccessResponse(
-			http.StatusOK,
-			"Error getting user credentials, please register for WebAuthn",
-			gin.H{"error": "Error getting user credentials, please register for WebAuthn"}))
-		return fmt.Errorf("error getting user credentials: %v", err)
-	}
-	webauthnUser := models.NewWebAuthnUser([]byte(requestUser.Email), requestUser.Email, requestUser.Email, cred)
-	options, sessionData, err := appsession.WebAuthn.BeginLogin(webauthnUser)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return fmt.Errorf("error beginning WebAuthn login: %v", err)
-	}
-
-	uuid := utils.GenerateUUID()
-
-	session := models.WebAuthnSession{
-		Uuid:        uuid,
-		Email:       requestUser.Email,
-		Cred:        cred,
-		SessionData: sessionData,
-	}
-
-	// Save the session data - cache will expire in x defined minutes according to the config
-	if err := cache.SetSession(appsession, session, requestUser.Email); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return fmt.Errorf("error saving WebAuthn session data: %v", err)
-	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"WebAuthn login initiated",
-		gin.H{"options": options, "sessionData": sessionData},
-	))
-	return nil
 }
