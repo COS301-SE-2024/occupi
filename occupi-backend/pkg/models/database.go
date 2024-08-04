@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -66,9 +67,10 @@ type Notifications struct {
 }
 
 type Security struct {
-	MFA         bool `json:"mfa" bson:"mfa"`
-	Biometrics  bool `json:"biometrics" bson:"biometrics"`
-	ForceLogout bool `json:"forceLogout" bson:"forceLogout"`
+	MFA         bool                `json:"mfa" bson:"mfa"`
+	Biometrics  bool                `json:"biometrics" bson:"biometrics"`
+	ForceLogout bool                `json:"forceLogout" bson:"forceLogout"`
+	Credentials webauthn.Credential `json:"credentials" bson:"credentials"`
 }
 
 type Location struct {
