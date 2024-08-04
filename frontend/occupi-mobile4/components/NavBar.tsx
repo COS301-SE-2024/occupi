@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { Text, Button, Icon, CalendarDaysIcon, BellIcon } from '@gluestack-ui/themed';
 import { Feather } from '@expo/vector-icons';
@@ -6,6 +6,7 @@ import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useColorScheme } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useNavBar } from './NavBarProvider';
 import { useTheme } from './ThemeContext';
@@ -15,12 +16,21 @@ const NavBar = () => {
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
   const styles = getStyles(currentTheme);
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
   const { currentTab, setCurrentTab } = useNavBar();
 
   const handleTabPress = (tabName, route) => {
     setCurrentTab(tabName);
     router.replace(route);
   };
+
+  useEffect(() => {
+    const getSettings = async () => {
+        let accentcolour = await SecureStore.getItemAsync('accentColour');
+        setAccentColour(accentcolour);
+    };
+    getSettings();
+}, []);
   // console.log(currentTab);
 
   return (
@@ -43,13 +53,13 @@ const NavBar = () => {
         <Feather
           name="home"
           size={hp('3%')}
-          color={currentTab === 'Home' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Home' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           numberOfLines={1}
           w={wp('9%')}
           fontSize={wp('3%')}
-          color={currentTab === 'Home' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Home' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         >
           Home
         </Text>
@@ -66,13 +76,13 @@ const NavBar = () => {
         <Ionicons
           name="receipt-outline"
           size={24}
-          color={currentTab === 'ViewBookings' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'ViewBookings' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           numberOfLines={1}
           w={wp('19%')}
           fontSize={wp('3%')}
-          color={currentTab === 'ViewBookings' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'ViewBookings' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         >
           My bookings
         </Text>
@@ -90,13 +100,13 @@ const NavBar = () => {
           as={CalendarDaysIcon}
           w={hp('3%')}
           h={hp('3%')}
-          color={currentTab === 'Book' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Book' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           numberOfLines={1}
           w={wp('7.4%')}
           fontSize={wp('3%')}
-          color={currentTab === 'Book' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Book' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         >
           Book
         </Text>
@@ -114,14 +124,14 @@ const NavBar = () => {
           as={BellIcon}
           w={hp('3%')}
           h={hp('3%')}
-          color={currentTab === 'Notifications' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Notifications' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           pl={wp('1%')}
           numberOfLines={1}
           w={wp('20%')}
           fontSize={wp('3%')}
-          color={currentTab === 'Notifications' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Notifications' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         >
           Notifications
         </Text>
@@ -138,14 +148,14 @@ const NavBar = () => {
         <FontAwesome6
           name="user"
           size={hp('3%')}
-          color={currentTab === 'Profile' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Profile' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         />
         <Text
           pl={wp('1%')}
           numberOfLines={1}
           w={wp('12%')}
           fontSize={wp('3%')}
-          color={currentTab === 'Profile' ? 'yellowgreen' : currentTheme === 'dark' ? 'white' : 'black'}
+          color={currentTab === 'Profile' ? `${accentColour}` : currentTheme === 'dark' ? 'white' : 'black'}
         >
           Profile
         </Text>
