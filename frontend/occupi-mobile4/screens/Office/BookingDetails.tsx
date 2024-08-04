@@ -28,6 +28,7 @@ import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
 import { sendPushNotification } from "@/utils/notifications";
 import { userBookRoom } from "@/utils/bookings";
+import { useTheme } from "@/components/ThemeContext";
 
 const BookingDetails = () => {
   const navigation = useNavigation();
@@ -35,12 +36,14 @@ const BookingDetails = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [bookingInfo, setbookingInfo] = useState();
-  const colorScheme = useColorScheme();
+  const colorscheme = useColorScheme();
   const toast = useToast();
   const router = useRouter();
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const isDark = colorScheme === "dark";
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorscheme : theme;
+  const isDark = colorscheme === "dark";
   const [pushTokens, setPushTokens] = useState([]);
   const [attendees, setAttendees] = useState(['']);
   // console.log(attendees);
@@ -231,9 +234,9 @@ const BookingDetails = () => {
         }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon as={Feather} name="chevron-left" size="xl" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
+          <Icon as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
         </TouchableOpacity>
-        {/* <Feather name="calendar" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} /> */}
+        {/* <Feather name="calendar" size={24} color={currentTheme === 'dark' ? 'white' : 'black'} /> */}
         <Text
           style={{
             fontSize: 18,

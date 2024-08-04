@@ -23,20 +23,25 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { fetchUsername } from '@/utils/user';
 import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
+import { useTheme } from '@/components/ThemeContext';
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
   return Math.floor(Math.random() * 20) + 300;
 };
 
-const Dashboard = (theme: string) => {
-  // const [theme, setTheme] = useState('dark');
+const Dashboard = () => {
+  const colorScheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorScheme : theme;
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
-  const [isDarkMode, setIsDarkMode] = useState(theme === 'dark');
+  const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const [checkedIn, setCheckedIn] = useState(false);
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
   const toast = useToast();
+  // console.log(currentTheme);
+  // console.log(isDarkMode);
 
   useEffect(() => {
     const getAccentColour = async () => {
@@ -89,9 +94,9 @@ const Dashboard = (theme: string) => {
         return newNumbers;
       });
     }, 3000);
-    setIsDarkMode(theme === 'dark');
+    setIsDarkMode(currentTheme === 'dark');
     return () => clearInterval(intervalId);
-  }, [theme]);
+  }, [currentTheme]);
 
   const checkIn = () => {
     if (checkedIn === false) {

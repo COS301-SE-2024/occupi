@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
@@ -23,10 +24,10 @@ import {
 } from '@gluestack-ui/themed';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { router } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import LoadingGradientButton from '@/components/LoadingGradientButton';
+import { useTheme } from '@/components/ThemeContext';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -56,7 +57,9 @@ const Profile = () => {
   const [date, setDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  let colorScheme = useColorScheme();
+  const colorscheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorscheme : theme;
   const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
   const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
   const updateDetailsUrl = process.env.EXPO_PUBLIC_UPDATE_USER_DETAILS;
@@ -175,7 +178,7 @@ const Profile = () => {
 
   return (
     <SafeAreaView
-      style={colorScheme === 'dark' ? styles.containerdark : styles.containerlight}
+      style={currentTheme === 'dark' ? styles.containerdark : styles.containerlight}
     >
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
@@ -183,37 +186,37 @@ const Profile = () => {
             as={Feather}
             name={"chevron-left"}
             size="xl"
-            color={colorScheme === 'dark' ? 'white' : 'black'}
+            color={currentTheme === 'dark' ? 'white' : 'black'}
             onPress={() => router.replace('/settings')}
           />
-          <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
+          <Text style={[styles.headerTitle, currentTheme === 'dark' ? styles.textdark : styles.textlight]}>
             My account
           </Text>
           <MaterialIcons
             name="person-outline"
             size={24}
-            color={colorScheme === 'dark' ? 'white' : 'black'}
+            color={currentTheme === 'dark' ? 'white' : 'black'}
             style={styles.icon}
           />
         </View>
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
+        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
         <TextInput
-          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
           value={name}
           placeholderTextColor={COLORS.gray}
           onChangeText={setName}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Date of birth</Text>
+        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Date of birth</Text>
         <TouchableOpacity
           onPress={showDatePicker}
-          style={colorScheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}
+          style={currentTheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}
         >
-          <Text style={colorScheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>
+          <Text style={currentTheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>
             {date}
           </Text>
-          <MaterialIcons name="calendar-today" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
+          <MaterialIcons name="calendar-today" size={24} color={currentTheme === 'dark' ? 'white' : 'black'} />
         </TouchableOpacity>
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
@@ -222,41 +225,41 @@ const Profile = () => {
           onCancel={hideDatePicker}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
+        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
         {/* <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
           <VStack flexDirection="row" justifyContent="space-between" space="sm">
             <Radio
-              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
             >
-              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
+              <RadioLabel color={currentTheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
             <Radio
-              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
             >
-              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Female</RadioLabel>
+              <RadioLabel color={currentTheme === 'dark' ? 'white' : 'black'}>Female</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
             <Radio
-              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
             >
-              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Other</RadioLabel>
+              <RadioLabel color={currentTheme === 'dark' ? 'white' : 'black'}>Other</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
@@ -264,35 +267,35 @@ const Profile = () => {
           </VStack>
         </RadioGroup> */}
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
+        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
         <TextInput
-          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder={email}
           placeholderTextColor={COLORS.gray}
           editable={false}
           onChangeText={setEmail}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Occupi ID</Text>
+        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Occupi ID</Text>
         <TextInput
-          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder={employeeId}
           placeholderTextColor={COLORS.gray}
           editable={false}
           onChangeText={setEmployeeId}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Cell No</Text>
+        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Cell No</Text>
         <TextInput
-          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
           value={phoneNumber}
           placeholderTextColor={COLORS.gray}
           onChangeText={setPhoneNumber}
         />
 
-        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Pronouns (optional)</Text>
+        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Pronouns (optional)</Text>
         <TextInput
-          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
           value={pronouns}
           placeholderTextColor={COLORS.gray}
           onChangeText={setPronouns}

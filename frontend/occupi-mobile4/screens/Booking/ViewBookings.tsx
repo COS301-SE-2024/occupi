@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { Skeleton } from 'moti/skeleton';
 import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
+import { useTheme } from '@/components/ThemeContext';
 
 
 
@@ -39,8 +40,10 @@ function extractDateFromDate(dateString: string): string {
 }
 
 const ViewBookings = () => {
-    const colorScheme = useColorScheme();
-    const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+    const colorscheme = useColorScheme();
+    const { theme } = useTheme();
+    const currentTheme = theme === "system" ? colorscheme : theme;
+    const isDarkMode = currentTheme === "dark";
     const [layout, setLayout] = useState("row");
     const [roomData, setRoomData] = useState<Booking[]>();
     // const [selectedSort, setSelectedSort] = useState("newest");
@@ -49,21 +52,21 @@ const ViewBookings = () => {
     const [refreshing, setRefreshing] = useState(false);
     useEffect(() => {
         const getRoomData = async () => {
-          try {
-            const roomData = await fetchUserBookings();
-            if (roomData) {
-                console.log(roomData);
-              setRoomData(roomData);
-            } else {
-                setRoomData([]);
+            try {
+                const roomData = await fetchUserBookings();
+                if (roomData) {
+                    // console.log(roomData);
+                    setRoomData(roomData);
+                } else {
+                    setRoomData([]);
+                }
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
             }
-          } catch (error) {
-            console.error('Error fetching bookings:', error);
-          }
-          setLoading(false);
+            setLoading(false);
         };
         getRoomData();
-      }, []);
+    }, []);
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
     useEffect(() => {
@@ -78,18 +81,18 @@ const ViewBookings = () => {
     const onRefresh = React.useCallback(() => {
         const getRoomData = async () => {
             try {
-              const roomData = await fetchUserBookings();
-              if (roomData) {
-                  // console.log(roomData);
-                setRoomData(roomData);
-              } else {
-                  setRoomData([]); // Default value if no username is found
-              }
+                const roomData = await fetchUserBookings();
+                if (roomData) {
+                    // console.log(roomData);
+                    setRoomData(roomData);
+                } else {
+                    setRoomData([]); // Default value if no username is found
+                }
             } catch (error) {
-              console.error('Error fetching bookings:', error);
+                console.error('Error fetching bookings:', error);
             }
             setLoading(false);
-          };
+        };
         setRefreshing(true);
         setTimeout(() => {
             setRefreshing(false);
@@ -100,9 +103,7 @@ const ViewBookings = () => {
     const toggleLayout = () => {
         setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
     };
-    useEffect(() => {
-        setIsDarkMode(colorScheme === 'dark');
-    }, [colorScheme]);
+    
     const backgroundColor = isDarkMode ? 'black' : 'white';
     const textColor = isDarkMode ? 'white' : 'black';
     const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
