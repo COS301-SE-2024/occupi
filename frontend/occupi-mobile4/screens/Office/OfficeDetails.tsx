@@ -78,6 +78,15 @@ const OfficeDetails = () => {
     return dates;
   };
   const upcomingDates = getUpcomingDates();
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
 
   useEffect(() => {
     const getCurrentRoom = async () => {
@@ -175,7 +184,7 @@ const OfficeDetails = () => {
               ))}
             </Animated.ScrollView>
             <View style={styles.pageIndicator}>
-              <PageIndicator count={pages.length} color={"yellowgreen"} current={animatedCurrent} />
+              <PageIndicator count={pages.length} color={accentColour} current={animatedCurrent} />
             </View>
           </View>
         </View>
