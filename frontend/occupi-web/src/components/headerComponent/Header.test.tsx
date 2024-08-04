@@ -1,7 +1,7 @@
 import { expect, test, mock } from "bun:test";
 import { render, screen, act } from "@testing-library/react";
 import { Header } from "@components/index";
-import { UserProvider, useUser } from "UserContext";
+import { UserProvider, useUser } from "userStore";
 import React from "react";
 
 // Mock localStorage

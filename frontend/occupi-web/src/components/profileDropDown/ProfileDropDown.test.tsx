@@ -2,7 +2,7 @@ import { expect, test, describe } from "bun:test";
 import { render } from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 import ProfileDropdown from "./ProfileDropDown";
-import { UserProvider } from "UserContext";
+import { UserProvider } from "userStore";
 
 
 describe("ProfileDropdown", () => {

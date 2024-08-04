@@ -4,7 +4,7 @@ import { Checkbox, GradientButton, InputBox, OccupiLoader } from "@components/in
 import { useNavigate } from "react-router-dom";
 import { registerCredential, authenticateWithCredential } from './WebAuthn';
 import AuthService from "AuthService";
-import { useUser } from "UserContext";
+import { useUser } from "userStore";
 
 const LoginForm = (): JSX.Element => {
   const navigate = useNavigate();

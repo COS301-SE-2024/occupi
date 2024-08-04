@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, User } from "@nextui-org/react";
 import { Bell, SettingsIcon, Faq } from "@assets/index";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "UserContext";
+import { useUser } from "userStore";
 import AuthService from "AuthService";
 import { FeedBackModal, OccupiLoader } from "@components/index";
 

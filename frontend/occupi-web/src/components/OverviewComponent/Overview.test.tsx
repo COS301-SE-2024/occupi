@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import OverviewComponent from "./OverviewComponent";
-import { UserProvider } from "UserContext"; // Import the UserProvider
+import { UserProvider } from "userStore"; // Import the UserProvider
 
 // Create a wrapper component that provides the UserContext
 import { ReactNode } from "react";

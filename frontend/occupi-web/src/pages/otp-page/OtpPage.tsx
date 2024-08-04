@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { OccupiLogo, login_image } from "@assets/index";
 import { GradientButton, OtpComponent, OccupiLoader } from "@components/index";
 import AuthService from "AuthService";
-import { useUser } from "UserContext";
+import { useUser } from "userStore";
 
 const OtpPage = () => {
   const location = useLocation();

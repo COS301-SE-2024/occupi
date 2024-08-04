@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TopNav,AiDashCard,PredictedCapacityGraph,CapacityComparisonGraph } from "@components/index";
-
+import { TopNav, AiDashCard, PredictedCapacityGraph, CapacityComparisonGraph } from "@components/index";
 import { FaUsers, FaBed, FaClipboardList, FaCalendarCheck, FaUndo, FaPlus } from "react-icons/fa";
 import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
