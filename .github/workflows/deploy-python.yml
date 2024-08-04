@@ -97,10 +97,8 @@ jobs:
               key: ${{ secrets.VM_SSH_KEY }}
               script: |
                   cd /home/${{ secrets.VM_USERNAME }}/attendance-model/python-code
-                  echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-                  ATTENDANCE_MODEL_PATH=/home/${{ secrets.VM_USERNAME }}/attendance-model/models/attendance_model \ 
+                  mv /home/${{ secrets.VM_USERNAME }}/attendance-model/models/attendance_model /home/${{ secrets.VM_USERNAME }}/attendance-model/python-code
+                  echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin 
                   DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml down
-                  ATTENDANCE_MODEL_PATH=/home/${{ secrets.VM_USERNAME }}/attendance-model/models/attendance_model \ 
                   DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml pull
-                  ATTENDANCE_MODEL_PATH=/home/${{ secrets.VM_USERNAME }}/attendance-model/models/attendance_model \ 
                   DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml up -d
