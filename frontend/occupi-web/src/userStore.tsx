@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist, PersistStorage } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 interface UserDetails {
   email: string;
@@ -22,13 +22,27 @@ export const useUserStore = create<UserStore>()(
     }),
     {
       name: 'user-storage',
-      storage: typeof window !== 'undefined' ? (window.localStorage as unknown as PersistStorage<UserStore>) : undefined,
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: (state) => {
+        // Optional: Log when hydration starts
+        console.log('Hydration starts')
+        
+        // Return a function that will be called when hydration finishes
+        return (state, error) => {
+          if (error) {
+            console.log('An error happened during hydration', error)
+          } else {
+            console.log('Hydration finished')
+          }
+        }
+      },
     }
   )
 )
 
 // Hook for easier usage in components
-export const useUser = () => useUserStore((state) => ({
-  userDetails: state.userDetails,
-  setUserDetails: state.setUserDetails
-}))
+export const useUser = () => {
+  const store = useUserStore()
+  console.log('Current userDetails:', store.userDetails)
+  return store
+}
