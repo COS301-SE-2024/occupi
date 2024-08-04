@@ -6,7 +6,7 @@ on:
         paths: [
             "python-code/**",
             "models/**",
-            ".github/workflows/deeploy-python.yml"
+            ".github/workflows/deploy-python.yml"
         ]
 
     workflow_dispatch:
