@@ -19,6 +19,7 @@ import { useColorScheme, Switch } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
+import { storeTheme, storeAccentColour } from '@/services/securestore';
 
 const FONTS = {
     h3: { fontSize: 20, fontWeight: 'bold' },
@@ -32,29 +33,25 @@ const SIZES = {
 };
 
 const Appearance = () => {
-    //retrieve user settings ad assign variables accordingly
-    const onSave = () => {
-        //integration here
-    };
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
     const [theme, setTheme] = useState<string>('');
     let colorScheme = theme;
 
-    useEffect(() => {
-        const getAccentColour = async () => {
-            let accentcolour = await SecureStore.getItemAsync('accentColour');
-            setAccentColour(accentcolour);
-        };
-        getAccentColour();
-    }, []);
-
-    console.log(accentColour);
-
-    const setAccentcolour = async (value) => {
-        setAccentColour(value);
-        await SecureStore.setItemAsync('accentColour', value);
+    const onSave = () => {
+        storeAccentColour(accentColour);
+        storeTheme(theme);
+        router.back();
     }
-    // setAccentcolour();
+
+    useEffect(() => {
+        const getSettings = async () => {
+            let accentcolour = await SecureStore.getItemAsync('accentColour');
+            let theme = await SecureStore.getItemAsync('Theme');
+            setAccentColour(accentcolour);
+            setTheme(theme);
+        };
+        getSettings();
+    }, []);
 
     const handleBack = () => {
         // if (isSaved === false) {
@@ -150,55 +147,55 @@ const Appearance = () => {
                 <Text mt="$2" color={colorScheme === 'dark' ? 'white' : 'black'}>Accent colour</Text>
                 <View p="$5" borderRadius={18} justifyContent='space-between' my="$2" height={hp('18%')} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
                     <View flexDirection="row" justifyContent='space-between'>
-                        <TouchableOpacity onPress={() => setAccentcolour("lightgrey")}>
+                        <TouchableOpacity onPress={() => setAccentColour("lightgrey")}>
                             <View borderColor='lightgrey' borderRadius="$full" borderWidth={accentColour === 'lightgrey' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="lightgrey" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("#FF4343")}>
+                        <TouchableOpacity onPress={() => setAccentColour("#FF4343")}>
                             <View borderColor='#FF4343' borderRadius="$full" borderWidth={accentColour === '#FF4343' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FF4343" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("#FFB443")}>
+                        <TouchableOpacity onPress={() => setAccentColour("#FFB443")}>
                             <View borderColor='#FFB443' borderRadius="$full" borderWidth={accentColour === '#FFB443' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FFB443" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("greenyellow")}>
+                        <TouchableOpacity onPress={() => setAccentColour("greenyellow")}>
                             <View borderColor='greenyellow' borderRadius="$full" borderWidth={accentColour === 'greenyellow' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="greenyellow" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("#43FF61")}>
+                        <TouchableOpacity onPress={() => setAccentColour("#43FF61")}>
                             <View borderColor='#43FF61' borderRadius="$full" borderWidth={accentColour === '#43FF61' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#43FF61" />
                             </View>
                         </TouchableOpacity>
                     </View>
                     <View flexDirection="row" justifyContent='space-between'>
-                        <TouchableOpacity onPress={() => setAccentcolour("#43F4FF")}>
+                        <TouchableOpacity onPress={() => setAccentColour("#43F4FF")}>
                             <View borderColor='#43F4FF' borderRadius="$full" borderWidth={accentColour === '#43F4FF' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#43F4FF" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("#4383FF")}>
+                        <TouchableOpacity onPress={() => setAccentColour("#4383FF")}>
                             <View borderColor='#4383FF' borderRadius="$full" borderWidth={accentColour === '#4383FF' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#4383FF" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("#AC43FF")}>
+                        <TouchableOpacity onPress={() => setAccentColour("#AC43FF")}>
                             <View borderColor='#AC43FF' borderRadius="$full" borderWidth={accentColour === '#AC43FF' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#AC43FF" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("#FF43F7")}>
+                        <TouchableOpacity onPress={() => setAccentColour("#FF43F7")}>
                             <View borderColor='#FF43F7' borderRadius="$full" borderWidth={accentColour === '#FF43F7' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FF43F7" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentcolour("purple")}>
-                            <View borderColor='purple' borderRadius="$full" borderWidth={accentColour === 'purple' ? 2 : 0} onPress={() => setAccentcolour("#FF4343")}>
+                        <TouchableOpacity onPress={() => setAccentColour("purple")}>
+                            <View borderColor='purple' borderRadius="$full" borderWidth={accentColour === 'purple' ? 2 : 0} onPress={() => setAccentColour("#FF4343")}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="purple" />
                             </View>
                         </TouchableOpacity>

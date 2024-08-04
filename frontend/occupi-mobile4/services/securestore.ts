@@ -21,6 +21,14 @@ export async function storeNotificationSettings(value: string) {
   await SecureStore.setItemAsync('Notifications', value);
 }
 
+export async function storeTheme(value: string) {
+  await SecureStore.setItemAsync('Theme', value);
+}
+
+export async function storeAccentColour(value: string) {
+  await SecureStore.setItemAsync('accentColour', value);
+}
+
 export async function storeSecuritySettings(value: string) {
   await SecureStore.setItemAsync('Security', value);
 }
