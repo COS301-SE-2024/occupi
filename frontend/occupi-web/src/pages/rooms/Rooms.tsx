@@ -106,7 +106,7 @@ const Rooms: React.FC = () => {
   };
 
   return (
-    <div className="w-full overflow-auto">
+    <div className="w-full overflow-auto"> {/* Add padding here */}
       <TopNav
         mainComponent={
           <div className="text-text_col font-semibold text-2xl ml-5">
@@ -163,8 +163,9 @@ const Rooms: React.FC = () => {
               key={room.roomId}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              className="mb-4"
             >
-              <Card className="w-full  bg-secondary ">
+              <Card className="w-full bg-secondary mx-4"> {/* Add margin here */}
                 <div className="p-4 flex flex-col md:flex-row">
                   <div className="w-full md:w-1/3 mb-4 md:mb-0 md:mr-4">
                     {room.imageUrl ? (

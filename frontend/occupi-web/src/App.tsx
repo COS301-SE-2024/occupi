@@ -35,10 +35,12 @@ function App() {
           <Routes>
             <Route path="dashboard/*" element={<Dashboard />} >
               <Route path="overview" element={<OverviewComponent />} />
-              <Route path="bookings" element={<BookingComponent />} />{/**attach appropriate component */}
+              <Route path="bookings" element={<BookingComponent />} />*attach appropriate component
               <Route path="visitations" element={<Visitation />} />{/**attach appropriate component */}
               <Route path="analysis" element={<Analysis/>} />{}
             </Route>
+            {/* <Route path="dashboard/bookings" element={<BookingComponent />} />*attach appropriate component */}
+
             <Route path="reports" element={<PDFReport />} />{/**attach appropriate component */}
             <Route path="faq" element={ <Faq/> } />{/**attach appropriate component */}
             <Route path="ai-dashboard" element={<AiDashboard />} />{/**consider making ths its own page */}
