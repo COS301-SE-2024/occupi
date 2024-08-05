@@ -25,6 +25,13 @@ const cardData = [
   { id: 'card4', title: "Check-ins Today", icon: <FaCalendarCheck size={24} />, stat: "23", trend: 3.4 },
 ];
 
+const originalCardLayouts: { [key: string]: Layout } = {
+  card1: { i: 'card1', x: 0, y: 0, w: 3, h: 2 },
+  card2: { i: 'card2', x: 3, y: 0, w: 3, h: 2 },
+  card3: { i: 'card3', x: 6, y: 0, w: 3, h: 2 },
+  card4: { i: 'card4', x: 9, y: 0, w: 3, h: 2 },
+};
+
 const AiDashboard: React.FC = () => {
   const [layouts, setLayouts] = useState<Layouts>(() => {
     const savedLayouts = localStorage.getItem('dashboardLayouts');
@@ -38,21 +45,36 @@ const AiDashboard: React.FC = () => {
     return defaultLayouts;
   });
 
-  const [visibleCards, setVisibleCards] = useState<string[]>(cardData.map(card => card.id));
+  const [visibleCards, setVisibleCards] = useState<string[]>(() => {
+    const savedVisibleCards = localStorage.getItem('visibleCards');
+    if (savedVisibleCards) {
+      try {
+        return JSON.parse(savedVisibleCards);
+      } catch (error) {
+        console.error('Error parsing saved visible cards:', error);
+      }
+    }
+    return cardData.map(card => card.id);
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     localStorage.setItem('dashboardLayouts', JSON.stringify(layouts));
-  }, [layouts]);
+    localStorage.setItem('visibleCards', JSON.stringify(visibleCards));
+  }, [layouts, visibleCards]);
 
   const onLayoutChange = (currentLayout: Layout[], allLayouts: Layouts) => {
     setLayouts(allLayouts);
+    const newVisibleCards = currentLayout.map(item => item.i).filter(id => cardData.some(card => card.id === id));
+    setVisibleCards(newVisibleCards);
   };
 
   const resetToDefaultLayout = () => {
     setLayouts(defaultLayouts);
     setVisibleCards(cardData.map(card => card.id));
     localStorage.setItem('dashboardLayouts', JSON.stringify(defaultLayouts));
+    localStorage.setItem('visibleCards', JSON.stringify(cardData.map(card => card.id)));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,18 +82,30 @@ const AiDashboard: React.FC = () => {
   };
 
   const handleRemoveCard = (cardId: string) => {
-    setVisibleCards(visibleCards.filter(id => id !== cardId));
+    setVisibleCards(prev => prev.filter(id => id !== cardId));
+    
+    const newLayouts = { ...layouts };
+    Object.keys(newLayouts).forEach(breakpoint => {
+      newLayouts[breakpoint] = newLayouts[breakpoint].filter(item => item.i !== cardId);
+    });
+    setLayouts(newLayouts);
   };
 
   const handleAddCard = (cardId: string) => {
     if (!visibleCards.includes(cardId)) {
-      setVisibleCards([...visibleCards, cardId]);
+      setVisibleCards(prev => [...prev, cardId]);
+      
+      const newLayouts = { ...layouts };
+      Object.keys(newLayouts).forEach(breakpoint => {
+        newLayouts[breakpoint] = [
+          ...newLayouts[breakpoint],
+          originalCardLayouts[cardId] || defaultLayouts.lg.find(item => item.i === cardId) || { i: cardId, x: 0, y: 0, w: 3, h: 2 }
+        ];
+      });
+      setLayouts(newLayouts);
     }
   };
 
-
-
-  
   return (
     <div className="w-full overflow-auto">
       <TopNav
