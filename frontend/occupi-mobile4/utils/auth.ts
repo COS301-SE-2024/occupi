@@ -76,7 +76,7 @@ export async function verifyUserOtpRegister(email: string, otp: string) {
         if (response.status === 200) {
             console.log('responseee',response);
             setState('logged_out');
-            router.replace('/login');
+            router.replace('/set-details');
             return response.message;
         }
         else {

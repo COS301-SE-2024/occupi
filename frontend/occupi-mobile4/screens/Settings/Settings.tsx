@@ -89,7 +89,7 @@ const Settings = () => {
         <Box style={styles.profileContainer}>
           <Center style={styles.imageContainer}>
             <Image
-              source={{ uri: 'https://bookingagentinfo.com/wp-content/uploads/2022/09/Sabrina-Carpenter-1.jpg' }}
+              source={{ uri: 'https://www.kamogelomoeketse.online/assets/main-D2LspijS.png' }}
               style={styles.profileImage}
             />
             <Icon as={MaterialIcons} name="camera-alt" size="md" color={currentTheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
@@ -99,7 +99,7 @@ const Settings = () => {
               <Text style={[styles.profileName, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
               {/* <Icon as={Feather} name="edit" size="sm" color={currentTheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
             </HStack>
-            <Text style={[styles.profileTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text>
+            {/* <Text style={[styles.profileTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text> */}
           </Box>
         </Box>
         <Divider my={2} style={currentTheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
