@@ -1,6 +1,3 @@
-[submodule "occupi-backend/centrifugo-rtc"]
-	path = occupi-backend/centrifugo-rtc
-	url = https://github.com/centrifugal/centrifugo.git
 [submodule "occupi-backend/centrifugo"]
 	path = occupi-backend/centrifugo
 	url = https://github.com/centrifugal/centrifugo.git

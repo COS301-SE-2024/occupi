@@ -21,16 +21,19 @@ var (
 func init() {
 	client = gocent.New(gocent.Config{
 		Addr: "http://localhost:8000/api",            // Replace with your Centrifugo API address
-		Key:  "151e30af-ed0b-4234-b57a-1e9b94a2ffbe", // Replace with your Centrifugo API key
+		Key:  "c336846e-9e4f-4614-8fb7-a85a47e214b3", // Replace with your Centrifugo API key
 	})
 }
 
-// CheckIn handles the check-in request
+// Enter handles the check-in request
 func Enter(ctx *gin.Context, appsession *models.AppSession) {
 	mu.Lock()
 	defer mu.Unlock()
 	counter++
-	publishCounter(ctx)
+	if err := publishCounter(ctx); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{"counter": counter})
 }
 
@@ -41,16 +44,20 @@ func Exit(ctx *gin.Context, appsession *models.AppSession) {
 	if counter > 0 {
 		counter--
 	}
-	publishCounter(ctx)
+	if err := publishCounter(ctx); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{"counter": counter})
 }
 
 // publishCounter publishes the current counter value to Centrifugo
-func publishCounter(ctx *gin.Context) {
+func publishCounter(ctx *gin.Context) error {
 	data := map[string]int{"counter": counter}
 	jsonData, _ := json.Marshal(data)
 	_, err := client.Publish(ctx, "public:counter", jsonData)
 	if err != nil {
-		fmt.Printf("error publishing message: %v\n", err)
+		return fmt.Errorf("error publishing message: %v", err)
 	}
+	return nil
 }
