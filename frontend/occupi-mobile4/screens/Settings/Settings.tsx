@@ -59,7 +59,7 @@ const Settings = () => {
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
     { title: 'Appearance', description: 'Customize your viewing experience', iconName: 'image', onPress: () => router.push('/set-appearance') },
-    { title: 'FAQ', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
+    { title: 'FAQ', description: "View the community's FAQ", iconName: 'info', onPress: () => router.push('faqpage') },
     { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
   ];
 
@@ -103,7 +103,7 @@ const Settings = () => {
           </Box>
         </Box>
         <Divider my={2} style={currentTheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
-        <VStack space="2xs" marginBottom={80}>
+        <VStack space="2xs" marginBottom={20}>
           {data.map((item, index) => (
             <View key={index}>
               {renderListItem({ item })}
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   footerContainer: {
-    padding: 16,
+    // padding: 16,
     alignItems: 'center',
   },
   versionText: {

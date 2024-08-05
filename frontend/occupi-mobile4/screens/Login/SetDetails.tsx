@@ -237,7 +237,6 @@ const SetDetails = () => {
             </Radio>
           </VStack>
         </RadioGroup>
-
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Cell No</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}

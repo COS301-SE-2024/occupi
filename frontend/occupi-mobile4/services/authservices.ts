@@ -51,6 +51,27 @@ export async function register(req: RegisterReq): Promise<Success | Unsuccessful
     }
 }
 
+export async function verifyOtpRegister(req: VerifyOTPReq): Promise<LoginSuccess | Unsuccessful> {
+    try {
+        const response = await axios.post("https://dev.occupi.tech/auth/verify-otp", req, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            withCredentials: true
+        });
+        // console.log(response.data);
+        return response.data as LoginSuccess;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            // console.log(error.response.data);
+            return error.response.data as Unsuccessful;
+        } else {
+            throw error;
+        }
+    }
+}
+
 export async function verifyOtplogin(req: VerifyOTPReq): Promise<LoginSuccess | Unsuccessful> {
     try {
         const response = await axios.post("https://dev.occupi.tech/auth/verify-otp-mobile-login", req, {
@@ -74,7 +95,7 @@ export async function verifyOtplogin(req: VerifyOTPReq): Promise<LoginSuccess | 
 
 export async function logout(): Promise<Success | Unsuccessful> {
     let authToken = await SecureStore.getItemAsync('Token');
-    console.log('token',authToken);
+    // console.log('token',authToken);
     try {
         const response = await axios.post("https://dev.occupi.tech/auth/logout", {},{
             headers: {

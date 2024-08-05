@@ -61,37 +61,43 @@ const Profile = () => {
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
   const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
+  const getUserDetailsUrl = process.env.EXPO_PUBLIC_GET_USER_DETAILS;
   const updateDetailsUrl = process.env.EXPO_PUBLIC_UPDATE_USER_DETAILS;
   console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);
 
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
-      console.log("UserData:",result);
+      console.log("UserData:", result);
       // setUserDetails(JSON.parse(result).data);
-      let jsonresult = JSON.parse(result);
+      let user = JSON.parse(result);
       // console.log(jsonresult.data.details.name);
-      setName(String(jsonresult?.data?.details?.name));
-      setEmail(String(jsonresult?.data?.email));
-      setEmployeeId(String(jsonresult?.data?.occupiId));
-      setPhoneNumber(String(jsonresult?.data?.details?.contactNo));
-      setPronouns(String(jsonresult?.data?.details?.pronouns));
-      const dateString = jsonresult?.data?.details?.dob;
-      const date = new Date(dateString);
+      setName(String(user?.name));
+      setEmail(String(user?.email));
+      setEmployeeId(String(user?.employeeid));
+      setPhoneNumber(String(user?.number));
+      setPronouns(String(user?.pronouns));
+      const dateString = user?.dob;
+
+      // Manually parse the date string
+      const [datePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-').map(Number);
+
+      // Create a new Date object
+      const date = new Date(year, month - 1, day);
+      console.log(date);
 
       // Get the day, month, and year
-      const day = date.getDate();
-      const month = date.getMonth() + 1; // Months are zero-based
-      const year = date.getFullYear();
+      const formattedDay = date.getDate();
+      const formattedMonth = date.getMonth() + 1; // Months are zero-based
+      const formattedYear = date.getFullYear();
 
       // Format the date as MM/DD/YYYY
-      const formatted = `${month}/${day}/${year}`;
+      const formatted = `${formattedMonth}/${formattedDay}/${formattedYear}`;
+      console.log(formatted);
 
       // Set the formatted date in the state
-      setDate(formatted)
-
-      // console.log(JSON.parse(result).data.details.name);
+      setDate(formatted);
     };
     getUserDetails();
   }, []);
@@ -149,32 +155,10 @@ const Profile = () => {
       // setResponse('An error occurred');
     }
 
-    try {
-      let authToken = await SecureStore.getItemAsync('Token');
-      const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        credentials: "include"
-      });
-      const data = await response.json();
-      if (response.ok) {
-        saveUserData(JSON.stringify(data));
-        console.log(data);
-      } else {
-        console.log(data);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    let UserData = await SecureStore.getItemAsync('UserData');
+
   };
 
-  async function saveUserData(value) {
-    await SecureStore.setItemAsync('UserData', value);
-  }
 
   return (
     <SafeAreaView
@@ -226,10 +210,11 @@ const Profile = () => {
         />
 
         <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
-        {/* <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
+        <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
           <VStack flexDirection="row" justifyContent="space-between" space="sm">
             <Radio
               backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              value={"Male"}
               borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
@@ -242,6 +227,7 @@ const Profile = () => {
             </Radio>
             <Radio
               backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              value={"Female"}
               borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
@@ -255,6 +241,7 @@ const Profile = () => {
             <Radio
               backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
+              value={"Other"}
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
@@ -265,8 +252,7 @@ const Profile = () => {
               </RadioIndicator>
             </Radio>
           </VStack>
-        </RadioGroup> */}
-
+        </RadioGroup>
         <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
         <TextInput
           style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
