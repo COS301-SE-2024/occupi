@@ -28,6 +28,10 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import LoadingGradientButton from '@/components/LoadingGradientButton';
 import { useTheme } from '@/components/ThemeContext';
+import { extractDateFromTimestamp } from '@/utils/utils';
+import { Toast, useToast } from '@gluestack-ui/themed';
+import { ToastTitle } from '@gluestack-ui/themed';
+import { updateDetails } from '@/utils/user';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -48,10 +52,10 @@ const SIZES = {
 };
 
 const Profile = () => {
-  const [selectedGenderIndex, setSelectedGenderIndex] = useState(1);
+  const [selectedGenderIndex, setSelectedGenderIndex] = useState('Male');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [employeeId, setEmployeeId] = useState('');
+  const [employeeId, setEmployeeId] = useState('OCCUPI20242417');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [pronouns, setPronouns] = useState('');
   const [date, setDate] = useState('');
@@ -60,41 +64,41 @@ const Profile = () => {
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const getUserDetailsUrl = process.env.EXPO_PUBLIC_GET_USER_DETAILS;
-  const updateDetailsUrl = process.env.EXPO_PUBLIC_UPDATE_USER_DETAILS;
-  console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);
+  const toast = useToast();
+  // console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);
 
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
-      console.log("UserData:", result);
-      // setUserDetails(JSON.parse(result).data);
+      console.log(result);
+      const email =  await SecureStore.getItemAsync('Email');
+  
       let user = JSON.parse(result);
-      // console.log(jsonresult.data.details.name);
       setName(String(user?.name));
-      setEmail(String(user?.email));
+      setEmail(String(email));
       setEmployeeId(String(user?.employeeid));
       setPhoneNumber(String(user?.number));
       setPronouns(String(user?.pronouns));
+      setSelectedGenderIndex(String(user?.gender))
       const dateString = user?.dob;
+      console.log('dateee',dateString);
 
       // Manually parse the date string
-      const [datePart] = dateString.split(' ');
+      const [datePart] = dateString.split('T');
       const [year, month, day] = datePart.split('-').map(Number);
 
       // Create a new Date object
-      const date = new Date(year, month - 1, day);
-      console.log(date);
+      const date = new Date(year, month, day);
+      // console.log(date.getDate());
 
       // Get the day, month, and year
       const formattedDay = date.getDate();
-      const formattedMonth = date.getMonth() + 1; // Months are zero-based
+      const formattedMonth = date.getMonth(); // Months are zero-based
       const formattedYear = date.getFullYear();
 
       // Format the date as MM/DD/YYYY
-      const formatted = `${formattedMonth}/${formattedDay}/${formattedYear}`;
-      console.log(formatted);
+      const formatted = `${formattedYear}-${formattedMonth}-${formattedDay}`;
+      // console.log(formatted);
 
       // Set the formatted date in the state
       setDate(formatted);
@@ -110,53 +114,25 @@ const Profile = () => {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (selectedDate) => {
-    setDate(selectedDate);
+  const handleConfirm = (selectedDate: string) => {
+    console.log('selected',extractDateFromTimestamp(selectedDate));
+    setDate(extractDateFromTimestamp(selectedDate));
     hideDatePicker();
   };
 
+
   const onSave = async () => {
-    const body = {
-      "email": email,
-      "details": {
-        "contactNo": phoneNumber,
-        "gender": "Male",
-        "name": name,
-        "pronouns": pronouns
-      }
-    };
-    // console.log(JSON.stringify(body));
-    setIsLoading(true);
-    try {
-      let authToken = await SecureStore.getItemAsync('Token');
-      const response = await fetch(`${apiUrl}${updateDetailsUrl}`, {
-        method: 'PUT',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        body: JSON.stringify(body),
-        credentials: "include"
-      });
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        console.log(response);
-        setIsLoading(false);
-        alert('Details updated successfully');
-      } else {
-        console.log(data);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      setIsLoading(false);
-      console.error('Error:', error);
-      // setResponse('An error occurred');
-    }
-
-    let UserData = await SecureStore.getItemAsync('UserData');
-
+    const response = await updateDetails(name,date,selectedGenderIndex,phoneNumber,pronouns, employeeId)
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === "Details updated successfully" ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
+      },
+    });
   };
 
 
@@ -210,7 +186,7 @@ const Profile = () => {
         />
 
         <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
-        <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
+        <RadioGroup mb="$4" value={selectedGenderIndex} onChange={(index) => setSelectedGenderIndex(index)}>
           <VStack flexDirection="row" justifyContent="space-between" space="sm">
             <Radio
               backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
@@ -219,6 +195,7 @@ const Profile = () => {
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
+
             >
               <RadioLabel color={currentTheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
               <RadioIndicator ml="$2">

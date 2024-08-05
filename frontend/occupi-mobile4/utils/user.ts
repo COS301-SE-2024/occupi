@@ -1,4 +1,5 @@
-import { getUserDetails, getNotificationSettings, getSecuritySettings, updateSecuritySettings, updateNotificationSettings } from "../services/apiservices";
+import { UpdateDetailsReq } from "@/models/requests";
+import { getUserDetails, getNotificationSettings, getSecuritySettings, updateSecuritySettings, updateNotificationSettings, updateUserDetails } from "../services/apiservices";
 import { storeUserData, storeNotificationSettings, getUserData, storeSecuritySettings } from "../services/securestore";
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -108,6 +109,33 @@ export async function updateSecurity(type: string, values: any) {
         } catch (error) {
             console.error('Error:', error);
         }
+    }
+}
+
+export async function updateDetails(name: string, dob: string, gender: string, cellno: string, pronouns: string, employeeid: string) {
+    const email = await SecureStore.getItemAsync('Email');
+    try {
+        const request : UpdateDetailsReq = {
+            session_email: email,
+            name: name,
+            dob: dob + "T00:00:00.000Z",
+            gender: gender,
+            number: cellno,
+            pronouns: pronouns,
+            employeeid: employeeid
+        }
+        const response = await updateUserDetails(request);
+        if (response.status === 200) {
+            console.log(response);
+            router.replace('/settings')
+            return "Details updated successfully"
+        }
+        else {
+            console.log(response)
+            return response.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
     }
 }
 
