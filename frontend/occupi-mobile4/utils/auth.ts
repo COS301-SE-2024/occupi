@@ -1,7 +1,7 @@
 //this folder contains functions that will call the service functions which make api requests for authentication
 //the purpose of this file is to refine and process the data and return these to the View
 
-import { login, logout, register, verifyOtplogin } from "../services/authservices";
+import { login, logout, register, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
 import { storeUserEmail, storeToken, setState, deleteToken, deleteUserData, deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings } from "../services/securestore";
@@ -44,6 +44,7 @@ export async function UserLogin(email: string, password: string) {
 
 export async function userRegister(email: string, password: string, employeeId: string) {
     let expoPushToken = await retrievePushToken();
+    storeUserEmail(email);
     try {
         const response = await register({
             email: email,
@@ -54,6 +55,28 @@ export async function userRegister(email: string, password: string, employeeId: 
         if (response.status === 200) {
             console.log('responseee',response);
             setState('verify_otp_register');
+            router.replace('/verify-otp');
+            return response.message;
+        }
+        else {
+            console.log('woahhh', response)
+            return response.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+export async function verifyUserOtpRegister(email: string, otp: string) {
+    try {
+        const response = await verifyOtpRegister({
+            email: email,
+            otp: otp
+        });
+        if (response.status === 200) {
+            console.log('responseee',response);
+            setState('logged_out');
+            router.replace('/login');
             return response.message;
         }
         else {

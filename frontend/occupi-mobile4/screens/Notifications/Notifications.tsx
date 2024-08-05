@@ -76,7 +76,7 @@ const Notifications = () => {
     useEffect(() => {
         const getNotifications = async () => {
             const notifications = await getUserNotifications();
-            console.log(notifications);
+            // console.log(notifications);
             setNotifications(notifications);
             setLoading(false);
         };
