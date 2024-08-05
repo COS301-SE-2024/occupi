@@ -20,7 +20,8 @@ const LoginForm = (): JSX.Element => {
   const [error, setError] = useState<string>("");
   const [, setRequiresOtp] = useState(false);
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsLoading(true);
     setError("");
 
@@ -101,6 +102,8 @@ const LoginForm = (): JSX.Element => {
     }
   };
 
+  const clickSubmit = () => { document.getElementById("LoginFormSubmitButton")?.click(); }
+
   return (
     <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen p-4">
       <div className="w-full lg:w-1/2 flex justify-center items-center mb-8 lg:mb-0 p-4">
@@ -108,7 +111,7 @@ const LoginForm = (): JSX.Element => {
           <img className="w-full h-full object-contain" src={loginpng} alt="welcomes" />
         </div>
       </div>
-      <div className="w-full lg:w-1/2 max-w-md px-4 flex flex-col items-center">
+      <form className="w-full lg:w-1/2 max-w-md px-4 flex flex-col items-center" onSubmit={handleLogin}>
         <div className="w-24 h-24 mb-6">
           <OccupiLogo />
         </div>
@@ -143,14 +146,20 @@ const LoginForm = (): JSX.Element => {
         {error && <p className="text-red-500 mt-2">{error}</p>}
 
         <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Login" isClickable={form.valid_email} clickEvent={handleLogin}/>
+          <GradientButton isLoading={isloading} Text="Login" isClickable={form.valid_email} clickEvent={clickSubmit}/>
         </div>
+
+        {/**This is a hidden button that is clicked when the user clicks the login button
+         * This allows us to take advantage of password managers that automatically fill in the form
+         * so don't mistakenly remove it thinking it's not needed
+         */}
+        <button type="submit" id="LoginFormSubmitButton" className="hidden"></button>
 
         <div className="flex items-center justify-center mt-5 mb-5">
           <p className="text-text_col">New to occupi?</p>
           <p className="ml-2 text-text_col_green_leaf cursor-pointer">Learn more</p>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
