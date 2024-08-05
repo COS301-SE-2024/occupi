@@ -26,7 +26,7 @@ const TopNav = (props: TopNavProps) => {
       <div className="hidden md:block relative">
         <input
           type="text"
-          placeholder="ctrl/cmd-k to search"
+          placeholder="ctrl-k/⌘-k to search"
           className="w-[30vw] h-[45px] rounded-[15px] bg-secondary p-[8px]"
           value={props.searchQuery}
           onChange={props.onChange}

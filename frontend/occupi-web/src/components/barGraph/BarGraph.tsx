@@ -1,6 +1,5 @@
 import { Button } from "@nextui-org/react";
 import html2canvas from "html2canvas";
-import "./styles.css";
 import { useRef } from "react";
 import {
   BarChart,

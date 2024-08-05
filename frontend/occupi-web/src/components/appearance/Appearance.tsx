@@ -45,10 +45,10 @@ const Appearance = () => {
     >
       <div className="w-full flex justify-between">
         <div>
-          <div className="w-full h-9 text-text_col text-base font-semibold font-['Inter'] leading-none">
+          <div className="w-full h-9 text-text_col text-base font-semibold leading-none">
             Accent colour
           </div>
-          <div className="w-full h-9 opacity-65  text-text_col_secondary_alt text-base font-normal font-['Inter'] leading-none">
+          <div className="w-full h-9 opacity-65  text-text_col_secondary_alt text-base font-normal leading-none">
             Select or customize your accent colours
           </div>
         </div>
@@ -73,7 +73,7 @@ const Appearance = () => {
           </div>
 
           <div className="w-full h-10 mt-4 flex items-center">
-            <div className="w-28 opacity-65  text-text_col_secondary_alt text-base font-normal font-['Inter'] leading-none">
+            <div className="w-28 opacity-65  text-text_col_secondary_alt text-base font-normal leading-none">
               Custom colour:
             </div>
             <div className="w-40 h-10 pl-5 py-2.5 rounded-2xl flex items-center justify-center">
@@ -88,15 +88,15 @@ const Appearance = () => {
         </div>
       </div>
 
-      <div className="h-0.5 bg-tertiary rounded-2xl my-4" />
+      <div className="border-b-secondary border-b-[2px] rounded-2xl my-4" />
 
       <div className="w-full flex justify-between mb-10">
         <div>
-          <div className="w-full h-9 text-text_col text-base font-semibold font-['Inter'] leading-none">
+          <div className="w-full h-9 text-text_col text-base font-semibold leading-none">
             Themes
           </div>
           
-          <div className="w-full h-9 opacity-65  text-text_col_secondary_alt text-base font-normal font-['Inter'] leading-none">
+          <div className="w-full h-9 opacity-65  text-text_col_secondary_alt text-base font-normal leading-none">
             Switch between multiple themes
           </div>
         </div>
@@ -134,7 +134,7 @@ const Appearance = () => {
         </div>
       </div>
 
-      <div className="h-0.5 bg-tertiary rounded-2xl my-4" />
+      <div className="border-b-secondary border-b-[2px] rounded-2xl my-4" />
     </motion.div>
   );
 };

@@ -28,6 +28,8 @@ import StatCard from "./statCard/StatCard";
 import Header from "./headerComponent/Header";
 import OccupiLoader from "./occupiLoader/OccupiLoader";
 import ProfileDropDown from "./profileDropDown/ProfileDropDown";
+import FileUploadButton from './uploadButton/UploadButton';
+import ProfileView from "./profile/ProfileView";
 
 export {
     DrawerComponent,
@@ -59,5 +61,7 @@ export {
     StatCard,
     Header,
     OccupiLoader,
-    ProfileDropDown
+    ProfileDropDown,
+    ProfileView,
+    FileUploadButton
 }

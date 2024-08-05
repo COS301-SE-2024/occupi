@@ -125,7 +125,7 @@ const SideNav = () => {
       animate={isMinimized ? "closed" : "open"}
       variants={sidenavvariants}
     >
-      <div className="flex flex-col h-full w-full">
+      <div className="flex flex-col h-full w-full items-center">
         <div className={"flex flex-wrap items-center h-[110px] relative z-50 w-full "
           + (isMinimized ? "justify-center" : "justify-between")}>
           <motion.div className="flex items-center h-[110px] w-fit cursor-pointer " whileTap={{scale: 0.98}}>
@@ -150,7 +150,6 @@ const SideNav = () => {
           }
         </div>
 
-        <div className="flex-grow ml-2">
           {sidebarcontent.map((button_content, index) =>
             <SideNavBarButton 
               key={index}
@@ -161,7 +160,6 @@ const SideNav = () => {
               setSelectedPanelF={setSelectedPanelF} 
             />
           )}
-        </div>
 
         {/* <div className="mt-auto mb-4 w-full px-2">
           <Dropdown placement="top-start">

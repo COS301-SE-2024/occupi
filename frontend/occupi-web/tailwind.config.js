@@ -149,6 +149,5 @@ module.exports = {
     require("tailwindcss-animate"),
     nextui(),
     require('@headlessui/tailwindcss'),
-    require('@tailwindcss/forms'),
   ],
 };

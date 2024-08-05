@@ -1,5 +1,5 @@
 import { LoginForm, OtpPage, Settings, Dashboard,Analysis,Visitation,Faq} from "@pages/index";
-import {Appearance, OverviewComponent,BookingComponent,PDFReport} from "@components/index";
+import {Appearance, OverviewComponent,BookingComponent,PDFReport, ProfileView} from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from "react";
@@ -43,7 +43,7 @@ function App() {
             <Route path="faq" element={ <Faq/> } />{/**attach appropriate component */}
            
             <Route path="settings/*" element={<Settings />}>
-              <Route path="profile" element={<Appearance />} />{/**attach appropriate component */}
+              <Route path="profile" element={<ProfileView />} />{/**attach appropriate component */}
               <Route path="appearance" element={<Appearance />} />
               <Route path="privacy" element={<Appearance />} />{/**attach appropriate component */}
               <Route path="help" element={<Appearance />} />{/**attach appropriate component */}
