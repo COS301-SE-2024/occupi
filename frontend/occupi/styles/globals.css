@@ -67,3 +67,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes meteor {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  100% {
+    transform: translateY(100vh) translateX(-100vw);
+  }
+}
+
+.animate-meteor-effect {
+  animation: meteor linear infinite;
+}

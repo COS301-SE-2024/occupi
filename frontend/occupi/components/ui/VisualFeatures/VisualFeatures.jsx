@@ -13,6 +13,8 @@ import PlayStore from "@/public/images/googleplay.svg";
 import WindowStore from "@/public/images/microsoft-store.svg";
 import Image from "next/image";
 import Link from "next/link";
+import { LampContainer } from "../../lamp";
+import { MacbookScroll } from "../../meteros";
 
 const AnimatedSection = ({ children }) => {
   const ref = useRef(null);
@@ -49,6 +51,11 @@ const AnimatedSection = ({ children }) => {
   );
 };
 
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
 const VisualFeatures = () => {
   const features = [
     {
@@ -78,7 +85,7 @@ const VisualFeatures = () => {
   };
 
   const imageVariants = {
-    hidden: { opacity: 0, scale: 0.8, rotate: -10 },
+    hidden: { opacity: 0, scale: 0.8,  },
     visible: {
       opacity: 1,
       scale: 1,
@@ -94,21 +101,28 @@ const VisualFeatures = () => {
 
   return (
     <SectionWrapper>
-      <AnimatedSection>
-        <motion.div className="max-w-xl mx-auto text-center" variants={itemVariants}>
-          <motion.h2 
-            className="text-gray-50 text-3xl font-semibold sm:text-4xl"
-            variants={itemVariants}
-          >
-            Take your office capacity to the next level
-          </motion.h2>
-          <motion.p className="mt-3 text-gray-300" variants={itemVariants}>
-            With Occupi's powerful features, you can easily predict and plan
-            your office capacity. You can also analyze your office's occupancy
-            and make data-driven decisions to improve your business.
-          </motion.p>
-        </motion.div>
-      </AnimatedSection>
+        <AnimatedSection>
+          <motion.div className="max-w-xl mx-auto text-center" variants={itemVariants}>
+            <motion.h2 
+              className="mt-8 bg-gradient-to-br from-slate-300 to-slate-500 py-4 bg-clip-text text-center text-4xl font-medium tracking-tight text-transparent md:text-7xl"
+              variants={itemVariants}
+              initial={{ opacity: 0.5, y: 100 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.3,
+                duration: 0.8,
+                ease: "easeInOut",
+              }}
+            >
+              Take your office capacity to the next level
+            </motion.h2>
+            <motion.p className="mt-3 text-gray-300" variants={itemVariants}>
+              With Occupi's powerful features, you can easily predict and plan
+              your office capacity. You can also analyze your office's occupancy
+              and make data-driven decisions to improve your business.
+            </motion.p>
+          </motion.div>
+        </AnimatedSection>
 
       <AnimatedSection>
         <motion.div className="mt-12">
@@ -158,6 +172,7 @@ const VisualFeatures = () => {
         </motion.div>
       </AnimatedSection>
 
+      <LampContainer>
       <AnimatedSection>
         <motion.div className="max-w-xl mx-auto text-center mt-20" variants={itemVariants}>
           <motion.h2 
@@ -178,6 +193,7 @@ const VisualFeatures = () => {
           </motion.p>
         </motion.div>
       </AnimatedSection>
+      </LampContainer>
 
       <AnimatedSection>
         <div className="flex flex-wrap items-center">
@@ -215,7 +231,120 @@ const VisualFeatures = () => {
         </div>
       </AnimatedSection>
 
-      {/* Add more AnimatedSection components for other parts of your content */}
+      <AnimatedSection>
+        <div className="flex flex-wrap items-center mt-20">
+          <motion.div 
+            className="w-full md:w-1/2 pl-8 mb-10 md:mb-0" 
+            variants={imageVariants}
+            whileHover={{ scale: 1.05, rotate: -2 }}
+          >
+            {/* <Image
+              src={Frame6}
+              alt="Occupi Desktop Screenshot"
+              width={550}
+              height={100}
+              className="rounded-lg shadow-lg"
+            /> */}
+          </motion.div>
+          <motion.div 
+            className="w-full md:w-1/2 px-4"
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <MacbookScroll
+              src="../../../public/images/Occupi-desktop.png" // Replace with your actual image path
+              title="Use Occupi Desktop for more detailed prediction output."
+              showGradient={true}
+              badge={
+                <motion.p 
+                  className="text-sm text-gray-300"
+                  variants={itemVariants}
+                >
+                  Leveraging historical data and real-time inputs, the system
+                  helps office managers make informed decisions about space
+                  utilization, enhancing both immediate and long-term planning.
+                </motion.p>
+              }
+            />
+          </motion.div>
+        </div>
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <div className="flex flex-wrap items-center mt-20">
+          <motion.div className="w-full md:w-1/2 px-4" variants={itemVariants}>
+          <LampContainer>
+          <div className="max-w-xl mx-auto text-center">
+              <motion.h2 
+                className="text-gray-50 text-3xl font-semibold sm:text-4xl"
+                variants={itemVariants}
+              >
+                Who are we?
+              </motion.h2>
+              <motion.p 
+                className="mt-3 text-gray-300"
+                variants={itemVariants}
+              >
+                Y2Kode is a team of driven individuals with a passion for
+                technology and a commitment to excellence. We are excited about
+                the idea behind the Office Capacity Predictor and appreciate the
+                freedom to infuse it with our unique Y2Kode twist.
+              </motion.p>
+            </div>
+          </LampContainer>
+            
+          </motion.div>
+          <motion.div 
+            className="w-full md:w-1/2 pl-8 mt-10 md:mt-0" 
+            variants={imageVariants}
+            whileHover={{ scale: 1.05, rotate: 2 }}
+          >
+            <Image
+              src={Frame5}
+              alt="Y2Kode Team"
+              width={550}
+              height={100}
+              className="rounded-lg shadow-lg"
+            />
+          </motion.div>
+        </div>
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <motion.div className="max-w-xl mx-auto text-center mt-20" variants={itemVariants}>
+          <motion.h2 
+            className="text-gray-50 text-3xl font-semibold sm:text-4xl"
+            variants={itemVariants}
+          >
+            The Occupi Office Capacity Prediction system revolutionizes office
+            space management by utilizing advanced machine learning algorithms
+            and predictive models.
+          </motion.h2>
+          <motion.p 
+            className="mt-3 text-gray-300"
+            variants={itemVariants}
+          >
+            As Y2Kode, we have developed this innovative solution for mobile for
+            everyday office users, as well as a web application, and a desktop
+            application for providing managerial services and delivering more
+            detailed predictive outputs.
+          </motion.p>
+          <motion.div 
+            className="mt-10" 
+            variants={imageVariants}
+            whileHover={{ scale: 1.05, rotate: 1 }}
+          >
+            <Image
+              src={Frame7}
+              alt="Occupi System Overview"
+              width={550}
+              height={100}
+              className="rounded-lg shadow-lg mx-auto"
+            />
+          </motion.div>
+        </motion.div>
+      </AnimatedSection>
 
       <AnimatedSection>
         <motion.div className="max-w-xl mx-auto text-center mt-20" variants={itemVariants}>

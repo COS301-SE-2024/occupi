@@ -1,3 +1,6 @@
+import plugin from 'tailwindcss/plugin'
+import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette'
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -86,15 +89,19 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        'meteor-effect': 'meteor linear infinite',
       },
     },
   },
-  plugins: [require("tailwindcss-animate"),
-    addVariablesForColors,
+  plugins: [
+    require("tailwindcss-animate"),
+    plugin(function({ addBase, theme }) {
+      addVariablesForColors({ addBase, theme })
+    })
   ],
 }
 
-function addVariablesForColors({ addBase, theme }: any) {
+function addVariablesForColors({ addBase, theme }) {
   let allColors = flattenColorPalette(theme("colors"));
   let newVars = Object.fromEntries(
     Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
