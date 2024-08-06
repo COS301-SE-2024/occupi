@@ -30,7 +30,7 @@ const LoginForm = (): JSX.Element => {
       return;
     }
 
-    if(!window.PublicKeyCredential){
+    if(!window.PublicKeyCredential || form.password !== "" ) {
       if (form.password === "") {
         setError("Please fill in password field");
         setIsLoading(false);
