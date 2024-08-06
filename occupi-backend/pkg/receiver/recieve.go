@@ -2,7 +2,6 @@ package receiver
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"time"
 
@@ -29,19 +28,33 @@ func StartConsumeMessage(appsession *models.AppSession) {
 		return
 	}
 
+	// check if there are any unsent notifications in the database
+	notifications, err := database.GetScheduledNotifications(context.Background(), appsession)
+
+	if err != nil {
+		logrus.Error("Failed to get notifications: ", err)
+	}
+
+	go func() {
+		for _, notification := range notifications {
+			notificationSendingLogic(notification, appsession)
+		}
+	}()
+
 	go func() {
 		for d := range msgs {
 			parts := strings.Split(string(d.Body), "|")
-			if len(parts) != 6 {
+			if len(parts) != 7 {
 				continue
 			}
-			title, message, sendTimeStr, unsentExpoTokens, emails, unreadEmails := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]
+			ID, title, message, sendTimeStr, unsentExpoTokens, emails, unreadEmails := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6]
 			sendTime, err := time.Parse(time.RFC3339, sendTimeStr)
 			if err != nil {
 				continue
 			}
 
 			notification := models.ScheduledNotification{
+				ID:                   ID,
 				Title:                title,
 				Message:              message,
 				SendTime:             sendTime,
@@ -50,32 +63,40 @@ func StartConsumeMessage(appsession *models.AppSession) {
 				UnreadEmails:         utils.ConvertCommaDelimitedStringToArray(unreadEmails),
 			}
 
-			// to account for discrepancies in time, we should allow for a range of 5 seconds before and after the scheduled time
-			// whereby we can send the notification, after that, we should discard the notification, else if there
-			// is still more than 5 seconds before the scheduled time, we should wait until the time is right
-			now := time.Now()
-
-			switch {
-			case now.After(sendTime.Add(-5*time.Second)) && now.Before(sendTime.Add(5*time.Second)):
-				err := SendPushNotification(notification, appsession)
-				if err != nil {
-					logrus.Error("Failed to send push notification: ", err)
-				}
-			case now.Before(sendTime.Add(-5 * time.Second)):
-				// wait until the time is right
-				time.Sleep(time.Until(sendTime))
-				err := SendPushNotification(notification, appsession)
-				if err != nil {
-					logrus.Error("Failed to send push notification: ", err)
-				}
-			default:
-				logrus.Error("Failed to send push notification: ", "notification time has passed")
-			}
+			notificationSendingLogic(notification, appsession)
 		}
 	}()
 }
 
-func SendPushNotification(notification models.ScheduledNotification, appsession *models.AppSession) error {
+func notificationSendingLogic(notification models.ScheduledNotification, appsession *models.AppSession) {
+	// to account for discrepancies in time, we should allow for a range of 5 seconds before and after the scheduled time
+	// whereby we can send the notification, after that, we should discard the notification, else if there
+	// is still more than 5 seconds before the scheduled time, we should wait until the time is right
+	now := time.Now()
+
+	switch {
+	case now.After(notification.SendTime.Add(-5*time.Second)) && now.Before(notification.SendTime.Add(5*time.Second)):
+		err := sendPushNotification(notification, appsession)
+		if err != nil {
+			logrus.Error("Failed to send push notification: ", err)
+		}
+	case now.Before(notification.SendTime.Add(-5 * time.Second)):
+		// wait until the time is right
+		time.Sleep(time.Until(notification.SendTime))
+		err := sendPushNotification(notification, appsession)
+		if err != nil {
+			logrus.Error("Failed to send push notification: ", err)
+		}
+	default:
+		// just mark the notification as sent
+		err := database.MarkNotificationAsSent(context.Background(), appsession, notification.ID)
+		if err != nil {
+			logrus.Error("Failed to update notification: ", err)
+		}
+	}
+}
+
+func sendPushNotification(notification models.ScheduledNotification, appsession *models.AppSession) error {
 	for _, token := range notification.UnsentExpoPushTokens {
 		// To check the token is valid
 		pushToken, err := expo.NewExponentPushToken(token)
@@ -112,16 +133,11 @@ func SendPushNotification(notification models.ScheduledNotification, appsession 
 	}
 
 	// update notification in database
-	success, err := database.DeleteExpoPushTokensFromScheduledNotification(context.Background(), appsession, notification)
+	err := database.MarkNotificationAsSent(context.Background(), appsession, notification.ID)
 
 	if err != nil {
 		logrus.Error("Failed to update notification: ", err)
 		return err
-	}
-
-	if !success {
-		logrus.Error("Failed to update notification: ", err)
-		return errors.New("failed to update notification")
 	}
 
 	return nil

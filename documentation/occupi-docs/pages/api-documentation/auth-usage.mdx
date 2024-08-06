@@ -1,0 +1,787 @@
+# Auth usage
+
+The auth endpoint is used to authenticate a user and get a token to access the API. The token is used to authenticate the user for all the other endpoints.
+
+- [Auth Usage](#auth-usage)
+- [Table of Contents](#table-of-contents)
+  - [Base URL](#base-url)
+  - [Authentication](#authentication)
+    - [Login](#login)
+    - [Login-Admin](#login-admin)
+    - [Login-Mobile](#login-mobile)
+    - [Login-Admin-Mobile](#login-admin-mobile)
+    - [Login-Admin-Begin](#login-admin-begin)
+    - [Login-Admin-Finish](#login-admin-finish)
+    - [Register-Admin-Begin](#register-admin-begin)
+    - [Register-Admin-Finish](#register-admin-finish)
+    - [Register](#register)
+    - [Resend OTP](#resend-otp)
+    - [Verify OTP](#verify-otp)
+    - [Verify OTP Login](#verify-otp-login)
+    - [Verify OTP Admin Login](#verify-otp-admin-login)
+    - [Verify OTP Mobile Login](#verify-otp-mobile-login)
+    - [Verify OTP Mobile Admin Login](#verify-otp-mobile-admin-login)
+    - [Logout](#logout)
+    - [Is Verified](#is-verified)
+    - [Forgot Password](#forgot-password)
+    - [Reset Password Login](#reset-password-login)
+    - [Reset Password Admin Login](#reset-password-admin-login)
+    - [Reset Password Mobile Login](#reset-password-mobile-login)
+    - [Reset Password Mobile Admin Login](#reset-password-mobile-admin-login)
+
+## Authentication
+
+The authentication endpoints are used to register, login, login-admin, logout, and verify users. Only POST requests are used for these endpoints.
+
+### Login
+
+- **URL**
+
+  `/auth/login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "password": "123456"
+}
+```
+
+### Login-Admin
+
+- **URL**
+
+  `/auth/login-admin`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+  "password": "123456"
+}
+```
+
+### Login-Mobile
+
+- **URL**
+
+  `/auth/login-mobile`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {"token": "some random jwt token"}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "password": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
+
+### Login-Admin-Mobile
+
+- **URL**
+
+  `/auth/login-mobile`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {"token": "some random jwt token"}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+  "password": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
+
+### Login-Admin-Begin
+
+This endpoint is used for beginning the authentication process using webauthn for admin users.
+
+- **URL**
+
+  `/auth/login-admin-begin`
+
+- **Method**
+  
+    `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "WebAuthn login initiated", "data": {"options": {"some data"}, "sessionData": {"some data"}, "uuid": "some uuid"}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+  
+  ```json copy
+  {
+    "email": "test@example.com"
+  }
+
+  ```
+
+### Login-Admin-Finish
+
+This endpoint is used for finishing the authentication process using webauthn for admin users.
+
+- **URL**
+
+  `/auth/login-admin-finish/${uuid}` // the uuid is gotten from the response of the login-admin-begin endpoint
+
+- **Method**
+  
+    `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+  
+    - **Code:** 400
+    - **Content:** `{"status":  400, "message": "Expected id field": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected an id field": {}}}`
+
+- **Error Response**
+  
+    - **Code:** 500
+    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+### Register-Admin-Begin
+
+This endpoint is used for beginning the authentication process using webauthn for admin users who have not setup their webauthn credentials yet.
+
+- **URL**
+
+  `/auth/register-admin-begin`
+
+- **Method**
+  
+    `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "WebAuthn login initiated", "data": {"options": {"some data"}, "sessionData": {"some data"}, "uuid": "some uuid"}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+  
+  ```json copy
+  {
+    "email": "test@example.com"
+  }
+
+  ```
+
+### Register-Admin-Finish
+
+This endpoint is used for finishing the authentication process using webauthn for admin users who have not setup their webauthn credentials yet.
+
+- **URL**
+
+  `/auth/register-admin-finish/${uuid}` // the uuid is gotten from the response of the register-admin-begin endpoint
+
+- **Method**
+  
+    `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+  
+    - **Code:** 400
+    - **Content:** `{"status":  400, "message": "Expected id field": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected an id field": {}}}`
+
+- **Error Response**
+  
+    - **Code:** 500
+    - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+### Register
+
+- **URL**
+
+  `/auth/register`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Registration successful! Please check your email for the OTP to verify your account.", "data": {}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "password": "123456",
+  "employee_id": "OCCUPI20241234", //this field is optional, an employee id will be generated if not provided
+  "expoPushToken": "Push token goes here"
+}
+```
+
+### Resend OTP
+
+This endpoint is used to resend a new OTP to the user's email during registration.
+
+- **URL**
+
+  `/auth/resend-otp`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Registration successful! Please check your email for the OTP to verify your account.", "data": {}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com"
+}
+```
+
+### Verify OTP
+
+This endpoint is used to verify the OTP sent to the user's email during registration.
+
+- **URL**
+
+  `/auth/verify-otp`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "OTP verified successfully!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "otp": "123456"
+}
+```
+
+### Verify OTP Login
+
+This endpoint verifies the otp sent during registration and logs the user in if the otp is valid.
+
+- **URL**
+
+  `/auth/verify-otp-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "otp": "123456"
+}
+```
+
+### Verify OTP Admin Login
+
+This endpoint verifies the otp sent during registration and logs the admin in if the otp is valid.
+
+- **URL**
+
+  `/auth/verify-otp-admin-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+  "otp": "123456"
+}
+```
+
+### Verify OTP Mobile Login
+
+This endpoint verifies the otp sent during registration and logs the user in if the otp is valid.
+
+- **URL**
+
+  `/auth/verify-otp-mobile-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {"token": "some random jwt token"}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com",
+  "otp": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
+
+### Verify OTP Mobile Admin Login
+
+This endpoint verifies the otp sent during registration and logs the admin in if the otp is valid.
+
+- **URL**
+
+  `/auth/verify-otp-mobile-admin-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {"token": "some random jwt token"}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+  "otp": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
+
+### Logout
+
+- **URL**
+
+  `/auth/logout`
+
+- **Method**
+  
+    `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Logout successful!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Authorized user can't access this route\"},\"message\":\"Bad Request\",\"status\":401}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+```json copy
+{}
+```
+
+### Is Verified
+
+This endpoint is used to check if a user has verified their account.
+
+- **URL**
+
+  `/auth/is-verified`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "User is verified", "data": {}, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com"
+}
+```
+
+### Forgot Password
+
+This endpoint is used to send a reset password link to the user's email.
+
+- **URL**
+
+  `/auth/forgot-password`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Password reset OTP sent to your email", "data": null, }`
+
+  **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+  "email": "abcd@gmail.com"
+}
+```
+
+### Reset Password Login
+
+This endpoint is used to reset the user's password.
+
+- **URL**
+
+  `/auth/reset-password-login`
+
+- **Method**
+
+  `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+    "email": "abcd@gmail.com",
+    "newPassword": "newPassword",
+    "newPasswordConfirm": "newPassword",
+    "otp": "123456"
+}
+```
+
+### Reset Password Admin Login
+
+This endpoint is used to reset the admin's password.
+
+- **URL**
+
+    `/auth/reset-password-admin-login`
+
+- **Method**
+
+    `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+    "email": "abcd@gmail.com", // the backend has checks that verify is a user is an admin
+    "newPassword": "newPassword",
+    "newPasswordConfirm": "newPassword",
+    "otp": "123456"
+}
+```
+
+### Reset Password Mobile Login
+
+This endpoint is used to reset the user's password on mobile.
+
+- **URL**
+
+    `/auth/reset-password-mobile-login`
+
+- **Method**
+
+   `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+    "email": "abcd@gmail.com",
+    "newPassword": "newPassword",
+    "newPasswordConfirm": "newPassword",
+    "otp": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**
+
+### Reset Password Mobile Admin Login
+
+This endpoint is used to reset the admin's password on mobile.
+
+- **URL**
+
+    `/auth/reset-password-mobile-admin-login`
+    
+- **Method**
+
+    `POST`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
+
+- **Error Response**
+
+  - **Code:** 400
+  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
+
+**_Example json to send:_**
+
+```json copy
+{
+    "email": "abcd@gmail.com",
+    "newPassword": "newPassword",
+    "newPasswordConfirm": "newPassword",
+    "otp": "123456"
+}
+```
+**if you use this endpoint, you will get back an auth token that you can use to access other endpoints. Ensure to intilialise it in the Auth header**

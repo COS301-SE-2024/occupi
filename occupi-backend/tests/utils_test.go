@@ -1,23 +1,41 @@
 package tests
 
 import (
+	// "encoding/json"
+	"bytes"
+	"fmt"
+	"image"
+	"image/color"
+	"image/jpeg"
+	"image/png"
+	"mime/multipart"
 	"net"
 	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+
+	// "github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 )
@@ -370,6 +388,39 @@ func TestCompareArgon2IDHash(t *testing.T) {
 
 	t.Run("Empty hash", func(t *testing.T) {
 		match, err := utils.CompareArgon2IDHash(password, "")
+		assert.Error(t, err)
+		assert.False(t, match)
+	})
+}
+
+func TestCompareArgon2IDHashAfterSanitizing(t *testing.T) {
+	password := "password123$"
+	wrongPassword := "wrongpassword"
+
+	hash, err := utils.Argon2IDHash(utils.SanitizeInput(password))
+	assert.NoError(t, err)
+	assert.NotEmpty(t, hash)
+
+	t.Run("Correct password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(password), hash)
+		assert.NoError(t, err)
+		assert.True(t, match)
+	})
+
+	t.Run("Incorrect password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(wrongPassword), hash)
+		assert.NoError(t, err)
+		assert.False(t, match)
+	})
+
+	t.Run("Empty password sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(""), hash)
+		assert.NoError(t, err)
+		assert.False(t, match)
+	})
+
+	t.Run("Empty hash sanitized", func(t *testing.T) {
+		match, err := utils.CompareArgon2IDHash(utils.SanitizeInput(password), "")
 		assert.Error(t, err)
 		assert.False(t, match)
 	})
@@ -1479,14 +1530,14 @@ func TestSantizeProjection(t *testing.T) {
 			input: models.QueryInput{
 				Projection: []string{"username", "emails", "age"},
 			},
-			expected: []string{"username", "age"},
+			expected: []string{"username", "emails", "age"},
 		},
 		{
 			name: "Projection with Password, UnsentExpoPushTokens, and Emails",
 			input: models.QueryInput{
 				Projection: []string{"username", "password", "unsentExpoPushTokens", "emails", "age"},
 			},
-			expected: []string{"username", "age"},
+			expected: []string{"username", "emails", "age"},
 		},
 	}
 
@@ -1514,7 +1565,6 @@ func TestConstructProjection(t *testing.T) {
 			expected: bson.M{
 				"password":             0,
 				"unsentExpoPushTokens": 0,
-				"emails":               0,
 				"_id":                  0,
 			},
 		},
@@ -1559,9 +1609,10 @@ func TestConstructProjection(t *testing.T) {
 			queryInput: models.QueryInput{
 				Projection: []string{"username", "emails", "age"},
 			},
-			sanitizedProjection: []string{"username", "age"},
+			sanitizedProjection: []string{"username", "emails", "age"},
 			expected: bson.M{
 				"username": 1,
+				"emails":   1,
 				"age":      1,
 				"_id":      0,
 			},
@@ -1843,6 +1894,11 @@ func TestConstructBookingScheduledString(t *testing.T) {
 		expected string
 	}{
 		{
+			name:     "No Email",
+			emails:   []string{},
+			expected: "",
+		},
+		{
 			name:     "Single Email",
 			emails:   []string{"email1@example.com"},
 			expected: "A booking with email1@example.com has been scheduled",
@@ -2112,6 +2168,677 @@ func TestConvertCommaDelimitedStringToArray(t *testing.T) {
 			result := utils.ConvertCommaDelimitedStringToArray(tt.input)
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("ConvertCommaDelimitedStringToArray() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestRandomErr(t *testing.T) {
+	// use a for loop to check if we can cover all the possible errors
+	for i := 0; i < 10; i++ {
+		t.Run(fmt.Sprintf("TestRandomError %d", i), func(t *testing.T) {
+			err := utils.RandomError()
+			if err != nil {
+				// Check if the error is one of the expected errors
+				assert.True(t, err.Error() == "failed to generate random number" || err.Error() == "random error")
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestGetClaimsFromCTX(t *testing.T) {
+	gin.SetMode(configs.GetGinRunMode())
+
+	token, _, claims, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+
+	tests := []struct {
+		name           string
+		tokenCookie    string
+		tokenHeader    string
+		expectedClaims *authenticator.Claims
+		expectedError  string
+	}{
+		{
+			name:          "No token provided",
+			tokenCookie:   "",
+			tokenHeader:   "",
+			expectedError: "no token provided",
+		},
+		{
+			name:           "InValid token from cookie",
+			tokenCookie:    "validToken",
+			tokenHeader:    "",
+			expectedClaims: nil,
+			expectedError:  "error validating token",
+		},
+		{
+			name:           "InValid token from header",
+			tokenCookie:    "",
+			tokenHeader:    "validToken",
+			expectedClaims: nil,
+			expectedError:  "error validating token",
+		},
+		{
+			name:           "Valid token from cookie",
+			tokenCookie:    token,
+			tokenHeader:    "",
+			expectedClaims: claims,
+			expectedError:  "",
+		},
+		{
+			name:           "Valid token from header",
+			tokenCookie:    "",
+			tokenHeader:    token,
+			expectedClaims: claims,
+			expectedError:  "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a Gin context with the necessary headers and cookies
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			if tt.tokenCookie != "" {
+				c.Request = httptest.NewRequest("GET", "/", nil)
+				c.Request.AddCookie(&http.Cookie{Name: "token", Value: tt.tokenCookie})
+			} else {
+				c.Request = httptest.NewRequest("GET", "/", nil)
+				c.Request.Header.Set("Authorization", tt.tokenHeader)
+			}
+
+			// Call the function under test
+			returnedclaims, err := utils.GetClaimsFromCTX(c)
+
+			// Check the expected error
+			if tt.expectedError != "" {
+				assert.NotNil(t, err)
+				assert.EqualError(t, err, tt.expectedError)
+			} else {
+				assert.Nil(t, err)
+			}
+
+			// check that originToken has been set properly in context
+			if tt.tokenCookie != "" {
+				assert.Equal(t, "cookie", c.GetString("tokenOrigin"))
+			} else if tt.tokenHeader != "" {
+				assert.Equal(t, "header", c.GetString("tokenOrigin"))
+			}
+
+			// Check the expected claims
+			assert.Equal(t, tt.expectedClaims, returnedclaims)
+		})
+	}
+}
+
+func TestIsSessionSet(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	tests := []struct {
+		name              string
+		expected          bool
+		setSessionHandler gin.HandlerFunc
+	}{
+		{
+			name:              "Session not set",
+			expected:          false,
+			setSessionHandler: func(c *gin.Context) {},
+		},
+		{
+			name:     "Email not set in session",
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name:     "Role not set in session",
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name:     "Email and Role set in session",
+			expected: true,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a Gin router
+			r := gin.Default()
+
+			store := cookie.NewStore([]byte("secret"))
+			r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+			// Define a test handler to apply middleware
+			r.GET("/test", func(c *gin.Context) {
+				tt.setSessionHandler(c)
+				res := utils.IsSessionSet(c)
+
+				assert.Equal(t, tt.expected, res)
+			})
+
+			// Create a test context
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/test", nil)
+			r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+			// Check the response
+			assert.Equal(t, 200, w.Code)
+		})
+	}
+}
+
+func TestSetSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		claims := &authenticator.Claims{
+			Email: "test@example.com",
+			Role:  "basic",
+		}
+		res := utils.SetSession(c, claims)
+
+		assert.Nil(t, res)
+
+		session := sessions.Default(c)
+
+		email := session.Get("email")
+		role := session.Get("role")
+
+		assert.NotNil(t, email)
+		assert.NotNil(t, role)
+
+		assert.Equal(t, "test@example.com", email.(string))
+		assert.Equal(t, "basic", role.(string))
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestClearSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Set("role", "basic")
+		session.Set("email", "test@example.com")
+		err := session.Save()
+		assert.Nil(t, err)
+
+		res := utils.ClearSession(c)
+
+		assert.Nil(t, res)
+
+		session_ := sessions.Default(c)
+		email := session_.Get("email")
+		role := session_.Get("role")
+
+		assert.Nil(t, email)
+		assert.Nil(t, role)
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestGetSession(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Set("role", "basic")
+		session.Set("email", "test@example.com")
+		err := session.Save()
+		assert.Nil(t, err)
+
+		email, role := utils.GetSession(c)
+
+		assert.NotNil(t, email)
+		assert.NotNil(t, role)
+
+		assert.Equal(t, "test@example.com", email)
+		assert.Equal(t, "basic", role)
+
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
+}
+
+func TestCompareSessionAndClaims(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	tests := []struct {
+		name              string
+		claims            *authenticator.Claims
+		expected          bool
+		setSessionHandler gin.HandlerFunc
+	}{
+		{
+			name:              "Session not set",
+			claims:            &authenticator.Claims{},
+			expected:          false,
+			setSessionHandler: func(c *gin.Context) {},
+		},
+		{
+			name: "Email not set in session",
+			claims: &authenticator.Claims{
+				Role: "basic",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Role not set in session",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Email and Role set in session",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+				Role:  "basic",
+			},
+			expected: true,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Email not equal claims email",
+			claims: &authenticator.Claims{
+				Email: "notequal@example.com",
+				Role:  "basic",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+		{
+			name: "Role not equal claims role",
+			claims: &authenticator.Claims{
+				Email: "test@example.com",
+				Role:  "admin",
+			},
+			expected: false,
+			setSessionHandler: func(c *gin.Context) {
+				session := sessions.Default(c)
+				session.Set("role", "basic")
+				session.Set("email", "test@example.com")
+				err := session.Save()
+				assert.Nil(t, err)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a Gin router
+			r := gin.Default()
+
+			store := cookie.NewStore([]byte("secret"))
+			r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+			// Define a test handler to apply middleware
+			r.GET("/test", func(c *gin.Context) {
+				tt.setSessionHandler(c)
+				res := utils.CompareSessionAndClaims(c, tt.claims)
+
+				assert.Equal(t, tt.expected, res)
+			})
+
+			// Create a test context
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("GET", "/test", nil)
+			r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+			// Check the response
+			assert.Equal(t, 200, w.Code)
+		})
+	}
+}
+
+func TestGetClientIP_SetInContext(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(func(c *gin.Context) {
+		c.Set("ClientIP", "203.0.113.1")
+		c.Next()
+	})
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP := utils.GetClientIP(c)
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.1"}`, w.Body.String())
+}
+
+func TestGetClientIP_NotSetInContext(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP := utils.GetClientIP(c)
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.RemoteAddr = "203.0.113.2:12345"
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.2"}`, w.Body.String())
+}
+
+func TestGetClientTime(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name       string
+		setupCtx   func(*gin.Context)
+		wantTimeIn string
+	}{
+		{
+			name: "With America/New_York timezone",
+			setupCtx: func(c *gin.Context) {
+				loc, _ := time.LoadLocation("America/New_York")
+				c.Set("timezone", loc)
+			},
+			wantTimeIn: "America/New_York",
+		},
+		{
+			name: "With Asia/Kolkata timezone",
+			setupCtx: func(c *gin.Context) {
+				loc, _ := time.LoadLocation("Asia/Kolkata")
+				c.Set("timezone", loc)
+			},
+			wantTimeIn: "Asia/Kolkata",
+		},
+		{
+			name:       "Without timezone (default to local)",
+			setupCtx:   func(c *gin.Context) {},
+			wantTimeIn: time.Local.String(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+			tt.setupCtx(c)
+
+			got := utils.GetClientTime(c)
+
+			if tt.wantTimeIn == time.Local.String() {
+				assert.Equal(t, time.Local, got.Location())
+			} else {
+				wantLoc, _ := time.LoadLocation(tt.wantTimeIn)
+				assert.Equal(t, wantLoc, got.Location())
+			}
+
+			// Check that the time is recent (within the last second)
+			assert.WithinDuration(t, time.Now(), got, time.Second)
+		})
+	}
+}
+
+func TestRemoveNumbersFromExtension(t *testing.T) {
+	tests := []struct {
+		name     string
+		ext      string
+		expected string
+	}{
+		{
+			name:     "No numbers",
+			ext:      "jpg",
+			expected: "jpg",
+		},
+		{
+			name:     "Single number",
+			ext:      "jpeg2000",
+			expected: "jpeg",
+		},
+		{
+			name:     "Multiple numbers",
+			ext:      "png1234",
+			expected: "png",
+		},
+		{
+			name:     "No extension",
+			ext:      "1234",
+			expected: "",
+		},
+		{
+			name:     "Empty string",
+			ext:      "",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.RemoveNumbersFromExtension(tt.ext)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+// fileWrapper wraps *os.File to satisfy multipart.File interface
+type fileWrapper struct {
+	*os.File
+}
+
+func (fw *fileWrapper) Open() (multipart.File, error) {
+	return fw, nil
+}
+
+func TestConvertImageToBytes(t *testing.T) {
+	// Helper function to create a test image file
+	createTestImageFile := func(format string) (*os.File, error) {
+		// Create a simple test image
+		img := image.NewRGBA(image.Rect(0, 0, 100, 100))
+		// Fill with a color
+		for y := 0; y < 100; y++ {
+			for x := 0; x < 100; x++ {
+				img.Set(x, y, color.RGBA{255, 0, 0, 255}) // Red color
+			}
+		}
+
+		// Create a temporary file
+		tmpfile, err := os.CreateTemp("", "test.*."+format)
+		if err != nil {
+			return nil, err
+		}
+
+		// Encode and save the image
+		switch format {
+		case "jpg", "jpeg":
+			err = jpeg.Encode(tmpfile, img, nil)
+		case "png":
+			err = png.Encode(tmpfile, img)
+		}
+		if err != nil {
+			tmpfile.Close()
+			os.Remove(tmpfile.Name())
+			return nil, err
+		}
+
+		// Seek to the beginning of the file
+		_, err = tmpfile.Seek(0, 0)
+		if err != nil {
+			tmpfile.Close()
+			os.Remove(tmpfile.Name())
+			return nil, err
+		}
+
+		return tmpfile, nil
+	}
+
+	tests := []struct {
+		name      string
+		format    string
+		width     uint
+		thumbnail bool
+		wantErr   bool
+	}{
+		{"JPG normal", "jpg", 50, false, false},
+		{"PNG normal", "png", 50, false, false},
+		{"JPEG normal", "jpeg", 50, false, false},
+		{"JPG thumbnail", "jpg", 0, true, false},
+		{"PNG thumbnail", "png", 0, true, false},
+		{"JEPG thumbnail", "jpeg", 0, true, false},
+		{"Unsupported format", "gif", 50, false, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var file *os.File
+			var err error
+
+			if !tt.wantErr {
+				file, err = createTestImageFile(tt.format)
+				require.NoError(t, err)
+				defer func() {
+					file.Close()
+					os.Remove(file.Name())
+				}()
+			} else {
+				// For unsupported format, create an empty file
+				file, err = os.CreateTemp("", "test.*."+tt.format)
+				require.NoError(t, err)
+				defer func() {
+					file.Close()
+					os.Remove(file.Name())
+				}()
+			}
+
+			// Create a multipart.FileHeader
+			fileHeader := &multipart.FileHeader{
+				Filename: filepath.Base(file.Name()),
+				Size:     100 * 100 * 4, // Approximate size for a 100x100 RGBA image
+			}
+
+			// Create a wrapper that satisfies multipart.File interface
+			fileWrapper := &fileWrapper{file}
+
+			// Mock the Open method
+			openFunc := func() (multipart.File, error) {
+				return fileWrapper, nil
+			}
+
+			got, err := utils.ConvertImageToBytes(fileHeader, tt.width, tt.thumbnail, openFunc)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.NotNil(t, got)
+			assert.Greater(t, len(got), 0)
+
+			// Decode the result to check dimensions
+			resultImg, _, err := image.Decode(bytes.NewReader(got))
+			assert.NoError(t, err)
+
+			bounds := resultImg.Bounds()
+			if tt.thumbnail {
+				assert.LessOrEqual(t, bounds.Dx(), 200)
+				assert.LessOrEqual(t, bounds.Dy(), 200)
+			} else {
+				assert.Equal(t, int(tt.width), bounds.Dx())
 			}
 		})
 	}

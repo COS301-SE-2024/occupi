@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/ipinfo/go/v2/ipinfo/cache"
 
@@ -38,8 +39,6 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 		uri = fmt.Sprintf("%s://%s:%s@%s/%s", mongoDBStartURI, username, escapedPassword, clusterURI, dbName)
 	}
 
-	fmt.Printf("URI: %s\n", uri) // debug
-
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri)
 
@@ -48,7 +47,7 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Connect to MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		fmt.Println("Error connecting to MongoDB") // debug
+		fmt.Printf("Failed to connect to MongoDB: %s\n", err)
 		logrus.Fatal(err)
 		errv := client.Disconnect(ctx)
 		logrus.Fatal(errv)
@@ -57,11 +56,13 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 	// Check the connection
 	err = client.Ping(context.TODO(), nil)
 	if err != nil {
-		fmt.Println("Error pinging MongoDB") // debug
+		fmt.Printf("Failed to connect to MongoDB: %s\n", err)
 		logrus.Fatal(err)
+		errv := client.Disconnect(ctx)
+		logrus.Fatal(errv)
 	}
 
-	fmt.Println("Connected to MongoDB!") // debug
+	fmt.Println("Connected to MongoDB")
 	logrus.Info("Connected to MongoDB!")
 
 	return client
@@ -69,8 +70,29 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 
 // Create cache
 func CreateCache() *bigcache.BigCache {
+	if GetEnv() == "devlocalhost" || GetEnv() == "devdeployed" || GetEnv() == "devlocalhostdocker" {
+		fmt.Printf("Cache is disabled in %s mode\n", GetEnv())
+		logrus.Printf("Cache is disabled in %s mode\n", GetEnv())
+		return nil
+	}
+
 	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to 5 seconds
 	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to 5 seconds
+	cache, err := bigcache.New(context.Background(), config)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	fmt.Println("Cache created!")
+	logrus.Info("Cache created!")
+
+	return cache
+}
+
+// Create cache for sessions
+func CreateSessionCache() *bigcache.BigCache {
+	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to x seconds
+	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to x seconds
 	cache, err := bigcache.New(context.Background(), config)
 	if err != nil {
 		logrus.Fatal(err)
@@ -131,14 +153,18 @@ func CreateRabbitConnection() *amqp.Connection {
 	rabbitMQPort := GetRabbitMQPort()
 
 	// Construct the connection URI
-	uri := fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+	var uri string
 
-	fmt.Printf("URI: %s\n", uri) // debug
+	if rabbitMQUsername == "RABBITMQ_USERNAME" || rabbitMQPassword == "RABBITMQ_PASSWORD" {
+		uri = fmt.Sprintf("amqp://%s:%s", rabbitMQHost, rabbitMQPort)
+	} else {
+		uri = fmt.Sprintf("amqp://%s:%s@%s:%s", rabbitMQUsername, rabbitMQPassword, rabbitMQHost, rabbitMQPort)
+	}
 
 	// Connect to RabbitMQ
 	conn, err := amqp.Dial(uri)
 	if err != nil {
-		fmt.Println("Error connecting to RabbitMQ", err) // debug
+		fmt.Printf("Failed to connect to RabbitMQ: %s\n", err)
 		logrus.Fatal(err)
 	}
 
@@ -173,4 +199,30 @@ func CreateRabbitQueue(ch *amqp.Channel) amqp.Queue {
 	}
 
 	return q
+}
+
+func CreateWebAuthnInstance() *webauthn.WebAuthn {
+	// WebAuthn parameters
+	rpID := GetRPID()
+	rpName := GetRPName()
+	rpOrigins := GetRPOrigins()
+
+	var webAuthn *webauthn.WebAuthn
+	var err error
+
+	// Create a new WebAuthn instance
+	wConfig := &webauthn.Config{
+		RPID:          rpID,
+		RPDisplayName: rpName,
+		RPOrigins:     rpOrigins,
+	}
+
+	if webAuthn, err = webauthn.New(wConfig); err != nil {
+		fmt.Printf("Failed to create WebAuthn instance: %s\n", err)
+		logrus.WithError(err).Fatal("Failed to create WebAuthn instance")
+	}
+
+	fmt.Println("WebAuthn instance created!")
+
+	return webAuthn
 }

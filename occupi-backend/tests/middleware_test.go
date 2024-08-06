@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -42,7 +43,7 @@ func TestProtectedRoute(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -77,7 +78,7 @@ func TestProtectedRouteAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -120,7 +121,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized or Invalid auth token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
 func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
@@ -149,7 +150,7 @@ func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Invalid token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized or Invalid auth token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
@@ -171,7 +172,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -187,7 +188,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
 	)
 
-	token2, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
+	token2, _, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
 
 	w1 := httptest.NewRecorder()
 
@@ -221,7 +222,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -238,7 +239,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 		strings.ReplaceAll(w.Body.String(), "-\\u003e", "->"),
 	)
 
-	token2, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
+	token2, _, _, _ := authenticator.GenerateToken("test1@example.com", constants.Basic)
 
 	w1 := httptest.NewRecorder()
 
@@ -273,7 +274,7 @@ func TestAdminRoute(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
+	token, _, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -308,7 +309,7 @@ func TestAdminRouteAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
+	token, _, _, _ := authenticator.GenerateToken("admin@example.com", constants.Admin)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -350,7 +351,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
+	assert.Equal(t, "{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized or Invalid auth token\"},\"message\":\"Bad Request\",\"status\":401}", w.Body.String())
 }
 
 func TestUnauthorizedAdminAccess(t *testing.T) {
@@ -372,7 +373,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -403,7 +404,7 @@ func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-admin", nil)
@@ -467,7 +468,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-open", nil)
@@ -498,7 +499,7 @@ func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-open", nil)
@@ -530,7 +531,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -578,7 +579,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 	// Register the route
 	router.OccupiRouter(r, appsession)
 
-	token, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
+	token, _, _, _ := authenticator.GenerateToken("test@example.com", constants.Basic)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping-auth", nil)
@@ -607,6 +608,47 @@ func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 		"{\"data\":null,\"message\":\"pong -> I am alive and kicking and you are not auth'd, only non-auth'd users can access this endpoint\",\"status\":200}",
 		strings.ReplaceAll(w1.Body.String(), "-\\u003e", "->"),
 	)
+}
+
+func TestAccessUnprotectedRouteWithSessionForContext(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a Gin router
+	r := gin.Default()
+
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("occupi-sessions-store", store))
+
+	// Define a test handler to apply middleware
+	r.GET("/test", func(c *gin.Context) {
+		// Add ctx to session with role and email
+		session := sessions.Default(c)
+		session.Set("role", "Basic")
+		session.Set("email", "test@example.com")
+		err := session.Save()
+		assert.Nil(t, err)
+
+		// Call middleware
+		middleware.UnProtectedRoute(c)
+
+		// Ensure that the context is not aborted
+		assert.False(t, c.IsAborted())
+
+		// Ensure that email and role have been deleted from the session
+		assert.Nil(t, session.Get("role"))
+		assert.Nil(t, session.Get("email"))
+
+		c.Status(200)
+	})
+
+	// Create a test context
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/test", nil)
+	r.ServeHTTP(w, req) // This line is important to ensure middleware is applied
+
+	// Check the response
+	assert.Equal(t, 200, w.Code)
 }
 
 func TestRateLimit(t *testing.T) {
@@ -805,12 +847,12 @@ func TestAttachOTPRateLimitMiddleware(t *testing.T) {
 			clientIP:     "192.168.0.1",
 			waitDuration: 4 * time.Second,
 			expectedCode: http.StatusOK,
-			expectedBody: `OTP request successfu`,
+			expectedBody: "OTP request successful",
 		},
 		{
 			description:  "request after a couple seconds should succeed",
 			clientIP:     "192.168.0.1",
-			waitDuration: 5 * time.Second,
+			waitDuration: 4 * time.Second,
 			expectedCode: http.StatusOK,
 			expectedBody: "OTP request successful",
 		},
@@ -852,4 +894,139 @@ func TestAttachOTPRateLimitMiddleware(t *testing.T) {
 			assert.Contains(t, w2.Body.String(), tc.expectedBody)
 		})
 	}
+}
+
+func TestTimezoneMiddleware(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.TimezoneMiddleware())
+	router.GET("/time", func(c *gin.Context) {
+		loc, exists := c.Get("timezone")
+		if !exists {
+			loc = time.UTC
+		}
+
+		currentTime := time.Now().In(loc.(*time.Location))
+
+		c.JSON(200, gin.H{
+			"current_time": currentTime.Format(time.RFC3339),
+		})
+	})
+
+	tests := []struct {
+		header     string
+		timezone   string
+		statusCode int
+	}{
+		{"X-Timezone", "America/New_York", 200},
+		{"X-Timezone", "Asia/Kolkata", 200},
+		{"X-Timezone", "Invalid/Timezone", 400},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.timezone, func(t *testing.T) {
+			req, _ := http.NewRequest("GET", "/time", nil)
+			req.Header.Set(tt.header, tt.timezone)
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.statusCode, w.Code)
+			if tt.statusCode == 200 {
+				var response map[string]string
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+
+				loc, err := time.LoadLocation(tt.timezone)
+				assert.NoError(t, err)
+
+				expectedTime := time.Now().In(loc).Format(time.RFC3339)
+				assert.Contains(t, response["current_time"], expectedTime[:19]) // Compare only date and time part
+			}
+		})
+	}
+}
+
+func TestRealIPMiddleware_CFConnectingIP(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.RealIPMiddleware())
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP, _ := c.Get("ClientIP")
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.Header.Set("CF-Connecting-IP", "203.0.113.195")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.195"}`, w.Body.String())
+}
+
+func TestRealIPMiddleware_XRealIP(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.RealIPMiddleware())
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP, _ := c.Get("ClientIP")
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.Header.Set("X-Real-IP", "203.0.113.196")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.196"}`, w.Body.String())
+}
+
+func TestRealIPMiddleware_XForwardedFor(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.RealIPMiddleware())
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP, _ := c.Get("ClientIP")
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.Header.Set("X-Forwarded-For", "203.0.113.197, 198.51.100.1")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.197"}`, w.Body.String())
+}
+
+func TestRealIPMiddleware_RemoteAddr(t *testing.T) {
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	router := gin.Default()
+	router.Use(middleware.RealIPMiddleware())
+	router.GET("/ip", func(c *gin.Context) {
+		clientIP, _ := c.Get("ClientIP")
+		c.JSON(http.StatusOK, gin.H{
+			"client_ip": clientIP,
+		})
+	})
+
+	req, _ := http.NewRequest("GET", "/ip", nil)
+	req.RemoteAddr = "203.0.113.198:12345"
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.JSONEq(t, `{"client_ip":"203.0.113.198"}`, w.Body.String())
 }
