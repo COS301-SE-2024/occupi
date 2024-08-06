@@ -53,7 +53,7 @@ export interface NotificationSettings {
 
 export interface Prediction {
     Date: string,
-    Day_of_week: number,
+    Day_of_Week: number,
     Day_of_month: number,
     Is_Weekend: boolean,
     Month: number,

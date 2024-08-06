@@ -1,4 +1,4 @@
-import { getPredictions } from '@/services/aimodel';
+import { getPredictions } from '../services/aimodel';
 import { Prediction } from '@/models/data';
 
 export interface ExtractedPrediction {
@@ -17,9 +17,16 @@ export async function getExtractedPredictions(): Promise<ExtractedPrediction[] |
             return undefined;
         }
 
+        // console.log(predictions.map((prediction: Prediction) => ({
+        //     Date: prediction.Date,
+        //     Day_of_week: prediction.Day_of_Week,
+        //     Predicted_Attendance_Level: prediction.Predicted_Attendance_Level,
+        //     Predicted_Class: prediction.Predicted_Class
+        // })));
+
         return predictions.map((prediction: Prediction) => ({
             Date: prediction.Date,
-            Day_of_week: prediction.Day_of_week,
+            Day_of_week: prediction.Day_of_Week,
             Predicted_Attendance_Level: prediction.Predicted_Attendance_Level,
             Predicted_Class: prediction.Predicted_Class
         }));
@@ -29,5 +36,43 @@ export async function getExtractedPredictions(): Promise<ExtractedPrediction[] |
     }
 }
 
+function convertNumToDay(num: number) {
+    switch (num) {
+        case 0:
+            return 'Mon';
+        case 1:
+            return 'Tue';
+        case 2:
+            return 'Wed';
+        case 3:
+            return 'Thu';
+        case 4:
+            return 'Fri';
+        case 5:
+            return 'Sat';
+        case 6:
+            return 'Sun';
+        default:
+            return 'Invalid day';
+    }
+}
 
-getExtractedPredictions()
+export async function getFormattedPredictionData() {
+    const data = await getExtractedPredictions();
+
+    if (!data) {
+        return [];
+    }
+
+    console.log(data.map((prediction: ExtractedPrediction) => ({
+        value: prediction.Predicted_Class,
+        label: convertNumToDay(prediction.Day_of_week)
+    })));
+
+    return data.map((prediction: ExtractedPrediction) => ({
+        value: prediction.Predicted_Class,
+        label: convertNumToDay(prediction.Day_of_week)
+    }))
+}
+
+getFormattedPredictionData();

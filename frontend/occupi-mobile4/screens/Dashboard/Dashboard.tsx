@@ -26,6 +26,7 @@ import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
+import { getExtractedPredictions, getFormattedPredictionData } from '@/utils/occupancy';
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
@@ -42,31 +43,7 @@ const Dashboard = () => {
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
   const toast = useToast();
-
-  const latestData = [
-    { value: 15, label: 'Mon' },
-    { value: 30, label: 'Tue' },
-    { value: 50, label: 'Wed' },
-    { value: 40, label: 'Thu' },
-    { value: 28, label: 'Fri' },
-    { value: 40, label: 'Sat' },
-    { value: 45, label: 'Sun' },
-  ];
-
-  const hourlyData = [
-    { value: 20, label: '07:00' },
-    { value: 50, label: '08:00' },
-    { value: 60, label: '09:00' },
-    { value: 40, label: '10:00' },
-    { value: 15, label: '11:00' },
-    { value: 5, label: '12:00' },
-    // {value: 40, label: '13:00'},
-    // {value: 40, label: '14:00'},
-    // {value: 40, label: '15:00'},
-    // {value: 40, label: '16:00'},
-    // {value: 40, label: '17:00'},
-  ];
-  const [currentData, setCurrentData] = useState(latestData);
+  const [currentData, setCurrentData] = useState();
   // console.log(currentTheme);
   // console.log(isDarkMode);
 
@@ -75,6 +52,19 @@ const Dashboard = () => {
       let accentcolour = await SecureStore.getItemAsync('accentColour');
       setAccentColour(accentcolour);
     };
+
+    const getWeeklyPrediction = async () => {
+      try {
+        const prediction = await getFormattedPredictionData();
+        if (prediction) {
+          console.log(prediction);
+          setCurrentData(prediction);
+        }
+      } catch (error) {
+        console.error('Error fetching predictions:', error);
+      }
+    }
+    getWeeklyPrediction();
     getAccentColour();
   }, []);
 
@@ -249,7 +239,7 @@ const Dashboard = () => {
             </Button>
           )}
         </View>
-        <LineGraph data={latestData} />
+        <LineGraph data={currentData} />
       </ScrollView>
       <Navbar />
     </>

@@ -30,7 +30,7 @@ const LineGraph = (data) => {
           width={wp('80%')}
           thickness={3}
           color={accentColour}
-          maxValue={60}
+          maxValue={4}
           noOfSections={4}
           // hideRules
           animateOnDataChange
