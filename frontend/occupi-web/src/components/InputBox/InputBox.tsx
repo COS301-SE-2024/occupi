@@ -10,7 +10,7 @@ type InputBoxProps = {
 const email_regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/; // Email regex
 const password_regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/; // Minimum eight characters, at least one uppercase letter, one lowercase letter and one number
 
-const InputBox = (props: InputBoxProps) => {
+const InbutBox = (props: InputBoxProps) => {
     const [err, setError] = useState("");
 
     function validateInput(e: React.ChangeEvent<HTMLInputElement>){
@@ -44,14 +44,12 @@ const InputBox = (props: InputBoxProps) => {
             </div>
             <input
                 type={props.type}
-                autoComplete={props.type === "email" ? "username" : "current-password" } 
                 placeholder={props.placeholder}
                 onChange={validateInput}
                 className={"w-full h-[50px] rounded-[15px] bg-secondary p-[8px]" + (err !== "" ? " border-[2px] border-red_salmon" : "")}
-                required={props.type === "email" ? true : false}
             />
         </div>
     )
 }
 
-export default InputBox
+export default InbutBox

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/ipinfo/go/v2/ipinfo/cache"
 
@@ -80,18 +79,6 @@ func CreateCache() *bigcache.BigCache {
 	}
 
 	logrus.Info("Cache created!")
-
-	return cache
-}
-
-// Create cache for sessions
-func CreateSessionCache() *bigcache.BigCache {
-	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to x seconds
-	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to x seconds
-	cache, err := bigcache.New(context.Background(), config)
-	if err != nil {
-		logrus.Fatal(err)
-	}
 
 	return cache
 }
@@ -193,30 +180,4 @@ func CreateRabbitQueue(ch *amqp.Channel) amqp.Queue {
 	}
 
 	return q
-}
-
-func CreateWebAuthnInstance() *webauthn.WebAuthn {
-	// WebAuthn parameters
-	rpID := GetRPID()
-	rpName := GetRPName()
-	rpOrigins := GetRPOrigins()
-
-	var webAuthn *webauthn.WebAuthn
-	var err error
-
-	// Create a new WebAuthn instance
-	wConfig := &webauthn.Config{
-		RPID:          rpID,
-		RPDisplayName: rpName,
-		RPOrigins:     rpOrigins,
-	}
-
-	if webAuthn, err = webauthn.New(wConfig); err != nil {
-		fmt.Printf("Failed to create WebAuthn instance: %s\n", err)
-		logrus.WithError(err).Fatal("Failed to create WebAuthn instance")
-	}
-
-	fmt.Println("WebAuthn instance created!")
-
-	return webAuthn
 }
