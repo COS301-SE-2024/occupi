@@ -1,5 +1,5 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface UserDetails {
   email: string;
@@ -23,12 +23,12 @@ export const useUserStore = create<UserStore>()(
     {
       name: 'user-storage',
       storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: (state) => {
+      onRehydrateStorage: () => {
         // Optional: Log when hydration starts
         console.log('Hydration starts')
         
         // Return a function that will be called when hydration finishes
-        return (state, error) => {
+        return ( error) => {
           if (error) {
             console.log('An error happened during hydration', error)
           } else {
