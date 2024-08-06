@@ -146,7 +146,7 @@ const LoginForm = (): JSX.Element => {
         {error && <p className="text-red-500 mt-2">{error}</p>}
 
         <div className="mt-5 w-full">
-          <GradientButton isLoading={isloading} Text="Login" isClickable={form.valid_email} clickEvent={clickSubmit}/>
+          <GradientButton isLoading={isLoading} Text="Login" isClickable={form.valid_email} clickEvent={clickSubmit}/>
         </div>
 
         {/**This is a hidden button that is clicked when the user clicks the login button
