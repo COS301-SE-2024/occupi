@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/centrifugal/gocent/v3"
 	"github.com/gin-gonic/gin"
@@ -20,8 +21,8 @@ var (
 // Initialize the Centrifugo client
 func init() {
 	client = gocent.New(gocent.Config{
-		Addr: "http://localhost:8000/api",            // Replace with your Centrifugo API address
-		Key:  "8c18e01e-c8f8-480b-af08-8a52b34f1569", // Replace with your Centrifugo API key
+		Addr: "http://localhost:8000/api",   // Replace with your Centrifugo API address
+		Key:  configs.GetCentrifugoAPIKey(), // Replace with your Centrifugo API key
 	})
 }
 
