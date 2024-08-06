@@ -49,8 +49,7 @@ const BookRoom = () => {
   const toggleLayout = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
   };
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const viewroomsendpoint = process.env.EXPO_PUBLIC_VIEW_ROOMS;
+ 
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
   useEffect(() => {

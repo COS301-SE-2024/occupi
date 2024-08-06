@@ -66,6 +66,7 @@ const OTPVerification = () => {
     // }
     // setValidationError(null);
     setLoading(true);
+    console.log(state);
     if (state === 'verify_otp_register') {
       const response = await verifyUserOtpRegister(email, pin);
       toast.show({
@@ -73,7 +74,7 @@ const OTPVerification = () => {
         render: ({ id }) => {
           return (
             <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
-              <ToastTitle>{response}</ToastTitle>
+              <ToastTitle>Registration Successful</ToastTitle>
             </Toast>
           );
         }

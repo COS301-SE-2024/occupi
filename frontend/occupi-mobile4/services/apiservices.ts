@@ -211,7 +211,7 @@ export async function checkin(req: CheckInReq): Promise<Success | Unsuccessful> 
 
 export async function updateUserDetails(req: UpdateDetailsReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  console.log(req);
+  console.log('token',authToken);
   try {
     const response = await axios.post("https://dev.occupi.tech/api/update-user", req, {
       headers: {

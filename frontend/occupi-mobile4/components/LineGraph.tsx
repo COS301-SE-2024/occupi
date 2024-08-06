@@ -7,7 +7,7 @@ import {
   import { LineChart } from "react-native-gifted-charts"
 
 const LineGraph = (data) => {
-    console.log(data.data);
+    // console.log(data.data);
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
     useEffect(() => {
         const getAccentColour = async () => {
