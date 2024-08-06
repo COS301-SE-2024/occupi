@@ -3,6 +3,38 @@ import axios from 'axios';
 const API_URL = '/auth'; // This will be proxied to https://dev.occupi.tech
 const API_USER_URL = '/api'; // Adjust this if needed
 
+interface PublicKeyCredential {
+  id: string;
+  rawId: ArrayBuffer;
+  type: string;
+  response: {
+    attestationObject: ArrayBuffer;
+    clientDataJSON: ArrayBuffer;
+  };
+}
+
+interface PublicKeyAssertion {
+  id: string;
+  rawId: ArrayBuffer;
+  type: string;
+  response: {
+    authenticatorData: ArrayBuffer;
+    clientDataJSON: ArrayBuffer;
+    signature: ArrayBuffer;
+    userHandle: ArrayBuffer;
+  };
+}
+
+// interface PublicKeyCredentialRequestOptions {
+//   challenge: ArrayBuffer;
+//   allowCredentials: Array<{
+//     id: ArrayBuffer;
+//     type: string;
+//     transports?: string[];
+//   }>;
+//   // Add other properties as needed
+// }
+
 const AuthService = {
   login: async (email: string, password: string) => {
     try {
@@ -32,7 +64,9 @@ const AuthService = {
       response.data.data.options.publicKey.challenge = bufferDecode(response.data.data.options.publicKey.challenge);
       response.data.data.options.publicKey.user.id = bufferDecode(response.data.data.options.publicKey.user.id);
 
-      const credential: any = await navigator.credentials.create({ publicKey: response.data.data.options.publicKey });
+      const credential = await navigator.credentials.create({ 
+        publicKey: response.data.data.options.publicKey 
+      }) as PublicKeyCredential;
 
       if (!credential) {
         throw new Error('Failed to create credential');
@@ -65,29 +99,40 @@ const AuthService = {
       const response = await axios.post(`${API_URL}/login-admin-begin`, {
         email,
       });
-
+  
       if (response.data.message === "Please check your email for an otp."){
         return response.data;
       }
       
-      // if backend returns this message: "Error getting user credentials, please register for WebAuthn",
-      // then do an automatic call to register function
       if (response.data.message === "Error getting user credentials, please register for WebAuthn") {
         const response3 = await AuthService.webauthnRegister(email);
         return response3;
       }
-
+  
       response.data.data.options.publicKey.challenge = bufferDecode(response.data.data.options.publicKey.challenge);
-      response.data.data.options.publicKey.allowCredentials.forEach(function (listItem: any) {
-        listItem.id = bufferDecode(listItem.id)
-      });
-
-      const assertion: any = await navigator.credentials.get({ publicKey: response.data.data.options.publicKey });
-
+      response.data.data.options.publicKey.allowCredentials = response.data.data.options.publicKey.allowCredentials.map(
+        (listItem: { id: string; type: string; transports?: string[] }) => ({
+          ...listItem,
+          id: bufferDecode(listItem.id),
+        })
+      );
+  
+      const assertion = await navigator.credentials.get({ 
+        publicKey: {
+          ...response.data.data.options.publicKey,
+          allowCredentials: response.data.data.options.publicKey.allowCredentials.map(
+            (listItem: { id: ArrayBuffer; type: string; transports?: string[] }) => ({
+              ...listItem,
+              transports: listItem.transports as AuthenticatorTransport[],
+            })
+          ),
+        },
+      }) as PublicKeyAssertion;
+  
       if (assertion === null) {
         throw new Error('No assertion returned');
       }
-
+  
       const assertionJSON = JSON.stringify({
           id: assertion.id,
           rawId: bufferEncode(assertion.rawId),
@@ -102,7 +147,7 @@ const AuthService = {
       
       // Send the assertion to the server
       const response2 = await axios.post(`${API_URL}/login-admin-finish${response.data.data.uuid}`, assertionJSON);
-
+  
       return response2.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
@@ -112,13 +157,9 @@ const AuthService = {
     }
   },
 
-
-
   logout: async () => {
     try {
-      const response = await axios.post(`${API_URL}/logout`, {
-        
-      });
+      const response = await axios.post(`${API_URL}/logout`, {});
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
@@ -150,9 +191,6 @@ const AuthService = {
       throw new Error('An unexpected error occurred while fetching user details');
     }
   },
-  
- 
-
 
   verifyOtpLogin: async (email: string, otp: string) => {
     try {
@@ -171,9 +209,6 @@ const AuthService = {
       throw new Error('An unexpected error occurred during OTP verification');
     }
   }
-
-
-
 };
 
 function bufferEncode(value: ArrayBuffer): string {
@@ -199,6 +234,5 @@ function bufferDecode(value: string | null): Uint8Array | null {
   // Decode Base64 string
   return Uint8Array.from(atob(value), c => c.charCodeAt(0));
 }
-
 
 export default AuthService;

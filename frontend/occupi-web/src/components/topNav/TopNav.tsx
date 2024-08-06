@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ProfileDropDown } from '@components/index';
 
 type TopNavProps = {
   mainComponent?: JSX.Element;
@@ -72,7 +71,7 @@ const TopNav = (props: TopNavProps) => {
         >
           <FaSearch size={24} className="text-text_col" />
         </motion.button>
-        <ProfileDropDown />
+        {/* <ProfileDropDown /> */}
       </div>
     </div>
   )

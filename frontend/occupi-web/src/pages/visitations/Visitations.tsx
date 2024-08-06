@@ -1,245 +1,312 @@
-// import React, { useState, useEffect } from 'react';
+// // import React, { useState, useEffect } from 'react';
+// // import axios from 'axios';
+
+// // interface ApiUser {
+// //   _id: string;
+// //   occupiId: string;
+// //   details?: {
+// //     name: string;
+// //     contactNo?: string;
+// //   };
+// //   email: string;
+// //   role: string;
+// //   departmentNo?: string;
+// //   status?: string;
+// //   onSite: boolean;
+// //   position?: string;
+// // }
+
+// // interface FormattedUser extends ApiUser {
+// //   bookings: number;
+// // }
+
+// // interface ApiResponse {
+// //   data: ApiUser[];
+// //   meta: {
+// //     currentPage: number;
+// //     totalPages: number;
+// //     totalResults: number;
+// //   };
+// // }
+
+// // const UserTable: React.FC = () => {
+// //   const [users, setUsers] = useState<FormattedUser[]>([]);
+// //   const [loading, setLoading] = useState(true);
+// //   const [error, setError] = useState<string | null>(null);
+// //   const [totalPages, setTotalPages] = useState(0);
+
+// //   useEffect(() => {
+// //     fetchUsers();
+// //   }, []);
+
+// //   const fetchUsers = async () => {
+// //     try {
+// //       setLoading(true);
+// //       const response = await axios.get<ApiResponse>('/api/filter-users');
+  
+// //       const fetchedUsers = response.data.data.map(user => ({
+// //         ...user,
+// //         bookings: Math.floor(Math.random() * 5), // Random number for bookings as it's not in the API
+// //       }));
+  
+// //       setUsers(fetchedUsers);
+// //       setTotalPages(response.data.meta.totalPages);
+// //       setLoading(false);
+// //     } catch (err) {
+// //       if (axios.isAxiosError(err)) {
+// //         setError(`Failed to fetch users: ${err.response?.data?.message || err.message}`);
+// //       } else {
+// //         setError('An unknown error occurred');
+// //       }
+// //       setLoading(false);
+// //     }
+// //   };
+
+// //   if (loading) return <div>Loading...</div>;
+// //   if (error) return <div>Error: {error}</div>;
+
+// //   return (
+// //     <div>
+// //       <table>
+// //         <thead>
+// //           <tr>
+// //             <th>OCCUPI-ID</th>
+// //             <th>NAME</th>
+// //             <th>ROLE</th>
+// //             <th>DEPARTMENT</th>
+// //             <th>EMAIL</th>
+// //             <th>STATUS</th>
+// //             <th>POSITION</th>
+// //             <th>CONTACT NO</th>
+// //             <th>BOOKINGS THIS WEEK</th>
+// //           </tr>
+// //         </thead>
+// //         <tbody>
+// //           {users.map((user) => (
+// //             <tr key={user._id}>
+// //               <td>{user.occupiId}</td>
+// //               <td>{user.details?.name || 'N/A'}</td>
+// //               <td>{user.role}</td>
+// //               <td>{user.departmentNo || 'N/A'}</td>
+// //               <td>{user.email}</td>
+// //               <td>{user.onSite ? 'ONSITE' : (user.status || 'OFFSITE')}</td>
+// //               <td>{user.position || 'N/A'}</td>
+// //               <td>{user.details?.contactNo || 'N/A'}</td>
+// //               <td>{user.bookings}</td>
+// //             </tr>
+// //           ))}
+// //         </tbody>
+// //       </table>
+// //       <div>Total Pages: {totalPages}</div>
+// //     </div>
+// //   );
+// // };
+
+// //import React from 'react';
+// // 
+
+
+// import { useState, useEffect } from 'react';
+// import { Card, Button, Input, Modal, Image, ModalBody, ModalFooter, ModalHeader, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@nextui-org/react';
 // import axios from 'axios';
-
-// interface ApiUser {
-//   _id: string;
-//   occupiId: string;
-//   details?: {
-//     name: string;
-//     contactNo?: string;
-//   };
-//   email: string;
-//   role: string;
-//   departmentNo?: string;
-//   status?: string;
-//   onSite: boolean;
-//   position?: string;
-// }
-
-// interface FormattedUser extends ApiUser {
-//   bookings: number;
+// import { motion } from 'framer-motion';
+// import { FaRegBuilding, FaRegUser, FaRegComments, FaFilter } from 'react-icons/fa';
+// interface Room {
+//   description: string;
+//   floorNo: string;
+//   maxOccupancy: number;
+//   minOccupancy: number;
+//   roomId: string;
+//   roomName: string;
+//   roomNo: string;
+//   imageUrl?: string;
 // }
 
 // interface ApiResponse {
-//   data: ApiUser[];
+//   data: Room[];
+//   message: string;
 //   meta: {
 //     currentPage: number;
 //     totalPages: number;
 //     totalResults: number;
 //   };
+//   status: number;
 // }
 
-// const UserTable: React.FC = () => {
-//   const [users, setUsers] = useState<FormattedUser[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-//   const [totalPages, setTotalPages] = useState(0);
+// const Visitations: React.FC = () => {
+//   const [rooms, setRooms] = useState<Room[]>([]);
+//   const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
+//   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+//   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+//   const [imageFile, setImageFile] = useState<File | null>(null);
+//   const [filterCriteria, setFilterCriteria] = useState<string>('all');
 
 //   useEffect(() => {
-//     fetchUsers();
+//     fetchRooms();
 //   }, []);
 
-//   const fetchUsers = async () => {
+//   useEffect(() => {
+//     applyFilter();
+//   }, [rooms, filterCriteria]);
+
+//   const fetchRooms = async () => {
 //     try {
-//       setLoading(true);
-//       const response = await axios.get<ApiResponse>('/api/filter-users');
-  
-//       const fetchedUsers = response.data.data.map(user => ({
-//         ...user,
-//         bookings: Math.floor(Math.random() * 5), // Random number for bookings as it's not in the API
-//       }));
-  
-//       setUsers(fetchedUsers);
-//       setTotalPages(response.data.meta.totalPages);
-//       setLoading(false);
-//     } catch (err) {
-//       if (axios.isAxiosError(err)) {
-//         setError(`Failed to fetch users: ${err.response?.data?.message || err.message}`);
-//       } else {
-//         setError('An unknown error occurred');
-//       }
-//       setLoading(false);
+//       const response = await axios.get<ApiResponse>('/api/view-rooms?filter={}');
+//       setRooms(response.data.data);
+//     } catch (error) {
+//       console.error('Error fetching rooms:', error);
 //     }
 //   };
 
-//   if (loading) return <div>Loading...</div>;
-//   if (error) return <div>Error: {error}</div>;
+//   const applyFilter = () => {
+//     if (filterCriteria === 'all') {
+//       setFilteredRooms(rooms);
+//     } else {
+//       const filtered = rooms.filter(room => room.floorNo === filterCriteria);
+//       setFilteredRooms(filtered);
+//     }
+//   };
+
+//   const uploadImage = async () => {
+//     if (!imageFile || !selectedRoom) return;
+
+//     const formData = new FormData();
+//     formData.append('image', imageFile);
+//     formData.append('roomId', selectedRoom.roomId);
+
+//     try {
+//       await axios.post('/api/upload-room-image', formData, {
+//         headers: {
+//           'Content-Type': 'multipart/form-data',
+//         },
+//       });
+//       setIsUploadModalOpen(false);
+//       setSelectedRoom(null);
+//       setImageFile(null);
+//       fetchRooms();
+//     } catch (error) {
+//       console.error('Error uploading image:', error);
+//     }
+//   };
 
 //   return (
-//     <div>
-//       <table>
-//         <thead>
-//           <tr>
-//             <th>OCCUPI-ID</th>
-//             <th>NAME</th>
-//             <th>ROLE</th>
-//             <th>DEPARTMENT</th>
-//             <th>EMAIL</th>
-//             <th>STATUS</th>
-//             <th>POSITION</th>
-//             <th>CONTACT NO</th>
-//             <th>BOOKINGS THIS WEEK</th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {users.map((user) => (
-//             <tr key={user._id}>
-//               <td>{user.occupiId}</td>
-//               <td>{user.details?.name || 'N/A'}</td>
-//               <td>{user.role}</td>
-//               <td>{user.departmentNo || 'N/A'}</td>
-//               <td>{user.email}</td>
-//               <td>{user.onSite ? 'ONSITE' : (user.status || 'OFFSITE')}</td>
-//               <td>{user.position || 'N/A'}</td>
-//               <td>{user.details?.contactNo || 'N/A'}</td>
-//               <td>{user.bookings}</td>
-//             </tr>
-//           ))}
-//         </tbody>
-//       </table>
-//       <div>Total Pages: {totalPages}</div>
+//     <div className="p-4">
+//       <div className="flex items-center justify-between mb-4">
+//         <h2 className="text-text_col text-2xl font-bold">Visitations</h2>
+//         <Dropdown>
+//           <DropdownTrigger>
+//             <Button className='text-text_col_alt bg-secondary_alt'>
+//               <FaFilter className="mr-2" />
+//               Filter by Floor
+//             </Button>
+//           </DropdownTrigger>
+//           <DropdownMenu>
+//             <DropdownItem onPress={() => setFilterCriteria('all')}>All</DropdownItem>
+//             <DropdownItem onPress={() => setFilterCriteria('1')}>Floor 1</DropdownItem>
+//             <DropdownItem onPress={() => setFilterCriteria('2')}>Floor 2</DropdownItem>
+//             <DropdownItem onPress={() => setFilterCriteria('3')}>Floor 3</DropdownItem>
+//           </DropdownMenu>
+//         </Dropdown>
+//       </div>
+//       <motion.div
+//         className="space-y-4"
+//         initial={{ opacity: 0 }}
+//         animate={{ opacity: 1 }}
+//         transition={{ duration: 0.5 }}
+//       >
+//         {filteredRooms.map((room) => (
+//           <motion.div
+//             key={room.roomId}
+//             whileHover={{ scale: 1.02 }}
+//             whileTap={{ scale: 0.98 }}
+//           >
+//             <Card className="w-full">
+//               <div className="p-4 flex flex-col md:flex-row">
+//                 <div className="w-full md:w-1/3 mb-4 md:mb-0 md:mr-4">
+//                   {room.imageUrl ? (
+//                     <Image
+//                       src={room.imageUrl}
+//                       alt={room.roomName}
+//                       className="w-full h-48 object-cover rounded-lg"
+//                     />
+//                   ) : (
+//                     <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
+//                       <span className="text-gray-400">No image available</span>
+//                     </div>
+//                   )}
+//                 </div>
+//                 <div className="w-full md:w-2/3 flex flex-col">
+//                   <h4 className="text-text_col text-xl font-bold mb-2">{room.roomName}</h4>
+//                   <p className="text-text_col mb-2 flex-grow">{room.description}</p>
+//                   <div className="flex items-center mb-1">
+//                     <FaRegBuilding className="mr-2" />
+//                     <p className="text-text_col">Floor: {room.floorNo}</p>
+//                   </div>
+//                   <div className="flex items-center mb-1">
+//                     <FaRegUser className="mr-2" />
+//                     <p className="text-text_col">Capacity: {room.minOccupancy} - {room.maxOccupancy}</p>
+//                   </div>
+//                   <div className="flex items-center mb-4">
+//                     <FaRegComments className="mr-2" />
+//                     <p className="text-text_col">Room No: {room.roomNo}</p>
+//                   </div>
+//                   <Button
+//                     className='text-text_col_alt bg-secondary_alt'
+//                     onPress={() => {
+//                       setSelectedRoom(room);
+//                       setIsUploadModalOpen(true);
+//                     }}
+//                   >
+//                     Upload Image
+//                   </Button>
+//                 </div>
+//               </div>
+//             </Card>
+//           </motion.div>
+//         ))}
+//       </motion.div>
+
+//       <Modal
+//         isOpen={isUploadModalOpen}
+//         onClose={() => setIsUploadModalOpen(false)}
+//         motionProps={{
+//           initial: { opacity: 0, scale: 0.9 },
+//           animate: { opacity: 1, scale: 1 },
+//           exit: { opacity: 0, scale: 0.9 },
+//         }}
+//         className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50 backdrop-blur-sm"
+//       >
+//         <ModalHeader>
+//           <h3 className="text-text_col text-lg font-bold">Upload Room Image</h3>
+//         </ModalHeader>
+//         <ModalBody>
+//           <Input
+//             type="file"
+//             onChange={(e) => {
+//               const files = e.target.files;
+//               if (files && files.length > 0) {
+//                 setImageFile(files[0]);
+//               }
+//             }}
+//             accept="image/*"
+//           />
+//         </ModalBody>
+//         <ModalFooter>
+//           <Button color="primary" onPress={uploadImage}>Upload Image</Button>
+//         </ModalFooter>
+//       </Modal>
 //     </div>
 //   );
 // };
 
-//import React from 'react';
-import React, { useState } from 'react';
-import { NextUIProvider, Card, CardBody, CardHeader } from "@nextui-org/react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { FaChartLine, FaChartPie, FaUsers, FaChartBar } from 'react-icons/fa';
-import { DragDropContext, Droppable, Draggable, DroppableProvided, DraggableProvided, DropResult } from 'react-beautiful-dnd';
+// export default Visitations;
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const Visitations: React.FC = () => {
-  const weeklyOccupancyData = [
-    { day: 'Mon', occupancy: 65 },
-    { day: 'Tue', occupancy: 75 },
-    { day: 'Wed', occupancy: 85 },
-    { day: 'Thu', occupancy: 80 },
-    { day: 'Fri', occupancy: 70 },
-  ];
 
-  const departmentOccupancyData = [
-    { name: 'Engineering', value: 40 },
-    { name: 'Marketing', value: 25 },
-    { name: 'Sales', value: 20 },
-    { name: 'HR', value: 15 },
-  ];
-
-  const averageOccupancy = weeklyOccupancyData.reduce((sum, day) => sum + day.occupancy, 0) / weeklyOccupancyData.length;
-  const peakOccupancy = Math.max(...weeklyOccupancyData.map(day => day.occupancy));
-
-  const [graphOrder, setGraphOrder] = useState(['weekly', 'department']);
-
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-    const items = Array.from(graphOrder);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setGraphOrder(items);
-  };
-
-  const renderGraph = (graph: string) => {
-    if (graph === 'weekly') {
-      return (
-        <LineChart data={weeklyOccupancyData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="day" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="occupancy" stroke="#8884d8" />
-        </LineChart>
-      );
-    } else {
-      return (
-        <PieChart>
-          <Pie
-            data={departmentOccupancyData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            outerRadius={80}
-            fill="#8884d8"
-            dataKey="value"
-            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-          >
-            {departmentOccupancyData.map((_entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip />
-        </PieChart>
-      );
-    }
-  };
-
+const Visitations = () => {
   return (
-    <NextUIProvider>
-      <div className="container mx-auto px-4">
-        <h1 className="text-center mt-8 text-2xl font-bold">Office Occupancy Dashboard</h1>
-        
-        {/* Card Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-          <Card>
-            <CardBody>
-              <div className="flex items-center mb-2">
-                <FaUsers className="text-2xl mr-2 text-primary" />
-                <h4 className="text-lg font-semibold">Average Occupancy</h4>
-              </div>
-              <p className="text-2xl font-bold text-primary">{averageOccupancy.toFixed(1)}%</p>
-            </CardBody>
-          </Card>
-          <Card>
-            <CardBody>
-              <div className="flex items-center mb-2">
-                <FaChartBar className="text-2xl mr-2 text-success" />
-                <h4 className="text-lg font-semibold">Peak Occupancy</h4>
-              </div>
-              <p className="text-2xl font-bold text-success">{peakOccupancy}%</p>
-            </CardBody>
-          </Card>
-        </div>
+    <div>Visitations</div>
+  )
+}
 
-        {/* Graph Section */}
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="graphs">
-            {(provided: DroppableProvided) => (
-              <div {...provided.droppableProps} ref={provided.innerRef} className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {graphOrder.map((graph, index) => (
-                  <Draggable key={graph} draggableId={graph} index={index}>
-                    {(provided: DraggableProvided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        className="mb-4"
-                      >
-                        <Card>
-                          <CardHeader className="flex justify-between items-center" {...provided.dragHandleProps}>
-                            <h3 className="text-xl font-semibold">
-                              {graph === 'weekly' ? 'Weekly Occupancy Trend' : 'Department Occupancy Distribution'}
-                            </h3>
-                            {graph === 'weekly' ? <FaChartLine className="text-xl" /> : <FaChartPie className="text-xl" />}
-                          </CardHeader>
-                          <CardBody>
-                            <ResponsiveContainer width="100%" height={300}>
-                              {renderGraph(graph)}
-                            </ResponsiveContainer>
-                          </CardBody>
-                        </Card>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </div>
-    </NextUIProvider>
-  );
-};
-
-export default Visitations;
+export default Visitations
