@@ -143,14 +143,14 @@ const SideNav = () => {
               </motion.div>
               :
               <motion.div 
-                className="w-[20px] h-[40px] bg-secondary rounded-l-[10px] flex justify-center items-center cursor-pointer "
+                className="w-[20px] h-[40px] bg-secondary rounded-l-[10px] flex justify-center items-center cursor-pointer"
                 whileTap={{scale: 0.98}} onClick={toggleSideNav}>
                 <ChevronLeft />
               </motion.div>
           }
         </div>
 
-        <div className="flex-grow ml-2">
+        <div className="flex-grow">
           {sidebarcontent.map((button_content, index) =>
             <SideNavBarButton 
               key={index}

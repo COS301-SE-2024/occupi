@@ -4,27 +4,27 @@ type ProfileComponentProps = {
   profileImage?: string;
   email?: string;
   name?: string;
-  officeStatus?: "onsite" | "offsite" | "booked";
+  officeStatus?: "in" | "out" | "booked";
 };
 
 const ProfileComponent = ({
   profileImage = "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg",
   email = "defaultEmail@example.com",
   name = "Janet Doey",
-  officeStatus = "onsite",
+  officeStatus = "in",
 }: ProfileComponentProps) => {
-  const getStatusBadge = (status: "onsite" | "offsite" | "booked") => {
+  const getStatusBadge = (status: "in" | "out" | "booked") => {
     let colorClass: string;
     let text: string;
 
     switch (status) {
-      case "onsite":
+      case "in":
         colorClass = "badge-success";
         text = "In Office";
         break;
-      case "offsite":
+      case "out":
         colorClass = "badge-error";
-        text = "offsite of Office";
+        text = "Out of Office";
         break;
       case "booked":
         colorClass = "badge-warning";

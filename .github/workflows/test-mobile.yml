@@ -1,0 +1,34 @@
+name: Test Mobile
+
+on:
+  pull_request:
+    branches:
+      - develop
+    paths: [
+      "frontend/occupi-mobile3/**"
+    ]
+
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: frontend/occupi-mobile3
+    
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Install Dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Run Tests
+      run: npm run test-ci
