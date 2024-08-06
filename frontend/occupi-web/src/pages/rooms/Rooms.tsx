@@ -118,6 +118,8 @@ const Rooms: React.FC = () => {
         }
         searchQuery={""}
         onChange={function (e: React.ChangeEvent<HTMLInputElement>): void {
+          console.log(e.target.value);
+          // Weird linting fix
           throw new Error("Function not implemented.");
         }}
       />

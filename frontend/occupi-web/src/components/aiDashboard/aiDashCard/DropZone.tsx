@@ -2,12 +2,24 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
 
-export const DropZone: React.FC<{ onDrop: (item: any) => void; children?: React.ReactNode }> = ({ onDrop, children }) => {
+// Define a generic interface for the dragged item
+interface DragItem {
+  type: string;
+  [key: string]: unknown;  // Allow any additional properties
+}
+
+export const DropZone = <T extends DragItem>({ 
+  onDrop, 
+  children 
+}: { 
+  onDrop: (item: T) => void; 
+  children?: React.ReactNode 
+}) => {
   const [{ isOver }, drop] = useDrop({
     accept: 'GRID_ITEM',
-    drop: (item) => onDrop(item),
+    drop: (item: T) => onDrop(item),
     collect: (monitor) => ({
-      isOver: monitor.isOver(),
+      isOver: !!monitor.isOver(),
     }),
   });
 
