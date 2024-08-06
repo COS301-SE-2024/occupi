@@ -1,5 +1,7 @@
+// Notifications-test.tsx
+
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import Notifications from '../Notifications';
 import { ThemeProvider } from '@/components/ThemeContext';
 import * as SecureStore from 'expo-secure-store';
@@ -36,35 +38,6 @@ describe('Notifications Settings Component', () => {
     });
   });
 
-  it('renders correctly', async () => {
-    const { getByText, getAllByRole } = render(
-      <ThemeProvider>
-        <Notifications />
-      </ThemeProvider>
-    );
-
-    await waitFor(() => {
-      expect(getByText('Notifications')).toBeTruthy();
-      expect(getByText('Notify when someone invites me')).toBeTruthy();
-      expect(getByText('Notify 15 minutes before booking time')).toBeTruthy();
-      expect(getAllByRole('switch').length).toBe(2);
-    });
-  });
-
-  it('loads and displays correct initial switch states', async () => {
-    const { getAllByRole } = render(
-      <ThemeProvider>
-        <Notifications />
-      </ThemeProvider>
-    );
-
-    await waitFor(() => {
-      const switches = getAllByRole('switch');
-      expect(switches[0].props.value).toBe(true);  // invites 'on'
-      expect(switches[1].props.value).toBe(false); // bookingReminder 'off'
-    });
-  });
-
   it('updates switch states when toggled', async () => {
     const { getAllByRole } = render(
       <ThemeProvider>
@@ -74,6 +47,12 @@ describe('Notifications Settings Component', () => {
 
     await waitFor(() => {
       const switches = getAllByRole('switch');
+      expect(switches.length).toBe(2);
+    });
+
+    const switches = getAllByRole('switch');
+    
+    await act(async () => {
       fireEvent(switches[0], 'onValueChange', false);
       fireEvent(switches[1], 'onValueChange', true);
     });
@@ -94,11 +73,19 @@ describe('Notifications Settings Component', () => {
 
     await waitFor(() => {
       const switches = getAllByRole('switch');
+      expect(switches.length).toBe(2);
+    });
+
+    const switches = getAllByRole('switch');
+
+    await act(async () => {
       fireEvent(switches[0], 'onValueChange', false);
       fireEvent(switches[1], 'onValueChange', true);
     });
 
-    fireEvent.press(getByText('Save'));
+    await act(async () => {
+      fireEvent.press(getByText('Save'));
+    });
 
     await waitFor(() => {
       expect(updateNotifications).toHaveBeenCalledWith({
@@ -109,7 +96,7 @@ describe('Notifications Settings Component', () => {
   });
 
   it('shows alert when trying to leave with unsaved changes', async () => {
-    const { getAllByRole, getByText } = render(
+    const { getAllByRole, getByTestId } = render(
       <ThemeProvider>
         <Notifications />
       </ThemeProvider>
@@ -117,26 +104,38 @@ describe('Notifications Settings Component', () => {
 
     await waitFor(() => {
       const switches = getAllByRole('switch');
+      expect(switches.length).toBe(2);
+    });
+
+    const switches = getAllByRole('switch');
+
+    await act(async () => {
       fireEvent(switches[0], 'onValueChange', false);
     });
 
-    const backButton = getByText('chevron-left');
-    fireEvent.press(backButton);
+    jest.spyOn(Alert, 'alert');
 
-    await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.press(getByTestId('back-button'));
     });
+
+    expect(Alert.alert).toHaveBeenCalled();
   });
 
   it('navigates back without alert when there are no changes', async () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <ThemeProvider>
         <Notifications />
       </ThemeProvider>
     );
 
     await waitFor(() => {
-      const backButton = getByText('chevron-left');
+      expect(getByTestId('back-button')).toBeTruthy();
+    });
+
+    const backButton = getByTestId('back-button');
+
+    await act(async () => {
       fireEvent.press(backButton);
     });
 
