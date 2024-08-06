@@ -154,7 +154,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.ID))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.OccupiID))
 }
 
 func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
@@ -284,6 +284,12 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 	_, err := database.UpdateUserDetails(ctx, appsession, user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update user details", constants.InternalServerErrorCode, "Failed to update user details", nil))
+		return
+	}
+
+	// if user is updating their email, create a new token for them
+	if user.Email != "" {
+		AttemptToSignNewEmail(ctx, appsession, user.Email)
 		return
 	}
 
@@ -829,10 +835,16 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	switch request.Quality {
 	case constants.ThumbnailRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
+
+		go PreloadAllImageResolutions(ctx, appsession, id)
 	case constants.LowRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
+
+		go PreloadMidAndHighResolutions(ctx, appsession, id)
 	case constants.MidRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+
+		go PreloadHighResolution(ctx, appsession, id)
 	case constants.HighRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
 	default:
@@ -951,4 +963,37 @@ func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload boo
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", gin.H{"id": newID}))
+}
+
+func AddRoom(ctx *gin.Context, appsession *models.AppSession) {
+	var room models.RequestRoom
+	if err := ctx.ShouldBindJSON(&room); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// Save the room to the database
+	roomID, err := database.AddRoom(ctx, appsession, room)
+	if err != nil {
+		var msg string
+		if err.Error() == "room already exists" {
+			msg = "Room already exists"
+		} else {
+			msg = "Failed to add room"
+		}
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to add room",
+			constants.InternalServerErrorCode,
+			"Failed to add room",
+			gin.H{"message": msg}))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully added room!", gin.H{"roomid": roomID}))
 }

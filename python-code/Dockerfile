@@ -13,11 +13,8 @@ RUN pip install -r requirements.txt
 # Copy the rest of the application code into the container
 COPY . .
 
-# Copy the scaler file into the container
-COPY attendance_scaler.pkl attendance_scaler.pkl
-
 # Expose the port the app runs on
-EXPOSE 5000
+EXPOSE 9000
 
 # Define the command to run the application using Gunicorn
-CMD ["gunicorn", "app:app", "-b", "0.0.0.0:5000", "-w", "4"]
+CMD ["gunicorn", "app:app", "-b", "0.0.0.0:9000", "-w", "4"]

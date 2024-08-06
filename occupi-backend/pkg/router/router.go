@@ -54,9 +54,15 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.GET("/image/:id", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadImage(ctx, appsession) })
 		api.POST("/upload-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadImage(ctx, appsession, false) })
 		api.POST("/upload-room-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadImage(ctx, appsession, true) })
+		api.PUT("/add-room", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{
+		auth.POST("/login-admin-begin", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.BeginLoginAdmin(ctx, appsession) })
+		auth.POST("/login-admin-finish/:id", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.FinishLoginAdmin(ctx, appsession, constants.Admin, true) })
+		auth.POST("/register-admin-begin", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.BeginRegistrationAdmin(ctx, appsession) })
+		auth.POST("/register-admin-finish/:id", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.FinishRegistrationAdmin(ctx, appsession, constants.Admin, true) })
+
 		auth.POST("/login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession, constants.Basic, true) })
 		auth.POST("/login-admin", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession, constants.Admin, true) })
 		auth.POST("/login-mobile", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession, constants.Basic, false) })
