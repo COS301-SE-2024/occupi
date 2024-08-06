@@ -1,10 +1,13 @@
 import React from 'react';
 import { ScrollView, useColorScheme } from 'react-native';
 import { View, Text, Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionContent } from '@gluestack-ui/themed';
+import { useTheme } from '@/components/ThemeContext';
 
 const FAQPage = () => {
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
+  const colorscheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorscheme : theme;
+  const isDarkMode = currentTheme === 'dark';
 
   const faqData = [
     {

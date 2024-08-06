@@ -8,122 +8,111 @@ import {
   Icon,
   Divider,
   Pressable,
+  Toast,
+  ToastTitle,
   Text
 } from '@gluestack-ui/themed';
-import { useNavigation } from '@react-navigation/native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';
 import { useColorScheme } from 'react-native';
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
+import { useToast } from '@gluestack-ui/themed';
+import { UserLogout } from '@/utils/auth';
+import { useTheme } from '@/components/ThemeContext';
 
 const Settings = () => {
   const [name, setName] = useState('');
   const [position, setPosition] = useState('');
-  const navigation = useNavigation();
-  let colorScheme = useColorScheme();
+  const toast = useToast();
+  const colorscheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorscheme : theme;
 
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
       let jsonresult = JSON.parse(result);
-      setName(String(jsonresult.data.details.name));
-      setPosition(String(jsonresult.data.position));
+      setName(String(jsonresult.name));
+      setPosition(String(jsonresult.position));
     };
     getUserDetails();
   }, []);
 
   const handleLogout = async () => {
-    let authToken = await SecureStore.getItemAsync('Token');
-    try {
-      const response = await fetch('https://dev.occupi.tech/auth/logout', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        credentials: "include"
-      });
-      const data = await response.json();
-      if (response.ok) {
-        console.log(data);
-        alert("logged out successfully");
-        router.replace('/login');
-      } else {
-        console.log(data);
-        alert("unable to logout");
+    const response = await UserLogout();
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === 'Logged out successfully!' ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
       }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    });
   }
-  // console.log("details"+name);
-
-  const handleNavigate = (screen) => {
-    navigation.navigate(screen);
-  };
 
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
     { title: 'Appearance', description: 'Customize your viewing experience', iconName: 'image', onPress: () => router.push('/set-appearance') },
-    { title: 'FAQ', description: '', iconName: 'info', onPress: () => router.push('faqpage') },
+    { title: 'FAQ', description: "View the community's FAQ", iconName: 'info', onPress: () => router.push('faqpage') },
     { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
   ];
 
   const renderListItem = ({ item }) => (
     <Pressable
       onPress={item.onPress}
-      style={[styles.listItem, colorScheme === 'dark' ? styles.darkItem : styles.lightItem]}
+      style={[styles.listItem, currentTheme === 'dark' ? styles.darkItem : styles.lightItem]}
     >
       <HStack space={3} justifyContent="space-between" alignItems="center">
         <View flexDirection="row">
-          <Box mr="$6" p="$3" borderRadius="$full" backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '$gainsboro'}>
-            <Icon as={Feather} name={item.iconName} size="lg" color={colorScheme === 'dark' ? 'white' : 'black'} />
+          <Box mr="$6" p="$3" borderRadius="$full" backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '$gainsboro'}>
+            <Icon as={Feather} name={item.iconName} size="lg" color={currentTheme === 'dark' ? 'white' : 'black'} />
           </Box>
           <VStack>
-            <Text style={[styles.title, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.title}</Text>
-            <Text fontWeight={'$light'} style={[styles.description, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
+            <Text style={[styles.title, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{item.title}</Text>
+            <Text fontWeight={'$light'} style={[styles.description, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{item.description}</Text>
           </VStack>
         </View>
-        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="lg" color={colorScheme === 'dark' ? 'white' : 'black'} />}
+        {item.accessoryRight ? item.accessoryRight() : <Icon as={Feather} name="chevron-right" size="lg" color={currentTheme === 'dark' ? 'white' : 'black'} />}
       </HStack>
     </Pressable>
   );
 
   return (
     <>
-      <ScrollView style={[styles.container, colorScheme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
+      <ScrollView style={[styles.container, currentTheme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
         <Box style={styles.profileContainer}>
           <Center style={styles.imageContainer}>
             <Image
-              source={{ uri: 'https://bookingagentinfo.com/wp-content/uploads/2022/09/Sabrina-Carpenter-1.jpg' }}
+              source={{ uri: 'https://www.kamogelomoeketse.online/assets/main-D2LspijS.png' }}
               style={styles.profileImage}
             />
-            <Icon as={MaterialIcons} name="camera-alt" size="md" color={colorScheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
+            <Icon as={MaterialIcons} name="camera-alt" size="md" color={currentTheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
           </Center>
           <Box style={styles.profileInfo}>
             <HStack space="xs" alignItems="center">
-              <Text style={[styles.profileName, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
-              {/* <Icon as={Feather} name="edit" size="sm" color={colorScheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
+              <Text style={[styles.profileName, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
+              {/* <Icon as={Feather} name="edit" size="sm" color={currentTheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
             </HStack>
-            <Text style={[styles.profileTitle, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text>
+            {/* <Text style={[styles.profileTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text> */}
           </Box>
         </Box>
-        <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
-        <VStack space="2xs" marginBottom={80}>
+        <Divider my={2} style={currentTheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
+        <VStack space="2xs" marginBottom={20}>
           {data.map((item, index) => (
             <View key={index}>
               {renderListItem({ item })}
-              <Divider my={2} style={colorScheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
+              <Divider my={2} style={currentTheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
             </View>
           ))}
         </VStack>
         <Center style={styles.footerContainer}>
-          <Text style={[styles.versionText, colorScheme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
+          <Text style={[styles.versionText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
         </Center>
       </ScrollView>
       <Navbar />
@@ -191,7 +180,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   footerContainer: {
-    padding: 16,
+    // padding: 16,
     alignItems: 'center',
   },
   versionText: {
