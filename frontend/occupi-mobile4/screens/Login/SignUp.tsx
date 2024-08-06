@@ -29,7 +29,6 @@ import {
   FormControlLabelText,
   View
 } from '@gluestack-ui/themed';
-import { retrievePushToken } from '@/utils/notifications';
 import GradientButton from '@/components/GradientButton';
 import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
@@ -40,7 +39,6 @@ import { Keyboard } from 'react-native';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { userRegister } from '@/utils/auth';
 
 const isEmployeeIdFocused = false;
 const signUpSchema = z.object({
@@ -71,7 +69,6 @@ const signUpSchema = z.object({
 
 type SignUpSchemaType = z.infer<typeof signUpSchema>;
 
-retrievePushToken();
 
 const SignUpForm = () => {
   const {
@@ -88,18 +85,50 @@ const SignUpForm = () => {
   const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
       setLoading(true);
-    const response = await userRegister(_data.email, _data.password, _data.employeeId);
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
-            <ToastTitle>{response}</ToastTitle>
-          </Toast>
-        );
+      try {
+        const response = await fetch('https://dev.occupi.tech/auth/register', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: _data.email,
+            password: _data.password
+          }),
+          credentials: "include"
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setLoading(false);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          router.push({pathname:'/verify-otp', params: { email: _data.email}});
+        } else {
+          setLoading(false);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="error">
+                  <ToastTitle>{data.error.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
       }
-    });
-    setLoading(false);
+      setLoading(false)
     } else {
       toast.show({
         placement: 'bottom right',

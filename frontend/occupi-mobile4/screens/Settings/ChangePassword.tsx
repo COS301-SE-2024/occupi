@@ -6,8 +6,7 @@ import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
-  useColorScheme
+  Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -30,6 +29,7 @@ import {
 import { Controller, useForm } from 'react-hook-form';
 import { router } from 'expo-router';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
+import { useColorScheme, Switch } from 'react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import GradientButton from '@/components/GradientButton';
@@ -37,8 +37,6 @@ import * as SecureStore from 'expo-secure-store';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import axios from 'axios';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
-import { updateSecurity } from '@/utils/user';
-import { useTheme } from '@/components/ThemeContext';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -61,29 +59,67 @@ const SIZES = {
 type SignUpSchemaType = z.infer<typeof signUpSchema>;
 
 const ChangePassword = () => {
-  const colorscheme = useColorScheme();
-  const { theme } = useTheme();
-  const currentTheme = theme === "system" ? colorscheme : theme;
+  let colorScheme = useColorScheme();
   const toast = useToast();
 
   const onSubmit = async (_data: SignUpSchemaType) => {
-    if (_data.password === _data.confirmpassword) {
-      const settings = {
+    //integration here
+    let userEmail = await SecureStore.getItemAsync('Email');
+    console.log(JSON.stringify({
+        email: userEmail,
         currentPassword: _data.currentpassword,
         newPassword: _data.password,
         newPasswordConfirm: _data.confirmpassword
-      };
-      const response = await updateSecurity('password', settings)
-      toast.show({
-        placement: 'top',
-        render: ({ id }) => {
-          return (
-            <Toast nativeID={String(id)} variant="accent" action={response === "Successfully changed password" ? 'success' : 'error'}>
-              <ToastTitle>{response}</ToastTitle>
-            </Toast>
-          );
-        },
-      });
+    }));
+    if (_data.password === _data.confirmpassword) {
+      let userEmail = await SecureStore.getItemAsync('Email');
+      let authToken = await SecureStore.getItemAsync('Token');
+
+      try {
+        const response = await axios.post('https://dev.occupi.tech/api/update-security-settings', {
+            email: userEmail,
+            currentPassword: _data.currentpassword,
+            newPassword: _data.password,
+            newPasswordConfirm: _data.confirmpassword
+        }, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `${authToken}`
+          },
+          withCredentials: true
+        });
+        const data = response.data;
+        // console.log(`Response Data: ${JSON.stringify(data.data)}`);
+        console.log(data);
+        if (response.status === 200) {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>Password successfully changed</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          router.replace('/settings');
+        } else {
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+          console.log(data);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
     else if (_data.currentpassword === _data.password) {
       Alert.alert('Error', 'New password cannot be the same as the current password');
@@ -153,7 +189,7 @@ const ChangePassword = () => {
   return (
 
 
-    <View flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
+    <View flex={1} backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -164,16 +200,16 @@ const ChangePassword = () => {
               as={Feather}
               name="chevron-left"
               size="xl"
-              color={currentTheme === 'dark' ? 'white' : 'black'}
+              color={colorScheme === 'dark' ? 'white' : 'black'}
               onPress={() => router.back()}
             />
-            <Text style={styles.headerTitle} color={currentTheme === 'dark' ? 'white' : 'black'}>
+            <Text style={styles.headerTitle} color={colorScheme === 'dark' ? 'white' : 'black'}>
               Change Password
             </Text>
             <FontAwesome5
               name="fingerprint"
               size={24}
-              color={currentTheme === 'dark' ? 'white' : 'black'}
+              color={colorScheme === 'dark' ? 'white' : 'black'}
               style={styles.icon}
             />
           </View>
@@ -182,7 +218,7 @@ const ChangePassword = () => {
           <View flexDirection="column">
             <FormControl isInvalid={!!errors.password} isRequired={true} mt="$4">
               <FormControlLabel mb="$1">
-                <FormControlLabelText color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">Current Password</FormControlLabelText>
+                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">Current Password</FormControlLabelText>
               </FormControlLabel>
               <Controller
                 defaultValue=""
@@ -201,7 +237,7 @@ const ChangePassword = () => {
                   },
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
-                  <Input backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
+                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
                     <InputField
                       fontSize={wp('4%')}
                       placeholder="Password"
@@ -210,7 +246,7 @@ const ChangePassword = () => {
                       onBlur={onBlur}
                       onSubmitEditing={handleKeyPress}
                       returnKeyType="done"
-                      color={currentTheme === 'dark' ? 'white' : 'black'}
+                      color={colorScheme === 'dark' ? 'white' : 'black'}
                       type={showPassword ? 'text' : 'password'}
                     />
                     <InputSlot onPress={handleState} pr="$3">
@@ -229,7 +265,7 @@ const ChangePassword = () => {
 
             <FormControl isInvalid={!!errors.password} isRequired={true} mt="$4">
               <FormControlLabel mb="$1">
-                <FormControlLabelText color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">New Password</FormControlLabelText>
+                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">New Password</FormControlLabelText>
               </FormControlLabel>
               <Controller
                 defaultValue=""
@@ -248,7 +284,7 @@ const ChangePassword = () => {
                   },
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
-                  <Input backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
+                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
                     <InputField
                       fontSize={wp('4%')}
                       placeholder="Password"
@@ -256,7 +292,7 @@ const ChangePassword = () => {
                       onChangeText={onChange}
                       onBlur={onBlur}
                       onSubmitEditing={handleKeyPress}
-                      color={currentTheme === 'dark' ? 'white' : 'black'}
+                      color={colorScheme === 'dark' ? 'white' : 'black'}
                       returnKeyType="done"
                       type={showPassword ? 'text' : 'password'}
                     />
@@ -276,7 +312,7 @@ const ChangePassword = () => {
 
             <FormControl isInvalid={!!errors.confirmpassword} isRequired={true} mt="$4">
               <FormControlLabel mb="$1">
-                <FormControlLabelText color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">Confirm Password</FormControlLabelText>
+                <FormControlLabelText color={colorScheme === 'dark' ? 'white' : 'black'} fontWeight="$normal">Confirm Password</FormControlLabelText>
               </FormControlLabel>
               <Controller
                 defaultValue=""
@@ -296,7 +332,7 @@ const ChangePassword = () => {
                   },
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
-                  <Input backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
+                  <Input backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$xl" borderColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h={hp('6%')}>
                     <InputField
                       placeholder="Confirm Password"
                       fontSize={wp('4%')}
@@ -304,7 +340,7 @@ const ChangePassword = () => {
                       onChangeText={onChange}
                       onBlur={onBlur}
                       onSubmitEditing={handleKeyPress}
-                      color={currentTheme === 'dark' ? 'white' : 'black'}
+                      color={colorScheme === 'dark' ? 'white' : 'black'}
                       returnKeyType="done"
                       type={showConfirmPassword ? 'text' : 'password'}
                     />

@@ -26,11 +26,33 @@ import * as SecureStore from 'expo-secure-store';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Theme } from 'react-native-calendars/src/types';
 import { PageIndicator } from 'react-native-page-indicator';
-import { useTheme } from '@/components/ThemeContext';
 
 type RootStackParamList = {
   BookingDetails: undefined;
 };
+
+// interface Room {
+//   _id: string;
+//   roomName: string;
+//   roomId: string;
+//   roomNo: number;
+//   floorNo: number;
+//   minOccupancy: number;
+//   maxOccupancy: number;
+//   description: string;
+// }
+
+// const images = [
+//   {
+//     uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/Modern-Office-Interior-with-Open-Floor-Plan-1024x683.jpeg',
+//   },
+//   {
+//     uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/modern-office-design-for-a-large-conference-room-1024x838.jpeg',
+//   },
+//   {
+//     uri: 'https://cdn-bnokp.nitrocdn.com/QNoeDwCprhACHQcnEmHgXDhDpbEOlRHH/assets/images/optimized/rev-15fa1b1/www.decorilla.com/online-decorating/wp-content/uploads/2022/03/Industrial-style-office-interior-design-Sonia-C-1024x683.jpg',
+//   },
+// ];
 
 const pages = ['Page 1', 'Page 2', 'Page 3'];
 
@@ -39,10 +61,8 @@ const OfficeDetails = () => {
   const [startTime, setStartTime] = useState();
   const [endTime, setEndTime] = useState();
   const router = useRouter();
-  const { theme } = useTheme();
-  const colorscheme = useColorScheme();
-  const currentTheme = theme === "system" ? colorscheme : theme;
-  const isDarkMode = currentTheme === 'dark';
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
   const [room, setRoom] = useState();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -71,7 +91,7 @@ const OfficeDetails = () => {
   useEffect(() => {
     const getCurrentRoom = async () => {
       let result : string = await SecureStore.getItemAsync('CurrentRoom');
-      // console.log("CurrentRoom:",result);
+      console.log("CurrentRoom:",result);
       // setUserDetails(JSON.parse(result).data);
       let jsonresult = JSON.parse(result);
       // console.log(jsonresult);
@@ -114,27 +134,27 @@ const OfficeDetails = () => {
       maxOccupancy: room?.maxOccupancy
     };
 
-    // console.log(bookingInfo);
+    console.log(bookingInfo);
     await SecureStore.setItemAsync('BookingInfo', JSON.stringify(bookingInfo));
     router.replace('/booking-details');
   }
 
-  console.log(theme);
+
   // console.log(room?);
   // console.log(userEmail);
 
   return (
     <>
       {/* Top Section */}
-      <View pt="$12" px="$8" pb="$4" backgroundColor={isDarkMode ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Icon right="$4" as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
+      <View pt="$12" px="$8" pb="$4" backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Icon right="$4" as={Feather} name="chevron-left" size="xl" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
         <Text right="$2" fontWeight="$bold" fontSize={22} style={{ color: isDarkMode ? '#fff' : '#000' }}>{room?.roomName}</Text>
         <View alignItems="center" flexDirection="row" w="$24" justifyContent="space-between">
           <View rounded="$full" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} p="$2">
             <Feather name="heart" size={24} color={isDarkMode ? '#fff' : '#000'} />
           </View>
           <View rounded="$full" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} p="$2">
-            <Feather name="share" mx="$8" size={24} color={currentTheme === 'dark' ? 'white' : 'black'} />
+            <Feather name="share" mx="$8" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
           </View>
         </View>
       </View >
