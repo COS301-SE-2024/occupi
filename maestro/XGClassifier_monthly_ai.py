@@ -9,7 +9,7 @@ from xgboost import XGBClassifier
 import holidays
 
 # Load the CSV file
-file_path = '../datasets/Monthly_OfficeCapacity (1).csv'
+file_path = 'datasets/Monthly_OfficeCapacity (1).csv'
 df = pd.read_csv(file_path)
 
 # Data Preprocessing

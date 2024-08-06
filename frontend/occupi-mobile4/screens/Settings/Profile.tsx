@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
@@ -24,14 +23,10 @@ import {
 } from '@gluestack-ui/themed';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { router } from 'expo-router';
+import { useColorScheme } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import LoadingGradientButton from '@/components/LoadingGradientButton';
-import { useTheme } from '@/components/ThemeContext';
-import { extractDateFromTimestamp } from '@/utils/utils';
-import { Toast, useToast } from '@gluestack-ui/themed';
-import { ToastTitle } from '@gluestack-ui/themed';
-import { updateDetails } from '@/utils/user';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -52,56 +47,48 @@ const SIZES = {
 };
 
 const Profile = () => {
-  const [selectedGenderIndex, setSelectedGenderIndex] = useState('Male');
+  const [selectedGenderIndex, setSelectedGenderIndex] = useState(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [employeeId, setEmployeeId] = useState('OCCUPI20242417');
+  const [employeeId, setEmployeeId] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [pronouns, setPronouns] = useState('');
   const [date, setDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const colorscheme = useColorScheme();
-  const { theme } = useTheme();
-  const currentTheme = theme === "system" ? colorscheme : theme;
-  const toast = useToast();
-  // console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);
+  let colorScheme = useColorScheme();
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
+  const updateDetailsUrl = process.env.EXPO_PUBLIC_UPDATE_USER_DETAILS;
+  console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);
 
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
-      console.log(result);
-      const email =  await SecureStore.getItemAsync('Email');
-  
-      let user = JSON.parse(result);
-      setName(String(user?.name));
-      setEmail(String(email));
-      setEmployeeId(String(user?.employeeid));
-      setPhoneNumber(String(user?.number));
-      setPronouns(String(user?.pronouns));
-      setSelectedGenderIndex(String(user?.gender))
-      const dateString = user?.dob;
-      console.log('dateee',dateString);
-
-      // Manually parse the date string
-      const [datePart] = dateString.split('T');
-      const [year, month, day] = datePart.split('-').map(Number);
-
-      // Create a new Date object
-      const date = new Date(year, month, day);
-      // console.log(date.getDate());
+      console.log("UserData:",result);
+      // setUserDetails(JSON.parse(result).data);
+      let jsonresult = JSON.parse(result);
+      // console.log(jsonresult.data.details.name);
+      setName(String(jsonresult?.data?.details?.name));
+      setEmail(String(jsonresult?.data?.email));
+      setEmployeeId(String(jsonresult?.data?.occupiId));
+      setPhoneNumber(String(jsonresult?.data?.details?.contactNo));
+      setPronouns(String(jsonresult?.data?.details?.pronouns));
+      const dateString = jsonresult?.data?.details?.dob;
+      const date = new Date(dateString);
 
       // Get the day, month, and year
-      const formattedDay = date.getDate();
-      const formattedMonth = date.getMonth(); // Months are zero-based
-      const formattedYear = date.getFullYear();
+      const day = date.getDate();
+      const month = date.getMonth() + 1; // Months are zero-based
+      const year = date.getFullYear();
 
       // Format the date as MM/DD/YYYY
-      const formatted = `${formattedYear}-${formattedMonth}-${formattedDay}`;
-      // console.log(formatted);
+      const formatted = `${month}/${day}/${year}`;
 
       // Set the formatted date in the state
-      setDate(formatted);
+      setDate(formatted)
+
+      // console.log(JSON.parse(result).data.details.name);
     };
     getUserDetails();
   }, []);
@@ -114,31 +101,81 @@ const Profile = () => {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (selectedDate: string) => {
-    console.log('selected',extractDateFromTimestamp(selectedDate));
-    setDate(extractDateFromTimestamp(selectedDate));
+  const handleConfirm = (selectedDate) => {
+    setDate(selectedDate);
     hideDatePicker();
   };
 
-
   const onSave = async () => {
-    const response = await updateDetails(name,date,selectedGenderIndex,phoneNumber,pronouns)
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={String(id)} variant="accent" action={response === "Details updated successfully" ? 'success' : 'error'}>
-            <ToastTitle>{response}</ToastTitle>
-          </Toast>
-        );
-      },
-    });
+    const body = {
+      "email": email,
+      "details": {
+        "contactNo": phoneNumber,
+        "gender": "Male",
+        "name": name,
+        "pronouns": pronouns
+      }
+    };
+    // console.log(JSON.stringify(body));
+    setIsLoading(true);
+    try {
+      let authToken = await SecureStore.getItemAsync('Token');
+      const response = await fetch(`${apiUrl}${updateDetailsUrl}`, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
+        },
+        body: JSON.stringify(body),
+        credentials: "include"
+      });
+      const data = await response.json();
+      console.log(data);
+      if (response.ok) {
+        console.log(response);
+        setIsLoading(false);
+        alert('Details updated successfully');
+      } else {
+        console.log(data);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Error:', error);
+      // setResponse('An error occurred');
+    }
+
+    try {
+      let authToken = await SecureStore.getItemAsync('Token');
+      const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`
+        },
+        credentials: "include"
+      });
+      const data = await response.json();
+      if (response.ok) {
+        saveUserData(JSON.stringify(data));
+        console.log(data);
+      } else {
+        console.log(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
+  async function saveUserData(value) {
+    await SecureStore.setItemAsync('UserData', value);
+  }
 
   return (
     <SafeAreaView
-      style={currentTheme === 'dark' ? styles.containerdark : styles.containerlight}
+      style={colorScheme === 'dark' ? styles.containerdark : styles.containerlight}
     >
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
@@ -146,37 +183,37 @@ const Profile = () => {
             as={Feather}
             name={"chevron-left"}
             size="xl"
-            color={currentTheme === 'dark' ? 'white' : 'black'}
+            color={colorScheme === 'dark' ? 'white' : 'black'}
             onPress={() => router.replace('/settings')}
           />
-          <Text style={[styles.headerTitle, currentTheme === 'dark' ? styles.textdark : styles.textlight]}>
+          <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
             My account
           </Text>
           <MaterialIcons
             name="person-outline"
             size={24}
-            color={currentTheme === 'dark' ? 'white' : 'black'}
+            color={colorScheme === 'dark' ? 'white' : 'black'}
             style={styles.icon}
           />
         </View>
 
-        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
         <TextInput
-          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           value={name}
           placeholderTextColor={COLORS.gray}
           onChangeText={setName}
         />
 
-        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Date of birth</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Date of birth</Text>
         <TouchableOpacity
           onPress={showDatePicker}
-          style={currentTheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}
+          style={colorScheme === 'dark' ? styles.dateInputContainerdark : styles.dateInputContainerlight}
         >
-          <Text style={currentTheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>
+          <Text style={colorScheme === 'dark' ? styles.dateTextdark : styles.dateTextlight}>
             {date}
           </Text>
-          <MaterialIcons name="calendar-today" size={24} color={currentTheme === 'dark' ? 'white' : 'black'} />
+          <MaterialIcons name="calendar-today" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
         </TouchableOpacity>
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
@@ -185,80 +222,77 @@ const Profile = () => {
           onCancel={hideDatePicker}
         />
 
-        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
-        <RadioGroup mb="$4" value={selectedGenderIndex} onChange={(index) => setSelectedGenderIndex(index)}>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
+        {/* <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
           <VStack flexDirection="row" justifyContent="space-between" space="sm">
             <Radio
-              backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
-              value={"Male"}
+              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
-
             >
-              <RadioLabel color={currentTheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
+              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
             <Radio
-              backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
-              value={"Female"}
+              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
             >
-              <RadioLabel color={currentTheme === 'dark' ? 'white' : 'black'}>Female</RadioLabel>
+              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Female</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
             <Radio
-              backgroundColor={currentTheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
+              backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
               borderRadius="$xl"
-              value={"Other"}
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
             >
-              <RadioLabel color={currentTheme === 'dark' ? 'white' : 'black'}>Other</RadioLabel>
+              <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Other</RadioLabel>
               <RadioIndicator ml="$2">
                 <RadioIcon as={CircleIcon} />
               </RadioIndicator>
             </Radio>
           </VStack>
-        </RadioGroup>
-        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
+        </RadioGroup> */}
+
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Email Address</Text>
         <TextInput
-          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder={email}
           placeholderTextColor={COLORS.gray}
           editable={false}
           onChangeText={setEmail}
         />
 
-        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Occupi ID</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Occupi ID</Text>
         <TextInput
-          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           placeholder={employeeId}
           placeholderTextColor={COLORS.gray}
           editable={false}
           onChangeText={setEmployeeId}
         />
 
-        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Cell No</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Cell No</Text>
         <TextInput
-          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           value={phoneNumber}
           placeholderTextColor={COLORS.gray}
           onChangeText={setPhoneNumber}
         />
 
-        <Text style={currentTheme === 'dark' ? styles.labeldark : styles.labellight}>Pronouns (optional)</Text>
+        <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Pronouns (optional)</Text>
         <TextInput
-          style={currentTheme === 'dark' ? styles.inputdark : styles.inputlight}
+          style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
           value={pronouns}
           placeholderTextColor={COLORS.gray}
           onChangeText={setPronouns}

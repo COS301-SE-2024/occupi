@@ -13,7 +13,6 @@ import Navbar from '../../components/NavBar';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
 import { Skeleton } from 'moti/skeleton';
-import { useTheme } from '@/components/ThemeContext';
 
 const groupDataInPairs = (data) => {
   if (!data) return [];
@@ -37,11 +36,9 @@ interface Room {
 
 const BookRoom = () => {
   const router = useRouter();
-  const { theme } = useTheme();
-  const colorscheme = useColorScheme();
+  const colorScheme = useColorScheme();
   const toast = useToast();
-  const currentTheme = theme === "system" ? colorscheme : theme;
-  const isDarkMode = currentTheme === "dark";
+  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
   const [layout, setLayout] = useState("row");
   const [loading, setLoading] = useState(true);
   const [roomData, setRoomData] = useState<Room[]>([]);
@@ -106,8 +103,11 @@ const BookRoom = () => {
       }
     };
     fetchAllRooms();
-  }, [toast]);
+  }, [toast, apiUrl, viewroomsendpoint]);
 
+  useEffect(() => {
+    setIsDarkMode(colorScheme === 'dark');
+  }, [colorScheme]);
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
