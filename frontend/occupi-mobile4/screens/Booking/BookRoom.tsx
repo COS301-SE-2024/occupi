@@ -14,6 +14,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import * as SecureStore from 'expo-secure-store';
 import { Skeleton } from 'moti/skeleton';
 import { useTheme } from '@/components/ThemeContext';
+import { fetchRooms } from '@/utils/bookings';
 
 const groupDataInPairs = (data) => {
   if (!data) return [];
@@ -61,51 +62,21 @@ const BookRoom = () => {
   }, []);
 
   useEffect(() => {
-    const fetchAllRooms = async () => {
-      // console.log("heree");
-      let authToken = await SecureStore.getItemAsync('Token');
+    const getRoomData = async () => {
       try {
-        const response = await fetch(`${apiUrl}${viewroomsendpoint}?floorNo=0`, {
-          method: 'GET',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `${authToken}`
-          },
-      });
-        const data = await response.json();
-        // console.log(data);
-        if (response.ok) {
-          setRoomData(data.data || []); // Ensure data is an array
-          setLoading(false);
-        } else {
-          console.log(data);
-          setLoading(false);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>{data.error.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-        }
+          const roomData = await fetchRooms('','');
+          if (roomData) {
+              // console.log(roomData);
+              setRoomData(roomData);
+          } else {
+              setRoomData([]);
+          }
       } catch (error) {
-        console.error('Error:', error);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="error">
-                <ToastTitle>Network Error: {error.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
+          console.error('Error fetching bookings:', error);
       }
-    };
-    fetchAllRooms();
+      setLoading(false);
+  };
+  getRoomData();
   }, [toast]);
 
 
