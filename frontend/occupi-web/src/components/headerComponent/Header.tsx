@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
-import { useUser } from 'UserContext';
+import { useUser } from 'userStore'; // Make sure this path is correct
 
 interface HeaderComponentProps {
   greeting?: string;

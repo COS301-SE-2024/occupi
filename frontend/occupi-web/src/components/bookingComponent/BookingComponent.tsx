@@ -370,7 +370,9 @@ export default function App() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
     >
-      <div data-testid="table">
+
+      
+      <div data-testid="table" className="max-w-[95%] mx-auto">
         <Table
           aria-label="Example table with custom cells, pagination and sorting"
           isHeaderSticky
