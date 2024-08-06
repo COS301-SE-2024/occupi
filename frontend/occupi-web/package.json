@@ -27,6 +27,7 @@
     "@remixicon/react": "^4.2.0",
     "@testing-library/jest-dom": "^6.4.6",
     "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "testing-library/user-event",
     "@tremor/react": "^3.17.4",
     "@types/babel__core": "^7.20.5",
     "@types/jest": "^29.5.12",
