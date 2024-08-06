@@ -50,3 +50,14 @@ export interface NotificationSettings {
     invites: "on" | "off";
     bookingReminder: "on" | "off";
 }
+
+export interface Prediction {
+    Date: string,
+    Day_of_week: number,
+    Day_of_month: number,
+    Is_Weekend: boolean,
+    Month: number,
+    Predicted_Attendance_Level: string,
+    Predicted_Class: number,
+    Special_Event: number
+}
