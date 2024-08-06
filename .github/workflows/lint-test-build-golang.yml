@@ -1,4 +1,4 @@
-name: Lint, Test and Build golang
+name: Lint🌸, Test🧪 and Build🏗️ golang
 
 on:
   pull_request:
@@ -20,28 +20,28 @@ defaults:
 
 jobs:
   lint:
-    name: Lint
+    name: 🌸 Lint
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: ⬇️ Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Go
+    - name: 🏗 Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'  # Specify the Go version you are using
 
-    - name: Install golangci-lint
+    - name: 📦 Install golangci-lint
       run: |
         go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
-    - name: Run golangci-lint
+    - name: 🌸 Run golangci-lint
       run: |
         golangci-lint run
 
   test:
-    name: Test
+    name: 🧪 Test
     runs-on: ubuntu-latest
 
     services:
@@ -56,10 +56,10 @@ jobs:
           --health-retries 5
 
     steps:
-    - name: Checkout code
+    - name: ⬇️ Checkout code
       uses: actions/checkout@v4
 
-    - name: Install mongosh
+    - name: 📦 Install mongosh
       run: |
         wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
         echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
@@ -67,7 +67,7 @@ jobs:
         sudo apt-get install -y mongodb-mongosh
 
 
-    - name: Wait for MongoDB to be ready
+    - name: ⌛ Wait for MongoDB to be ready
       run: |
         for i in {1..30}; do
           if mongosh --eval 'db.adminCommand({ping: 1})' ${{ secrets.MONGO_DB_TEST_URL }}; then
@@ -78,7 +78,7 @@ jobs:
           sleep 2
         done
 
-    - name: Create MongoDB User
+    - name: 🏗 Create MongoDB User
       env:
         MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_DB_TEST_USERNAME }}
         MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_DB_TEST_PASSWORD }}
@@ -94,45 +94,47 @@ jobs:
           });
         "
 
-    - name: Set up Go
+    - name: 🏗 Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'  # Specify the Go version you are using
     
-    - name: Decrypt default variables
+    - name: 🔓 Decrypt default variables
       run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/config.yaml.gpg > configs/config.yaml
 
-    - name: Decrypt test variables
+    - name: 🔓 Decrypt test variables
       run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/test.yaml.gpg > configs/test.yaml
                 
-    - name: Install gotestsum
+    - name: 📦 Install gotestsum
       run: |
         go install gotest.tools/gotestsum@latest
 
-    - name: Run tests
+    - name: 🧪 Run tests
       run: |
         gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
 
-    - name: Upload coverage reports to Codecov
+    - name: 📋 Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+        verbose: true
 
   build:
-    name: Build
+    name: 🏗️ Build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: ⬇️ Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Go
+    - name: 🏗 Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'  # Specify the Go version you are using
 
-    - name: Build the code
+    - name: 🚀 Build the code
       run: |
         go build -v cmd/occupi-backend/main.go

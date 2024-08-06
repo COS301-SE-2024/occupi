@@ -26,9 +26,8 @@ import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
-import { sendPushNotification } from "@/utils/notifications";
-import { userBookRoom } from "@/utils/bookings";
-import { useTheme } from "@/components/ThemeContext";
+
+import { sendPushNotification } from "@/utils/utils";
 
 const BookingDetails = () => {
   const navigation = useNavigation();
@@ -36,19 +35,23 @@ const BookingDetails = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [bookingInfo, setbookingInfo] = useState();
-  const colorscheme = useColorScheme();
+  const colorScheme = useColorScheme();
   const toast = useToast();
   const router = useRouter();
+  const [creatorEmail, setCreatorEmail] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const { theme } = useTheme();
-  const currentTheme = theme === "system" ? colorscheme : theme;
-  const isDark = colorscheme === "dark";
+  const isDark = colorScheme === "dark";
   const [pushTokens, setPushTokens] = useState([]);
+  // console.log(creatorEmail + roomId + floorNo);
+  // console.log(bookingInfo?);
+  // console.log(startTime);
   const [attendees, setAttendees] = useState(['']);
   // console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
   const steps = ["Booking details", "Invite attendees", "Receipt"];
+  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
+  const bookroomendpoint = process.env.EXPO_PUBLIC_BOOK_ROOM;
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
   useEffect(() => {
@@ -61,13 +64,21 @@ const BookingDetails = () => {
 
   useEffect(() => {
     const getbookingInfo = async () => {
-      let userEmail = await SecureStore.getItemAsync('Email');     
+      let userinfo = await SecureStore.getItemAsync('UserData');
+      // if (result !== undefined) {
+      let jsoninfo = JSON.parse(userinfo);
+      console.log("data", jsoninfo?.data.details.name);
+      setCreatorEmail(jsoninfo?.data?.email);
       let result: string = await SecureStore.getItemAsync('BookingInfo');
+      console.log("CurrentRoom:", jsoninfo?.data?.email);
+      // setUserDetails(JSON.parse(result).data);
       let jsonresult = JSON.parse(result);
+      console.log("BookingInfo", jsonresult);
       setbookingInfo(jsonresult);
       setStartTime(jsonresult.startTime);
       setEndTime(jsonresult.endTime);
-      setAttendees([userEmail]);
+      console.log(jsoninfo?.data?.email);
+      setAttendees([jsoninfo?.data?.email]);
     };
     getbookingInfo();
   }, []);
@@ -84,23 +95,92 @@ const BookingDetails = () => {
   };
 
   const onSubmit = async () => {
-    setLoading(true);
-    const response = await userBookRoom(attendees, startTime, endTime);
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={String(id)} variant="accent" action={response === 'Successfully booked!' ? 'success' : 'error'}>
-            <ToastTitle>{response}</ToastTitle>
-          </Toast>
-        );
+    const body = {
+      "roomId": bookingInfo?.roomId,
+      "emails": attendees,
+      "roomName": bookingInfo?.roomName,
+      "creator": creatorEmail,
+      "floorNo": bookingInfo?.floorNo,
+      "date": `${bookingInfo?.date}T00:00:00.000+00:00`,
+      "start": `${bookingInfo?.date}T${startTime}:00.000+00:00`,
+      "end": `${bookingInfo?.date}T${endTime}:00.000+00:00`
+    };
+    console.log("hereeeeee", body);
+    let authToken = await SecureStore.getItemAsync('Token');
+    let userinfo = await SecureStore.getItemAsync('UserData');
+    let jsoninfo = JSON.parse(userinfo);
+    try {
+      setLoading(true);
+      const response = await fetch(`${apiUrl}${bookroomendpoint}`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `${authToken}`,
+          'X-Timezone': 'Africa/Johannesburg'
+        },
+        body: JSON.stringify(body),
+        credentials: "include"
+      });
+      const data = await response.json();
+      console.log(data);
+      console.log(attendees);
+      if (response.ok) {
+        try {
+          const response = await fetch(`${apiUrl}/api/get-push-tokens?emails=${attendees.slice(1)}`, {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `${authToken}`,
+              'X-Timezone': 'Africa/Johannesburg'
+            },
+            credentials: "include"
+          });
+          const data = await response.json();
+          console.log("PUSHH TOKENSS",data);
+          if (data.data) {
+            let tokens = data.data.map((item) => item.expoPushToken);
+            setPushTokens(tokens);
+            console.log(tokens);
+            sendPushNotification(tokens, "New Booking", `${jsoninfo?.data.details.name} has invited you to a booking.`);
+          }
+          setCurrentStep(2);
+          setLoading(false);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={String(id)} variant="accent" action="success">
+                  <ToastTitle>{data.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        } catch (error) {
+          setLoading(false);
+          console.error('Error:', error);
+        }
+      } else {
+        console.log(data);
+        setLoading(false);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action="error">
+                <ToastTitle>{data.message}</ToastTitle>
+              </Toast>
+            );
+          },
+        });
       }
-    });
-
-    if (response === 'Successfully booked!') {
-      setCurrentStep(2);
+    } catch (error) {
+      setLoading(false);
+      console.error('Error:', error);
+      // setResponse('An error occurred');
     }
-    setLoading(false);
+    // }, 3000);
   };
 
   const renderAttendee = ({ item }) => (
@@ -234,9 +314,9 @@ const BookingDetails = () => {
         }}
       >
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
+          <Icon as={Feather} name="chevron-left" size="xl" color={colorScheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
         </TouchableOpacity>
-        {/* <Feather name="calendar" size={24} color={currentTheme === 'dark' ? 'white' : 'black'} /> */}
+        {/* <Feather name="calendar" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} /> */}
         <Text
           style={{
             fontSize: 18,

@@ -12,6 +12,43 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
 
+func TestUserKey(t *testing.T) {
+	email := "test@example.com"
+	expected := "Users:test@example.com"
+	result := cache.UserKey(email)
+	if result != expected {
+		t.Errorf("UserKey(%s) = %s; want %s", email, result, expected)
+	}
+}
+
+func TestOTPKey(t *testing.T) {
+	email := "test@example.com"
+	otp := "123456"
+	expected := "OTPs:test@example.com:123456"
+	result := cache.OTPKey(email, otp)
+	if result != expected {
+		t.Errorf("OTPKey(%s, %s) = %s; want %s", email, otp, result, expected)
+	}
+}
+
+func TestRoomBookingKey(t *testing.T) {
+	roomID := "room123"
+	expected := "RoomBookings:room123"
+	result := cache.RoomBookingKey(roomID)
+	if result != expected {
+		t.Errorf("RoomBookingKey(%s) = %s; want %s", roomID, result, expected)
+	}
+}
+
+func TestImageKey(t *testing.T) {
+	imageID := "image123"
+	expected := "Images:image123"
+	result := cache.ImageKey(imageID)
+	if result != expected {
+		t.Errorf("ImageKey(%s) = %s; want %s", imageID, result, expected)
+	}
+}
+
 func TestGetUser(t *testing.T) {
 	email := "test@example.com"
 	user := models.User{Email: email}
@@ -52,7 +89,7 @@ func TestGetUser(t *testing.T) {
 				appsession = &models.AppSession{
 					Cache: configs.CreateCache(),
 				}
-				err := appsession.Cache.Set(email, userData)
+				err := appsession.Cache.Set(cache.UserKey(email), userData)
 
 				assert.NoError(t, err)
 			} else {
@@ -109,7 +146,7 @@ func TestSetUser(t *testing.T) {
 			if tt.name != "cache is nil" {
 
 				// check if user was set in cache
-				userData, err := appsession.Cache.Get(email)
+				userData, err := appsession.Cache.Get(cache.UserKey(email))
 				assert.NoError(t, err)
 
 				// unmarshal the user from the cache
@@ -143,6 +180,11 @@ func TestDeleteUser(t *testing.T) {
 			email:        email,
 			expectedUser: models.User{},
 		},
+		{
+			name:         "cache key does not exist",
+			email:        "doesnotexist@example.com",
+			expectedUser: models.User{},
+		},
 	}
 
 	for _, tt := range tests {
@@ -156,7 +198,7 @@ func TestDeleteUser(t *testing.T) {
 
 				// add user to cache
 				userData, _ := bson.Marshal(user)
-				err := appsession.Cache.Set(email, userData)
+				err := appsession.Cache.Set(cache.UserKey(email), userData)
 
 				assert.NoError(t, err)
 			} else {
@@ -165,12 +207,19 @@ func TestDeleteUser(t *testing.T) {
 
 			cache.DeleteUser(appsession, tt.email)
 
-			if tt.name != "cache is nil" {
+			if tt.name != "cache is nil" && tt.name != "cache key does not exist" {
 
 				// check if user was deleted in cache
-				userData, err := appsession.Cache.Get(email)
+				userData, err := appsession.Cache.Get(cache.UserKey(email))
 				assert.NotNil(t, err)
 				assert.Nil(t, userData)
+			}
+
+			if tt.name == "cache key does not exist" {
+				// check if user was not deleted in cache
+				userData, err := appsession.Cache.Get(cache.UserKey(email))
+				assert.NoError(t, err)
+				assert.NotNil(t, userData)
 			}
 		})
 	}
@@ -217,7 +266,7 @@ func TestGetOTP(t *testing.T) {
 				appsession = &models.AppSession{
 					Cache: configs.CreateCache(),
 				}
-				err := appsession.Cache.Set(email+otpv, otpData)
+				err := appsession.Cache.Set(cache.OTPKey(email, otpv), otpData)
 
 				assert.NoError(t, err)
 			} else {
@@ -277,7 +326,7 @@ func TestSetOTP(t *testing.T) {
 
 			if tt.name != "cache is nil" {
 				// check if otp was set in cache
-				otpData, err := appsession.Cache.Get(email + otpv)
+				otpData, err := appsession.Cache.Get(cache.OTPKey(email, otpv))
 				assert.NoError(t, err)
 
 				// unmarshal the otp from the cache
@@ -312,6 +361,13 @@ func TestDeleteOTPF(t *testing.T) {
 				OTP:   otpv,
 			},
 		},
+		{
+			name: "cache key does not exist",
+			expectedOTP: models.OTP{
+				Email: "doesnotexist@example.com",
+				OTP:   "012345",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -325,7 +381,7 @@ func TestDeleteOTPF(t *testing.T) {
 
 				// add otp to cache
 				otpData, _ := bson.Marshal(otp)
-				err := appsession.Cache.Set(email+otpv, otpData)
+				err := appsession.Cache.Set(cache.OTPKey(email, otpv), otpData)
 
 				assert.NoError(t, err)
 			} else {
@@ -334,11 +390,360 @@ func TestDeleteOTPF(t *testing.T) {
 
 			cache.DeleteOTP(appsession, tt.expectedOTP.Email, tt.expectedOTP.OTP)
 
-			if tt.name != "cache is nil" {
+			if tt.name != "cache is nil" && tt.name != "cache key does not exist" {
 				// check if otp was deleted in cache
-				otpData, err := appsession.Cache.Get(email + otpv)
+				otpData, err := appsession.Cache.Get(cache.OTPKey(email, otpv))
 				assert.NotNil(t, err)
 				assert.Nil(t, otpData)
+			}
+
+			if tt.name == "cache key does not exist" {
+				// check if otp was not deleted in cache
+				otpData, err := appsession.Cache.Get(cache.OTPKey(email, otpv))
+				assert.NoError(t, err)
+				assert.NotNil(t, otpData)
+			}
+		})
+	}
+}
+
+func TestSetBooking(t *testing.T) {
+	booking := models.Booking{OccupiID: "booking123"}
+
+	tests := []struct {
+		name            string
+		booking         models.Booking
+		expectedBooking models.Booking
+	}{
+		{
+			name:            "cache is nil",
+			booking:         booking,
+			expectedBooking: models.Booking{},
+		},
+		{
+			name:            "successful set booking in cache",
+			booking:         booking,
+			expectedBooking: booking,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var appsession *models.AppSession
+
+			if tt.name != "cache is nil" {
+				appsession = &models.AppSession{
+					Cache: configs.CreateCache(),
+				}
+			} else {
+				appsession = &models.AppSession{}
+			}
+
+			cache.SetBooking(appsession, tt.booking)
+
+			if tt.name != "cache is nil" {
+				// check if booking was set in cache
+				bookingData, err := appsession.Cache.Get(cache.RoomBookingKey(tt.booking.OccupiID))
+				assert.NoError(t, err)
+
+				// unmarshal the booking from the cache
+				var booking models.Booking
+				if err := bson.Unmarshal(bookingData, &booking); err != nil {
+					t.Error("failed to unmarshall", err)
+				}
+
+				assert.Equal(t, tt.expectedBooking, booking)
+			}
+		})
+	}
+}
+
+func TestGetBooking(t *testing.T) {
+	booking := models.Booking{OccupiID: "booking123"}
+	bookingData, _ := bson.Marshal(booking)
+
+	tests := []struct {
+		name         string
+		bookingID    string
+		expectedBook models.Booking
+		expectedErr  error
+	}{
+		{
+			name:         "cache is nil",
+			bookingID:    "booking123",
+			expectedBook: models.Booking{},
+			expectedErr:  errors.New("cache not found"),
+		},
+		{
+			name:         "cache key does not exist",
+			bookingID:    "booking1234",
+			expectedBook: models.Booking{},
+			expectedErr:  errors.New("Entry not found"),
+		},
+		{
+			name:         "successful get booking from cache",
+			bookingID:    "booking123",
+			expectedBook: booking,
+			expectedErr:  nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var appsession *models.AppSession
+
+			// add booking to cache
+			if tt.name != "cache is nil" {
+				appsession = &models.AppSession{
+					Cache: configs.CreateCache(),
+				}
+				err := appsession.Cache.Set(cache.RoomBookingKey(booking.OccupiID), bookingData)
+
+				assert.NoError(t, err)
+			} else {
+				appsession = &models.AppSession{}
+			}
+
+			result, err := cache.GetBooking(appsession, tt.bookingID)
+
+			assert.Equal(t, tt.expectedBook, result)
+			if tt.expectedErr != nil {
+				assert.EqualError(t, err, tt.expectedErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestDeleteBooking(t *testing.T) {
+	booking := models.Booking{OccupiID: "booking123"}
+
+	tests := []struct {
+		name         string
+		bookingID    string
+		expectedBook models.Booking
+	}{
+		{
+			name:         "cache is nil",
+			bookingID:    "booking123",
+			expectedBook: models.Booking{},
+		},
+		{
+			name:         "successful delete booking in cache",
+			bookingID:    "booking123",
+			expectedBook: models.Booking{},
+		},
+		{
+			name:         "cache key does not exist",
+			bookingID:    "booking1234",
+			expectedBook: models.Booking{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var appsession *models.AppSession
+
+			if tt.name != "cache is nil" {
+				appsession = &models.AppSession{
+					Cache: configs.CreateCache(),
+				}
+
+				// add booking to cache
+				bookingData, _ := bson.Marshal(booking)
+				err := appsession.Cache.Set(cache.RoomBookingKey(booking.OccupiID), bookingData)
+
+				assert.NoError(t, err)
+			} else {
+				appsession = &models.AppSession{}
+			}
+
+			cache.DeleteBooking(appsession, tt.bookingID)
+
+			if tt.name != "cache is nil" && tt.name != "cache key does not exist" {
+				// check if booking was deleted in cache
+				bookingData, err := appsession.Cache.Get(cache.RoomBookingKey(booking.OccupiID))
+				assert.NotNil(t, err)
+				assert.Nil(t, bookingData)
+			}
+
+			if tt.name == "cache key does not exist" {
+				// check if booking was not deleted in cache
+				bookingData, err := appsession.Cache.Get(cache.RoomBookingKey(booking.OccupiID))
+				assert.NoError(t, err)
+				assert.NotNil(t, bookingData)
+			}
+		})
+	}
+}
+
+func TestSetImage(t *testing.T) {
+	image := models.Image{ID: "image123"}
+
+	tests := []struct {
+		name          string
+		image         models.Image
+		expectedImage models.Image
+	}{
+		{
+			name:          "cache is nil",
+			image:         image,
+			expectedImage: models.Image{},
+		},
+		{
+			name:          "successful set image in cache",
+			image:         image,
+			expectedImage: image,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var appsession *models.AppSession
+
+			if tt.name != "cache is nil" {
+				appsession = &models.AppSession{
+					Cache: configs.CreateCache(),
+				}
+			} else {
+				appsession = &models.AppSession{}
+			}
+
+			cache.SetImage(appsession, tt.image.ID, tt.image)
+
+			if tt.name != "cache is nil" {
+				// check if image was set in cache
+				imageData, err := appsession.Cache.Get(cache.ImageKey(tt.image.ID))
+				assert.NoError(t, err)
+
+				// unmarshal the image from the cache
+				var image models.Image
+				if err := bson.Unmarshal(imageData, &image); err != nil {
+					t.Error("failed to unmarshall", err)
+				}
+
+				assert.Equal(t, tt.expectedImage, image)
+			}
+		})
+	}
+}
+
+func TestGetImage(t *testing.T) {
+	image := models.Image{ID: "image123"}
+	imageData, _ := bson.Marshal(image)
+
+	tests := []struct {
+		name        string
+		imageID     string
+		expectedImg models.Image
+		expectedErr error
+	}{
+		{
+			name:        "cache is nil",
+			imageID:     "image123",
+			expectedImg: models.Image{},
+			expectedErr: errors.New("cache not found"),
+		},
+		{
+			name:        "cache key does not exist",
+			imageID:     "image1234",
+			expectedImg: models.Image{},
+			expectedErr: errors.New("Entry not found"),
+		},
+		{
+			name:        "successful get image from cache",
+			imageID:     "image123",
+			expectedImg: image,
+			expectedErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var appsession *models.AppSession
+
+			// add image to cache
+			if tt.name != "cache is nil" {
+				appsession = &models.AppSession{
+					Cache: configs.CreateCache(),
+				}
+				err := appsession.Cache.Set(cache.ImageKey(image.ID), imageData)
+
+				assert.NoError(t, err)
+			} else {
+				appsession = &models.AppSession{}
+			}
+
+			result, err := cache.GetImage(appsession, tt.imageID)
+
+			assert.Equal(t, tt.expectedImg, result)
+			if tt.expectedErr != nil {
+				assert.EqualError(t, err, tt.expectedErr.Error())
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestDeleteImage(t *testing.T) {
+	image := models.Image{ID: "image123"}
+
+	tests := []struct {
+		name        string
+		imageID     string
+		expectedImg models.Image
+	}{
+		{
+			name:        "cache is nil",
+			imageID:     "image123",
+			expectedImg: models.Image{},
+		},
+		{
+			name:        "successful delete image in cache",
+			imageID:     "image123",
+			expectedImg: models.Image{},
+		},
+		{
+			name:        "cache key does not exist",
+			imageID:     "image1234",
+			expectedImg: models.Image{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var appsession *models.AppSession
+
+			if tt.name != "cache is nil" {
+				appsession = &models.AppSession{
+					Cache: configs.CreateCache(),
+				}
+
+				// add image to cache
+				imageData, _ := bson.Marshal(image)
+				err := appsession.Cache.Set(cache.ImageKey(image.ID), imageData)
+
+				assert.NoError(t, err)
+			} else {
+				appsession = &models.AppSession{}
+			}
+
+			cache.DeleteImage(appsession, tt.imageID)
+
+			if tt.name != "cache is nil" && tt.name != "cache key does not exist" {
+				// check if image was deleted in cache
+				imageData, err := appsession.Cache.Get(cache.ImageKey(image.ID))
+				assert.NotNil(t, err)
+				assert.Nil(t, imageData)
+			}
+
+			if tt.name == "cache key does not exist" {
+				// check if image was not deleted in cache
+				imageData, err := appsession.Cache.Get(cache.ImageKey(image.ID))
+				assert.NoError(t, err)
+				assert.NotNil(t, imageData)
 			}
 		})
 	}
