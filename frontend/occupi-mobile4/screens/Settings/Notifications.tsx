@@ -17,6 +17,8 @@ import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
+import { updateNotifications } from '@/utils/user';
+import { useTheme } from '@/components/ThemeContext';
 
 
 const COLORS = {
@@ -38,7 +40,9 @@ const SIZES = {
 };
 
 const Notifications = () => {
-  let colorScheme = useColorScheme();
+  const colorscheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorscheme : theme;
   const toast = useToast();
   //retrieve user settings ad assign variables accordingly
   const [oldInviteVal, setOldInviteVal] = useState(false);
@@ -88,60 +92,21 @@ const Notifications = () => {
   };
 
   const onSave = async () => {
-    let userEmail = await SecureStore.getItemAsync('Email');
-    let authToken = await SecureStore.getItemAsync('Token');
-
-    try {
-      const response = await axios.get('https://dev.occupi.tech/api/update-notification-settings', {
-        params: {
-          email: userEmail,
-          invites: newInviteVal ? "on" : "off",
-          bookingReminder: newNotifyVal ? "on" : "off"
-        },
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        withCredentials: true
-      });
-      const data = response.data;
-      // console.log(`Response Data: ${JSON.stringify(data.data)}`);
-      console.log(data);
-      if (response.status === 200) {
-        const newSettings = {
-          invites: newInviteVal ? "on" : "off",
-          bookingReminder: newNotifyVal ? "on" : "off",
-        }
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        console.log(newSettings);
-        SecureStore.setItemAsync('Notifications', JSON.stringify(newSettings));
-        router.replace('/settings');
-      } else {
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        console.log(data);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    const settings = {
+      invites: newInviteVal ? "on" : "off",
+      bookingReminder: newNotifyVal ? "on" : "off"
+    };
+    const response = await updateNotifications(settings)
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === "Settings updated successfully" ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
+      },
+    });
   };
 
   const handleBack = () => {
@@ -166,29 +131,29 @@ const Notifications = () => {
   }
 
   return (
-    <View flex={1} backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
+    <View flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
       <View style={styles.header}>
         <Icon
           as={Feather}
           name="chevron-left"
           size="xl"
-          color={colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTheme === 'dark' ? 'white' : 'black'}
           onPress={handleBack}
         />
-        <Text style={styles.headerTitle} color={colorScheme === 'dark' ? 'white' : 'black'}>
+        <Text style={styles.headerTitle} color={currentTheme === 'dark' ? 'white' : 'black'}>
           Notifications
         </Text>
         <Ionicons
           name="notifications-outline"
           size={24}
-          color={colorScheme === 'dark' ? 'white' : 'black'}
+          color={currentTheme === 'dark' ? 'white' : 'black'}
           style={styles.icon}
         />
       </View>
 
       <View flexDirection="column">
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-          <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
+        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+          <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
           <Switch
             trackColor={{ false: 'lightgray', true: 'lightgray' }}
             thumbColor={newInviteVal ? `${accentColour}` : 'white'}
@@ -197,8 +162,8 @@ const Notifications = () => {
             value={newInviteVal}
           />
         </View>
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-          <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
+        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+          <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
           <Switch
             trackColor={{ false: 'lightgray', true: 'lightgray' }}
             thumbColor={newNotifyVal ? `${accentColour}` : 'white'}

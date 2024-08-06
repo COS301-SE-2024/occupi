@@ -27,6 +27,8 @@ import { useColorScheme } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import LoadingGradientButton from '@/components/LoadingGradientButton';
+import { updateDetails } from '@/utils/user';
+import { extractDateFromTimestamp } from '@/utils/utils';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -47,20 +49,14 @@ const SIZES = {
 };
 
 const SetDetails = () => {
-  const [selectedGenderIndex, setSelectedGenderIndex] = useState(1);
+  const [selectedGenderIndex, setSelectedGenderIndex] = useState('');
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [employeeId, setEmployeeId] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [pronouns, setPronouns] = useState('');
   const [date, setDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   let colorScheme = 'light';
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const getUserDetailsUrl= process.env.EXPO_PUBLIC_GET_USER_DETAILS;
-  const updateDetailsUrl = process.env.EXPO_PUBLIC_UPDATE_USER_DETAILS;
-  console.log(apiUrl, getUserDetailsUrl, updateDetailsUrl);
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -70,78 +66,18 @@ const SetDetails = () => {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (selectedDate) => {
-    setDate(selectedDate);
+  const handleConfirm = (selectedDate: string) => {
+    console.log('selected',extractDateFromTimestamp(selectedDate));
+    setDate(extractDateFromTimestamp(selectedDate));
     hideDatePicker();
   };
 
   const onSave = async () => {
-    const body = {
-      "email": email,
-      "details": {
-        "contactNo": phoneNumber,
-        "gender": "Male",
-        "name": name,
-        "pronouns": pronouns
-      }
-    };
-    // console.log(JSON.stringify(body));
     setIsLoading(true);
-    try {
-      let authToken = await SecureStore.getItemAsync('Token');
-      const response = await fetch(`${apiUrl}${updateDetailsUrl}`, {
-        method: 'PUT',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        body: JSON.stringify(body),
-        credentials: "include"
-      });
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        console.log(response);
-        setIsLoading(false);
-        alert('Details updated successfully');
-      } else {
-        console.log(data);
-        setIsLoading(false);
-      }
-    } catch (error) {
-      setIsLoading(false);
-      console.error('Error:', error);
-      // setResponse('An error occurred');
-    }
-
-    try {
-      let authToken = await SecureStore.getItemAsync('Token');
-      const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        credentials: "include"
-      });
-      const data = await response.json();
-      if (response.ok) {
-        saveUserData(JSON.stringify(data));
-        console.log(data);
-      } else {
-        console.log(data);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    const response = await updateDetails(name,date,selectedGenderIndex,phoneNumber,pronouns)
+    console.log(response);
+    setIsLoading(false);
   };
-  console.log(selectedGenderIndex);
-
-  async function saveUserData(value) {
-    await SecureStore.setItemAsync('UserData', value);
-  }
 
   return (
     <SafeAreaView
@@ -149,15 +85,8 @@ const SetDetails = () => {
     >
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
-          <Icon
-            as={Feather}
-            name={"chevron-left"}
-            size="xl"
-            color={colorScheme === 'dark' ? 'white' : 'black'}
-            onPress={() => router.replace('/settings')}
-          />
           <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
-            Account Details
+            My account
           </Text>
           <MaterialIcons
             name="person-outline"
@@ -166,7 +95,6 @@ const SetDetails = () => {
             style={styles.icon}
           />
         </View>
-        <View pt="$20" flexDirection='column' justifyContent='center'>
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Full name</Text>
         <TextInput
@@ -194,7 +122,7 @@ const SetDetails = () => {
         />
 
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Gender</Text>
-        <RadioGroup mb="$4" onChange={(index) => setSelectedGenderIndex(index)}>
+        <RadioGroup mb="$4" value={selectedGenderIndex} onChange={(index) => setSelectedGenderIndex(index)}>
           <VStack flexDirection="row" justifyContent="space-between" space="sm">
             <Radio
               backgroundColor={colorScheme === 'dark' ? '#5A5A5A' : '#f2f2f2'}
@@ -203,6 +131,7 @@ const SetDetails = () => {
               borderColor="#f2f2f2"
               h={hp('5%')}
               px="$4"
+
             >
               <RadioLabel color={colorScheme === 'dark' ? 'white' : 'black'}>Male</RadioLabel>
               <RadioIndicator ml="$2">
@@ -237,7 +166,6 @@ const SetDetails = () => {
             </Radio>
           </VStack>
         </RadioGroup>
-
         <Text style={colorScheme === 'dark' ? styles.labeldark : styles.labellight}>Cell No</Text>
         <TextInput
           style={colorScheme === 'dark' ? styles.inputdark : styles.inputlight}
@@ -258,11 +186,10 @@ const SetDetails = () => {
         ) : (
           <GradientButton
             onPress={onSave}
-            text="Next"
+            text="Save"
           />
         )
         }
-        </View>
 
       </ScrollView>
     </SafeAreaView>
