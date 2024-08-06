@@ -32,6 +32,15 @@ const Dashboard = () => {
   const [checkedIn, setCheckedIn] = useState(false);
   const [name, setName] = useState("User");
   const toast = useToast()
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers(prevNumbers => {
@@ -49,11 +58,110 @@ const Dashboard = () => {
       console.log(result);
       if (result !== undefined) {
         let jsonresult = JSON.parse(result);
-        setName(String(jsonresult?.data?.details?.name)); 
+        setName(String(jsonresult?.data?.details?.name));
       }
     };
+    const getUserSettings = async () => {
+      try {
+        let authToken = await SecureStore.getItemAsync('Token');
+        let email = await SecureStore.getItemAsync('Email');
+        // console.log(authToken);
+        const response = await fetch(`https://dev.occupi.tech/api/get-notification-settings?email=${email}`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `${authToken}`
+          },
+          credentials: "include"
+        });
+        const data = await response.json();
+        console.log(data);
+        if (response.ok) {
+          const settings = {
+            invites: data.data.invites,
+            bookingReminder: data.data.bookingReminder
+          };
+          // console.log(settings);
+          await SecureStore.setItemAsync('Notifications', JSON.stringify(settings));
+        } else {
+          console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>Network Error</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+      }
+      try {
+        let authToken = await SecureStore.getItemAsync('Token');
+        let email = await SecureStore.getItemAsync('Email');
+        // console.log(authToken);
+        const response = await fetch(`https://dev.occupi.tech/api/get-security-settings?email=${email}`, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `${authToken}`
+          },
+          credentials: "include"
+        });
+        const data = await response.json();
+        console.log(data);
+        if (response.ok) {
+          const settings = {
+            mfa: data.data.mfa,
+            forcelogout: data.data.forceLogout
+          };
+          console.log(settings);
+          await SecureStore.setItemAsync('Security', JSON.stringify(settings));
+        } else {
+          console.log(data);
+          toast.show({
+            placement: 'top',
+            render: ({ id }) => {
+              return (
+                <Toast nativeID={id} variant="accent" action="error">
+                  <ToastTitle>{data.error.message}</ToastTitle>
+                </Toast>
+              );
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={id} variant="accent" action="error">
+                <ToastTitle>Network Error</ToastTitle>
+              </Toast>
+            );
+          },
+        });
+      }
+    }
+    getUserSettings();
     getUserDetails();
-  }, []);
+  }, [toast]);
 
   const checkIn = () => {
     if (checkedIn === false) {
@@ -79,12 +187,12 @@ const Dashboard = () => {
     }
   };
 
-  async function saveUserEmail(value) {
-    await SecureStore.setItemAsync('email', value);
-  }
+  // async function saveUserEmail(value) {
+  //   await SecureStore.setItemAsync('email', value);
+  // }
 
 
-  saveUserEmail('kamogelomoeketse@gmail.com');
+  // saveUserEmail('kamogelomoeketse@gmail.com');
 
 
   const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
@@ -115,7 +223,7 @@ const Dashboard = () => {
         <Card flexDirection="row" justifyContent="center" alignItems="center" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
           <Text color={textColor} fontSize={40}>{numbers[0]}</Text>
           <View flexDirection="column">
-            <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
+            <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color={accentColour} /><Text color={accentColour}> {numbers[0] / 10 + 5}%</Text></View>
           </View>
         </Card>
         <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('12%') }} backgroundColor={cardBackgroundColor} borderRadius={10} />
@@ -126,7 +234,7 @@ const Dashboard = () => {
             <ButtonText color="dimgrey">Check out</ButtonText>
           </Button>
         ) : (
-          <Button w={wp('36%')} borderRadius={10} backgroundColor="greenyellow" onPress={checkIn}>
+          <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
             <ButtonText color="dimgrey">Check in</ButtonText>
           </Button>
         )}

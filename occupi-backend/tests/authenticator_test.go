@@ -13,7 +13,7 @@ import (
 func TestGenerateToken(t *testing.T) {
 	email := "test1@example.com"
 	role := constants.Admin
-	tokenString, expirationTime, err := authenticator.GenerateToken(email, role)
+	tokenString, expirationTime, _, err := authenticator.GenerateToken(email, role)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenString)
@@ -30,7 +30,7 @@ func TestGenerateToken(t *testing.T) {
 func TestValidateToken(t *testing.T) {
 	email := "test2@example.com"
 	role := constants.Admin
-	tokenString, _, err := authenticator.GenerateToken(email, role)
+	tokenString, _, _, err := authenticator.GenerateToken(email, role)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenString)
@@ -48,7 +48,7 @@ func TestValidateTokenExpired(t *testing.T) {
 	role := constants.Admin
 
 	// Generate a token that expires in 1 second
-	tokenString, _, err := authenticator.GenerateToken(email, role, 1*time.Second)
+	tokenString, _, _, err := authenticator.GenerateToken(email, role, 1*time.Second)
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenString)
 

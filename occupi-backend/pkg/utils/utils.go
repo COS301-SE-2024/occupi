@@ -1,24 +1,35 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/rand"
-	"encoding/base64"
+	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"log"
+	"mime/multipart"
 	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/nfnt/resize"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
 
@@ -86,19 +97,6 @@ func GenerateBookingID() string {
 	}
 	employeeID := fmt.Sprintf("BOOKOCCUPI%d%04d", currentYear, randomNum)
 	return employeeID
-}
-
-// generates a random auth0 state
-func GenerateRandomState() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-
-	state := base64.StdEncoding.EncodeToString(b)
-
-	return state, nil
 }
 
 // sanitizes the given input
@@ -353,7 +351,7 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 	// Remove password field from projection if present
 	sanitizedProjection := []string{}
 	for _, field := range queryInput.Projection {
-		if field != "password" && field != "unsentExpoPushTokens" && field != "emails" {
+		if field != "password" && field != "unsentExpoPushTokens" {
 			sanitizedProjection = append(sanitizedProjection, field)
 		}
 	}
@@ -362,23 +360,17 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 }
 
 func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
-	const passwordField = "password"
-	const uEPTField = "unsentExpoPushTokens"
-	const emailsField = "emails"
 	projection := bson.M{}
 	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
-		projection[passwordField] = 0 // Exclude password by default
-		projection[uEPTField] = 0
-		projection[emailsField] = 0
+		projection["password"] = 0 // Exclude password by default
+		projection["unsentExpoPushTokens"] = 0
 	} else {
 		for _, field := range sanitizedProjection {
 			switch field {
-			case passwordField:
-				projection[passwordField] = 0
-			case uEPTField:
-				projection[uEPTField] = 0
-			case emailsField:
-				projection[emailsField] = 0
+			case "password":
+				projection[field] = 0
+			case "unsentExpoPushTokens":
+				projection[field] = 0
 			default:
 				projection[field] = 1
 			}
@@ -463,10 +455,234 @@ func ConvertToStringArray(input interface{}) []string {
 	return stringArray
 }
 
+func ConvertTokensToStringArray(tokens []primitive.M, key string) ([]string, error) {
+	stringArray := []string{}
+
+	for _, token := range tokens {
+		// Ensure the map contains the key
+		value, exists := token[key]
+		if !exists {
+			return nil, fmt.Errorf("key %s does not exist in token %v", key, token)
+		}
+
+		// Ensure the value is a string before appending
+		strValue, ok := value.(string)
+		if !ok {
+			return nil, fmt.Errorf("value for key %s is not a string: %v", key, value)
+		}
+		stringArray = append(stringArray, strValue)
+	}
+
+	return stringArray, nil
+}
+
 func ConvertArrayToCommaDelimitedString(input []string) string {
 	return strings.Join(input, ",")
 }
 
 func ConvertCommaDelimitedStringToArray(input string) []string {
 	return strings.Split(input, ",")
+}
+
+func RandomError() error {
+	// probability of returning error should be 50/50
+	num, err := generateRandomNumber()
+
+	if err != nil {
+		return errors.New("failed to generate random number")
+	}
+
+	if num%2 == 0 {
+		return errors.New("random error")
+	} else {
+		return nil
+	}
+}
+
+func GetClaimsFromCTX(ctx *gin.Context) (*authenticator.Claims, error) {
+	// attempt to get email from jwt cookie token or auth header
+	tokenStr, _ := ctx.Cookie("token")
+	headertokenStr := ctx.GetHeader("Authorization")
+	if tokenStr == "" && headertokenStr == "" {
+		return nil, errors.New("no token provided")
+	}
+
+	// set in ctx origin of token, whether it was from cookie or header
+	ctx.Set("tokenOrigin", "cookie")
+
+	if tokenStr == "" {
+		tokenStr = headertokenStr
+		ctx.Set("tokenOrigin", "header")
+	}
+
+	claims, err := authenticator.ValidateToken(tokenStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return claims, nil
+}
+
+func IsSessionSet(ctx *gin.Context) bool {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	if email == nil || role == nil {
+		return false
+	}
+
+	return true
+}
+
+func SetSession(ctx *gin.Context, claims *authenticator.Claims) error {
+	session := sessions.Default(ctx)
+
+	session.Set("email", claims.Email)
+	session.Set("role", claims.Role)
+
+	if err := session.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ClearSession(ctx *gin.Context) error {
+	session := sessions.Default(ctx)
+
+	session.Clear()
+	if err := session.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetSession(ctx *gin.Context) (string, string) {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	return email.(string), role.(string)
+}
+
+func CompareSessionAndClaims(ctx *gin.Context, claims *authenticator.Claims) bool {
+	session := sessions.Default(ctx)
+
+	email := session.Get("email")
+	role := session.Get("role")
+
+	if email == nil || role == nil {
+		return false
+	}
+
+	if email != claims.Email || role != claims.Role {
+		return false
+	}
+
+	return true
+}
+
+func GetClientIP(ctx *gin.Context) string {
+	if ip, exists := ctx.Get("ClientIP"); exists {
+		return ip.(string)
+	}
+	return ctx.ClientIP()
+}
+
+func GetClientTime(ctx *gin.Context) time.Time {
+	loc, exists := ctx.Get("timezone")
+	if !exists {
+		return time.Now()
+	}
+
+	return time.Now().In(loc.(*time.Location))
+}
+
+// ConvertImageToBytes reads an image from a multipart.FileHeader, resizes it if required, and returns the image as a byte slice.
+func ConvertImageToBytes(fh *multipart.FileHeader, width uint, thumbnail bool, openFunc ...func() (multipart.File, error)) ([]byte, error) {
+	const (
+		pngExt  = ".png"
+		jpgExt  = ".jpg"
+		jpegExt = ".jpeg"
+	)
+	// Check the file extension
+	ext := filepath.Ext(fh.Filename)
+	ext = RemoveNumbersFromExtension(ext)
+	if ext != jpegExt && ext != jpgExt && ext != pngExt {
+		return nil, errors.New("unsupported file type")
+	}
+
+	var file multipart.File
+	var err error
+
+	if len(openFunc) == 0 {
+		file, err = fh.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if ferr := file.Close(); ferr != nil {
+				err = ferr
+			}
+		}()
+	} else {
+		file, err = openFunc[0]()
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if ferr := file.Close(); ferr != nil {
+				err = ferr
+			}
+		}()
+	}
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+
+	// Resize the image
+	var m image.Image
+	if !thumbnail {
+		m = resize.Resize(width, 0, img, resize.NearestNeighbor)
+	} else {
+		m = resize.Thumbnail(200, 200, img, resize.NearestNeighbor)
+	}
+
+	// Convert the image to bytes
+	buf := new(bytes.Buffer)
+	switch ext {
+	case jpegExt, jpgExt:
+		err = jpeg.Encode(buf, m, nil)
+	case pngExt:
+		err = png.Encode(buf, m)
+	default:
+		return nil, errors.New("unsupported file format")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func GenerateUUID() string {
+	uuid, err := uuid.NewRandom()
+
+	if err != nil {
+		return ""
+	}
+
+	return uuid.String()
+}
+
+func RemoveNumbersFromExtension(ext string) string {
+	// Remove numbers from the file extension
+	extension := strings.TrimRight(ext, "0123456789")
+	return extension
 }

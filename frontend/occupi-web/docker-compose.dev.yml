@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "4001:5173"
+      - "4001:4173"
     networks:
       - webnet
     volumes:

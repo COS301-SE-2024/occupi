@@ -1,8 +1,8 @@
 module github.com/COS301-SE-2024/occupi/occupi-backend
 
-go 1.21
+go 1.22
 
-toolchain go1.21.6
+toolchain go1.22.5
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
@@ -11,10 +11,13 @@ require (
 	github.com/gin-contrib/sessions v1.0.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.20.0
+	github.com/go-webauthn/webauthn v0.11.0
 	github.com/ipinfo/go/v2 v2.10.0
 	github.com/microcosm-cc/bluemonday v1.0.26
 	github.com/newrelic/go-agent/v3 v3.33.1
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/oliveroneill/exponent-server-sdk-golang v0.0.0-20210823140141-d050598be512
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
@@ -24,9 +27,14 @@ require (
 )
 
 require (
+	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
+	github.com/go-webauthn/x v0.1.12 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/google/go-tpm v0.9.1 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
-	github.com/rabbitmq/amqp091-go v1.10.0 // indirect
+	github.com/x448/float16 v0.8.4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
@@ -83,11 +91,11 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

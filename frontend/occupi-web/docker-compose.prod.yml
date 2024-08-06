@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     ports:
-      - "4000:5173"
+      - "4000:4173"
     networks:
       - webnet
     volumes:
