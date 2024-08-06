@@ -53,6 +53,8 @@
     "react-beautiful-dnd": "^13.1.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
+    "react-dnd-test-backend": "^16.0.1",
+    "react-dnd-test-utils": "^16.0.1",
     "react-dom": "^18.3.1",
     "react-grid-layout": "^1.4.4",
     "react-icons": "^5.2.1",
