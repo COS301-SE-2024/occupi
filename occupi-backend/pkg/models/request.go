@@ -1,5 +1,7 @@
 package models
 
+import "github.com/go-webauthn/webauthn/webauthn"
+
 type RegisterUser struct {
 	Email         string `json:"email" binding:"required,email"`
 	Password      string `json:"password" binding:"required,min=8"`
@@ -90,4 +92,22 @@ type ProfileImageRequest struct {
 type ImageRequest struct {
 	ID      string `json:"id" binding:"required"`
 	Quality string `json:"quality"`
+}
+
+type RequestRoom struct {
+	RoomID       string   `json:"roomId" binding:"required,startswith=RM"`
+	RoomNo       string   `json:"roomNo" binding:"required"`
+	FloorNo      string   `json:"floorNo" binding:"required"`
+	MinOccupancy int      `json:"minOccupancy" binding:"required"`
+	MaxOccupancy int      `json:"maxOccupancy" binding:"required"`
+	Description  string   `json:"description" binding:"required"`
+	RoomName     string   `json:"roomName" binding:"required"`
+	Resources    []string `json:"resources" binding:"required"`
+}
+
+type WebAuthnSession struct {
+	UUID        string                `json:"uuid"`
+	Email       string                `json:"email"`
+	Cred        webauthn.Credential   `json:"cred"`
+	SessionData *webauthn.SessionData `json:"sessionData"`
 }
