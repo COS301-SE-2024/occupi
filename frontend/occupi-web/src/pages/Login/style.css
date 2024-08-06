@@ -1,0 +1,120 @@
+.box .image-container{
+  @apply h-[400] w-[400];
+}
+.box .image{
+  @apply h-[200] w-[200] absolute object-cover right-[800px] top-[197px];
+  /* left: 156px; */
+}
+.box {
+  @apply h-[846px] relative w-[430px] ml-[900px]
+}
+.box .group {
+  @apply h-[846px] w-[436px] left-0 top-0;
+  /* position: fixed; */
+}
+.box .overlap {
+  @apply h-[400px] absolute w-[434px] left-0 top-0;
+}
+.box .frame {
+  @apply h-[295px] absolute w-[393px] left-[17px] top-0;
+}
+.box .div {
+  @apply h-[181px] absolute w-[434px] left-0 top-[219px];
+}
+.box .text-wrapper {
+  @apply text-[rgba(10,10,10,1)] text-[50px] not-italic font-semibold h-[152px] tracking-[-0.5px] leading-[50px] absolute w-[430px] text-left left-0 top-10;
+  font-family: "Inter", Helvetica;
+}
+.box .text-wrapper-2 {
+  @apply text-[color:var(--colours-black-950)] text-[length:var(--inter-extra-light-24-font-size)] font-[number:var(--inter-extra-light-24-font-weight)] h-[29px] tracking-[var(--inter-extra-light-24-letter-spacing)] leading-[var(--inter-extra-light-24-line-height)] absolute w-[430px] text-left left-0 top-[155px];
+  font-family: var(--inter-extra-light-24-font-family);
+  font-style: var(--inter-extra-light-24-font-style);
+}
+.box .group-2 {
+  @apply h-[73px] absolute w-[434px] left-0 top-[450px];
+}
+.box .overlap-group {
+  @apply bg-[rgba(235,235,235,1)] h-[50px] absolute w-[430px] rounded-[15px] left-0 top-[23px];
+}
+.box .text-wrapper-3 {
+  @apply text-[rgba(10,10,10,1)] text-xs not-italic font-[number:var(--inter-extra-light-12-font-weight)] h-[18px] tracking-[var(--inter-extra-light-12-letter-spacing)] leading-[var(--inter-extra-light-12-line-height)] absolute w-[391px] left-[18px] top-4;
+  font-family: "Inter", Helvetica;
+}
+.box .text-wrapper-4 {
+  @apply text-[color:var(--colours-black-950)] text-[length:var(--inter-regular-16-font-size)] font-[number:var(--inter-regular-16-font-weight)] h-[18px] tracking-[var(--inter-regular-16-letter-spacing)] leading-[var(--inter-regular-16-line-height)] absolute w-[430px] left-0 top-0;
+  font-family: var(--inter-regular-16-font-family);
+  font-style: var(--inter-regular-16-font-style);
+}
+.box .group-3 {
+  @apply h-[73px] absolute w-[436px] left-0 top-[553px];
+}
+.box .div2 {
+  @apply text-[color:var(--colours-black-950)] text-[length:var(--inter-regular-16-font-size)] font-[number:var(--inter-regular-16-font-weight)] h-[18px] tracking-[var(--inter-regular-16-letter-spacing)] leading-[var(--inter-regular-16-line-height)] absolute w-[430px] left-0 top-0;
+  font-family: var(--inter-regular-16-font-family);
+  font-style: var(--inter-regular-16-font-style);
+}
+.box .overlap-2 {
+  @apply bg-[color:var(--colours-white-800)] border-[color:var(--colours-red-650)] h-[50px] absolute w-[430px] rounded-[15px] border-2 border-solid left-0 top-[23px];
+}
+.box .text-wrapper-5 {
+  @apply text-[color:var(--colours-black-950)] text-[length:var(--inter-extra-light-12-font-size)] font-[number:var(--inter-extra-light-12-font-weight)] h-[18px] tracking-[var(--inter-extra-light-12-letter-spacing)] leading-[var(--inter-extra-light-12-line-height)] absolute w-[325px] left-[13px] top-3.5;
+  font-family: var(--inter-extra-light-12-font-family);
+  font-style: var(--inter-extra-light-12-font-style);
+}
+.box .eye-closed {
+  @apply h-6 absolute w-6 left-[385px] top-[11px];
+}
+.box .overlap-3 {
+  @apply h-[18px] absolute w-[430px] left-0 top-0;
+}
+.box .text-wrapper-6 {
+  @apply text-[color:var(--colours-red-650)] text-[length:var(--inter-regular-16-font-size)] font-[number:var(--inter-regular-16-font-weight)] h-[18px] tracking-[var(--inter-regular-16-letter-spacing)] leading-[var(--inter-regular-16-line-height)] absolute text-right w-[430px] left-0 top-0;
+  font-family: var(--inter-regular-16-font-family);
+  font-style: var(--inter-regular-16-font-style);
+}
+.box .overlap-4 {
+  @apply h-[29px] absolute w-[430px] left-0 top-[659px];
+}
+.box .group-4 {
+  @apply h-[29px] absolute w-[425px] left-0 top-0;
+}
+.box .text-wrapper-7 {
+  @apply text-[color:var(--colours-green-600)] text-[15] font-[number:var(--inter-semi-bold-12-font-weight)] h-[29px] tracking-[var(--inter-semi-bold-12-letter-spacing)] leading-[var(--inter-semi-bold-12-line-height)] absolute w-[394px] left-[29px] top-[15px];
+  font-family: var(--inter-semi-bold-12-font-family);
+  font-style: var(--inter-semi-bold-12-font-style);
+}
+.box .check-square {
+  @apply h-6 absolute w-[29px] left-0 top-[3px];
+}
+.box .text-wrapper-8 {
+  @apply text-[color:var(--colours-green-600)] text-[15] font-[number:var(--inter-semi-bold-12-font-weight)] h-[29px] tracking-[var(--inter-semi-bold-12-letter-spacing)] leading-[var(--inter-semi-bold-12-line-height)] absolute text-right w-[423px] left-[7px] top-[15px];
+  font-family: var(--inter-semi-bold-12-font-family);
+  font-style: var(--inter-semi-bold-12-font-style);
+}
+.box .login-button {
+  @apply bg-white shadow-[var(--shadow-9-7-30-10)] box-border h-[55px] opacity-90 overflow-hidden relative w-[450px] rounded-[18px] left-0 top-[729px];
+  all: unset;
+  background: linear-gradient(90deg, rgb(96.72, 77.4, 99.75) 1.53%, rgb(133.72, 234.6, 204.34) 31.5%, rgb(178.21, 252.03, 57.55) 66.99%, rgb(238.07, 240.12, 96.25) 97%);
+  /* so i can make it more bright or opaque */
+}
+.box .text-wrapper-9 {
+  @apply text-[color:var(--colours-white-1000)] text-[27px] font-[number:var(--inter-semi-bold-16-font-weight)] h-[29px] tracking-[var(--inter-semi-bold-16-letter-spacing)] leading-[var(--inter-semi-bold-16-line-height)] absolute text-center w-[350px] left-[39px] top-[22px];
+  font-family: var(--inter-semi-bold-16-font-family);
+  font-style: var(--inter-semi-bold-16-font-style);
+}
+.box .overlap-5 {
+  @apply h-[29px] absolute w-[430px] left-0 top-[817px];
+}
+.box .p {
+  @apply text-[color:var(--colours-black-950)] text-[15] font-[number:var(--inter-regular-12-font-weight)] h-[29px] tracking-[var(--inter-regular-12-letter-spacing)] leading-[var(--inter-regular-12-line-height)] absolute text-center w-[430px] left-0 top-0;
+  font-family: var(--inter-regular-12-font-family);
+  font-style: var(--inter-regular-12-font-style);
+}
+.box .text-wrapper-10 {
+  @apply text-[color:var(--colours-green-600)] text-[15] font-[number:var(--inter-regular-12-font-weight)] h-[29px] tracking-[var(--inter-regular-12-letter-spacing)] leading-[var(--inter-regular-12-line-height)] absolute w-[203px] left-[210px] top-[15px];
+  font-family: var(--inter-regular-12-font-family);
+  font-style: var(--inter-regular-12-font-style);
+}
+  
+
+  

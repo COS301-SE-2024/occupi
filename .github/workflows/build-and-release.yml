@@ -34,11 +34,6 @@ jobs:
         name: Build Backend Binary
         runs-on: ${{ matrix.os }}
 
-        # set working directory
-        defaults:
-          run:
-            working-directory: occupi-backend
-
         steps:
           - name: Checkout code
             uses: actions/checkout@v4
@@ -50,22 +45,17 @@ jobs:
     
           - name: Build application
             run: |
+              cd occupi-backend
               go build -o occupi-backend_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.extension }} ${{ matrix.args }} -v cmd/occupi-backend/main.go
     
           - name: Upload artifact
-            uses: actions/upload-artifact@v4
+            uses: actions/upload-artifact@v3
             with:
               name: occupi-backend_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.extension }}
-              path: occupi-backend_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.extension }}
+              path: occupi-backend/occupi-backend_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.extension }}
 
     build-android:
       runs-on: ubuntu-latest
-
-      # set working directory
-      defaults:
-          run:
-            working-directory: frontend/occupi-mobile4
-
       steps:
         - name: Setup repo
           uses: actions/checkout@v4
@@ -93,25 +83,19 @@ jobs:
             token: ${{ secrets.EXPO_TOKEN }}
 
         - name: Install dependencies
-          run: npm install --legacy-peer-deps
+          run: npm ci
 
         - name: Build Android app
-          run: eas build --platform android --profile preview --local --output ${{ github.workspace }}/occupi-mobile-android.apk
+          run: eas build --platform android --profile preview --local --output ${{ github.workspace }}/app-release.apk
 
         - name: Upload APK artifact
           uses: actions/upload-artifact@v4
           with:
-            name: occupi-mobile-android.apk
-            path: occupi-mobile-android.apk
+            name: app-release
+            path: ${{ github.workspace }}/app-release.apk
 
     build-ios:
       runs-on: macos-latest
-
-      # set working directory
-      defaults:
-        run:
-          working-directory: frontend/occupi-mobile4
-
       steps:
         - name: Setup repo
           uses: actions/checkout@v4
@@ -130,16 +114,16 @@ jobs:
             token: ${{ secrets.EXPO_TOKEN }}
 
         - name: Install dependencies
-          run: npm install --legacy-peer-deps
+          run: npm ci
 
         - name: Build iOS app
-          run: eas build --platform ios --local --non-interactive --output ${{ github.workspace }}/occupi-mobile-ios.ipa
+          run: eas build --platform ios --local --non-interactive --output ${{ github.workspace }}/app-release.ipa
 
         - name: Upload IPA artifact
           uses: actions/upload-artifact@v4
           with:
-            name: occupi-mobile-ios
-            path: ${{ github.workspace }}/occupi-mobile-ios.ipa
+            name: app-release
+            path: ${{ github.workspace }}/app-release.ipa
 
     build-vite-app:
         name: Build Vite App
@@ -168,7 +152,7 @@ jobs:
                 zip -r dist/occupi-web.zip frontend/occupi-web/dist
 
             - name: Upload artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v3
               with:
                   name: occupi-web
                   path: frontend/occupi-web/dist/occupi-web.zip
@@ -197,11 +181,6 @@ jobs:
                   extension: ""
                   args: ''
                   arch: x86_64
-        
-        # set working directory
-        defaults:
-          run:
-            working-directory: frontend/occupi-desktop
 
         name: Build Tauri App
         runs-on: ${{ matrix.os }}
@@ -258,10 +237,21 @@ jobs:
         runs-on: ubuntu-latest
         needs: [build-backend-binary, build-android, build-ios, build-vite-app, build-tauri-app]
         steps:
-            - name: Download artifacts
-              uses: actions/download-artifact@v4
-                # according to the docs, if name is not specified, all artifacts are downloaded
-                # https://github.com/actions/download-artifact/tree/v4/?tab=readme-ov-file#inputs
-              with:
-                path: dist
-                merge-multiple: true
+            - name: Install GitHub CLI
+              run: |
+                sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+                sudo apt-add-repository https://cli.github.com/packages
+                sudo apt update
+                sudo apt install gh
+
+            - name: Login to GitHub
+              run: |
+                gh auth login
+
+            - name: Create a Release
+              run: |
+                gh release create v1.0.0 -t "v1.0.0" -n "v1.0.0" ./occupi-backend/occupi-backend ./occupi-frontend/occupi-frontend ./occupi-frontend/dist ./occupi-frontend/build ./occupi-frontend/target/release/occupi-frontend
+
+            - name: Upload Release Assets
+              run: |
+                gh release upload v1.0.0 ./occupi-backend/occupi-backend ./occupi-frontend/occupi-frontend ./occupi-frontend/dist ./occupi-frontend/build ./occupi-frontend/target/release/occupi-frontend

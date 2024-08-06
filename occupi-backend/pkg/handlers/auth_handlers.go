@@ -47,7 +47,8 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, requestUser.Email); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating email")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}
@@ -55,7 +56,8 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	// validate password
 	if valid, err := ValidatePasswordCorrectness(ctx, appsession, requestUser); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating password")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}
@@ -63,7 +65,8 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	// pre-login checks
 	if success, err := PreLoginAccountChecks(ctx, appsession, requestUser.Email, role); !success {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating email")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}
@@ -72,7 +75,8 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, requestUser.Email, role)
 
 	if err != nil {
-		logrus.WithError(err).Error("Error generating JWT token")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
 		return
 	}
 
@@ -344,7 +348,8 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	// validate password
 	if valid, err := ValidatePasswordEntry(ctx, appsession, requestUser.Password); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating password")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}
@@ -352,7 +357,8 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	// validate email exists
 	if valid, err := ValidateEmailDoesNotExist(ctx, appsession, requestUser.Email); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating email")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}
@@ -373,8 +379,10 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	if _, err := SendOTPEmail(ctx, appsession, requestUser.Email, constants.VerifyEmail); err != nil {
-		logrus.WithError(err).Error("Error sending OTP email")
+	_, err = SendOTPEmail(ctx, appsession, requestUser.Email, constants.VerifyEmail)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
 		return
 	}
 }
@@ -395,7 +403,8 @@ func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType strin
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, request.Email); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating email")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}
@@ -410,12 +419,17 @@ func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType strin
 		emailType = constants.VerifyEmail
 	}
 	// sned the otp to verify the email
-	if _, err := SendOTPEmail(ctx, appsession, request.Email, emailType); err != nil {
-		logrus.WithError(err).Error("Error sending OTP email")
+	_, err := SendOTPEmail(ctx, appsession, request.Email, emailType)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
 		return
 	}
 
-	// SendOTPEmail has logic that will send back a json response so no need to worry about the logic here
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		http.StatusOK,
+		"Please check your email for the OTP to verify your account.",
+		nil))
 }
 
 // handler for verifying a users otp /api/verify-otp
@@ -434,15 +448,23 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, userotp.Email); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating email")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}
 
 	if valid, err := ValidateOTPExists(ctx, appsession, userotp.Email, userotp.OTP); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating otp")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid OTP",
+			constants.InvalidAuthCode,
+			"Otp expired or invalid",
+			nil))
 		return
 	}
 
@@ -466,14 +488,14 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 			http.StatusOK,
 			"Email verified successfully!",
 			nil))
-		return
 	}
 
 	// generate a jwt token for the user
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, userotp.Email, role)
 
 	if err != nil {
-		logrus.WithError(err).Error("Error generating JWT token")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
 		return
 	}
 
@@ -589,9 +611,11 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	}
 
 	// Validate email
-	if valid, err := ValidateEmailExists(ctx, appsession, resetRequest.Email); !valid {
+	valid, err := ValidateEmailExists(ctx, appsession, resetRequest.Email)
+	if !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating email")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}
@@ -599,15 +623,27 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	// Validate OTP
 	if valid, err := ValidateOTPExists(ctx, appsession, resetRequest.Email, resetRequest.OTP); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating OTP")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid OTP",
+			constants.InvalidAuthCode,
+			"OTP expired or invalid",
+			nil))
 		return
 	}
 
 	// Validate new password
 	password, err := ValidatePasswordEntryAndReturnHash(ctx, appsession, resetRequest.NewPassword)
-	if err != nil || password == "" {
-		logrus.WithError(err).Error("Error validating password")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Password validation failed",
+			"ValidationErrorCode",
+			"Password does not meet requirements",
+			nil))
 		return
 	}
 
@@ -619,7 +655,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	}
 
 	// Update password in database
-	success, err := database.UpdateUserPassword(ctx, appsession, resetRequest.Email, password)
+	success, err := database.UpdateUserPassword(ctx, appsession.DB, resetRequest.Email, password)
 	if err != nil || !success {
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
@@ -633,7 +669,12 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	// Log the user in and Generate a JWT token
 	token, exp, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, role)
 	if err != nil {
-		logrus.WithError(err).Error("Error generating JWT token")
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Token generation failed",
+			constants.InternalServerErrorCode,
+			"Unable to generate a token for the user",
+			nil))
 		return
 	}
 
@@ -682,7 +723,8 @@ func IsEmailVerified(ctx *gin.Context, appsession *models.AppSession) {
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, request.Email); !valid {
 		if err != nil {
-			logrus.WithError(err).Error("Error validating email")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(err)
 		}
 		return
 	}

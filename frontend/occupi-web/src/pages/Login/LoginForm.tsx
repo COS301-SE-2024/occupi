@@ -8,7 +8,6 @@ import { useUser } from "UserContext";
 
 const LoginForm = (): JSX.Element => {
   const navigate = useNavigate();
-  const { setUserDetails } = useUser();
 
   const [form, setForm] = useState<{
     email: string,
