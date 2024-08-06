@@ -14,6 +14,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -153,7 +154,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.ID))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully booked!", booking.OccupiID))
 }
 
 func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
@@ -286,6 +287,12 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// if user is updating their email, create a new token for them
+	if user.Email != "" {
+		AttemptToSignNewEmail(ctx, appsession, user.Email)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully updated user details!", nil))
 }
 
@@ -382,31 +389,22 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 	}
 
 	if collectionName == "RoomBooking" {
-		// check that the .Filter in filter has the email key set and that the value is the same as the email in the appsession otherwise set the email key to the email in the appsession
-		if filter.Filter["email"] == nil || filter.Filter["email"] == "" {
-			email, err := AttemptToGetEmail(ctx, appsession)
-
-			if err != nil {
-				logrus.Error("Failed to get email because: ", err)
-				ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-				return
-			}
-
-			filter.Filter["email"] = email
-		} else {
-			email, err := AttemptToGetEmail(ctx, appsession)
-
-			if err != nil {
-				logrus.Error("Failed to get email because: ", err)
-				ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-				return
-			}
-
-			if filter.Filter["email"] != email {
-				filter.Filter["email"] = email
-			}
+		// check that the email field is set
+		if _, ok := filter.Filter["email"]; !ok {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Email must be provided", nil))
+			return
 		}
+
+		// delete email field from the filter
+		email := filter.Filter["email"]
+		delete(filter.Filter, "email")
+
+		// set emails field in the filter
+		filter.Filter["emails"] = bson.M{"$in": []string{email.(string)}}
 	}
+
+	fmt.Printf("Filter: %v\n", filter)
+	fmt.Printf("Collection Name: %v\n", collectionName)
 
 	res, totalResults, err := database.FilterCollectionWithProjection(ctx, appsession, collectionName, filter)
 
@@ -527,8 +525,8 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Validate the given passwords if they exist
 	if securitySettings.CurrentPassword != "" && securitySettings.NewPassword != "" && securitySettings.NewPasswordConfirm != "" {
-		securitySetting, err := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
-		if err != nil {
+		securitySetting, err, success := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
+		if err != nil || !success {
 			logrus.Error("Failed to sanitize security settings because: ", err)
 			return
 		}
@@ -837,10 +835,16 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	switch request.Quality {
 	case constants.ThumbnailRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
+
+		go PreloadAllImageResolutions(ctx, appsession, id)
 	case constants.LowRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
+
+		go PreloadMidAndHighResolutions(ctx, appsession, id)
 	case constants.MidRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
+
+		go PreloadHighResolution(ctx, appsession, id)
 	case constants.HighRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
 	default:
@@ -959,4 +963,37 @@ func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload boo
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", gin.H{"id": newID}))
+}
+
+func AddRoom(ctx *gin.Context, appsession *models.AppSession) {
+	var room models.RequestRoom
+	if err := ctx.ShouldBindJSON(&room); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// Save the room to the database
+	roomID, err := database.AddRoom(ctx, appsession, room)
+	if err != nil {
+		var msg string
+		if err.Error() == "room already exists" {
+			msg = "Room already exists"
+		} else {
+			msg = "Failed to add room"
+		}
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to add room",
+			constants.InternalServerErrorCode,
+			"Failed to add room",
+			gin.H{"message": msg}))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully added room!", gin.H{"roomid": roomID}))
 }
