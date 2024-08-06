@@ -57,6 +57,11 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	}
 	auth := router.Group("/auth")
 	{
+		auth.POST("/login-admin-begin", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.BeginLoginAdmin(ctx, appsession) })
+		auth.POST("/login-admin-finish/:id", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.FinishLoginAdmin(ctx, appsession, constants.Admin, true) })
+		auth.POST("/register-admin-begin", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.BeginRegistrationAdmin(ctx, appsession) })
+		auth.POST("/register-admin-finish/:id", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.FinishRegistrationAdmin(ctx, appsession, constants.Admin, true) })
+
 		auth.POST("/login", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession, constants.Basic, true) })
 		auth.POST("/login-admin", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession, constants.Admin, true) })
 		auth.POST("/login-mobile", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Login(ctx, appsession, constants.Basic, false) })
