@@ -1,6 +1,6 @@
 import { UpdateDetailsReq } from "@/models/requests";
 import { getUserDetails, getNotificationSettings, getSecuritySettings, updateSecuritySettings, updateNotificationSettings, updateUserDetails } from "../services/apiservices";
-import { storeUserData, storeNotificationSettings, getUserData, storeSecuritySettings } from "../services/securestore";
+import { storeUserData, storeNotificationSettings, getUserData, storeSecuritySettings, setState } from "../services/securestore";
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
@@ -112,8 +112,9 @@ export async function updateSecurity(type: string, values: any) {
     }
 }
 
-export async function updateDetails(name: string, dob: string, gender: string, cellno: string, pronouns: string, employeeid: string) {
+export async function updateDetails(name: string, dob: string, gender: string, cellno: string, pronouns: string) {
     const email = await SecureStore.getItemAsync('Email');
+    const state = await SecureStore.getItemAsync('AppState');
     try {
         const request : UpdateDetailsReq = {
             session_email: email,
@@ -122,11 +123,14 @@ export async function updateDetails(name: string, dob: string, gender: string, c
             gender: gender,
             number: cellno,
             pronouns: pronouns,
-            employeeid: employeeid
         }
         const response = await updateUserDetails(request);
         if (response.status === 200) {
             console.log(response);
+            if (state === "verify_otp_register") {
+                setState("logged_out");
+                router.replace('login');
+            }
             router.replace('/settings')
             return "Details updated successfully"
         }

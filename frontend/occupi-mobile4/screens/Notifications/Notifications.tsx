@@ -98,7 +98,7 @@ const Notifications = () => {
 
     return (
 
-        <View pt="$20" px="$4" flex={1} flexDirection="column" backgroundColor={currentTheme === 'dark' ? '$black' : '$white'}>
+        <View pt="$20" px="$2" flex={1} flexDirection="column" backgroundColor={currentTheme === 'dark' ? '$black' : '$white'}>
             <View flexDirection='row' justifyContent='space-between' mb="$2">
                 <Text fontWeight="$bold" fontSize={28} color={currentTheme === 'dark' ? '$white' : '$black'}>Notifications</Text>
                 <View style={{ backgroundColor: `${accentColour}`, alignItems: 'center', padding: 8, borderRadius: 12 }}>

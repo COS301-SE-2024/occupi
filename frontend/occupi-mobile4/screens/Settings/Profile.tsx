@@ -122,7 +122,7 @@ const Profile = () => {
 
 
   const onSave = async () => {
-    const response = await updateDetails(name,date,selectedGenderIndex,phoneNumber,pronouns, employeeId)
+    const response = await updateDetails(name,date,selectedGenderIndex,phoneNumber,pronouns)
     toast.show({
       placement: 'top',
       render: ({ id }) => {
