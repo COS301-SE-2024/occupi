@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Prediction } from '@/models/data';
 
-export async function getPredictions(): Promise<Prediction[]> {
+export async function getPredictions(): Promise<Prediction[] | undefined> {
     // let authToken = await SecureStore.getItemAsync('Token');
     try {
         const response = await axios.get("https://ai.occupi.tech/predict_week", {
@@ -17,6 +17,8 @@ export async function getPredictions(): Promise<Prediction[]> {
             return error.response.data;
         }
     }
+
+    return undefined;
 }
 
 getPredictions();
