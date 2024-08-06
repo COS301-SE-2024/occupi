@@ -17,6 +17,8 @@ export async function getPredictions(): Promise<Prediction[] | undefined> {
             return error.response.data;
         }
     }
+
+    return undefined;
 }
 
 getPredictions();

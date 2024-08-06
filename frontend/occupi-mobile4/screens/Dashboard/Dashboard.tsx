@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { LineChart } from "react-native-gifted-charts"
 import { StatusBar, useColorScheme, Dimensions, TouchableOpacity } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
@@ -13,9 +14,9 @@ import {
   ButtonText,
   ScrollView,
 } from '@gluestack-ui/themed';
-import {
-  LineChart
-} from "react-native-chart-kit";
+// import {
+//   LineChart
+// } from "react-native-chart-kit";
 import * as SecureStore from 'expo-secure-store';
 import { FontAwesome6 } from '@expo/vector-icons';
 // import { router } from 'expo-router';
@@ -24,6 +25,7 @@ import { fetchUsername } from '@/utils/user';
 import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
+import LineGraph from '@/components/LineGraph';
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
@@ -40,6 +42,31 @@ const Dashboard = () => {
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
   const toast = useToast();
+
+  const latestData = [
+    { value: 15, label: 'Mon' },
+    { value: 30, label: 'Tue' },
+    { value: 50, label: 'Wed' },
+    { value: 40, label: 'Thu' },
+    { value: 28, label: 'Fri' },
+    { value: 40, label: 'Sat' },
+    { value: 45, label: 'Sun' },
+  ];
+
+  const hourlyData = [
+    { value: 20, label: '07:00' },
+    { value: 50, label: '08:00' },
+    { value: 60, label: '09:00' },
+    { value: 40, label: '10:00' },
+    { value: 15, label: '11:00' },
+    { value: 5, label: '12:00' },
+    // {value: 40, label: '13:00'},
+    // {value: 40, label: '14:00'},
+    // {value: 40, label: '15:00'},
+    // {value: 40, label: '16:00'},
+    // {value: 40, label: '17:00'},
+  ];
+  const [currentData, setCurrentData] = useState(latestData);
   // console.log(currentTheme);
   // console.log(isDarkMode);
 
@@ -83,10 +110,9 @@ const Dashboard = () => {
     getUsername();
   }, []);
 
-
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
-  
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers(prevNumbers => {
@@ -101,6 +127,7 @@ const Dashboard = () => {
   const checkIn = () => {
     if (checkedIn === false) {
       setCheckedIn(true);
+      // setCurrentData(hourlyData);
       toast.show({
         placement: 'top',
         render: ({ id }) => (
@@ -214,79 +241,15 @@ const Dashboard = () => {
         <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
           {checkedIn ? (
             <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkIn}>
-              <ButtonText color="dimgrey">Check out</ButtonText>
+              <ButtonText color="black">Check out</ButtonText>
             </Button>
           ) : (
             <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
-              <ButtonText color="dimgrey">Check in</ButtonText>
+              <ButtonText color="black">Check in</ButtonText>
             </Button>
           )}
         </View>
-        {/* <Image
-        alt="logo"
-        p="10"
-        source={require('./assets/graph.png')}
-        style={{ width: wp('100%'), height: hp('31%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
-      /> */}
-        <View>
-          <Text color={textColor}>Occupancy levels</Text>
-          <LineChart
-            withInnerLines={true}
-            withOuterLines={false}
-            withVerticalLines={false}
-            // fromZero={true}
-            data={{
-              labels: ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"],
-              datasets: [
-                {
-                  data: [
-                    numbers[14],
-                    numbers[13],
-                    numbers[12],
-                    numbers[11],
-                    numbers[10],
-                    numbers[9],
-                    numbers[8],
-                    numbers[7],
-                    numbers[6],
-                    numbers[5],
-                    numbers[4],
-                    numbers[3],
-                    numbers[2],
-                    numbers[1],
-                    numbers[0]
-                  ]
-                }
-              ]
-            }}
-            width={Dimensions.get("window").width - 30} // from react-native
-            height={220}
-            // yAxisLabel=""
-            // yAxisSuffix="k"
-            yAxisInterval={1} // optional, defaults to 1
-            chartConfig={{
-              backgroundColor: "white",
-              backgroundGradientFrom: "yellowgreen",
-              backgroundGradientTo: "cyan",
-              decimalPlaces: 0, // optional, defaults to 2dp
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: {
-                borderRadius: 20
-              },
-              propsForDots: {
-                r: "0",
-                strokeWidth: "2",
-                stroke: "green"
-              }
-            }}
-            bezier
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
-        </View>
+        <LineGraph data={latestData} />
       </ScrollView>
       <Navbar />
     </>
