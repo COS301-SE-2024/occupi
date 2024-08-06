@@ -57,7 +57,8 @@ export interface ViewBookingsReq {
 export interface ViewRoomsReq {
     operator: string;
     filter?: {
-        floorNo: string;
+        floorNo?: string;
+        roomName?: string;
     };
     order_asc?: string;
     order_desc?: string;
