@@ -8,5 +8,20 @@ services:
     volumes:
       - rabbitmq-dev-local-local:/var/lib/rabbitmq
 
+  centrifugo-dev-local-local:
+    image: centrifugo/centrifugo:v5
+    container_name: centrifugo-dev-local-local
+    volumes:
+      - ./config.json:/centrifugo/config.json
+      - centrifugo-dev-local-local:/centrifugo/data
+    command: centrifugo -c config.json
+    ports:
+      - 8001:8000
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
 volumes:
   rabbitmq-dev-local-local:
+  centrifugo-dev-local-local:
