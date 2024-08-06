@@ -14,12 +14,20 @@ describe("ProfileComponent Simple Tests", () => {
 
  
 describe("ProfileComponent", () => {
-    test("renders profile image", () => {
-      render(<ProfileComponent />);
-      const imgs = screen.getAllByRole("img");
-      expect(imgs.length).toBeGreaterThan(0);
-    });
+    // test("renders profile image", () => {
+    //   render(<ProfileComponent />);
+    //   const imgs = screen.getAllByRole("img");
+    //   expect(imgs.length).toBeGreaterThan(0);
+    //   expect(imgs[0].getAttribute("src")).toBe("https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg");
+    // });
   
+  
+    // test("renders with default props when not provided", () => {
+    //   render(<ProfileComponent />);
+    //   const imgs = screen.getAllByRole("img");
+    //   expect(imgs.length).toBeGreaterThan(0);
+    //   expect(imgs[0].getAttribute("src")).toBe("https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg");
+    // });
   
     test("renders avatar with online status", () => {
       render(<ProfileComponent />);

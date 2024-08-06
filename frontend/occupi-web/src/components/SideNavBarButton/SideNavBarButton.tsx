@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 const variants = {
     open: {
-        width: "95%",
+        width: "12.5vw",
     },
     closed: {
         width: "40px",

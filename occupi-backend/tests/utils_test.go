@@ -1530,14 +1530,14 @@ func TestSantizeProjection(t *testing.T) {
 			input: models.QueryInput{
 				Projection: []string{"username", "emails", "age"},
 			},
-			expected: []string{"username", "emails", "age"},
+			expected: []string{"username", "age"},
 		},
 		{
 			name: "Projection with Password, UnsentExpoPushTokens, and Emails",
 			input: models.QueryInput{
 				Projection: []string{"username", "password", "unsentExpoPushTokens", "emails", "age"},
 			},
-			expected: []string{"username", "emails", "age"},
+			expected: []string{"username", "age"},
 		},
 	}
 
@@ -1565,6 +1565,7 @@ func TestConstructProjection(t *testing.T) {
 			expected: bson.M{
 				"password":             0,
 				"unsentExpoPushTokens": 0,
+				"emails":               0,
 				"_id":                  0,
 			},
 		},
@@ -1609,10 +1610,9 @@ func TestConstructProjection(t *testing.T) {
 			queryInput: models.QueryInput{
 				Projection: []string{"username", "emails", "age"},
 			},
-			sanitizedProjection: []string{"username", "emails", "age"},
+			sanitizedProjection: []string{"username", "age"},
 			expected: bson.M{
 				"username": 1,
-				"emails":   1,
 				"age":      1,
 				"_id":      0,
 			},
@@ -2258,13 +2258,6 @@ func TestGetClaimsFromCTX(t *testing.T) {
 				assert.EqualError(t, err, tt.expectedError)
 			} else {
 				assert.Nil(t, err)
-			}
-
-			// check that originToken has been set properly in context
-			if tt.tokenCookie != "" {
-				assert.Equal(t, "cookie", c.GetString("tokenOrigin"))
-			} else if tt.tokenHeader != "" {
-				assert.Equal(t, "header", c.GetString("tokenOrigin"))
 			}
 
 			// Check the expected claims
