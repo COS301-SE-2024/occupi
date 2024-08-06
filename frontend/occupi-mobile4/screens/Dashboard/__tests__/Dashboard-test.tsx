@@ -2,8 +2,26 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { StyledProvider, Theme } from '@gluestack-ui/themed';
 import Dashboard from '../Dashboard';
+import { useNavBar } from '../../../components/NavBarProvider'; // Adjust the path as needed
 
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper'); // To prevent warnings about Animated module
+
+jest.mock('react-native/Libraries/Settings/Settings', () => ({
+  get: jest.fn(),
+  set: jest.fn(),
+}));
+
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  useColorScheme: () => 'light',
+}));
+
+jest.mock('../../../components/NavBarProvider', () => ({
+  useNavBar: () => ({
+    currentTab: 'Dashboard',
+    setCurrentTab: jest.fn(),
+  }),
+}));
 
 jest.mock('@gluestack-ui/themed', () => ({
   ...jest.requireActual('@gluestack-ui/themed'),
@@ -47,8 +65,8 @@ describe('Dashboard component', () => {
   // Mock SecureStore getItemAsync to resolve with the mocked data
   require('expo-secure-store').getItemAsync.mockResolvedValueOnce(JSON.stringify(mockedData));
 
-  it('renders text correctly', () => {
-    const { getByText } = renderWithProvider(<Dashboard />);
+  it('renders text correctly', async () => {
+    const { getByText } = await renderWithProvider(<Dashboard />);
     expect(getByText('Welcome to Occupi')).toBeTruthy();
   });
 
