@@ -42,6 +42,7 @@
     "@react-native-picker/picker": "^2.7.7",
     "@react-native-segmented-control/segmented-control": "^2.5.2",
     "@react-navigation/native": "^6.1.17",
+    "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.5.1",
     "@ui-kitten/components": "^5.3.1",
     "axios": "^1.7.2",
