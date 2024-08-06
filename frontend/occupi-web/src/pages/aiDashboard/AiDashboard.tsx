@@ -66,10 +66,10 @@ const AiDashboard: React.FC = () => {
 
   const onLayoutChange = (currentLayout: Layout[], allLayouts: Layouts) => {
     setLayouts(allLayouts);
-    const newVisibleCards = currentLayout.map(item => item.i).filter(id => cardData.some(card => card.id === id));
+    const newVisibleCards = currentLayout.map((item: Layout) => item.i).filter((id: string) => cardData.some(card => card.id === id));
     setVisibleCards(newVisibleCards);
   };
-
+  
   const resetToDefaultLayout = () => {
     setLayouts(defaultLayouts);
     setVisibleCards(cardData.map(card => card.id));
@@ -99,7 +99,7 @@ const AiDashboard: React.FC = () => {
       Object.keys(newLayouts).forEach(breakpoint => {
         newLayouts[breakpoint] = [
           ...newLayouts[breakpoint],
-          originalCardLayouts[cardId] || defaultLayouts.lg.find(item => item.i === cardId) || { i: cardId, x: 0, y: 0, w: 3, h: 2 }
+          originalCardLayouts[cardId] || defaultLayouts.lg.find((item: Layout) => item.i === cardId) || { i: cardId, x: 0, y: 0, w: 3, h: 2 }
         ];
       });
       setLayouts(newLayouts);
