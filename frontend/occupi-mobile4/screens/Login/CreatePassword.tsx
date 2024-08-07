@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   VStack,
   Box,
@@ -14,12 +14,14 @@ import {
   Input,
   useToast,
   Toast,
+  Icon,
   InputField,
   ToastTitle,
   FormControlHelper,
   FormControlError,
   FormControlErrorIcon,
   FormControlErrorText,
+  ChevronLeftIcon,
   InputIcon,
   InputSlot,
   ScrollView,
@@ -28,15 +30,16 @@ import {
 } from '@gluestack-ui/themed';
 import { AlertTriangle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Logo from './assets/images/Occupi/file.png';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
-import { Keyboard } from 'react-native';
+import { Keyboard,StyleSheet, TextInput,Animated, Easing } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GuestLayout from '../../layouts/GuestLayout';
 import { router } from 'expo-router';
 import { styled } from '@gluestack-style/react';
+import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 
 const StyledImage = styled(Image, {
   props: {
@@ -165,14 +168,42 @@ export default function CreatePassword() {
   });
 
   function ScreenText() {
+    const spinValue = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      Animated.loop(
+        Animated.timing(spinValue, {
+          toValue: 2,
+          duration: 10000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ).start();
+    }, []);
+  
+    const spin = spinValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg'],
+    });
+
     return (
       <VStack space="md">
+        <StyledExpoRouterLink href="/login">
+        <Icon
+          as={ChevronLeftIcon}
+          color="$textLight800"
+          m="$0" w="$10" h="$16"
+          sx={{ _dark: { color: '$textDark800' } }}
+        />
+      </StyledExpoRouterLink>
          <HStack space="md" alignItems="center" justifyContent="center">
+         <Animated.View style={{ transform: [{ rotate: spin }] }}>
           <Image
             alt="logo"
             source={Logo}
             style={{ width: wp('27%'), height: wp('27%') }}
           />
+           </Animated.View>
         </HStack>
         <Heading
           fontSize={wp('6%')}
@@ -190,25 +221,7 @@ export default function CreatePassword() {
     );
   }
 
-  function WebSideContainer() {
-    return (
-      <Center
-        flex={1}
-        bg="$primary500"
-        sx={{
-          _dark: { bg: '$primary500' },
-        }}
-      >
-        <StyledImage
-          w="$80"
-          h="$10"
-          alt="Gluestack-ui pro"
-          resizeMode="contain"
-          source={require('./assets/images/gluestackUiProLogo_web_light.svg')}
-        />
-      </Center>
-    );
-  }
+  
   return (
     <GuestLayout>
       <Box
@@ -224,7 +237,6 @@ export default function CreatePassword() {
         }}
         flex={1}
       >
-        <WebSideContainer />
       </Box>
       <ScrollView
         contentContainerStyle={{
