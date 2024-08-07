@@ -20,8 +20,8 @@ services:
     depends_on:
         rabbitmq-dev:
           condition: service_healthy
-        # centrifugo-dev:
-        #   condition: service_healthy
+        centrifugo-dev:
+          condition: service_started
       
   rabbitmq-dev:
     image: rabbitmq:latest
@@ -42,28 +42,23 @@ services:
       timeout: 30s
       retries: 3
 
-  # centrifugo-dev:
-  #   image: centrifugo/centrifugo:v5
-  #   container_name: centrifugo-dev
-  #   volumes:
-  #     - ./configs/config.json:/centrifugo/config.json
-  #     - centrifugo-dev:/centrifugo/data
-  #   command: centrifugo -c config.json --health
-  #   ports:
-  #     - 8001:8000
-  #   ulimits:
-  #     nofile:
-  #       soft: 262144
-  #       hard: 262144
-  #   healthcheck:
-  #     test: curl -f http://localhost:8001/health
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5 
+  centrifugo-dev:
+    image: centrifugo/centrifugo:v5
+    container_name: centrifugo-dev
+    volumes:
+      - ./configs/centrifugo.config.json:/centrifugo/centrifugo.config.json
+      - centrifugo-dev:/centrifugo/data
+    command: centrifugo -c centrifugo.config.json
+    ports:
+      - 8001:8000
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
 
 volumes:
   rabbitmq-dev:
-  # centrifugo-dev:
+  centrifugo-dev:
 
 networks:
   webnet:

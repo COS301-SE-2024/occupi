@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
+	"github.com/centrifugal/gocent/v3"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -25,6 +26,7 @@ type AppSession struct {
 	RabbitQ      amqp.Queue
 	WebAuthn     *webauthn.WebAuthn
 	SessionCache *bigcache.BigCache
+	Centrifugo   *gocent.Client
 }
 
 // constructor for app session
@@ -44,6 +46,7 @@ func New(db *mongo.Client, cache *bigcache.BigCache) *AppSession {
 		RabbitQ:      q,
 		WebAuthn:     configs.CreateWebAuthnInstance(),
 		SessionCache: configs.CreateSessionCache(),
+		Centrifugo:   configs.CreateCentrifugoClient(),
 	}
 }
 
@@ -81,4 +84,10 @@ func NewWebAuthnUser(id []byte, name, displayName string, credentials webauthn.C
 		DisplayName: displayName,
 		Credentials: []webauthn.Credential{credentials},
 	}
+}
+
+type CentrigoCounterNode struct {
+	UUID    string `json:"uuid"`
+	Message string `json:"message"`
+	Count   int    `json:"count"`
 }
