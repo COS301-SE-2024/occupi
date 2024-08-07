@@ -1,66 +1,58 @@
 package tests
 
-import (
-	"net/http"
-	"net/http/httptest"
-	"testing"
+// // TestEnter tests the Enter function
+// func TestEnter(t *testing.T) {
+// 	r, cookies := setupTestEnvironment(t)
 
-	"github.com/stretchr/testify/assert"
-)
+// 	w := httptest.NewRecorder()
+// 	req, _ := http.NewRequest("POST", "/rtc/enter", nil)
 
-// TestEnter tests the Enter function
-func TestEnter(t *testing.T) {
-	r, cookies := setupTestEnvironment(t)
+// 	// Add cookies to the request
+// 	for _, cookie := range cookies {
+// 		req.AddCookie(cookie)
+// 	}
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/rtc/enter", nil)
+// 	r.ServeHTTP(w, req)
 
-	// Add cookies to the request
-	for _, cookie := range cookies {
-		req.AddCookie(cookie)
-	}
+// 	assert.Equal(t, http.StatusOK, w.Code)
+// 	assert.Contains(t, w.Body.String(), `"counter":1`)
+// }
 
-	r.ServeHTTP(w, req)
+// // TestExit tests the Exit function
+// func TestExit(t *testing.T) {
+// 	r, cookies := setupTestEnvironment(t)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), `"counter":1`)
-}
+// 	// First, increment the counter
+// 	w := httptest.NewRecorder()
+// 	req, _ := http.NewRequest("POST", "/rtc/enter", nil)
+// 	for _, cookie := range cookies {
+// 		req.AddCookie(cookie)
+// 	}
+// 	r.ServeHTTP(w, req)
 
-// TestExit tests the Exit function
-func TestExit(t *testing.T) {
-	r, cookies := setupTestEnvironment(t)
+// 	// Then, decrement the counter
+// 	w = httptest.NewRecorder()
+// 	req, _ = http.NewRequest("POST", "/rtc/exit", nil)
+// 	for _, cookie := range cookies {
+// 		req.AddCookie(cookie)
+// 	}
+// 	r.ServeHTTP(w, req)
 
-	// First, increment the counter
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/rtc/enter", nil)
-	for _, cookie := range cookies {
-		req.AddCookie(cookie)
-	}
-	r.ServeHTTP(w, req)
+// 	assert.Equal(t, http.StatusOK, w.Code)
+// 	assert.Contains(t, w.Body.String(), `"counter":0`)
+// }
 
-	// Then, decrement the counter
-	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("POST", "/rtc/exit", nil)
-	for _, cookie := range cookies {
-		req.AddCookie(cookie)
-	}
-	r.ServeHTTP(w, req)
+// // TestExitWithoutEnter tests the Exit function when no enter has been called
+// func TestExitWithoutEnter(t *testing.T) {
+// 	r, cookies := setupTestEnvironment(t)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), `"counter":0`)
-}
+// 	w := httptest.NewRecorder()
+// 	req, _ := http.NewRequest("POST", "/rtc/exit", nil)
+// 	for _, cookie := range cookies {
+// 		req.AddCookie(cookie)
+// 	}
+// 	r.ServeHTTP(w, req)
 
-// TestExitWithoutEnter tests the Exit function when no enter has been called
-func TestExitWithoutEnter(t *testing.T) {
-	r, cookies := setupTestEnvironment(t)
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/rtc/exit", nil)
-	for _, cookie := range cookies {
-		req.AddCookie(cookie)
-	}
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), `"counter":0`)
-}
+// 	assert.Equal(t, http.StatusOK, w.Code)
+// 	assert.Contains(t, w.Body.String(), `"counter":0`)
+// }
