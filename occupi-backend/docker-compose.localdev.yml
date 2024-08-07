@@ -30,25 +30,25 @@ services:
       timeout: 30s
       retries: 3
 
-  centrifugo-dev-local:
-    image: centrifugo/centrifugo:v5
-    container_name: centrifugo-dev-local
-    volumes:
-      - ./configs/config.json:/centrifugo/config.json
-      - centrifugo-dev-local:/centrifugo/data
-    command: centrifugo -c config.json --health
-    ports:
-      - 8001:8000
-    ulimits:
-      nofile:
-        soft: 262144
-        hard: 262144
-    healthcheck:
-      test: curl -f http://localhost:8001/health
-      interval: 30s
-      timeout: 10s
-      retries: 5    
+  # centrifugo-dev-local:
+  #   image: centrifugo/centrifugo:v5
+  #   container_name: centrifugo-dev-local
+  #   volumes:
+  #     - ./configs/config.json:/centrifugo/config.json
+  #     - centrifugo-dev-local:/centrifugo/data
+  #   command: centrifugo -c config.json --health
+  #   ports:
+  #     - 8001:8000
+  #   ulimits:
+  #     nofile:
+  #       soft: 262144
+  #       hard: 262144
+  #   healthcheck:
+  #     test: curl -f http://localhost:8001/health
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5    
 
 volumes:
   rabbitmq-dev-local:
-  centrifugo-dev-local:
+  # centrifugo-dev-local:
