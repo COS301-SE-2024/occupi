@@ -47,7 +47,7 @@ const (
 	RPID                = "RP_ID"
 	RPName              = "RP_NAME"
 	RPOrigins           = "RP_ORIGINS"
-	CentrifugoApiKey    = "CENTRIFUGO_API_KEY"
+	Centrifugo          = "CENTRIFUGO_API_KEY"
 )
 
 // init viper
@@ -158,7 +158,7 @@ func GetSMTPPort() int {
 	return portInt
 }
 func GetCentrifugoAPIKey() string {
-	key := viper.GetString(CentrifugoApiKey)
+	key := viper.GetString(Centrifugo)
 	if key == "" {
 		key = "CENTRIFUGO_API_KEY"
 	}
