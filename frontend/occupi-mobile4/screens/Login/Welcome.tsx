@@ -16,7 +16,7 @@ const Welcome = () => {
   useEffect(() => {
     Animated.loop(
       Animated.timing(spinValue, {
-        toValue: 1,
+        toValue: 2,
         duration: 10000,
         easing: Easing.linear,
         useNativeDriver: true,
