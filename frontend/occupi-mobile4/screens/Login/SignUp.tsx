@@ -27,7 +27,7 @@ import {
   InputSlot,
   FormControlLabel,
   FormControlLabelText,
-  View
+  View,
 } from '@gluestack-ui/themed';
 import { retrievePushToken } from '@/utils/notifications';
 import GradientButton from '@/components/GradientButton';
@@ -35,7 +35,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 // import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
@@ -88,18 +88,18 @@ const SignUpForm = () => {
   const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
       setLoading(true);
-    const response = await userRegister(_data.email, _data.password, _data.employeeId);
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
-            <ToastTitle>{response}</ToastTitle>
-          </Toast>
-        );
-      }
-    });
-    setLoading(false);
+      const response = await userRegister(_data.email, _data.password, _data.employeeId);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+              <ToastTitle>{response}</ToastTitle>
+            </Toast>
+          );
+        }
+      });
+      setLoading(false);
     } else {
       toast.show({
         placement: 'bottom right',
@@ -480,21 +480,28 @@ function SignUpFormComponent() {
 
 export default function SignUp() {
   return (
-    <View flex="$1" pt="$12" backgroundColor='white'>
-      <Box
-        sx={{
-          '@md': {
-            display: 'flex',
-          },
-        }}
-        flex={1}
-        display="none"
-      >
-        {/* <SideContainerWeb /> */}
-      </Box>
-      <Box flex={1}>
-        <SignUpFormComponent />
-      </Box>
-    </View>
+    // <ScrollView>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView flex="$1" pt="$12" backgroundColor='white'>
+        <Box
+          sx={{
+            '@md': {
+              display: 'flex',
+            },
+          }}
+          flex={1}
+          display="none"
+        >
+          {/* <SideContainerWeb /> */}
+        </Box>
+        <Box flex={1}>
+          <SignUpFormComponent />
+        </Box>
+      </ScrollView>
+    </KeyboardAvoidingView>
+    // </ScrollView>
   );
 }

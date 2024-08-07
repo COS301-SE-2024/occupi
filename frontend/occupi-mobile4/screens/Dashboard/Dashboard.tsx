@@ -57,7 +57,7 @@ const Dashboard = () => {
       try {
         const prediction = await getFormattedPredictionData();
         if (prediction) {
-          console.log(prediction);
+          // console.log(prediction);
           setCurrentData(prediction);
         }
       } catch (error) {
