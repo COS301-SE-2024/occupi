@@ -150,7 +150,7 @@ export default function ForgotPassword() {
 
   return (
     <GuestLayout>
-      <StyledExpoRouterLink bg="$white" href="/login">
+      <StyledExpoRouterLink  href="/login">
         <Icon
           as={ChevronLeftIcon}
           color="$textLight800"
@@ -164,7 +164,6 @@ export default function ForgotPassword() {
           '_dark': { bg: '$backgroundDark900' },
         }}
         flex={1}
-        bg="white"
       >
         <Box sx={{ '$md': { display: 'none' } }}>
           <HStack space="$md" alignItems="center" justifyContent="center">
