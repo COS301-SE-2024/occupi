@@ -12,7 +12,7 @@ services:
     image: centrifugo/centrifugo:v5
     container_name: centrifugo-dev-local-local
     volumes:
-      - ./config.json:/centrifugo/config.json
+      - ./configs/config.json:/centrifugo/config.json
       - centrifugo-dev-local-local:/centrifugo/data
     command: centrifugo -c config.json
     ports:
