@@ -221,7 +221,7 @@ const Dashboard = () => {
             <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Capacity</Text><FontAwesome6 name="arrow-up" size={14} color="yellowgreen" /><Text fontSize={13} color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
             <Text color={textColor} fontSize={28}>{numbers[0]}</Text>
             <Text fontSize={15}>Compared to </Text>
-            <Text fontSize={15}>Yesterday</Text>
+            <Text pb={6} fontSize={15}>Yesterday</Text>
             {/* <View flexDirection="column">
             <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
           </View> */}

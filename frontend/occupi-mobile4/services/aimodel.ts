@@ -21,4 +21,4 @@ export async function getPredictions(): Promise<Prediction[] | undefined> {
     return undefined;
 }
 
-getPredictions();
+// getPredictions();

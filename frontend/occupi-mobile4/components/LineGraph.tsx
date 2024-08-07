@@ -5,9 +5,15 @@ import {
   } from '@gluestack-ui/themed';
   import * as SecureStore from 'expo-secure-store';
   import { LineChart } from "react-native-gifted-charts"
+import { useColorScheme } from 'react-native';
+import { useTheme } from './ThemeContext';
 
 const LineGraph = (data) => {
+  const colorscheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorscheme : theme;
     // console.log(data.data);
+    const labels = currentTheme === 'dark' ? "lightgray" : "darkgrey";
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
     useEffect(() => {
         const getAccentColour = async () => {
@@ -30,16 +36,16 @@ const LineGraph = (data) => {
           width={wp('80%')}
           thickness={3}
           color={accentColour}
-          maxValue={4}
-          noOfSections={4}
+          maxValue={5}
+          noOfSections={5}
           // hideRules
           animateOnDataChange
           animationDuration={1000}
           onDataChangeAnimationDuration={300}
           areaChart
           endSpacing={0}
-          yAxisTextStyle={{color: 'lightgray'}}
-          xAxisLabelTextStyle={{color:'white'}}
+          yAxisTextStyle={{color: labels}}
+          xAxisLabelTextStyle={{color: labels}}
           data={data.data}
           hideDataPoints
           startFillColor={accentColour}
@@ -47,14 +53,14 @@ const LineGraph = (data) => {
           startOpacity={0.5}
           endOpacity={0.1}
           spacing={47}
-          backgroundColor="#414141"
+          backgroundColor={currentTheme === 'dark' ? "#414141" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
           // rulesColor="gray"
           rulesType="dashed"
           initialSpacing={20}
-          yAxisColor="lightgray"
-          xAxisColor="lightgray"
+          yAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
+          xAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
         />
       </View>
   )
