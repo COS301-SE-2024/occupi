@@ -139,6 +139,7 @@ const Notifications = () => {
           size="xl"
           color={currentTheme === 'dark' ? 'white' : 'black'}
           onPress={handleBack}
+          testID="back-button"
         />
         <Text style={styles.headerTitle} color={currentTheme === 'dark' ? 'white' : 'black'}>
           Notifications

@@ -75,8 +75,9 @@ export async function verifyUserOtpRegister(email: string, otp: string) {
         });
         if (response.status === 200) {
             console.log('responseee',response);
+            storeToken(response.data.token);
             router.replace('/set-details');
-            router.replace('/login');
+            // router.replace('/login');
             return response.message;
         }
         else {
