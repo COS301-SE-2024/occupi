@@ -104,7 +104,7 @@ const Appearance = () => {
                             <Image
                                 h={hp('18%')}
                                 resizeMode='stretch'
-                                borderRadius="$15"
+                                borderRadius={15}
                                 borderColor={theme === 'light' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
                                 borderWidth={3}
                                 alt="white"
@@ -119,7 +119,7 @@ const Appearance = () => {
                                 h={hp('18%')}
                                 resizeMode='stretch'
                                 borderColor={theme === 'dark' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
-                                borderRadius="$15"
+                                borderRadius={15}
                                 borderWidth={3}
                                 alt="white"
                                 source={require('./assets/black.png')}
@@ -133,7 +133,7 @@ const Appearance = () => {
                                 h={hp('18%')}
                                 resizeMode='stretch'
                                 borderColor={theme === 'system' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
-                                borderRadius="$15"
+                                borderRadius={15}
                                 borderWidth={3}
                                 alt="white"
                                 source={require('./assets/system.png')}

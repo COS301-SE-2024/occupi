@@ -52,19 +52,20 @@ export async function register(req: RegisterReq): Promise<Success | Unsuccessful
 }
 
 export async function verifyOtpRegister(req: VerifyOTPReq): Promise<LoginSuccess | Unsuccessful> {
+    console.log('sending',req);
     try {
-        const response = await axios.post("https://dev.occupi.tech/auth/verify-otp", req, {
+        const response = await axios.post("https://dev.occupi.tech/auth/verify-otp-mobile-login", req, {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             withCredentials: true
         });
-        // console.log(response.data);
+        console.log(response.data);
         return response.data as LoginSuccess;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            // console.log(error.response.data);
+            console.log(error.response.data);
             return error.response.data as Unsuccessful;
         } else {
             throw error;

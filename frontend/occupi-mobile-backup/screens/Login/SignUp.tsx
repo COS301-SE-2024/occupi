@@ -34,7 +34,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 // import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
@@ -161,14 +161,14 @@ const SignUpForm = () => {
   };
 
   return (
-    <>
+    <KeyboardAvoidingView>
       <VStack justifyContent="space-between">
         <FormControl
           isInvalid={(!!errors.email || isEmailFocused) && !!errors.email}
           isRequired={true}
         >
           <FormControlLabel mb="$1">
-            <FormControlLabelText fontWeight="$normal">Deloitte Email Address</FormControlLabelText>
+            <FormControlLabelText fontWeight="$normal">Deloitte Email Addss</FormControlLabelText>
           </FormControlLabel>
           <Controller
             name="email"
@@ -418,7 +418,7 @@ const SignUpForm = () => {
           text="Signup"
         />
       )}
-    </>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -509,14 +509,14 @@ function SignUpFormComponent() {
 
 export default function SignUp() {
   return (
-    <View flex="$1" pt="$12" backgroundColor='white'>
+    <ScrollView>
+    <View pt="$12" backgroundColor='white'>
       <Box
         sx={{
           '@md': {
             display: 'flex',
           },
         }}
-        flex={1}
         display="none"
       >
         {/* <SideContainerWeb /> */}
@@ -525,5 +525,6 @@ export default function SignUp() {
         <SignUpFormComponent />
       </Box>
     </View>
+    {/* // </ScrollView> */}
   );
 }

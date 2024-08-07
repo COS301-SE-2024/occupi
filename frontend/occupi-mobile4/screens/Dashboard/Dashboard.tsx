@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { LineChart } from "react-native-gifted-charts"
 import { StatusBar, useColorScheme, Dimensions, TouchableOpacity } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
@@ -13,9 +14,9 @@ import {
   ButtonText,
   ScrollView,
 } from '@gluestack-ui/themed';
-import {
-  LineChart
-} from "react-native-chart-kit";
+// import {
+//   LineChart
+// } from "react-native-chart-kit";
 import * as SecureStore from 'expo-secure-store';
 import { FontAwesome6 } from '@expo/vector-icons';
 // import { router } from 'expo-router';
@@ -24,6 +25,8 @@ import { fetchUsername } from '@/utils/user';
 import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
+import LineGraph from '@/components/LineGraph';
+import { getExtractedPredictions, getFormattedPredictionData } from '@/utils/occupancy';
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
@@ -40,6 +43,7 @@ const Dashboard = () => {
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
   const toast = useToast();
+  const [currentData, setCurrentData] = useState();
   // console.log(currentTheme);
   // console.log(isDarkMode);
 
@@ -48,6 +52,19 @@ const Dashboard = () => {
       let accentcolour = await SecureStore.getItemAsync('accentColour');
       setAccentColour(accentcolour);
     };
+
+    const getWeeklyPrediction = async () => {
+      try {
+        const prediction = await getFormattedPredictionData();
+        if (prediction) {
+          // console.log(prediction);
+          setCurrentData(prediction);
+        }
+      } catch (error) {
+        console.error('Error fetching predictions:', error);
+      }
+    }
+    getWeeklyPrediction();
     getAccentColour();
   }, []);
 
@@ -83,10 +100,9 @@ const Dashboard = () => {
     getUsername();
   }, []);
 
-
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
-  
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       setNumbers(prevNumbers => {
@@ -101,6 +117,7 @@ const Dashboard = () => {
   const checkIn = () => {
     if (checkedIn === false) {
       setCheckedIn(true);
+      // setCurrentData(hourlyData);
       toast.show({
         placement: 'top',
         render: ({ id }) => (
@@ -204,7 +221,7 @@ const Dashboard = () => {
             <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Capacity</Text><FontAwesome6 name="arrow-up" size={14} color="yellowgreen" /><Text fontSize={13} color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
             <Text color={textColor} fontSize={28}>{numbers[0]}</Text>
             <Text fontSize={15}>Compared to </Text>
-            <Text fontSize={15}>Yesterday</Text>
+            <Text pb={6} fontSize={15}>Yesterday</Text>
             {/* <View flexDirection="column">
             <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
           </View> */}
@@ -214,79 +231,15 @@ const Dashboard = () => {
         <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
           {checkedIn ? (
             <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkIn}>
-              <ButtonText color="dimgrey">Check out</ButtonText>
+              <ButtonText color="black">Check out</ButtonText>
             </Button>
           ) : (
             <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
-              <ButtonText color="dimgrey">Check in</ButtonText>
+              <ButtonText color="black">Check in</ButtonText>
             </Button>
           )}
         </View>
-        {/* <Image
-        alt="logo"
-        p="10"
-        source={require('./assets/graph.png')}
-        style={{ width: wp('100%'), height: hp('31%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
-      /> */}
-        <View>
-          <Text color={textColor}>Occupancy levels</Text>
-          <LineChart
-            withInnerLines={true}
-            withOuterLines={false}
-            withVerticalLines={false}
-            // fromZero={true}
-            data={{
-              labels: ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"],
-              datasets: [
-                {
-                  data: [
-                    numbers[14],
-                    numbers[13],
-                    numbers[12],
-                    numbers[11],
-                    numbers[10],
-                    numbers[9],
-                    numbers[8],
-                    numbers[7],
-                    numbers[6],
-                    numbers[5],
-                    numbers[4],
-                    numbers[3],
-                    numbers[2],
-                    numbers[1],
-                    numbers[0]
-                  ]
-                }
-              ]
-            }}
-            width={Dimensions.get("window").width - 30} // from react-native
-            height={220}
-            // yAxisLabel=""
-            // yAxisSuffix="k"
-            yAxisInterval={1} // optional, defaults to 1
-            chartConfig={{
-              backgroundColor: "white",
-              backgroundGradientFrom: "yellowgreen",
-              backgroundGradientTo: "cyan",
-              decimalPlaces: 0, // optional, defaults to 2dp
-              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: {
-                borderRadius: 20
-              },
-              propsForDots: {
-                r: "0",
-                strokeWidth: "2",
-                stroke: "green"
-              }
-            }}
-            bezier
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
-        </View>
+        <LineGraph data={currentData} />
       </ScrollView>
       <Navbar />
     </>
