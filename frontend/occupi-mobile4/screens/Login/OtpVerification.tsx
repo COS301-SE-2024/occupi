@@ -1,12 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput,Animated, Easing } from 'react-native';
 import { VStack, Box, HStack, Image, Heading, Toast, useToast, ToastTitle, Text, } from '@gluestack-ui/themed';
 // import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 // import { zodResolver } from '@hookform/resolvers/zod';
 import * as SecureStore from 'expo-secure-store';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import Logo from './assets/images/Occupi/file.png';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,7 +21,7 @@ type OTPSchemaType = z.infer<typeof OTPSchema>;
 const OTPVerification = () => {
   const [email, setEmail] = useState("");
   // const email = 'kamo@gmail.com';
-  const [remainingTime, setRemainingTime] = useState(60); // 1 minute
+  const [remainingTime, setRemainingTime] = useState(10); // 1 minute
   const otpSent = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState(false);
@@ -101,7 +101,10 @@ const OTPVerification = () => {
       locations={[0.02, 0.31, 0.67, 0.97]}
       start={[0, 1]}
       end={[1, 0]}
-      style={styles.buttonContainer}
+      style={{ 
+        ...styles.buttonContainer, 
+        marginTop: 16, 
+      }}
     >
       <Heading style={styles.buttonText} onPress={onPress}>
         {text}
@@ -114,7 +117,7 @@ const OTPVerification = () => {
       bg="$backgroundLight0"
       sx={{
         '@md': {
-          p: '$8',
+          p: '$5',
         },
         '_dark': {
           bg: '$backgroundDark800',
@@ -123,12 +126,16 @@ const OTPVerification = () => {
       py="$8"
       px="$4"
       flex={1}
+       mt="$4"
+          mb="$4"
     >
       <MainText email={email} />
-      <VStack space="md">
+      <VStack >
         <OTPInput otp={otp} setOtp={setOtp} />
-        <Text>Entered OTP: {otp.join('')}</Text>
-        <Text fontSize="$md">{remainingTime} seconds remaining</Text>
+        <HStack justifyContent="space-between" width="100%">
+          <Text>Entered OTP: {otp.join('')}</Text>
+          {/* <Text fontSize="$sm">{remainingTime} minutes remaining</Text> */}
+        </HStack>
         {loading ? (
           <GradientButton
             onPress={onSubmit}
@@ -140,7 +147,6 @@ const OTPVerification = () => {
             text="Verify"
           />
         )}
-
         <GradientButton text="Resend OTP" />
       </VStack>
       <AccountLink />
@@ -149,11 +155,30 @@ const OTPVerification = () => {
 };
 
 const MainText = (email) => {
-  // console.log("email",email.email);
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <VStack space="xs">
       <HStack space="md" alignItems="center" justifyContent="center" m="$12">
+      <Animated.View style={{ transform: [{ rotate: spin }] }}>
         <Image source={Logo} alt="occupi" style={{ width: wp('30%'), height: wp('30%') }} />
+        </Animated.View>
       </HStack>
       <Heading
         fontSize={wp('8%')}
@@ -168,7 +193,8 @@ const MainText = (email) => {
       <HStack space="sm" alignItems="center">
         <Text
           color="$black"
-          mt="$2"
+          mt="$4"
+          mb="$4"
           sx={{
             '@md': {
               pb: '$12',
@@ -195,14 +221,13 @@ function AccountLink() {
           mt: '$40',
         },
       }}
-      mt="auto"
-      space="xs"
+      mt="$5"
       alignItems="center"
       justifyContent="center"
     >
       <Text
         color="$textLight800"
-        mt="$4"
+        
         sx={{
           _dark: {
             color: '$textDark400',
@@ -213,7 +238,7 @@ function AccountLink() {
         Already have an account?
       </Text>
       <StyledExpoRouterLink href="/login">
-        <Text style={{ color: '#7FFF00', fontSize: wp('4%') }}>
+        <Text style={{ color: '#7FFF00', fontSize: wp('4%') }} >
           Login
         </Text>
       </StyledExpoRouterLink>
