@@ -1,24 +1,44 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Image,
   Center,
   Text,
   Heading,
 } from '@gluestack-ui/themed';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Animated, Easing } from 'react-native';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 
 const Welcome = () => {
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <View style={styles.container}>
       <Center style={styles.center}>
-        <Image
-          alt="logo"
-          source={require('../../screens/Login/assets/images/Occupi/logo-white.png')}
-          style={styles.logo}
-        />
+        <Animated.View style={{ transform: [{ rotate: spin }] }}>
+          <Image
+            alt="logo"
+            source={require('../../screens/Login/assets/images/Occupi/Occupi-gradient.png')}
+            style={styles.logo}
+          />
+        </Animated.View>
         <Heading style={styles.heading}>Log in. Let's Plan.</Heading>
         <Text style={styles.subHeading}>Predict. Plan. Perfect.</Text>
         <GradientButton
