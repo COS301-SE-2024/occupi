@@ -160,7 +160,7 @@ const MainText = (email) => {
   useEffect(() => {
     Animated.loop(
       Animated.timing(spinValue, {
-        toValue: 1,
+        toValue: 2,
         duration: 10000,
         easing: Easing.linear,
         useNativeDriver: true,
@@ -206,7 +206,7 @@ const MainText = (email) => {
           fontSize={wp('5%')}
           fontWeight="$light"
         >
-          We have sent the OTP code to {email.email}
+          We have sent the OTP code to <Text fontWeight="bold">{email.email}</Text>
         </Text>
       </HStack>
     </VStack>
