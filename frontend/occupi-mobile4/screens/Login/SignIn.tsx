@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Keyboard } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Keyboard,Animated, Easing } from 'react-native';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
@@ -37,7 +37,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Logo from '../../screens/Login/assets/images/Occupi/file.png';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import GradientButton from '@/components/GradientButton';
 import { UserLogin } from '@/utils/auth';
@@ -74,8 +74,11 @@ const SignInForm = () => {
 
   const toast = useToast();
 
+
+
   useEffect(() => {
     checkBiometricAvailability();
+   
   }, []);
 
   const checkBiometricAvailability = async () => {
@@ -84,6 +87,7 @@ const SignInForm = () => {
     // console.log('Biometric hardware available:', isBiometricAvailable);
   };
 
+ 
   const handleBiometricSignIn = async () => {
     const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
     console.log('Supported biometric types:', biometricType);
@@ -205,7 +209,7 @@ const SignInForm = () => {
             render={({ field: { onChange, onBlur, value } }) => (
               <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%')}>
                 <InputField
-                  fontSize="$md"
+                  fontSize="$sm"
                   placeholder="john.doe@gmail.com"
                   type="text"
                   value={value}
@@ -244,7 +248,7 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%')}>
+              <Input mb={hp('1%')} backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%') }>
                 <InputField
                   fontSize="$sm"
                   placeholder="Enter your password"
@@ -255,8 +259,8 @@ const SignInForm = () => {
                   returnKeyType="done"
                   type={showPassword ? 'text' : 'password'}
                 />
-                <InputSlot onPress={handleState} pr="$3">
-                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                <InputSlot onPress={handleState} pr="$5">
+                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} size="md" />
                 </InputSlot>
               </Input>
             )}
@@ -283,7 +287,7 @@ const SignInForm = () => {
           render={({ field: { onChange, value } }) => (
             <Checkbox
               aria-label="Close"
-              size="sm"
+              size="md"
               value="Remember me"
               isChecked={value}
               onChange={onChange}
@@ -297,7 +301,7 @@ const SignInForm = () => {
         />
 
         <StyledExpoRouterLink href="/forgot-password">
-          <LinkText color="yellowgreen" fontSize="$sm">
+          <LinkText color="yellowgreen" fontSize="$md">
             Forgot Password?
           </LinkText>
         </StyledExpoRouterLink>
@@ -320,6 +324,24 @@ const SignInForm = () => {
 };
 
 const Main = () => {
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <Box
       px={wp('4%')}
@@ -339,11 +361,13 @@ const Main = () => {
     >
       <VStack mt={hp('2%')} mb={hp('2%')} space="md">
         <HStack space="md" alignItems="center" justifyContent="center">
+        <Animated.View style={{ transform: [{ rotate: spin }] }}>
           <Image
             alt="Occupi Logo"
             source={Logo}
             style={{ width: wp('40%'), height: wp('40%') }}
           />
+           </Animated.View>
         </HStack>
         <VStack space="xs" mt={hp('2%')} my={hp('2%')}>
           <Heading
