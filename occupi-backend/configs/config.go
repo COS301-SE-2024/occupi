@@ -47,6 +47,7 @@ const (
 	RPID                = "RP_ID"
 	RPName              = "RP_NAME"
 	RPOrigins           = "RP_ORIGINS"
+	Centrifugo          = "CENTRIFUGO_API_KEY"
 )
 
 // init viper
@@ -155,6 +156,13 @@ func GetSMTPPort() int {
 		return 587
 	}
 	return portInt
+}
+func GetCentrifugoAPIKey() string {
+	key := viper.GetString(Centrifugo)
+	if key == "" {
+		key = "CENTRIFUGO_API_KEY"
+	}
+	return key
 }
 
 // gets the smtp password as defined in the config.yaml file
