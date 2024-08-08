@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Image,
   Center,
@@ -9,8 +9,32 @@ import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
+import * as Location from 'expo-location';
 
 const Onboarding1 = () => {
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      console.log('Latitude:', location.coords.latitude);
+      console.log('Longitude:', location.coords.longitude);
+
+      let address = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
+
+      if (address && address.length > 0) {
+        console.log('Location:', `${address[0].city}, ${address[0].region}, ${address[0].country}`);
+      }
+    })();
+  }, []);
+
   return (
     <View style={styles.container}>
       <Center style={styles.center}>
