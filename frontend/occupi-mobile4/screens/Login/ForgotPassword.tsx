@@ -38,32 +38,7 @@ const forgotPasswordSchema = z.object({
 });
 type SignUpSchemaType = z.infer<typeof forgotPasswordSchema>;
 
-function SideContainerWeb() {
-  return (
-    <Center
-      sx={{
-        '@base': {
-          _light: { bg: '$backgroundLight0' },
-          _dark: { bg: '$backgroundDark800' },
-        },
-        '$md': {
-          flex: 1,
-          _light: { bg: '$primary500' },
-          _dark: { bg: '$primary500' },
-          py: '$48',
-        },
-      }}
-    >
-      <Image
-        resizeMode="contain"
-        w="$200"
-        h="$40"
-        source={require('./assets/images/forgotPassword_web_dark.png')}
-        alt="Alternate Text"
-      />
-    </Center>
-  );
-}
+
 
 export default function ForgotPassword() {
   const {
@@ -161,11 +136,11 @@ export default function ForgotPassword() {
       <VStack
         sx={{
           '$md': { flexDirection: 'row' },
-          '_dark': { bg: '$backgroundDark900' },
+          // '_dark': { bg: '$backgroundDark900' },
         }}
         flex={1}
       >
-        <Box sx={{ '$md': { display: 'none' } }}>
+        <Box>
           <HStack space="$md" alignItems="center" justifyContent="center">
           <Animated.View style={{ transform: [{ rotate: spin }] }}>
             <Image
@@ -177,7 +152,7 @@ export default function ForgotPassword() {
           </HStack>
         </Box>
         <Box sx={{ '$md': { display: 'flex' } }} display="none" flex={1}>
-          <SideContainerWeb />
+         
         </Box>
         <Box
           maxWidth="$508"

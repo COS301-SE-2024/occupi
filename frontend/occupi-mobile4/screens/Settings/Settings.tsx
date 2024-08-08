@@ -41,18 +41,69 @@ const Settings = () => {
   }, []);
 
   const handleLogout = async () => {
-    const response = await UserLogout();
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={String(id)} variant="accent" action={response === 'Logged out successfully!' ? 'success' : 'error'}>
-            <ToastTitle>{response}</ToastTitle>
-          </Toast>
-        );
-      }
-    });
-  }
+    try {
+      // Show an "Are you sure?" prompt
+      const userConfirm = await Alert.alert(
+        'Logout',
+        'Are you sure you want to log out?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Logout',
+            onPress: async () => {
+              const userResponse = await UserLogout();
+              if (userResponse === 'Logged out successfully!') {
+                // Clear cookies or any other authentication-related storage
+                await SecureStore.deleteItemAsync('UserData');
+                // Show a success toast
+                toast.show({
+                  placement: 'top',
+                  render: ({ id }) => {
+                    return (
+                      <Toast nativeID={String(id)} variant="accent" action="success">
+                        <ToastTitle>{userResponse}</ToastTitle>
+                      </Toast>
+                    );
+                  },
+                });
+                // Navigate the user to the login or home screen
+                router.replace('/login');
+              } else {
+                // Show an error toast
+                toast.show({
+                  placement: 'top',
+                  render: ({ id }) => {
+                    return (
+                      <Toast nativeID={String(id)} variant="accent" action="error">
+                        <ToastTitle>{userResponse}</ToastTitle>
+                      </Toast>
+                    );
+                  },
+                });
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    } catch (error) {
+      // Handle any errors that may occur during the logout process
+      console.error('Error logging out:', error);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action="error">
+              <ToastTitle>Failed to log out. Please try again.</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+    }
+  };
 
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},

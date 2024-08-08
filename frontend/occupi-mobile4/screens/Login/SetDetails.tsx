@@ -29,6 +29,7 @@ import GradientButton from '@/components/GradientButton';
 import LoadingGradientButton from '@/components/LoadingGradientButton';
 import { updateDetails } from '@/utils/user';
 import { extractDateFromTimestamp } from '@/utils/utils';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const COLORS = {
   white: '#FFFFFF',
@@ -80,10 +81,17 @@ const SetDetails = () => {
   };
 
   return (
-    <SafeAreaView
-      style={colorScheme === 'dark' ? styles.containerdark : styles.containerlight}
+    
+    <View
+      pt="$5"
     >
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <LinearGradient
+    colors={['#351DB5', '#4490A5', '#6CC87F', '#C1F56C', '#FEFFB9']}
+    start={[0, 1]}
+    end={[0, 0]}
+    style={{ flex: 1}}
+  >
+      <ScrollView style={{ opacity: 0.8}} contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
           <Text style={[styles.headerTitle, colorScheme === 'dark' ? styles.textdark : styles.textlight]}>
             My account
@@ -186,13 +194,15 @@ const SetDetails = () => {
         ) : (
           <GradientButton
             onPress={onSave}
-            text="Save"
+            text="Confirm"
           />
         )
         }
 
       </ScrollView>
-    </SafeAreaView>
+      </LinearGradient>
+    </View>
+    
   );
 };
 
@@ -208,7 +218,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: SIZES.padding,
     justifyContent: 'center',
-    display: 'flex',
+     display: 'flex',
     flexDirection: 'column'
   },
   header: {
