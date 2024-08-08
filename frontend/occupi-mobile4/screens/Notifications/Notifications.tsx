@@ -58,7 +58,7 @@ const Notifications = () => {
     };
 
     if (notifications) {
-        console.log('yurpp');
+        // console.log('yurpp');
         notifications.forEach(notification => {
             const formattedDate = formatNotificationDate(notification.send_time);
     

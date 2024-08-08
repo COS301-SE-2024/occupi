@@ -21,7 +21,7 @@ services:
         rabbitmq-dev:
           condition: service_healthy
         centrifugo-dev:
-          condition: service_healthy
+          condition: service_started
       
   rabbitmq-dev:
     image: rabbitmq:latest
@@ -46,9 +46,9 @@ services:
     image: centrifugo/centrifugo:v5
     container_name: centrifugo-dev
     volumes:
-      - ./configs/config.json:/centrifugo/config.json
+      - ./centrifugo.config.json:/centrifugo/centrifugo.config.json
       - centrifugo-dev:/centrifugo/data
-    command: centrifugo -c config.json
+    command: centrifugo -c centrifugo.config.json
     ports:
       - 8001:8000
     ulimits:
