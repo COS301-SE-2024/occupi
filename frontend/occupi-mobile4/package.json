@@ -31,6 +31,9 @@
     "@gluestack-ui/config": "^1.1.18",
     "@gluestack-ui/themed": "^1.1.30",
     "@hookform/resolvers": "^3.6.0",
+    "@lingui/core": "^4.11.2",
+    "@lingui/react": "^4.11.2",
+    "@react-aria/checkbox": "^3.14.5",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-cookies/cookies": "^6.2.1",
     "@react-native-picker/picker": "^2.7.7",
@@ -85,10 +88,12 @@
     "react-native-web": "~0.19.10",
     "reanimated-color-picker": "^3.0.4",
     "tinycolor2": "^1.6.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "expo-location": "~17.0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
+    "@babel/core": "^7.25.2",
+    "@lingui/cli": "^4.11.2",
     "@types/jest": "^29.5.12",
     "@types/react": "~18.2.45",
     "@types/react-test-renderer": "^18.0.7",

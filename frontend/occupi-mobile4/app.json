@@ -18,13 +18,16 @@
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSFaceIDUsageDescription": "This app uses Face ID or Touch ID to confirm bookings."
+        "NSFaceIDUsageDescription": "This app uses Face ID or Touch ID to confirm bookings.",
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to provide relevant information."
       }
     },
     "android": {
       "permissions": [
         "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
+        "USE_FINGERPRINT",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -40,12 +43,8 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-secure-store",
-        {
-          "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
-        }
-      ]
+      "expo-secure-store",
+      "expo-location"
     ],
     "experiments": {
       "typedRoutes": true
