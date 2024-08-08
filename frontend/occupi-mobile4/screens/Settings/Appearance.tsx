@@ -42,7 +42,7 @@ const Appearance = () => {
     const onSave = () => {
         storeAccentColour(accentColour);
         storeTheme(theme);
-        router.back();
+        router.replace('/settings');
     }
 
     useEffect(() => {

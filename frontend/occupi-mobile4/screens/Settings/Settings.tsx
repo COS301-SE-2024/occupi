@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, ScrollView } from 'react-native';
+import { StyleSheet, View, Image, ScrollView, Alert } from 'react-native';
 import {
   VStack,
   HStack,
@@ -34,8 +34,9 @@ const Settings = () => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
       let jsonresult = JSON.parse(result);
+      // console.log(jsonresult)
       setName(String(jsonresult.name));
-      setPosition(String(jsonresult.position));
+      // setPosition(String(jsonresult.position));
     };
     getUserDetails();
   }, []);
@@ -43,7 +44,7 @@ const Settings = () => {
   const handleLogout = async () => {
     try {
       // Show an "Are you sure?" prompt
-      const userConfirm = await Alert.alert(
+      Alert.alert(
         'Logout',
         'Are you sure you want to log out?',
         [
@@ -69,8 +70,6 @@ const Settings = () => {
                     );
                   },
                 });
-                // Navigate the user to the login or home screen
-                router.replace('/login');
               } else {
                 // Show an error toast
                 toast.show({
