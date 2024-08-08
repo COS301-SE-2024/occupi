@@ -26,7 +26,7 @@ import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
-import { getExtractedPredictions, getFormattedPredictionData } from '@/utils/occupancy';
+import { getExtractedDailyPrediction, getExtractedPredictions, getFormattedDailyPredictionData, getFormattedPredictionData } from '@/utils/occupancy';
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
@@ -44,6 +44,7 @@ const Dashboard = () => {
   const [username, setUsername] = useState('');
   const toast = useToast();
   const [currentData, setCurrentData] = useState();
+  const [currentDayData, setCurrentDayData] = useState();
   // console.log(currentTheme);
   // console.log(isDarkMode);
 
@@ -64,6 +65,19 @@ const Dashboard = () => {
         console.error('Error fetching predictions:', error);
       }
     }
+
+    const getDayPrediction = async () => {
+      try {
+        const prediction = await getFormattedDailyPredictionData();
+        if (prediction) {
+          console.log(prediction);
+          setCurrentDayData(prediction);
+        }
+      } catch (error) {
+        console.error('Error fetching predictions:', error);
+      }
+    }
+    getDayPrediction();
     getWeeklyPrediction();
     getAccentColour();
   }, []);
@@ -226,7 +240,11 @@ const Dashboard = () => {
             <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
           </View> */}
           </Card>
-          <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('13%') }} backgroundColor={cardBackgroundColor} borderRadius={10} />
+          <Card flexDirection="column" alignItems='center' variant="elevated" p="$2.5" mt="$4" style={{ width: wp('43%'), height: hp('13%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
+            <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Predicted Avr</Text></View>
+            <Text color={"red"} fontSize={28}>Level: {currentDayData?.class}</Text>
+            <Text color={"red"} fontSize={18}>{currentDayData?.attendance} people</Text>
+          </Card>
         </View>
         <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
           {checkedIn ? (
@@ -239,6 +257,7 @@ const Dashboard = () => {
             </Button>
           )}
         </View>
+        <Text></Text>
         <LineGraph data={currentData} />
       </ScrollView>
       <Navbar />
