@@ -109,7 +109,8 @@ const Settings = () => {
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
     { title: 'Appearance', description: 'Customize your viewing experience', iconName: 'image', onPress: () => router.push('/set-appearance') },
-    { title: 'FAQ', description: "View the community's FAQ", iconName: 'info', onPress: () => router.push('faqpage') },
+    { title: 'FAQ', description: "View the community's FAQ", iconName: 'help-circle', onPress: () => router.push('faqpage') },
+    { title: 'About and Help', description: "View the Ts & Cs and Privacy Policy", iconName: 'info', onPress: () => router.push('info') },
     { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
   ];
 
@@ -161,9 +162,6 @@ const Settings = () => {
             </View>
           ))}
         </VStack>
-        <Center style={styles.footerContainer}>
-          <Text style={[styles.versionText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
-        </Center>
       </ScrollView>
       <Navbar />
     </>
