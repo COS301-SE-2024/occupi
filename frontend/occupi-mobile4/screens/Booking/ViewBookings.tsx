@@ -138,9 +138,6 @@ const ViewBookings = () => {
                     <View flexDirection="row" alignItems="center">
                         <Text fontWeight="$bold" fontSize={18} mr="$2" color={textColor}>Sort by:</Text>
                         <View backgroundColor={cardBackgroundColor} borderRadius="$lg" px="$2" alignItems="center">
-                        {bookings.length === 0 ? (
-                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>Eyy me idk.</Text>
-                              ) : (
                             <RNPickerSelect
                                 onValueChange={(value) => setSelectedSort(value)}
                                 items={[
@@ -174,7 +171,6 @@ const ViewBookings = () => {
                                 }}
 
                             />
-                            )}
                         </View>
                     </View>
                     <TouchableOpacity onPress={toggleLayout}>
@@ -203,6 +199,10 @@ const ViewBookings = () => {
                         <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
                     </View>
                 </>
+            ) : roomData?.length === 0 ? (
+                <View alignItems='center' justifyContent='center' flexDirection='column' flex={1}>
+                    <Text fontSize={25} color={textColor}>No bookings found</Text>
+                </View>
             ) :
                 layout === "grid" ? (
                     <ScrollView
