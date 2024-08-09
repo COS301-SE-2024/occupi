@@ -29,8 +29,12 @@ const Onboarding1 = () => {
         longitude: location.coords.longitude
       });
 
+      // let my_address = 
+
+
       if (address && address.length > 0) {
-        console.log('Location:', `${address[0].city}, ${address[0].region}, ${address[0].country}`);
+        let my_address = `${address[0].name}, ${address[0].street}, ${address[0].city}, ${address[0].region}, ${address[0].country}, ${address[0].postalCode}`;
+        console.log('Address:', my_address);
       }
     })();
   }, []);
