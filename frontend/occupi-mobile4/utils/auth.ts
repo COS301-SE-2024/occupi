@@ -28,7 +28,7 @@ export async function UserLogin(email: string, password: string) {
             } 
             else {
                 setState('verify_otp_login');
-                router.replace('verify-otp')
+                router.replace('/verify-otp')
             }
 
             return response.message;
