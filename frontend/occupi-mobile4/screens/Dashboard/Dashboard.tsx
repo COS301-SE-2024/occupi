@@ -101,10 +101,21 @@ const Dashboard = () => {
     const getRoomData = async () => {
       try {
         const roomData = await fetchUserBookings();
-        if (roomData) {
-          // console.log(roomData);
+        if (roomData && roomData.length > 0) {
           setRoomData(roomData[0]);
-          // console.log(roomData[0]);
+        } else {
+          setRoomData(
+            {
+              roomName: 'No bookings found',
+              date: 'No bookings found',
+              start: 'No bookings found',
+              end: 'No bookings found',
+              checkedIn: false,
+              creator: 'N/A',
+              emails: [],
+              floorNo: "0",
+            }
+          ); 
         }
       } catch (error) {
         console.error('Error fetching bookings:', error);
@@ -154,12 +165,18 @@ const Dashboard = () => {
   };
 
   function extractTimeFromDate(dateString: string): string {
+    if (dateString === 'No bookings found') {
+      return '';
+    }
     const date = new Date(dateString);
     date.setHours(date.getHours() - 2);
     return date.toTimeString().substring(0, 5);
   }
-
+  
   function extractDateFromDate(dateString: string): string {
+    if (dateString === 'No bookings found') {
+      return 'Make a booking';
+    }
     const date = new Date(dateString);
     return date.toDateString();
   }
@@ -223,8 +240,14 @@ const Dashboard = () => {
             <View flexDirection="column">
               <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
                 <View>
-                  <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>{extractDateFromDate(roomData.date)}</Text>
-                  <Text>{extractTimeFromDate(roomData.start)}-{extractTimeFromDate(roomData.end)}</Text>
+                <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>
+                      {extractDateFromDate(roomData.date)}
+                    </Text>
+                    <Text>
+                      {extractTimeFromDate(roomData.start)}
+                      {extractTimeFromDate(roomData.start) && extractTimeFromDate(roomData.end) ? '-' : ''}
+                      {extractTimeFromDate(roomData.end)}
+                    </Text>
                 </View>
               </View>
             </View>
