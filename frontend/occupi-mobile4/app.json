@@ -45,7 +45,8 @@
       "expo-router",
       "expo-secure-store",
       "expo-location",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-sensors"
     ],
     "experiments": {
       "typedRoutes": true
