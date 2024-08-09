@@ -29,22 +29,22 @@ const sidebarcontent = [
     icon: Grid,
     text: "Dashboard",
   },
+  // {
+  //   // icon: PieChart,
+  //   // text: "Analysis",
+  // },
   {
     icon: PieChart,
-    text: "Analysis",
-  },
-  {
-    icon: ColorSwatch,
     text: "AI Analysis",
   },
   {
     icon: Home,
     text: "Rooms",
   },
-  {
-    icon: UserProfileGroup,
-    text: "Teams",
-  },
+  // {
+  //   icon: UserProfileGroup,
+  //   text: "Teams",
+  // },
   {
     icon: Report,
     text: "Reports",
@@ -174,7 +174,7 @@ const SideNav = () => {
             />
           ))}
         </div>
-        <div className={`mb-4 ${isMinimized ? "mx-2" : "-ml-6"}`}>
+        <div className={`mb-4 ${isMinimized ? "mx-2" : "ml-3"}`}>
           <ProfileDropDown isMinimized={isMinimized} />
         </div>{" "}
       </div>

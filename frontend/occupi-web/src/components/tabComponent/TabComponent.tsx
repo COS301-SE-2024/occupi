@@ -32,7 +32,7 @@ const TabComponent = (props: TabComponentProps) => {
         onClick={() => handleTabClick(2)}
       >
         <p className="text-text_col">
-          Bookings
+          Employees
         </p>
       </motion.div>
       <motion.div
