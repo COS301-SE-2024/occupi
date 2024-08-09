@@ -3,6 +3,12 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface UserDetails {
   email: string;
+  name: string;
+  dob: string;
+  gender: string;
+  employeeid: string;
+  number: string;
+  pronouns: string;
   // Add other fields as needed
 }
 
