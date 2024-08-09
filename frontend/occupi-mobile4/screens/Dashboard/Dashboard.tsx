@@ -316,7 +316,7 @@ const Dashboard = () => {
           </View> */}
           </Card>
           <Card flexDirection="column" alignItems='center' variant="elevated" p="$2.5" mt="$4" style={{ width: wp('43%'), height: hp('13%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
-            <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Predicted Avr.</Text></View>
+            <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Predicted: </Text></View>
             <Text color={"red"} fontSize={28}>Level: {currentDayData?.class}</Text>
             <Text color={"red"} fontSize={18}>{currentDayData?.attendance} people</Text>
           </Card>
