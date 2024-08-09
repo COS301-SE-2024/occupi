@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Document,
   Page,
@@ -10,6 +10,18 @@ import {
 } from "@react-pdf/renderer";
 import { TopNav } from "@components/index";
 import { occupiLogo } from "@assets/index";
+import axios from "axios";
+
+// Define the interface for the data
+interface CapacityData {
+  day: string;
+  predicted: number;
+}
+interface ResponseItem {
+  Day_of_Week: number;
+  Predicted_Attendance_Level: string;
+  Predicted_Class: number;
+}
 
 // Sample data
 const occupancyData = [
@@ -97,12 +109,40 @@ const additionalData = [
 // Create Document Component
 function BasicDocument() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [capacityComparisonData, setCapacityComparisonData] = useState<CapacityData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const handleInputChange = (e: {
-    target: { value: React.SetStateAction<string> };
-  }) => {
+  const handleInputChange = (e: { target: { value: React.SetStateAction<string> } }) => {
     setSearchQuery(e.target.value);
   };
+
+  const convertRangeToNumber = (range: string) => {
+    if (!range) return 0; // Return a default value if range is undefined
+    const [min, max] = range.split("-").map(Number);
+    return (min + max) / 2;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<ResponseItem[]>(
+          "https://ai.occupi.tech/predict_week"
+        );
+        const formattedData = response.data.map((item: ResponseItem) => ({
+          day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][item.Day_of_Week],
+          predicted: convertRangeToNumber(item.Predicted_Attendance_Level),
+        }));
+        setCapacityComparisonData(formattedData);
+        setLoading(false);
+      } catch (err) {
+        setError(err as Error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="w-full overflow-auto">
@@ -132,9 +172,7 @@ function BasicDocument() {
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.paragraph}>
-                Monthly Office Occupancy Table
-              </Text>
+              <Text style={styles.paragraph}>Monthly Office Occupancy Table</Text>
               <View style={styles.table}>
                 <View style={styles.tableRow}>
                   <View style={styles.tableCol}>
@@ -168,6 +206,31 @@ function BasicDocument() {
                     </View>
                     <View style={styles.tableCol}>
                       <Text>{item.value}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Capacity Comparison Data */}
+            <View style={styles.section}>
+              <Text style={styles.paragraph}>AI Predicted Capacity</Text>
+              <View style={styles.table}>
+                <View style={styles.tableRow}>
+                  <View style={styles.tableCol}>
+                    <Text>Day</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text>Predicted Capacity</Text>
+                  </View>
+                </View>
+                {capacityComparisonData.map((data) => (
+                  <View style={styles.tableRow} key={data.day}>
+                    <View style={styles.tableCol}>
+                      <Text>{data.day}</Text>
+                    </View>
+                    <View style={styles.tableCol}>
+                      <Text>{data.predicted}</Text>
                     </View>
                   </View>
                 ))}
