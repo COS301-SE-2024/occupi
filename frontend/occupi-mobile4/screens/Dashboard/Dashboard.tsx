@@ -70,7 +70,7 @@ const Dashboard = () => {
       try {
         const prediction = await getFormattedDailyPredictionData();
         if (prediction) {
-          console.log(prediction);
+          // console.log(prediction);
           setCurrentDayData(prediction);
         }
       } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Keyboard,Animated, Easing } from 'react-native';
+import { Keyboard, Animated, Easing } from 'react-native';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
