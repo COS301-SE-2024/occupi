@@ -18,6 +18,8 @@ import {
   Icon,
   Box
 } from '@gluestack-ui/themed';
+import * as Print from 'expo-print';
+import { shareAsync } from 'expo-sharing';
 import { Ionicons, Feather, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -61,7 +63,7 @@ const BookingDetails = () => {
 
   useEffect(() => {
     const getbookingInfo = async () => {
-      let userEmail = await SecureStore.getItemAsync('Email');     
+      let userEmail = await SecureStore.getItemAsync('Email');
       let result: string = await SecureStore.getItemAsync('BookingInfo');
       let jsonresult = JSON.parse(result);
       setbookingInfo(jsonresult);
@@ -188,6 +190,28 @@ const BookingDetails = () => {
       ))}
     </View>
   );
+
+  const printToFile = async () => {
+    const html = `
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+          </head>
+          <body style="text-align: center;">
+            <h1 style="font-size: 50px; font-family: Helvetica Neue; font-weight: normal;">
+              Booking for ${bookingInfo?.roomName}
+            </h1>
+            <img
+              src="https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png"
+              style="width: 90vw;" />
+          </body>
+        </html>
+        `;
+    // On iOS/android prints the given html. On web prints the HTML from the current page.
+    const { uri } = await Print.printToFileAsync({ html });
+    console.log('File has been saved to:', uri);
+    await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+  };
 
   const handleBiometricAuth = async () => {
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
@@ -471,6 +495,7 @@ const BookingDetails = () => {
             </View>
             <TouchableOpacity
               style={{ margin: 15, borderRadius: 25 }}
+              onPress={printToFile}
             >
               <LinearGradient
                 colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
