@@ -1,10 +1,12 @@
 import { Upload } from '@assets/index';
 import { UploadButton } from '@assets/index';
-import { Button, DatePicker, Input, Select, SelectItem, User } from '@nextui-org/react';
+import { Button, DatePicker, Input, SelectItem, User } from '@nextui-org/react';
+import AuthService from 'AuthService';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useUserStore, useUser } from 'userStore';
-import AuthService from 'AuthService';
+import { useUser } from 'userStore';
+import { FeedBackModal } from '@components/index';
+import {OccupiLoader} from '@components/index';
 
 const ProfileView = () => {
   const { userDetails, setUserDetails } = useUser();
@@ -16,6 +18,10 @@ const ProfileView = () => {
   const [gender, setGender] = useState(userDetails?.gender || '');
   const [pronouns, setPronouns] = useState(userDetails?.pronouns || '');
   const [dateOfBirth, setDateOfBirth] = useState(userDetails?.dob ? new Date(userDetails.dob) : null);
+
+  // State for managing the modal and loader
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Preload user details from the store
@@ -41,10 +47,11 @@ const ProfileView = () => {
 
   const handleSaveChanges = async () => {
     try {
+      setIsLoading(true); // Show loader
       const updatedDetails = {
         email,
         name: `${firstName} ${lastName}`,
-        dob: dateOfBirth?.toISOString() || '',
+        dob: dateOfBirth?.toISOString().split('T')[0] || '',
         gender,
         session_email: userDetails?.email || '',
         employeeid: userDetails?.employeeid || '',
@@ -52,16 +59,37 @@ const ProfileView = () => {
         pronouns,
       };
 
-      // Update the user details in the store
-      setUserDetails(updatedDetails);
-
       // Call the API to update the user details
-      // await AuthService.updateUserDetails(updatedDetails);
-      console.log('User details updated successfully');
+      const result = await AuthService.updateUserDetails(updatedDetails);
+
+      if (result.status === 200) {
+        // Update the user details in the store
+        setUserDetails(updatedDetails);
+        console.log('User details updated successfully');
+      } else {
+        throw new Error(result.message || 'Failed to update user details');
+      }
     } catch (error) {
       console.error('Error updating user details:', error);
+    } finally {
+      setIsLoading(false); // Hide loader
     }
   };
+
+  const handleModalAction = () => {
+    setIsModalOpen(false);
+    handleSaveChanges();
+  };
+
+  const changesToBeMade = `
+  ${userDetails?.name !== `${firstName} ${lastName}` ? `Name: ${userDetails?.name} -> ${firstName} ${lastName}\n` : ''}
+  ${userDetails?.email !== email ? `Email: ${userDetails?.email} -> ${email}\n` : ''}
+  ${userDetails?.number !== number ? `Phone Number: ${userDetails?.number} -> ${number}\n` : ''}
+  ${userDetails?.gender !== gender ? `Gender: ${userDetails?.gender} -> ${gender}\n` : ''}
+  ${userDetails?.pronouns !== pronouns ? `Pronouns: ${userDetails?.pronouns} -> ${pronouns}\n` : ''}
+  ${userDetails?.dob !== dateOfBirth?.toISOString().split('T')[0] ? `Birth Date: ${userDetails?.dob} -> ${dateOfBirth?.toISOString().split('T')[0] || 'Not Set'}\n` : ''}
+`.trim();
+
 
   return (
     <motion.div
@@ -167,7 +195,6 @@ const ProfileView = () => {
           label="Gender"
           placeholder="Select your gender"
           value={gender}
-          // onChange={(val) => setGender(val as string)}
           description="Your gender"
         >
           {['male', 'female', 'other'].map((gender) => (
@@ -178,19 +205,31 @@ const ProfileView = () => {
 
       <DatePicker
         label="Birth date"
-        // value={dateOfBirth}
-        // onChange={setDateOfBirth}
         className="max-w-[284px] my-4"
         description="The day you were born on"
       />
 
       <div className="border-b-secondary border-b-[2px] rounded-2xl my-4" />
 
-      <Button className="bg-red_salmon" onClick={handleSaveChanges}>
+      <Button className="bg-red_salmon" onClick={() => setIsModalOpen(true)}>
         Save changes
       </Button>
+
+      {/* Feedback Modal */}
+      <FeedBackModal
+        title="Confirm Save Changes"
+        message={`Are you sure you want to save these changes?\n\n${changesToBeMade}`}
+        closeButtonLabel="Cancel"
+        actionButtonLabel="Confirm"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAction={handleModalAction}
+      />
+
+      {/* Loader */}
+      {isLoading && <OccupiLoader message="Saving your changes..." />}
     </motion.div>
   );
 };
 
-export default ProfileView
+export default ProfileView;
