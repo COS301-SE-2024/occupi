@@ -28,7 +28,6 @@ import { ActivityIndicator } from 'react-native';
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
-import { sendPushNotification } from "@/utils/notifications";
 import { userBookRoom } from "@/utils/bookings";
 import { useTheme } from "@/components/ThemeContext";
 
@@ -46,7 +45,6 @@ const BookingDetails = () => {
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
   const isDark = colorscheme === "dark";
-  const [pushTokens, setPushTokens] = useState([]);
   const [attendees, setAttendees] = useState(['']);
   // console.log(attendees);
   const cardBackgroundColor = isDark ? '#2C2C2E' : '#F3F3F3';
@@ -99,9 +97,9 @@ const BookingDetails = () => {
       }
     });
 
-    if (response === 'Successfully booked!') {
-      setCurrentStep(2);
-    }
+    // if (response === 'Successfully booked!') {
+    //   setCurrentStep(2);
+    // }
     setLoading(false);
   };
 

@@ -28,8 +28,6 @@ const Notifications = () => {
     const yesterdayNotifications = [];
     const olderNotifications = [];
 
-    const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-
     useEffect(() => {
         const getSettings = async () => {
             let accentcolour = await SecureStore.getItemAsync('accentColour');
