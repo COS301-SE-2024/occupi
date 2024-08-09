@@ -89,7 +89,9 @@
     "reanimated-color-picker": "^3.0.4",
     "tinycolor2": "^1.6.0",
     "zod": "^3.23.8",
-    "expo-location": "~17.0.1"
+    "expo-location": "~17.0.1",
+    "expo-sensors": "~13.0.9",
+    "expo-haptics": "~13.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

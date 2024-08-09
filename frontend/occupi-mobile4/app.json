@@ -44,7 +44,8 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-location"
+      "expo-location",
+      "expo-sensors"
     ],
     "experiments": {
       "typedRoutes": true
