@@ -29,8 +29,6 @@ const (
 	OccupiDomains       = "OCCUPI_DOMAINS"
 	Env                 = "ENV"
 	OtpExpiration       = "OTP_EXPIRATION"
-	FrontendURL         = "FRONTEND_URL"
-	ConfigLicense       = "CONFIG_LICENSE"
 	CacheEviction       = "CACHE_EVICTION"
 	OtpGenReqEviction   = "OTP_GEN_REQ_EVICTION"
 	AllowOriginsVal     = "ALLOW_ORIGINS"
@@ -50,6 +48,9 @@ const (
 	CentrifugoAKy       = "CENTRIFUGO_API_KEY"
 	CentrifugoHost      = "CENTRIFUGO_HOST"
 	CentrifugoPort      = "CENTRIFUGO_PORT"
+	ConfigLicense       = "CONFIG_LICENSE"
+	NewRelicAppName     = "NEW_RELIC_APP_NAME"
+	SentryDSN           = "SENTRY_DSN"
 )
 
 // init viper
@@ -261,15 +262,6 @@ func GetOTPExpiration() int {
 	return expiration
 }
 
-// gets the config license as defined in the config.yaml file
-func GetConfigLicense() string {
-	license := viper.GetString(ConfigLicense)
-	if license == "" {
-		license = "CONFIG_LICENSE"
-	}
-	return license
-}
-
 // gets the cache eviction time as defined in the config.yaml file in seconds
 func GetCacheEviction() int {
 	time := viper.GetInt(CacheEviction)
@@ -432,4 +424,29 @@ func GetCentrifugoPort() string {
 		port = "CENTRIFUGO_PORT"
 	}
 	return port
+}
+
+// gets the config license as defined in the config.yaml file
+func GetConfigLicense() string {
+	license := viper.GetString(ConfigLicense)
+	if license == "" {
+		license = "CONFIG_LICENSE"
+	}
+	return license
+}
+
+func GetNewRelicAppName() string {
+	appName := viper.GetString(NewRelicAppName)
+	if appName == "" {
+		appName = "NEW_RELIC_APP_NAME"
+	}
+	return appName
+}
+
+func GetSentryDSN() string {
+	dsn := viper.GetString(SentryDSN)
+	if dsn == "" {
+		dsn = "SENTRY_DSN"
+	}
+	return dsn
 }
