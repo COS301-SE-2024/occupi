@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart } from "react-native-gifted-charts"
-import { StatusBar, useColorScheme, Dimensions, TouchableOpacity } from 'react-native';
+import { StatusBar, useColorScheme, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
   Text,
@@ -26,7 +26,9 @@ import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
-import { getExtractedDailyPrediction, getExtractedPredictions, getFormattedDailyPredictionData, getFormattedPredictionData } from '@/utils/occupancy';
+import { getFormattedDailyPredictionData, getFormattedPredictionData } from '@/utils/occupancy';
+import * as Location from 'expo-location';
+
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
@@ -47,6 +49,56 @@ const Dashboard = () => {
   const [currentDayData, setCurrentDayData] = useState();
   // console.log(currentTheme);
   // console.log(isDarkMode);
+  const useLocationCheckin = (address: string) => {
+    if (address.includes("Jan Shoballl")) {
+      Alert.alert(
+        'At the office',
+        'It seems like you are at the office, would you like to check in?',
+        [
+          {
+            text: 'Check in!',
+            onPress: () => checkIn()
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ],
+        { cancelable: true }
+      );
+    } else{
+      console.log('not at work pal!');
+    }
+  }
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      // console.log('Latitude:', location.coords.latitude);
+      // console.log('Longitude:', location.coords.longitude);
+
+      let address = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
+
+      // let my_address = 
+
+
+      if (address && address.length > 0) {
+        let my_address = `${address[0].name}, ${address[0].street}, ${address[0].district}, ${address[0].region}, ${address[0].country}, ${address[0].postalCode}`;
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useLocationCheckin(my_address);
+        console.log('Address:', my_address);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const getAccentColour = async () => {
@@ -241,7 +293,7 @@ const Dashboard = () => {
           </View> */}
           </Card>
           <Card flexDirection="column" alignItems='center' variant="elevated" p="$2.5" mt="$4" style={{ width: wp('43%'), height: hp('13%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
-            <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Predicted Avr</Text></View>
+            <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Predicted Avr.</Text></View>
             <Text color={"red"} fontSize={28}>Level: {currentDayData?.class}</Text>
             <Text color={"red"} fontSize={18}>{currentDayData?.attendance} people</Text>
           </Card>
