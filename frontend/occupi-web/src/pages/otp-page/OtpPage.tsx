@@ -1,10 +1,9 @@
-// OtpPage.tsx
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { OccupiLogo, login_image } from "@assets/index";
-import { GradientButton, OtpComponent } from "@components/index";
+import { GradientButton, OtpComponent, OccupiLoader } from "@components/index";
 import AuthService from "AuthService";
-import { useUser } from "UserContext";
+import { useUser } from "userStore";
 
 const OtpPage = () => {
   const location = useLocation();
@@ -13,7 +12,7 @@ const OtpPage = () => {
 
   const [email, setEmail] = useState<string>("");
   const [otp, setOTP] = useState<{ otp: string, validity: boolean }>({ otp: "", validity: false });
-  const [isloading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -38,7 +37,7 @@ const OtpPage = () => {
     try {
       const response = await AuthService.verifyOtpLogin(email, otp.otp.replace(/,/g, ""));
       console.log("OTP verification response:", response);
-      
+
       // Uncomment these lines if you want to fetch and set user details
       const userDetails = await AuthService.getUserDetails(email);
       setUserDetails(userDetails);
@@ -54,6 +53,7 @@ const OtpPage = () => {
 
   return (
     <div className="flex flex-col md:flex-row justify-center w-screen h-screen items-center p-4">
+      {isLoading && <OccupiLoader message="Logging you in..." />}
       <div className="w-full md:w-[60vw] h-auto md:h-[40vw] flex justify-center items-center mb-8 md:mb-0">
         <div className="w-full md:w-[70vw] h-auto md:h-[35vw]">
           <img className="w-full h-full object-cover" src={login_image} alt="welcomes" />
@@ -73,7 +73,7 @@ const OtpPage = () => {
         }} />
 
         <div className="mt-5 w-full max-w-md">
-          <GradientButton isLoading={isloading} Text="Complete" isClickable={otp.validity && !!email} clickEvent={verifyOTP} />
+          <GradientButton isLoading={isLoading} Text="Complete" isClickable={otp.validity && !!email} clickEvent={verifyOTP} />
         </div>
 
         {error && <p className="text-red-500 mt-2 text-center">{error}</p>}

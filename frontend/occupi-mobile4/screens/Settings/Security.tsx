@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TouchableOpacity,
   StyleSheet,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -16,8 +16,9 @@ import { router } from 'expo-router';
 import { useColorScheme, Switch } from 'react-native';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
-import axios from 'axios';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
+import { updateSecurity } from '@/utils/user';
+import { useTheme } from '@/components/ThemeContext';
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
@@ -31,9 +32,22 @@ const SIZES = {
 };
 
 const Security = () => {
-  let colorScheme = useColorScheme();
+  const colorScheme = useColorScheme();
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorScheme : theme;
   const toast = useToast();
   //retrieve user settings ad assign variables accordingly
+
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
+
   const [oldMfa, setOldMfa] = useState(false);
   const [newMfa, setNewMfa] = useState(false);
   const [oldForceLogout, setOldForceLogout] = useState(false);
@@ -42,8 +56,9 @@ const Security = () => {
   useEffect(() => {
     const getSecurityDetails = async () => {
       let settings = await SecureStore.getItemAsync('Security');
+      // console.log(settings);
       const settingsObject = JSON.parse(settings);
-      console.log(settingsObject);
+      // console.log('current settings',settingsObject);
 
       if (settingsObject.mfa === "on") {
         setOldMfa(true);
@@ -101,59 +116,22 @@ const Security = () => {
 
   const onSave = async () => {
     //integration here
-    let userEmail = await SecureStore.getItemAsync('Email');
-    let authToken = await SecureStore.getItemAsync('Token');
-
-    try {
-      const response = await axios.post('https://dev.occupi.tech/api/update-security-settings', {
-        email: userEmail,
-        mfa: newMfa ? "on" : "off",
-        forceLogout: newForceLogout ? "on" : "off"
-      }, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `${authToken}`
-        },
-        withCredentials: true
-      });
-      const data = response.data;
-      // console.log(`Response Data: ${JSON.stringify(data.data)}`);
-      // console.log(data);
-      if (response.status === 200) {
-        const newSettings = {
-          mfa: newMfa ? "on" : "off",
-          forceLogout: newForceLogout ? "on" : "off",
-        }
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        // console.log(newSettings);
-        SecureStore.setItemAsync('Security', JSON.stringify(newSettings));
-        router.replace('/settings');
-      } else {
-        console.log(data);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    const settings = {
+      mfa: newMfa ? "on" : "off",
+      forceLogout: newForceLogout ? "on" : "off"
+    };
+    const response = await updateSecurity('settings', settings)
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === "Settings updated successfully" ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
+      },
+    });
+    // console.log(newSettings);
   };
 
   const handleBack = () => {
@@ -177,54 +155,52 @@ const Security = () => {
     }
   }
   return (
-
-
-    <View flex={1} backgroundColor={colorScheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
+    <View flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
       <View flex={1}>
         <View style={styles.header}>
           <Icon
             as={Feather}
             name="chevron-left"
             size="xl"
-            color={colorScheme === 'dark' ? 'white' : 'black'}
+            color={currentTheme === 'dark' ? 'white' : 'black'}
             onPress={handleBack}
           />
-          <Text style={styles.headerTitle} color={colorScheme === 'dark' ? 'white' : 'black'}>
+          <Text style={styles.headerTitle} color={currentTheme === 'dark' ? 'white' : 'black'}>
             Security
           </Text>
           <FontAwesome5
             name="fingerprint"
             size={24}
-            color={colorScheme === 'dark' ? 'white' : 'black'}
+            color={currentTheme === 'dark' ? 'white' : 'black'}
             style={styles.icon}
           />
         </View>
 
 
         <View flexDirection="column">
-          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-            <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Use 2fa to login</Text>
+          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+            <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Use 2fa to login</Text>
             <Switch
               trackColor={{ false: 'lightgray', true: 'lightgray' }}
-              thumbColor={newMfa ? 'greenyellow' : 'white'}
+              thumbColor={newMfa ? `${accentColour}` : 'white'}
               ios_backgroundColor="lightgray"
               onValueChange={toggleSwitch1}
               value={newMfa}
             />
           </View>
-          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-            <Text color={colorScheme === 'dark' ? 'white' : 'black'}>Force logout on app close</Text>
+          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+            <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Force logout on app close</Text>
             <Switch
               trackColor={{ false: 'lightgray', true: 'lightgray' }}
-              thumbColor={newForceLogout ? 'greenyellow' : 'white'}
+              thumbColor={newForceLogout ? `${accentColour}` : 'white'}
               ios_backgroundColor="lightgray"
               onValueChange={toggleSwitch2}
               value={newForceLogout}
             />
           </View>
           <TouchableOpacity onPress={() => handleBiometricAuth()}>
-            <View flexDirection="row" my="$2" borderRadius={14} alignItems="center" justifyContent="center" backgroundColor={colorScheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h="$12">
-              <Text fontWeight="bold" color={colorScheme === 'dark' ? '#fff' : '#000'}>Change Password</Text>
+            <View flexDirection="row" my="$2" borderRadius={14} alignItems="center" justifyContent="center" backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h="$12">
+              <Text fontWeight="bold" color={currentTheme === 'dark' ? '#fff' : '#000'}>Change Password</Text>
             </View>
           </TouchableOpacity>
         </View>

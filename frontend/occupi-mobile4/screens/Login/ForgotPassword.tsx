@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect }  from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   FormControl,
@@ -23,11 +23,11 @@ import {
   FormControlLabelText,
 } from '@gluestack-ui/themed';
 import GuestLayout from '../../layouts/GuestLayout';
-import Logo from '../../screens/Login/assets/images/Occupi/file.png';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Keyboard, StyleSheet } from 'react-native';
+import { Keyboard, StyleSheet, TextInput,Animated, Easing } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { AlertTriangle } from 'lucide-react-native';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
@@ -130,9 +130,27 @@ export default function ForgotPassword() {
     }
   });
 
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 2,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <GuestLayout>
-      <StyledExpoRouterLink bg="$white" href="..">
+      <StyledExpoRouterLink  href="/login">
         <Icon
           as={ChevronLeftIcon}
           color="$textLight800"
@@ -146,15 +164,16 @@ export default function ForgotPassword() {
           '_dark': { bg: '$backgroundDark900' },
         }}
         flex={1}
-        bg="white"
       >
         <Box sx={{ '$md': { display: 'none' } }}>
           <HStack space="$md" alignItems="center" justifyContent="center">
+          <Animated.View style={{ transform: [{ rotate: spin }] }}>
             <Image
               alt="logo"
               source={Logo}
               style={{ width: 150, height: 150 }}
             />
+             </Animated.View>
           </HStack>
         </Box>
         <Box sx={{ '$md': { display: 'flex' } }} display="none" flex={1}>
@@ -211,7 +230,7 @@ export default function ForgotPassword() {
 
           <FormControl
             my="$8"
-            isInvalid={(!!errors.email || isEmailFocused) && !!errors.email}
+            isInvalid={(!!errors.email ) && !!errors.email}
             isRequired={true}
           >
             <FormControlLabel mb="$1">

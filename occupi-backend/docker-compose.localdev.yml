@@ -13,6 +13,8 @@ services:
       depends_on:
         rabbitmq-dev-local:
           condition: service_healthy
+        centrifugo-dev-local:
+          condition: service_started
 
   rabbitmq-dev-local:
     image: rabbitmq:latest
@@ -28,5 +30,20 @@ services:
       timeout: 30s
       retries: 3
 
+  centrifugo-dev-local:
+    image: centrifugo/centrifugo:v5
+    container_name: centrifugo-dev-local
+    volumes:
+      - ./configs/centrifugo.config.json:/centrifugo/centrifugo.config.json
+      - centrifugo-dev-local:/centrifugo/data
+    command: centrifugo -c centrifugo.config.json
+    ports:
+      - 8000:8000
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144  
+
 volumes:
   rabbitmq-dev-local:
+  centrifugo-dev-local:

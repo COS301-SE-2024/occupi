@@ -44,6 +44,12 @@ const (
 	RabbitMQPassword    = "RABBITMQ_PASSWORD"
 	RabbitMQHost        = "RABBITMQ_HOST"
 	RabbitMQPort        = "RABBITMQ_PORT"
+	RPID                = "RP_ID"
+	RPName              = "RP_NAME"
+	RPOrigins           = "RP_ORIGINS"
+	CentrifugoAKy       = "CENTRIFUGO_API_KEY"
+	CentrifugoHost      = "CENTRIFUGO_HOST"
+	CentrifugoPort      = "CENTRIFUGO_PORT"
 )
 
 // init viper
@@ -375,6 +381,55 @@ func GetRabbitMQPort() string {
 	port := viper.GetString(RabbitMQPort)
 	if port == "" {
 		port = "RABBITMQ_PORT"
+	}
+	return port
+}
+
+func GetRPID() string {
+	id := viper.GetString(RPID)
+	if id == "" {
+		id = "RP_ID"
+	}
+	return id
+}
+
+func GetRPName() string {
+	name := viper.GetString(RPName)
+	if name == "" {
+		name = "RP_NAME"
+	}
+	return name
+}
+
+func GetRPOrigins() []string {
+	origins := viper.GetString(RPOrigins)
+	if origins != "" {
+		originList := strings.Split(origins, ",")
+		return originList
+	}
+	return []string{}
+}
+
+func GetCentrifugoAPIKey() string {
+	key := viper.GetString(CentrifugoAKy)
+	if key == "" {
+		key = "CENTRIFUGO_API_KEY"
+	}
+	return key
+}
+
+func GetCentrifugoHost() string {
+	host := viper.GetString(CentrifugoHost)
+	if host == "" {
+		host = "CENTRIFUGO_HOST"
+	}
+	return host
+}
+
+func GetCentrifugoPort() string {
+	port := viper.GetString(CentrifugoPort)
+	if port == "" {
+		port = "CENTRIFUGO_PORT"
 	}
 	return port
 }

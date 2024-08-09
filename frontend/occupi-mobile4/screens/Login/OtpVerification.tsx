@@ -1,35 +1,33 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput,Animated, Easing } from 'react-native';
 import { VStack, Box, HStack, Image, Heading, Toast, useToast, ToastTitle, Text, } from '@gluestack-ui/themed';
 // import { useForm } from 'react-hook-form';
-// import { z } from 'zod';
+import { z } from 'zod';
 // import { zodResolver } from '@hookform/resolvers/zod';
 import * as SecureStore from 'expo-secure-store';
-import { useRouter, useLocalSearchParams  } from 'expo-router';
-import Logo from './assets/images/Occupi/file.png';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
+import { VerifyUserOtpLogin, verifyUserOtpRegister } from '@/utils/auth';
 
-// const OTPSchema = z.object({
-//   OTP: z.string().min(6, 'OTP must be at least 6 characters in length'),
-// });
+const OTPSchema = z.object({
+  OTP: z.string().min(6, 'OTP must be at least 6 characters in length'),
+});
 
-// type OTPSchemaType = z.infer<typeof OTPSchema>;
+type OTPSchemaType = z.infer<typeof OTPSchema>;
 
 const OTPVerification = () => {
   const [email, setEmail] = useState("");
   // const email = 'kamo@gmail.com';
-  const [remainingTime, setRemainingTime] = useState(60); // 1 minute
+  const [remainingTime, setRemainingTime] = useState(10); // 1 minute
   const otpSent = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const toast = useToast();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const getUserDetailsUrl = process.env.EXPO_PUBLIC_GET_USER_DETAILS;
-  // console.log(email);
+  const [state, setState] = useState();
 
   useEffect(() => {
     if (remainingTime > 0 && !otpSent) {
@@ -49,19 +47,12 @@ const OTPVerification = () => {
   useEffect(() => {
     const getUserEmail = async () => {
       let email = await SecureStore.getItemAsync('Email');
-      // console.log("email",email);
+      const state = await SecureStore.getItemAsync('AppState');
+      setState(state);
       setEmail(email);
     };
     getUserEmail();
   }, []);
-
-  async function storeToken(value) {
-    await SecureStore.setItemAsync('Token', value);
-  }
-
-  async function storeUserData(value) {
-    await SecureStore.setItemAsync('UserData', value);
-  }
 
   // console.log("here",email);
 
@@ -74,99 +65,34 @@ const OTPVerification = () => {
     //   return;
     // }
     // setValidationError(null);
-    console.log(pin);
     setLoading(true);
-    try {
-      const response = await fetch('https://dev.occupi.tech/auth/verify-otp-mobile-login', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email,
-          otp: pin
-        }),
-        credentials: "include"
+    console.log(state);
+    if (state === 'verify_otp_register') {
+      const response = await verifyUserOtpRegister(email, pin);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+              <ToastTitle>Registration Successful</ToastTitle>
+            </Toast>
+          );
+        }
       });
-      const data = await response.json();
-      if (response.ok) {
-        setLoading(false);
-        // console.log(data.data.token);
-        storeToken(data.data.token);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={String(id)} variant="accent" action="success">
-                  <ToastTitle>{data.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          try {
-            let authToken = await SecureStore.getItemAsync('Token');
-            console.log(authToken);
-            const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${email}`, {
-              method: 'GET',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `${authToken}`
-              },
-              credentials: "include"
-            });
-            const data = await response.json();
-            // console.log("here");
-            if (response.ok) {
-              storeUserData(JSON.stringify(data));
-              // console.log(`Data of ${email}: `, data);
-            } else {
-              console.log(data);
-              toast.show({
-                placement: 'top',
-                render: ({ id }) => {
-                  return (
-                    <Toast nativeID={id} variant="accent" action="error">
-                      <ToastTitle>{data.error.message}</ToastTitle>
-                    </Toast>
-                  );
-                },
-              });
-            }
-          } catch (error) {
-            console.error('Error:', error);
-            toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="error">
-                    <ToastTitle>Network Error</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
-          }
-          router.replace('/home');
-      } else {
-        setLoading(false);
-        // console.log(data);
-        toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={String(id)} variant="accent" action="error">
-                    <ToastTitle>{data.message}</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      // setResponse('An error occurred');
     }
-    // }, 3000);
+    else {
+      const response = await VerifyUserOtpLogin(email, pin);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+              <ToastTitle>{response}</ToastTitle>
+            </Toast>
+          );
+        }
+      });
+    }
     setLoading(false);
   };
 
@@ -176,7 +102,10 @@ const OTPVerification = () => {
       locations={[0.02, 0.31, 0.67, 0.97]}
       start={[0, 1]}
       end={[1, 0]}
-      style={styles.buttonContainer}
+      style={{ 
+        ...styles.buttonContainer, 
+        marginTop: 16, 
+      }}
     >
       <Heading style={styles.buttonText} onPress={onPress}>
         {text}
@@ -185,50 +114,72 @@ const OTPVerification = () => {
   );
 
   return (
-      <Box
-        bg="$backgroundLight0"
-        sx={{
-          '@md': {
-            p: '$8',
-          },
-          '_dark': {
-            bg: '$backgroundDark800',
-          },
-        }}
-        py="$8"
-        px="$4"
-        flex={1}
-      >
-        <MainText email={email}/>
-        <VStack space="md">
-        <OTPInput otp={otp} setOtp={setOtp}/>
-        <Text>Entered OTP: {otp.join('')}</Text>
-          <Text fontSize="$md">{remainingTime} seconds remaining</Text>
-          {loading ? (
-            <GradientButton 
-             onPress={onSubmit}
-             text="Verifying OTP..." 
-            />
-           ) : (
-            <GradientButton 
+    <Box
+      bg="$backgroundLight0"
+      sx={{
+        '@md': {
+          p: '$5',
+        },
+        '_dark': {
+          bg: '$backgroundDark800',
+        },
+      }}
+      py="$8"
+      px="$4"
+      flex={1}
+       mt="$4"
+          mb="$4"
+    >
+      <MainText email={email} />
+      <VStack >
+        <OTPInput otp={otp} setOtp={setOtp} />
+        <HStack justifyContent="space-between" width="100%">
+          <Text>Entered OTP: {otp.join('')}</Text>
+          {/* <Text fontSize="$sm">{remainingTime} minutes remaining</Text> */}
+        </HStack>
+        {loading ? (
+          <GradientButton
             onPress={onSubmit}
-            text="Verify" 
-           />
-           )}
-          
-          <GradientButton text="Resend OTP" />
-        </VStack>
-        <AccountLink />
-      </Box>
+            text="Verifying OTP..."
+          />
+        ) : (
+          <GradientButton
+            onPress={onSubmit}
+            text="Verify"
+          />
+        )}
+        <GradientButton text="Resend OTP" />
+      </VStack>
+      <AccountLink />
+    </Box>
   );
 };
 
 const MainText = (email) => {
-  // console.log("email",email.email);
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 2,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <VStack space="xs">
       <HStack space="md" alignItems="center" justifyContent="center" m="$12">
+      <Animated.View style={{ transform: [{ rotate: spin }] }}>
         <Image source={Logo} alt="occupi" style={{ width: wp('30%'), height: wp('30%') }} />
+        </Animated.View>
       </HStack>
       <Heading
         fontSize={wp('8%')}
@@ -243,7 +194,8 @@ const MainText = (email) => {
       <HStack space="sm" alignItems="center">
         <Text
           color="$black"
-          mt="$2"
+          mt="$4"
+          mb="$4"
           sx={{
             '@md': {
               pb: '$12',
@@ -255,7 +207,7 @@ const MainText = (email) => {
           fontSize={wp('5%')}
           fontWeight="$light"
         >
-          We have sent the OTP code to {email.email}
+          We have sent the OTP code to <Text fontWeight="bold">{email.email}</Text>
         </Text>
       </HStack>
     </VStack>
@@ -270,14 +222,13 @@ function AccountLink() {
           mt: '$40',
         },
       }}
-      mt="auto"
-      space="xs"
+      mt="$5"
       alignItems="center"
       justifyContent="center"
     >
       <Text
         color="$textLight800"
-        mt="$4"
+        
         sx={{
           _dark: {
             color: '$textDark400',
@@ -288,7 +239,7 @@ function AccountLink() {
         Already have an account?
       </Text>
       <StyledExpoRouterLink href="/login">
-        <Text style={{ color: '#7FFF00', fontSize: wp('4%') }}>
+        <Text style={{ color: '#7FFF00', fontSize: wp('4%') }} >
           Login
         </Text>
       </StyledExpoRouterLink>
@@ -335,7 +286,7 @@ const OTPInput = ({ otp, setOtp }) => {
           keyboardType="numeric"
           maxLength={1}
           ref={(ref) => inputRefs.current[index] = ref}
-          // autoFocus={index === inputRefs.current[index]} // Auto focus the first input on mount
+        // autoFocus={index === inputRefs.current[index]} // Auto focus the first input on mount
         />
       ))}
     </View>

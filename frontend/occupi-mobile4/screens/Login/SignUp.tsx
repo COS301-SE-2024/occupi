@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import Logo from '../../screens/Login/assets/images/Occupi/file.png';
+import React, { useState, useEffect, useRef } from 'react';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import {
   Checkbox,
   Image,
@@ -27,18 +27,21 @@ import {
   InputSlot,
   FormControlLabel,
   FormControlLabelText,
-  View
+  View,
 } from '@gluestack-ui/themed';
+import { retrievePushToken } from '@/utils/notifications';
 import GradientButton from '@/components/GradientButton';
 import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard } from 'react-native';
+import { Keyboard,Animated, Easing,KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+
 // import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { userRegister } from '@/utils/auth';
 
 const isEmployeeIdFocused = false;
 const signUpSchema = z.object({
@@ -69,6 +72,7 @@ const signUpSchema = z.object({
 
 type SignUpSchemaType = z.infer<typeof signUpSchema>;
 
+retrievePushToken();
 
 const SignUpForm = () => {
   const {
@@ -85,50 +89,18 @@ const SignUpForm = () => {
   const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
       setLoading(true);
-      try {
-        const response = await fetch('https://dev.occupi.tech/auth/register', {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: _data.email,
-            password: _data.password
-          }),
-          credentials: "include"
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setLoading(false);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={String(id)} variant="accent" action="success">
-                  <ToastTitle>{data.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          router.push({pathname:'/verify-otp', params: { email: _data.email}});
-        } else {
-          setLoading(false);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={String(id)} variant="accent" action="error">
-                  <ToastTitle>{data.error.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
+      const response = await userRegister(_data.email, _data.password, _data.employeeId);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+              <ToastTitle>{response}</ToastTitle>
+            </Toast>
+          );
         }
-      } catch (error) {
-        console.error('Error:', error);
-      }
-      setLoading(false)
+      });
+      setLoading(false);
     } else {
       toast.show({
         placement: 'bottom right',
@@ -285,7 +257,7 @@ const SignUpForm = () => {
                   type={showPassword ? 'text' : 'password'}
                 />
                 <InputSlot onPress={handleState} pr="$3">
-                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} size="md"/>
                 </InputSlot>
               </Input>
             )}
@@ -332,7 +304,7 @@ const SignUpForm = () => {
                   type={showConfirmPassword ? 'text' : 'password'}
                 />
                 <InputSlot onPress={handleConfirmPwState} pr="$3">
-                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} size="md"/>
                 </InputSlot>
               </Input>
             )}
@@ -352,13 +324,11 @@ const SignUpForm = () => {
         render={({ field: { onChange, value } }) => (
           <Checkbox
             aria-label="termsofuse"
-            size="sm"
+            size="md"
             value="privacy"
             isChecked={value}
             onChange={onChange}
             alignSelf="flex-start"
-            mt="$2"
-            mb="$12"
           >
             <CheckboxIndicator mr="$2">
               <CheckboxIcon color="yellowgreen" as={CheckIcon} />
@@ -423,6 +393,24 @@ const SignUpForm = () => {
 };
 
 function SignUpFormComponent() {
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 2,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <>
       <Box
@@ -455,11 +443,13 @@ function SignUpFormComponent() {
         <VStack mb="$5" space="md">
 
           <HStack alignItems="center" justifyContent="center">
+          <Animated.View style={{ transform: [{ rotate: spin }] }}>
             <Image
               alt="Occupi Logo"
               source={Logo}
               style={{ width: wp('30%'), height: wp('30%') }}
             />
+             </Animated.View>
           </HStack>
           <VStack space="xs" mb="$2">
             <Heading
@@ -483,8 +473,6 @@ function SignUpFormComponent() {
           space="xs"
           alignItems="center"
           justifyContent="center"
-          mt="$5"
-          mb="$8"
         >
           <Text
             color="$textLight500"
@@ -493,13 +481,13 @@ function SignUpFormComponent() {
                 color: '$textDark400',
               },
             }}
-            fontSize="$sm"
+            fontSize={wp('4%')}
           >
             Have an account?
           </Text>
 
           <StyledExpoRouterLink replace href="/login">
-            <LinkText color="yellowgreen" fontSize="$sm">Login</LinkText>
+            <LinkText color="yellowgreen"  fontSize={wp('4%')}>Login</LinkText>
           </StyledExpoRouterLink>
         </HStack>
       </Box>
@@ -509,21 +497,28 @@ function SignUpFormComponent() {
 
 export default function SignUp() {
   return (
-    <View flex="$1" pt="$12" backgroundColor='white'>
-      <Box
-        sx={{
-          '@md': {
-            display: 'flex',
-          },
-        }}
-        flex={1}
-        display="none"
-      >
-        {/* <SideContainerWeb /> */}
-      </Box>
-      <Box flex={1}>
-        <SignUpFormComponent />
-      </Box>
-    </View>
+    // <ScrollView>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView flex="$1" pt="$12" backgroundColor='white'>
+        <Box
+          sx={{
+            '@md': {
+              display: 'flex',
+            },
+          }}
+          flex={1}
+          display="none"
+        >
+          {/* <SideContainerWeb /> */}
+        </Box>
+        <Box flex={1}>
+          <SignUpFormComponent />
+        </Box>
+      </ScrollView>
+    </KeyboardAvoidingView>
+    // </ScrollView>
   );
 }

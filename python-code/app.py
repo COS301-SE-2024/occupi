@@ -1,12 +1,14 @@
-# app.py
 from flask import Flask, request, jsonify
 import logging
-from prediction import get_prediction
-from scaler import scaler
 from datetime import datetime, timedelta
+from prediction import get_prediction
+import joblib
 
 # Initialize the Flask application
 app = Flask(__name__)
+
+# Load the scaler
+scaler = joblib.load('attendance_scaler.pkl')
 
 # Function to determine if a given date is a weekend
 def is_weekend(date):
@@ -14,10 +16,14 @@ def is_weekend(date):
 
 # Function to determine if a given date is a special event (placeholder logic)
 def is_special_event(date):
-    special_events_dates = [(7, 4), (12, 25),(4,23),(12,9),(8,5),(3,6),(11,27),(3,10),(7,26)]  # Example: 4th of July, Christmas
+    special_events_dates = [(7, 4), (12, 25), (4, 23), (12, 9), (8, 5), (3, 6), (11, 27), (3, 10), (7, 26)]  # Example: 4th of July, Christmas
     return 1 if (date.month, date.day) in special_events_dates else 0
 
-@app.route('/predict', methods=['POST'])
+@app.route('/', methods=['GET'])
+def ping():
+    return jsonify({'response': 'Prediction API is up and running'}), 200
+
+@app.route('/predict', methods=['GET'])
 def predict():
     try:
         # Get current date
@@ -29,10 +35,10 @@ def predict():
         day_of_month = current_date.day
         weekend = is_weekend(current_date)
         special_event = is_special_event(current_date)
-         # Set factor based on special event
-        factor = 1.5 if special_event else 1.0
+        # Set factor based on special event
+        # factor = 1.5 if special_event else 1.0
 
-        predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler, factor)
+        predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler)
         
         return jsonify({
             'Day_of_Week': day_of_week,
@@ -47,7 +53,7 @@ def predict():
         logging.error(f"Error in predict endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/predict_week', methods=['POST'])
+@app.route('/predict_week', methods=['GET'])
 def predict_week():
     try:
         # Get the current date
@@ -68,11 +74,11 @@ def predict_week():
             weekend = is_weekend(date)
             special_event = is_special_event(date)
             
-           # Set factor based on special event
-            factor = 1.5 if special_event else 1.0
+            # Set factor based on special event
+            # factor = 1.5 if special_event else 1.0
             
             # Get prediction
-            predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler, factor)
+            predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler)
             
             # Append the results
             predictions.append({
@@ -92,4 +98,4 @@ def predict_week():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=9000)

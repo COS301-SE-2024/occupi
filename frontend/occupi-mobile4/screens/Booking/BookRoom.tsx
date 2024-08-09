@@ -13,6 +13,8 @@ import Navbar from '../../components/NavBar';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
 import { Skeleton } from 'moti/skeleton';
+import { useTheme } from '@/components/ThemeContext';
+import { fetchRooms } from '@/utils/bookings';
 
 const groupDataInPairs = (data) => {
   if (!data) return [];
@@ -36,69 +38,46 @@ interface Room {
 
 const BookRoom = () => {
   const router = useRouter();
-  const colorScheme = useColorScheme();
+  const { theme } = useTheme();
+  const colorscheme = useColorScheme();
   const toast = useToast();
-  const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+  const currentTheme = theme === "system" ? colorscheme : theme;
+  const isDarkMode = currentTheme === "dark";
   const [layout, setLayout] = useState("row");
   const [loading, setLoading] = useState(true);
   const [roomData, setRoomData] = useState<Room[]>([]);
   const toggleLayout = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
   };
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const viewroomsendpoint = process.env.EXPO_PUBLIC_VIEW_ROOMS;
+ 
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
   useEffect(() => {
-    const fetchAllRooms = async () => {
-      // console.log("heree");
-      let authToken = await SecureStore.getItemAsync('Token');
-      try {
-        const response = await fetch(`${apiUrl}${viewroomsendpoint}?floorNo=0`, {
-          method: 'GET',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `${authToken}`
-          },
-      });
-        const data = await response.json();
-        // console.log(data);
-        if (response.ok) {
-          setRoomData(data.data || []); // Ensure data is an array
-          setLoading(false);
-        } else {
-          console.log(data);
-          setLoading(false);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>{data.error.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="error">
-                <ToastTitle>Network Error: {error.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-      }
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
     };
-    fetchAllRooms();
-  }, [toast, apiUrl, viewroomsendpoint]);
+    getAccentColour();
+  }, []);
 
   useEffect(() => {
-    setIsDarkMode(colorScheme === 'dark');
-  }, [colorScheme]);
+    const getRoomData = async () => {
+      try {
+          const roomData = await fetchRooms('','');
+          if (roomData) {
+              // console.log(roomData);
+              setRoomData(roomData);
+          } else {
+              setRoomData([]);
+          }
+      } catch (error) {
+          console.error('Error fetching bookings:', error);
+      }
+      setLoading(false);
+  };
+  getRoomData();
+  }, [toast]);
+
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
@@ -125,11 +104,11 @@ const BookRoom = () => {
             <Text style={{ fontWeight: 'bold', fontSize: 18, color: textColor }}>Rooms</Text>
             <TouchableOpacity onPress={toggleLayout}>
               {layout === "row" ? (
-                <View style={{ backgroundColor: '#ADFF2F', alignSelf: 'center', padding: 8, borderRadius: 12 }}>
+                <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
                   <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
                 </View>
               ) : (
-                <View style={{ backgroundColor: '#ADFF2F', alignSelf: 'center', padding: 8, borderRadius: 12 }}>
+                <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
                   <Octicons name="rows" size={22} color="#2C2C2E" />
                 </View>
               )}
@@ -169,7 +148,7 @@ const BookRoom = () => {
                         </View>
                       </View>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <TouchableOpacity style={{ bottom: 0, width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: 'greenyellow' }}>
+                        <TouchableOpacity style={{ bottom: 0, width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: `${accentColour}` }}>
                           <Text style={{ color: 'dimgrey', fontSize: 13 }}>Available: now</Text>
                         </TouchableOpacity>
                         <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
@@ -198,7 +177,7 @@ const BookRoom = () => {
                     </View>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <TouchableOpacity style={{ width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: 'greenyellow' }}>
+                    <TouchableOpacity style={{ width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: `${accentColour}` }}>
                       <Text style={{ bottom: 0, color: 'dimgrey', fontSize: 13 }}>Available: now</Text>
                     </TouchableOpacity>
                     <Ionicons name="chevron-forward-outline" size={30} color={textColor} />

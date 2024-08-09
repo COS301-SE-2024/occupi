@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`renders correctly 1`] = `
+exports[`NavBar renders correctly 1`] = `
 <View
   backgroundColor="#fff"
   pb={40}
@@ -115,7 +115,7 @@ exports[`renders correctly 1`] = `
           undefined,
           {},
           {
-            "color": "black",
+            "color": "yellowgreen",
             "fontSize": 22.5,
           },
           undefined,

@@ -14,29 +14,19 @@ import Navbar from '../../components/NavBar';
 import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
 import { Skeleton } from 'moti/skeleton';
+import { Booking } from '@/models/data';
+import { fetchUserBookings } from '@/utils/bookings';
+import { useTheme } from '@/components/ThemeContext';
+
+
 
 const groupDataInPairs = (data) => {
     const pairs = [];
-    for (let i = 0; i < data.length; i += 2) {
-        pairs.push(data.slice(i, i + 2));
+    for (let i = 0; i < 10; i += 2) {
+        pairs.push(data?.slice(i, i + 2));
     }
     return pairs;
 };
-
-interface Room {
-    _id: string;
-    roomName: string;
-    roomId: string;
-    roomNo: number;
-    floorNo: number;
-    minOccupancy: number;
-    maxOccupancy: number;
-    description: string;
-    emails: string[];
-    date: string;
-    start: string;
-    end: string;
-}
 
 function extractTimeFromDate(dateString: string): string {
     const date = new Date(dateString);
@@ -50,153 +40,75 @@ function extractDateFromDate(dateString: string): string {
 }
 
 const ViewBookings = () => {
-    const colorScheme = useColorScheme();
-    const [isDarkMode, setIsDarkMode] = useState(colorScheme === 'dark');
+    const colorscheme = useColorScheme();
+    const { theme } = useTheme();
+    const currentTheme = theme === "system" ? colorscheme : theme;
+    const isDarkMode = currentTheme === "dark";
     const [layout, setLayout] = useState("row");
-    const toast = useToast();
-    const [roomData, setRoomData] = useState<Room[]>([]);
+    const [roomData, setRoomData] = useState<Booking[]>();
     // const [selectedSort, setSelectedSort] = useState("newest");
-    const [email, setEmail] = useState('');
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-    const viewbookingsendpoint = process.env.EXPO_PUBLIC_VIEW_BOOKINGS;
+    useEffect(() => {
+        const getRoomData = async () => {
+            try {
+                const roomData = await fetchUserBookings();
+                if (roomData) {
+                    // console.log(roomData);
+                    setRoomData(roomData);
+                } else {
+                    setRoomData([]);
+                }
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+            }
+            setLoading(false);
+        };
+        getRoomData();
+    }, []);
+    const [accentColour, setAccentColour] = useState<string>('greenyellow');
+
+    useEffect(() => {
+        const getAccentColour = async () => {
+            let accentcolour = await SecureStore.getItemAsync('accentColour');
+            setAccentColour(accentcolour);
+        };
+        getAccentColour();
+    }, []);
 
 
     const onRefresh = React.useCallback(() => {
-        const fetchAllRooms = async () => {
-            console.log("heree");
-            let authToken = await SecureStore.getItemAsync('Token');
-            console.log("Token:" + authToken);
+        const getRoomData = async () => {
             try {
-                const response = await fetch(`${apiUrl}${viewbookingsendpoint}?email=${email}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `${authToken}`
-                    },
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    setRoomData(data.data || []); // Ensure data is an array
-                    setLoading(false);
+                const roomData = await fetchUserBookings();
+                if (roomData) {
+                    // console.log(roomData);
+                    setRoomData(roomData);
                 } else {
-                    console.log(data);
-                    setLoading(false);
-                    toast.show({
-                        placement: 'top',
-                        render: ({ id }) => {
-                            return (
-                                <Toast nativeID={id} variant="accent" action="error">
-                                    <ToastTitle>{data.error.message}</ToastTitle>
-                                </Toast>
-                            );
-                        },
-                    });
+                    setRoomData([]); // Default value if no username is found
                 }
             } catch (error) {
-                console.error('Error:', error);
-                toast.show({
-                    placement: 'top',
-                    render: ({ id }) => {
-                        return (
-                            <Toast nativeID={id} variant="accent" action="error">
-                                <ToastTitle>Network Error: {error.message}</ToastTitle>
-                            </Toast>
-                        );
-                    },
-                });
+                console.error('Error fetching bookings:', error);
             }
+            setLoading(false);
         };
         setRefreshing(true);
         setTimeout(() => {
             setRefreshing(false);
-            fetchAllRooms();
+            getRoomData();
         }, 2000);
-    }, [toast, apiUrl, viewbookingsendpoint, email]);
+    }, []);
 
     const toggleLayout = () => {
         setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
     };
-    useEffect(() => {
-        setIsDarkMode(colorScheme === 'dark');
-    }, [colorScheme]);
+    
     const backgroundColor = isDarkMode ? 'black' : 'white';
     const textColor = isDarkMode ? 'white' : 'black';
     const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
-    // const data = [
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    //     { title: 'HDMI Room', description: 'Boasting sunset views, long desks, and comfy chairs', Date: '17/06/2024', Time: '07:30-09:30', available: true },
-    // ];
 
-    useEffect(() => {
-        const fetchAllRooms = async () => {
-            let authToken = await SecureStore.getItemAsync('Token');
-            let result = await SecureStore.getItemAsync('UserData');
-            // console.log(result);
-            // if (result !== undefined) {
-            let jsonresult = JSON.parse(result);
-            setEmail(jsonresult?.data?.email);
-            // }
-            // console.log("Token:"+authToken);
-            // console.log("heree");
-            try {
-                // console.log(`${apiUrl}${viewbookingsendpoint}?email=${jsonresult?.data?.email}`);
-                const response = await fetch(`${apiUrl}${viewbookingsendpoint}?email=${jsonresult?.data?.email}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `${authToken}`
-                    },
-                });
-                const data = await response.json();
-                // console.log(data);
-                if (response.ok) {
-                    setRoomData(data.data || []); // Ensure data is an array
-                    setLoading(false);
-                } else {
-                    console.log(data);
-                    setLoading(false);
-                    toast.show({
-                        placement: 'top',
-                        render: ({ id }) => {
-                            return (
-                                <Toast nativeID={id} variant="accent" action="error">
-                                    <ToastTitle>{data.error.message}</ToastTitle>
-                                </Toast>
-                            );
-                        },
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                toast.show({
-                    placement: 'top',
-                    render: ({ id }) => {
-                        return (
-                            <Toast nativeID={id} variant="accent" action="error">
-                                <ToastTitle>Network Error: {error.message}</ToastTitle>
-                            </Toast>
-                        );
-                    },
-                });
-            }
-        };
-        fetchAllRooms();
-    }, [toast, apiUrl, email, viewbookingsendpoint]);
+
 
     const roomPairs = groupDataInPairs(roomData);
 
@@ -262,11 +174,11 @@ const ViewBookings = () => {
                     </View>
                     <TouchableOpacity onPress={toggleLayout}>
                         {layout === "row" ? (
-                            <Box backgroundColor="$#ADFF2F" alignSelf="center" p="$2" borderRadius="$lg">
+                            <Box backgroundColor={`${accentColour}`} alignSelf="center" p="$2" borderRadius="$lg">
                                 <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
                             </Box>
                         ) : (
-                            <Box backgroundColor="$#ADFF2F" alignSelf="center" p="$2" borderRadius="$lg">
+                            <Box backgroundColor={`${accentColour}`} alignSelf="center" p="$2" borderRadius="$lg">
                                 <Octicons name="rows" size={22} color="#2C2C2E" />
                             </Box>
                         )}
@@ -304,8 +216,9 @@ const ViewBookings = () => {
                                     marginBottom: 20,
                                 }}
                             >
-                                {pair.map((room) => (
+                                {pair.map((room, idx) => (
                                     <TouchableOpacity
+                                        key={idx}
                                         onPress={() => handleRoomClick(JSON.stringify(room))}
                                         style={{
                                             flex: 1,
@@ -332,7 +245,7 @@ const ViewBookings = () => {
                                             <View>
                                                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
                                                 <View flexDirection="row" alignItems="center">
-                                                    <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
+                                                    <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails?.length}</Text>
                                                 </View>
                                                 <Text color={isDarkMode ? '#fff' : '#000'} fontWeight="$light" my="$1">Your booking time:</Text>
                                             </View>
@@ -357,8 +270,9 @@ const ViewBookings = () => {
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                         }
                     >
-                        {roomData.map((room) => (
+                        {roomData?.map((room, idx) => (
                             <TouchableOpacity
+                                key={idx}
                                 onPress={() => handleRoomClick(JSON.stringify(room))}
                                 style={{
                                     flex: 1,
@@ -389,7 +303,7 @@ const ViewBookings = () => {
                                 >
                                     <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
                                     <View flexDirection="row" alignItems="center">
-                                        <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails.length}</Text>
+                                        <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails?.length}</Text>
                                     </View>
                                     <View flexDirection="column">
                                         <Text my="$1" fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}>Your booking time:</Text>

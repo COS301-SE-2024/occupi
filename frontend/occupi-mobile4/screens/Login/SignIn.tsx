@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Keyboard } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Keyboard,Animated, Easing } from 'react-native';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
@@ -37,10 +37,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import * as SecureStore from 'expo-secure-store';
-import Logo from '../../screens/Login/assets/images/Occupi/file.png';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import GradientButton from '@/components/GradientButton';
+import { UserLogin } from '@/utils/auth';
 
 const signInSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
@@ -67,9 +67,6 @@ const SignInForm = () => {
   } = useForm<SignInSchemaType>({
     resolver: zodResolver(signInSchema),
   });
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const loginUrl = process.env.EXPO_PUBLIC_LOGIN;
-  const getUserDetailsUrl = process.env.EXPO_PUBLIC_GET_USER_DETAILS;
   const isEmailFocused = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -77,8 +74,11 @@ const SignInForm = () => {
 
   const toast = useToast();
 
+
+
   useEffect(() => {
     checkBiometricAvailability();
+   
   }, []);
 
   const checkBiometricAvailability = async () => {
@@ -87,19 +87,7 @@ const SignInForm = () => {
     // console.log('Biometric hardware available:', isBiometricAvailable);
   };
 
-  async function storeUserData(value) {
-    await SecureStore.setItemAsync('UserData', value);
-  }
-
-  async function storeToken(value) {
-    await SecureStore.setItemAsync('Token', value);
-  }
-
-  async function storeUserEmail(value) {
-    await SecureStore.setItemAsync('Email', value);
-  }
-
-
+ 
   const handleBiometricSignIn = async () => {
     const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
     console.log('Supported biometric types:', biometricType);
@@ -114,7 +102,7 @@ const SignInForm = () => {
         });
         console.log('Biometric authentication result:', result);
         if (result.success) {
-          router.replace('/home');
+          // router.replace('/home');
         } else {
           console.log('Biometric authentication failed');
           toast.show({
@@ -160,104 +148,17 @@ const SignInForm = () => {
 
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
-    storeUserEmail(_data.email);
-    const body = {
-      email: _data.email,
-      password: _data.password
-    };
-    console.log(body);
-    try {
-      const response = await fetch(`${apiUrl}${loginUrl}`, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body),
-        credentials: "include"
-      });
-      const data = await response.json();
-      if (response.ok) {
-        console.log("Data here", data);
-        setLoading(false);
-        if (data.data) {
-          storeToken(data.data.token);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={String(id)} variant="accent" action="success">
-                  <ToastTitle>{data.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          try {
-            let authToken = await SecureStore.getItemAsync('Token');
-            // console.log(authToken);
-            const response = await fetch(`${apiUrl}${getUserDetailsUrl}?email=${_data.email}`, {
-              method: 'GET',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `${authToken}`
-              },
-              credentials: "include"
-            });
-            const data = await response.json();
-            console.log("here");
-            if (response.ok) {
-              storeUserData(JSON.stringify(data));
-              console.log(`Data of ${_data.email}: `, data);
-            } else {
-              console.log(data);
-              toast.show({
-                placement: 'top',
-                render: ({ id }) => {
-                  return (
-                    <Toast nativeID={id} variant="accent" action="error">
-                      <ToastTitle>{data.error.message}</ToastTitle>
-                    </Toast>
-                  );
-                },
-              });
-            }
-          } catch (error) {
-            console.error('Error:', error);
-            toast.show({
-              placement: 'top',
-              render: ({ id }) => {
-                return (
-                  <Toast nativeID={id} variant="accent" action="error">
-                    <ToastTitle>Network Error</ToastTitle>
-                  </Toast>
-                );
-              },
-            });
-          }
-          router.replace('/home');
-        }
-        else {
-          setLoading(false);
-          router.replace('/verify-otp');
-        }
-      } else {
-        setLoading(false);
-        console.log(data);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={String(id)} variant="accent" action="error">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
+    const response = await UserLogin(_data.email, _data.password);
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
       }
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    });
     setLoading(false);
   };
 
@@ -308,7 +209,7 @@ const SignInForm = () => {
             render={({ field: { onChange, onBlur, value } }) => (
               <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%')}>
                 <InputField
-                  fontSize="$md"
+                  fontSize="$sm"
                   placeholder="john.doe@gmail.com"
                   type="text"
                   value={value}
@@ -347,7 +248,7 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%')}>
+              <Input mb={hp('1%')} backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%') }>
                 <InputField
                   fontSize="$sm"
                   placeholder="Enter your password"
@@ -358,8 +259,8 @@ const SignInForm = () => {
                   returnKeyType="done"
                   type={showPassword ? 'text' : 'password'}
                 />
-                <InputSlot onPress={handleState} pr="$3">
-                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                <InputSlot onPress={handleState} pr="$5">
+                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} size="md" />
                 </InputSlot>
               </Input>
             )}
@@ -386,7 +287,7 @@ const SignInForm = () => {
           render={({ field: { onChange, value } }) => (
             <Checkbox
               aria-label="Close"
-              size="sm"
+              size="md"
               value="Remember me"
               isChecked={value}
               onChange={onChange}
@@ -400,7 +301,7 @@ const SignInForm = () => {
         />
 
         <StyledExpoRouterLink href="/forgot-password">
-          <LinkText color="yellowgreen" fontSize="$sm">
+          <LinkText color="yellowgreen" fontSize="$md">
             Forgot Password?
           </LinkText>
         </StyledExpoRouterLink>
@@ -423,6 +324,24 @@ const SignInForm = () => {
 };
 
 const Main = () => {
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 2,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <Box
       px={wp('4%')}
@@ -442,11 +361,13 @@ const Main = () => {
     >
       <VStack mt={hp('2%')} mb={hp('2%')} space="md">
         <HStack space="md" alignItems="center" justifyContent="center">
+        <Animated.View style={{ transform: [{ rotate: spin }] }}>
           <Image
             alt="Occupi Logo"
             source={Logo}
             style={{ width: wp('40%'), height: wp('40%') }}
           />
+           </Animated.View>
         </HStack>
         <VStack space="xs" mt={hp('2%')} my={hp('2%')}>
           <Heading

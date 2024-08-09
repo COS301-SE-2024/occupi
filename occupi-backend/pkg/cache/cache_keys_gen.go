@@ -15,3 +15,7 @@ func RoomBookingKey(roomID string) string {
 func ImageKey(imageID string) string {
 	return "Images:" + imageID
 }
+
+func SessionKey(email string) string {
+	return "Sessions:" + email
+}
