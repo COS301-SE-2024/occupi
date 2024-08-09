@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Alert,
@@ -19,6 +19,8 @@ import * as SecureStore from 'expo-secure-store';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
 import { updateSecurity } from '@/utils/user';
 import { useTheme } from '@/components/ThemeContext';
+import { DeviceMotion } from 'expo-sensors';
+import * as Haptics from 'expo-haptics';
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
@@ -36,9 +38,15 @@ const Security = () => {
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorScheme : theme;
   const toast = useToast();
-  //retrieve user settings ad assign variables accordingly
-
-  const [accentColour, setAccentColour] = useState<string>('greenyellow');
+  const [accentColour, setAccentColour] = useState('');
+  const [oldMfa, setOldMfa] = useState(false);
+  const [newMfa, setNewMfa] = useState(false);
+  const [oldForceLogout, setOldForceLogout] = useState(false);
+  const [newForceLogout, setNewForceLogout] = useState(false);
+  const [isBackTapEnabled, setIsBackTapEnabled] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const lastMagnitudes = useRef([]);
+  const lastTapTime = useRef(0);
 
   useEffect(() => {
     const getAccentColour = async () => {
@@ -46,19 +54,13 @@ const Security = () => {
       setAccentColour(accentcolour);
     };
     getAccentColour();
+    
   }, []);
-
-  const [oldMfa, setOldMfa] = useState(false);
-  const [newMfa, setNewMfa] = useState(false);
-  const [oldForceLogout, setOldForceLogout] = useState(false);
-  const [newForceLogout, setNewForceLogout] = useState(false);
 
   useEffect(() => {
     const getSecurityDetails = async () => {
       let settings = await SecureStore.getItemAsync('Security');
-      // console.log(settings);
       const settingsObject = JSON.parse(settings);
-      // console.log('current settings',settingsObject);
 
       if (settingsObject.mfa === "on") {
         setOldMfa(true);
@@ -79,13 +81,45 @@ const Security = () => {
     getSecurityDetails();
   }, [])
 
+  useEffect(() => {
+    let subscription;
 
-  const toggleSwitch1 = () => {
-    setNewMfa(previousState => !previousState);
-  };
-  const toggleSwitch2 = () => {
-    setNewForceLogout(previousState => !previousState);
-  };
+    if (isBackTapEnabled) {
+      subscription = DeviceMotion.addListener(({ acceleration }) => {
+        const currentTime = Date.now();
+        const magnitude = Math.sqrt(acceleration.x ** 2 + acceleration.y ** 2 + acceleration.z ** 2);
+        
+        lastMagnitudes.current.push(magnitude);
+        if (lastMagnitudes.current.length > 5) {
+          lastMagnitudes.current.shift();
+        }
+
+        const avg = lastMagnitudes.current.reduce((a, b) => a + b, 0) / lastMagnitudes.current.length;
+        const spike = magnitude > avg + 2 && magnitude > 2.5;
+        const quickDrop = lastMagnitudes.current[lastMagnitudes.current.length - 2] > magnitude + 1;
+
+        if (spike && quickDrop && currentTime - lastTapTime.current > 300) {
+          setTapCount(prev => prev + 1);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          console.log('Tap detected! Magnitude:', magnitude);
+          lastTapTime.current = currentTime;
+        }
+      });
+
+      DeviceMotion.setUpdateInterval(50);
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [isBackTapEnabled]);
+
+  const toggleSwitch1 = () => setNewMfa(previousState => !previousState);
+  const toggleSwitch2 = () => setNewForceLogout(previousState => !previousState);
+  const toggleBackTap = () => setIsBackTapEnabled(previousState => !previousState);
+
 
   const handleBiometricAuth = async () => {
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
@@ -115,10 +149,10 @@ const Security = () => {
   };
 
   const onSave = async () => {
-    //integration here
     const settings = {
       mfa: newMfa ? "on" : "off",
-      forceLogout: newForceLogout ? "on" : "off"
+      forceLogout: newForceLogout ? "on" : "off",
+      backTap: isBackTapEnabled ? "on" : "off"
     };
     const response = await updateSecurity('settings', settings)
     toast.show({
@@ -131,7 +165,6 @@ const Security = () => {
         );
       },
     });
-    // console.log(newSettings);
   };
 
   const handleBack = () => {
@@ -154,6 +187,7 @@ const Security = () => {
       router.back();
     }
   }
+
   return (
     <View flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
       <View flex={1}>
@@ -176,7 +210,6 @@ const Security = () => {
           />
         </View>
 
-
         <View flexDirection="column">
           <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
             <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Use 2fa to login</Text>
@@ -198,6 +231,16 @@ const Security = () => {
               value={newForceLogout}
             />
           </View>
+          <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
+            <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Back Tap</Text>
+            <Switch
+              trackColor={{ false: 'lightgray', true: 'lightgray' }}
+              thumbColor={isBackTapEnabled ? `${accentColour}` : 'white'}
+              ios_backgroundColor="lightgray"
+              onValueChange={toggleBackTap}
+              value={isBackTapEnabled}
+            />
+          </View>
           <TouchableOpacity onPress={() => handleBiometricAuth()}>
             <View flexDirection="row" my="$2" borderRadius={14} alignItems="center" justifyContent="center" backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} h="$12">
               <Text fontWeight="bold" color={currentTheme === 'dark' ? '#fff' : '#000'}>Change Password</Text>
@@ -212,7 +255,6 @@ const Security = () => {
         />
       </View>
     </View >
-
   );
 };
 
@@ -229,7 +271,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...FONTS.h3,
   },
-
 });
 
 export default Security;
