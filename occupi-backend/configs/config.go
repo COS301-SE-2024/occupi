@@ -48,10 +48,10 @@ const (
 	CentrifugoAKy       = "CENTRIFUGO_API_KEY"
 	CentrifugoHost      = "CENTRIFUGO_HOST"
 	CentrifugoPort      = "CENTRIFUGO_PORT"
-	ConfigLicense       = "CONFIG_LICENSE"
 	NewRelicAppName     = "NEW_RELIC_APP_NAME"
 	SentryDSN           = "SENTRY_DSN"
 	PassPhrase          = "TEST_PASS_PHRASE"
+	NewRelicLicenseKey  = "NEW_RELIC_LICENSE_KEY"
 )
 
 // init viper
@@ -429,9 +429,9 @@ func GetCentrifugoPort() string {
 
 // gets the config license as defined in the config.yaml file
 func GetConfigLicense() string {
-	license := viper.GetString(ConfigLicense)
+	license := viper.GetString(NewRelicLicenseKey)
 	if license == "" {
-		license = "CONFIG_LICENSE"
+		license = "NEW_RELIC_LICENSE_KEY"
 	}
 	return license
 }

@@ -16,7 +16,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/ipinfo/go/v2 v2.10.0
 	github.com/microcosm-cc/bluemonday v1.0.26
-	github.com/newrelic/go-agent/v3 v3.33.1
+	github.com/newrelic/go-agent/v3 v3.34.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/oliveroneill/exponent-server-sdk-golang v0.0.0-20210823140141-d050598be512
 	github.com/rabbitmq/amqp091-go v1.10.0
