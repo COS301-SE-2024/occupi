@@ -51,6 +51,7 @@ const (
 	ConfigLicense       = "CONFIG_LICENSE"
 	NewRelicAppName     = "NEW_RELIC_APP_NAME"
 	SentryDSN           = "SENTRY_DSN"
+	PassPhrase          = "TEST_PASS_PHRASE"
 )
 
 // init viper
@@ -449,4 +450,12 @@ func GetSentryDSN() string {
 		dsn = "SENTRY_DSN"
 	}
 	return dsn
+}
+
+func GetTestPassPhrase() string {
+	passPhrase := viper.GetString(PassPhrase)
+	if passPhrase == "" {
+		passPhrase = "TEST_PASS_PHRASE"
+	}
+	return passPhrase
 }

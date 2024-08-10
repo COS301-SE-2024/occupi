@@ -7,6 +7,7 @@ type RegisterUser struct {
 	Password      string `json:"password" binding:"required,min=8"`
 	EmployeeID    string `json:"employee_id" binding:"omitempty,startswith=OCCUPI"`
 	ExpoPushToken string `json:"expoPushToken" binding:"required"`
+	IsTest        string `json:"test"`
 }
 
 // expected user structure from api requests
@@ -14,6 +15,7 @@ type RequestUser struct {
 	Email      string `json:"email" binding:"required,email"`
 	Password   string `json:"password" binding:"required,min=8"`
 	EmployeeID string `json:"employee_id" binding:"omitempty,startswith=OCCUPI"`
+	IsTest     string `json:"test"`
 }
 
 // expected structure of otp from api requests

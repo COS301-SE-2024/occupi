@@ -1,15 +1,20 @@
 name: Load Test System 🏋️💪
 
-# trigger action to run once a week on Sunday at 12:00 AM
+# trigger action to run once a month on Sunday at 12:00 AM
 on:
     schedule:
-        - cron: "0 0 * * 0"
+      - cron: "0 0 1-7 * 0"
 
     workflow_dispatch:
 
 defaults:
     run:
         working-directory: testing/load
+
+env:
+  USERNAME: ${{ secrets.K6_USERNAME }}
+  PASSWORD: ${{ secrets.K6_PASSWORD }}
+  PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
 jobs:
     load_test_backend:
@@ -31,7 +36,7 @@ jobs:
           run: k6 login cloud --token ${{ secrets.K6_CLOUD_TOKEN }}
 
         - name: 🏋️💪 Run load test
-          run: k6 cloud backend.js
+          run: k6 run --out=cloud backend.js
 
         - name: ✅ Load test completed
           run: echo "Load test completed successfully!"
@@ -55,7 +60,7 @@ jobs:
           run: k6 login cloud --token ${{ secrets.K6_CLOUD_TOKEN }}
 
         - name: 🏋️💪 Run load test
-          run: k6 cloud web.js
+          run: k6 run --out=cloud web.js
 
         - name: ✅ Load test completed
           run: echo "Load test completed successfully!"
@@ -79,7 +84,7 @@ jobs:
           run: k6 login cloud --token ${{ secrets.K6_CLOUD_TOKEN }}
 
         - name: 🏋️💪 Run load test
-          run: k6 cloud landing-page.js
+          run: k6 run --out=cloud landing-page.js
 
         - name: ✅ Load test completed
           run: echo "Load test completed successfully!"

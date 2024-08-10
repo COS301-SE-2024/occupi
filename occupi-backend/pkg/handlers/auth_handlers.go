@@ -61,11 +61,13 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	}
 
 	// pre-login checks
-	if success, err := PreLoginAccountChecks(ctx, appsession, requestUser.Email, role); !success {
-		if err != nil {
-			logrus.WithError(err).Error("Error validating email")
+	if configs.GetTestPassPhrase() != requestUser.IsTest {
+		if success, err := PreLoginAccountChecks(ctx, appsession, requestUser.Email, role); !success {
+			if err != nil {
+				logrus.WithError(err).Error("Error validating email")
+			}
+			return
 		}
-		return
 	}
 
 	// generate a jwt token for the user
@@ -373,9 +375,16 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	if _, err := SendOTPEmail(ctx, appsession, requestUser.Email, constants.VerifyEmail); err != nil {
-		logrus.WithError(err).Error("Error sending OTP email")
-		return
+	if configs.GetTestPassPhrase() != requestUser.IsTest {
+		if _, err := SendOTPEmail(ctx, appsession, requestUser.Email, constants.VerifyEmail); err != nil {
+			logrus.WithError(err).Error("Error sending OTP email")
+			return
+		}
+	} else {
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Registered, please login",
+			nil))
 	}
 }
 

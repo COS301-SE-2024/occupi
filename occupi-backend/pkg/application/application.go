@@ -30,6 +30,11 @@ type Application struct {
 	env        string
 }
 
+const (
+	prod        = "prod"
+	devdeployed = "devdeployed"
+)
+
 // NewApplication creates a new Application instance.
 func NewApplication() *Application {
 	return &Application{}
@@ -46,7 +51,7 @@ func (app *Application) InitializeConfig() *Application {
 }
 
 func (app *Application) SetupLogger() *Application {
-	if configs.GetEnv() != "prod" || configs.GetEnv() != "devdeployed" {
+	if configs.GetEnv() != prod || configs.GetEnv() != devdeployed {
 		utils.SetupLogger()
 	}
 	return app
@@ -111,7 +116,7 @@ func (app *Application) AttachRealIPMiddleware() *Application {
 
 func (app *Application) AttachMoniteringMiddleware() *Application {
 	// Sentry Config, New Relic Config & Zap Config
-	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
+	if configs.GetEnv() == prod || configs.GetEnv() == devdeployed {
 		// Create a newrelic application
 		relicApp, err := newrelic.NewApplication(
 			newrelic.ConfigAppName(configs.GetNewRelicAppName()),
@@ -150,7 +155,7 @@ func (app *Application) RegisterRoutes() *Application {
 }
 
 func (app *Application) SetEnvVariables() *Application {
-	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
+	if configs.GetEnv() == prod || configs.GetEnv() == devdeployed {
 	} else {
 		os.Setenv("OTEL_EXPORTER_OTLP_INSECURE", "true")
 	}
@@ -168,7 +173,7 @@ func (app *Application) RunServer() {
 	logrus.Infof("Server running with key file: %s", keyFile)
 
 	// Listening on the port with TLS if env is prod or dev.deployed
-	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
+	if configs.GetEnv() == prod || configs.GetEnv() == devdeployed {
 		if err := app.ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
 			logrus.Fatal("Failed to run server: ", err)
 		}
