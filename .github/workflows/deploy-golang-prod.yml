@@ -94,7 +94,7 @@ jobs:
               host: ${{ secrets.VM_IP }}
               username: ${{ secrets.VM_USERNAME }}
               key: ${{ secrets.VM_SSH_KEY }}
-              source: "occupi-backend/docker-compose.prod.yml,occupi-backend/Dockerfile.prod,occupi-backend/centrifugo.config.json,prometheus.prod.yml"
+              source: "occupi-backend/docker-compose.prod.yml,occupi-backend/Dockerfile.prod,occupi-backend/centrifugo.config.json,occupi-backend/prometheus.prod.yml"
               target: "/home/${{ secrets.VM_USERNAME }}/occupi-backend-prod"
 
       # SSH to VM and run commands
