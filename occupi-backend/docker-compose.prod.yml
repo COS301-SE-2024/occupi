@@ -22,6 +22,10 @@ services:
           condition: service_healthy
         centrifugo-prod:
           condition: service_started
+        prometheus-prod:
+          condition: service_started
+        grafana-prod:
+          condition: service_started
 
   rabbitmq-prod:
     image: rabbitmq:latest
@@ -59,18 +63,19 @@ services:
   prometheus-prod:
     container_name: prometheus-prod
     image: prom/prometheus
-    restart: always
+    restart: on-failure:5
     extra_hosts:
       - host.docker.internal:host-gateway
     command:
       - --config.file=/etc/prometheus/prometheus.prod.yml
     volumes:
-      - ./docker/prometheus.prod.yml:/etc/prometheus/prometheus.prod.yml
+      - ./prometheus.prod.yml:/etc/prometheus/prometheus.prod.yml
     ports:
       - "9090:9090"
 
   grafana-prod:
     container_name: grafana-prod
+    restart: on-failure:5
     image: grafana/grafana
     ports:
       - "10000:3000"

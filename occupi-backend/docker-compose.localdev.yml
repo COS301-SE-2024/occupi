@@ -15,6 +15,10 @@ services:
           condition: service_healthy
         centrifugo-dev-local:
           condition: service_started
+        prometheus-dev-local:
+          condition: service_started
+        grafana-dev-local:
+          condition: service_started
 
   rabbitmq-dev-local:
     image: rabbitmq:latest
@@ -47,7 +51,7 @@ services:
   prometheus-dev-local:
     container_name: prometheus-dev-local
     image: prom/prometheus
-    restart: always
+    restart: on-failure:5
     extra_hosts:
       - host.docker.internal:host-gateway
     command:
@@ -59,6 +63,7 @@ services:
 
   grafana-dev-local:
     container_name: grafana-dev-local
+    restart: on-failure:5
     image: grafana/grafana
     ports:
       - "10000:3000"
