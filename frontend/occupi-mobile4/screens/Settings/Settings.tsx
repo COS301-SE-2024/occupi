@@ -21,6 +21,8 @@ import * as SecureStore from 'expo-secure-store';
 import { useToast } from '@gluestack-ui/themed';
 import { UserLogout } from '@/utils/auth';
 import { useTheme } from '@/components/ThemeContext';
+import { useNavBar } from '@/components/NavBarProvider';
+
 
 const Settings = () => {
   const [name, setName] = useState('');
@@ -28,6 +30,7 @@ const Settings = () => {
   const toast = useToast();
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
+  const { setCurrentTab } = useNavBar();
   const currentTheme = theme === "system" ? colorscheme : theme;
 
   useEffect(() => {
@@ -59,6 +62,7 @@ const Settings = () => {
               if (userResponse === 'Logged out successfully!') {
                 // Clear cookies or any other authentication-related storage
                 await SecureStore.deleteItemAsync('UserData');
+                setCurrentTab('Home');
                 // Show a success toast
                 toast.show({
                   placement: 'top',

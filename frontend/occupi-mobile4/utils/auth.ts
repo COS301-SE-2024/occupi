@@ -4,7 +4,7 @@
 import { login, logout, register, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
-import { storeUserEmail, storeToken, setState, deleteToken, deleteUserData, deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings } from "../services/securestore";
+import { storeUserEmail, storeToken, setState, deleteToken, deleteUserData, deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings, deleteAllData } from "../services/securestore";
 import { retrievePushToken } from "./notifications";
 
 
@@ -118,6 +118,7 @@ export async function VerifyUserOtpLogin(email : string, otp : string) {
     }
 } 
 
+
 export async function UserLogout() {
     // console.log('hhhh');
     try {
@@ -125,11 +126,7 @@ export async function UserLogout() {
         if (response.status === 200) {
             // console.log('responseee',response);
             setState('logged_out');
-            deleteNotificationSettings();
-            deleteSecuritySettings();
-            deleteUserData();
-            deleteToken();
-            deleteUserEmail();
+            deleteAllData();
             router.replace('/login');
             return response.message;
         }

@@ -28,6 +28,7 @@ import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
 import { getFormattedDailyPredictionData, getFormattedPredictionData } from '@/utils/occupancy';
 import * as Location from 'expo-location';
+import { storeCheckInValue } from '@/services/securestore';
 
 // import { number } from 'zod';
 
@@ -41,7 +42,7 @@ const Dashboard = () => {
   const currentTheme = theme === "system" ? colorScheme : theme;
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
-  const [checkedIn, setCheckedIn] = useState(false);
+  const [checkedIn, setCheckedIn] = useState<boolean>();
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
   const toast = useToast();
@@ -50,7 +51,7 @@ const Dashboard = () => {
   // console.log(currentTheme);
   // console.log(isDarkMode);
   const useLocationCheckin = (address: string) => {
-    if (address.includes("Jan Shoballl")) {
+    if (address.includes("")) {
       Alert.alert(
         'At the office',
         'It seems like you are at the office, would you like to check in?',
@@ -66,38 +67,45 @@ const Dashboard = () => {
         ],
         { cancelable: true }
       );
-    } else{
+    } else {
       console.log('not at work pal!');
     }
   }
 
   useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('Permission to access location was denied');
-        return;
+    const LocationCheckin = async () => {
+      let checkedIn = await SecureStore.getItemAsync('CheckedIn');
+      setCheckedIn(checkedIn === "true" ? true : false);
+      // console.log(checkedIn.toString());
+      if (checkedIn === "false") {
+        (async () => {
+          let { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            console.log('Permission to access location was denied');
+            return;
+          }
+
+          let location: Location.LocationObject = await Location.getCurrentPositionAsync({});
+          // console.log(location.coords.latitude);
+          // console.log('Latitude:', location.coords.latitude);
+          // console.log('Longitude:', location.coords.longitude);
+
+          let address = await Location.reverseGeocodeAsync({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          });
+
+
+          if (address && address.length > 0) {
+            let my_address = `${address[0].name}, ${address[0].street}, ${address[0].district}, ${address[0].region}, ${address[0].country}, ${address[0].postalCode}`;
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            useLocationCheckin(my_address);
+            // console.log('Address:', my_address);
+          }
+        })();
       }
-
-      let location = await Location.getCurrentPositionAsync({});
-      // console.log('Latitude:', location.coords.latitude);
-      // console.log('Longitude:', location.coords.longitude);
-
-      let address = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude
-      });
-
-      // let my_address = 
-
-
-      if (address && address.length > 0) {
-        let my_address = `${address[0].name}, ${address[0].street}, ${address[0].district}, ${address[0].region}, ${address[0].country}, ${address[0].postalCode}`;
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useLocationCheckin(my_address);
-        console.log('Address:', my_address);
-      }
-    })();
+    }
+    LocationCheckin()
   }, []);
 
   useEffect(() => {
@@ -167,7 +175,7 @@ const Dashboard = () => {
               emails: [],
               floorNo: "0",
             }
-          ); 
+          );
         }
       } catch (error) {
         console.error('Error fetching bookings:', error);
@@ -192,29 +200,31 @@ const Dashboard = () => {
   }, [currentTheme]);
 
   const checkIn = () => {
-    if (checkedIn === false) {
-      setCheckedIn(true);
-      // setCurrentData(hourlyData);
-      toast.show({
-        placement: 'top',
-        render: ({ id }) => (
-          <Toast nativeID={String(id)} variant="accent" action="info">
-            <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
-          </Toast>
-        ),
-      });
-    } else {
-      setCheckedIn(false);
-      toast.show({
-        placement: 'top',
-        render: ({ id }) => (
-          <Toast nativeID={String(id)} variant="accent" action="info">
-            <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
-          </Toast>
-        ),
-      });
-    }
+    setCheckedIn(true);
+    storeCheckInValue(true);
+    // setCurrentData(hourlyData);
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => (
+        <Toast nativeID={String(id)} variant="accent" action="info">
+          <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
+        </Toast>
+      ),
+    });
   };
+
+  const checkOut = () => {
+    setCheckedIn(false);
+    storeCheckInValue(false);
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => (
+        <Toast nativeID={String(id)} variant="accent" action="info">
+          <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
+        </Toast>
+      ),
+    });
+  }
 
   function extractTimeFromDate(dateString: string): string {
     if (dateString === 'No bookings found') {
@@ -224,7 +234,7 @@ const Dashboard = () => {
     date.setHours(date.getHours() - 2);
     return date.toTimeString().substring(0, 5);
   }
-  
+
   function extractDateFromDate(dateString: string): string {
     if (dateString === 'No bookings found') {
       return 'Make a booking';
@@ -292,14 +302,14 @@ const Dashboard = () => {
             <View flexDirection="column">
               <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
                 <View>
-                <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>
-                      {extractDateFromDate(roomData.date)}
-                    </Text>
-                    <Text>
-                      {extractTimeFromDate(roomData.start)}
-                      {extractTimeFromDate(roomData.start) && extractTimeFromDate(roomData.end) ? '-' : ''}
-                      {extractTimeFromDate(roomData.end)}
-                    </Text>
+                  <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>
+                    {extractDateFromDate(roomData.date)}
+                  </Text>
+                  <Text>
+                    {extractTimeFromDate(roomData.start)}
+                    {extractTimeFromDate(roomData.start) && extractTimeFromDate(roomData.end) ? '-' : ''}
+                    {extractTimeFromDate(roomData.end)}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -323,7 +333,7 @@ const Dashboard = () => {
         </View>
         <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
           {checkedIn ? (
-            <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkIn}>
+            <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkOut}>
               <ButtonText color="black">Check out</ButtonText>
             </Button>
           ) : (
