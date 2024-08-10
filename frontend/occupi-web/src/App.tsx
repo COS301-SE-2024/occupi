@@ -19,6 +19,7 @@ import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ProtectedRoutes from "@components/protectedRoutes/ProtectedRoutes";
+import { FaroRoutes } from '@grafana/faro-react';
 
 function App() {
   // Initialize the theme state with system preference
@@ -48,41 +49,41 @@ function App() {
   }, [theme]);
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LoginForm />} />
-        <Route path="/otp" element={<OtpPage />} />
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoutes>
-              <Layout>
-                <Routes>
-                  <Route path="dashboard/*" element={<Dashboard />}>
-                    <Route path="overview" element={<OverviewComponent />} />
-                    <Route path="bookings" element={<BookingComponent />} />
-                    <Route path="visitations" element={<Visitation />} />
-                    <Route path="analysis" element={<Analysis />} />
-                  </Route>
+        <FaroRoutes>
+            <Route path="/" element={<LoginForm />} />
+            <Route path="/otp" element={<OtpPage />} />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoutes>
+                  <Layout>
+                    <Routes>
+                      <Route path="dashboard/*" element={<Dashboard />}>
+                        <Route path="overview" element={<OverviewComponent />} />
+                        <Route path="bookings" element={<BookingComponent />} />
+                        <Route path="visitations" element={<Visitation />} />
+                        <Route path="analysis" element={<Analysis />} />
+                      </Route>
 
-                  <Route path="reports" element={<PDFReport />} />
-                  <Route path="faq" element={<Faq />} />
-                  <Route path="ai-dashboard" element={<AiDashboard />} />
-                  <Route path="rooms" element={<Rooms />} />
+                      <Route path="reports" element={<PDFReport />} />
+                      <Route path="faq" element={<Faq />} />
+                      <Route path="ai-dashboard" element={<AiDashboard />} />
+                      <Route path="rooms" element={<Rooms />} />
 
-                  <Route path="settings/*" element={<Settings />}>
-                    <Route path="profile" element={<Appearance />} />
-                    <Route path="appearance" element={<Appearance />} />
-                    <Route path="privacy" element={<Appearance />} />
-                    <Route path="help" element={<Appearance />} />
-                    <Route path="about" element={<Appearance />} />
-                  </Route>
-                </Routes>
-              </Layout>
-            </ProtectedRoutes>
-          }
-        />
-      </Routes>
-    </Router>
+                      <Route path="settings/*" element={<Settings />}>
+                        <Route path="profile" element={<Appearance />} />
+                        <Route path="appearance" element={<Appearance />} />
+                        <Route path="privacy" element={<Appearance />} />
+                        <Route path="help" element={<Appearance />} />
+                        <Route path="about" element={<Appearance />} />
+                      </Route>
+                    </Routes>
+                  </Layout>
+                </ProtectedRoutes>
+              }
+            />
+        </FaroRoutes>
+      </Router>
   );
 }
 
