@@ -98,6 +98,7 @@ export async function getUserNotifications() {
   
   try {
     const request : NotificationsReq = {
+      operator: "eq",
       filter: {
           emails: [email]
       }

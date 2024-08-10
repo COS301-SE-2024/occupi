@@ -148,6 +148,7 @@ export const getUserBookings = async (email: string): Promise<Success | Unsucces
 
 export async function getNotifications(req: NotificationsReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
+  console.log("request",req);
   try {
     const response = await axios.get("https://dev.occupi.tech/api/get-notifications", {
       params: req,

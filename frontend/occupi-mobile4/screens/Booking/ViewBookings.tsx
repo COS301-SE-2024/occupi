@@ -200,8 +200,8 @@ const ViewBookings = () => {
                     </View>
                 </>
             ) : roomData?.length === 0 ? (
-                <View alignItems='center' justifyContent='center' flexDirection='column' flex={1}>
-                    <Text fontSize={25} color={textColor}>No bookings found</Text>
+                <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
+                    <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No bookings found</Text>
                 </View>
             ) :
                 layout === "grid" ? (

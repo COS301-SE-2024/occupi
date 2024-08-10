@@ -91,7 +91,8 @@
     "zod": "^3.23.8",
     "expo-location": "~17.0.1",
     "expo-sensors": "~13.0.9",
-    "expo-haptics": "~13.0.1"
+    "expo-haptics": "~13.0.1",
+    "expo-checkbox": "~3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
