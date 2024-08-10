@@ -25,23 +25,8 @@ package main
 
 import (
 	"flag"
-	"time"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
-	nrgin "github.com/newrelic/go-agent/v3/integrations/nrgin"
-	"github.com/newrelic/go-agent/v3/newrelic"
-	"github.com/sirupsen/logrus"
-
-	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/receiver"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/application"
 )
 
 // occupi backend entry point
@@ -50,131 +35,22 @@ func main() {
 	env := flag.String("env", "dev.localhost", "Environment to use (dev.localhost, dev.localhost.docker, dev.deployed, prod)")
 	flag.Parse()
 
-	// init viper
-	configs.InitViper(env)
+	// Create and configure the application
+	app := application.NewApplication().
+		SetEnvironment(*env).
+		InitializeConfig().
+		SetupLogger().
+		CreateAppSession().
+		StartConsumer().
+		SetupRouter().
+		AddCORSPolicy().
+		SetTrustedProxies().
+		AttachRateLimitMiddleware().
+		AttachSessionMiddleware().
+		AttachTimeZoneMiddleware().
+		AttachRealIPMiddleware().
+		RegisterRoutes().
+		SetEnvVariables()
 
-	// setup logger to log all server interactions
-	utils.SetupLogger()
-
-	// create a new app session
-	appsession := createAppSession()
-
-	// start the consumer
-	go receiver.StartConsumeMessage(appsession)
-
-	// set gin run mode
-	gin.SetMode(configs.GetGinRunMode())
-
-	// Create a Gin router
-	ginRouter := gin.Default()
-
-	// Set CORS
-	addCORSPolicy(ginRouter)
-
-	// Set trusted proxies
-	setTrustedProxies(ginRouter)
-
-	// adding rate limiting middleware
-	middleware.AttachRateLimitMiddleware(ginRouter)
-
-	// adding newrelic middleware
-	attachNewRelicMiddleware(ginRouter)
-
-	// attach session middleware
-	attachSessionMiddleware(ginRouter)
-
-	// attach timezone middleware
-	attachTimeZoneMiddelware(ginRouter)
-
-	// attach real ip middleware
-	attachRealIPMiddleware(ginRouter)
-
-	// Register routes
-	router.OccupiRouter(ginRouter, appsession)
-
-	// Run the server
-	runServer(ginRouter)
-}
-
-func createAppSession() *models.AppSession {
-	// create a new app session
-	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	cache := configs.CreateCache()
-	appsession := models.New(db, cache)
-	return appsession
-}
-
-func addCORSPolicy(ginRouter *gin.Engine) {
-	// Set CORS
-	ginRouter.Use(cors.New(cors.Config{
-		AllowOrigins:     configs.GetAllowOrigins(),
-		AllowMethods:     configs.GetAllowMethods(),
-		AllowHeaders:     configs.GetAllowHeaders(),
-		ExposeHeaders:    configs.GetExposeHeaders(),
-		AllowCredentials: configs.GetAllowCredentials(),
-		MaxAge:           time.Duration(configs.GetMaxAge()) * time.Second,
-	}))
-}
-
-func setTrustedProxies(ginRouter *gin.Engine) {
-	// Set trusted proxies
-	err := ginRouter.SetTrustedProxies(configs.GetTrustedProxies())
-	if err != nil {
-		logrus.Fatal("Failed to set trusted proxies: ", err)
-	}
-}
-
-func attachNewRelicMiddleware(ginRouter *gin.Engine) {
-	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
-		// Create a newrelic application
-		app, err := newrelic.NewApplication(
-			newrelic.ConfigAppName("occupi-backend"),
-			newrelic.ConfigLicense(configs.GetConfigLicense()),
-			newrelic.ConfigAppLogForwardingEnabled(true),
-		)
-		if err != nil {
-			logrus.Fatal("Failed to create newrelic application: ", err)
-		}
-
-		// adding newrelic middleware
-		ginRouter.Use(nrgin.Middleware(app))
-	}
-}
-
-func attachSessionMiddleware(ginRouter *gin.Engine) {
-	// creating a new valid session for management of shared variables
-	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
-	ginRouter.Use(sessions.Sessions("occupi-sessions-store", store))
-}
-
-func attachTimeZoneMiddelware(ginRouter *gin.Engine) {
-	// TimezoneMiddleware is a middleware that sets the timezone for the request.
-	ginRouter.Use(middleware.TimezoneMiddleware())
-}
-
-func attachRealIPMiddleware(ginRouter *gin.Engine) {
-	// RealIPMiddleware is a middleware that sets the real IP for the request.
-	ginRouter.Use(middleware.RealIPMiddleware())
-}
-
-func runServer(ginRouter *gin.Engine) {
-	certFile := configs.GetCertFileName()
-	keyFile := configs.GetKeyFileName()
-
-	// logrus all env variables
-	logrus.Infof("Server running on port: %s", configs.GetPort())
-	logrus.Infof("Server running in %s mode", configs.GetGinRunMode())
-	logrus.Infof("Server running with cert file: %s", certFile)
-	logrus.Infof("Server running with key file: %s", keyFile)
-
-	// Listening on the port with TLS if env is prod or dev.deployed
-	if configs.GetEnv() == "prod" || configs.GetEnv() == "devdeployed" {
-		if err := ginRouter.RunTLS(":"+configs.GetPort(), certFile, keyFile); err != nil {
-			logrus.Fatal("Failed to run server: ", err)
-		}
-	} else {
-		if err := ginRouter.Run(":" + configs.GetPort()); err != nil {
-			logrus.Fatal("Failed to run server: ", err)
-		}
-	}
+	app.RunServer()
 }

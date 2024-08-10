@@ -56,6 +56,25 @@ services:
         soft: 262144
         hard: 262144
 
+  prometheus-dev:
+    container_name: prometheus-dev
+    image: prom/prometheus
+    restart: always
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    command:
+      - --config.file=/etc/prometheus/prometheus.dev.yml
+    volumes:
+      - ./docker/prometheus.dev.yml:/etc/prometheus/prometheus.dev.yml
+    ports:
+      - "9091:9090"
+
+  grafana-dev:
+    container_name: grafana-dev
+    image: grafana/grafana
+    ports:
+      - "10001:3000"
+
 volumes:
   rabbitmq-dev:
   centrifugo-dev:
