@@ -106,7 +106,7 @@ const Notifications = () => {
             {loading === true ? (
                 <>
                     {Array.from({ length: 8 }, (_, index) => (
-                        <View mt={index === 0 ? '$4' : '$2'}>
+                        <View key={index} mt={index === 0 ? '$4' : '$2'}>
                             <Skeleton colorMode={currentTheme === 'dark' ? 'dark' : 'light'} height={80} width={"100%"} />
                         </View>
                     ))}

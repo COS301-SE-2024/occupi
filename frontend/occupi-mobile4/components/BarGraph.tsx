@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import {
-    View,
+    View, Text
   } from '@gluestack-ui/themed';
   import * as SecureStore from 'expo-secure-store';
   import { BarChart } from "react-native-gifted-charts"
 import { useColorScheme } from 'react-native';
 import { useTheme } from './ThemeContext';
+import { convertValues } from '@/utils/occupancy';
 
 
 const BarGraph = (data) => {
@@ -16,6 +17,7 @@ const BarGraph = (data) => {
     // console.log(data.data);
     const labels = currentTheme === 'dark' ? "lightgray" : "darkgrey";
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
+    // console.log(convertValues(data.data));
     useEffect(() => {
         const getAccentColour = async () => {
           let accentcolour = await SecureStore.getItemAsync('accentColour');
@@ -32,11 +34,12 @@ const BarGraph = (data) => {
         //   backgroundColor: '#414141',
         // }}
         >
+          <Text color={currentTheme === "dark" ? 'white' : 'black'} fontWeight="$medium" underline mb="$4" alignSelf='center'>Predicted Occupancy by Number</Text>
         <BarChart
           isAnimated
           width={wp('80%')}
           color={accentColour}
-          maxValue={5}
+          maxValue={1500}
           noOfSections={5}
           // hideRules
         //   animateOnDataChange={true}
@@ -45,7 +48,7 @@ const BarGraph = (data) => {
           endSpacing={0}
           yAxisTextStyle={{color: labels}}
           xAxisLabelTextStyle={{color: labels}}
-          data={data.data}
+          data={convertValues(data.data)}
           showGradient
           frontColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
           gradientColor={accentColour}

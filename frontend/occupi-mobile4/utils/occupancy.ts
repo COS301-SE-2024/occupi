@@ -11,7 +11,7 @@ export interface ExtractedPrediction {
 export async function getExtractedPredictions(): Promise<ExtractedPrediction[] | undefined> {
     try {
         const predictions = await getPredictions();
-        
+
         if (!predictions) {
             console.error('No predictions data received');
             return undefined;
@@ -39,7 +39,7 @@ export async function getExtractedPredictions(): Promise<ExtractedPrediction[] |
 export async function getExtractedDailyPrediction(): Promise<ExtractedPrediction | undefined> {
     try {
         const prediction = await getDayPredictions();
-        
+
         if (!prediction) {
             console.error('No predictions data received');
             return undefined;
@@ -63,6 +63,43 @@ export async function getExtractedDailyPrediction(): Promise<ExtractedPrediction
         return undefined;
     }
 }
+type DayValue = {
+    label: string;
+    value: number;
+};
+
+export function convertValues(data: DayValue[]): DayValue[] {
+    const valueMap: { [key: number]: number } = {
+        1: 150,
+        2: 450,
+        3: 750,
+        4: 1050,
+        5: 1350,
+    };
+
+    return data?.map((item) => ({
+        ...item,
+        value: valueMap[item.value] || item.value, // Use the mapped value or keep the original value if not in the map
+    }));
+}
+
+export function valueToColor(value: number): string {
+    // Ensure the value is within the expected range
+    const clampedValue = Math.max(1, Math.min(value, 5));
+  
+    // Map 1 to 5 to a percentage between 0 and 1
+    const ratio = (clampedValue - 1) / (5 - 1);
+  
+    // Green to Red gradient
+    const green = [0, 255, 0];
+    const red = [255, 0, 0];
+  
+    // Calculate the color based on the ratio
+    const color = green.map((g, i) => Math.round(g + (red[i] - g) * ratio));
+  
+    // Return the color as a hex string
+    return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+  }
 
 function convertNumToDay(num: number) {
     switch (num) {
@@ -98,7 +135,7 @@ export async function getFormattedPredictionData() {
     // })));
 
     return data.map((prediction: ExtractedPrediction) => ({
-        value: prediction.Predicted_Class+1,
+        value: prediction.Predicted_Class + 1,
         label: convertNumToDay(prediction.Day_of_week)
     }))
 }
@@ -123,7 +160,7 @@ export async function getFormattedDailyPredictionData() {
 
     return {
         date: convertNumToDate(data.Date),
-        class: data.Predicted_Class+1,
+        class: data.Predicted_Class + 1,
         day: convertNumToDay(data.Day_of_week),
         attendance: data.Predicted_Attendance_Level
     }

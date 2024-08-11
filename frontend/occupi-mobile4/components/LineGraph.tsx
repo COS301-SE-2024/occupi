@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import {
-    View,
+    View, Text
   } from '@gluestack-ui/themed';
   import * as SecureStore from 'expo-secure-store';
   import { LineChart } from "react-native-gifted-charts"
@@ -32,6 +32,7 @@ const LineGraph = (data) => {
         //   backgroundColor: '#414141',
         // }}
         >
+          <Text color={currentTheme === "dark" ? 'white' : 'black'} fontWeight="$medium" underline mb="$4" alignSelf='center'>Predicted Occupancy by level</Text>
         <LineChart
           isAnimated
           width={wp('80%')}

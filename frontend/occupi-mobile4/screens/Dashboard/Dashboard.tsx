@@ -26,7 +26,7 @@ import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
 import BarGraph from '@/components/BarGraph';
-import { getFormattedDailyPredictionData, getFormattedPredictionData } from '@/utils/occupancy';
+import { getFormattedDailyPredictionData, getFormattedPredictionData, valueToColor } from '@/utils/occupancy';
 import * as Location from 'expo-location';
 import { storeCheckInValue } from '@/services/securestore';
 import { isPointInPolygon } from '@/utils/dashboard';
@@ -374,11 +374,11 @@ const Dashboard: React.FC = () => {
           </Card>
           <Card flexDirection="column" alignItems='center' variant="elevated" p="$2.5" mt="$4" style={{ width: wp('43%'), height: hp('13%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
             <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Predicted: </Text></View>
-            <Text color={"red"} fontSize={28}>Level: {currentDayData?.class}</Text>
-            <Text color={"red"} fontSize={18}>{currentDayData?.attendance} people</Text>
+            <Text color={valueToColor(currentDayData?.class)} fontSize={28}>Level: {currentDayData?.class}</Text>
+            <Text color={valueToColor(currentDayData?.class)} fontSize={18}>{currentDayData?.attendance} people</Text>
           </Card>
         </View>
-        <View flexDirection="row" justifyContent="space-between" mt="$6" mb="$4" h="$12" alignItems="center">
+        <View flexDirection="row" justifyContent="space-between" mt="$6" h="$12" alignItems="center">
           <View w={wp('50%')} flexDirection='row' justifyContent='space-around' h="$12" borderColor={cardBackgroundColor} paddingVertical={5} borderWidth={2} borderRadius={10}>
             <TouchableOpacity
               style={{
@@ -418,7 +418,7 @@ const Dashboard: React.FC = () => {
             </Button>
           )}
         </View>
-        <View w='$full' height={hp('40%')} mb="$10">
+        <View w='$full' height={hp('40%')} mb="$32">
           <PagerView
             initialPage={0}
             style={{ flex: 1, alignItems: 'center' }}
