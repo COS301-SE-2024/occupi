@@ -13,17 +13,18 @@
     "lint": "expo lint"
   },
   "jest": {
-    "preset": "jest-expo",
-    "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|moti|@gluestack-ui/themed)"
-    ],
-    "collectCoverage": true,
-    "coverageReporters": [
-      "lcov",
-      "text"
-    ],
-    "coverageDirectory": "coverage"
-  },
+  "preset": "jest-expo",
+  "transformIgnorePatterns": [
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|moti|@gluestack-ui/themed|gifted-charts-core)"
+  ],
+  "collectCoverage": true,
+  "coverageReporters": [
+    "lcov",
+    "text"
+  ],
+  "coverageDirectory": "coverage"
+}
+,
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
     "@expo/vector-icons": "^14.0.0",
