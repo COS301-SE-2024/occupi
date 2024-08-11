@@ -29,6 +29,7 @@ import LineGraph from '@/components/LineGraph';
 import { getFormattedDailyPredictionData, getFormattedPredictionData } from '@/utils/occupancy';
 import * as Location from 'expo-location';
 import { storeCheckInValue } from '@/services/securestore';
+import { isPointInPolygon } from '@/utils/dashboard';
 
 // import { number } from 'zod';
 
@@ -36,7 +37,7 @@ const getRandomNumber = () => {
   return Math.floor(Math.random() * 20) + 300;
 };
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const colorScheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorScheme : theme;
@@ -45,68 +46,69 @@ const Dashboard = () => {
   const [checkedIn, setCheckedIn] = useState<boolean>();
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
+  const [shouldCheckin, setShouldCheckin] = useState(false);
   const toast = useToast();
   const [currentData, setCurrentData] = useState();
   const [currentDayData, setCurrentDayData] = useState();
   // console.log(currentTheme);
   // console.log(isDarkMode);
-  const useLocationCheckin = (address: string) => {
-    if (address.includes("")) {
-      Alert.alert(
-        'At the office',
-        'It seems like you are at the office, would you like to check in?',
-        [
-          {
-            text: 'Check in!',
-            onPress: () => checkIn()
-          },
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-        ],
-        { cancelable: true }
-      );
-    } else {
-      console.log('not at work pal!');
-    }
+
+  
+
+  const useLocationCheckin = () => {
+    Alert.alert(
+      'At the office',
+      'It seems like you are at the office, would you like to check in?',
+      [
+        {
+          text: 'Check in!',
+          onPress: () => checkIn()
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
   }
 
   useEffect(() => {
     const LocationCheckin = async () => {
-      let checkedIn = await SecureStore.getItemAsync('CheckedIn');
-      setCheckedIn(checkedIn === "true" ? true : false);
+      let checkedInVal = await SecureStore.getItemAsync('CheckedIn');
+      setCheckedIn(checkedInVal === "true" ? true : false);
       // console.log(checkedIn.toString());
-      if (checkedIn === "false") {
-        (async () => {
-          let { status } = await Location.requestForegroundPermissionsAsync();
-          if (status !== 'granted') {
-            console.log('Permission to access location was denied');
-            return;
-          }
+      if (checkedInVal === "false") {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('Permission to access location was denied');
+          return;
+        }
 
-          let location: Location.LocationObject = await Location.getCurrentPositionAsync({});
-          // console.log(location.coords.latitude);
-          // console.log('Latitude:', location.coords.latitude);
-          // console.log('Longitude:', location.coords.longitude);
+        let location: Location.LocationObject = await Location.getCurrentPositionAsync({});
+        // console.log(location.coords.latitude);
+        // console.log('Latitude:', location.coords.latitude);
+        // console.log('Longitude:', location.coords.longitude);
 
-          let address = await Location.reverseGeocodeAsync({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude
-          });
+        const point = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        };
+        const insidePolygon = isPointInPolygon(point);
 
-
-          if (address && address.length > 0) {
-            let my_address = `${address[0].name}, ${address[0].street}, ${address[0].district}, ${address[0].region}, ${address[0].country}, ${address[0].postalCode}`;
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            useLocationCheckin(my_address);
-            // console.log('Address:', my_address);
-          }
-        })();
+        if (insidePolygon) {
+          setShouldCheckin(true);
+        }
       }
     }
     LocationCheckin()
   }, []);
+
+  useEffect(() => {
+    if (shouldCheckin) {
+      useLocationCheckin();
+    }
+  }, [shouldCheckin]);
 
   useEffect(() => {
     const getAccentColour = async () => {
