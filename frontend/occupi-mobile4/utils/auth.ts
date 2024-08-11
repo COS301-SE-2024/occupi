@@ -4,7 +4,7 @@
 import { login, logout, register, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
-import { storeUserEmail, storeToken, setState, deleteToken, deleteUserData, deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings, deleteAllData } from "../services/securestore";
+import { storeUserEmail, storeToken, setState, deleteAllData } from "../services/securestore";
 import { retrievePushToken } from "./notifications";
 
 
@@ -138,5 +138,3 @@ export async function UserLogout() {
         console.error('Error:', error);
     }
 }
-
-// UserLogin("kamogelomoeketse@gmail.com", "Qwerty@123"); //test

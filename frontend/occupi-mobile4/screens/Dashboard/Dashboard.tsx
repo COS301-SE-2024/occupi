@@ -147,13 +147,17 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const getUsername = async () => {
       try {
-        const name = await fetchUsername();
-        // console.log(name);
-        if (name) {
+        while (username === '') {
+          const name = await fetchUsername();
           setUsername(name);
-        } else {
-          setUsername('Guest'); // Default value if no username is found
         }
+        
+        // // console.log(name);
+        // if (name) {
+        //   setUsername(name);
+        // } else {
+        //   setUsername('Guest'); // Default value if no username is found
+        // }
       } catch (error) {
         console.error('Error fetching username:', error);
         setUsername('Guest'); // Default in case of an error
