@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { LineChart } from "react-native-gifted-charts"
+import React, { useEffect, useRef, useState } from 'react';
 import { StatusBar, useColorScheme, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
@@ -26,10 +25,13 @@ import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
+import BarGraph from '@/components/BarGraph';
 import { getFormattedDailyPredictionData, getFormattedPredictionData } from '@/utils/occupancy';
 import * as Location from 'expo-location';
 import { storeCheckInValue } from '@/services/securestore';
 import { isPointInPolygon } from '@/utils/dashboard';
+import PagerView from 'react-native-pager-view';
+import SetDetails from '../Login/SetDetails';
 
 // import { number } from 'zod';
 
@@ -50,10 +52,48 @@ const Dashboard: React.FC = () => {
   const toast = useToast();
   const [currentData, setCurrentData] = useState();
   const [currentDayData, setCurrentDayData] = useState();
+  const pagerRef = useRef<PagerView>(null);
+  const [activeTab, setActiveTab] = useState('Tab1');
+  const [weeklyData, setWeeklyData] = useState();
   // console.log(currentTheme);
   // console.log(isDarkMode);
 
-  
+  const mockhourly = [
+    { "label": "07:00", "value": 2 },
+    { "label": "09:00", "value": 4 },
+    { "label": "11:00", "value": 5 }, 
+    { "label": "12:00", "value": 2 }, 
+    { "label": "13:00", "value": 2 }, 
+    { "label": "15:00", "value": 3 }, 
+    { "label": "17:00", "value": 2 }
+  ]
+
+  // console.log(currentData);
+
+  const goToNextPage = () => {
+    setActiveTab('Tab2');
+    // if (pagerRef.current) {
+    //   pagerRef.current.setPage(1);
+    // }
+    setHourly();
+  };
+
+  const goToPreviousPage = () => {
+    setActiveTab('Tab1');
+    setWeekly();
+    // if (pagerRef.current) {
+    //   pagerRef.current.setPage(0);
+    // }
+  };
+
+  const setHourly = () => {
+    setCurrentData(mockhourly);
+  }
+
+  const setWeekly = () => {
+    setCurrentData(weeklyData);
+  }
+
 
   const useLocationCheckin = () => {
     Alert.alert(
@@ -122,6 +162,7 @@ const Dashboard: React.FC = () => {
         if (prediction) {
           // console.log(prediction);
           setCurrentData(prediction);
+          setWeeklyData(prediction);
         }
       } catch (error) {
         console.error('Error fetching predictions:', error);
@@ -151,7 +192,7 @@ const Dashboard: React.FC = () => {
           const name = await fetchUsername();
           setUsername(name);
         }
-        
+
         // // console.log(name);
         // if (name) {
         //   setUsername(name);
@@ -189,7 +230,7 @@ const Dashboard: React.FC = () => {
     };
     getRoomData();
     getUsername();
-  }, []);
+  }, [username]);
 
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
@@ -337,7 +378,36 @@ const Dashboard: React.FC = () => {
             <Text color={"red"} fontSize={18}>{currentDayData?.attendance} people</Text>
           </Card>
         </View>
-        <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
+        <View flexDirection="row" justifyContent="space-between" mt="$6" mb="$4" h="$12" alignItems="center">
+          <View w={wp('50%')} flexDirection='row' justifyContent='space-around' h="$12" borderColor={cardBackgroundColor} paddingVertical={5} borderWidth={2} borderRadius={10}>
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab1' ? accentColour : 'transparent',
+              }}
+              onPress={goToPreviousPage}
+            >
+              <Text color={activeTab === 'Tab1' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
+                Weekly
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab2' ? accentColour : 'transparent',
+              }}
+              onPress={goToNextPage}
+            >
+              <Text color={activeTab === 'Tab2' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
+                Hourly
+              </Text>
+            </TouchableOpacity>
+          </View>
           {checkedIn ? (
             <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkOut}>
               <ButtonText color="black">Check out</ButtonText>
@@ -348,9 +418,21 @@ const Dashboard: React.FC = () => {
             </Button>
           )}
         </View>
-        <Text></Text>
-        <LineGraph data={currentData} />
-      </ScrollView>
+        <View w='$full' height={hp('40%')} mb="$10">
+          <PagerView
+            initialPage={0}
+            style={{ flex: 1, alignItems: 'center' }}
+            ref={pagerRef}
+          >
+            <View key="1" justifyContent='center'>
+              <LineGraph data={currentData} />
+            </View>
+            <View key="2" justifyContent='center'>
+              <BarGraph data={currentData} />
+            </View>
+          </PagerView>
+        </View >
+      </ScrollView >
       <Navbar />
     </>
   );

@@ -16,11 +16,11 @@ export async function UserLogin(email: string, password: string) {
             password: password
         });
         if (response.status === 200) {
-            console.log('responseee',response);
+            // console.log('responseee',response);
             if (response.data !== null) {
                 setState('logged_in');
                 storeToken(response.data.token);
-                console.log('here');
+                // console.log('here');
                 fetchUserDetails(email, response.data.token);
                 fetchNotificationSettings(email);
                 fetchSecuritySettings(email);

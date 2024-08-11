@@ -4,12 +4,12 @@ import {
     View,
   } from '@gluestack-ui/themed';
   import * as SecureStore from 'expo-secure-store';
-  import { LineChart } from "react-native-gifted-charts"
+  import { BarChart } from "react-native-gifted-charts"
 import { useColorScheme } from 'react-native';
 import { useTheme } from './ThemeContext';
 
 
-const LineGraph = (data) => {
+const BarGraph = (data) => {
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
@@ -32,28 +32,24 @@ const LineGraph = (data) => {
         //   backgroundColor: '#414141',
         // }}
         >
-        <LineChart
+        <BarChart
           isAnimated
           width={wp('80%')}
-          thickness={3}
           color={accentColour}
           maxValue={5}
           noOfSections={5}
           // hideRules
-          animateOnDataChange
-          animationDuration={1000}
-          onDataChangeAnimationDuration={300}
-          areaChart
+        //   animateOnDataChange={true}
+          animationDuration={500}
+        //   onDataChangeAnimationDuration={100}
           endSpacing={0}
           yAxisTextStyle={{color: labels}}
           xAxisLabelTextStyle={{color: labels}}
           data={data.data}
-          hideDataPoints
-          startFillColor={accentColour}
-          endFillColor={accentColour}
-          startOpacity={0.5}
-          endOpacity={0.1}
-          spacing={47}
+          showGradient
+          frontColor={'#FFFFFF'}
+          gradientColor={accentColour}
+          spacing={20}
           backgroundColor={currentTheme === 'dark' ? "#414141" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
@@ -67,4 +63,4 @@ const LineGraph = (data) => {
   )
 }
 
-export default LineGraph
+export default BarGraph
