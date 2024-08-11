@@ -59,7 +59,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isNotificationsModalOpen, setNotificationsModalOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const [notifications, setNotifications] =
+  const [notifications, ] =
     useState<Notification[]>(initialNotifications);
 
   const unreadCount = notifications.filter(
@@ -100,13 +100,13 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
     setNotificationsModalOpen(false);
   };
 
-  const markAsRead = (id: number) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-  };
+  // const markAsRead = (id: number) => {
+  //   setNotifications((prevNotifications) =>
+  //     prevNotifications.map((notification) =>
+  //       notification.id === id ? { ...notification, read: true } : notification
+  //     )
+  //   );
+  // };
 
   return (
     <>
@@ -198,10 +198,8 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
 
       <NotificationModal
         title="Notifications"
-        notifications={notifications}
         isOpen={isNotificationsModalOpen}
         onClose={handleCloseNotifications}
-        markAsRead={markAsRead}
       />
     </>
   );

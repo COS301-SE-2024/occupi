@@ -1,25 +1,63 @@
-import React from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Badge } from '@nextui-org/react';
-import { FaBell, FaCheckCircle, FaTools, FaUserCheck, FaChartBar } from 'react-icons/fa';
-
-interface Notification {
-  id: number;
-  message: string;
-  read: boolean;
-  timestamp: string;
-  type: 'booking' | 'capacity' | 'maintenance';
-}
+import React, { useState, useEffect } from 'react';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Badge,
+} from '@nextui-org/react';
+import { FaBell, FaTools, FaUserCheck, FaChartBar } from 'react-icons/fa';
+import NotificationService, { Notification } from 'NotificationsService';
+import { OccupiLoader } from '@components/index'; // Assuming you have this loading component
 
 interface NotificationsModalProps {
   title: string;
-  notifications: Notification[];
   isOpen: boolean;
   onClose: () => void;
-  markAsRead: (id: number) => void;
 }
 
-const NotificationsModal: React.FC<NotificationsModalProps> = ({ title, notifications, isOpen, onClose, markAsRead }) => {
-  const unreadCount = notifications.filter(notification => !notification.read).length;
+const NotificationsModal: React.FC<NotificationsModalProps> = ({
+  title,
+  isOpen,
+  onClose,
+}) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadNotifications();
+    }
+  }, [isOpen]);
+
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const data = await NotificationService.fetchNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsRead = async (id: number) => {
+    try {
+      await NotificationService.markNotificationAsRead(id);
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notification) =>
+          notification.id === id ? { ...notification, read: true } : notification
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -41,26 +79,36 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({ title, notifica
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <FaBell style={{ marginRight: '10px' }} />
             {title}
-            <Badge color='warning' style={{ marginLeft: 'auto' }}>{unreadCount}</Badge>
+            <Badge color='warning' style={{ marginLeft: 'auto' }}>
+              {unreadCount}
+            </Badge>
           </div>
         </ModalHeader>
         <ModalBody>
-          {notifications.length === 0 ? (
+          {isLoading ? (
+            <OccupiLoader message='Loading notifications...' />
+          ) : notifications.length === 0 ? (
             <div style={{ textAlign: 'center', marginTop: '20px' }}>
               No new notifications
             </div>
           ) : (
             notifications.map((notification) => (
-              <div key={notification.id} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                <div style={{ marginRight: '10px' }}>
-                  {getIcon(notification.type)}
-                </div>
+              <div
+                key={notification.id}
+                style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}
+              >
+                <div style={{ marginRight: '10px' }}>{getIcon(notification.type)}</div>
                 <div style={{ flexGrow: 1 }}>
                   <div>{notification.message}</div>
-                  <div style={{ fontSize: '12px', color: 'gray' }}>{new Date(notification.timestamp).toLocaleString()}</div>
+                  <div style={{ fontSize: '12px', color: 'gray' }}>
+                    {new Date(notification.timestamp).toLocaleString()}
+                  </div>
                 </div>
                 {!notification.read && (
-                  <Button className=' bg-secondary_alt text-text_col_alt' onClick={() => markAsRead(notification.id)}>
+                  <Button
+                    className='bg-secondary_alt text-text_col_alt'
+                    onClick={() => markAsRead(notification.id)}
+                  >
                     Mark as read
                   </Button>
                 )}

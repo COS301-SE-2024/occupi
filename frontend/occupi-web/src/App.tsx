@@ -1,5 +1,5 @@
 import { LoginForm, OtpPage, Settings, Dashboard, Analysis, Visitation, Faq, AiDashboard, Rooms, AboutPage, SecurityPage } from "@pages/index";
-import { Appearance, OverviewComponent, BookingComponent, PDFReport, ProfileView, Security } from "@components/index";
+import { Appearance, OverviewComponent, BookingComponent, PDFReport, ProfileView } from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from "react";

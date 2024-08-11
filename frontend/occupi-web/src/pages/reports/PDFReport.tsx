@@ -6,7 +6,7 @@ import {
   View,
   StyleSheet,
   PDFViewer,
-  Image,
+  Image
 } from "@react-pdf/renderer";
 import { TopNav } from "@components/index";
 import { occupiLogo } from "@assets/index";
@@ -14,13 +14,22 @@ import axios from "axios";
 
 // Define the interface for the data
 interface CapacityData {
+  date: string;
   day: string;
-  predicted: number;
+  predicted: string;
+  isWeekend: boolean;
+  specialEvent: boolean;
 }
+
 interface ResponseItem {
+  Date: string;
   Day_of_Week: number;
+  Day_of_month: number;
+  Is_Weekend: boolean;
+  Month: number;
   Predicted_Attendance_Level: string;
   Predicted_Class: number;
+  Special_Event: number;
 }
 
 // Sample data
@@ -78,7 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
   },
   tableCol: {
-    width: "50%",
+    width: "20%",
     borderStyle: "solid",
     borderWidth: 1,
     borderLeftWidth: 0,
@@ -94,10 +103,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "grey",
   },
+  chartContainer: {
+    marginVertical: 20,
+    width: "100%",
+    height: 200,
+    backgroundColor: "#E5E5E5",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+  },
 });
 
 // Mock summary data
-const summaryText = `The report analyzes monthly office occupancy trends from January to June. The data indicates a steady increase in occupancy, reaching its peak in June. Recommendations include optimizing office space usage and considering flexible working options to manage increasing demand.`;
+const summaryText = `This report provides an in-depth analysis of the office occupancy trends over the past six months, highlighting key areas for improvement and optimization based on AI-driven predictions.`;
 
 // Mock additional data for the report
 const additionalData = [
@@ -109,18 +127,15 @@ const additionalData = [
 // Create Document Component
 function BasicDocument() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [capacityComparisonData, setCapacityComparisonData] = useState<CapacityData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [capacityData, setCapacityData] = useState<CapacityData[]>([]);
+  const [, setLoading] = useState(true);
+  const [, setError] = useState<Error | null>(null);
+  const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
 
-  const handleInputChange = (e: { target: { value: React.SetStateAction<string> } }) => {
+  const handleInputChange = (e: {
+    target: { value: React.SetStateAction<string> };
+  }) => {
     setSearchQuery(e.target.value);
-  };
-
-  const convertRangeToNumber = (range: string) => {
-    if (!range) return 0; // Return a default value if range is undefined
-    const [min, max] = range.split("-").map(Number);
-    return (min + max) / 2;
   };
 
   useEffect(() => {
@@ -130,10 +145,13 @@ function BasicDocument() {
           "https://ai.occupi.tech/predict_week"
         );
         const formattedData = response.data.map((item: ResponseItem) => ({
-          day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][item.Day_of_Week],
-          predicted: convertRangeToNumber(item.Predicted_Attendance_Level),
+          date: item.Date,
+          day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][item.Day_of_Week],
+          predicted: item.Predicted_Attendance_Level,
+          isWeekend: item.Is_Weekend,
+          specialEvent: item.Special_Event === 1,
         }));
-        setCapacityComparisonData(formattedData);
+        setCapacityData(formattedData);
         setLoading(false);
       } catch (err) {
         setError(err as Error);
@@ -143,6 +161,18 @@ function BasicDocument() {
 
     fetchData();
   }, []);
+
+  const handleMonthSelection = (month: string) => {
+    setSelectedMonths((prevMonths) =>
+      prevMonths.includes(month)
+        ? prevMonths.filter((m) => m !== month)
+        : [...prevMonths, month]
+    );
+  };
+
+  const filteredOccupancyData = occupancyData.filter((data) =>
+    selectedMonths.includes(data.month)
+  );
 
   return (
     <div className="w-full overflow-auto">
@@ -159,6 +189,23 @@ function BasicDocument() {
         onChange={handleInputChange}
       />
 
+      {/* Month Filter */}
+      <div className="flex flex-wrap mb-4">
+        {occupancyData.map((data) => (
+          <button
+            key={data.month}
+            className={`p-2 m-2 border rounded ${
+              selectedMonths.includes(data.month)
+                ? "bg-blue-500 text-white"
+                : "bg-gray-200 text-black"
+            }`}
+            onClick={() => handleMonthSelection(data.month)}
+          >
+            {data.month}
+          </button>
+        ))}
+      </div>
+
       <PDFViewer style={{ width: "100%", height: "100vh" }}>
         <Document>
           <Page size="A4" style={styles.page}>
@@ -172,7 +219,9 @@ function BasicDocument() {
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.paragraph}>Monthly Office Occupancy Table</Text>
+              <Text style={styles.paragraph}>
+                Monthly Office Occupancy Table
+              </Text>
               <View style={styles.table}>
                 <View style={styles.tableRow}>
                   <View style={styles.tableCol}>
@@ -182,7 +231,7 @@ function BasicDocument() {
                     <Text>Occupancy (%)</Text>
                   </View>
                 </View>
-                {occupancyData.map((data) => (
+                {filteredOccupancyData.map((data) => (
                   <View style={styles.tableRow} key={data.month}>
                     <View style={styles.tableCol}>
                       <Text>{data.month}</Text>
@@ -212,29 +261,53 @@ function BasicDocument() {
               </View>
             </View>
 
-            {/* Capacity Comparison Data */}
+            {/* AI Predicted Capacity */}
             <View style={styles.section}>
-              <Text style={styles.paragraph}>AI Predicted Capacity</Text>
+              <Text style={styles.paragraph}>AI Predicted Capacity for the Week</Text>
               <View style={styles.table}>
                 <View style={styles.tableRow}>
+                  <View style={styles.tableCol}>
+                    <Text>Date</Text>
+                  </View>
                   <View style={styles.tableCol}>
                     <Text>Day</Text>
                   </View>
                   <View style={styles.tableCol}>
-                    <Text>Predicted Capacity</Text>
+                    <Text>Predicted Attendance</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text>Weekend</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text>Special Event</Text>
                   </View>
                 </View>
-                {capacityComparisonData.map((data) => (
-                  <View style={styles.tableRow} key={data.day}>
+                {capacityData.map((data) => (
+                  <View style={styles.tableRow} key={data.date}>
+                    <View style={styles.tableCol}>
+                      <Text>{data.date}</Text>
+                    </View>
                     <View style={styles.tableCol}>
                       <Text>{data.day}</Text>
                     </View>
                     <View style={styles.tableCol}>
                       <Text>{data.predicted}</Text>
                     </View>
+                    <View style={styles.tableCol}>
+                      <Text>{data.isWeekend ? "Yes" : "No"}</Text>
+                    </View>
+                    <View style={styles.tableCol}>
+                      <Text>{data.specialEvent ? "Yes" : "No"}</Text>
+                    </View>
                   </View>
                 ))}
               </View>
+            </View>
+
+            {/* Visualization */}
+            <View style={styles.chartContainer}>
+              <Text>Occupancy Trends Visualization</Text>
+              {/* You can replace this Text component with actual chart images */}
             </View>
 
             <Text
@@ -259,6 +332,38 @@ function BasicDocument() {
                 over the past six months. It highlights the overall increase in
                 office utilization and recommends strategies to optimize
                 workspace efficiency.
+              </Text>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.paragraph}>
+                Weekly Attendance Analysis
+              </Text>
+              <Text style={styles.paragraph}>
+                Based on the AI predictions, here's a summary of the upcoming week:
+              </Text>
+              <Text style={styles.paragraph}>
+                - Highest predicted attendance: {Math.max(...capacityData.map(d => parseInt(d.predicted.split('-')[1])))} (on {capacityData.find(d => d.predicted === Math.max(...capacityData.map(d => parseInt(d.predicted.split('-')[1]))).toString())?.day})
+              </Text>
+              <Text style={styles.paragraph}>
+                - Lowest predicted attendance: {Math.min(...capacityData.map(d => parseInt(d.predicted.split('-')[0])))} (on {capacityData.find(d => d.predicted === Math.min(...capacityData.map(d => parseInt(d.predicted.split('-')[0]))).toString())?.day})
+              </Text>
+              <Text style={styles.paragraph}>
+                - Number of weekend days: {capacityData.filter(d => d.isWeekend).length}
+              </Text>
+              <Text style={styles.paragraph}>
+                - Special events this week: {capacityData.filter(d => d.specialEvent).length}
+              </Text>
+            </View>
+
+            {/* Recommendations */}
+            <View style={styles.section}>
+              <Text style={styles.paragraph}>Recommendations</Text>
+              <Text style={styles.paragraph}>
+                - Adjust office hours to align with peak occupancy times.
+                - Re-evaluate the use of meeting rooms and common areas to
+                maximize efficiency.
+                - Consider flexible work policies to balance occupancy across different days.
               </Text>
             </View>
 

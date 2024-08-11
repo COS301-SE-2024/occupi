@@ -1,13 +1,9 @@
 import {
   ChevronLeft,
   ChevronRight,
-  Grid,
-  ColorSwatch,
-  Home,
-  PieChart,
-  UserProfileGroup,
-  OccupiLogo,
-  Report,
+  Grid, Home,
+  PieChart, OccupiLogo,
+  Report
 } from "@assets/index";
 import { ProfileDropDown, SideNavBarButton } from "@components/index";
 import { motion } from "framer-motion";

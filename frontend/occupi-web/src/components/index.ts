@@ -39,6 +39,11 @@ import NotificationModal from "./notificationsModal/NotificationsModal";
 import RadioBox from "./radioBoxComponent/RadioBox";
 import AboutComponent from "./aboutComponent/AboutComponent";
 import Security from "./securityComponent/Security";
+import EditRoomModal from "./editRoomModal/EditRoomModal";
+import AddRoomModal from "./addRoomModal/AddRoomModal";
+
+
+
 export {
     DrawerComponent,
     GradientButton,
@@ -80,5 +85,7 @@ export {
     NotificationModal,
     RadioBox,
     AboutComponent,
-    Security
+    Security,
+    EditRoomModal,
+    AddRoomModal
 }

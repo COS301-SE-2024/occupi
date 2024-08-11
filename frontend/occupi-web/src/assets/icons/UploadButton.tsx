@@ -60,7 +60,7 @@ export default function FileUploadButton(
 			setAcceptance('REJECT');
 		}
 	}, [ accept, multiple, setAcceptance ]);
-	const onDragFinish = useCallback((_e: React.DragEvent<HTMLButtonElement>) => {
+	const onDragFinish = useCallback(( ) => {
 		setAcceptance(null);
 	}, [ setAcceptance ]);
 	const onDrop = useCallback((e: React.DragEvent<HTMLButtonElement>) => {

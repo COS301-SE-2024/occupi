@@ -14,7 +14,6 @@ import Rooms from "./rooms/Rooms";
 import { NotificationsSettings } from "./notificationsSettings/NotificationsSettings";
 import AboutPage from "./about/AboutPage";
 import SecurityPage from "./securityPage/SecurityPage";
-
 export {
   LoginForm,
   OtpPage,
@@ -31,5 +30,5 @@ export {
   Rooms,
   NotificationsSettings,
   AboutPage,
-  SecurityPage
+  SecurityPage,
 };
