@@ -148,7 +148,7 @@ export const getUserBookings = async (email: string): Promise<Success | Unsucces
 
 export async function getNotifications(req: NotificationsReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  console.log("request",req);
+  // console.log("request",req);
   try {
     const response = await axios.get("https://dev.occupi.tech/api/get-notifications", {
       params: req,
@@ -319,7 +319,7 @@ export async function getExpoPushTokens(attendees: string[]): Promise<Success | 
       },
       withCredentials: true
     });
-    console.log(response.data);
+    console.log('push tokens',response.data);
     return response.data as Success;
   } catch (error) {
     console.error(`Error in ${Function}:`, error);

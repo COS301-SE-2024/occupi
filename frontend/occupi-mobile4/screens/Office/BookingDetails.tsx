@@ -97,9 +97,9 @@ const BookingDetails = () => {
       }
     });
 
-    // if (response === 'Successfully booked!') {
-    //   setCurrentStep(2);
-    // }
+    if (response === 'Successfully booked!') {
+      setCurrentStep(2);
+    }
     setLoading(false);
   };
 
@@ -196,12 +196,23 @@ const BookingDetails = () => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
           </head>
           <body style="text-align: center;">
-            <h1 style="font-size: 50px; font-family: Helvetica Neue; font-weight: normal;">
+            <img
+              src="https://raw.githubusercontent.com/COS301-SE-2024/occupi/5614db6d7821bb21b94125c83bc5a46126c5acac/frontend/occupi-web/public/occupi.svg"
+              style="width: 30vw; padding: 2vw;" />
+            <h1 style="font-size: 30px; font-family: Helvetica Neue; font-weight: bold;">
               Booking for ${bookingInfo?.roomName}
             </h1>
             <img
               src="https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png"
-              style="width: 90vw;" />
+              style="width: 65vw;" />
+            <br/>
+            <h2 style="font-family: Helvetica Neue; font-weight: semi-bold;">Booking Details</h2>
+            <p style="font-family: Helvetica Neue; font-weight: semi-bold;">Check in: <span style="font-weight: bold;">${startTime}</span></p>
+            <p style="font-family: Helvetica Neue; font-weight: semi-bold;">Check out: <span style="font-weight: bold;">${endTime}</span></p>
+            <p style="font-family: Helvetica Neue; font-weight: semi-bold;">Attendees:</p>
+            <div>
+              ${attendees.map((email, idx) => `<p style="font-family: Helvetica Neue; font-weight: semi-bold;">${idx + 1}. ${email}</p>`).join('')}
+            </div>
           </body>
         </html>
         `;
@@ -403,8 +414,6 @@ const BookingDetails = () => {
             style={{
               marginHorizontal: 15,
               borderRadius: 10,
-
-
             }}
           />
 

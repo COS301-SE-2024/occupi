@@ -47,8 +47,10 @@ const BarGraph = (data) => {
           xAxisLabelTextStyle={{color: labels}}
           data={data.data}
           showGradient
-          frontColor={'#FFFFFF'}
+          frontColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
           gradientColor={accentColour}
+        //   barBorderTopLeftRadius={5}
+        //   barBorderTopRightRadius={5}
           spacing={20}
           backgroundColor={currentTheme === 'dark' ? "#414141" : "white"}
           // showVerticalLines
