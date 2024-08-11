@@ -21,7 +21,6 @@ describe('occupancy.ts', () => {
           Month: 8,
           Predicted_Attendance_Level: 'High',
           Predicted_Class: 3,
-          Special_Event: 0
         },
         {
           Date: '2023-08-08',
@@ -31,8 +30,7 @@ describe('occupancy.ts', () => {
           Month: 8,
           Predicted_Attendance_Level: 'Medium',
           Predicted_Class: 2,
-          Special_Event: 0
-        }
+        },
       ];
 
       (getPredictions as jest.Mock).mockResolvedValue(mockPredictions);
@@ -43,16 +41,14 @@ describe('occupancy.ts', () => {
       expect(result).toEqual([
         {
           Date: '2023-08-07',
-          Day_of_week: 1,
           Predicted_Attendance_Level: 'High',
-          Predicted_Class: 3
+          Predicted_Class: 3,
         },
         {
           Date: '2023-08-08',
-          Day_of_week: 2,
           Predicted_Attendance_Level: 'Medium',
-          Predicted_Class: 2
-        }
+          Predicted_Class: 2,
+        },
       ]);
     });
 
