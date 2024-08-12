@@ -16,7 +16,7 @@ import {
   OccupiLoader,
   NotificationModal,
 } from "@components/index";
-import NotificationService from "NotificationsService";
+import NotificationsService from "NotificationsService";
 
 interface ProfileDropdownProps {
   isMinimized: boolean;
@@ -36,7 +36,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
 
   const loadNotifications = async () => {
     try {
-      const fetchedNotifications = await NotificationService.fetchNotifications();
+      const fetchedNotifications = await NotificationsService.fetchNotifications();
       setNotifications(fetchedNotifications);
     } catch (error) {
       console.error("Error loading notifications:", error);
