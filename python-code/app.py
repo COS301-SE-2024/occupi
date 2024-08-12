@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify
 import logging
+from flask_cors import CORS
 from datetime import datetime, timedelta
 from prediction import get_prediction
 import joblib
 
 # Initialize the Flask application
 app = Flask(__name__)
+
+CORS(app, resources={r"/*": {"origins": ["https://dev.occupi.tech", "https://app.occupi.tech"]}})
 
 # Load the scaler
 scaler = joblib.load('attendance_scaler.pkl')

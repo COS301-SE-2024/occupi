@@ -7,3 +7,4 @@ scikit-learn
 seaborn
 matplotlib
 gunicorn
+flask-cors
