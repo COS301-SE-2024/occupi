@@ -11,6 +11,9 @@ import Visitation from "./visitations/Visitations";
 import Faq from "./faq/Faq";
 import AiDashboard  from "./aiDashboard/AiDashboard";
 import Rooms from "./rooms/Rooms";
+import { NotificationsSettings } from "./notificationsSettings/NotificationsSettings";
+import AboutPage from "./about/AboutPage";
+import SecurityPage from "./securityPage/SecurityPage";
 export {
   LoginForm,
   OtpPage,
@@ -24,5 +27,8 @@ export {
   Visitation,
   Faq,
   AiDashboard,
-  Rooms
+  Rooms,
+  NotificationsSettings,
+  AboutPage,
+  SecurityPage,
 };

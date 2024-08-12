@@ -17,7 +17,7 @@ describe("ProfileDropdown", () => {
       </BrowserRouter>,
       root
     );
-    expect(document.body.innerHTML).toContain("Tinashe Austin");
+    expect(document.body.innerHTML).toContain("occupi-admin");
   });
 
   test("displays user email", () => {

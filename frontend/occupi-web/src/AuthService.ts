@@ -192,7 +192,36 @@ const AuthService = {
     }
   },
 
-  getUserDetails: async (email: string) => {
+  
+
+  updateUserDetails: async (userDetails: {
+    email: string;
+    name: string;
+    dob: string;
+    gender: string;
+    session_email: string;
+    employeeid: string;
+    number: string;
+    pronouns: string;
+  }) => {
+    try {
+      const response = await axios.post(`${API_USER_URL}/update-user`, userDetails);
+      if (response.data.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'Failed to update user details');
+      }
+    } catch (error) {
+      console.error("Error in updateUserDetails:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response.data;
+      }
+      throw new Error('An unexpected error occurred while updating user details');
+    }
+  },
+
+
+  getUserDetails : async (email: string) => {
     try {
       console.log(API_USER_URL);
       const response = await axios.get(
@@ -267,5 +296,9 @@ function bufferDecode(value: string | null): Uint8Array | null {
   // Decode Base64 string
   return Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
 }
+
+
+
+
 
 export default AuthService;

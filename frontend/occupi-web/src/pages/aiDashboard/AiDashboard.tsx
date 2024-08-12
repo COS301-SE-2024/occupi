@@ -19,10 +19,10 @@ const defaultLayouts: Layouts = {
 };
 
 const cardData = [
-  { id: 'card1', title: "Office Occupancy", icon: <FaUsers size={24} />, stat: "65%", trend: 3.46 },
-  { id: 'card2', title: "Available Desks", icon: <FaBed size={24} />, stat: "89", trend: -2.1 },
-  { id: 'card3', title: "Reservations", icon: <FaClipboardList size={24} />, stat: "45", trend: 8.7 },
-  { id: 'card4', title: "Check-ins Today", icon: <FaCalendarCheck size={24} />, stat: "23", trend: 3.4 },
+  { id: 'card1', title: "Office Occupancy", icon: <FaUsers size={24} color="white" />, stat: "65%", trend: 3.46 },
+  { id: 'card2', title: "Available Desks", icon: <FaBed size={24} color="white" />, stat: "89", trend: -2.1 },
+  { id: 'card3', title: "Reservations", icon: <FaClipboardList size={24} color="white"  />, stat: "45", trend: 8.7 },
+  { id: 'card4', title: "Check-ins Today", icon: <FaCalendarCheck size={24}color="white"  />, stat: "23", trend: 3.4 },
 ];
 
 const originalCardLayouts: { [key: string]: Layout } = {
@@ -125,9 +125,9 @@ const AiDashboard: React.FC = () => {
         <div className="flex justify-between mb-4">
           <button
             onClick={resetToDefaultLayout}
-            className="px-4 py-2 bg-text_col text-text_col_alt rounded-lg transition-colors duration-300 flex items-center"
+            className="px-4 py-2 bg-text_col text-text_col_alt font-semibold rounded-lg transition-colors duration-300 flex items-center"
           >
-            <FaUndo className="mr-2" /> Reset to Default Layout
+            <FaUndo className="mr-2 " /> Reset to Default Layout
           </button>
           <div className="flex gap-2">
             {cardData.map(card => (
