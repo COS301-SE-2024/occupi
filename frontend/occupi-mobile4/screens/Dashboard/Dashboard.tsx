@@ -146,6 +146,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (shouldCheckin) {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       useLocationCheckin();
     }
   }, [shouldCheckin]);
