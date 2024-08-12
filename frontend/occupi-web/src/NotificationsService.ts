@@ -51,20 +51,20 @@ const NotificationService = {
     }
   },
 
-  markNotificationAsRead: async (notificationId: number): Promise<void> => {
-    try {
-      const response = await axios.post(`${API_USER_URL}/mark-notification-read`, { id: notificationId });
-      if (response.status !== 200) {
-        throw new Error('Failed to mark notification as read');
-      }
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-      if (axios.isAxiosError(error) && error.response?.data) {
-        throw error.response.data;
-      }
-      throw new Error('An unexpected error occurred while marking notification as read');
-    }
-  },
+  // markNotificationAsRead: async (notificationId: number): Promise<void> => {
+  //   try {
+  //     const response = await axios.post(`${API_USER_URL}/mark-notification-read`, { id: notificationId });
+  //     if (response.status !== 200) {
+  //       throw new Error('Failed to mark notification as read');
+  //     }
+  //   } catch (error) {
+  //     console.error("Error marking notification as read:", error);
+  //     if (axios.isAxiosError(error) && error.response?.data) {
+  //       throw error.response.data;
+  //     }
+  //     throw new Error('An unexpected error occurred while marking notification as read');
+  //   }
+  // },
 
   getNotificationSummary: async (): Promise<Pick<Notification, 'id' | 'message' | 'type'>[]> => {
     try {

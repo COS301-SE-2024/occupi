@@ -236,10 +236,11 @@ export default function App() {
         <div
           data-testid="input-search"
           className="flex justify-between gap-3 items-end"
+
         >
           <Input
             isClearable
-            className="w-full sm:max-w-[44%] border-none"
+            className="w-full sm:max-w-[44%] border-none mt-5"
             placeholder="Search by name..."
             startContent={<SearchIcon />}
             value={filterValue}

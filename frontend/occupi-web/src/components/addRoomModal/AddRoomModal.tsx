@@ -6,6 +6,7 @@ import {
   ModalFooter,
   Button,
   Input,
+  ModalContent,
 } from "@nextui-org/react";
 
 interface Room {
@@ -60,8 +61,9 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSave }) 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalHeader>Add New Room</ModalHeader>
+    <Modal backdrop="blur" isOpen={isOpen} onClose={onClose}>
+       <ModalContent>
+      <ModalHeader className="text-text_col flex flex-col gap-1">Add New Room</ModalHeader>
       <ModalBody>
         <Input
           label="Room ID"
@@ -119,6 +121,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSave }) 
           Cancel
         </Button>
       </ModalFooter>
+      </ModalContent>
     </Modal>
   );
 };
