@@ -16,7 +16,7 @@ import {
   OccupiLoader,
   NotificationModal,
 } from "@components/index";
-import NotificationsService from "NotificationsService";
+import NotificationService from "NotificationsService";
 
 interface ProfileDropdownProps {
   isMinimized: boolean;
@@ -28,7 +28,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isNotificationsModalOpen, setNotificationsModalOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const [notifications, setNotifications] = useState<import("c:/Users/tinashe.austin/Desktop/Y2Kode/occupi/frontend/occupi-web/src/NotificationsService").Notification[]>([]);
+  const [notifications, setNotifications] = useState<import("NotificationsService").Notification[]>([]);
 
   useEffect(() => {
     loadNotifications();
@@ -36,7 +36,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
 
   const loadNotifications = async () => {
     try {
-      const fetchedNotifications = await NotificationsService.fetchNotifications();
+      const fetchedNotifications = await NotificationService.fetchNotifications();
       setNotifications(fetchedNotifications);
     } catch (error) {
       console.error("Error loading notifications:", error);
