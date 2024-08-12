@@ -190,7 +190,7 @@ const AuthService = {
       try {
         const allCookies = Cookies.get(); // Get all cookies
         Object.keys(allCookies).forEach(cookieName => {
-          Cookies.remove(cookieName); // Remove each cookie
+          Cookies.remove(cookieName, { domain: 'dev.occupi.tech' }); // Remove each cookie from the specific domain
         });
       } catch (cookieError) {
         console.error("Error clearing cookies:", cookieError);
