@@ -49,6 +49,8 @@ func main() {
 		AttachSessionMiddleware().
 		AttachTimeZoneMiddleware().
 		AttachRealIPMiddleware().
+		AttachMoniteringMiddleware().
+		AttachObservabilityMiddleware().
 		RegisterRoutes().
 		SetEnvVariables()
 

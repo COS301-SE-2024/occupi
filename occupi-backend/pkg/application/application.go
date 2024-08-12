@@ -151,11 +151,19 @@ func (app *Application) AttachMoniteringMiddleware() *Application {
 }
 
 func (app *Application) AttachObservabilityMiddleware() *Application {
-	go track.Track(
-		track.WithConfigTag("service", configs.GetMiddlewareService()),
-		track.WithConfigTag("accessToken", configs.GetMiddlewareAccessToken()),
-		track.WithConfigTag("target", configs.GetMiddlewareTarget()),
-	)
+	if configs.GetEnv() == prod || configs.GetEnv() == devdeployed {
+		os.Setenv("MW_AGENT_SERVICE", configs.GetMiddlewareAgentService())
+		go func() {
+			_, err := track.Track(
+				track.WithConfigTag("service", configs.GetMiddlewareService()),
+				track.WithConfigTag("accessToken", configs.GetMiddlewareAccessToken()),
+				track.WithConfigTag("target", configs.GetMiddlewareTarget()),
+			)
+			if err != nil {
+				logrus.Printf("Error tracking: %v", err)
+			}
+		}()
+	}
 	return app
 }
 
