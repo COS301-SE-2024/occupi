@@ -43,6 +43,7 @@ const InputBox = (props: InputBoxProps) => {
                 {err !== "" && <h5 className="text-text_col_red_salmon font-normal text-base">{err}</h5>}
             </div>
             <input
+                name={props.type}
                 type={props.type}
                 autoComplete={props.type === "email" ? "username" : "current-password" } 
                 placeholder={props.placeholder}

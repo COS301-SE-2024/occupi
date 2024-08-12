@@ -22,6 +22,10 @@ services:
           condition: service_healthy
         centrifugo-dev:
           condition: service_started
+        prometheus-dev:
+          condition: service_started
+        grafana-dev:
+          condition: service_started
       
   rabbitmq-dev:
     image: rabbitmq:latest
@@ -55,6 +59,26 @@ services:
       nofile:
         soft: 262144
         hard: 262144
+
+  prometheus-dev:
+    container_name: prometheus-dev
+    image: prom/prometheus
+    restart: on-failure:5
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    command:
+      - --config.file=/etc/prometheus/prometheus.dev.yml
+    volumes:
+      - ./prometheus.dev.yml:/etc/prometheus/prometheus.dev.yml
+    ports:
+      - "9091:9090"
+
+  grafana-dev:
+    container_name: grafana-dev
+    image: grafana/grafana
+    restart: on-failure:5
+    ports:
+      - "10001:3000"
 
 volumes:
   rabbitmq-dev:
