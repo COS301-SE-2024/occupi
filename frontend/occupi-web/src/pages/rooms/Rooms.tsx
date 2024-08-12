@@ -246,7 +246,7 @@ const Rooms: React.FC = () => {
         }}
       />
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 mt-2">
         <h2 className="text-text_col text-2xl font-bold"></h2>
         <Button
           className="text-text_col_alt font-semibold bg-secondary_alt"
