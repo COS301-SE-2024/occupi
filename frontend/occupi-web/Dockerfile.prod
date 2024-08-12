@@ -1,0 +1,23 @@
+# Use the official bun image as a base
+FROM node:20-alpine
+
+# Set the current working directory inside the container
+WORKDIR /app
+
+# copy package.json package-lock.json
+COPY package.json package-lock.json ./
+
+# install dependencies
+RUN npm install
+
+# copy the source code into the container
+COPY . .
+
+# Build the vite application
+RUN npm run build
+
+# Expose the port the app runs on
+EXPOSE 4000
+
+# Command to run the executable
+CMD ["npm", "run", "preview-prod"]

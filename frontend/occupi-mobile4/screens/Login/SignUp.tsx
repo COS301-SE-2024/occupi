@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
-import Logo from '../../screens/Login/assets/images/Occupi/file.png';
+import React, { useState, useEffect, useRef } from 'react';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import {
-  Checkbox,
   Image,
   HStack,
   VStack,
   Text,
-  Link,
   FormControl,
   Box,
   LinkText,
@@ -18,28 +16,26 @@ import {
   Toast,
   ToastTitle,
   useToast,
-  CheckboxIndicator,
-  CheckboxIcon,
-  CheckboxLabel,
-  CheckIcon,
   Heading,
   InputField,
   InputSlot,
   FormControlLabel,
   FormControlLabelText,
+  View,
 } from '@gluestack-ui/themed';
-
+import Checkbox from 'expo-checkbox';
+import { retrievePushToken } from '@/utils/notifications';
+import GradientButton from '@/components/GradientButton';
 import { Controller, useForm } from 'react-hook-form';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Keyboard, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Keyboard, Animated, Easing, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 // import { FacebookIcon, GoogleIcon } from './assets/Icons/Social';
-import GuestLayout from '../../layouts/GuestLayout';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
-import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import * as WebBrowser from 'expo-web-browser';
+import { userRegister } from '@/utils/auth';
 
 const isEmployeeIdFocused = false;
 const signUpSchema = z.object({
@@ -64,12 +60,12 @@ const signUpSchema = z.object({
       new RegExp('.*[`~<>?,./!@#$%^&*()\\-_+="\'|{}\\[\\];:\\\\].*'),
       'One special character'
     ),
-  rememberme: z.boolean().optional(),
   employeeId: z.string().min(1, 'Employee ID is required').regex(/^\d+$/, 'Employee ID must be numerical'),
 });
 
 type SignUpSchemaType = z.infer<typeof signUpSchema>;
 
+retrievePushToken();
 
 const SignUpForm = () => {
   const {
@@ -82,61 +78,47 @@ const SignUpForm = () => {
   const isEmailFocused = useState(false);
   const toast = useToast();
   const [loading, setLoading] = useState(false);
+  const [isChecked, setChecked] = useState(false);
+
+  const handlePressPrivacy = async () => {
+    await WebBrowser.openBrowserAsync('https://www.freeprivacypolicy.com/live/8f124563-97fc-43fa-bf37-7a82ba153ea3');
+  };
 
   const onSubmit = async (_data: SignUpSchemaType) => {
     if (_data.password === _data.confirmpassword) {
       setLoading(true);
-      try {
-        const response = await fetch('https://dev.occupi.tech/auth/register', {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
+      if (isChecked === false) {
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action="warning">
+                <ToastTitle>Accept the Terms of Service and Privacy Policy to continue.</ToastTitle>
+              </Toast>
+            );
           },
-          body: JSON.stringify({
-            email: _data.email,
-            password: _data.password
-          }),
-          credentials: "include"
         });
-        const data = await response.json();
-        if (response.ok) {
-          setLoading(false);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="success">
-                  <ToastTitle>{data.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-          router.push({pathname:'/verify-otp', params: { email: _data.email}});
-        } else {
-          setLoading(false);
-          // console.log(data);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>{data.error.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-        }
-      } catch (error) {
-        console.error('Error:', error);
       }
-      setLoading(false)
+      else {
+        const response = await userRegister(_data.email, _data.password, _data.employeeId);
+        toast.show({
+          placement: 'top',
+          render: ({ id }) => {
+            return (
+              <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+                <ToastTitle>{response === "Invalid email" ? "User Already Exists" : response}</ToastTitle>
+              </Toast>
+            );
+          }
+        });
+      }
+      setLoading(false);
     } else {
       toast.show({
-        placement: 'bottom right',
+        placement: 'top',
         render: ({ id }) => {
           return (
-            <Toast nativeID={id} action="error">
+            <Toast nativeID={String(id)} variant="accent" action="error">
               <ToastTitle>Passwords do not match</ToastTitle>
             </Toast>
           );
@@ -161,36 +143,6 @@ const SignUpForm = () => {
       return !showState;
     });
   };
-
-  const GradientButton = ({ onPress, text }) => (
-    <LinearGradient
-      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-      locations={[0.02, 0.31, 0.67, 0.97]}
-      start={[0, 1]}
-      end={[1, 0]}
-      style={styles.buttonContainer}
-    >
-      <Heading style={styles.buttonText} onPress={onPress}>
-        {text}
-      </Heading>
-    </LinearGradient>
-  );
-
-  const styles = StyleSheet.create({
-    buttonContainer: {
-      borderRadius: 15,
-      marginTop: hp('2%'),
-      alignSelf: 'center',
-      width: wp('90%'),
-      height: hp('6%'),
-    },
-    buttonText: {
-      color: 'black',
-      fontSize: wp('4%'),
-      textAlign: 'center',
-      lineHeight: hp('6%'),
-    }
-  });
 
   return (
     <>
@@ -217,7 +169,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Email"
                   fontSize={wp('4%')}
@@ -262,7 +214,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Employee ID"
                   fontSize={wp('4%')}
@@ -305,7 +257,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   fontSize={wp('4%')}
                   placeholder="Password"
@@ -317,7 +269,7 @@ const SignUpForm = () => {
                   type={showPassword ? 'text' : 'password'}
                 />
                 <InputSlot onPress={handleState} pr="$3">
-                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} size="md" />
                 </InputSlot>
               </Input>
             )}
@@ -352,7 +304,7 @@ const SignUpForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="#f2f2f2" h={hp('6%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="#f2f2f2" h={hp('6%')}>
                 <InputField
                   placeholder="Confirm Password"
                   fontSize={wp('4%')}
@@ -364,7 +316,7 @@ const SignUpForm = () => {
                   type={showConfirmPassword ? 'text' : 'password'}
                 />
                 <InputSlot onPress={handleConfirmPwState} pr="$3">
-                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} size="md" />
                 </InputSlot>
               </Input>
             )}
@@ -377,67 +329,15 @@ const SignUpForm = () => {
           </FormControlError>
         </FormControl>
       </VStack>
-      <Controller
-        name="rememberme"
-        defaultValue={false}
-        control={control}
-        render={({ field: { onChange, value } }) => (
-          <Checkbox
-            aria-label="termsofuse"
-            size="sm"
-            value="privacy"
-            isChecked={value}
-            onChange={onChange}
-            alignSelf="flex-start"
-            mt="$2"
-            mb="$12"
-          >
-            <CheckboxIndicator mr="$2">
-              <CheckboxIcon color="yellowgreen" as={CheckIcon} />
-            </CheckboxIndicator>
-            <CheckboxLabel
-              sx={{
-                _text: {
-                  fontSize: '$sm',
-                },
-              }}
-            >
-              I accept the{' '}
-              <Link>
-                <LinkText
-                  sx={{
-                    _ios: {
-                      marginTop: '$0.5',
-                    },
-                    _android: {
-                      marginTop: '$0.5',
-                    },
-                  }}
-                  color="yellowgreen"
-                >
-                  Terms of Use
-                </LinkText>
-              </Link>{' '}
-              <Link>
-                <LinkText
-                  sx={{
-                    _ios: {
-                      marginTop: '$0.5',
-                    },
-                    _android: {
-                      marginTop: '$0.5',
-                    },
-                  }}
-                  color="yellowgreen"
-                >
-                  Privacy Policy
-                </LinkText>
-              </Link>
-            </CheckboxLabel>
-          </Checkbox>
-        )}
-      />
 
+      <View flexDirection='row' my="$2" alignItems='center'>
+        <Checkbox
+          value={isChecked}
+          onValueChange={setChecked}
+          color={isChecked ? 'yellowgreen' : undefined}
+        />
+        <Text fontSize={15} color='$black'> I accept the</Text><Text fontSize={15} color='yellowgreen' underline onPress={handlePressPrivacy}> Terms of Service</Text><Text fontSize={15} color='$black'> and</Text><Text fontSize={15} color='yellowgreen' underline onPress={handlePressPrivacy}> Privacy Policy</Text>
+      </View>
 
       {loading ? (
         <GradientButton
@@ -455,6 +355,24 @@ const SignUpForm = () => {
 };
 
 function SignUpFormComponent() {
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 2,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [spinValue]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <>
       <Box
@@ -465,11 +383,8 @@ function SignUpFormComponent() {
         }}
       >
       </Box>
-
       <Box
-
         px="$4"
-
         sx={{
           '@md': {
             px: '$8',
@@ -484,14 +399,15 @@ function SignUpFormComponent() {
         bg="$backgroundLight0"
         justifyContent="space-between"
       >
-        <VStack mb="$5" space="md">
-
+        <VStack mb="$5" space="md" mt="$16">
           <HStack alignItems="center" justifyContent="center">
-            <Image
-              alt="Occupi Logo"
-              source={Logo}
-              style={{ width: wp('30%'), height: wp('30%') }}
-            />
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <Image
+                alt="Occupi Logo"
+                source={Logo}
+                style={{ width: wp('30%'), height: wp('30%') }}
+              />
+            </Animated.View>
           </HStack>
           <VStack space="xs" mb="$2">
             <Heading
@@ -515,7 +431,7 @@ function SignUpFormComponent() {
           space="xs"
           alignItems="center"
           justifyContent="center"
-          mt="$5"
+          my={12}
         >
           <Text
             color="$textLight500"
@@ -524,13 +440,13 @@ function SignUpFormComponent() {
                 color: '$textDark400',
               },
             }}
-            fontSize="$sm"
+            fontSize={wp('4%')}
           >
             Have an account?
           </Text>
 
-          <StyledExpoRouterLink href="/login">
-            <LinkText color="yellowgreen" fontSize="$sm">Login</LinkText>
+          <StyledExpoRouterLink replace href="/login">
+            <LinkText color="yellowgreen" fontSize={wp('4%')}>Login</LinkText>
           </StyledExpoRouterLink>
         </HStack>
       </Box>
@@ -540,21 +456,28 @@ function SignUpFormComponent() {
 
 export default function SignUp() {
   return (
-    <GuestLayout>
-      <Box
-        sx={{
-          '@md': {
-            display: 'flex',
-          },
-        }}
-        flex={1}
-        display="none"
-      >
-        {/* <SideContainerWeb /> */}
-      </Box>
-      <Box flex={1}>
-        <SignUpFormComponent />
-      </Box>
-    </GuestLayout>
+    // <ScrollView>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView flex={1} pt="$20" backgroundColor='white'>
+        <Box
+          sx={{
+            '@md': {
+              display: 'flex',
+            },
+          }}
+          flex={1}
+          display="none"
+        >
+          {/* <SideContainerWeb /> */}
+        </Box>
+        <Box flex={1}>
+          <SignUpFormComponent />
+        </Box>
+      </ScrollView>
+    </KeyboardAvoidingView>
+    // </ScrollView>
   );
 }

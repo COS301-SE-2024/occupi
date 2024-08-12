@@ -1,0 +1,73 @@
+services:
+  occupi-backend-local:
+      image: occupi-backend-local:latest
+      container_name: occupi-backend-local
+      build:
+        context: .
+        dockerfile: Dockerfile.local
+      environment:
+        - ENV=development
+      ports:
+        - "8081:8081"
+      restart: on-failure:5
+      depends_on:
+        rabbitmq-dev-local:
+          condition: service_healthy
+        centrifugo-dev-local:
+          condition: service_started
+        prometheus-dev-local:
+          condition: service_started
+        grafana-dev-local:
+          condition: service_started
+
+  rabbitmq-dev-local:
+    image: rabbitmq:latest
+    container_name: rabbitmq-dev-local
+    ports:
+      - "5673:5672"
+    restart: on-failure:5
+    volumes:
+      - rabbitmq-dev-local:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  centrifugo-dev-local:
+    image: centrifugo/centrifugo:v5
+    container_name: centrifugo-dev-local
+    volumes:
+      - ./configs/centrifugo.config.json:/centrifugo/centrifugo.config.json
+      - centrifugo-dev-local:/centrifugo/data
+    command: centrifugo -c centrifugo.config.json
+    ports:
+      - 8000:8000
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144  
+
+  prometheus-dev-local:
+    container_name: prometheus-dev-local
+    image: prom/prometheus
+    restart: on-failure:5
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    command:
+      - --config.file=/etc/prometheus/prometheus.localdev.yml
+    volumes:
+      - ./docker/prometheus.localdev.yml:/etc/prometheus/prometheus.localdev.yml
+    ports:
+      - "9090:9090"
+
+  grafana-dev-local:
+    container_name: grafana-dev-local
+    restart: on-failure:5
+    image: grafana/grafana
+    ports:
+      - "10000:3000"
+
+volumes:
+  rabbitmq-dev-local:
+  centrifugo-dev-local:

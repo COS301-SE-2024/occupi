@@ -14,16 +14,27 @@
     },
     "ios": {
       "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
-        "NSFaceIDUsageDescription": "This app uses Face ID or Touch ID to confirm bookings."
+        "NSFaceIDUsageDescription": "This app uses Face ID or Touch ID to confirm bookings.",
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to provide relevant information."
       }
     },
     "android": {
-      "permissions": ["USE_BIOMETRIC", "USE_FINGERPRINT"],
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.y2kodedev.occupi",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -31,10 +42,22 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-secure-store",
+      "expo-location",
+      "expo-notifications",
+      "expo-sensors"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "0127a6f2-e29a-4a67-a134-be8c4daed566"
+      }
     }
   }
 }

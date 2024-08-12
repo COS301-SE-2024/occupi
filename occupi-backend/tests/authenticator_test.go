@@ -4,8 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/joho/godotenv"
-
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/stretchr/testify/assert"
@@ -13,14 +11,9 @@ import (
 )
 
 func TestGenerateToken(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
 	email := "test1@example.com"
 	role := constants.Admin
-	tokenString, expirationTime, err := authenticator.GenerateToken(email, role)
+	tokenString, expirationTime, _, err := authenticator.GenerateToken(email, role)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenString)
@@ -35,14 +28,9 @@ func TestGenerateToken(t *testing.T) {
 }
 
 func TestValidateToken(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
 	email := "test2@example.com"
 	role := constants.Admin
-	tokenString, _, err := authenticator.GenerateToken(email, role)
+	tokenString, _, _, err := authenticator.GenerateToken(email, role)
 
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenString)
@@ -56,16 +44,11 @@ func TestValidateToken(t *testing.T) {
 }
 
 func TestValidateTokenExpired(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
 	email := "test3@example.com"
 	role := constants.Admin
 
 	// Generate a token that expires in 1 second
-	tokenString, _, err := authenticator.GenerateToken(email, role, 1*time.Second)
+	tokenString, _, _, err := authenticator.GenerateToken(email, role, 1*time.Second)
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenString)
 
@@ -79,11 +62,6 @@ func TestValidateTokenExpired(t *testing.T) {
 }
 
 func TestInvalidToken(t *testing.T) {
-	// Load environment variables from .env file
-	if err := godotenv.Load("../.env"); err != nil {
-		t.Fatal("Error loading .env file: ", err)
-	}
-
 	// Test with an invalid token
 	invalidTokenString := "invalid_token"
 	claims, err := authenticator.ValidateToken(invalidTokenString)

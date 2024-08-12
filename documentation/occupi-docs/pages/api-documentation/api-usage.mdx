@@ -8,280 +8,30 @@ The API also allows you to retrieve information about these resources.
 # Table of Contents
 
 - [Api Usage](#api-usage)
-  - [Table of Contents](#table-of-contents)
-    - [Base URL](#base-url)
-    - [Ping](#ping)
-      - [Ping](#ping-1)
-      - [Ping-Auth](#ping-auth)
-      - [Ping-Admin](#ping-admin)
-    - [Authentication](#authentication)
-      - [Register](#register)
-      - [Login](#login)
-      - [Login-Admin](#login-admin)
-      - [Verify OTP](#verify-otp)
-      - [Logout](#logout)
-    - [Api](#api)
-      - [Resources](#resources)
-      - [BookRoom](#BookRoom)
-      - [ViewBookings](#ViewBookings)
-      - [CancelBooking](#CancelBooking)
-      - [CheckIn](#CheckIn)
-      - [Users](#users)
-      - [Roles](#roles)
-
-## Base URL
-
-The base URL for the Occupi API is `https://occupi.tech`, `https://dev.occupi.tech` or `https://localhost:8080` if you are in develop mode.
-
-## Ping
-
-### Ping
-
-The ping endpoint is used to check if the API is up and running.
-
-- **URL**
-
-  `/ping`
-
-- **Method**
-
-  `GET`
-
-- **Success Response**
-
-  - **Code:** 200
-  - **Content:** `{ "status":  200, "message": "pong -> I am alive and kicking", "data": {}, }`
-
-- **Error Response**
-  - **Code:** 404
-  - **Content:** `{ "message": "Resource not found" }`
-
-**_Example json to send:_**
-
-```json copy
-{}
-```
-
-### Ping-Auth
-
-The ping-auth endpoint is used to check if the API is up and running and also to check if the user is authenticated.
-
-- **URL**
-
-  `/ping-auth`
-
-- **Method**
-  
-    `GET`
-
-- **Success Response**
-  
-    - **Code:** 200
-    - **Content:** `{ "status":  200, "message": "pong -> I am alive and kicking and you are auth'd", "data": {}, }`
-
-- **Error Response**
-    
-      - **Code:** 401
-      - **Content:** `{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized\"},\"message\":\"Bad Request\",\"status\":401}`
-
-**_Example json to send:_**
-  
-  ```json copy
-  {}
-  ```
-
-### Ping-Admin
-
-The ping-admin endpoint is used to check if the API is up and running and also to check if the user is an admin.
-
-- **URL**
-
-  `/ping-admin`
-
-- **Method**
-  
-    `GET`
-
-- **Success Response**
-  
-    - **Code:** 200
-    - **Content:** `{ "status":  200, "message": "pong -> I am alive and kicking and you are an admin", "data": {}, }`
-
-- **Error Response**
-    
-      - **Code:** 401
-      - **Content:** `{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"User not authorized to access admin route\"},\"message\":\"Bad Request\",\"status\":401}`
-
-**_Example json to send:_**
-  
-  ```json copy
-  {}
-  ```
-
-## Authentication
-
-The authentication endpoints are used to register, login, login-admin, logout, and verify users. Only POST requests are used for these endpoints.
-
-### Register
-
-- **URL**
-
-  `/auth/register`
-
-- **Method**
-
-  `POST`
-
-- **Success Response**
-
-  - **Code:** 200
-  - **Content:** `{ "status":  200, "message": "Registration successful! Please check your email for the OTP to verify your account.", "data": {}, }`
-
-  **Error Response**
-
-  - **Code:** 400
-  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
-
-- **Error Response**
-  - **Code:** 500
-  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
-
-**_Example json to send:_**
-
-```json copy
-{
-  "email": "abcd@gmail.com",
-  "password": "123456"
-}
-```
-
-### Login
-
-- **URL**
-
-  `/auth/login`
-
-- **Method**
-
-  `POST`
-
-- **Success Response**
-
-  - **Code:** 200
-  - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
-
-  **Error Response**
-
-  - **Code:** 400
-  - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
-
-- **Error Response**
-  - **Code:** 500
-  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
-
-**_Example json to send:_**
-
-```json copy
-{
-  "email": "abcd@gmail.com",
-  "password": "123456"
-}
-```
-
-### Login-Admin
-
-- **URL**
-
-  `/auth/login-admin`
-
-- **Method**
-  
-    `POST`
-
-- **Success Response**
-  
-    - **Code:** 200
-    - **Content:** `{ "status":  200, "message": "Successful login!", "data": {}, }`
-
-- **Error Response**
-    
-      - **Code:** 400
-      - **Content:** `{"status":  400, "message": "Invalid email address": {"code": "INVALID_REQUEST_PAYLOAD","message": "Expected a valid format for email address": {}}}`
-
-- **Error Response**
-  - **Code:** 500
-  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
-
-**_Example json to send:_**
-  
-```json copy
-{
-  "email": "abcd@gmail.com",
-  "password": "123456"
-}
-```
-
-### Verify OTP
-
-- **URL**
-
-  `/auth/verify-otp`
-
-- **Method**
-
-  `POST`
-
-- **Success Response**
-
-  - **Code:** 200
-  - **Content:** `{ "status":  200, "message": "OTP verified successfully!", "data": {}, }`
-
-- **Error Response**
-
-  - **Code:** 400
-  - **Content:** `{"status":  400, "message": "Invalid OTP": {"code": "INVALID_AUTH","message": "Email not registered, otp expired or invalid": {}}}`
-
-- **Error Response**
-  - **Code:** 500
-  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
-
-**_Example json to send:_**
-
-```json copy
-{
-  "email": "abcd@gmail.com",
-  "oTP": "123456"
-}
-```
-
-### Logout
-
-- **URL**
-
-  `/auth/logout`
-
-- **Method**
-  
-    `POST`
-
-- **Success Response**
-
-  - **Code:** 200
-  - **Content:** `{ "status":  200, "message": "Logout successful!", "data": {}, }`
-
-- **Error Response**
-
-  - **Code:** 400
-  - **Content:** `{\"error\":{\"code\":\"INVALID_AUTH\",\"details\":null,\"message\":\"Authorized user can't access this route\"},\"message\":\"Bad Request\",\"status\":401}`
-
-- **Error Response**
-  - **Code:** 500
-  - **Content:** `{"status":  500, "message": "Internal Server Error","error": {"code": "INTERNAL_SERVER_ERROR","message": "Internal Server Error","details": {}}}`
-
-**_Example json to send:_**
-```json copy
-{}
-```
+- [Table of Contents](#table-of-contents)
+  - [Base URL](#base-url)
+  - [Api](#api)
+    - [Resources](#resources)
+    - [Book Room](#BookRoom)
+    - [View Bookings](#ViewBookings)
+    - [View Rooms](#ViewRooms)
+    - [Cancel Booking](#CancelBooking)
+    - [Check In](#CheckIn)
+    - [Get User Details](#GetUserDetails)
+    - [Update User Details](#UpdateUserDetails)
+    - [Get Users](#Get-users)
+    - [Get Notifications](#Get-notifications)
+    - [Get push tokens](#Get-push-tokens)
+    - [UpdateSecuritySettings](#UpdateSecuritySettings)
+    - [Get Security Settings](#GetSecuritySettings)
+    - [Update Notification Settings](#UpdateNotificationSettings)
+    - [Get Notification Settings](#GetNotificationSettings)
+    - [Upload Profile Image](#UploadProfileImage)
+    - [Download Profile Image](#DownloadProfileImage)
+    - [Image ID](#ImageID)
+    - [Upload Image](#UploadImage)
+    - [Upload Room Image](#UploadRoomImage)
+    - [Add Room](#AddRoom)
 
 ## Api
 
@@ -341,39 +91,34 @@ If there are any errors during the process, appropriate error messages are retur
 ```json copy
 {
     "roomId": "string",
-    "slot": "integer",
     "emails": ["string"],
     "creator": "string",
-    "floorNo": "integer"
+    "floorNo": "integer",
+    "date": "string",
+    "start": "string",
+    "end": "string"
 }
 ```
 
 **Success Response**
 
 - **Code:** 200
-- **Content:** `{ "message": "Resources fetched successfully"
-                "data" : "Booking ID" }`
+- **Content:** `{ "status":  200, "message": "Successfully booked!", "data": {"1234567890"}, }`
 
 **Error Response**
 
 - **Code:** 400
-- **Content:** `{ "message": "Invalid request Payload",
-            "code" : "InvalidRequestPayloadCode",
-            "details: "Expected RoomID, Slot, Emails[], Creator, FloorNo" }`
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
 
 **Error Response**
 
 - **Code:** 500
-- **Content:** `{ "message": "Failed to save booking",
-            "code": "InternalServerErrorCode",
-            "details": "Failed to save booking" }`
+- **Content:** `{ "status":  500, "message": "Failed to save booking", "error": {"code":"INTERNAL_SERVER_ERROR","details":"Failed to save booking","message":"Failed to save booking"} }`
 
 **Error Response**
 
 - **Code:** 500
-- **Content:** `{ "message": "Failed to send confirmation emails",
-            "code": "InternalServerErrorCode",
-            "details": "Failed to send confirmation emails" }`
+- **Content:** `{ "status":  500, "message": "Failed to send confirmation emails", "error": {"code":"INTERNAL_SERVER_ERROR","details":"Failed to send confirmation emails","message":"Failed to send confirmation emails"} }`
 
 ### ViewBookings
 
@@ -394,30 +139,81 @@ If there are any errors during the process, appropriate error messages are retur
 - **Content**
 
 ```json copy
-{  
-    "emails": "string",
+{
+    "operator": "eq", // eq, ne, gt, gte, lt, lte, in, nin default to eq
+    "filter": {
+        "email": "test@example.com" // the email is required
+    },
+    "order_asc": "creator", // column to sort in ascending order
+    "order_desc": "floor", // column to sort in descending order
+    "projection": ["floor"], // this is which columns you want returned
+    "limit": 50, // default is 50 and is the maximum
+    "page": 1 // default is 1, but can be incremented to get the next page
 }
 ```
 
 **Success Response**
 
 - **Code:** 200
-- **Content:** `{ "message": "Bookings fetched successfully",
-                "data" : "List of bookings" }`
+- **Content:** `{ "status":  200, "message": "Successfully fetched bookings!", "data": null }`
 
 **Error Response**
     
 - **Code:** 400
-- **Content:** `{ "message": "Invalid request Payload",
-            "code" : "InvalidRequestPayloadCode",
-            "details: "Expected Email Address" }`  
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Expected Email Address"}, }`
+ 
 
 **Error Response**
      
 - **Code:** 500
-- **Content:** `{ "message": "Failed to fetch bookings",
-            "code": "InternalServerErrorCode",
-            "details": "Failed to fetch bookings" }`
+- **Content:** `{ "status":  500, "message": "Failed to get bookings", "error": {"code":"INTERNAL_SERVER_ERROR","details":"Failed to get bookings","message":"Failed to get bookings"} }`
+
+### View Rooms
+
+This endpoint is used to view all rooms in the Occupi system.
+Upon a successful request, a list of all rooms is returned.
+
+- **URL**
+
+  `/api/view-rooms`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+    "operator": "eq", // eq, ne, gt, gte, lt, lte, in, nin default to eq
+    "filter": {
+        "floorNo": 3 // this is a filter to filter by
+    },
+    "order_asc": "description", // column to sort in ascending order
+    "order_desc": "floor", // column to sort in descending order
+    "projection": ["floor"], // this is which columns you want returned
+    "limit": 50, // default is 50 and is the maximum
+    "page": 1 // default is 1, but can be incremented to get the next page
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully fetched bookings!", "data": null }`
+
+**Error Response**
+    
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Expected Email Address"}, }`
+ 
+
+**Error Response**
+     
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to get bookings", "error": {"code":"INTERNAL_SERVER_ERROR","details":"Failed to get bookings","message":"Failed to get bookings"} }`
 
 ### CancelBooking
 
@@ -441,36 +237,46 @@ If there are any errors during the process, appropriate error messages are retur
 ```json copy
 {  
     "bookingId": "string",
+    "roomId": "string",
+    "emails": ["string"],
     "creator": "string",
+    "floorNo": "integer",
+    "date": "string",
+    "start": "string",
+    "end": "string"
 }
 ```
 
 **Success Response**
 
 - **Code:** 200
-- **Content:** `{ "message": "Booking canceled successfully",
-                "data" : "nil" }`
+- **Content:** `{ "status":  200, "message": "Successfully cancelled booking!", "data":null }`
 
 **Error Response**
-        
+
 - **Code:** 400
-- **Content:** `{ "message": "Invalid request Payload",
-                "code" : "InvalidRequestPayloadCode",
-                "details: "Expected Booking ID, Creator" }`
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
 
 **Error Response**
-            
-- **Code:** 500
-- **Content:** `{ "message": "Failed to cancel booking",
-                    "code": "InternalServerErrorCode",
-                    "details": "Failed to cancel booking" }`
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"}, }`
 
 **Error Response**
-                    
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "Booking not found", "error": {"code":"BAD_REQUEST","details":null,"message":"Booking not found"}, }`
+
+**Error Response**
+
 - **Code:** 500
-- **Content:** `{ "message": "Failed to send confirmation emails",
-                            "code": "InternalServerErrorCode",
-                            "details": "Failed to send confirmation emails" }`
+- **Content:** `{ "status":  500, "message": "Failed to cancel booking", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to save booking"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to send confirmation emails", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"An error occured"} }`
+
                               
 ### CheckIn
 
@@ -485,7 +291,7 @@ If there are any errors during the process, appropriate error messages are retur
 
 - **Method**
     
-    `GET`
+    `POST`
 
 - **Request Body**
 
@@ -494,47 +300,650 @@ If there are any errors during the process, appropriate error messages are retur
 ```json copy
 {  
     "bookingId": "string",
-    "email": "string",
-    "roomId": "string",
+    "email": "string"
 }
 ```
 
 **Success Response**
 
 - **Code:** 200
-- **Content:** `{ "message": "Checked in successfully",
-                "data" : "nil" }`
+- **Content:** `{ "status":  200, "message": "Successfully checked in!", "data":null }`
 
 **Error Response**
-            
+
 - **Code:** 400
-- **Content:** `{ "message": "Invalid request Payload",
-                "code" : "InvalidRequestPayloadCode",
-                "details: "Expected Booking ID, Email, RoomID" }`
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
 
 **Error Response**
-                        
-- **Code:** 500
-- **Content:** `{ "message": "Failed to check-in",
-                    "code": "InternalServerErrorCode",
-                    "details": "Failed to check-in" }`
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "Booking not found", "error": {"code":"BAD_REQUEST","details":null,"message":"Booking not found"}, }`
 
 **Error Response**
 
 - **Code:** 500
-- **Content:** `{ "message": "Failed to send confirmation emails",
-                    "code": "InternalServerErrorCode",
-                    "details": "Failed to send confirmation emails" }`  
+- **Content:** `{ "status":  500, "message": "Failed to check in", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to checkin"} }`
 
 
+### GetUserDetails
+
+This endpoint is used to view the details of a user in the Occupi system.
+Upon a successful request, the details of the user are returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/user-details?email=jane.doe@example.com`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "string"
+}
+```
+**if you are logged in, the email is not required, it will be fetched from the token, but passing in an email allows you to fetch details for any user**
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully fetched user details!", "data": {"user details"} }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
+**Error Response**
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "User not found", "error": {"code":"BAD_REQUEST","details":null,"message":"User not found"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to get user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get user details"} }`
+
+### UpdateUserDetails
+
+This endpoint is used to update the details of a user in the Occupi system.
+The client needs to provide the user's email address and the details to be updated.
+Upon a successful request, the user's details are updated.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/update-user`
+
+- **Method**
+    
+    `POST`
 
 
+- **Request Body**
+
+- **Content**
+- Add fields that you want to update. Always include session_email field.
+
+```json copy
+{
+  "email": "abcd@gmail.com", //new email to update to, this will set verification status to false, meaning when you login again, you'll have to verify the email
+  "name": "john doe",
+  "dob": "2002-03-08 00:00:00 +0000 UTC",
+  "gender": "male",
+  "session_email": "defg@gmail.com", // this is the email we use to identify you in the system
+  "employeeid": "OCCUPI20240000",
+  "number": "000 000 0000",
+  "pronouns": "he/him"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+- **Content:** `{ "status":  200, "message": "Successfully updated user details!", "data": nil }`
+
+**Error Response**
+
+- **Code:** 400
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"missing field required: <name of field>"}, }`
+
+**Error Response**
+
+- **Code:** 404
+- **Content:** `{ "status":  404, "message": "User not found", "error": {"code":"BAD_REQUEST","details":null,"message":"User not found"} }`
+
+**Error Response**
+
+- **Code:** 500
+- **Content:** `{ "status":  500, "message": "Failed to update user details", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update user details"} }`
+
+### Get Users
+
+This endpoint is used to get users in the Occupi system.
+The client can provide a filter criteria if they want to.
+Upon a successful request, a list of users that match the filter criteria is returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/get-users`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+    "operator": "eq", // eq, ne, gt, gte, lt, lte, in, nin default to eq
+    "filter": {
+        "onSite": true // this is a filter to filter by
+    },
+    "order_asc": "role", // column to sort in ascending order
+    "order_desc": "email", // column to sort in descending order
+    "projection": ["email", "role"], // this is which columns you want returned
+    "limit": 50, // default is 50 and is the maximum
+    "page": 1 // default is 1, but can be incremented to get the next page
+}
+
+```
+or as a url(note that the order in which you place the parameters does not matter, place them as you please)
+```copy
+https://dev.occupi.tech/api/filter-users?filter={"onSite": true}&projection=email,role&limit=50&page=1
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched users!", "data": ["list of all users"], "meta": {"currentPage": 1,"totalPages": 20,"totalResults": 7}, }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Failed to get users", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get users"} }`
+
+### Get Notifications
+
+This endpoint is used to get notifications in the Occupi system.
+The client can provide a filter criteria if they want to.
+Upon a successful request, a list of notifications that match the filter criteria is returned.
+If there are any errors during the process, appropriate error messages are returned.
+
+- **URL**
+
+  `/api/get-notifications`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+    "operator": "eq", // eq, ne, gt, gte, lt, lte, in, nin default to eq
+    "filter": {
+        "emails": ["test@example.com"] // this is a filter to filter by
+    },
+    "order_asc": "message", // column to sort in ascending order
+    "order_desc": "title", // column to sort in descending order
+    "projection": ["message", "title", "unreadEmails"], // this is which columns you want returned
+    "limit": 50, // default is 50 and is the maximum
+    "page": 1 // default is 1, but can be incremented to get the next page
+}
+
+```
+or as a url(note that the order in which you place the parameters does not matter, place them as you please)
+```copy
+https://dev.occupi.tech/api/get-notifications?filter={"emails": ["test@example.com"]}&projection=message,title,unreadEmails&limit=50&page=1
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched notifications!", "data": ["list of all notifications"], "meta": {"currentPage": 1,"totalPages": 20,"totalResults": 7}, }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Failed to get notifications", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get notifications"} }`
+
+### Get push tokens
+
+This endpoint is used to get the expo push tokens for the given emails
+
+- **URL**
+
+  `/api/get-push-tokens`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "emails": ["test@example.com"]
+}
+
+```
+or as a url(note that the order in which you place the parameters does not matter, place them as you please)
+```copy
+https://dev.occupi.tech/api/get-push-tokens?emails=test@example.com,test1@example.com,test2@example.com
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched tokens!", "data": ["list of all tokens"] }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Failed to get tokens", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to get tokens"} }`
+
+### UpdateSecuritySettings
+
+This endpoint is used to update the security settings of a user in the Occupi system.
+
+- **URL**
+
+  `/api/update-security-settings`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "test@example.com", // required
+  "mfa": "on", // optional "on" or "off"
+  "currentPassword": "password", // required if "newPassword" and "newPasswordConfirm" are provided
+  "newPassword": "newPassword", // required if "currentPassword" and "newPasswordConfirm" are provided
+  "newPasswordConfirm": "newPassword" // required if "currentPassword" and "newPassword" are provided
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully updated security settings!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update settings"} }`
+
+### GetSecuritySettings
+
+This endpoint is used to get the security settings of a user in the Occupi system.
+
+- **URL**
+
+  `/api/get-security-settings`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "test@example.com", // required
+}
+```
+
+or
+
+```
+/api/get-security-settings?email=test@example.com
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched security settings!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update settings"} }`
+
+### UpdateNotificationSettings
+
+This endpoint is used to update the notification settings of a user in the Occupi system.
+
+- **URL**
+
+  `/api/update-notification-settings`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "test@example.com", // required
+  "invites": "on", // optional "on" or "off"
+  "bookingReminder": "on", // optional "on" or "off"
+}
+```
+
+or
+
+```
+/api/update-notification-settings?email=test@example.com&invites=on&bookingReminder=on
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully updated notification settings!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update settings"} }`
+
+### GetNotificationSettings
+
+This endpoint is used to get the notification settings of a user in the Occupi system.
+
+- **URL**
+
+  `/api/get-notification-settings`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "test@example.com", // required
+}
+```
+
+or
+
+```
+/api/get-notification-settings?email=test@example.com
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched notification settings!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Failed to update settings"} }`
 
 
-### Users
+### UploadProfileImage
 
-The users endpoints are used to create, read, update, and delete users.
+This endpoint is used to upload a profile image for a user in the Occupi system. Images must be in jpg, jpeg, or png format otherwise an error will be returned.
 
-### Roles
+- **URL**
 
-The roles endpoints are used to create, read, update, and delete roles.
+  `/api/upload-profile-image`
+
+- **Method**
+    
+    `POST`
+
+- **Request Form Data**
+
+- **Content**
+
+```copy
+  "image": image_data, // required
+  "email": "abcd@gmail.com" // optional if you are logged in
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully uploaded image!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### DownloadProfileImage
+
+This endpoint is used to download a profile image for a user in the Occupi system.
+
+- **URL**
+
+  `/api/download-profile-image`
+
+- **Method**
+    
+    `GET`
+
+- **Request JSON Data**
+
+- **Content**
+
+```json copy
+  "email": "abcd@gmail.com" // optional if you are logged in
+  "quality": "mid" // optional, can be "thumbnail", "low", "medium", "high but defaults to mid
+```
+
+or
+
+```
+/api/download-profile-image?email=abcd@gmail.com&quality=mid
+```
+
+**note that the higher quality, the longer it will take to download**
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched image!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Image ID
+
+This endpoint is used to get the image in the Occupi system given an image ID as a url parameter.
+
+- **URL**
+
+  `/api/image/:id`
+
+- **Method**
+    
+    `GET`
+
+- **Request JSON Data**
+
+- **Content**
+
+```json copy
+  "quality": "mid" // optional, can be "thumbnail", "low", "medium", "high but defaults to mid
+```
+
+or
+
+```
+/api/image/000000000000000000?quality=mid
+```
+
+**the id is the id of the image which you will get when you get a room and is required for all requests on this endpoint**
+
+**note that the higher quality, the longer it will take to download**
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched image!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Upload Image
+
+This endpoint is used to upload an image in the Occupi system. Only Admins can upload images.
+
+- **URL**
+
+  `/api/upload-image`
+
+- **Method**
+    
+    `POST`
+
+- **Request Form Data**
+
+- **Content**
+
+```copy
+  "image": image_data, // required
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully uploaded image!", "data": {"id": "000000000000000000000"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Upload Room Image
+
+This endpoint is used to upload an image for a room in the Occupi system. Only Admins can upload images.
+
+- **URL**
+
+  `/api/upload-room-image`
+
+- **Method**
+    
+    `POST`
+
+- **Request Form Data**
+
+- **Content**
+
+```copy
+  "image": image_data, // required
+  "roomId": "RM000" // required
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully uploaded image!", "data": {"id": "000000000000000000000"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Add Room
+
+This endpoint is used to add a room in the Occupi system. Only Admins can add rooms.
+
+- **URL**
+
+  `/api/add-room`
+
+- **Method**
+    
+    `PUT`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "roomId": "RM000", // required ensure that the room id is unique and starts with RM and no room with the same id exists
+  "roomNo": "1", // required ensure that the room number is unique and no room with the same number exists
+  "floorNo": 3, // required 
+  "minOccupancy": 1, // required
+  "maxOccupancy": 10, // required
+  "description": "This is a room", // required
+  "resources": ["projector", "whiteboard"], // required
+  "roomName": "Room 1", // required
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully added room!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+

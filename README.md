@@ -11,7 +11,13 @@
 ![Codecov](https://img.shields.io/codecov/c/github/COS301-SE-2024/occupi?style=flat-square)
 ![GitHub License](https://img.shields.io/github/license/COS301-SE-2024/occupi?style=flat-square)
 ![GitHub repo size](https://img.shields.io/github/repo-size/COS301-SE-2024/occupi?style=flat-square)
-![Docs Website](https://img.shields.io/website?url=https%3A%2F%2Fdocs.occupi.tech&style=flat-square)
+![Uptime Robot ratio (7 days)](https://img.shields.io/uptimerobot/ratio/7/m797339074-c8c36ea4a85ef5f327413eba?style=flat-square)
+![Uptime Robot ratio (7 days)](https://img.shields.io/uptimerobot/ratio/7/m797368328-54c2704ebe6ad8060373f733?style=flat-square)
+![Uptime Robot ratio (7 days)](https://img.shields.io/uptimerobot/ratio/7/m797368331-e1bb093c95671cb11c2cae67?style=flat-square)
+![Uptime Robot ratio (7 days)](https://img.shields.io/uptimerobot/ratio/7/m797164576-97b27d6908ccf772483726d3?style=flat-square)
+![Uptime Robot ratio (7 days)](https://img.shields.io/uptimerobot/ratio/7/m797164567-aa6233f1af0dd5bf0e71bba6?style=flat-square)
+![Uptime Robot ratio (7 days)](https://img.shields.io/uptimerobot/ratio/7/m797225816-38418b092bc54b224359ef17?style=flat-square)
+![Uptime Robot ratio (7 days)](https://img.shields.io/uptimerobot/ratio/7/m797225808-c17cc2f6f7b261c3141dea6d?style=flat-square)
 ![GitHub Repo stars](https://img.shields.io/github/stars/COS301-SE-2024/occupi?style=flat-square)
 [![codecov](https://codecov.io/gh/COS301-SE-2024/occupi/graph/badge.svg?token=71QPCD9NNP)](https://codecov.io/gh/COS301-SE-2024/occupi)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/COS301-SE-2024/occupi?style=flat-square)
@@ -20,12 +26,18 @@
 
 <p align="center">
 
-![Deploy Docs](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
-![Deploy Landing page](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
-![Lint Test Occupi-mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-mobile.yml/badge.svg)
-![Lint Test and Build Golang](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-golang.yml/badge.svg)
-![Deploy api](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-develop.yml/badge.svg)
-![Lint Test and Build Occupi-Web](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-web.yml/badge.svg)
+![Build Python App 🏗️](https://github.com/COS301-SE-2024/occupi/actions/workflows/build-python.yml/badge.svg)
+![Build 🏗️ and Deploy Documentation 🛳️](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
+![Build 🏗️ and Deploy Golang App 🛳️ to Develop 🚈](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-develop.yml/badge.svg)
+![Build 🏗️ and Deploy Landing Page 🛳️](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
+![Build 🏗️ and Deploy Web 🛳️ to Develop 🚈](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-web-develop.yml/badge.svg)
+![Build 🏗️ and Deploy 🛳️ Web App to Production 🚝](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-web-prod.yml/badge.svg)
+![Build 🏗️ and Deploy Python App 🛳️](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-python.yml/badge.svg)
+![Build🏗️ and Deploy Golang App 🛳️ to Prod 🚝](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-prod.yml/badge.svg)
+![Lint🌸 and Test🧪 Mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-mobile.yml/badge.svg)
+![Lint🌸, Test🧪 and Build🏗️ golang](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-golang.yml/badge.svg)
+![Lint🌸, Test🧪, Build🏗️ Web](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-web.yml/badge.svg)
+![Test🧪 Web💻, Mobile📱 and API🔌 and generate coverage report📋](https://github.com/COS301-SE-2024/occupi/actions/workflows/test-and-cov.yml/badge.svg)
 
 </p>
 
@@ -88,7 +100,7 @@ Occupi is a cross-platform app. This means that it is available on mobile, deskt
 
 <p align="center">
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=androidstudio,bun,cypress,docker,figma,go,md,mongodb,postman,py,react,swift,tailwind,tauri,tensorflow,ts,vite,vitest&perline=6&theme=light" />
+    <img src="https://skillicons.dev/icons?i=androidstudio,azure,bash,bun,cypress,cloudflare,docker,figma,githubactions,go,jest,md,mongodb,nginx,postman,py,rabbitmq,react,redis,swift,tailwind,tauri,tensorflow,ts,ubuntu,vite,vitest&perline=6&theme=light" />
   </a>
 </p>
 

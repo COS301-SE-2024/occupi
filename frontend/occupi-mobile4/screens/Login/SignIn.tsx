@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Keyboard } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState, useEffect, useRef } from 'react';
+import { Keyboard, Animated, Easing } from 'react-native';
 import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
@@ -38,9 +37,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Logo from '../../screens/Login/assets/images/Occupi/file.png';
+import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
+import GradientButton from '@/components/GradientButton';
+import { UserLogin } from '@/utils/auth';
 
 const signInSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
@@ -74,25 +74,20 @@ const SignInForm = () => {
 
   const toast = useToast();
 
+
+
   useEffect(() => {
     checkBiometricAvailability();
+   
   }, []);
 
   const checkBiometricAvailability = async () => {
     const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
     setBiometricAvailable(isBiometricAvailable);
-    console.log('Biometric hardware available:', isBiometricAvailable);
+    // console.log('Biometric hardware available:', isBiometricAvailable);
   };
 
-  const storeData = async (value) => {
-    try {
-      await AsyncStorage.setItem('email', value);
-    } catch (e) {
-      // saving error
-      console.log(e);
-    }
-  };
-
+ 
   const handleBiometricSignIn = async () => {
     const biometricType = await LocalAuthentication.supportedAuthenticationTypesAsync();
     console.log('Supported biometric types:', biometricType);
@@ -107,14 +102,14 @@ const SignInForm = () => {
         });
         console.log('Biometric authentication result:', result);
         if (result.success) {
-          router.push('/home');
+          // router.replace('/home');
         } else {
           console.log('Biometric authentication failed');
           toast.show({
             placement: 'top',
             render: ({ id }) => {
               return (
-                <Toast nativeID={id} variant="accent" action="error">
+                <Toast nativeID={String(id)} variant="accent" action="error">
                   <ToastTitle>Biometric authentication failed</ToastTitle>
                   {result.error && <Text>{result.error.message}</Text>}
                 </Toast>
@@ -128,7 +123,7 @@ const SignInForm = () => {
           placement: 'top',
           render: ({ id }) => {
             return (
-              <Toast nativeID={id} variant="accent" action="error">
+              <Toast nativeID={String(id)} variant="accent" action="error">
                 <ToastTitle>Biometric authentication error</ToastTitle>
                 <Text>{error.message}</Text>
               </Toast>
@@ -142,7 +137,7 @@ const SignInForm = () => {
         placement: 'top',
         render: ({ id }) => {
           return (
-            <Toast nativeID={id} variant="accent" action="error">
+            <Toast nativeID={String(id)} variant="accent" action="error">
               <ToastTitle>Biometric authentication not available</ToastTitle>
             </Toast>
           );
@@ -153,59 +148,17 @@ const SignInForm = () => {
 
   const onSubmit = async (_data: SignInSchemaType) => {
     setLoading(true);
-    try {
-      const response = await fetch('https://dev.occupi.tech/auth/login', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: _data.email,
-          password: _data.password
-        }),
-        credentials: "include"
-      });
-      const data = await response.json();
-      const cookies = response.headers.get('Accept');
-      // CookieManager.get('https://dev.occupi.tech')
-      //   .then((cookies) => {
-      //     console.log('CookieManager.get =>', cookies);
-      //   });
-      console.log(cookies);
-      if (response.ok) {
-        setLoading(false);
-        storeData(_data.email);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="success">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        router.push('/home');
-      } else {
-        setLoading(false);
-        console.log(data);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="error">
-                <ToastTitle>{data.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
+    const response = await UserLogin(_data.email, _data.password);
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => {
+        return (
+          <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
+            <ToastTitle>{response}</ToastTitle>
+          </Toast>
+        );
       }
-    } catch (error) {
-      console.error('Error:', error);
-      // setResponse('An error occurred');
-    }
-    // }, 3000);
+    });
     setLoading(false);
   };
 
@@ -218,35 +171,6 @@ const SignInForm = () => {
     setShowPassword((showState) => !showState);
   };
 
-  const GradientButton = ({ onPress, text }) => (
-    <LinearGradient
-      colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-      locations={[0.02, 0.31, 0.67, 0.97]}
-      start={[0, 1]}
-      end={[1, 0]}
-      style={styles.buttonContainer}
-    >
-      <Heading style={styles.buttonText} onPress={onPress}>
-        {text}
-      </Heading>
-    </LinearGradient>
-  );
-
-  const styles = StyleSheet.create({
-    buttonContainer: {
-      borderRadius: 15,
-      marginTop: hp('2%'),
-      alignSelf: 'center',
-      width: wp('90%'),
-      height: hp('6%'),
-    },
-    buttonText: {
-      color: 'black',
-      fontSize: wp('4%'),
-      textAlign: 'center',
-      lineHeight: hp('6%'),
-    },
-  });
 
   return (
     <>
@@ -283,9 +207,9 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h={hp('7%')}>
+              <Input backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%')}>
                 <InputField
-                  fontSize="$md"
+                  fontSize="$sm"
                   placeholder="john.doe@gmail.com"
                   type="text"
                   value={value}
@@ -324,7 +248,7 @@ const SignInForm = () => {
               },
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <Input backgroundColor="#f2f2f2" borderRadius="$15" borderColor="$#f2f2f2" h={hp('7%')}>
+              <Input mb={hp('1%')} backgroundColor="#f2f2f2" borderRadius="$md" borderColor="$#f2f2f2" h={hp('7%') }>
                 <InputField
                   fontSize="$sm"
                   placeholder="Enter your password"
@@ -335,8 +259,8 @@ const SignInForm = () => {
                   returnKeyType="done"
                   type={showPassword ? 'text' : 'password'}
                 />
-                <InputSlot onPress={handleState} pr="$3">
-                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} />
+                <InputSlot onPress={handleState} pr="$5">
+                  <InputIcon as={showPassword ? EyeIcon : EyeOffIcon} size="md" />
                 </InputSlot>
               </Input>
             )}
@@ -363,7 +287,7 @@ const SignInForm = () => {
           render={({ field: { onChange, value } }) => (
             <Checkbox
               aria-label="Close"
-              size="sm"
+              size="md"
               value="Remember me"
               isChecked={value}
               onChange={onChange}
@@ -377,7 +301,7 @@ const SignInForm = () => {
         />
 
         <StyledExpoRouterLink href="/forgot-password">
-          <LinkText color="yellowgreen" fontSize="$sm">
+          <LinkText color="yellowgreen" fontSize="$md">
             Forgot Password?
           </LinkText>
         </StyledExpoRouterLink>
@@ -400,6 +324,24 @@ const SignInForm = () => {
 };
 
 const Main = () => {
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 2,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <Box
       px={wp('4%')}
@@ -419,11 +361,13 @@ const Main = () => {
     >
       <VStack mt={hp('2%')} mb={hp('2%')} space="md">
         <HStack space="md" alignItems="center" justifyContent="center">
+        <Animated.View style={{ transform: [{ rotate: spin }] }}>
           <Image
             alt="Occupi Logo"
             source={Logo}
             style={{ width: wp('40%'), height: wp('40%') }}
           />
+           </Animated.View>
         </HStack>
         <VStack space="xs" mt={hp('2%')} my={hp('2%')}>
           <Heading

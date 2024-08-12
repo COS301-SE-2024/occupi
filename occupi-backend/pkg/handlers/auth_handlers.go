@@ -1,232 +1,361 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
+	"github.com/go-webauthn/webauthn/webauthn"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 // handler for logging a new user on occupi /auth/login
-func Login(ctx *gin.Context, appsession *models.AppSession, role string) {
+func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
 	var requestUser models.RequestUser
 	if err := ctx.ShouldBindBodyWithJSON(&requestUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and password fields",
+			"Expected email and password fields or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
 
 	// sanitize user password and email
-	requestUser.Email = utils.SanitizeInput(requestUser.Email)
-	requestUser.Password = utils.SanitizeInput(requestUser.Password)
+	requestUser.EmployeeID = utils.SanitizeInput(requestUser.EmployeeID)
 
-	// validate email
-	if !utils.ValidateEmail(requestUser.Email) {
+	// validate employee id if it exists
+	if requestUser.EmployeeID != "" {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
-			"Invalid email address",
+			"Unexpected payload field",
 			constants.InvalidRequestPayloadCode,
-			"Expected a valid format for email address",
+			"Unexpected employee ID found in request payload, this field is not required for login",
 			nil))
+		return
+	}
+
+	// validate email exists
+	if valid, err := ValidateEmailExists(ctx, appsession, requestUser.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
 		return
 	}
 
 	// validate password
-	if !utils.ValidatePassword(requestUser.Password) {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid password",
-			constants.InvalidRequestPayloadCode,
-			"Password does neet meet requirements",
-			nil))
-		return
-	}
-
-	// check if a user already exists in the database with such an email
-	if exists := database.EmailExists(ctx, appsession.DB, requestUser.Email); !exists {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Email not registered",
-			constants.InvalidAuthCode,
-			"Please register first before attempting to login",
-			nil))
-		return
-	}
-
-	// fetch hashed password
-	hashedPassword, err := database.GetPassword(ctx, appsession.DB, requestUser.Email)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	// check if they match
-	match, err := utils.CompareArgon2IDHash(requestUser.Password, hashedPassword)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	if !match {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Incorrect Password",
-			constants.InvalidAuthCode,
-			"Please enter the correct password",
-			nil))
-		return
-	}
-
-	// check if the user is verified
-	verified, err := database.CheckIfUserIsVerified(ctx, appsession.DB, requestUser.Email)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	if !verified {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Not verified",
-			constants.IncompleteAuthCode,
-			"Please verify your email before logging in",
-			nil))
-		return
-	}
-
-	// check if the user is an admin
-	if role == constants.Admin {
-		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession.DB, requestUser.Email)
+	if valid, err := ValidatePasswordCorrectness(ctx, appsession, requestUser); !valid {
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-			logrus.Error(err)
-			return
+			logrus.WithError(err).Error("Error validating password")
 		}
-
-		if !isAdmin {
-			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-				http.StatusBadRequest,
-				"Not an admin",
-				constants.InvalidAuthCode,
-				"Only admins can access this route",
-				nil))
-			return
-		}
-	}
-
-	// check if the next verification date is due
-	due, err := database.CheckIfNextVerificationDateIsDue(ctx, appsession.DB, requestUser.Email)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
 		return
 	}
 
-	if due {
-		reverifyUsersEmail(ctx, appsession, requestUser.Email)
+	// pre-login checks
+	if configs.GetTestPassPhrase() != requestUser.IsTest {
+		if success, err := PreLoginAccountChecks(ctx, appsession, requestUser.Email, role); !success {
+			if err != nil {
+				logrus.WithError(err).Error("Error validating email")
+			}
+			return
+		}
+	}
+
+	// generate a jwt token for the user
+	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, requestUser.Email, role)
+
+	if err != nil {
+		logrus.WithError(err).Error("Error generating JWT token")
+		return
+	}
+
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, expirationTime, cookies)
+}
+
+func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
+	var requestEmail models.RequestEmail
+	if err := ctx.ShouldBindBodyWithJSON(&requestEmail); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected email field",
+			nil))
+		return
+	}
+
+	// validate email exists
+	if valid, err := ValidateEmailExists(ctx, appsession, requestEmail.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	// pre-login checks
+	if success, err := PreLoginAccountChecks(ctx, appsession, requestEmail.Email, constants.Admin); !success {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	// Begin WebAuthn login process
+	cred, err := database.GetUserCredentials(ctx, appsession, requestEmail.Email)
+	if err != nil || len(cred.ID) == 0 {
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Error getting user credentials, please register for WebAuthn",
+			gin.H{"error": "Error getting user credentials, please register for WebAuthn"}))
+		fmt.Printf("error getting user credentials: %v", err)
+		return
+	}
+	webauthnUser := models.NewWebAuthnUser([]byte(requestEmail.Email), requestEmail.Email, requestEmail.Email, cred)
+	options, sessionData, err := appsession.WebAuthn.BeginLogin(webauthnUser)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		fmt.Printf("error beginning WebAuthn login: %v", err)
+		return
+	}
+
+	uuid := utils.GenerateUUID()
+
+	session := models.WebAuthnSession{
+		UUID:        uuid,
+		Email:       requestEmail.Email,
+		Cred:        cred,
+		SessionData: sessionData,
+	}
+
+	// Save the session data - cache will expire in x defined minutes according to the config
+	if err := cache.SetSession(appsession, session, uuid); err != nil && err.Error() != "cache not found" {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		fmt.Printf("error saving WebAuthn session data: %v", err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		http.StatusOK,
+		"WebAuthn login initiated",
+		gin.H{"options": options, "sessionData": sessionData, "uuid": uuid},
+	))
+}
+
+func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
+	uuid := ctx.Param("id")
+
+	if uuid == "" {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected id field",
+			nil))
+		return
+	}
+
+	// fetch sessionData from the cache
+	sessionData, err := cache.GetSession(appsession, uuid)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error fetching session data from cache")
+		return
+	}
+
+	user := models.NewWebAuthnUser([]byte(sessionData.Email), sessionData.Email, sessionData.Email, sessionData.Cred)
+
+	credential, err := appsession.WebAuthn.FinishLogin(user, *sessionData.SessionData, ctx.Request)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error finishing login")
+		return
+	}
+
+	err = database.AddUserCredential(ctx, appsession, sessionData.Email, credential)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error finishing login")
 		return
 	}
 
 	// generate a jwt token for the user
-	var token string
-	var expirationTime time.Time
-	if role == constants.Admin {
-		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, constants.Admin)
-	} else {
-		token, expirationTime, err = authenticator.GenerateToken(requestUser.Email, constants.Basic)
-	}
+	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, sessionData.Email, role)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
+		logrus.WithError(err).Error("Error generating JWT token")
 		return
 	}
 
-	// set the jwt token in the cookie
-	session := sessions.Default(ctx)
-	session.Set("email", requestUser.Email)
-	if role == constants.Admin {
-		session.Set("role", constants.Admin)
-	} else {
-		session.Set("role", constants.Basic)
-	}
-	if err := session.Save(); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, expirationTime, cookies)
+}
+
+func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
+	var requestEmail models.RequestEmail
+	if err := ctx.ShouldBindBodyWithJSON(&requestEmail); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected email field",
+			nil))
 		return
 	}
-	ctx.SetCookie("token", token, int(expirationTime.Unix()), "/", "", false, true)
+
+	// validate email exists
+	if valid, err := ValidateEmailExists(ctx, appsession, requestEmail.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	// pre-login checks
+	if success, err := PreLoginAccountChecks(ctx, appsession, requestEmail.Email, constants.Admin); !success {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	webauthnUser := models.NewWebAuthnUser([]byte(requestEmail.Email), requestEmail.Email, requestEmail.Email, webauthn.Credential{})
+	options, sessionData, err := appsession.WebAuthn.BeginRegistration(webauthnUser)
+	if err != nil {
+		logrus.WithError(err).Error("Error beginning WebAuthn registration")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	uuid := utils.GenerateUUID()
+
+	session := models.WebAuthnSession{
+		UUID:        uuid,
+		Email:       requestEmail.Email,
+		Cred:        webauthn.Credential{},
+		SessionData: sessionData,
+	}
+
+	// Save the session data - cache will expire in x defined minutes according to the config
+	if err := cache.SetSession(appsession, session, uuid); err != nil && err.Error() != "cache not found" {
+		logrus.WithError(err).Error("Error saving session data in cache")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(
 		http.StatusOK,
-		"Successful login!",
-		nil))
+		"WebAuthn login initiated",
+		gin.H{"options": options, "sessionData": sessionData, "uuid": uuid},
+	))
+}
+
+func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
+	uuid := ctx.Param("id")
+
+	if uuid == "" {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected id field",
+			nil))
+		return
+	}
+
+	// fetch sessionData from the cache
+	sessionData, err := cache.GetSession(appsession, uuid)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error fetching session data from cache")
+		return
+	}
+
+	user := models.NewWebAuthnUser([]byte(sessionData.Email), sessionData.Email, sessionData.Email, sessionData.Cred)
+
+	credential, err := appsession.WebAuthn.FinishRegistration(user, *sessionData.SessionData, ctx.Request)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error finishing login")
+		return
+	}
+
+	err = database.AddUserCredential(ctx, appsession, sessionData.Email, credential)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.WithError(err).Error("Error finishing login")
+		return
+	}
+
+	// generate a jwt token for the user
+	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, sessionData.Email, role)
+
+	if err != nil {
+		logrus.WithError(err).Error("Error generating JWT token")
+		return
+	}
+
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, expirationTime, cookies)
 }
 
 // handler for registering a new user on occupi /auth/register
 func Register(ctx *gin.Context, appsession *models.AppSession) {
-	var requestUser models.RequestUser
+	var requestUser models.RegisterUser
 	if err := ctx.ShouldBindBodyWithJSON(&requestUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"Expected email and password fields",
+			"Expected at least email and password fields with optional emloyee_id or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
 
 	// sanitize user password and email
-	requestUser.Email = utils.SanitizeInput(requestUser.Email)
-	requestUser.Password = utils.SanitizeInput(requestUser.Password)
+	requestUser.EmployeeID = utils.SanitizeInput(requestUser.EmployeeID)
 
-	// validate email
-	if !utils.ValidateEmail(requestUser.Email) {
+	// validate employee id if it exists
+	if requestUser.EmployeeID != "" && !utils.ValidateEmployeeID(requestUser.EmployeeID) {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
-			"Invalid email address",
+			"Invalid employee ID",
 			constants.InvalidRequestPayloadCode,
-			"Expected a valid format for email address",
+			"Employee ID does not meet requirements",
 			nil))
 		return
+	} else if requestUser.EmployeeID == "" {
+		requestUser.EmployeeID = utils.GenerateEmployeeID()
 	}
 
 	// validate password
-	if !utils.ValidatePassword(requestUser.Password) {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid password",
-			constants.InvalidRequestPayloadCode,
-			"Password does neet meet requirements",
-			nil))
+	if valid, err := ValidatePasswordEntry(ctx, appsession, requestUser.Password); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating password")
+		}
 		return
 	}
 
-	// check if a user already exists in the database with such an email
-	if exists := database.EmailExists(ctx, appsession.DB, requestUser.Email); exists {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Email registered",
-			constants.InvalidRequestPayloadCode,
-			"Email already registered",
-			nil))
+	// validate email exists
+	if valid, err := ValidateEmailDoesNotExist(ctx, appsession, requestUser.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
 		return
 	}
 
@@ -240,61 +369,29 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	requestUser.Password = hashedPassword
 
 	// save user to database
-	if _, err := database.AddUser(ctx, appsession.DB, requestUser); err != nil {
+	if _, err := database.AddUser(ctx, appsession, requestUser); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
 	}
 
-	// generate a random otp for the user and send email
-	otp, err := utils.GenerateOTP()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
+	if configs.GetTestPassPhrase() != requestUser.IsTest {
+		if _, err := SendOTPEmail(ctx, appsession, requestUser.Email, constants.VerifyEmail); err != nil {
+			logrus.WithError(err).Error("Error sending OTP email")
+			return
+		}
+	} else {
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Registered, please login",
+			nil))
 	}
-
-	// save otp to database
-	if _, err := database.AddOTP(ctx, appsession.DB, requestUser.Email, otp); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	subject := "Email Verification - Your One-Time Password (OTP)"
-	body := mail.FormatEmailVerificationBody(otp, requestUser.Email)
-
-	if err := mail.SendMail(requestUser.Email, subject, body); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Registration successful! Please check your email for the OTP to verify your account.",
-		nil))
 }
 
-// handler for verifying a users otp /api/verify-otp
-func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
-	var userotp models.RequestUserOTP
-	if err := ctx.ShouldBindBodyWithJSON(&userotp); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid request payload",
-			constants.InvalidRequestPayloadCode,
-			"Expected email and otp fields",
-			nil))
-		return
-	}
-
-	// sanitize otp and email
-	userotp.Email = utils.SanitizeInput(userotp.Email)
-	userotp.OTP = utils.SanitizeInput(userotp.OTP)
-
-	// validate emails
-	if !utils.ValidateEmail(userotp.Email) {
+// handler for generating a new otp for a user and resending it via email
+func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType string) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid email address",
@@ -304,101 +401,264 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// validate otp
-	if !utils.ValidateOTP(userotp.OTP) {
+	// validate email exists
+	if valid, err := ValidateEmailExists(ctx, appsession, request.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	var emailType string
+	switch resendType {
+	case constants.VerifyEmail:
+		emailType = constants.VerifyEmail
+	case constants.ResetPassword:
+		emailType = constants.ResetPassword
+	default:
+		emailType = constants.VerifyEmail
+	}
+	// sned the otp to verify the email
+	if _, err := SendOTPEmail(ctx, appsession, request.Email, emailType); err != nil {
+		logrus.WithError(err).Error("Error sending OTP email")
+		return
+	}
+
+	// SendOTPEmail has logic that will send back a json response so no need to worry about the logic here
+}
+
+// handler for verifying a users otp /api/verify-otp
+func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role string, cookies bool) {
+	var userotp models.RequestUserOTP
+	if err := ctx.ShouldBindBodyWithJSON(&userotp); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
-			"Invalid OTP",
+			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
-			"OTP does neet meet requirements",
+			"Expected email and otp fields or you may have placed a comma at the end of the json payload",
 			nil))
 		return
 	}
 
-	// check if the otp is in the database
-	exists, err := database.OTPExists(ctx, appsession.DB, userotp.Email, userotp.OTP)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
+	// validate email exists
+	if valid, err := ValidateEmailExists(ctx, appsession, userotp.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
 		return
 	}
 
-	if !exists {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Invalid OTP",
-			constants.InvalidAuthCode,
-			"Email not registered, otp expired or invalid",
-			nil))
+	if valid, err := ValidateOTPExists(ctx, appsession, userotp.Email, userotp.OTP); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating otp")
+		}
 		return
 	}
 
 	// delete the otp from the database
-	if _, err := database.DeleteOTP(ctx, appsession.DB, userotp.Email, userotp.OTP); err != nil {
+	if _, err := database.DeleteOTP(ctx, appsession, userotp.Email, userotp.OTP); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		// the otp will autodelete after an hour so we can continue
 	}
 
 	// change users verification status to true
-	if _, err := database.VerifyUser(ctx, appsession.DB, userotp.Email); err != nil {
+	if _, err := database.VerifyUser(ctx, appsession, userotp.Email, utils.GetClientIP(ctx)); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(
-		http.StatusOK,
-		"Email verified successfully!",
-		nil))
+	// if the user is not logging in, we can stop here
+	if !login {
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"Email verified successfully!",
+			nil))
+		return
+	}
+
+	// generate a jwt token for the user
+	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, userotp.Email, role)
+
+	if err != nil {
+		logrus.WithError(err).Error("Error generating JWT token")
+		return
+	}
+
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, expirationTime, cookies)
 }
 
-// handler for reverifying a users email address
-func reverifyUsersEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
-	// generate a random otp for the user and send email
+// handler for Verify 2fa
+func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			err.Error(),
+			nil))
+		return
+	}
+
+	// Generate OTP
 	otp, err := utils.GenerateOTP()
 	if err != nil {
+		logrus.WithError(err).Error("Error generating OTP")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
 		return
 	}
 
-	// save otp to database
-	if _, err := database.AddOTP(ctx, appsession.DB, email, otp); err != nil {
+	// Save OTP in the database
+	err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"email": request.Email,
+			"error": err.Error(),
+		}).Error("Error saving OTP in database")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
 		return
 	}
 
-	subject := "Email Verification - Your One-Time Password (OTP)"
-	body := mail.FormatEmailVerificationBody(otp, email)
-
-	if err := mail.SendMail(email, subject, body); err != nil {
+	// Send OTP via email
+	subject := "Occupi Two-Factor Authentication Code"
+	body := utils.FormatTwoFAEmailBody(otp, request.Email)
+	if err := mail.SendMail(request.Email, subject, body); err != nil {
+		logrus.WithError(err).Error("Error sending OTP email")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(
 		http.StatusOK,
-		"Please check your email for the OTP to re-verify your account.",
+		"Two-factor authentication code sent. Please check your email.",
 		nil))
 }
 
-// handler for reseting a users password TODO: complete implementation
-func ResetPassword(ctx *gin.Context, appsession *models.AppSession) {
-	// this will contain reset password logic
+func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
+	var request struct {
+		Email string `json:"email" binding:"required,email"`
+		Code  string `json:"code" binding:"required,len=6"`
+	}
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			err.Error(),
+			nil))
+		return
+	}
+
+	// Verify the 2FA code
+	valid, err := database.VerifyTwoFACode(ctx, appsession.DB, request.Email, request.Code)
+	if err != nil {
+		logrus.WithError(err).Error("Error verifying 2FA code")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	if !valid {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid 2FA code",
+			constants.InvalidAuthCode,
+			"The provided 2FA code is invalid or has expired",
+			nil))
+		return
+	}
+
+	// Enable 2FA for the user
+	err = database.SetTwoFAEnabled(ctx, appsession.DB.Database("Occupi"), request.Email, true)
+	if err != nil {
+		logrus.WithError(err).Error("Error enabling 2FA")
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		http.StatusOK,
+		"Two-factor authentication enabled successfully",
+		nil))
 }
 
-// handler for logging out a user
-func Logout(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	session.Clear()
-	if err := session.Save(); err != nil {
+func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
+	var resetRequest models.ResetPassword
+
+	if err := ctx.ShouldBindJSON(&resetRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Expected email, otp, and new_password fields",
+			nil))
+		return
+	}
+
+	// Validate email
+	if valid, err := ValidateEmailExists(ctx, appsession, resetRequest.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	// Validate OTP
+	if valid, err := ValidateOTPExists(ctx, appsession, resetRequest.Email, resetRequest.OTP); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating OTP")
+		}
+		return
+	}
+
+	// Validate new password
+	password, err := ValidatePasswordEntryAndReturnHash(ctx, appsession, resetRequest.NewPassword)
+	if err != nil || password == "" {
+		logrus.WithError(err).Error("Error validating password")
+		return
+	}
+
+	// change users verification status to true
+	if _, err := database.VerifyUser(ctx, appsession, resetRequest.Email, utils.GetClientIP(ctx)); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
 	}
+
+	// Update password in database
+	success, err := database.UpdateUserPassword(ctx, appsession, resetRequest.Email, password)
+	if err != nil || !success {
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Password update failed",
+			constants.InternalServerErrorCode,
+			"Unable to update the password in the database",
+			nil))
+		return
+	}
+
+	// Log the user in and Generate a JWT token
+	token, exp, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, role)
+	if err != nil {
+		logrus.WithError(err).Error("Error generating JWT token")
+		return
+	}
+
+	// Use AllocateAuthTokens to handle the response
+	AllocateAuthTokens(ctx, token, exp, cookies)
+}
+
+// handler for logging out a request
+func Logout(ctx *gin.Context) {
+	_ = utils.ClearSession(ctx)
+
+	// Clear the Authorization header
+	ctx.Header("Authorization", "")
+
+	// Alternatively, completely remove the Authorization header
+	ctx.Writer.Header().Del("Authorization")
 
 	// List of domains to clear cookies from
 	domains := configs.GetOccupiDomains()
@@ -412,5 +672,47 @@ func Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(
 		http.StatusOK,
 		"Logged out successfully!",
+		nil))
+}
+
+// handler for checking if this email is verified
+func IsEmailVerified(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid email address",
+			constants.InvalidRequestPayloadCode,
+			"Expected a valid format for email address",
+			nil))
+		return
+	}
+
+	// validate email exists
+	if valid, err := ValidateEmailExists(ctx, appsession, request.Email); !valid {
+		if err != nil {
+			logrus.WithError(err).Error("Error validating email")
+		}
+		return
+	}
+
+	// check if the user is verified
+	verified, err := database.CheckIfUserIsVerified(ctx, appsession, request.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		return
+	}
+
+	if !verified {
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(
+			http.StatusOK,
+			"User is not verified",
+			nil))
+		return
+	}
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(
+		http.StatusOK,
+		"User is verified",
 		nil))
 }

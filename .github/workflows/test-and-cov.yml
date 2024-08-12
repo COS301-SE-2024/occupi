@@ -1,0 +1,187 @@
+name: Test🧪 Web💻, Mobile📱 and API🔌 and generate coverage report📋
+
+on:
+  push:
+    branches: ["develop"]
+    paths: [
+      "occupi-backend/cmd/**",
+      "occupi-backend/configs/**",
+      "occupi-backend/pkg/**",
+      "occupi-backend/.golangci.yml",
+      "occupi-backend/tests/**",
+      ".github/workflows/test-and-cov.yml",
+      "frontend/occupi-web/**",
+      "frontend/occupi-mobile4/**",
+      ".github/workflows/lint-test-build-web.yml",
+      ".github/workflows/lint-test-build-golang.yml",
+      ".github/workflows/lint-test-mobile.yml"
+    ]
+
+  workflow_dispatch:
+
+jobs:
+    test-api:
+        name: 🧪 Test API 🔌
+        runs-on: ubuntu-latest
+
+        # set working directory
+        defaults:
+          run:
+            working-directory: occupi-backend
+    
+        services:
+          mongo:
+            image: mongo:latest
+            ports:
+              - 27017:27017
+            options: >-
+              --health-cmd "mongosh --eval 'db.adminCommand({ping: 1})'"
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+    
+        steps:
+        - name: ⬇️ Checkout code
+          uses: actions/checkout@v4
+    
+        - name: 📦 Install mongosh
+          run: |
+            wget -qO - https://www.mongodb.org/static/pgp/server-5.0.asc | sudo apt-key add -
+            echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/5.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-5.0.list
+            sudo apt-get update
+            sudo apt-get install -y mongodb-mongosh
+    
+    
+        - name: ⌛ Wait for MongoDB to be ready
+          run: |
+            for i in {1..30}; do
+              if mongosh --eval 'db.adminCommand({ping: 1})' ${{ secrets.MONGO_DB_TEST_URL }}; then
+                echo "MongoDB is up"
+                break
+              fi
+              echo "Waiting for MongoDB to be ready..."
+              sleep 2
+            done
+    
+        - name: 🏗 Create MongoDB User
+          env:
+            MONGO_INITDB_ROOT_USERNAME: ${{ secrets.MONGO_DB_TEST_USERNAME }}
+            MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_DB_TEST_PASSWORD }}
+            MONGO_INITDB_DATABASE: ${{ secrets.MONGO_DB_TEST_DB }}
+          run: |
+            mongosh ${{ secrets.MONGO_DB_TEST_URL }}/admin --eval "
+              db.createUser({
+                user: '${MONGO_INITDB_ROOT_USERNAME}',
+                pwd: '${MONGO_INITDB_ROOT_PASSWORD}',
+                roles: [
+                  { role: 'readWrite', db: '${MONGO_INITDB_DATABASE}' }
+                ]
+              });
+            "
+    
+        - name: 🏗 Set up Go
+          uses: actions/setup-go@v5
+          with:
+            go-version: '1.21'  # Specify the Go version you are using
+        
+        - name: 🔓 Decrypt default variables
+          run: |
+                    echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/config.yaml.gpg > configs/config.yaml
+    
+        - name: 🔓 Decrypt test variables
+          run: |
+                    echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/test.yaml.gpg > configs/test.yaml
+                    
+        - name: 📦 Install gotestsum
+          run: |
+            go install gotest.tools/gotestsum@latest
+    
+        - name: 📂 Make tmptest-result dir
+          run: |
+            mkdir -p tmp/test-results
+
+        - name: 🧪 Run tests
+          run: |
+            gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
+    
+        - name: 📋 Upload coverage reports to Codecov
+          uses: codecov/codecov-action@v4.0.1
+          with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            fail_ci_if_error: true
+            verbose: true
+
+        - name: 📋 Upload test results to BuildPulse for flaky test detection 🚩
+          uses: buildpulse/buildpulse-action@main
+          with:
+            account: ${{ secrets.BUILDPULSE_ACCOUNT_ID }}
+            repository: ${{ secrets.BUILDPULSE_REPOSITORY_ID }}
+            path: |
+              tmp/test-results/gotestsum-report.xml
+            key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+            secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+      # Test job
+    test-web:
+        name: 🧪 Test web 💻
+        runs-on: ubuntu-latest
+
+        # set working directory
+        defaults:
+          run:
+            working-directory: frontend/occupi-web
+
+        steps:
+        - name: ⬇️ Checkout
+          uses: actions/checkout@v4
+    
+        - name: 🏗 Setup Bun
+          uses: oven-sh/setup-bun@v1
+          with:
+            bun-version: latest # or "latest", "canary", <sha>
+    
+        - name: 📦 Install dependencies with Bun
+          run: bun install
+    
+        - name: 🧪 Test with Jest
+          run: bun test --coverage --coverage-reporter=lcov --coverage-dir=coverage
+    
+        - name: 📋 Upload coverage reports to Codecov
+          uses: codecov/codecov-action@v4.0.1
+          with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: ./coverage/lcov.info
+            fail_ci_if_error: true
+            verbose: true
+
+    test-mobile:
+        name: 🧪 Test mobile 📱
+        runs-on: ubuntu-latest
+
+        # set working directory
+        defaults:
+          run:
+            working-directory: frontend/occupi-mobile4
+    
+        steps:
+        - name: ⬇️ Checkout Repository
+          uses: actions/checkout@v4
+    
+        - name: 🏗 Set up Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 18
+    
+        - name: 📦 Install Dependencies
+          run: npm install --legacy-peer-deps
+    
+        - name: 🧪 Run Tests
+          run: npm run test:coverage
+    
+        - name: 📋 Upload coverage reports to Codecov
+          uses: codecov/codecov-action@v4.0.1
+          with:
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: ./coverage/lcov.info
+            fail_ci_if_error: true
+            verbose: true

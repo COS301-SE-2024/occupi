@@ -1,4 +1,4 @@
-name: Lint, Test, Build and Deploy Prod golang
+name: Build🏗️ and Deploy Golang App 🛳️ to Prod 🚝
 
 on:
   push:
@@ -12,106 +12,57 @@ defaults:
     working-directory: occupi-backend
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'  # Specify the Go version you are using
-
-    - name: Install golangci-lint
-      run: |
-        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-    - name: Run golangci-lint
-      run: |
-        golangci-lint run
-
-  test:
-    needs: lint
-    name: Test
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'  # Specify the Go version you are using
-
-    - name: Decrypt env variables
-      run: |
-              echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .env.gpg > .env
-                  
-    - name: Decrypt key file
-      run: |
-                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 key.pem.gpg > key.pem
-  
-    - name: Decrypt cert file
-      run: |
-                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 cert.pem.gpg > cert.pem
-
-    - name: Run tests
-      run: |
-        go test -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware ./tests/... -coverprofile=coverage.out
-
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-
   build:
-    needs: test
-    name: Build
+    name: 🏗️ Build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: ⬇️ Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Go
+    - name: 🏗 Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'  # Specify the Go version you are using
 
-    - name: Build the code
+    - name: 🚀 Build the code
       run: |
         go build -v cmd/occupi-backend/main.go
 
   build-push-docker:
     needs: build
-    name: Build and Push Master Docker Image
+    name: 🐋 Build and Push Master Docker Image
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: ⬇️ Checkout code
         uses: actions/checkout@v4
   
-      - name: Set up QEMU
+      - name: 🏗 Set up QEMU
         uses: docker/setup-qemu-action@v3
   
-      - name: Set up Docker Buildx
+      - name: 🏗 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
   
-      - name: Login to DockerHub
+      - name: 🧑‍💻 Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Decrypt env variables
+      - name: 🔓 Decrypt default variables
         run: |
-                echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 .prod.env.gpg > .prod.env
-                
-      - name: Build and push Docker image
+                  echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/config.yaml.gpg > configs/config.yaml
+  
+      - name: 🔓 Decrypt prod variables
+        run: |
+                  echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/prod.yaml.gpg > configs/prod.yaml
+
+      - name: 🔓 Decrypt Centrifugo config
+        run: |
+                  echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/centrifugo.config.json.gpg > configs/centrifugo.config.json
+          
+      - name: 🐳 Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: occupi-backend
@@ -122,24 +73,32 @@ jobs:
 
   deploy:
     needs: build-push-docker
-    name: Deploy for Prod
+    name: 🛳️ Deploy for Prod
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: ⬇️ Checkout code
         uses: actions/checkout@v4
 
-      - name: Copy files to VM
+      - name: 🔓 Decrypt Centrifugo config
+        run: |
+          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/centrifugo.config.json.gpg > centrifugo.config.json
+
+      - name: ⏩ Move prometheus config
+        run: |
+          mv docker/prometheus.prod.yml prometheus.prod.yml
+
+      - name: 🪷 Copy files to VM
         uses: appleboy/scp-action@v0.1.5
         with:
               host: ${{ secrets.VM_IP }}
               username: ${{ secrets.VM_USERNAME }}
               key: ${{ secrets.VM_SSH_KEY }}
-              source: "occupi-backend/docker-compose.prod.yml,occupi-backend/Dockerfile.prod"
+              source: "occupi-backend/docker-compose.prod.yml,occupi-backend/Dockerfile.prod,occupi-backend/centrifugo.config.json,occupi-backend/prometheus.prod.yml"
               target: "/home/${{ secrets.VM_USERNAME }}/occupi-backend-prod"
 
       # SSH to VM and run commands
-      - name: SSH to VM
+      - name: 🚀 SSH to VM
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VM_IP }}
@@ -148,6 +107,21 @@ jobs:
           script: |
               cd /home/${{ secrets.VM_USERNAME }}/occupi-backend-prod/occupi-backend
               echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml down
-              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml pull
-              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.prod.yml up -d
+              MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+              MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+              docker compose -f docker-compose.prod.yml down
+              MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+              MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+              docker compose -f docker-compose.prod.yml pull
+              MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
+              MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
+              RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
+              RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
+              DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
+              docker compose -f docker-compose.prod.yml up -d

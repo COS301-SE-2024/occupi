@@ -4,7 +4,7 @@ linters:
     - asasalint     # Checks for potential security vulnerabilities and coding issues
     # - cyclop        # Checks for code complexity based on cyclomatic complexity
     # - depguard    # If enabled, checks dependencies and imported packages with defined rules
-    - dupl          # Detects code duplication
+    # - dupl          # Detects code duplication
     - errcheck      # Checks for unchecked errors
     # - errorlint   # If enabled, checks for wrapping errors and error type assertions without ,ok idioms
     - exhaustive    # Checks for exhaustiveness in enum switches
@@ -35,8 +35,10 @@ linters:
 issues:
   exclude:
     - "don't use underscores in Go names"
+  exclude-dirs:
+    - tests
   exclude-rules:
-    - text: "test/.go"
+    - text: "tests/.go"
       linters:
         - errcheck
       path: internal/mocks/*

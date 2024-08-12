@@ -1,5 +1,4 @@
-import React from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect } from 'react';
 import {
   Image,
   Center,
@@ -9,22 +8,37 @@ import {
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
-const GradientButton = ({ onPress, text }) => (
-  <LinearGradient
-    colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-    locations={[0.02, 0.31, 0.67, 0.97]}
-    start={[0, 1]}
-    end={[1, 0]}
-    style={styles.buttonContainer}
-  >
-    <Heading style={styles.buttonText} onPress={onPress}>
-      {text}
-    </Heading>
-  </LinearGradient>
-);
+import GradientButton from '@/components/GradientButton';
+import * as Location from 'expo-location';
 
 const Onboarding1 = () => {
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      console.log('Latitude:', location.coords.latitude);
+      console.log('Longitude:', location.coords.longitude);
+
+      let address = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
+
+      // let my_address = 
+
+
+      if (address && address.length > 0) {
+        let my_address = `${address[0].name}, ${address[0].street}, ${address[0].city}, ${address[0].region}, ${address[0].country}, ${address[0].postalCode}`;
+        console.log('Address:', my_address);
+      }
+    })();
+  }, []);
+
   return (
     <View style={styles.container}>
       <Center style={styles.center}>
@@ -38,7 +52,7 @@ const Onboarding1 = () => {
           Predictive AI to help you plan when you go to the office better
         </Text>
         <GradientButton
-          onPress={() => router.push('/onboarding2')}
+          onPress={() => router.replace('/onboarding2')}
           text="Next"
         />
       </Center>
@@ -74,20 +88,7 @@ const styles = StyleSheet.create({
     padding: wp('4%'),
     fontWeight: '300',
     marginBottom: hp('4%'),
-  },
-  buttonContainer: {
-    borderRadius: 15,
-    marginTop: hp('2%'),
-    alignSelf: 'center',
-    width: wp('90%'),
-    height: hp('6%'),
-  },
-  buttonText: {
-    color: 'black',
-    fontSize: wp('4%'),
-    textAlign: 'center',
-    lineHeight: hp('6%'),
-  },
+  }
 });
 
 export default Onboarding1;

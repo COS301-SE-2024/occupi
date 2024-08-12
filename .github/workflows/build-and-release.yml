@@ -7,147 +7,261 @@ on:
 
 jobs:
     build-backend-binary:
+        strategy:
+          matrix:
+            include:
+              - os: macos-latest # for Arm based macs (M1 and above).
+                goos: darwin
+                extension: ""
+                args: '--target aarch64-apple-darwin'
+                arch: arm64
+              - os: macos-latest # for Intel based macs.
+                goos: darwin
+                extension: ""
+                args: '--target x86_64-apple-darwin'
+                arch: x86_64
+              - os: windows-latest # for Windows.
+                goos: windows
+                extension: ".exe"
+                args: ''
+                arch: x86_64
+              - os: ubuntu-latest # for Linux.
+                goos: linux
+                extension: ""
+                args: ''
+                arch: x86_64
+
         name: Build Backend Binary
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.os }}
+
+        # set working directory
+        defaults:
+          run:
+            working-directory: occupi-backend
+
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+          - name: Checkout code
+            uses: actions/checkout@v4
+    
+          - name: Set up Go
+            uses: actions/setup-go@v5
+            with:
+              go-version: '1.21'  # Specify the Go version you are using
+    
+          - name: Build application
+            run: |
+              go build -o occupi-backend_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.extension }} ${{ matrix.args }} -v cmd/occupi-backend/main.go
+    
+          - name: Upload artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: occupi-backend_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.extension }}
+              path: occupi-backend_${{ matrix.goos }}_${{ matrix.arch }}${{ matrix.extension }}
 
-            - name: Set up Go
-              uses: actions/setup-go@v2
-              with:
-                go-version: '1.16'
+    build-android:
+      runs-on: ubuntu-latest
 
-            - name: Build Backend Binary
-              run: |
-                go build -o occupi-backend ./occupi-backend/cmd/occupi-backend/main.go
+      # set working directory
+      defaults:
+          run:
+            working-directory: frontend/occupi-mobile4
 
-            - name: Archive Backend Binary
-              run: |
-                mkdir -p dist
-                mv occupi-backend/occupi-backend dist/occupi-backend
-                zip -r dist/occupi-backend.zip dist/occupi-backend
+      steps:
+        - name: Setup repo
+          uses: actions/checkout@v4
+        
+        - name: Setup node
+          uses: actions/setup-node@v4.0.2
+          with:
+            node-version: 18.x
+            cache: 'npm'
 
-            - name: Upload Backend Binary
-              uses: actions/upload-artifact@v2
-              with:
-                name: occupi-backend
-                path: dist/occupi-backend.zip
+        - name: Set up JDK 17
+          uses: actions/setup-java@v4
+          with:
+            java-version: '17'
+            distribution: 'temurin'
 
+        - name: Setup Android SDK
+          uses: android-actions/setup-android@v3
 
-    build-expo-app:
-        name: Build Expo App for Android and iOS
-        runs-on: [ubuntu-latest, macos-latest]
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+        - name: Setup Expo
+          uses: expo/expo-github-action@v8
+          with:
+            expo-version: latest
+            eas-version: latest
+            token: ${{ secrets.EXPO_TOKEN }}
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v2
-              with:
-                node-version: '20'
+        - name: Install dependencies
+          run: npm install --legacy-peer-deps
 
-            - name: Install Expo CLI
-              run: |
-                npm install -g expo-cli
+        - name: Build Android app
+          run: eas build --platform android --profile preview --local --output ${{ github.workspace }}/occupi-mobile-android.apk
 
-            - name: Install Expo dependencies
-              run: |
-                cd occupi-frontend
-                npm install
+        - name: Upload APK artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: occupi-mobile-android.apk
+            path: occupi-mobile-android.apk
 
-            - name: Build Expo App for native platforms
-              run: |
-                cd occupi-frontend/occupi-mobile
-                expo build
-            
-            - name: Archive Expo App for Android and iOS
-              run: |
-                mkdir -p dist
-                mv occupi-frontend/occupi-mobile/dist dist/occupi-mobile
-                zip -r dist/occupi-mobile.zip dist/occupi-mobile
+    build-ios:
+      runs-on: macos-latest
 
-            - name: Upload Expo App for Android and iOS
-              uses: actions/upload-artifact@v2
-              with:
-                name: occupi-mobile
-                path: dist/occupi-backend.zip
+      # set working directory
+      defaults:
+        run:
+          working-directory: frontend/occupi-mobile4
+
+      steps:
+        - name: Setup repo
+          uses: actions/checkout@v4
+        
+        - name: Setup node
+          uses: actions/setup-node@v4.0.2
+          with:
+            node-version: 18.x
+            cache: 'npm'
+
+        - name: Setup Expo
+          uses: expo/expo-github-action@v8
+          with:
+            expo-version: latest
+            eas-version: latest
+            token: ${{ secrets.EXPO_TOKEN }}
+
+        - name: Install dependencies
+          run: npm install --legacy-peer-deps
+
+        - name: Build iOS app
+          run: eas build --platform ios --local --non-interactive --output ${{ github.workspace }}/occupi-mobile-ios.ipa
+
+        - name: Upload IPA artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: occupi-mobile-ios
+            path: ${{ github.workspace }}/occupi-mobile-ios.ipa
 
     build-vite-app:
         name: Build Vite App
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout code
+            - name: Checkout
               uses: actions/checkout@v4
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v2
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v1
               with:
-                node-version: '14'
+                bun-version: latest # or "latest", "canary", <sha>
 
-            - name: Install Vite
+            - name: Install dependencies with Bun
               run: |
-                npm install -g create-vite
+                cd frontend/occupi-web
+                bun install
 
-            - name: Install Vite dependencies
+            - name: Build with Vite
               run: |
-                cd occupi-frontend
-                npm install
+                cd frontend/occupi-web
+                bun run build
+            
+            - name: Archive Vite App from dist folder
+              run: |
+                zip -r dist/occupi-web.zip frontend/occupi-web/dist
 
-            - name: Build Vite App
-              run: |
-                cd occupi-frontend
-                npm run build
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: occupi-web
+                  path: frontend/occupi-web/dist/occupi-web.zip
 
     build-tauri-app:
+        strategy:
+            matrix:
+              include:
+                - os: macos-latest # for Arm based macs (M1 and above).
+                  goos: darwin
+                  extension: ""
+                  args: '--target aarch64-apple-darwin'
+                  arch: arm64
+                - os: macos-latest # for Intel based macs.
+                  goos: darwin
+                  extension: ""
+                  args: '--target x86_64-apple-darwin'
+                  arch: x86_64
+                - os: windows-latest # for Windows.
+                  goos: windows
+                  extension: ".exe"
+                  args: ''
+                  arch: x86_64
+                - os: ubuntu-latest # for Linux.
+                  goos: linux
+                  extension: ""
+                  args: ''
+                  arch: x86_64
+        
+        # set working directory
+        defaults:
+          run:
+            working-directory: frontend/occupi-desktop
+
         name: Build Tauri App
-        runs-on: ubuntu-latest
+        runs-on: ${{ matrix.os }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Set up Rust
-              uses: actions/setup-rust@v1
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v1
               with:
-                rust-version: '1.53.0'
+                bun-version: latest # or "latest", "canary", <sha>
 
-            - name: Install Tauri
+            - name: Install dependencies with Bun
               run: |
-                cargo install tauri-bundler --force
+                cd frontend/occupi-desktop
+                bun install
 
-            - name: Build Tauri App
+            - name: Build with Tauri
               run: |
-                cd occupi-frontend
-                tauri build
+                cd frontend/occupi-desktop
+                bun run tauri build
+
+            - name: Archive and Upload MacOS Tauri App
+              if: startsWith(matrix.os, 'macos')
+              run: |
+                mkdir -p tauri_artifacts
+                cp -R src-tauri/target/release/bundle/dmg/* tauri_artifacts/ || true
+                cp -R src-tauri/target/release/bundle/macos/* tauri_artifacts/ || true
+
+            - name: Archive and Upload Windows Tauri App
+              if: startsWith(matrix.os, 'windows')
+              run: |
+                mkdir -p tauri_artifacts
+                cp -R src-tauri/target/release/bundle/nsis/* tauri_artifacts/ || true
+                cp -R src-tauri/target/release/bundle/msi/* tauri_artifacts/ || true
+
+            - name: Archive and Upload Linux Tauri App
+              if: startsWith(matrix.os, 'ubuntu')
+              run: |
+                mkdir -p tauri_artifacts
+                cp -R src-tauri/target/release/bundle/deb/* tauri_artifacts/ || true
+                cp -R src-tauri/target/release/bundle/appimage/* tauri_artifacts/ || true
+                cp -R src-tauri/target/release/bundle/rpm/* tauri_artifacts/ || true
+                cp -R src-tauri/target/release/bundle/flatpak/* tauri_artifacts/ || true
+        
+            - name: Upload Tauri Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: tauri-artifacts-${{ matrix.os }}
+                path: frontend/occupi-desktop/tauri_artifacts
 
     release:
         name: Release
         runs-on: ubuntu-latest
-        needs: [build-backend-binary, build-expo-app, build-vite-app, build-tauri-app]
+        needs: [build-backend-binary, build-android, build-ios, build-vite-app, build-tauri-app]
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-
-            - name: Set up Node.js
-              uses: actions/setup-node@v2
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+                # according to the docs, if name is not specified, all artifacts are downloaded
+                # https://github.com/actions/download-artifact/tree/v4/?tab=readme-ov-file#inputs
               with:
-                node-version: '14'
-
-            - name: Install GitHub CLI
-              run: |
-                sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-                sudo apt-add-repository https://cli.github.com/packages
-                sudo apt update
-                sudo apt install gh
-
-            - name: Login to GitHub
-              run: |
-                gh auth login
-
-            - name: Create a Release
-              run: |
-                gh release create v1.0.0 -t "v1.0.0" -n "v1.0.0" ./occupi-backend/occupi-backend ./occupi-frontend/occupi-frontend ./occupi-frontend/dist ./occupi-frontend/build ./occupi-frontend/target/release/occupi-frontend
-
-            - name: Upload Release Assets
-              run: |
-                gh release upload v1.0.0 ./occupi-backend/occupi-backend ./occupi-frontend/occupi-frontend ./occupi-frontend/dist ./occupi-frontend/build ./occupi-frontend/target/release/occupi-frontend
+                path: dist
+                merge-multiple: true

@@ -5,8 +5,10 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "esModuleInterop": true,
+
     "baseUrl": "./src", // This is to avoid adding the ./src prefix to each path below.
-    "types": ["bun-types","jest"],
+    "types": ["jest", "node", "@testing-library/jest-dom","bun-types"],
 
     "paths": {
       "@api/*": ["api/*"],
@@ -35,6 +37,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "jest.setup.ts", "happydom.ts"],
+  "include": ["src","setupTests.ts",  "jest-setup.ts", "bun-test-extend.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
