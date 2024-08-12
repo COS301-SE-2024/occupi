@@ -1,5 +1,11 @@
 import axios from "axios";
 import Cookies from "js-cookie"; // Import a cookie management library like js-cookie
+import { wrapper } from 'axios-cookiejar-support';
+import { CookieJar } from 'tough-cookie';
+
+
+const jar = new CookieJar();
+const client = wrapper(axios.create({ jar }));
 
 const API_URL = "/auth"; // This will be proxied to https://dev.occupi.tech
 const API_USER_URL = "/api"; // Adjust this if needed
@@ -183,20 +189,21 @@ const AuthService = {
 
   logout: async () => {
     try {
-      // Perform the logout request
-      const response = await axios.post(`${API_URL}/logout`, {});
-
-      // Attempt to clear all cookies after successful logout
+      // Attempt to clear all cookies from the specific domain
       try {
-        const allCookies = Cookies.get(); // Get all cookies
-        Object.keys(allCookies).forEach(cookieName => {
-          Cookies.remove(cookieName, { domain: 'dev.occupi.tech' }); // Remove each cookie from the specific domain
+        const cookies = await jar.getCookies('https://dev.occupi.tech/');
+        console.log("All cookies:", cookies);
+        cookies.forEach(cookie => {
+          jar.setCookie(`${cookie.key}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT`, 'https://dev.occupi.tech/');
         });
       } catch (cookieError) {
         console.error("Error clearing cookies:", cookieError);
         throw new Error("Failed to clear cookies after logging out.");
       }
-      
+
+      // Perform the logout request
+      const response = await client.post(`${API_URL}/logout`, {});
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
