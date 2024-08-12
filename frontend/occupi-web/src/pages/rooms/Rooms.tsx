@@ -14,6 +14,7 @@ import {
   DropdownItem,
   Skeleton,
   Chip,
+  ModalContent,
 } from "@nextui-org/react";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -27,10 +28,7 @@ import {
   FaPlus,
   FaUpload,
 } from "react-icons/fa";
-import {
-  AddRoomModal,
-  EditRoomModal, TopNav
-} from "@components/index";
+import { AddRoomModal, EditRoomModal, FeedBackModal, TopNav } from "@components/index";
 
 interface Room {
   description: string;
@@ -66,6 +64,9 @@ const Rooms: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
+
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [roomToDisable, setRoomToDisable] = useState<Room | null>(null);
 
   useEffect(() => {
     fetchRooms();
@@ -125,29 +126,39 @@ const Rooms: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleDisable = async (room: Room) => {
+  const handleDisable = (room: Room) => {
+    setRoomToDisable(room);
+    setIsFeedbackModalOpen(true);
+  };
+
+  const confirmDisable = async () => {
+    if (!roomToDisable) return;
+
     try {
-      // Make an API call to disable the room
-      // await axios.post(`/api/disable-room/${room.roomId}`);
+      // Make an API call to toggle the room's disabled state
+      // await axios.post(`/api/toggle-room-state/${roomToDisable.roomId}`);
 
       // Update the state
-      // const updatedRoom = { ...room, isDisabled: !room.isDisabled };
+      const updatedRoom = {
+        ...roomToDisable,
+        isDisabled: !roomToDisable.isDisabled,
+      };
 
       setRooms(
-        rooms.map((r) =>
-          r.roomId === room.roomId ? { ...r, isDisabled: true } : r
-        )
+        rooms.map((r) => (r.roomId === roomToDisable.roomId ? updatedRoom : r))
       );
       setFilteredRooms(
         filteredRooms.map((r) =>
-          r.roomId === room.roomId ? { ...r, isDisabled: true } : r
+          r.roomId === roomToDisable.roomId ? updatedRoom : r
         )
       );
+
+      setIsFeedbackModalOpen(false);
+      setRoomToDisable(null);
     } catch (error) {
-      console.error("Error disabling room:", error);
+      console.error("Error toggling room state:", error);
     }
   };
-
   const handleSaveRoom = async (updatedRoom: Room) => {
     try {
       // Make an API call to update the room
@@ -349,10 +360,9 @@ const Rooms: React.FC = () => {
                         <Button
                           className="text-text_col_alt font-semibold bg-secondary_alt"
                           onPress={() => handleDisable(room)}
-                          disabled={room.isDisabled}
                         >
                           <FaTrashAlt className="mr-2" />
-                          {room.isDisabled ? "Enable Room" : "Disable"}
+                          {room.isDisabled ? "Enable" : "Disable"}
                         </Button>
                       </div>
                     </div>
@@ -363,6 +373,7 @@ const Rooms: React.FC = () => {
       </motion.div>
 
       <Modal
+        backdrop="blur"
         isOpen={isUploadModalOpen}
         onClose={() => {
           setIsUploadModalOpen(false);
@@ -374,28 +385,32 @@ const Rooms: React.FC = () => {
           animate: { opacity: 1, scale: 1 },
           exit: { opacity: 0, scale: 0.9 },
         }}
-        className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50 backdrop-blur-sm"
+        // className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50 backdrop-blur-sm"
       >
-        <ModalHeader>
-          <h3 className="text-text_col text-lg font-bold">Upload Room Image</h3>
-        </ModalHeader>
-        <ModalBody>
-          <Input
-            type="file"
-            onChange={(e) => {
-              const files = e.target.files;
-              if (files && files.length > 0) {
-                setImageFile(files[0]);
-              }
-            }}
-            accept="image/*"
-          />
-        </ModalBody>
-        <ModalFooter>
-          <Button color="primary" onPress={uploadImage2}>
-            Upload Image
-          </Button>
-        </ModalFooter>
+        <ModalContent>
+          <ModalHeader className="text-text_col flex flex-col gap-1">
+            <h3 className="text-text_col text-lg font-bold">
+              Upload Room Image
+            </h3>
+          </ModalHeader>
+          <ModalBody>
+            <Input
+              type="file"
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  setImageFile(files[0]);
+                }
+              }}
+              accept="image/*"
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onPress={uploadImage2}>
+              Upload Image
+            </Button>
+          </ModalFooter>
+        </ModalContent>
       </Modal>
 
       <EditRoomModal
@@ -410,6 +425,19 @@ const Rooms: React.FC = () => {
         onClose={() => setIsAddRoomModalOpen(false)}
         onSave={handleAddRoom}
       />
+
+<FeedBackModal
+  title="Confirm Action"
+  message={`Are you sure you want to ${roomToDisable?.isDisabled ? 'enable' : 'disable'} this room?`}
+  closeButtonLabel="Cancel"
+  actionButtonLabel="Confirm"
+  isOpen={isFeedbackModalOpen}
+  onClose={() => {
+    setIsFeedbackModalOpen(false);
+    setRoomToDisable(null);
+  }}
+  onAction={confirmDisable}
+/>
     </div>
   );
 };

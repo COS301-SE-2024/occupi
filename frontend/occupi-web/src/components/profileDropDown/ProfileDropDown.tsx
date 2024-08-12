@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dropdown,
   DropdownTrigger,
@@ -16,42 +16,11 @@ import {
   OccupiLoader,
   NotificationModal,
 } from "@components/index";
+import NotificationService from "NotificationsService";
 
 interface ProfileDropdownProps {
   isMinimized: boolean;
 }
-
-interface Notification {
-  id: number;
-  message: string;
-  read: boolean;
-  timestamp: string;
-  type: "booking" | "capacity" | "maintenance";
-}
-
-const initialNotifications: Notification[] = [
-  {
-    id: 1,
-    message: "New Booking in Room 3",
-    read: false,
-    timestamp: "2024-08-01T12:34:56Z",
-    type: "booking",
-  },
-  {
-    id: 2,
-    message: "Capacity is 45%",
-    read: false,
-    timestamp: "2024-08-02T08:30:00Z",
-    type: "capacity",
-  },
-  {
-    id: 3,
-    message: "Room 3 Disabled for cleaning",
-    read: true,
-    timestamp: "2024-08-03T15:00:00Z",
-    type: "maintenance",
-  },
-];
 
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
   const navigate = useNavigate();
@@ -59,8 +28,20 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isNotificationsModalOpen, setNotificationsModalOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const [notifications, ] =
-    useState<Notification[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<import("NotificationsService").Notification[]>([]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const fetchedNotifications = await NotificationService.fetchNotifications();
+      setNotifications(fetchedNotifications);
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+    }
+  };
 
   const unreadCount = notifications.filter(
     (notification) => !notification.read
@@ -100,14 +81,6 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
     setNotificationsModalOpen(false);
   };
 
-  // const markAsRead = (id: number) => {
-  //   setNotifications((prevNotifications) =>
-  //     prevNotifications.map((notification) =>
-  //       notification.id === id ? { ...notification, read: true } : notification
-  //     )
-  //   );
-  // };
-
   return (
     <>
       <Dropdown placement="top-end">
@@ -118,7 +91,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
                 as="button"
                 avatarProps={{
                   isBordered: true,
-                  src: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
+                  src: `https://i.pravatar.cc/150?u=${userDetails?.employeeid}`,
                   size: "md",
                 }}
                 className={`transition-transform ${

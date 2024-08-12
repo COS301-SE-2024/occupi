@@ -46,7 +46,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
 
   const markAsRead = async (id: number) => {
     try {
-      await NotificationService.markNotificationAsRead(id);
+      // await NotificationService.markNotificationAsRead(id);
       setNotifications((prevNotifications) =>
         prevNotifications.map((notification) =>
           notification.id === id ? { ...notification, read: true } : notification
