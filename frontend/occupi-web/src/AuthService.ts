@@ -1,5 +1,4 @@
 import axios from "axios";
-import Cookies from "js-cookie"; // Import a cookie management library like js-cookie
 import { wrapper } from 'axios-cookiejar-support';
 import { CookieJar } from 'tough-cookie';
 
