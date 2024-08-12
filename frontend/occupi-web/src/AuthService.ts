@@ -185,10 +185,17 @@ const AuthService = {
     try {
       // Perform the logout request
       const response = await axios.post(`${API_URL}/logout`, {});
-      
-      // Clear all cookies after successful logout
-      const allCookies = Cookies.get(); // Get all cookies
-      Object.keys(allCookies).forEach(cookieName => Cookies.remove(cookieName)); // Remove each cookie
+
+      // Attempt to clear all cookies after successful logout
+      try {
+        const allCookies = Cookies.get(); // Get all cookies
+        Object.keys(allCookies).forEach(cookieName => {
+          Cookies.remove(cookieName); // Remove each cookie
+        });
+      } catch (cookieError) {
+        console.error("Error clearing cookies:", cookieError);
+        throw new Error("Failed to clear cookies after logging out.");
+      }
       
       return response.data;
     } catch (error) {
