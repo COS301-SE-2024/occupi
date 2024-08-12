@@ -104,7 +104,6 @@
 // export default Visitations;
 
 
-import React from 'react'
 
 const Visitations = () => {
   return (
