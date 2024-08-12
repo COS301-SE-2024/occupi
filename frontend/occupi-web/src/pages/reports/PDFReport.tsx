@@ -78,21 +78,24 @@ const styles = StyleSheet.create({
     width: "auto",
     borderStyle: "solid",
     borderWidth: 1,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
+    borderColor: "#bfbfbf",
     marginBottom: 10,
   },
   tableRow: {
     flexDirection: "row",
-    backgroundColor: "#f2f2f2",
   },
   tableCol: {
     width: "20%",
     borderStyle: "solid",
     borderWidth: 1,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
+    borderColor: "#bfbfbf",
+  },
+  tableCell: {
+    margin: 5,
+    fontSize: 10,
+  },
+  tableHeader: {
+    backgroundColor: "#f2f2f2",
   },
   pageNumber: {
     position: "absolute",
@@ -223,21 +226,21 @@ function BasicDocument() {
                 Monthly Office Occupancy Table
               </Text>
               <View style={styles.table}>
-                <View style={styles.tableRow}>
+                <View style={[styles.tableRow, styles.tableHeader]}>
                   <View style={styles.tableCol}>
-                    <Text>Month</Text>
+                    <Text style={styles.tableCell}>Month</Text>
                   </View>
                   <View style={styles.tableCol}>
-                    <Text>Occupancy (%)</Text>
+                    <Text style={styles.tableCell}>Occupancy (%)</Text>
                   </View>
                 </View>
                 {filteredOccupancyData.map((data) => (
                   <View style={styles.tableRow} key={data.month}>
                     <View style={styles.tableCol}>
-                      <Text>{data.month}</Text>
+                      <Text style={styles.tableCell}>{data.month}</Text>
                     </View>
                     <View style={styles.tableCol}>
-                      <Text>{data.occupancy}</Text>
+                      <Text style={styles.tableCell}>{data.occupancy}</Text>
                     </View>
                   </View>
                 ))}
@@ -251,10 +254,10 @@ function BasicDocument() {
                 {additionalData.map((item, index) => (
                   <View style={styles.tableRow} key={index}>
                     <View style={styles.tableCol}>
-                      <Text>{item.category}</Text>
+                      <Text style={styles.tableCell}>{item.category}</Text>
                     </View>
                     <View style={styles.tableCol}>
-                      <Text>{item.value}</Text>
+                      <Text style={styles.tableCell}>{item.value}</Text>
                     </View>
                   </View>
                 ))}
@@ -265,39 +268,39 @@ function BasicDocument() {
             <View style={styles.section}>
               <Text style={styles.paragraph}>AI Predicted Capacity for the Week</Text>
               <View style={styles.table}>
-                <View style={styles.tableRow}>
+                <View style={[styles.tableRow, styles.tableHeader]}>
                   <View style={styles.tableCol}>
-                    <Text>Date</Text>
+                    <Text style={styles.tableCell}>Date</Text>
                   </View>
                   <View style={styles.tableCol}>
-                    <Text>Day</Text>
+                    <Text style={styles.tableCell}>Day</Text>
                   </View>
                   <View style={styles.tableCol}>
-                    <Text>Predicted Attendance</Text>
+                    <Text style={styles.tableCell}>Predicted Attendance</Text>
                   </View>
                   <View style={styles.tableCol}>
-                    <Text>Weekend</Text>
+                    <Text style={styles.tableCell}>Weekend</Text>
                   </View>
                   <View style={styles.tableCol}>
-                    <Text>Special Event</Text>
+                    <Text style={styles.tableCell}>Special Event</Text>
                   </View>
                 </View>
                 {capacityData.map((data) => (
                   <View style={styles.tableRow} key={data.date}>
                     <View style={styles.tableCol}>
-                      <Text>{data.date}</Text>
+                      <Text style={styles.tableCell}>{data.date}</Text>
                     </View>
                     <View style={styles.tableCol}>
-                      <Text>{data.day}</Text>
+                      <Text style={styles.tableCell}>{data.day}</Text>
                     </View>
                     <View style={styles.tableCol}>
-                      <Text>{data.predicted}</Text>
+                      <Text style={styles.tableCell}>{data.predicted}</Text>
                     </View>
                     <View style={styles.tableCol}>
-                      <Text>{data.isWeekend ? "Yes" : "No"}</Text>
+                      <Text style={styles.tableCell}>{data.isWeekend ? "Yes" : "No"}</Text>
                     </View>
                     <View style={styles.tableCol}>
-                      <Text>{data.specialEvent ? "Yes" : "No"}</Text>
+                      <Text style={styles.tableCell}>{data.specialEvent ? "Yes" : "No"}</Text>
                     </View>
                   </View>
                 ))}
