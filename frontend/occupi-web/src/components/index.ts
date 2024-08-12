@@ -34,6 +34,15 @@ import FeedBackModal from "./feedbackModal/FeedBackModal";
 import PredictedCapacityGraph from "./aiDashboard/aiDashGraphs/PredictedCapacityGraph";
 import CapacityComparisonGraph from "./aiDashboard/aiDashGraphs/CapacityComparisonGraph";
 import DashboardWizard from "./aiDashboard/dashboardWizard/DashboardWizard";
+import ProfileView from "./profile/ProfileView";
+import NotificationModal from "./notificationsModal/NotificationsModal";
+import RadioBox from "./radioBoxComponent/RadioBox";
+import AboutComponent from "./aboutComponent/AboutComponent";
+import Security from "./securityComponent/Security";
+import EditRoomModal from "./editRoomModal/EditRoomModal";
+import AddRoomModal from "./addRoomModal/AddRoomModal";
+
+
 
 export {
     DrawerComponent,
@@ -71,5 +80,12 @@ export {
     FeedBackModal,
     PredictedCapacityGraph,
     CapacityComparisonGraph,
-    DashboardWizard
+    DashboardWizard,
+    ProfileView,
+    NotificationModal,
+    RadioBox,
+    AboutComponent,
+    Security,
+    EditRoomModal,
+    AddRoomModal
 }

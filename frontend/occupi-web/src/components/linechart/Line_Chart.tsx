@@ -69,7 +69,7 @@ export default function App() {
   return (
     <div>
       <div ref={chartRef} style={{ width: "100%", height: 400 }}>
-      <Button className="mt-3 mb-3 ml-3 bg-primary_alt text-text_col_alt"  onClick={handleDownload}>Download Chart</Button>
+      <Button className="mt-3 mb-3 ml-3 bg-primary_alt font-semibold text-text_col_alt"  onClick={handleDownload}>Download Chart</Button>
         <ResponsiveContainer width="97%" height="100%">
           <AreaChart data={data}>
             <defs>

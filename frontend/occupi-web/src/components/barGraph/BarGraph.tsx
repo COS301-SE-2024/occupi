@@ -78,7 +78,7 @@ export default function App() {
       <div ref={chartRef} style={{ width: "100%", height: 400 }}>
         <Button
           data-testid="download-button1"
-          className=" -mt-10 mb-5 ml-3 bg-primary_alt text-text_col_alt"
+          className=" -mt-10 mb-5 ml-3 bg-primary_alt font-medium text-text_col_alt"
           onClick={handleDownload}
         >
           Download Chart

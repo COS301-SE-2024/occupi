@@ -1,0 +1,16 @@
+go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+
+At terminal (pprof) is showing type help it will give the list of pprof commands as below
+
+1. top: It displays a list of the top functions that consume CPU time. It shows which functions are the most CPU-intensive.
+2. list <function>: listcommand followed by the name of a function to display the source code for that function, highlighting the lines where the most CPU time is spent.
+3. web: This command generates an interactive graphical visualization of the profile data. It opens a web browser with a graphical representation of the call graph, making it easier to identify performance bottlenecks.
+4. web list: This command combines the web and list commands. It generates a web-based visualisation and allows you to click on functions in the visualisation to see their source code with highlighted hotspots.
+5. peek <function>: The peek command displays a summary of the profile data for a specific function, including the percentage of total CPU time it consumes and the number of times it was called.
+6. disasm <function>: The disasm command displays the assembly code for a specific function. This can be useful for low-level performance analysis.
+7. pdf: The pdf command generates a PDF file containing the call graph visualisation. This is useful for sharing profiling results or documenting performance improvements.
+8. text: The text command displays the profile data in text form, showing the top functions and their CPU usage. It's a simple textual representation of the profiling data.
+9. topN <N>: Use topN followed by a number (e.g., top10) to display the top N functions consuming CPU time. This can help you focus on the most significant bottlenecks.
+10. raw: The raw command displays the raw profiling data in a machine-readable format. This is useful for advanced analysis or automation.
+11. tags: The tags command displays all available pprof tags in the profile data. Tags can provide additional context for profiling results.
+12. quit or exit: Use either of these commands to exit the pprof interactive session.
