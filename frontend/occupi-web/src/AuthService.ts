@@ -168,7 +168,7 @@ const AuthService = {
 
       // Send the assertion to the server
       const response2 = await axios.post(
-        `${API_URL}/login-admin-finish${response.data.data.uuid}`,
+        `${API_URL}/login-admin-finish/${response.data.data.uuid}`,
         assertionJSON
       );
 
