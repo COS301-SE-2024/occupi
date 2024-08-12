@@ -1,4 +1,5 @@
 import axios from "axios";
+import Cookies from "js-cookie"; // Import a cookie management library like js-cookie
 
 const API_URL = "/auth"; // This will be proxied to https://dev.occupi.tech
 const API_USER_URL = "/api"; // Adjust this if needed
@@ -182,13 +183,26 @@ const AuthService = {
 
   logout: async () => {
     try {
+      // Perform the logout request
       const response = await axios.post(`${API_URL}/logout`, {});
+
+      // Attempt to clear all cookies after successful logout
+      try {
+        const allCookies = Cookies.get(); // Get all cookies
+        Object.keys(allCookies).forEach(cookieName => {
+          Cookies.remove(cookieName); // Remove each cookie
+        });
+      } catch (cookieError) {
+        console.error("Error clearing cookies:", cookieError);
+        throw new Error("Failed to clear cookies after logging out.");
+      }
+      
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
         throw error.response.data;
       }
-      throw new Error("An unexpected error occurred Whilst Logging out");
+      throw new Error("An unexpected error occurred whilst logging out");
     }
   },
 
