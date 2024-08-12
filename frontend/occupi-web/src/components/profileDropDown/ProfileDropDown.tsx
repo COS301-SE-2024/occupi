@@ -91,7 +91,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
                 as="button"
                 avatarProps={{
                   isBordered: true,
-                  src: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
+                  src: `https://i.pravatar.cc/150?u=${userDetails?.employeeid}`,
                   size: "md",
                 }}
                 className={`transition-transform ${
