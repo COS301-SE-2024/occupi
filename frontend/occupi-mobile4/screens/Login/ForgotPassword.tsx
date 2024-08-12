@@ -1,6 +1,7 @@
-import React, { useRef, useState, useEffect }  from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
+  View,
   FormControl,
   HStack,
   Input,
@@ -27,7 +28,7 @@ import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Keyboard, StyleSheet, TextInput,Animated, Easing } from 'react-native';
+import { Keyboard, StyleSheet, TextInput, Animated, Easing } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { AlertTriangle } from 'lucide-react-native';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
@@ -38,32 +39,7 @@ const forgotPasswordSchema = z.object({
 });
 type SignUpSchemaType = z.infer<typeof forgotPasswordSchema>;
 
-function SideContainerWeb() {
-  return (
-    <Center
-      sx={{
-        '@base': {
-          _light: { bg: '$backgroundLight0' },
-          _dark: { bg: '$backgroundDark800' },
-        },
-        '$md': {
-          flex: 1,
-          _light: { bg: '$primary500' },
-          _dark: { bg: '$primary500' },
-          py: '$48',
-        },
-      }}
-    >
-      <Image
-        resizeMode="contain"
-        w="$200"
-        h="$40"
-        source={require('./assets/images/forgotPassword_web_dark.png')}
-        alt="Alternate Text"
-      />
-    </Center>
-  );
-}
+
 
 export default function ForgotPassword() {
   const {
@@ -149,8 +125,8 @@ export default function ForgotPassword() {
   });
 
   return (
-    <GuestLayout>
-      <StyledExpoRouterLink  href="/login">
+    <View pt="$10" flex="$1" backgroundColor='white'>
+      <StyledExpoRouterLink href="/login">
         <Icon
           as={ChevronLeftIcon}
           color="$textLight800"
@@ -158,51 +134,29 @@ export default function ForgotPassword() {
           sx={{ _dark: { color: '$textDark800' } }}
         />
       </StyledExpoRouterLink>
-      <VStack
-        sx={{
-          '$md': { flexDirection: 'row' },
-          '_dark': { bg: '$backgroundDark900' },
-        }}
-        flex={1}
-      >
-        <Box sx={{ '$md': { display: 'none' } }}>
+        <Box>
           <HStack space="$md" alignItems="center" justifyContent="center">
-          <Animated.View style={{ transform: [{ rotate: spin }] }}>
-            <Image
-              alt="logo"
-              source={Logo}
-              style={{ width: 150, height: 150 }}
-            />
-             </Animated.View>
+            <Animated.View style={{ transform: [{ rotate: spin }] }}>
+              <Image
+                alt="logo"
+                source={Logo}
+                style={{ width: 150, height: 150 }}
+              />
+            </Animated.View>
           </HStack>
         </Box>
         <Box sx={{ '$md': { display: 'flex' } }} display="none" flex={1}>
-          <SideContainerWeb />
+
         </Box>
-        <Box
-          maxWidth="$508"
-          pt="$0"
-          pb="$8"
-          px="$4"
-          bg="$backgroundLight0"
-          flex={1}
-          sx={{
-            '$md': {
-              pt: '$8',
-              px: '$8',
-            },
-            '_dark': { bg: '$backgroundDark800' },
-          }}
-        >
-          <VStack
-            space="$md"
+          <View
+            space="md"
             alignItems="center"
-            sx={{ '$md': { alignItems: 'flex-start' } }}
+            px="$4"
           >
             <Heading
               fontSize="$2xl"
-              textAlign="$left"
-              alignSelf="$left"
+              textAlign="left"
+              alignSelf="left"
               my="$4"
               sx={{
                 '$md': {
@@ -226,12 +180,13 @@ export default function ForgotPassword() {
               Not to worry! Enter email address associated with your account and
               we'll send a link to reset your password.
             </Text>
-          </VStack>
+          </View>
 
           <FormControl
-            my="$8"
-            isInvalid={(!!errors.email ) && !!errors.email}
+            my={24}
+            isInvalid={(!!errors.email) && !!errors.email}
             isRequired={true}
+            px="$4"
           >
             <FormControlLabel mb="$1">
               <FormControlLabelText>Email</FormControlLabelText>
@@ -280,8 +235,6 @@ export default function ForgotPassword() {
             onPress={handleSubmit(onSubmit)}
             text="Send OTP"
           />
-        </Box>
-      </VStack>
-    </GuestLayout>
+    </View>
   );
 }

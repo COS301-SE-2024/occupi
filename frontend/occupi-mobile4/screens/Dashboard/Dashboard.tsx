@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { LineChart } from "react-native-gifted-charts"
-import { StatusBar, useColorScheme, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StatusBar, useColorScheme, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
   Text,
@@ -26,26 +25,131 @@ import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
-import { getExtractedPredictions, getFormattedPredictionData } from '@/utils/occupancy';
+import BarGraph from '@/components/BarGraph';
+import { getFormattedDailyPredictionData, getFormattedPredictionData, valueToColor } from '@/utils/occupancy';
+import * as Location from 'expo-location';
+import { storeCheckInValue } from '@/services/securestore';
+import { isPointInPolygon } from '@/utils/dashboard';
+import PagerView from 'react-native-pager-view';
+import SetDetails from '../Login/SetDetails';
+
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
   return Math.floor(Math.random() * 20) + 300;
 };
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const colorScheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorScheme : theme;
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
-  const [checkedIn, setCheckedIn] = useState(false);
+  const [checkedIn, setCheckedIn] = useState<boolean>();
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
+  const [shouldCheckin, setShouldCheckin] = useState(false);
   const toast = useToast();
   const [currentData, setCurrentData] = useState();
+  const [currentDayData, setCurrentDayData] = useState();
+  const pagerRef = useRef<PagerView>(null);
+  const [activeTab, setActiveTab] = useState('Tab1');
+  const [weeklyData, setWeeklyData] = useState();
   // console.log(currentTheme);
   // console.log(isDarkMode);
+
+  const mockhourly = [
+    { "label": "07:00", "value": 2 },
+    { "label": "09:00", "value": 4 },
+    { "label": "11:00", "value": 5 }, 
+    { "label": "12:00", "value": 2 }, 
+    { "label": "13:00", "value": 2 }, 
+    { "label": "15:00", "value": 3 }, 
+    { "label": "17:00", "value": 2 }
+  ]
+
+  // console.log(currentData);
+
+  const goToNextPage = () => {
+    setActiveTab('Tab2');
+    // if (pagerRef.current) {
+    //   pagerRef.current.setPage(1);
+    // }
+    setHourly();
+  };
+
+  const goToPreviousPage = () => {
+    setActiveTab('Tab1');
+    setWeekly();
+    // if (pagerRef.current) {
+    //   pagerRef.current.setPage(0);
+    // }
+  };
+
+  const setHourly = () => {
+    setCurrentData(mockhourly);
+  }
+
+  const setWeekly = () => {
+    setCurrentData(weeklyData);
+  }
+
+
+  const useLocationCheckin = () => {
+    Alert.alert(
+      'At the office',
+      'It seems like you are at the office, would you like to check in?',
+      [
+        {
+          text: 'Check in!',
+          onPress: () => checkIn()
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
+  }
+
+  useEffect(() => {
+    const LocationCheckin = async () => {
+      let checkedInVal = await SecureStore.getItemAsync('CheckedIn');
+      setCheckedIn(checkedInVal === "true" ? true : false);
+      // console.log(checkedIn.toString());
+      if (checkedInVal === "false") {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('Permission to access location was denied');
+          return;
+        }
+
+        let location: Location.LocationObject = await Location.getCurrentPositionAsync({});
+        // console.log(location.coords.latitude);
+        // console.log('Latitude:', location.coords.latitude);
+        // console.log('Longitude:', location.coords.longitude);
+
+        const point = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        };
+        const insidePolygon = isPointInPolygon(point);
+
+        if (insidePolygon) {
+          setShouldCheckin(true);
+        }
+      }
+    }
+    LocationCheckin()
+  }, []);
+
+  useEffect(() => {
+    if (shouldCheckin) {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      useLocationCheckin();
+    }
+  }, [shouldCheckin]);
 
   useEffect(() => {
     const getAccentColour = async () => {
@@ -59,11 +163,25 @@ const Dashboard = () => {
         if (prediction) {
           // console.log(prediction);
           setCurrentData(prediction);
+          setWeeklyData(prediction);
         }
       } catch (error) {
         console.error('Error fetching predictions:', error);
       }
     }
+
+    const getDayPrediction = async () => {
+      try {
+        const prediction = await getFormattedDailyPredictionData();
+        if (prediction) {
+          // console.log(prediction);
+          setCurrentDayData(prediction);
+        }
+      } catch (error) {
+        console.error('Error fetching predictions:', error);
+      }
+    }
+    getDayPrediction();
     getWeeklyPrediction();
     getAccentColour();
   }, []);
@@ -71,13 +189,17 @@ const Dashboard = () => {
   useEffect(() => {
     const getUsername = async () => {
       try {
-        const name = await fetchUsername();
-        // console.log(name);
-        if (name) {
+        while (username === '') {
+          const name = await fetchUsername();
           setUsername(name);
-        } else {
-          setUsername('Guest'); // Default value if no username is found
         }
+
+        // // console.log(name);
+        // if (name) {
+        //   setUsername(name);
+        // } else {
+        //   setUsername('Guest'); // Default value if no username is found
+        // }
       } catch (error) {
         console.error('Error fetching username:', error);
         setUsername('Guest'); // Default in case of an error
@@ -87,10 +209,21 @@ const Dashboard = () => {
     const getRoomData = async () => {
       try {
         const roomData = await fetchUserBookings();
-        if (roomData) {
-          // console.log(roomData);
+        if (roomData && roomData.length > 0) {
           setRoomData(roomData[0]);
-          // console.log(roomData[0]);
+        } else {
+          setRoomData(
+            {
+              roomName: 'No bookings found',
+              date: 'No bookings found',
+              start: 'No bookings found',
+              end: 'No bookings found',
+              checkedIn: false,
+              creator: 'N/A',
+              emails: [],
+              floorNo: "0",
+            }
+          );
         }
       } catch (error) {
         console.error('Error fetching bookings:', error);
@@ -98,7 +231,7 @@ const Dashboard = () => {
     };
     getRoomData();
     getUsername();
-  }, []);
+  }, [username]);
 
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
@@ -115,37 +248,45 @@ const Dashboard = () => {
   }, [currentTheme]);
 
   const checkIn = () => {
-    if (checkedIn === false) {
-      setCheckedIn(true);
-      // setCurrentData(hourlyData);
-      toast.show({
-        placement: 'top',
-        render: ({ id }) => (
-          <Toast nativeID={String(id)} variant="accent" action="info">
-            <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
-          </Toast>
-        ),
-      });
-    } else {
-      setCheckedIn(false);
-      toast.show({
-        placement: 'top',
-        render: ({ id }) => (
-          <Toast nativeID={String(id)} variant="accent" action="info">
-            <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
-          </Toast>
-        ),
-      });
-    }
+    setCheckedIn(true);
+    storeCheckInValue(true);
+    // setCurrentData(hourlyData);
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => (
+        <Toast nativeID={String(id)} variant="accent" action="info">
+          <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
+        </Toast>
+      ),
+    });
   };
 
+  const checkOut = () => {
+    setCheckedIn(false);
+    storeCheckInValue(false);
+    toast.show({
+      placement: 'top',
+      render: ({ id }) => (
+        <Toast nativeID={String(id)} variant="accent" action="info">
+          <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
+        </Toast>
+      ),
+    });
+  }
+
   function extractTimeFromDate(dateString: string): string {
+    if (dateString === 'No bookings found') {
+      return '';
+    }
     const date = new Date(dateString);
     date.setHours(date.getHours() - 2);
     return date.toTimeString().substring(0, 5);
   }
 
   function extractDateFromDate(dateString: string): string {
+    if (dateString === 'No bookings found') {
+      return 'Make a booking';
+    }
     const date = new Date(dateString);
     return date.toDateString();
   }
@@ -209,8 +350,14 @@ const Dashboard = () => {
             <View flexDirection="column">
               <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
                 <View>
-                  <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>{extractDateFromDate(roomData.date)}</Text>
-                  <Text>{extractTimeFromDate(roomData.start)}-{extractTimeFromDate(roomData.end)}</Text>
+                  <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>
+                    {extractDateFromDate(roomData.date)}
+                  </Text>
+                  <Text>
+                    {extractTimeFromDate(roomData.start)}
+                    {extractTimeFromDate(roomData.start) && extractTimeFromDate(roomData.end) ? '-' : ''}
+                    {extractTimeFromDate(roomData.end)}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -226,11 +373,44 @@ const Dashboard = () => {
             <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
           </View> */}
           </Card>
-          <Card size="lg" variant="elevated" mt="$4" style={{ width: wp('43%'), height: hp('13%') }} backgroundColor={cardBackgroundColor} borderRadius={10} />
+          <Card flexDirection="column" alignItems='center' variant="elevated" p="$2.5" mt="$4" style={{ width: wp('43%'), height: hp('13%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
+            <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Predicted: </Text></View>
+            <Text color={valueToColor(currentDayData?.class)} fontSize={28}>Level: {currentDayData?.class}</Text>
+            <Text color={valueToColor(currentDayData?.class)} fontSize={18}>{currentDayData?.attendance} people</Text>
+          </Card>
         </View>
-        <View flexDirection="row" justifyContent="flex-end" mt="$6" mb="$4" h="$8" alignItems="center">
+        <View flexDirection="row" justifyContent="space-between" mt="$6" h="$12" alignItems="center">
+          <View w={wp('50%')} flexDirection='row' justifyContent='space-around' h="$12" borderColor={cardBackgroundColor} paddingVertical={5} borderWidth={2} borderRadius={10}>
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab1' ? accentColour : 'transparent',
+              }}
+              onPress={goToPreviousPage}
+            >
+              <Text color={activeTab === 'Tab1' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
+                Weekly
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab2' ? accentColour : 'transparent',
+              }}
+              onPress={goToNextPage}
+            >
+              <Text color={activeTab === 'Tab2' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
+                Hourly
+              </Text>
+            </TouchableOpacity>
+          </View>
           {checkedIn ? (
-            <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkIn}>
+            <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkOut}>
               <ButtonText color="black">Check out</ButtonText>
             </Button>
           ) : (
@@ -239,8 +419,21 @@ const Dashboard = () => {
             </Button>
           )}
         </View>
-        <LineGraph data={currentData} />
-      </ScrollView>
+        <View w='$full' height={hp('40%')} mb="$32">
+          <PagerView
+            initialPage={0}
+            style={{ flex: 1, alignItems: 'center' }}
+            ref={pagerRef}
+          >
+            <View key="1" justifyContent='center'>
+              <LineGraph data={currentData} />
+            </View>
+            <View key="2" justifyContent='center'>
+              <BarGraph data={currentData} />
+            </View>
+          </PagerView>
+        </View >
+      </ScrollView >
       <Navbar />
     </>
   );

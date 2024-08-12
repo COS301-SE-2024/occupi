@@ -68,27 +68,14 @@ const SideNav = () => {
 
   function setSelectedPanelF(arg: string) {
     setSelectedPanel(arg);
-    if (arg === "Dashboard") {
-      navigate("/dashboard");
-    } else if (arg === "Analysis") {
-      navigate("/analysis");
-    } else if (arg === "AI Analysis") {
-      navigate("/ai-dashboard");
-    } else if (arg === "Rooms") {
-      navigate("/rooms");
-    } else if (arg === "Teams") {
-      navigate("/teams");
-    } else if (arg === "Notifications") {
-      navigate("/notifications");
-    } else if (arg === "Settings") {
-      navigate("/settings");
-    } else if (arg === "Logout") {
-      navigate("/");
-    } else if (arg === "Reports") {
-      navigate("/reports");
-    } else if (arg === "Help") {
-      navigate("/faq");
-    }
+    if (arg === "Dashboard")navigate("/dashboard");
+    else if (arg === "AI Analysis")navigate("/ai-dashboard");
+    else if (arg === "Rooms")navigate("/rooms");
+    else if (arg === "Notifications")navigate("/notifications");
+    else if (arg === "Settings")navigate("/settings");
+    else if (arg === "Logout")navigate("/");
+    else if (arg === "Reports")navigate("/reports");
+    else if (arg === "Help")navigate("/faq");
   }
 
   function toggleSideNav() {
@@ -99,13 +86,8 @@ const SideNav = () => {
     const selectPanel = () => {
       const pn: string = location.pathname;
       if (pn.startsWith("/dashboard")) setSelectedPanel("Dashboard");
-      else if (pn.startsWith("/analysis")) setSelectedPanel("Analysis");
-      else if (pn.startsWith("/ai-model")) setSelectedPanel("AI model");
+      else if (pn.startsWith("/ai-dashboard")) setSelectedPanel("AI Analysis");
       else if (pn.startsWith("/rooms")) setSelectedPanel("Rooms");
-      else if (pn.startsWith("/teams")) setSelectedPanel("Teams");
-      else if (pn.startsWith("/notifications"))
-        setSelectedPanel("Notifications");
-      else if (pn.startsWith("/settings")) setSelectedPanel("Settings");
       else if (pn.startsWith("/reports")) setSelectedPanel("Reports");
       else;
     };

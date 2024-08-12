@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, ScrollView } from 'react-native';
+import { StyleSheet, View, Image, ScrollView, Alert } from 'react-native';
 import {
   VStack,
   HStack,
@@ -21,6 +21,8 @@ import * as SecureStore from 'expo-secure-store';
 import { useToast } from '@gluestack-ui/themed';
 import { UserLogout } from '@/utils/auth';
 import { useTheme } from '@/components/ThemeContext';
+import { useNavBar } from '@/components/NavBarProvider';
+
 
 const Settings = () => {
   const [name, setName] = useState('');
@@ -28,38 +30,91 @@ const Settings = () => {
   const toast = useToast();
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
+  const { setCurrentTab } = useNavBar();
   const currentTheme = theme === "system" ? colorscheme : theme;
 
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
       let jsonresult = JSON.parse(result);
+      // console.log(jsonresult)
       setName(String(jsonresult.name));
-      setPosition(String(jsonresult.position));
+      // setPosition(String(jsonresult.position));
     };
     getUserDetails();
   }, []);
 
   const handleLogout = async () => {
-    const response = await UserLogout();
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={String(id)} variant="accent" action={response === 'Logged out successfully!' ? 'success' : 'error'}>
-            <ToastTitle>{response}</ToastTitle>
-          </Toast>
-        );
-      }
-    });
-  }
+    try {
+      // Show an "Are you sure?" prompt
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to log out?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Logout',
+            onPress: async () => {
+              const userResponse = await UserLogout();
+              if (userResponse === 'Logged out successfully!') {
+                // Clear cookies or any other authentication-related storage
+                await SecureStore.deleteItemAsync('UserData');
+                setCurrentTab('Home');
+                // Show a success toast
+                toast.show({
+                  placement: 'top',
+                  render: ({ id }) => {
+                    return (
+                      <Toast nativeID={String(id)} variant="accent" action="success">
+                        <ToastTitle>{userResponse}</ToastTitle>
+                      </Toast>
+                    );
+                  },
+                });
+              } else {
+                // Show an error toast
+                toast.show({
+                  placement: 'top',
+                  render: ({ id }) => {
+                    return (
+                      <Toast nativeID={String(id)} variant="accent" action="error">
+                        <ToastTitle>{userResponse}</ToastTitle>
+                      </Toast>
+                    );
+                  },
+                });
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    } catch (error) {
+      // Handle any errors that may occur during the logout process
+      console.error('Error logging out:', error);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action="error">
+              <ToastTitle>Failed to log out. Please try again.</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+    }
+  };
 
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
     { title: 'Appearance', description: 'Customize your viewing experience', iconName: 'image', onPress: () => router.push('/set-appearance') },
-    { title: 'FAQ', description: "View the community's FAQ", iconName: 'info', onPress: () => router.push('faqpage') },
+    { title: 'FAQ', description: "View the community's FAQ", iconName: 'help-circle', onPress: () => router.push('faqpage') },
+    { title: 'About and Help', description: "View the Ts & Cs and Privacy Policy", iconName: 'info', onPress: () => router.push('info') },
     { title: 'Log out', description: 'Log out from your account', iconName: 'log-out', onPress: () => handleLogout() },
   ];
 
@@ -111,9 +166,6 @@ const Settings = () => {
             </View>
           ))}
         </VStack>
-        <Center style={styles.footerContainer}>
-          <Text style={[styles.versionText, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>Version 0.1.0</Text>
-        </Center>
       </ScrollView>
       <Navbar />
     </>
