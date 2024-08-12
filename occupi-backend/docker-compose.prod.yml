@@ -18,8 +18,14 @@ services:
       - /etc/letsencrypt/live/occupi.tech/privkey.pem:/etc/letsencrypt/live/occupi.tech/privkey.pem:ro
     restart: on-failure:5
     depends_on:
-        rabbitmq-dev:
+        rabbitmq-prod:
           condition: service_healthy
+        centrifugo-prod:
+          condition: service_started
+        prometheus-prod:
+          condition: service_started
+        grafana-prod:
+          condition: service_started
 
   rabbitmq-prod:
     image: rabbitmq:latest
@@ -40,9 +46,43 @@ services:
       timeout: 30s
       retries: 3
 
+  centrifugo-prod:
+    image: centrifugo/centrifugo:v5
+    container_name: centrifugo-prod
+    volumes:
+      - ./centrifugo.config.json:/centrifugo/centrifugo.config.json
+      - centrifugo-prod:/centrifugo/data
+    command: centrifugo -c centrifugo.config.json --health
+    ports:
+      - 8000:8000
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  prometheus-prod:
+    container_name: prometheus-prod
+    image: prom/prometheus
+    restart: on-failure:5
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    command:
+      - --config.file=/etc/prometheus/prometheus.prod.yml
+    volumes:
+      - ./prometheus.prod.yml:/etc/prometheus/prometheus.prod.yml
+    ports:
+      - "9090:9090"
+
+  grafana-prod:
+    container_name: grafana-prod
+    restart: on-failure:5
+    image: grafana/grafana
+    ports:
+      - "10000:3000"
+
 volumes:
-  mongo-prod:
   rabbitmq-prod:
+  centrifugo-prod:
 
 networks:
   webnet:

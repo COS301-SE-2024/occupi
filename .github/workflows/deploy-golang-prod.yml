@@ -54,10 +54,14 @@ jobs:
         run: |
                   echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/config.yaml.gpg > configs/config.yaml
   
-      - name: 🔓 Decrypt test variables
+      - name: 🔓 Decrypt prod variables
         run: |
                   echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/prod.yaml.gpg > configs/prod.yaml
-                  
+
+      - name: 🔓 Decrypt Centrifugo config
+        run: |
+                  echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/centrifugo.config.json.gpg > configs/centrifugo.config.json
+          
       - name: 🐳 Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -76,13 +80,21 @@ jobs:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
 
+      - name: 🔓 Decrypt Centrifugo config
+        run: |
+          echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/centrifugo.config.json.gpg > centrifugo.config.json
+
+      - name: ⏩ Move prometheus config
+        run: |
+          mv docker/prometheus.prod.yml prometheus.prod.yml
+
       - name: 🪷 Copy files to VM
         uses: appleboy/scp-action@v0.1.5
         with:
               host: ${{ secrets.VM_IP }}
               username: ${{ secrets.VM_USERNAME }}
               key: ${{ secrets.VM_SSH_KEY }}
-              source: "occupi-backend/docker-compose.prod.yml,occupi-backend/Dockerfile.prod"
+              source: "occupi-backend/docker-compose.prod.yml,occupi-backend/Dockerfile.prod,occupi-backend/centrifugo.config.json,occupi-backend/prometheus.prod.yml"
               target: "/home/${{ secrets.VM_USERNAME }}/occupi-backend-prod"
 
       # SSH to VM and run commands

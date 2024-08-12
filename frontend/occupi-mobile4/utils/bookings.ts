@@ -1,8 +1,8 @@
 import { Booking, Room } from "@/models/data";
-import { bookRoom, cancelBooking, checkin, getUserBookings } from "../services/apiservices";
+import { bookRoom, cancelBooking, checkin, getRooms, getUserBookings } from "../services/apiservices";
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
-import { BookRoomReq, CancelBookingReq } from "@/models/requests";
+import { BookRoomReq, CancelBookingReq, ViewBookingsReq, ViewRoomsReq } from "@/models/requests";
 
 export async function fetchUserBookings(): Promise<Booking[]> {
     let email = await SecureStore.getItemAsync('Email');
@@ -17,6 +17,49 @@ export async function fetchUserBookings(): Promise<Booking[]> {
             console.log(response)
         }
         return response.data as Booking[];
+    } catch (error) {
+        console.error('Error:', error);
+        throw error; // Add a throw statement to handle the error case
+    }
+}
+
+export async function fetchRooms(floorNo: string, roomName: string) {
+    let body: ViewRoomsReq = {};
+    if (floorNo !== '') {
+        body = {
+            operator: "eq",
+            filter: {
+                floorNo: floorNo,
+            }
+        }
+    }
+    else if (roomName !== '') {
+        body = {
+            operator: "eq",
+            filter: {
+                roomName: roomName,
+            }
+        }
+    }
+    else {
+        body = {
+            operator: "eq",
+            filter: {
+                floorNo: "0"
+            }
+        }
+    }
+    try {
+        const response = await getRooms(body);
+        if (response.status === 200) {
+            // console.log('response', response.data);
+            return response.data;
+            // console.log(settings);
+        }
+        else {
+            console.log(response)
+        }
+        return response.data as Room[];
     } catch (error) {
         console.error('Error:', error);
         throw error; // Add a throw statement to handle the error case
