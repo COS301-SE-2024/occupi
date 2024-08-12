@@ -28,8 +28,6 @@ const Notifications = () => {
     const yesterdayNotifications = [];
     const olderNotifications = [];
 
-    const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-
     useEffect(() => {
         const getSettings = async () => {
             let accentcolour = await SecureStore.getItemAsync('accentColour');
@@ -85,9 +83,9 @@ const Notifications = () => {
 
     const renderNotifications = (notificationList) => (
         notificationList.map((notification, idx) => (
-            <View key={idx}>
+            <View key={idx} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} my="$2" py="$1" px="$2" rounded='$2xl'>
                 <View pr="$2" flexDirection='row' alignItems='center'>
-                    <AntDesign name={notification.title === "Booking Invitation" ? "addusergroup" : "clockcircleo"} size={40} color={currentTheme === 'dark' ? '#FFFFFF' : '#000000'} />
+                    <AntDesign name={notification.title === "Booking Invitation" ? "addusergroup" : "clockcircleo"} size={30} color={currentTheme === 'dark' ? '#FFFFFF' : '#000000'} />
                     <Text pl={16} pr="$4" py={4} style={{ color: currentTheme === 'dark' ? '#FFFFFF' : '#000000' }}>
                         {notification.message} · <Text style={{ color: 'grey' }}>{formatNotificationDate(notification.send_time)}</Text>
                     </Text>
@@ -108,7 +106,7 @@ const Notifications = () => {
             {loading === true ? (
                 <>
                     {Array.from({ length: 8 }, (_, index) => (
-                        <View mt={index === 0 ? '$4' : '$2'}>
+                        <View key={index} mt={index === 0 ? '$4' : '$2'}>
                             <Skeleton colorMode={currentTheme === 'dark' ? 'dark' : 'light'} height={80} width={"100%"} />
                         </View>
                     ))}

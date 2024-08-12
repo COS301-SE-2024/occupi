@@ -4,18 +4,20 @@ import {
     View, Text
   } from '@gluestack-ui/themed';
   import * as SecureStore from 'expo-secure-store';
-  import { LineChart } from "react-native-gifted-charts"
+  import { BarChart } from "react-native-gifted-charts"
 import { useColorScheme } from 'react-native';
 import { useTheme } from './ThemeContext';
+import { convertValues } from '@/utils/occupancy';
 
 
-const LineGraph = (data) => {
+const BarGraph = (data) => {
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
     // console.log(data.data);
     const labels = currentTheme === 'dark' ? "lightgray" : "darkgrey";
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
+    // console.log(convertValues(data.data));
     useEffect(() => {
         const getAccentColour = async () => {
           let accentcolour = await SecureStore.getItemAsync('accentColour');
@@ -32,29 +34,27 @@ const LineGraph = (data) => {
         //   backgroundColor: '#414141',
         // }}
         >
-          <Text color={currentTheme === "dark" ? 'white' : 'black'} fontWeight="$medium" underline mb="$4" alignSelf='center'>Predicted Occupancy by level</Text>
-        <LineChart
+          <Text color={currentTheme === "dark" ? 'white' : 'black'} fontWeight="$medium" underline mb="$4" alignSelf='center'>Predicted Occupancy by Number</Text>
+        <BarChart
           isAnimated
           width={wp('80%')}
-          thickness={3}
           color={accentColour}
-          maxValue={5}
+          maxValue={1500}
           noOfSections={5}
           // hideRules
-          animateOnDataChange
-          animationDuration={1000}
-          onDataChangeAnimationDuration={300}
-          areaChart
+        //   animateOnDataChange={true}
+          animationDuration={500}
+        //   onDataChangeAnimationDuration={100}
           endSpacing={0}
           yAxisTextStyle={{color: labels}}
           xAxisLabelTextStyle={{color: labels}}
-          data={data.data}
-          hideDataPoints
-          startFillColor={accentColour}
-          endFillColor={accentColour}
-          startOpacity={0.5}
-          endOpacity={0.1}
-          spacing={47}
+          data={convertValues(data.data)}
+          showGradient
+          frontColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
+          gradientColor={accentColour}
+        //   barBorderTopLeftRadius={5}
+        //   barBorderTopRightRadius={5}
+          spacing={20}
           backgroundColor={currentTheme === 'dark' ? "#414141" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
@@ -68,4 +68,4 @@ const LineGraph = (data) => {
   )
 }
 
-export default LineGraph
+export default BarGraph

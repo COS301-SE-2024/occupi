@@ -4,7 +4,7 @@
 import { login, logout, register, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
-import { storeUserEmail, storeToken, setState, deleteToken, deleteUserData, deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings } from "../services/securestore";
+import { storeUserEmail, storeToken, setState, deleteAllData } from "../services/securestore";
 import { retrievePushToken } from "./notifications";
 
 
@@ -16,11 +16,11 @@ export async function UserLogin(email: string, password: string) {
             password: password
         });
         if (response.status === 200) {
-            console.log('responseee',response);
+            // console.log('responseee',response);
             if (response.data !== null) {
                 setState('logged_in');
                 storeToken(response.data.token);
-                console.log('here');
+                // console.log('here');
                 fetchUserDetails(email, response.data.token);
                 fetchNotificationSettings(email);
                 fetchSecuritySettings(email);
@@ -28,7 +28,7 @@ export async function UserLogin(email: string, password: string) {
             } 
             else {
                 setState('verify_otp_login');
-                router.replace('verify-otp')
+                router.replace('/verify-otp')
             }
 
             return response.message;
@@ -118,6 +118,7 @@ export async function VerifyUserOtpLogin(email : string, otp : string) {
     }
 } 
 
+
 export async function UserLogout() {
     // console.log('hhhh');
     try {
@@ -125,11 +126,7 @@ export async function UserLogout() {
         if (response.status === 200) {
             // console.log('responseee',response);
             setState('logged_out');
-            deleteNotificationSettings();
-            deleteSecuritySettings();
-            deleteUserData();
-            deleteToken();
-            deleteUserEmail();
+            deleteAllData();
             router.replace('/login');
             return response.message;
         }
@@ -141,5 +138,3 @@ export async function UserLogout() {
         console.error('Error:', error);
     }
 }
-
-// UserLogin("kamogelomoeketse@gmail.com", "Qwerty@123"); //test

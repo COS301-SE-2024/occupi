@@ -71,9 +71,9 @@ async function registerForPushNotificationsAsync() {
   return token;
 }
 
- export async function sendPushNotification(expoPushTokens: string[], title: string, body: string) {
+ export async function sendPushNotification(expoPushTokens, title: string, body: string) {
   const messages = expoPushTokens.map(token => ({
-    to: token,
+    to: token.expoPushToken,
     sound: 'default',
     title: title,
     body: body,
@@ -98,6 +98,7 @@ export async function getUserNotifications() {
   
   try {
     const request : NotificationsReq = {
+      operator: "eq",
       filter: {
           emails: [email]
       }

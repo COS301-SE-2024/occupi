@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, useColorScheme, TouchableOpacity, Text, Image } from 'react-native';
+import { ScrollView, useColorScheme, TouchableOpacity, Image } from 'react-native';
 import { Ionicons, Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
   Toast,
   ToastTitle,
   useToast,
+  Text,
   View
 } from '@gluestack-ui/themed';
 
@@ -178,7 +179,7 @@ const BookRoom = () => {
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <TouchableOpacity style={{ width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: `${accentColour}` }}>
-                      <Text style={{ bottom: 0, color: 'dimgrey', fontSize: 13 }}>Available: now</Text>
+                      <Text fontWeight={600} style={{ bottom: 0, color: 'black', fontSize: 13 }}>Available: now</Text>
                     </TouchableOpacity>
                     <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
                   </View>

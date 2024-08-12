@@ -1,8 +1,9 @@
 import { Booking, Room } from "@/models/data";
-import { bookRoom, cancelBooking, checkin, getRooms, getUserBookings } from "../services/apiservices";
+import { bookRoom, cancelBooking, checkin, getExpoPushTokens, getRooms, getUserBookings } from "../services/apiservices";
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { BookRoomReq, CancelBookingReq, ViewBookingsReq, ViewRoomsReq } from "@/models/requests";
+import { sendPushNotification } from "./notifications";
 
 export async function fetchUserBookings(): Promise<Booking[]> {
     let email = await SecureStore.getItemAsync('Email');
@@ -85,6 +86,10 @@ export async function userBookRoom(attendees : string[], startTime : string, end
     try {
         const response = await bookRoom(body);
         if (response.status === 200) {
+            console.log('attendees',attendees)
+            const pushTokens : string[] = (await getExpoPushTokens(attendees)).data;
+            console.log(pushTokens);
+            sendPushNotification(pushTokens, 'Meeting Invite', `${email} has invited you to a meeting in ${room.roomName} on ${room.date}`)
             return response.message;
         }
         return response.message;
