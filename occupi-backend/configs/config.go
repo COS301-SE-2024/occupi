@@ -52,6 +52,9 @@ const (
 	SentryDSN           = "SENTRY_DSN"
 	PassPhrase          = "TEST_PASS_PHRASE"
 	NewRelicLicenseKey  = "NEW_RELIC_LICENSE_KEY"
+	MiddlewareService   = "MIDDLEWARE_SERVICE"
+	MiddelwareAT        = "MIDDLEWARE_ACCESS_TOKEN"
+	MiddlewareTarget    = "MIDDLEWARE_TARGET"
 )
 
 // init viper
@@ -458,4 +461,28 @@ func GetTestPassPhrase() string {
 		passPhrase = "TEST_PASS_PHRASE"
 	}
 	return passPhrase
+}
+
+func GetMiddlewareService() string {
+	service := viper.GetString(MiddlewareService)
+	if service == "" {
+		service = "MIDDLEWARE_SERVICE"
+	}
+	return service
+}
+
+func GetMiddlewareAccessToken() string {
+	token := viper.GetString(MiddelwareAT)
+	if token == "" {
+		token = "MIDDLEWARE_ACCESS_TOKEN"
+	}
+	return token
+}
+
+func GetMiddlewareTarget() string {
+	target := viper.GetString(MiddlewareTarget)
+	if target == "" {
+		target = "MIDDLEWARE_TARGET"
+	}
+	return target
 }

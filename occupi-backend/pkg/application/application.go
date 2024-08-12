@@ -10,6 +10,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	track "github.com/middleware-labs/golang-apm/tracker"
 	"github.com/newrelic/go-agent/v3/integrations/nrgin"
 	"github.com/newrelic/go-agent/v3/integrations/nrlogrus"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -146,6 +147,15 @@ func (app *Application) AttachMoniteringMiddleware() *Application {
 		app.ginRouter.Use(sentrygin.New(sentrygin.Options{Repanic: true}))
 	}
 
+	return app
+}
+
+func (app *Application) AttachObservabilityMiddleware() *Application {
+	go track.Track(
+		track.WithConfigTag("service", configs.GetMiddlewareService()),
+		track.WithConfigTag("accessToken", configs.GetMiddlewareAccessToken()),
+		track.WithConfigTag("target", configs.GetMiddlewareTarget()),
+	)
 	return app
 }
 
