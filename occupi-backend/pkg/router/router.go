@@ -7,7 +7,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // creates available endpoints and attaches handlers for each endpoint
@@ -93,9 +92,5 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	{
 		rtc.POST("/enter", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, appsession) })
 		rtc.POST("/exit", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, appsession) })
-	}
-	metrics := router.Group("/metrics")
-	{
-		metrics.GET("", func(ctx *gin.Context) { promhttp.Handler().ServeHTTP(ctx.Writer, ctx.Request) })
 	}
 }
