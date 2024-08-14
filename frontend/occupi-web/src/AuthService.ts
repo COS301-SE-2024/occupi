@@ -1,7 +1,6 @@
 import axios from "axios";
-import { wrapper } from 'axios-cookiejar-support';
-import { CookieJar } from 'tough-cookie';
-
+import { wrapper } from "axios-cookiejar-support";
+import { CookieJar } from "tough-cookie";
 
 const jar = new CookieJar();
 const client = wrapper(axios.create({ jar }));
@@ -188,21 +187,11 @@ const AuthService = {
 
   logout: async () => {
     try {
-      // Attempt to clear all cookies from the specific domain
-      try {
-        const cookies = await jar.getCookies('https://dev.occupi.tech/');
-        console.log("All cookies:", cookies);
-        cookies.forEach(cookie => {
-          jar.setCookie(`${cookie.key}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT`, 'https://dev.occupi.tech/');
-        });
-      } catch (cookieError) {
-        console.error("Error clearing cookies:", cookieError);
-        throw new Error("Failed to clear cookies after logging out.");
-      }
-
       // Perform the logout request
-      const response = await client.post(`${API_URL}/logout`, {});
-
+      const response = await client.post(`${API_URL}/logout`, {
+        withCredentials: true,
+      });
+      console.log(response.data);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
@@ -211,8 +200,6 @@ const AuthService = {
       throw new Error("An unexpected error occurred whilst logging out");
     }
   },
-
-  
 
   updateUserDetails: async (userDetails: {
     email: string;
@@ -225,23 +212,29 @@ const AuthService = {
     pronouns: string;
   }) => {
     try {
-      const response = await axios.post(`${API_USER_URL}/update-user`, userDetails);
+      const response = await axios.post(
+        `${API_USER_URL}/update-user`,
+        userDetails
+      );
       if (response.data.status === 200) {
         return response.data;
       } else {
-        throw new Error(response.data.message || 'Failed to update user details');
+        throw new Error(
+          response.data.message || "Failed to update user details"
+        );
       }
     } catch (error) {
       console.error("Error in updateUserDetails:", error);
       if (axios.isAxiosError(error) && error.response) {
         throw error.response.data;
       }
-      throw new Error('An unexpected error occurred while updating user details');
+      throw new Error(
+        "An unexpected error occurred while updating user details"
+      );
     }
   },
 
-
-  getUserDetails : async (email: string) => {
+  getUserDetails: async (email: string) => {
     try {
       console.log(API_USER_URL);
       const response = await axios.get(
@@ -316,9 +309,5 @@ function bufferDecode(value: string | null): Uint8Array | null {
   // Decode Base64 string
   return Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
 }
-
-
-
-
 
 export default AuthService;
