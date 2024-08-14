@@ -89,17 +89,13 @@ jobs:
               run: |
                 echo "${{ secrets.GPG_PASSPHRASE }}" | gpg --quiet --batch --yes --decrypt --passphrase-fd 0 configs/centrifugo.config.json.gpg > centrifugo.config.json
 
-            - name: ⏩ Move prometheus config
-              run: |
-                mv docker/prometheus.dev.yml prometheus.dev.yml
-
             - name: 🪷 Copy files to VM
               uses: appleboy/scp-action@v0.1.5
               with:
                     host: ${{ secrets.VM_IP }}
                     username: ${{ secrets.VM_USERNAME }}
                     key: ${{ secrets.VM_SSH_KEY }}
-                    source: "occupi-backend/docker-compose.dev.yml,occupi-backend/Dockerfile.dev,occupi-backend/centrifugo.config.json,occupi-backend/prometheus.dev.yml"
+                    source: "occupi-backend/docker-compose.dev.yml,occupi-backend/Dockerfile.dev,occupi-backend/centrifugo.config.json"
                     target: "/home/${{ secrets.VM_USERNAME }}/occupi-backend-dev"
 
             # SSH to VM and run commands
