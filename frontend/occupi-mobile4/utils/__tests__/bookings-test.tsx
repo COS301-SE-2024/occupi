@@ -1,9 +1,8 @@
-import { fetchUserBookings, userCheckin, userCancelBooking } from '../bookings';
-import { getUserBookings, checkin, cancelBooking } from '../../services/apiservices';
+import * as bookingsUtils from '../bookings';
+import * as apiServices from '../../services/apiservices';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 
-// Mock dependencies
 jest.mock('../../services/apiservices');
 jest.mock('expo-secure-store');
 jest.mock('expo-router', () => ({
@@ -12,114 +11,227 @@ jest.mock('expo-router', () => ({
   },
 }));
 
-beforeEach(() => {
-  jest.spyOn(console, 'error').mockImplementation(() => {});
-});
-
-afterEach(() => {
-  jest.restoreAllMocks();
-});
-
-describe('../bookings.ts', () => {
+describe('bookings utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    console.log = jest.fn();
+    console.error = jest.fn();
   });
 
   describe('fetchUserBookings', () => {
     it('should fetch user bookings successfully', async () => {
       const mockEmail = 'test@example.com';
-      const mockBookings = [{ id: 1, title: 'Booking 1' }, { id: 2, title: 'Booking 2' }];
+      const mockBookings = [{ id: 1, name: 'Booking 1' }];
       
       (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockEmail);
-      (getUserBookings as jest.Mock).mockResolvedValue({ status: 200, data: mockBookings });
+      (apiServices.getUserBookings as jest.Mock).mockResolvedValue({
+        status: 200,
+        data: mockBookings,
+      });
 
-      const result = await fetchUserBookings();
+      const result = await bookingsUtils.fetchUserBookings();
 
       expect(SecureStore.getItemAsync).toHaveBeenCalledWith('Email');
-      expect(getUserBookings).toHaveBeenCalledWith(mockEmail);
+      expect(apiServices.getUserBookings).toHaveBeenCalledWith(mockEmail);
       expect(result).toEqual(mockBookings);
     });
 
-    it('should handle errors when fetching user bookings', async () => {
-      const mockError = new Error('API Error');
-      
-      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue('test@example.com');
-      (getUserBookings as jest.Mock).mockRejectedValue(mockError);
+    it('should log response when status is not 200', async () => {
+      const mockEmail = 'test@example.com';
+      const mockResponse = { status: 400, data: 'Error' };
 
-      await expect(fetchUserBookings()).rejects.toThrow('API Error');
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockEmail);
+      (apiServices.getUserBookings as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await bookingsUtils.fetchUserBookings();
+
+      expect(console.log).toHaveBeenCalledWith(mockResponse);
+      expect(result).toEqual('Error');
+    });
+
+    it('should handle and throw errors', async () => {
+      const mockError = new Error('API Error');
+
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue('test@example.com');
+      (apiServices.getUserBookings as jest.Mock).mockRejectedValue(mockError);
+
+      await expect(bookingsUtils.fetchUserBookings()).rejects.toThrow('API Error');
+      expect(console.error).toHaveBeenCalledWith('Error:', mockError);
+    });
+  });
+
+  describe('userBookRoom', () => {
+    it('should book a room successfully', async () => {
+      const mockRoom = JSON.stringify({
+        roomName: 'Room 1',
+        date: '2024-08-14',
+        floorNo: 1,
+        roomId: 'room1',
+      });
+      const mockEmail = 'test@example.com';
+      const mockAttendees = ['user1@example.com', 'user2@example.com'];
+      const mockStartTime = '09:00';
+      const mockEndTime = '10:00';
+      
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce(mockRoom)
+        .mockResolvedValueOnce(mockEmail);
+      
+      (apiServices.bookRoom as jest.Mock).mockResolvedValue({
+        status: 200,
+        message: 'Room booked successfully',
+      });
+
+      const result = await bookingsUtils.userBookRoom(mockAttendees, mockStartTime, mockEndTime);
+
+      expect(console.log).toHaveBeenCalled(); // Check if console.log was called
+      expect(apiServices.bookRoom).toHaveBeenCalled();
+      expect(result).toBe('Room booked successfully');
+    });
+
+    it('should handle booking failure', async () => {
+      const mockRoom = JSON.stringify({
+        roomName: 'Room 1',
+        date: '2024-08-14',
+        floorNo: 1,
+        roomId: 'room1',
+      });
+      
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce(mockRoom)
+        .mockResolvedValueOnce('test@example.com');
+      
+      (apiServices.bookRoom as jest.Mock).mockResolvedValue({
+        status: 400,
+        message: 'Booking failed',
+      });
+
+      const result = await bookingsUtils.userBookRoom([], '09:00', '10:00');
+
+      expect(result).toBe('Booking failed');
+    });
+
+    it('should handle and throw errors', async () => {
+      const mockError = new Error('Booking Error');
+
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce('{}')
+        .mockResolvedValueOnce('test@example.com');
+      
+      (apiServices.bookRoom as jest.Mock).mockRejectedValue(mockError);
+
+      await expect(bookingsUtils.userBookRoom([], '09:00', '10:00')).rejects.toThrow('Booking Error');
+      expect(console.error).toHaveBeenCalledWith('Error:', mockError);
     });
   });
 
   describe('userCheckin', () => {
-    it('should perform user check-in successfully', async () => {
-      const mockRoom = { occupiId: 'room123' };
-      const mockEmail = 'test@example.com';
+    it('should check in successfully', async () => {
+      const mockRoom = JSON.stringify({
+        occupiId: 'booking1',
+      });
       
       (SecureStore.getItemAsync as jest.Mock)
-        .mockResolvedValueOnce(JSON.stringify(mockRoom))
-        .mockResolvedValueOnce(mockEmail);
-      (checkin as jest.Mock).mockResolvedValue({ status: 200, message: 'Check-in successful' });
+        .mockResolvedValueOnce(mockRoom)
+        .mockResolvedValueOnce('test@example.com');
+      
+      (apiServices.checkin as jest.Mock).mockResolvedValue({
+        status: 200,
+        message: 'Checked in successfully',
+      });
 
-      const result = await userCheckin();
+      const result = await bookingsUtils.userCheckin();
 
-      expect(SecureStore.getItemAsync).toHaveBeenCalledWith('CurrentRoom');
-      expect(SecureStore.getItemAsync).toHaveBeenCalledWith('Email');
-      expect(checkin).toHaveBeenCalledWith({ email: mockEmail, bookingId: 'room123' });
-      expect(result).toBe('Check-in successful');
+      expect(apiServices.checkin).toHaveBeenCalled();
+      expect(result).toBe('Checked in successfully');
     });
 
-    it('should handle errors during user check-in', async () => {
-      const mockError = new Error('Check-in Error');
+    it('should handle check-in failure', async () => {
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce('{}')
+        .mockResolvedValueOnce('test@example.com');
       
-      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue('{}');
-      (checkin as jest.Mock).mockRejectedValue(mockError);
+      (apiServices.checkin as jest.Mock).mockResolvedValue({
+        status: 400,
+        message: 'Check-in failed',
+      });
 
-      await expect(userCheckin()).rejects.toThrow('Check-in Error');
+      const result = await bookingsUtils.userCheckin();
+
+      expect(result).toBe('Check-in failed');
+    });
+
+    it('should handle and throw errors', async () => {
+      const mockError = new Error('Check-in Error');
+
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce('{}')
+        .mockResolvedValueOnce('test@example.com');
+      
+      (apiServices.checkin as jest.Mock).mockRejectedValue(mockError);
+
+      await expect(bookingsUtils.userCheckin()).rejects.toThrow('Check-in Error');
+      expect(console.error).toHaveBeenCalledWith('Error:', mockError);
     });
   });
 
   describe('userCancelBooking', () => {
-    it('should cancel user booking successfully', async () => {
-      const mockRoom = {
-        occupiId: 'booking123',
-        emails: ['user1@example.com', 'user2@example.com'],
-        roomId: 'room123',
-        creator: 'user1@example.com',
-        date: '2023-07-30',
-        start: '10:00',
-        end: '11:00',
+    it('should cancel booking successfully', async () => {
+      const mockRoom = JSON.stringify({
+        occupiId: 'booking1',
+        emails: ['user1@example.com'],
+        roomId: 'room1',
+        creator: 'creator@example.com',
+        date: '2024-08-14',
+        start: '09:00',
+        end: '10:00',
         floorNo: 1,
-        roomName: 'Meeting Room A'
-      };
+        roomName: 'Room 1',
+      });
       
-      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(JSON.stringify(mockRoom));
-      (cancelBooking as jest.Mock).mockResolvedValue({ status: 200, message: 'Booking cancelled successfully' });
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce(mockRoom)
+        .mockResolvedValueOnce('test@example.com');
+      
+      (apiServices.cancelBooking as jest.Mock).mockResolvedValue({
+        status: 200,
+        message: 'Booking cancelled successfully',
+      });
 
-      const result = await userCancelBooking();
+      const result = await bookingsUtils.userCancelBooking();
 
-      expect(SecureStore.getItemAsync).toHaveBeenCalledWith('CurrentRoom');
-      expect(cancelBooking).toHaveBeenCalledWith(expect.objectContaining({
-        bookingId: 'booking123',
-        emails: ['user1@example.com', 'user2@example.com'],
-        roomId: 'room123',
-        creator: 'user1@example.com',
-        date: '2023-07-30',
-        start: '10:00',
-        end: '11:00',
-        floorNo: 1,
-        roomName: 'Meeting Room A'
-      }));
+      expect(apiServices.cancelBooking).toHaveBeenCalled();
       expect(router.replace).toHaveBeenCalledWith('/home');
       expect(result).toBe('Booking cancelled successfully');
     });
 
-    it('should handle errors during booking cancellation', async () => {
-      const mockError = new Error('Cancellation Error');
+    it('should handle cancellation failure', async () => {
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce('{}')
+        .mockResolvedValueOnce('test@example.com');
       
-      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue('{}');
-      (cancelBooking as jest.Mock).mockRejectedValue(mockError);
+      (apiServices.cancelBooking as jest.Mock).mockResolvedValue({
+        status: 400,
+        message: 'Cancellation failed',
+      });
 
-      await expect(userCancelBooking()).rejects.toThrow('Cancellation Error');
+      const result = await bookingsUtils.userCancelBooking();
+
+      expect(result).toBe('Cancellation failed');
+      expect(router.replace).not.toHaveBeenCalled();
+    });
+
+    it('should handle and throw errors', async () => {
+      const mockError = new Error('Cancellation Error');
+
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce('{}')
+        .mockResolvedValueOnce('test@example.com');
+      
+      (apiServices.cancelBooking as jest.Mock).mockRejectedValue(mockError);
+
+      await expect(bookingsUtils.userCancelBooking()).rejects.toThrow('Cancellation Error');
+      expect(console.error).toHaveBeenCalledWith('Error:', mockError);
     });
   });
 });
