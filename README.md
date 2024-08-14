@@ -65,6 +65,12 @@
 
 <p align="center">
 
+# Demo Videos
+<a href="https://drive.google.com/file/d/1v7x7XFYvpQImidjSdRyLIqlNk6hofTeL/view?usp=sharing">Demo 1</a>
+<a href="https://drive.google.com/file/d/1v7x7XFYvpQImidjSdRyLIqlNk6hofTeL/view?usp=sharing">Demo 2</a>
+<a href="https://drive.google.com/file/d/1v7x7XFYvpQImidjSdRyLIqlNk6hofTeL/view?usp=sharing">Demo 3</a>
+
+
 ### Software Requirements Specification
 [Document](https://docs.occupi.tech/srs)
 
