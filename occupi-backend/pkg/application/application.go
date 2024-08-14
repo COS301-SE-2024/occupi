@@ -52,9 +52,7 @@ func (app *Application) InitializeConfig() *Application {
 }
 
 func (app *Application) SetupLogger() *Application {
-	if configs.GetEnv() != prod || configs.GetEnv() != devdeployed {
-		utils.SetupLogger()
-	}
+	utils.SetupLogger()
 	return app
 }
 
