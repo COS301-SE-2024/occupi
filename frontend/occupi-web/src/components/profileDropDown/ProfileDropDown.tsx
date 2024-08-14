@@ -28,7 +28,9 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isNotificationsModalOpen, setNotificationsModalOpen] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const [notifications, setNotifications] = useState<import("NotificationsService").Notification[]>([]);
+  const [notifications, setNotifications] = useState<
+    import("NotificationsService").Notification[]
+  >([]);
 
   useEffect(() => {
     loadNotifications();
@@ -36,7 +38,8 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
 
   const loadNotifications = async () => {
     try {
-      const fetchedNotifications = await NotificationService.fetchNotifications();
+      const fetchedNotifications =
+        await NotificationService.fetchNotifications();
       setNotifications(fetchedNotifications);
     } catch (error) {
       console.error("Error loading notifications:", error);
@@ -106,8 +109,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
         <DropdownMenu
           aria-label="User Actions"
           variant="flat"
-          className={isMinimized ? "ml-2" : ""}
-        >
+          className={isMinimized ? "ml-2" : ""}>
           <DropdownItem key="profile" className="h-14 gap-2">
             <p className="font-bold text-text_col">Signed in as</p>
             <p className="font-bold text-text_col">{userDetails?.email}</p>
@@ -120,38 +122,33 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
                 <Badge
                   content={unreadCount}
                   color="warning"
-                  style={{ position: "absolute", top: 0, right: 0 }}
-                >
+                  style={{ position: "absolute", top: 0, right: 0 }}>
                   <Bell />
                 </Badge>
               </div>
             }
-            onClick={handleOpenNotifications}
-          >
+            onClick={handleOpenNotifications}>
             Notifications
           </DropdownItem>
           <DropdownItem
             key="settings"
             shortcut="⌘S"
             startContent={<SettingsIcon />}
-            onClick={() => navigateTo("/settings")}
-          >
+            onClick={() => navigateTo("/settings")}>
             Settings
           </DropdownItem>
           <DropdownItem
             key="faq"
             shortcut="⌘H"
             startContent={<Faq />}
-            onClick={() => navigateTo("/faq")}
-          >
+            onClick={() => navigateTo("/faq")}>
             Help/FAQ
           </DropdownItem>
           <DropdownItem
             data-testid="logout"
             key="logout"
             color="danger"
-            onClick={handleLogout}
-          >
+            onClick={handleLogout}>
             Logout
           </DropdownItem>
         </DropdownMenu>
