@@ -14,11 +14,16 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export async function retrievePushToken(): Promise<string> {
+export async function retrievePushToken(): Promise<string | undefined> {
+  if (!Device.isDevice) {
+    global.alert('Must use physical device for Push Notifications');
+    return undefined;
+  }
+
   const token = await registerForPushNotificationsAsync();
-  // console.log(token);
   return token as string;
 }
+
 
 // retrievePushToken();
 // console.log('yurp');

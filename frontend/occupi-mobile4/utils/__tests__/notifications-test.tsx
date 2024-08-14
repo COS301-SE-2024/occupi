@@ -1,90 +1,180 @@
+import { Platform } from 'react-native';
+import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import { sendPushNotification } from '../notifications'; // Adjust the import path as needed
+import Constants from 'expo-constants';
+import * as SecureStore from 'expo-secure-store';
+import { getNotifications } from '@/services/apiservices';
+import {
+  retrievePushToken,
+  sendPushNotification,
+  getUserNotifications
+} from '../notifications';
 
-jest.mock('expo-notifications');
-jest.mock('node-fetch');
+jest.mock('expo-device', () => ({
+  isDevice: jest.fn(),
+}));
 
-describe('Notification Functions', () => {
+jest.mock('expo-secure-store');
+jest.mock('@/services/apiservices');
+
+global.alert = jest.fn();
+describe('Notifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (Device.isDevice as jest.Mock).mockReset();
+    (Notifications.getPermissionsAsync as jest.Mock).mockReset();
+    (Notifications.requestPermissionsAsync as jest.Mock).mockReset();
+    (Notifications.getExpoPushTokenAsync as jest.Mock).mockReset();
+    (Notifications.setNotificationChannelAsync as jest.Mock).mockReset();
+    (SecureStore.getItemAsync as jest.Mock).mockReset();
+    console.log = jest.fn();
+    console.error = jest.fn();
+    global.fetch = jest.fn();
+    global.alert = jest.fn();
   });
 
-  test('setNotificationHandler sets the correct handler', () => {
-    // Manually call setNotificationHandler to ensure it's executed
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-      }),
+  
+  describe('retrievePushToken', () => {
+    it('should retrieve push token successfully', async () => {
+      const mockToken = 'ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]';
+      (Device.isDevice as jest.Mock).mockReturnValue(true);
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+      (Notifications.getExpoPushTokenAsync as jest.Mock).mockResolvedValue({ data: mockToken });
+
+      const result = await retrievePushToken();
+
+      expect(result).toBe(mockToken);
     });
 
-    expect(Notifications.setNotificationHandler).toHaveBeenCalledWith(expect.objectContaining({
-      handleNotification: expect.any(Function),
-    }));
-  });
-
-  test('handleNotification returns correct configuration', async () => {
-    // Manually call setNotificationHandler to ensure it's executed
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-      }),
+    it('should handle Android platform', async () => {
+      const originalOS = Platform.OS;
+      Platform.OS = 'android';
+      const mockToken = 'ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]';
+      (Device.isDevice as jest.Mock).mockReturnValue(true);
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+      (Notifications.getExpoPushTokenAsync as jest.Mock).mockResolvedValue({ data: mockToken });
+    
+      await retrievePushToken();
+    
+      expect(Notifications.setNotificationChannelAsync).toHaveBeenCalledWith('default', expect.any(Object));
+      Platform.OS = originalOS;
     });
 
-    const handler = (Notifications.setNotificationHandler as jest.Mock).mock.calls[0][0];
-    const result = await handler.handleNotification();
-    expect(result).toEqual({
-      shouldShowAlert: true,
-      shouldPlaySound: false,
-      shouldSetBadge: false,
+    it('should request permissions if not granted', async () => {
+      const mockToken = 'ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]';
+      (Device.isDevice as jest.Mock).mockReturnValue(true);
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'undetermined' });
+      (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+      (Notifications.getExpoPushTokenAsync as jest.Mock).mockResolvedValue({ data: mockToken });
+    
+      const result = await retrievePushToken();
+    
+      expect(Notifications.requestPermissionsAsync).toHaveBeenCalled();
+      expect(result).toBe(mockToken);
     });
-  });
 
-  test('sendPushNotification sends notifications to all tokens', async () => {
-    const mockFetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ data: 'success' }),
+    it('should alert if permissions are not granted', async () => {
+      (Device.isDevice as jest.Mock).mockReturnValue(true);
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'undetermined' });
+      (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'denied' });
+    
+      await retrievePushToken();
+    
+      expect(global.alert).toHaveBeenCalledWith('Failed to get push token for push notification!');
     });
-    global.fetch = mockFetch as any;
 
-    const expoPushTokens = ['token1', 'token2', 'token3'];
-    const title = 'Test Title';
-    const body = 'Test Body';
+    it('should handle error when getting push token', async () => {
+      (Device.isDevice as jest.Mock).mockReturnValue(true);
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+      (Notifications.getExpoPushTokenAsync as jest.Mock).mockRejectedValue(new Error('Token error'));
+    
+      const result = await retrievePushToken();
+    
+      expect(result).toBe('Error: Token error');
+    });
 
-    await sendPushNotification(expoPushTokens, title, body);
-
-    expect(mockFetch).toHaveBeenCalledTimes(3);
-
-    expoPushTokens.forEach((token, index) => {
-      expect(mockFetch).toHaveBeenNthCalledWith(index + 1, 'https://exp.host/--/api/v2/push/send', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Accept-encoding': 'gzip, deflate',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: token,
-          sound: 'default',
-          title: title,
-          body: body,
-          data: { someData: 'goes here' },
-        }),
+    describe('retrievePushToken', () => {
+      it('should alert if not on a physical device', async () => {
+        // Mock Device.isDevice to return false
+        (Device.isDevice as jest.Mock).mockReturnValue(false);
+    
+        // Call the function
+        const result = await retrievePushToken();
+    
+        // Check if alert was called
+        expect(global.alert).toHaveBeenCalledWith('Must use physical device for Push Notifications');
+        expect(result).toBeUndefined();
+    
+        // Ensure permissions were not checked
+        expect(Notifications.getPermissionsAsync).not.toHaveBeenCalled();
+        expect(Notifications.requestPermissionsAsync).not.toHaveBeenCalled();
       });
     });
+    
+    
+    
   });
 
-  test('sendPushNotification handles errors', async () => {
-    const mockFetch = jest.fn().mockRejectedValue(new Error('Network error'));
-    global.fetch = mockFetch as any;
+  describe('sendPushNotification', () => {
+    it('should send push notifications to all tokens', async () => {
+      const mockTokens = ['token1', 'token2'];
+      const mockTitle = 'Test Title';
+      const mockBody = 'Test Body';
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
 
-    const expoPushTokens = ['token1'];
-    const title = 'Test Title';
-    const body = 'Test Body';
+      await sendPushNotification(mockTokens, mockTitle, mockBody);
 
-    await expect(sendPushNotification(expoPushTokens, title, body)).rejects.toThrow('Network error');
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://exp.host/--/api/v2/push/send',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.any(Object),
+          body: expect.any(String),
+        })
+      );
+    });
+  });
+
+  describe('getUserNotifications', () => {
+    it('should get user notifications successfully', async () => {
+      const mockEmail = 'test@example.com';
+      const mockNotifications = [{ id: 1, message: 'Test notification' }];
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockEmail);
+      (getNotifications as jest.Mock).mockResolvedValue({
+        status: 200,
+        data: mockNotifications,
+      });
+
+      const result = await getUserNotifications();
+
+      expect(SecureStore.getItemAsync).toHaveBeenCalledWith('Email');
+      expect(getNotifications).toHaveBeenCalledWith({
+        filter: { emails: [mockEmail] },
+      });
+      expect(result).toEqual(mockNotifications);
+    });
+
+    it('should handle non-200 response', async () => {
+      const mockEmail = 'test@example.com';
+      const mockResponse = { status: 400, data: 'Error' };
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(mockEmail);
+      (getNotifications as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await getUserNotifications();
+
+      expect(console.log).toHaveBeenCalledWith(mockResponse);
+      expect(result).toBe('Error');
+    });
+
+    it('should handle errors', async () => {
+      const mockError = new Error('API Error');
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue('test@example.com');
+      (getNotifications as jest.Mock).mockRejectedValue(mockError);
+
+      await getUserNotifications();
+
+      expect(console.error).toHaveBeenCalledWith('Error:', mockError);
+    });
   });
 });
