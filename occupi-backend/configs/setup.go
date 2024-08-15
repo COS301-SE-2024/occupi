@@ -9,6 +9,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/ipinfo/go/v2/ipinfo/cache"
+	"github.com/redis/go-redis/v9"
 
 	"context"
 	"fmt"
@@ -70,24 +71,30 @@ func ConnectToDatabase(args ...string) *mongo.Client {
 }
 
 // Create cache
-func CreateCache() *bigcache.BigCache {
+func CreateCache() *redis.Client {
 	if GetEnv() == "devlocalhost" || GetEnv() == "devdeployed" || GetEnv() == "devlocalhostdocker" {
 		fmt.Printf("Cache is disabled in %s mode\n", GetEnv())
 		logrus.Printf("Cache is disabled in %s mode\n", GetEnv())
 		return nil
 	}
 
-	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to 5 seconds
-	config.CleanWindow = time.Duration(GetCacheEviction()/2) * time.Second            // Set the cleanup interval to 5 seconds
-	cache, err := bigcache.New(context.Background(), config)
+	redisUsername := GetRedisUsername()
+	redisPassword := GetRedisPassword()
+	redisHost := GetRedisHost()
+	redisPort := GetRedisPort()
+
+	url := fmt.Sprintf("redis://%s:%s@%s:%s/0?protocol=3", redisUsername, redisPassword, redisHost, redisPort)
+	opts, err := redis.ParseURL(url)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
+	client := redis.NewClient(opts)
+
 	fmt.Println("Cache created!")
 	logrus.Info("Cache created!")
 
-	return cache
+	return client
 }
 
 // Create cache for sessions
