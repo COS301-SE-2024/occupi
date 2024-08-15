@@ -21,8 +21,8 @@ import (
 // handler for logging a new user on occupi /auth/login
 func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -101,8 +101,8 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 
 func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -186,8 +186,8 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 
 func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -250,8 +250,8 @@ func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role stri
 
 func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -323,8 +323,8 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 
 func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -387,8 +387,8 @@ func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, ro
 // handler for registering a new user on occupi /auth/register
 func Register(ctx *gin.Context, appsession *models.AppSession) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -477,8 +477,8 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 // handler for generating a new otp for a user and resending it via email
 func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType string) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -527,8 +527,8 @@ func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType strin
 // handler for verifying a users otp /api/verify-otp
 func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role string, cookies bool) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -604,8 +604,8 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 // handler for Verify 2fa
 func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -661,8 +661,8 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
 func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 	hub := sentrygin.GetHubFromContext(ctx)
 
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -719,8 +719,8 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -821,8 +821,8 @@ func Logout(ctx *gin.Context) {
 // handler for checking if this email is verified
 func IsEmailVerified(ctx *gin.Context, appsession *models.AppSession) {
 	hub := sentrygin.GetHubFromContext(ctx)
-	if hub != nil {
-		logrus.Info("Sentry hub found in context")
+	if hub == nil {
+		logrus.Info("Sentry hub not found in context")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
