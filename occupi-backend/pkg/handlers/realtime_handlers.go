@@ -26,6 +26,7 @@ func Enter(ctx *gin.Context, appsession *models.AppSession) {
 	counter++
 	uuid, err := publishCounter(ctx, appsession)
 	if err != nil {
+		captureError(ctx, err)
 		logrus.WithError(err).Error("error publishing message")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -43,6 +44,7 @@ func Exit(ctx *gin.Context, appsession *models.AppSession) {
 	}
 	uuid, err := publishCounter(ctx, appsession)
 	if err != nil {
+		captureError(ctx, err)
 		logrus.WithError(err).Error("error publishing message")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return

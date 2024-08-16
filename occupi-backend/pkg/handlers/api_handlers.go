@@ -60,6 +60,7 @@ func FetchResourceAuth(ctx *gin.Context, appsession *models.AppSession) {
 func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	var bookingRequest map[string]interface{}
 	if err := ctx.ShouldBindJSON(&bookingRequest); err != nil {
+		captureError(ctx, err)
 		HandleValidationErrors(ctx, err)
 		return
 	}
@@ -67,6 +68,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	// Validate JSON
 	validatedData, err := utils.ValidateJSON(bookingRequest, reflect.TypeOf(models.Booking{}))
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
 		return
 	}
@@ -75,6 +77,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	var booking models.Booking
 	bookingBytes, _ := json.Marshal(validatedData)
 	if err := json.Unmarshal(bookingBytes, &booking); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to book", constants.InternalServerErrorCode, "Failed to check in", nil))
 		return
 	}
@@ -87,17 +90,20 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	// Save the booking to the database
 	_, err = database.SaveBooking(ctx, appsession, booking)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to save booking", constants.InternalServerErrorCode, "Failed to save booking", nil))
 		return
 	}
 
 	if err := mail.SendBookingEmails(booking); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to send booking email", constants.InternalServerErrorCode, "Failed to send booking email", nil))
 		return
 	}
 
 	tokens, err := database.GetUsersPushTokens(ctx, appsession, booking.Emails)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get push tokens", constants.InternalServerErrorCode, "Failed to get push tokens", nil))
 		return
 	}
@@ -105,6 +111,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	tokenArr, err := utils.ConvertTokensToStringArray(tokens, "expoPushToken")
 
 	if err != nil {
+		captureError(ctx, err)
 		logrus.Error("Failed to convert tokens to string array because: ", err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -123,11 +130,13 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	success, errv := database.AddNotification(ctx, appsession, scheduledNotification, true)
 
 	if errv != nil {
+		captureError(ctx, errv)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
 		return
 	}
 
 	if !success {
+		captureMessage(ctx, "failed to schedule notification booking starting soon")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
 		return
 	}
@@ -145,11 +154,13 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	success, errv = database.AddNotification(ctx, appsession, notification, false)
 
 	if errv != nil {
+		captureError(ctx, errv)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
 		return
 	}
 
 	if !success {
+		captureMessage(ctx, "failed to schedule notification booking invitation")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to schedule notification", constants.InternalServerErrorCode, "Failed to schedule notification", nil))
 		return
 	}
@@ -160,6 +171,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	var cancelRequest map[string]interface{}
 	if err := ctx.ShouldBindJSON(&cancelRequest); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
 		return
 	}
@@ -167,6 +179,7 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	// Validate JSON
 	validatedData, err := utils.ValidateJSON(cancelRequest, reflect.TypeOf(models.Cancel{}))
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
 		return
 	}
@@ -175,6 +188,7 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	var cancel models.Cancel
 	cancelBytes, _ := json.Marshal(validatedData)
 	if err := json.Unmarshal(cancelBytes, &cancel); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel", constants.InternalServerErrorCode, "Failed to cancel", nil))
 		return
 	}
@@ -182,6 +196,7 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	// Check if the booking exists
 	exists := database.BookingExists(ctx, appsession, cancel.BookingID)
 	if !exists {
+		captureMessage(ctx, "booking not found")
 		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
 		return
 	}
@@ -189,11 +204,13 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 	// Confirm the cancellation to the database
 	_, err = database.ConfirmCancellation(ctx, appsession, cancel.BookingID, cancel.Creator)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to cancel booking", constants.InternalServerErrorCode, "Failed to cancel booking", nil))
 		return
 	}
 
 	if err := mail.SendCancellationEmails(cancel); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "An error occurred", constants.InternalServerErrorCode, "Failed to send booking email", nil))
 		return
 	}
@@ -205,6 +222,7 @@ func CancelBooking(ctx *gin.Context, appsession *models.AppSession) {
 func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	var checkInRequest map[string]interface{}
 	if err := ctx.ShouldBindJSON(&checkInRequest); err != nil {
+		captureError(ctx, err)
 		HandleValidationErrors(ctx, err)
 		return
 	}
@@ -212,6 +230,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	// Validate JSON
 	validatedData, err := utils.ValidateJSON(checkInRequest, reflect.TypeOf(models.CheckIn{}))
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.BadRequestCode, err.Error(), nil))
 		return
 	}
@@ -220,6 +239,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	var checkIn models.CheckIn
 	checkInBytes, _ := json.Marshal(validatedData)
 	if err := json.Unmarshal(checkInBytes, &checkIn); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to check in", constants.InternalServerErrorCode, "Failed to check in", nil))
 		return
 	}
@@ -227,6 +247,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	// Check if the booking exists
 	exists := database.BookingExists(ctx, appsession, checkIn.BookingID)
 	if !exists {
+		captureMessage(ctx, "booking not found")
 		ctx.JSON(http.StatusNotFound, utils.ErrorResponse(http.StatusNotFound, "Booking not found", constants.InternalServerErrorCode, "Booking not found", nil))
 		return
 	}
@@ -234,6 +255,7 @@ func CheckIn(ctx *gin.Context, appsession *models.AppSession) {
 	// Confirm the check-in to the database
 	_, err = database.ConfirmCheckIn(ctx, appsession, checkIn)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to check in", constants.InternalServerErrorCode, "Failed to check in. Email not associated with booking", nil))
 		return
 	}
@@ -248,6 +270,7 @@ func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 		if emailStr == "" {
 			email, err := AttemptToGetEmail(ctx, appsession)
 			if err != nil {
+				captureError(ctx, err)
 				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 					http.StatusBadRequest,
 					"Invalid request payload",
@@ -266,6 +289,7 @@ func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 	// Get all the user details
 	user, err := database.GetUserDetails(ctx, appsession, request.Email)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get user details", constants.InternalServerErrorCode, "Failed to get user details", nil))
 		return
 	}
@@ -276,6 +300,7 @@ func GetUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 	var user models.UserDetailsRequest
 	if err := ctx.ShouldBindJSON(&user); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
 		return
 	}
@@ -283,13 +308,17 @@ func UpdateUserDetails(ctx *gin.Context, appsession *models.AppSession) {
 	// Update the user details in the database
 	_, err := database.UpdateUserDetails(ctx, appsession, user)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update user details", constants.InternalServerErrorCode, "Failed to update user details", nil))
 		return
 	}
 
 	// if user is updating their email, create a new token for them
 	if user.Email != "" {
-		AttemptToSignNewEmail(ctx, appsession, user.Email)
+		if err := AttemptToSignNewEmail(ctx, appsession, user.Email); err != nil {
+			logrus.Error("Failed to sign new email because: ", err)
+			captureError(ctx, err)
+		}
 		return
 	}
 
@@ -307,6 +336,7 @@ func HandleValidationErrors(ctx *gin.Context, err error) {
 				Message: utils.GetErrorMsg(err),
 			}
 		}
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid request payload", gin.H{"errors": out}))
 	}
 }
@@ -340,6 +370,7 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 		if limitStr != "" {
 			limit, err := strconv.ParseInt(limitStr, 10, 64) // Base 10, 64-bit size
 			if err != nil {
+				captureError(ctx, err)
 				// Handle the error if the conversion fails, maybe set an error response
 				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid limit format", constants.InvalidRequestPayloadCode, "Invalid limit format", nil))
 				return
@@ -351,6 +382,7 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 		if pageStr != "" {
 			page, err := strconv.ParseInt(pageStr, 10, 64) // Base 10, 64-bit size
 			if err != nil {
+				captureError(ctx, err)
 				// Handle the error if the conversion fails, maybe set an error response
 				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid page format", constants.InvalidRequestPayloadCode, "Invalid page format", nil))
 				return
@@ -363,6 +395,7 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 		if filterStr != "" {
 			var filterMap map[string]interface{}
 			if err := json.Unmarshal([]byte(filterStr), &filterMap); err != nil {
+				captureError(ctx, err)
 				// Handle JSON unmarshal error, maybe set an error response
 				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid filter format", constants.InvalidRequestPayloadCode, "Invalid filter format", nil))
 				return
@@ -391,6 +424,7 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 	if collectionName == "RoomBooking" {
 		// check that the email field is set
 		if _, ok := filter.Filter["email"]; !ok {
+			captureError(ctx, errors.New("email field not set"))
 			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Email must be provided", nil))
 			return
 		}
@@ -409,6 +443,7 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 	res, totalResults, err := database.FilterCollectionWithProjection(ctx, appsession, collectionName, filter)
 
 	if err != nil {
+		captureError(ctx, err)
 		logrus.Error("Failed to filter collection because: ", err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -421,6 +456,7 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 			err := database.ReadNotifications(ctx, appsession, email)
 
 			if err != nil {
+				captureError(ctx, err)
 				logrus.Error("Failed to read notifications because: ", err)
 				// it's not a critical error so we don't return an error response
 			}
@@ -438,6 +474,7 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 		if emailsStr != "" {
 			emails.Emails = utils.ConvertCommaDelimitedStringToArray(emailsStr)
 		} else {
+			captureError(ctx, err)
 			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 				http.StatusBadRequest,
 				"Invalid request payload",
@@ -453,6 +490,7 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 
 	// validate the emails
 	if !utils.ValidateEmails(emails.Emails) {
+		captureError(ctx, errors.New("one or more of the emails are of invalid format"))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "One or more of email addresses are of Invalid format", nil))
 		return
 	}
@@ -460,6 +498,7 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 	pushTokens, err := database.GetUsersPushTokens(ctx, appsession, emails.Emails)
 
 	if err != nil {
+		captureError(ctx, err)
 		logrus.Error("Failed to get users: ", err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get push tokens", constants.InternalServerErrorCode, "Failed to get push tokens", nil))
 		return
@@ -471,6 +510,7 @@ func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
 func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	var securitySettings models.SecuritySettingsRequest
 	if err := ctx.ShouldBindJSON(&securitySettings); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -486,6 +526,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 		email, err := AttemptToGetEmail(ctx, appsession)
 
 		if err != nil {
+			captureError(ctx, err)
 			logrus.Error("Failed to get email because: ", err)
 			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 				http.StatusBadRequest,
@@ -503,6 +544,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	if (securitySettings.CurrentPassword == "" && (securitySettings.NewPassword != "" || securitySettings.NewPasswordConfirm != "")) ||
 		(securitySettings.NewPassword == "" && (securitySettings.CurrentPassword != "" || securitySettings.NewPasswordConfirm != "")) ||
 		(securitySettings.NewPasswordConfirm == "" && (securitySettings.CurrentPassword != "" || securitySettings.NewPassword != "")) {
+		captureError(ctx, errors.New("current password, new password and new password confirm must all be provided"))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -514,6 +556,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	// check if the password match
 	if securitySettings.NewPassword != "" && securitySettings.NewPassword != securitySettings.NewPasswordConfirm {
+		captureError(ctx, errors.New("new password and new password confirm do not match"))
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -527,6 +570,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	if securitySettings.CurrentPassword != "" && securitySettings.NewPassword != "" && securitySettings.NewPasswordConfirm != "" {
 		securitySetting, err, success := SanitizeSecuritySettingsPassword(ctx, appsession, securitySettings)
 		if err != nil || !success {
+			captureError(ctx, fmt.Errorf("failed to sanitize security settings because: %v", err))
 			logrus.Error("Failed to sanitize security settings because: ", err)
 			return
 		}
@@ -536,6 +580,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	// if mfa string is set, ensure it's either "on" or "off"
 	if securitySettings.Mfa != "" && securitySettings.Mfa != constants.On && securitySettings.Mfa != constants.Off {
+		captureMessage(ctx, "mfa must be either 'on' or 'off'")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -547,6 +592,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	// if forceLogout string is set, ensure it's either "on" or "off"
 	if securitySettings.ForceLogout != "" && securitySettings.ForceLogout != constants.On && securitySettings.ForceLogout != constants.Off {
+		captureMessage(ctx, "forceLogout must be either 'on' or 'off'")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -557,6 +603,7 @@ func UpdateSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	if err := database.UpdateSecuritySettings(ctx, appsession, securitySettings); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
 			"Failed to update security settings",
@@ -576,6 +623,7 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 		if emailStr == "" {
 			email, err := AttemptToGetEmail(ctx, appsession)
 			if err != nil {
+				captureError(ctx, err)
 				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 					http.StatusBadRequest,
 					"Invalid request payload",
@@ -593,6 +641,7 @@ func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	securitySettings, err := database.GetSecuritySettings(ctx, appsession, request.Email)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
 			"Failed to get security settings",
@@ -610,6 +659,7 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 	if err := ctx.ShouldBindJSON(&notificationsSettings); err != nil {
 		email, err := AttemptToGetEmail(ctx, appsession)
 		if err != nil {
+			captureError(ctx, err)
 			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 				http.StatusBadRequest,
 				"Invalid request payload",
@@ -633,6 +683,7 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 
 	// If invites is set, ensure it's either "on" or "off"
 	if notificationsSettings.Invites != "" && notificationsSettings.Invites != constants.On && notificationsSettings.Invites != constants.Off {
+		captureMessage(ctx, "invites must be either 'on' or 'off'")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -644,6 +695,7 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 
 	// If bookingReminder is set, ensure it's either "on" or "off"
 	if notificationsSettings.BookingReminder != "" && notificationsSettings.BookingReminder != constants.On && notificationsSettings.BookingReminder != constants.Off {
+		captureMessage(ctx, "bookingReminder must be either 'on' or 'off'")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -655,6 +707,7 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession)
 
 	// update the notification settings
 	if err := database.UpdateNotificationSettings(ctx, appsession, notificationsSettings); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
 			"Failed to update notification settings",
@@ -674,6 +727,7 @@ func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
 		if emailStr == "" {
 			email, err := AttemptToGetEmail(ctx, appsession)
 			if err != nil {
+				captureError(ctx, err)
 				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 					http.StatusBadRequest,
 					"Invalid request payload",
@@ -691,6 +745,7 @@ func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
 
 	notificationSettings, err := database.GetNotificationSettings(ctx, appsession, request.Email)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
 			"Failed to get notification settings",
@@ -706,6 +761,7 @@ func GetNotificationSettings(ctx *gin.Context, appsession *models.AppSession) {
 func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	file, err := ctx.FormFile("image")
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -719,6 +775,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	if err := ctx.ShouldBindJSON(&requestEmail); err != nil {
 		email, err := AttemptToGetEmail(ctx, appsession)
 		if err != nil {
+			captureError(ctx, err)
 			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 				http.StatusBadRequest,
 				"Invalid request payload",
@@ -735,6 +792,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	if err == nil {
 		err = database.DeleteImageData(ctx, appsession, id)
 		if err != nil {
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Failed to delete user image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return
@@ -748,6 +806,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, constants.HighWidth, false)
 
 	if err != nil || errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Failed to convert image to bytes")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -766,6 +825,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	newID, err := database.UploadImageData(ctx, appsession, profileImage)
 
 	if err != nil {
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Failed to upload image data")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -775,6 +835,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	err = database.SetUserImage(ctx, appsession, requestEmail.Email, newID)
 
 	if err != nil {
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Failed to set user image")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -791,6 +852,7 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 		if email == "" {
 			email, err := AttemptToGetEmail(ctx, appsession)
 			if err != nil {
+				captureError(ctx, err)
 				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 					http.StatusBadRequest,
 					"Invalid request payload",
@@ -816,6 +878,7 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	// get the image id
 	id, err := database.GetUserImage(ctx, appsession, request.Email)
 	if err != nil {
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Failed to get user image")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -824,6 +887,7 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	// get the image data
 	imageData, err := database.GetImageData(ctx, appsession, id, request.Quality)
 	if err != nil {
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Failed to get image data")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -858,6 +922,7 @@ func DownloadImage(ctx *gin.Context, appsession *models.AppSession) {
 		request.ID = ctx.Param("id")
 		request.Quality = ctx.Query("quality")
 		if request.ID == "" {
+			captureError(ctx, errors.New("id must be provided"))
 			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 				http.StatusBadRequest,
 				"Invalid request payload",
@@ -874,12 +939,10 @@ func DownloadImage(ctx *gin.Context, appsession *models.AppSession) {
 		request.Quality = constants.MidRes
 	}
 
-	// print the request
-	fmt.Println(request)
-
 	// get the image data
 	imageData, err := database.GetImageData(ctx, appsession, request.ID, request.Quality)
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get image", constants.InternalServerErrorCode, "Failed to get image", nil))
 		return
 	}
@@ -904,6 +967,7 @@ func DownloadImage(ctx *gin.Context, appsession *models.AppSession) {
 func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload bool) {
 	file, err := ctx.FormFile("image")
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -920,6 +984,7 @@ func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload boo
 	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, constants.HighWidth, false)
 
 	if errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to convert file to bytes", constants.InternalServerErrorCode, "Failed to convert file to bytes", nil))
 		return
 	}
@@ -937,6 +1002,7 @@ func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload boo
 	newID, err := database.UploadImageData(ctx, appsession, profileImage)
 
 	if err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to upload image", constants.InternalServerErrorCode, "Failed to upload image", nil))
 		return
 	}
@@ -957,6 +1023,7 @@ func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload boo
 		err = database.AddImageIDToRoom(ctx, appsession, roomid, newID)
 
 		if err != nil {
+			captureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update room image", constants.InternalServerErrorCode, "Failed to update room image", nil))
 			return
 		}
@@ -968,6 +1035,7 @@ func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload boo
 func AddRoom(ctx *gin.Context, appsession *models.AppSession) {
 	var room models.RequestRoom
 	if err := ctx.ShouldBindJSON(&room); err != nil {
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -986,6 +1054,7 @@ func AddRoom(ctx *gin.Context, appsession *models.AppSession) {
 		} else {
 			msg = "Failed to add room"
 		}
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
 			"Failed to add room",
