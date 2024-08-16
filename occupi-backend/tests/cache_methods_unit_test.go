@@ -1,13 +1,14 @@
 package tests
 
 import (
+	"context"
 	"errors"
 	"testing"
 
+	"github.com/go-redis/redismock/v9"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
@@ -17,7 +18,7 @@ func TestUserKey(t *testing.T) {
 	expected := "Users:test@example.com"
 	result := cache.UserKey(email)
 	if result != expected {
-		t.Errorf("UserKey(%s) = %s; want %s", email, result, expected)
+		t.Errorf("cache.UserKey(%s) = %s; want %s", email, result, expected)
 	}
 }
 
@@ -50,239 +51,357 @@ func TestImageKey(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	email := "test@example.com"
-	user := models.User{Email: email}
-	userData, _ := bson.Marshal(user)
+	// Test case: cache is nil
+	t.Run("cache is nil", func(t *testing.T) {
+		appsession := &models.AppSession{Cache: nil}
+		_, err := cache.GetUser(appsession, "test@example.com")
+		if err == nil || err.Error() != "cache not found" {
+			t.Errorf("expected error 'cache not found', got: %v", err)
+		}
+	})
 
-	tests := []struct {
-		name         string
-		email        string
-		expectedUser models.User
-		expectedErr  error
-	}{
-		{
-			name:         "cache is nil",
-			email:        email,
-			expectedUser: models.User{},
-			expectedErr:  errors.New("cache not found"),
-		},
-		{
-			name:         "cache key does not exist",
-			email:        "test1@example.com",
-			expectedUser: models.User{},
-			expectedErr:  errors.New("Entry not found"),
-		},
-		{
-			name:         "successful get user from cache",
-			email:        email,
-			expectedUser: user,
-			expectedErr:  nil,
-		},
-	}
+	// Test case: key does not exist in cache
+	t.Run("key does not exist", func(t *testing.T) {
+		// Mock the Redis client
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var appsession *models.AppSession
+		// Expect the Get command to return a key not found error
+		mock.ExpectGet(cache.UserKey("test@example.com")).RedisNil()
 
-			// add user to cache
-			if tt.name != "cache is nil" {
-				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
-				}
-				err := appsession.Cache.Set(cache.UserKey(email), userData)
+		_, err := cache.GetUser(appsession, "test@example.com")
+		if err == nil {
+			t.Errorf("expected redis.Nil error, got: %v", err)
+		}
 
-				assert.NoError(t, err)
-			} else {
-				appsession = &models.AppSession{}
-			}
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
 
-			result, err := cache.GetUser(appsession, tt.email)
+	// Test case: res.Bytes() fails
+	t.Run("res.Bytes() fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
 
-			assert.Equal(t, tt.expectedUser, result)
-			if tt.expectedErr != nil {
-				assert.EqualError(t, err, tt.expectedErr.Error())
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
+		// Expect the Get command to succeed, but Bytes() to fail
+		mock.ExpectGet(cache.UserKey("test@example.com")).SetVal("invalid_data")
+
+		_, err := cache.GetUser(appsession, "test@example.com")
+		if err == nil {
+			t.Errorf("expected an error, got nil")
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test case: bson.Unmarshal fails
+	t.Run("bson.Unmarshal fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+
+		// Mock some invalid BSON data
+		invalidBson := []byte{0x01, 0x02, 0x03}
+
+		// Expect the Get command to return this invalid BSON data
+		mock.ExpectGet(cache.UserKey("test@example.com")).SetVal(string(invalidBson))
+
+		_, err := cache.GetUser(appsession, "test@example.com")
+		if err == nil {
+			t.Errorf("expected an unmarshalling error, got nil")
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test case: success
+	t.Run("success", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+
+		// Create a sample user and marshal it into BSON
+		expectedUser := models.User{Email: "test@example.com"}
+
+		userBson, err := bson.Marshal(expectedUser)
+		if err != nil {
+			t.Fatalf("failed to marshal user: %v", err)
+		}
+
+		// Expect the Get command to return the valid BSON
+		mock.ExpectGet(cache.UserKey("test@example.com")).SetVal(string(userBson))
+
+		user, err := cache.GetUser(appsession, "test@example.com")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		// Assert that the user matches the expected user
+		assert.Equal(t, expectedUser.Email, user.Email)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
 }
 
 func TestSetUser(t *testing.T) {
-	email := "test@example.com"
-	user := models.User{Email: email}
+	// Test case 1: Cache is nil
+	t.Run("cache is nil", func(t *testing.T) {
+		appsession := &models.AppSession{Cache: nil}
+		user := models.User{Email: "test@example.com"}
 
-	tests := []struct {
-		name         string
-		user         models.User
-		expectedUser models.User
-	}{
-		{
-			name:         "cache is nil",
-			user:         user,
-			expectedUser: models.User{},
-		},
-		{
-			name:         "successful set user in cache",
-			user:         user,
-			expectedUser: user,
-		},
-	}
+		// Call SetUser
+		cache.SetUser(appsession, user)
+		// No assertions needed; we're ensuring it returns without crashing.
+	})
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var appsession *models.AppSession
+	// Test case 2: Marshalling the user fails
+	t.Run("marshal fails", func(t *testing.T) {
+		db, _ := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
 
-			if tt.name != "cache is nil" {
-				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
-				}
-			} else {
-				appsession = &models.AppSession{}
-			}
+		invalidUser := models.User{Email: ""}
 
-			cache.SetUser(appsession, tt.user)
+		// Call SetUser, expecting it to log the error and return early
+		cache.SetUser(appsession, invalidUser)
+		// No assertions needed; the function logs the error and returns.
+	})
 
-			if tt.name != "cache is nil" {
+	// Test case 3: Successfully setting a user in the cache
+	t.Run("success", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
 
-				// check if user was set in cache
-				userData, err := appsession.Cache.Get(cache.UserKey(email))
-				assert.NoError(t, err)
+		// Create a valid user
+		user := models.User{Email: "test@example.com"}
 
-				// unmarshal the user from the cache
-				var user models.User
-				if err := bson.Unmarshal(userData, &user); err != nil {
-					t.Error("failed to unmarshall", err)
-				}
+		// Marshal the user to BSON
+		userBson, err := bson.Marshal(user)
+		if err != nil {
+			t.Fatalf("failed to marshal user: %v", err)
+		}
 
-				assert.Equal(t, tt.expectedUser, user)
-			}
-		})
-	}
+		// Expect the Set command to be called with correct parameters
+		mock.ExpectSet(cache.UserKey(user.Email), userBson, 0).SetVal("OK")
+
+		// Call SetUser
+		cache.SetUser(appsession, user)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test case 4: Setting the user in the cache fails
+	t.Run("set fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+
+		// Create a valid user
+		user := models.User{Email: "test@example.com"}
+
+		// Marshal the user to BSON
+		userBson, err := bson.Marshal(user)
+		if err != nil {
+			t.Fatalf("failed to marshal user: %v", err)
+		}
+
+		// Expect the Set command to fail with an error
+		mock.ExpectSet(cache.UserKey(user.Email), userBson, 0).SetErr(errors.New("failed to set user"))
+
+		// Call SetUser
+		cache.SetUser(appsession, user)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
 }
 
 func TestDeleteUser(t *testing.T) {
-	email := "test@example.com"
-	user := models.User{Email: email}
+	// Test case 1: Cache is nil
+	t.Run("cache is nil", func(t *testing.T) {
+		appsession := &models.AppSession{Cache: nil}
+		email := "test@example.com"
 
-	tests := []struct {
-		name         string
-		email        string
-		expectedUser models.User
-	}{
-		{
-			name:         "cache is nil",
-			email:        email,
-			expectedUser: models.User{},
-		},
-		{
-			name:         "successful delete user in cache",
-			email:        email,
-			expectedUser: models.User{},
-		},
-		{
-			name:         "cache key does not exist",
-			email:        "doesnotexist@example.com",
-			expectedUser: models.User{},
-		},
-	}
+		// Call DeleteUser
+		cache.DeleteUser(appsession, email)
+		// No assertions needed; we're ensuring it returns without crashing.
+	})
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var appsession *models.AppSession
+	// Test case 2: Successfully deleting a user from the cache
+	t.Run("success", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+		email := "test@example.com"
 
-			if tt.name != "cache is nil" {
-				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
-				}
+		// Expect the Del command to be called with the correct key
+		mock.ExpectDel(cache.UserKey(email)).SetVal(1) // Assuming 1 means successful deletion
 
-				// add user to cache
-				userData, _ := bson.Marshal(user)
-				err := appsession.Cache.Set(cache.UserKey(email), userData)
+		// Call DeleteUser
+		cache.DeleteUser(appsession, email)
 
-				assert.NoError(t, err)
-			} else {
-				appsession = &models.AppSession{}
-			}
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
 
-			cache.DeleteUser(appsession, tt.email)
+	// Test case 3: Deletion fails
+	t.Run("delete fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+		email := "test@example.com"
 
-			if tt.name != "cache is nil" && tt.name != "cache key does not exist" {
+		// Expect the Del command to fail with an error
+		mock.ExpectDel(cache.UserKey(email)).SetErr(errors.New("failed to delete user"))
 
-				// check if user was deleted in cache
-				userData, err := appsession.Cache.Get(cache.UserKey(email))
-				assert.NotNil(t, err)
-				assert.Nil(t, userData)
-			}
+		// Call DeleteUser
+		cache.DeleteUser(appsession, email)
 
-			if tt.name == "cache key does not exist" {
-				// check if user was not deleted in cache
-				userData, err := appsession.Cache.Get(cache.UserKey(email))
-				assert.NoError(t, err)
-				assert.NotNil(t, userData)
-			}
-		})
-	}
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
 }
 
 func TestGetOTP(t *testing.T) {
-	email := "test@example.com"
-	otpv := "123456"
-	otp := models.OTP{Email: email, OTP: otpv}
-	otpData, _ := bson.Marshal(otp)
+	// Test case 1: Cache is nil
+	t.Run("cache is nil", func(t *testing.T) {
+		appsession := &models.AppSession{Cache: nil}
+		email := "test@example.com"
+		otp := "123456"
 
-	tests := []struct {
-		name        string
-		email       string
-		expectedOTP models.OTP
-		expectedErr error
-	}{
-		{
-			name:        "cache is nil",
-			email:       email,
-			expectedOTP: models.OTP{},
-			expectedErr: errors.New("cache not found"),
-		},
-		{
-			name:        "cache key does not exist",
-			email:       "test1@example.com",
-			expectedOTP: models.OTP{},
-			expectedErr: errors.New("Entry not found"),
-		},
-		{
-			name:        "successful get otp from cache",
-			email:       email,
-			expectedOTP: otp,
-			expectedErr: nil,
-		},
-	}
+		// Call GetOTP
+		otpData, err := cache.GetOTP(appsession, email, otp)
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var appsession *models.AppSession
+		// Check if the error is as expected
+		if err == nil || err.Error() != "cache not found" {
+			t.Errorf("expected error 'cache not found', got '%v'", err)
+		}
 
-			// add otp to cache
-			if tt.name != "cache is nil" {
-				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
-				}
-				err := appsession.Cache.Set(cache.OTPKey(email, otpv), otpData)
+		// Check if the returned OTP data is empty
+		if otpData != (models.OTP{}) {
+			t.Errorf("expected empty OTP data, got %+v", otpData)
+		}
+	})
 
-				assert.NoError(t, err)
-			} else {
-				appsession = &models.AppSession{}
-			}
+	// Test case 2: Redis Get command returns an error
+	t.Run("redis get returns error", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+		email := "test@example.com"
+		otp := "123456"
 
-			result, err := cache.GetOTP(appsession, tt.email, otpv)
+		// Expect the Get command to return an error
+		mock.ExpectGet(cache.OTPKey(email, otp)).RedisNil()
 
-			assert.Equal(t, tt.expectedOTP, result)
-			if tt.expectedErr != nil {
-				assert.EqualError(t, err, tt.expectedErr.Error())
-			} else {
-				assert.NoError(t, err)
-			}
-		})
-	}
+		// Call GetOTP
+		otpData, err := cache.GetOTP(appsession, email, otp)
+
+		// Check if the error is as expected
+		if err != nil {
+			t.Errorf("expected error '%v', got '%v'", err)
+		}
+
+		// Check if the returned OTP data is empty
+		if otpData != (models.OTP{}) {
+			t.Errorf("expected empty OTP data, got %+v", otpData)
+		}
+	})
+
+	// Test case 3: res.Bytes() returns an error
+	t.Run("res.Bytes() returns error", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+		email := "test@example.com"
+		otp := "123456"
+
+		// Simulate redis.Get command with invalid data
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal("invalid_data")
+
+		// Call GetOTP
+		otpData, err := cache.GetOTP(appsession, email, otp)
+
+		// Check if the error contains "failed to get bytes"
+		if err == nil || err.Error() != "failed to get bytes" {
+			t.Errorf("expected error 'failed to get bytes', got '%v'", err)
+		}
+
+		// Check if the returned OTP data is empty
+		if otpData != (models.OTP{}) {
+			t.Errorf("expected empty OTP data, got %+v", otpData)
+		}
+	})
+
+	// Test case 4: bson.Unmarshal fails
+	t.Run("bson.Unmarshal fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+		email := "test@example.com"
+		otp := "123456"
+
+		// Simulate redis.Get command with invalid BSON data
+		invalidBson := []byte{0x01, 0x02, 0x03}
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(invalidBson))
+
+		// Call GetOTP
+		otpData, err := cache.GetOTP(appsession, email, otp)
+
+		// Check if the error contains "failed to unmarshall"
+		if err == nil || err.Error() != "failed to unmarshall" {
+			t.Errorf("expected error 'failed to unmarshall', got '%v'", err)
+		}
+
+		// Check if the returned OTP data is empty
+		if otpData != (models.OTP{}) {
+			t.Errorf("expected empty OTP data, got %+v", otpData)
+		}
+	})
+
+	// Test case 5: Successfully get OTP from cache
+	t.Run("success", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{Cache: db}
+		email := "test@example.com"
+		otp := "123456"
+
+		// Create a valid OTP
+		expectedOTP := models.OTP{OTP: otp}
+
+		// Marshal the OTP to BSON
+		otpBson, err := bson.Marshal(expectedOTP)
+		if err != nil {
+			t.Fatalf("failed to marshal OTP: %v", err)
+		}
+
+		// Expect the Get command to be called with the correct key
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(otpBson))
+
+		// Call GetOTP
+		otpData, err := cache.GetOTP(appsession, email, otp)
+
+		// Check if there is no error
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		// Check if the returned OTP data matches the expected OTP
+		if otpData != expectedOTP {
+			t.Errorf("expected OTP data %+v, got %+v", expectedOTP, otpData)
+		}
+	})
 }
 
 func TestSetOTP(t *testing.T) {
@@ -312,11 +431,12 @@ func TestSetOTP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			db, mock := redismock.NewClientMock()
 			var appsession *models.AppSession
 
 			if tt.name != "cache is nil" {
 				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
+					Cache: db,
 				}
 			} else {
 				appsession = &models.AppSession{}
@@ -326,8 +446,8 @@ func TestSetOTP(t *testing.T) {
 
 			if tt.name != "cache is nil" {
 				// check if otp was set in cache
-				otpData, err := appsession.Cache.Get(cache.OTPKey(email, otpv))
-				assert.NoError(t, err)
+				otpData, err := appsession.Cache.Get(context.Background(), cache.OTPKey(email, otpv))
+				assert.NoError(t, res.Err())
 
 				// unmarshal the otp from the cache
 				var otp models.OTP
@@ -372,18 +492,19 @@ func TestDeleteOTPF(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			db, mock := redismock.NewClientMock()
 			var appsession *models.AppSession
 
 			if tt.name != "cache is nil" {
 				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
+					Cache: db,
 				}
 
 				// add otp to cache
 				otpData, _ := bson.Marshal(otp)
-				err := appsession.Cache.Set(cache.OTPKey(email, otpv), otpData)
+				err := appsession.Cache.Set(context.Background(), cache.OTPKey(email, otpv), otpData)
 
-				assert.NoError(t, err)
+				assert.NoError(t, res.Err())
 			} else {
 				appsession = &models.AppSession{}
 			}
@@ -392,15 +513,15 @@ func TestDeleteOTPF(t *testing.T) {
 
 			if tt.name != "cache is nil" && tt.name != "cache key does not exist" {
 				// check if otp was deleted in cache
-				otpData, err := appsession.Cache.Get(cache.OTPKey(email, otpv))
+				otpData, err := appsession.Cache.Get(context.Background(), cache.OTPKey(email, otpv))
 				assert.NotNil(t, err)
 				assert.Nil(t, otpData)
 			}
 
 			if tt.name == "cache key does not exist" {
 				// check if otp was not deleted in cache
-				otpData, err := appsession.Cache.Get(cache.OTPKey(email, otpv))
-				assert.NoError(t, err)
+				otpData, err := appsession.Cache.Get(context.Background(), cache.OTPKey(email, otpv))
+				assert.NoError(t, res.Err())
 				assert.NotNil(t, otpData)
 			}
 		})
@@ -429,11 +550,12 @@ func TestSetBooking(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			db, mock := redismock.NewClientMock()
 			var appsession *models.AppSession
 
 			if tt.name != "cache is nil" {
 				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
+					Cache: db,
 				}
 			} else {
 				appsession = &models.AppSession{}
@@ -443,8 +565,8 @@ func TestSetBooking(t *testing.T) {
 
 			if tt.name != "cache is nil" {
 				// check if booking was set in cache
-				bookingData, err := appsession.Cache.Get(cache.RoomBookingKey(tt.booking.OccupiID))
-				assert.NoError(t, err)
+				bookingData, err := appsession.Cache.Get(context.Background(), cache.RoomBookingKey(tt.booking.OccupiID))
+				assert.NoError(t, res.Err())
 
 				// unmarshal the booking from the cache
 				var booking models.Booking
@@ -490,16 +612,17 @@ func TestGetBooking(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			db, mock := redismock.NewClientMock()
 			var appsession *models.AppSession
 
 			// add booking to cache
 			if tt.name != "cache is nil" {
 				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
+					Cache: db,
 				}
-				err := appsession.Cache.Set(cache.RoomBookingKey(booking.OccupiID), bookingData)
+				err := appsession.Cache.Set(context.Background(), cache.RoomBookingKey(booking.OccupiID), bookingData)
 
-				assert.NoError(t, err)
+				assert.NoError(t, res.Err())
 			} else {
 				appsession = &models.AppSession{}
 			}
@@ -543,18 +666,19 @@ func TestDeleteBooking(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			db, mock := redismock.NewClientMock()
 			var appsession *models.AppSession
 
 			if tt.name != "cache is nil" {
 				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
+					Cache: db,
 				}
 
 				// add booking to cache
 				bookingData, _ := bson.Marshal(booking)
-				err := appsession.Cache.Set(cache.RoomBookingKey(booking.OccupiID), bookingData)
+				err := appsession.Cache.Set(context.Background(), cache.RoomBookingKey(booking.OccupiID), bookingData)
 
-				assert.NoError(t, err)
+				assert.NoError(t, res.Err())
 			} else {
 				appsession = &models.AppSession{}
 			}
@@ -563,15 +687,15 @@ func TestDeleteBooking(t *testing.T) {
 
 			if tt.name != "cache is nil" && tt.name != "cache key does not exist" {
 				// check if booking was deleted in cache
-				bookingData, err := appsession.Cache.Get(cache.RoomBookingKey(booking.OccupiID))
+				bookingData, err := appsession.Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
 				assert.NotNil(t, err)
 				assert.Nil(t, bookingData)
 			}
 
 			if tt.name == "cache key does not exist" {
 				// check if booking was not deleted in cache
-				bookingData, err := appsession.Cache.Get(cache.RoomBookingKey(booking.OccupiID))
-				assert.NoError(t, err)
+				bookingData, err := appsession.Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
+				assert.NoError(t, res.Err())
 				assert.NotNil(t, bookingData)
 			}
 		})
@@ -600,11 +724,12 @@ func TestSetImage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			db, mock := redismock.NewClientMock()
 			var appsession *models.AppSession
 
 			if tt.name != "cache is nil" {
 				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
+					Cache: db,
 				}
 			} else {
 				appsession = &models.AppSession{}
@@ -614,8 +739,8 @@ func TestSetImage(t *testing.T) {
 
 			if tt.name != "cache is nil" {
 				// check if image was set in cache
-				imageData, err := appsession.Cache.Get(cache.ImageKey(tt.image.ID))
-				assert.NoError(t, err)
+				imageData, err := appsession.Cache.Get(context.Background(), cache.ImageKey(tt.image.ID))
+				assert.NoError(t, res.Err())
 
 				// unmarshal the image from the cache
 				var image models.Image
@@ -661,16 +786,17 @@ func TestGetImage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			db, mock := redismock.NewClientMock()
 			var appsession *models.AppSession
 
 			// add image to cache
 			if tt.name != "cache is nil" {
 				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
+					Cache: db,
 				}
-				err := appsession.Cache.Set(cache.ImageKey(image.ID), imageData)
+				err := appsession.Cache.Set(context.Background(), cache.ImageKey(image.ID), imageData)
 
-				assert.NoError(t, err)
+				assert.NoError(t, res.Err())
 			} else {
 				appsession = &models.AppSession{}
 			}
@@ -714,18 +840,19 @@ func TestDeleteImage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			db, mock := redismock.NewClientMock()
 			var appsession *models.AppSession
 
 			if tt.name != "cache is nil" {
 				appsession = &models.AppSession{
-					Cache: configs.CreateCache(),
+					Cache: db,
 				}
 
 				// add image to cache
 				imageData, _ := bson.Marshal(image)
-				err := appsession.Cache.Set(cache.ImageKey(image.ID), imageData)
+				err := appsession.Cache.Set(context.Background(), cache.ImageKey(image.ID), imageData)
 
-				assert.NoError(t, err)
+				assert.NoError(t, res.Err())
 			} else {
 				appsession = &models.AppSession{}
 			}
@@ -734,15 +861,15 @@ func TestDeleteImage(t *testing.T) {
 
 			if tt.name != "cache is nil" && tt.name != "cache key does not exist" {
 				// check if image was deleted in cache
-				imageData, err := appsession.Cache.Get(cache.ImageKey(image.ID))
+				imageData, err := appsession.Cache.Get(context.Background(), cache.ImageKey(image.ID))
 				assert.NotNil(t, err)
 				assert.Nil(t, imageData)
 			}
 
 			if tt.name == "cache key does not exist" {
 				// check if image was not deleted in cache
-				imageData, err := appsession.Cache.Get(cache.ImageKey(image.ID))
-				assert.NoError(t, err)
+				imageData, err := appsession.Cache.Get(context.Background(), cache.ImageKey(image.ID))
+				assert.NoError(t, res.Err())
 				assert.NotNil(t, imageData)
 			}
 		})

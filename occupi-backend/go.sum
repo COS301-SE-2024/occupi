@@ -65,6 +65,8 @@ github.com/go-playground/validator v9.31.0+incompatible h1:UA72EPEogEnq76ehGdEDp
 github.com/go-playground/validator v9.31.0+incompatible/go.mod h1:yrEkQXlcI+PugkyDjY2bRrL/UBU4f3rvrgkN3V8JEig=
 github.com/go-playground/validator/v10 v10.20.0 h1:K9ISHbSaI0lyB2eWMPJo+kOS/FBExVwjEviJTixqxL8=
 github.com/go-playground/validator/v10 v10.20.0/go.mod h1:dbuPbCMFw/DrkbEynArYaCwl3amGuJotoKCe95atGMM=
+github.com/go-redis/redismock/v9 v9.2.0 h1:ZrMYQeKPECZPjOj5u9eyOjg8Nnb0BS9lkVIZ6IpsKLw=
+github.com/go-redis/redismock/v9 v9.2.0/go.mod h1:18KHfGDK4Y6c2R0H38EUGWAdc7ZQS9gfYxc94k7rWT0=
 github.com/go-webauthn/webauthn v0.11.0 h1:2U0jWuGeoiI+XSZkHPFRtwaYtqmMUsqABtlfSq1rODo=
 github.com/go-webauthn/webauthn v0.11.0/go.mod h1:57ZrqsZzD/eboQDVtBkvTdfqFYAh/7IwzdPT+sPWqB0=
 github.com/go-webauthn/x v0.1.12 h1:RjQ5cvApzyU/xLCiP+rub0PE4HBZsLggbxGR5ZpUf/A=
