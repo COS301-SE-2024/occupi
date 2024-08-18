@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -42,17 +43,19 @@ func TestSaveBooking_WithCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the booking is in the Cache
-	cachedBooking1, err := Cache.Get(cache.RoomBookingKey(booking.OccupiID))
-	assert.Nil(t, err)
-	assert.NotNil(t, cachedBooking1)
+	cachedBooking1 := Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
+	res, errv := cachedBooking1.Bytes()
+	assert.Nil(t, errv)
+	assert.NotNil(t, res)
 
 	// sleep for 2 * Cache expiry time to ensure the Cache expires
 	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
 
 	// Verify the booking is not in the Cache
-	cachedBooking2, err := Cache.Get(cache.UserKey(booking.OccupiID))
-	assert.NotNil(t, err)
-	assert.Nil(t, cachedBooking2)
+	cachedBooking2 := Cache.Get(context.Background(), cache.UserKey(booking.OccupiID))
+	res, errv = cachedBooking2.Bytes()
+	assert.NotNil(t, errv)
+	assert.Nil(t, res)
 }
 
 func TestConfirmCheckin_WithCache(t *testing.T) {
@@ -93,7 +96,8 @@ func TestConfirmCheckin_WithCache(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	err = Cache.Set(cache.RoomBookingKey(booking.OccupiID), bookingData)
+	res := Cache.Set(context.Background(), cache.RoomBookingKey(booking.OccupiID), bookingData, 0)
+	assert.Nil(t, res.Err())
 
 	assert.Nil(t, err)
 
@@ -102,17 +106,19 @@ func TestConfirmCheckin_WithCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the booking is in the Cache
-	cachedBooking1, err := Cache.Get(cache.RoomBookingKey(checkin.BookingID))
-	assert.Nil(t, err)
-	assert.NotNil(t, cachedBooking1)
+	cachedBooking1 := Cache.Get(context.Background(), cache.RoomBookingKey(checkin.BookingID))
+	res1, errv := cachedBooking1.Bytes()
+	assert.Nil(t, errv)
+	assert.NotNil(t, res1)
 
 	// sleep for 2 * Cache expiry time to ensure the Cache expires
 	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
 
 	// Verify the booking is not in the Cache
-	cachedBooking2, err := Cache.Get(cache.UserKey(checkin.BookingID))
-	assert.NotNil(t, err)
-	assert.Nil(t, cachedBooking2)
+	cachedBooking2 := Cache.Get(context.Background(), cache.UserKey(checkin.BookingID))
+	res2, errv := cachedBooking2.Bytes()
+	assert.NotNil(t, errv)
+	assert.Nil(t, res2)
 }
 
 func TestEmailExistsPerformance(t *testing.T) {
@@ -205,9 +211,10 @@ func TestEmailExists_WithCache(t *testing.T) {
 	assert.True(t, exists)
 
 	// Verify the user is in the Cache
-	cachedUser, err := Cache.Get(cache.UserKey(email))
+	res := Cache.Get(context.Background(), cache.UserKey(email))
+	cachedUser, errv := res.Bytes()
 
-	assert.Nil(t, err)
+	assert.Nil(t, errv)
 	assert.NotNil(t, cachedUser)
 }
 
@@ -300,9 +307,10 @@ func TestBookingExists_WithCache(t *testing.T) {
 	assert.True(t, exists)
 
 	// Verify the booking is in the Cache
-	cachedBooking, err := Cache.Get(cache.RoomBookingKey(id))
+	res := Cache.Get(context.Background(), cache.RoomBookingKey(id))
+	cachedBooking, errv := res.Bytes()
 
-	assert.Nil(t, err)
+	assert.Nil(t, errv)
 	assert.NotNil(t, cachedBooking)
 }
 
@@ -334,7 +342,9 @@ func TestAddUser_WithCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the user is in the Cache
-	cachedUser, err := Cache.Get(cache.UserKey(user.Email))
+	res := Cache.Get(context.Background(), cache.UserKey(user.Email))
+	cachedUser, err := res.Bytes()
+
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
 
@@ -342,7 +352,9 @@ func TestAddUser_WithCache(t *testing.T) {
 	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
 
 	// Verify the user is not in the Cache
-	cachedUser, err = Cache.Get(cache.UserKey(user.Email))
+	res = Cache.Get(context.Background(), cache.UserKey(user.Email))
+	cachedUser, err = res.Bytes()
+
 	assert.NotNil(t, err)
 	assert.Nil(t, cachedUser)
 }
@@ -372,17 +384,21 @@ func TestAddOTP_WithCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the otp is in the Cache
-	cachedUser, err := Cache.Get(cache.OTPKey(email, otp))
+	res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+	cachedOTP, err := res.Bytes()
+
 	assert.Nil(t, err)
-	assert.NotNil(t, cachedUser)
+	assert.NotNil(t, cachedOTP)
 
 	// sleep for 2 * Cache expiry time to ensure the Cache expires
 	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
 
 	// Verify the user is not in the Cache
-	cachedUser, err = Cache.Get(cache.OTPKey(email, otp))
+	res = Cache.Get(context.Background(), cache.OTPKey(email, otp))
+	cachedOTP, err = res.Bytes()
+
 	assert.NotNil(t, err)
-	assert.Nil(t, cachedUser)
+	assert.Nil(t, cachedOTP)
 }
 
 func TestOTPExistsPerformance(t *testing.T) {
@@ -474,10 +490,11 @@ func TestOTPExists_WithCache(t *testing.T) {
 	}
 
 	// Verify the otp is not in the Cache before calling the function
-	nocachedOTP, err := Cache.Get(cache.OTPKey(email, otp))
+	res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+	cachedOTP, err := res.Bytes()
 
 	assert.NotNil(t, err)
-	assert.Nil(t, nocachedOTP)
+	assert.Nil(t, cachedOTP)
 
 	// call the function to test
 	exists, err := database.OTPExists(ctx, appSession, email, otp)
@@ -487,10 +504,11 @@ func TestOTPExists_WithCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the otp is in the Cache
-	cachedUser, err := Cache.Get(cache.OTPKey(email, otp))
+	res = Cache.Get(context.Background(), cache.OTPKey(email, otp))
+	cachedOTP, err = res.Bytes()
 
 	assert.Nil(t, err)
-	assert.NotNil(t, cachedUser)
+	assert.NotNil(t, cachedOTP)
 }
 
 func TestDeleteOTP_withCache(t *testing.T) {
@@ -528,16 +546,17 @@ func TestDeleteOTP_withCache(t *testing.T) {
 	if otpData, err := bson.Marshal(otpStruct); err != nil {
 		t.Fatal(err)
 	} else {
-		if err := Cache.Set(cache.OTPKey(email, otp), otpData); err != nil {
+		if err := Cache.Set(context.Background(), cache.OTPKey(email, otp), otpData, 0); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	// Verify the otp is in the Cache before calling the function
-	nocachedOTP, err := Cache.Get(cache.OTPKey(email, otp))
+	res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+	cachedOTP, err := res.Bytes()
 
 	assert.Nil(t, err)
-	assert.NotNil(t, nocachedOTP)
+	assert.NotNil(t, cachedOTP)
 
 	// call the function to test
 	success, err := database.DeleteOTP(ctx, appSession, email, otp)
@@ -547,10 +566,11 @@ func TestDeleteOTP_withCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the otp is not in the Cache
-	cachedUser, err := Cache.Get(cache.OTPKey(email, otp))
+	res = Cache.Get(context.Background(), cache.OTPKey(email, otp))
+	cachedOTP, err = res.Bytes()
 
 	assert.NotNil(t, err)
-	assert.Nil(t, cachedUser)
+	assert.Nil(t, cachedOTP)
 }
 
 func TestGetPasswordPerformance(t *testing.T) {
@@ -641,10 +661,11 @@ func TestGetPassword_withCache(t *testing.T) {
 	}
 
 	// Verify the user is not in the Cache before calling the function
-	nocachedUser, err := Cache.Get(cache.UserKey(email))
+	res := Cache.Get(context.Background(), cache.UserKey(email))
+	cachedUser, err := res.Bytes()
 
 	assert.NotNil(t, err)
-	assert.Nil(t, nocachedUser)
+	assert.Nil(t, cachedUser)
 
 	// call the function to test
 	passwordv, err := database.GetPassword(ctx, appSession, email)
@@ -654,7 +675,8 @@ func TestGetPassword_withCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the user is in the Cache
-	cachedUser, err := Cache.Get(cache.UserKey(email))
+	res = Cache.Get(context.Background(), cache.UserKey(email))
+	cachedUser, err = res.Bytes()
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
@@ -759,15 +781,17 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	}
 
 	// Verify the user is not in the Cache before calling the function
-	nocachedUser1, err := Cache.Get(cache.UserKey(email1))
+	res := Cache.Get(context.Background(), cache.UserKey(email1))
+	cachedUser1, err := res.Bytes()
 
 	assert.NotNil(t, err)
-	assert.Nil(t, nocachedUser1)
+	assert.Nil(t, cachedUser1)
 
-	nocachedUser2, err := Cache.Get(cache.UserKey(email2))
+	res = Cache.Get(context.Background(), cache.UserKey(email2))
+	cachedUser2, err := res.Bytes()
 
 	assert.NotNil(t, err)
-	assert.Nil(t, nocachedUser2)
+	assert.Nil(t, cachedUser2)
 
 	// call the function to test
 	isAdmin1, err := database.CheckIfUserIsAdmin(ctx, appSession, email1)
@@ -777,7 +801,8 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the user is in the Cache
-	cachedUser1, err := Cache.Get(cache.UserKey(email1))
+	res = Cache.Get(context.Background(), cache.UserKey(email1))
+	cachedUser1, err = res.Bytes()
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser1)
@@ -790,7 +815,8 @@ func TestCheckIfUserIsAdmin_WithCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the user is in the Cache
-	cachedUser2, err := Cache.Get(cache.UserKey(email2))
+	res = Cache.Get(context.Background(), cache.UserKey(email2))
+	cachedUser2, err = res.Bytes()
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser2)
@@ -896,10 +922,11 @@ func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
 	}
 
 	// Verify the user is not in the Cache before calling the function
-	nocachedUser, err := Cache.Get(cache.UserKey(email))
+	res := Cache.Get(context.Background(), cache.UserKey(email))
+	cachedUser, err := res.Bytes()
 
 	assert.NotNil(t, err)
-	assert.Nil(t, nocachedUser)
+	assert.Nil(t, cachedUser)
 
 	// call the function to test
 	yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appSession, email, "8.8.8.8")
@@ -910,7 +937,8 @@ func TestCheckIfUserIsLoggingInFromKnownLocation_withCache(t *testing.T) {
 	assert.Nil(t, info)
 
 	// Verify the user is in the Cache
-	cachedUser, err := Cache.Get(cache.UserKey(email))
+	res = Cache.Get(context.Background(), cache.UserKey(email))
+	cachedUser, err = res.Bytes()
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
@@ -1067,10 +1095,11 @@ func TestGetUserDetails_withCache(t *testing.T) {
 	}
 
 	// Verify the user is not in the Cache before calling the function
-	nocachedUser, err := Cache.Get(cache.UserKey(userStruct.Email))
+	res := Cache.Get(context.Background(), cache.UserKey(userStruct.Email))
+	cachedUser, err := res.Bytes()
 
 	assert.NotNil(t, err)
-	assert.Nil(t, nocachedUser)
+	assert.Nil(t, cachedUser)
 
 	// call the function to test
 	user, err := database.GetUserDetails(ctx, appSession, userStruct.Email)
@@ -1084,7 +1113,8 @@ func TestGetUserDetails_withCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the user is in the Cache
-	cachedUser, err := Cache.Get(cache.UserKey(userStruct.Email))
+	res = Cache.Get(context.Background(), cache.UserKey(userStruct.Email))
+	cachedUser, err = res.Bytes()
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)
@@ -1183,10 +1213,11 @@ func TestGetSecuritySettings_withCache(t *testing.T) {
 	}
 
 	// Verify the user is not in the Cache before calling the function
-	nocachedUser, err := Cache.Get(cache.UserKey(userStruct.Email))
+	res := Cache.Get(context.Background(), cache.UserKey(userStruct.Email))
+	cachedUser, err := res.Bytes()
 
 	assert.NotNil(t, err)
-	assert.Nil(t, nocachedUser)
+	assert.Nil(t, cachedUser)
 
 	// call the function to test
 	user, err := database.GetSecuritySettings(ctx, appSession, userStruct.Email)
@@ -1198,7 +1229,8 @@ func TestGetSecuritySettings_withCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Verify the user is in the Cache
-	cachedUser, err := Cache.Get(cache.UserKey(userStruct.Email))
+	res = Cache.Get(context.Background(), cache.UserKey(userStruct.Email))
+	cachedUser, err = res.Bytes()
 
 	assert.Nil(t, err)
 	assert.NotNil(t, cachedUser)

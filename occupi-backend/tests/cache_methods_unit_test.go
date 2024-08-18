@@ -457,7 +457,7 @@ func TestSetOTP(t *testing.T) {
 	})
 }
 
-func TestDeleteOTP(t *testing.T) {
+func TestDeleteOTPF(t *testing.T) {
 	// Test 1: Cache is nil
 	t.Run("cache is nil", func(t *testing.T) {
 		appsession := &models.AppSession{Cache: nil}
