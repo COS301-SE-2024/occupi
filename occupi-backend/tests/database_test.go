@@ -196,7 +196,8 @@ func TestSaveBooking(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the room was added to the Cache
-		roomv, err := Cache.Get(cache.RoomBookingKey(booking.OccupiID))
+		res := Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
+		roomv, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, roomv)
@@ -293,9 +294,9 @@ func TestConfirmCheckIn(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		err = Cache.Set(cache.RoomBookingKey(booking.OccupiID), bookingData)
+		res := Cache.Set(context.Background(), cache.RoomBookingKey(booking.OccupiID), bookingData, 0)
 
-		assert.Nil(t, err)
+		assert.Nil(t, res.Err())
 
 		// Call the function under test
 		success, err := database.ConfirmCheckIn(ctx, appsession, checkin)
@@ -305,7 +306,7 @@ func TestConfirmCheckIn(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the room was added to the Cache
-		bookingv, err := Cache.Get(cache.RoomBookingKey(booking.OccupiID))
+		bookingv, err := Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, bookingv)
@@ -401,9 +402,11 @@ func TestEmailExists(t *testing.T) {
 		assert.True(t, exists)
 
 		// Check if the email exists in the Cache
-		email, err := Cache.Get(cache.UserKey(email))
-		assert.NoError(t, err)
-		assert.NotNil(t, email)
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		emailv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, emailv)
 	})
 
 	mt.Run("Email does not exist", func(mt *mtest.T) {
@@ -500,9 +503,11 @@ func TestBookingExists(t *testing.T) {
 		assert.True(t, exists)
 
 		// Check if the email exists in the Cache
-		booking, err := Cache.Get(cache.RoomBookingKey(id))
-		assert.NoError(t, err)
-		assert.NotNil(t, booking)
+		res := Cache.Get(context.Background(), cache.RoomBookingKey(id))
+		idv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, idv)
 	})
 
 	mt.Run("Email does not exist", func(mt *mtest.T) {
@@ -602,10 +607,11 @@ func TestAddUser(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the user was added to the Cache
-		user, err := Cache.Get(cache.UserKey(user.Email))
+		res := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+		assert.NotNil(t, userv)
 	})
 
 	mt.Run("InsertOne error", func(mt *mtest.T) {
@@ -693,16 +699,17 @@ func TestOTPExists(t *testing.T) {
 		if otpData, err := bson.Marshal(otpStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.OTPKey(email, otp), otpData); err != nil {
+			if err := Cache.Set(context.Background(), cache.OTPKey(email, otp), otpData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the otp is in the Cache
-		otpA, err := Cache.Get(cache.OTPKey(email, otp))
+		res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+		otpa, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, otpA)
+		assert.NotNil(t, otpa)
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -750,16 +757,17 @@ func TestOTPExists(t *testing.T) {
 		if otpData, err := bson.Marshal(otpStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.OTPKey(email, otp), otpData); err != nil {
+			if err := Cache.Set(context.Background(), cache.OTPKey(email, otp), otpData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the otp is in the Cache
-		otpA, err := Cache.Get(cache.OTPKey(email, otp))
+		res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+		otpa, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, otpA)
+		assert.NotNil(t, otpa)
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -872,10 +880,11 @@ func TestAddOTP(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the otp was added to the Cache
-		otp, err := Cache.Get(cache.OTPKey(email, otp))
+		res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+		otpv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, otp)
+		assert.NotNil(t, otpv)
 	})
 
 	mt.Run("InsertOne error", func(mt *mtest.T) {
@@ -1056,16 +1065,17 @@ func TestVerifyUser(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		userv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+		assert.NotNil(t, userv)
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -1080,7 +1090,8 @@ func TestVerifyUser(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		res = Cache.Get(context.Background(), cache.UserKey(email))
+		user, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -1180,16 +1191,17 @@ func TestGetPassword(t *testing.T) {
 		if passData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), passData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), passData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the password is in the Cache
-		pass, err := Cache.Get(cache.UserKey(email))
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		passv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, pass)
+		assert.NotNil(t, passv)
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -1308,16 +1320,17 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email1), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email1), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email1))
+		res := Cache.Get(context.Background(), cache.UserKey(email1))
+		userv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+		assert.NotNil(t, userv)
 
 		// Call the function under test
 		appsession := &models.AppSession{
@@ -1346,16 +1359,17 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email2), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email2), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email2))
+		res := Cache.Get(context.Background(), cache.UserKey(email2))
+		userv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+		assert.NotNil(t, userv)
 
 		// Call the function under test
 		appsession := &models.AppSession{
@@ -1469,16 +1483,17 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		userv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+		assert.NotNil(t, userv)
 
 		// Call the function under test
 		appsession := &models.AppSession{
@@ -1509,16 +1524,17 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		userv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+		assert.NotNil(t, userv)
 
 		// Call the function under test
 		appsession := &models.AppSession{
@@ -1610,13 +1626,14 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the password is in the Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		user, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -1633,7 +1650,8 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(email))
+		res = Cache.Get(context.Background(), cache.UserKey(email))
+		user, err = res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -1661,13 +1679,14 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the password is in the Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		user, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -1684,7 +1703,8 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(email))
+		res = Cache.Get(context.Background(), cache.UserKey(email))
+		user, err = res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -1780,13 +1800,14 @@ func TestConfirmCancellation(t *testing.T) {
 		if checkinData, err := bson.Marshal(bookingStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.RoomBookingKey(bookingStruct.OccupiID), checkinData); err != nil {
+			if err := Cache.Set(context.Background(), cache.RoomBookingKey(bookingStruct.OccupiID), checkinData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the checkin is in the Cache
-		checkinv, err := Cache.Get(cache.RoomBookingKey(bookingStruct.OccupiID))
+		res := Cache.Get(context.Background(), cache.RoomBookingKey(bookingStruct.OccupiID))
+		checkinv, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, checkinv)
@@ -1804,10 +1825,11 @@ func TestConfirmCancellation(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		checkinv2, err := Cache.Get(cache.RoomBookingKey(checkin.BookingID))
+		res = Cache.Get(context.Background(), cache.RoomBookingKey(checkin.BookingID))
+		checkinv, err = res.Bytes()
 
-		assert.NotNil(t, err)
-		assert.Nil(t, checkinv2)
+		assert.Nil(t, err)
+		assert.NotNil(t, checkinv)
 	})
 
 	mt.Run("UpdateOne error", func(mt *mtest.T) {
@@ -1951,16 +1973,17 @@ func TestGetUserDetails(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(userStruct.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(userStruct.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		usera, err := Cache.Get(cache.UserKey(userStruct.Email))
+		res := Cache.Get(context.Background(), cache.UserKey(userStruct.Email))
+		userv, errv := res.Bytes()
 
-		assert.Nil(t, err)
-		assert.NotNil(t, usera)
+		assert.Nil(t, errv)
+		assert.NotNil(t, userv)
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -2062,16 +2085,17 @@ func TestUpdateUserDetails(t *testing.T) {
 		if userData, err := bson.Marshal(userDetails); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		res := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
+		userv, errv := res.Bytes()
 
-		assert.Nil(t, err)
-		assert.NotNil(t, user)
+		assert.Nil(t, errv)
+		assert.NotNil(t, userv)
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -2091,10 +2115,11 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		res = Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
+		user, errv := res.Bytes()
 
-		assert.Nil(t, err)
-		assert.NotNil(t, user)
+		assert.Nil(t, errv)
+		assert.NotNil(t, userv)
 
 		// unmarshal the user data
 		var userB models.User
@@ -2141,13 +2166,13 @@ func TestUpdateUserDetails(t *testing.T) {
 		if userData, err := bson.Marshal(userDetails); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		user, err := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2171,7 +2196,7 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		user, err = Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2213,13 +2238,13 @@ func TestUpdateUserDetails(t *testing.T) {
 		if userData, err := bson.Marshal(userDetails); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		user, err := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2242,7 +2267,7 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		user, err = Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2290,13 +2315,13 @@ func TestUpdateUserDetails(t *testing.T) {
 		if userData, err := bson.Marshal(userDetails); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		user, err := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2319,7 +2344,7 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(updateUser.Email))
+		user, err = Cache.Get(context.Background(), cache.UserKey(updateUser.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2368,13 +2393,13 @@ func TestUpdateUserDetails(t *testing.T) {
 		if userData, err := bson.Marshal(userDetails); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		user, err := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2397,7 +2422,7 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		user, err = Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2447,13 +2472,13 @@ func TestUpdateUserDetails(t *testing.T) {
 		if userData, err := bson.Marshal(userDetails); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		user, err := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2476,7 +2501,7 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		user, err = Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2526,13 +2551,13 @@ func TestUpdateUserDetails(t *testing.T) {
 		if userData, err := bson.Marshal(userDetails); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		user, err := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2555,7 +2580,7 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		user, err = Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2655,13 +2680,13 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		user, err := Cache.Get(context.Background(), cache.UserKey(email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2710,13 +2735,13 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		user, err := Cache.Get(context.Background(), cache.UserKey(email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2734,7 +2759,7 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		assert.False(t, isAdmin)
 
 		// Verify the user was not updated in the Cache
-		user, err = Cache.Get(cache.UserKey(email))
+		user, err = Cache.Get(context.Background(), cache.UserKey(email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -2929,13 +2954,13 @@ func TestUpdateUserPassword(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -2953,7 +2978,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the update in Cache
-		userB, err := Cache.Get(cache.UserKey(email))
+		userB, err := Cache.Get(context.Background(), cache.UserKey(email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userB)
@@ -3470,13 +3495,13 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -3515,13 +3540,13 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		if userData, err := bson.Marshal(userStruct); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4116,13 +4141,13 @@ func TestGetSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4166,13 +4191,13 @@ func TestGetSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4216,13 +4241,13 @@ func TestGetSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4266,13 +4291,13 @@ func TestGetSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4441,13 +4466,13 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4469,7 +4494,7 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4500,13 +4525,13 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4528,7 +4553,7 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4559,13 +4584,13 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4587,7 +4612,7 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4618,13 +4643,13 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4646,7 +4671,7 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4677,13 +4702,13 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		if userData, err := bson.Marshal(user); err != nil {
 			t.Fatal(err)
 		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
+			if err := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, 0); err != nil {
 				t.Fatal(err)
 			}
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4705,7 +4730,7 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
