@@ -4558,7 +4558,8 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		res := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userA, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4580,7 +4581,8 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
+		res = Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userA, err = res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4617,7 +4619,8 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		res := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userA, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4639,7 +4642,8 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
+		res = Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userA, err = res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4676,7 +4680,8 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		res := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userA, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4698,7 +4703,8 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
+		res = Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userA, err = res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4735,7 +4741,8 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// Assert that the user is in the Cache
-		userA, err := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		res := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userA, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
@@ -4757,7 +4764,8 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(context.Background(), cache.UserKey(user.Email))
+		res = Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userA, err = res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, userA)
