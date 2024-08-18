@@ -27,8 +27,7 @@ import (
 func TestProtectedRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -62,8 +61,7 @@ func TestProtectedRoute(t *testing.T) {
 func TestProtectedRouteAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -98,8 +96,7 @@ func TestProtectedRouteAuthHeader(t *testing.T) {
 func TestProtectedRouteInvalidToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -127,8 +124,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -156,8 +152,7 @@ func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -206,8 +201,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -258,8 +252,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 func TestAdminRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -293,8 +286,7 @@ func TestAdminRoute(t *testing.T) {
 func TestAdminRouteAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -329,8 +321,7 @@ func TestAdminRouteAuthHeader(t *testing.T) {
 func TestUnauthorizedAccess(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -357,8 +348,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 func TestUnauthorizedAdminAccess(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -388,8 +378,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -420,8 +409,7 @@ func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 func TestAccessUnprotectedRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -452,8 +440,7 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -483,8 +470,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -515,8 +501,7 @@ func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -563,8 +548,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -654,8 +638,7 @@ func TestAccessUnprotectedRouteWithSessionForContext(t *testing.T) {
 func TestRateLimit(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -711,8 +694,7 @@ func TestRateLimit(t *testing.T) {
 func TestRateLimitWithMultipleIPs(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
