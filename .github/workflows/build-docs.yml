@@ -1,0 +1,41 @@
+name: Build Python App 🏗️
+
+on:
+    pull_request:
+        branches: ["develop"]
+        paths: [
+            "documentation/occupi-docs/pages/**",
+            "documentation/occupi-docs/components/**",
+            "documentation/occupi-docs/.gitignore",
+            "documentation/occupi-docs/next.config.js",
+            "documentation/occupi-docs/package.json",
+            "documentation/occupi-docs/theme.config.tsx",
+            "documentation/occupi-docs/tsconfig.json",
+            ".github/workflows/deploy-docs.yml"
+        ]
+  
+    workflow_dispatch:
+  
+defaults:
+    run:
+        working-directory: documentation/occupi-docs
+  
+jobs:
+    # Build job
+    build-test:
+      name: 🏗️ Build
+      runs-on: ubuntu-latest
+      steps:
+        - name: ⬇️ Checkout
+          uses: actions/checkout@v4
+  
+        - name: 🏗 Setup Bun
+          uses: oven-sh/setup-bun@v1
+          with:
+            bun-version: latest # or "latest", "canary", <sha>
+  
+        - name: 📦 Install dependencies with Bun
+          run: bun install
+  
+        - name: 🚀 Build with Next.js
+          run: bun run build
