@@ -1322,12 +1322,29 @@ func TestAddOTP(t *testing.T) {
 			Cache: Cache,
 		}
 
+		// marshal and add the otp to cache
+		otpStruct := models.OTP{
+			Email:      email,
+			OTP:        otp,
+			ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetOTPExpiration())),
+		}
+
+		otpData, err := bson.Marshal(otpStruct)
+
+		assert.Nil(t, err)
+
+		// marshal and add the otp to cache
+		mock.ExpectSet(cache.OTPKey(email, otp), otpData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(otpData))
+
 		// Call the function under test
 		success, err := database.AddOTP(ctx, appsession, email, otp)
 
 		// Validate the result
 		assert.NoError(t, err)
 		assert.True(t, success)
+
+		// mock expect get
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(otpData))
 
 		// Verify the otp was added to the Cache
 		res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
@@ -1401,6 +1418,41 @@ func TestDeleteOTP(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the deletion
+	})
+
+	mt.Run("Delete OTP successfully from Cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect delete
+		mock.ExpectDel(cache.OTPKey(email, otp)).SetVal(0)
+
+		// Call the function under test
+		success, err := database.DeleteOTP(ctx, appsession, email, otp)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// mock expect get
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetErr(errors.New("key does not exist"))
+
+		// Verify the otp was deleted from the Cache
+		res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+
+		otpv, err := res.Bytes()
+
+		assert.NotNil(t, err)
+		assert.Nil(t, otpv)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("DeleteOne error", func(mt *mtest.T) {

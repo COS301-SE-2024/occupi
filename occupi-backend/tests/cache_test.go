@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redismock/v9"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
@@ -17,124 +16,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
-
-func TestAddOTP_WithCache(t *testing.T) {
-	// Create database connection and Cache
-	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	Cache, mock := redismock.NewClientMock()
-
-	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
-	w := httptest.NewRecorder()
-
-	// Create a response writer and context
-	ctx, _ := gin.CreateTestContext(w)
-
-	// Create a new AppSession with the Cache
-	appSession := &models.AppSession{
-		DB:    db,
-		Cache: Cache,
-	}
-
-	email := "test_withcache@example.com"
-	otp := "123456"
-
-	success, err := database.AddOTP(ctx, appSession, email, otp)
-	assert.True(t, success)
-	assert.Nil(t, err)
-
-	// mock expect get
-	mock.ExpectGet(cache.OTPKey(email, otp)).SetVal("")
-
-	// Verify the otp is in the Cache
-	res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
-	_, err = res.Bytes()
-
-	assert.Nil(t, err)
-	//assert.NotNil(t, cachedOTP)
-
-	// sleep for 2 * Cache expiry time to ensure the Cache expires
-	time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
-
-	// mock expect get expired
-	mock.ExpectGet(cache.OTPKey(email, otp)).SetErr(nil)
-
-	// Verify the user is not in the Cache
-	res = Cache.Get(context.Background(), cache.OTPKey(email, otp))
-	cachedOTP, err := res.Bytes()
-
-	assert.NotNil(t, err)
-	assert.Nil(t, cachedOTP)
-}
-
-func TestDeleteOTP_withCache(t *testing.T) {
-	email := "TestDeleteOTP_withCache@example.com"
-	otp := "123456"
-	// Create database connection and Cache
-	db := configs.ConnectToDatabase(constants.AdminDBAccessOption)
-	Cache, mock := redismock.NewClientMock()
-
-	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
-	w := httptest.NewRecorder()
-
-	// Create a response writer and context
-	ctx, _ := gin.CreateTestContext(w)
-
-	// Create a new AppSession with the Cache
-	appSession := &models.AppSession{
-		DB:    db,
-		Cache: Cache,
-	}
-
-	// Mock the DB response
-	collection := db.Database(configs.GetMongoDBName()).Collection("OTPS")
-	otpStruct := models.OTP{
-		Email:      email,
-		OTP:        otp,
-		ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetOTPExpiration())),
-	}
-	_, err := collection.InsertOne(ctx, otpStruct)
-	if err != nil {
-		t.Fatalf("Failed to insert test otp into database: %v", err)
-	}
-
-	// add otp to Cache
-	if otpData, err := bson.Marshal(otpStruct); err != nil {
-		t.Fatal(err)
-	} else {
-		// mock expect set
-		mock.ExpectSet(cache.OTPKey(email, otp), otpData, 0).SetVal("")
-		if err := Cache.Set(context.Background(), cache.OTPKey(email, otp), otpData, 0); err.Err() != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// mock expect get
-	mock.ExpectGet(cache.OTPKey(email, otp)).SetVal("")
-
-	// Verify the otp is in the Cache before calling the function
-	res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
-	_, err = res.Bytes()
-
-	assert.Nil(t, err)
-	//assert.NotNil(t, cachedOTP)
-
-	// call the function to test
-	success, err := database.DeleteOTP(ctx, appSession, email, otp)
-
-	// Verify the response
-	assert.True(t, success)
-	assert.Nil(t, err)
-
-	// mock expect get
-	mock.ExpectGet(cache.OTPKey(email, otp)).SetErr(nil)
-
-	// Verify the otp is not in the Cache
-	res = Cache.Get(context.Background(), cache.OTPKey(email, otp))
-	cachedOTP, err := res.Bytes()
-
-	assert.NotNil(t, err)
-	assert.Nil(t, cachedOTP)
-}
 
 func TestGetPassword_withCache(t *testing.T) {
 	email := "TestGetPassword_withCache@example.com"
