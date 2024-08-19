@@ -177,37 +177,7 @@ func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.Regist
 		return false, errors.New("database is nil")
 	}
 	// convert to user struct
-	userStruct := models.User{
-		OccupiID:             user.EmployeeID,
-		Password:             user.Password,
-		Email:                user.Email,
-		Role:                 constants.Basic,
-		OnSite:               true,
-		IsVerified:           false,
-		NextVerificationDate: time.Now(), // this will be updated once the email is verified
-		TwoFAEnabled:         false,
-		KnownLocations:       []models.Location{},
-		Details: models.Details{
-			ImageID:  "",
-			Name:     "",
-			DOB:      time.Now(),
-			Gender:   "",
-			Pronouns: "",
-		},
-		Notifications: models.Notifications{
-			Invites:         true,
-			BookingReminder: true,
-		},
-		Security: models.Security{
-			MFA:         false,
-			Biometrics:  false,
-			ForceLogout: false,
-		},
-		Status:        "",
-		Position:      "",
-		DepartmentNo:  "",
-		ExpoPushToken: user.ExpoPushToken,
-	}
+	userStruct := CreateBasicUser(user)
 	// Save the user to the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	_, err := collection.InsertOne(ctx, userStruct)

@@ -3,12 +3,14 @@ package tests
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/allegro/bigcache/v3"
 	"github.com/go-redis/redismock/v9"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 )
@@ -190,10 +192,15 @@ func TestSetUser(t *testing.T) {
 		}
 
 		// Expect the Set command to be called with correct parameters
-		mock.ExpectSet(cache.UserKey(user.Email), userBson, 0).SetVal("OK")
+		mock.ExpectSet(cache.UserKey(user.Email), userBson, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userBson))
 
 		// Call SetUser
 		cache.SetUser(appsession, user)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 
 	// Test case 4: Setting the user in the cache fails
@@ -211,10 +218,15 @@ func TestSetUser(t *testing.T) {
 		}
 
 		// Expect the Set command to fail with an error
-		mock.ExpectSet(cache.UserKey(user.Email), userBson, 0).SetErr(errors.New("failed to set user"))
+		mock.ExpectSet(cache.UserKey(user.Email), userBson, time.Duration(configs.GetCacheEviction())*time.Second).SetErr(errors.New("failed to set user"))
 
 		// Call SetUser
 		cache.SetUser(appsession, user)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 }
 
@@ -309,6 +321,11 @@ func TestGetOTP(t *testing.T) {
 		if otpData != (models.OTP{}) {
 			t.Errorf("expected empty OTP data, got %+v", otpData)
 		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 
 	// Test case 3: res.Bytes() returns an error
@@ -332,6 +349,11 @@ func TestGetOTP(t *testing.T) {
 		// Check if the returned OTP data is empty
 		if otpData != (models.OTP{}) {
 			t.Errorf("expected empty OTP data, got %+v", otpData)
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
 		}
 	})
 
@@ -357,6 +379,11 @@ func TestGetOTP(t *testing.T) {
 		// Check if the returned OTP data is empty
 		if otpData != (models.OTP{}) {
 			t.Errorf("expected empty OTP data, got %+v", otpData)
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
 		}
 	})
 
@@ -390,6 +417,11 @@ func TestGetOTP(t *testing.T) {
 		// Check if the returned OTP data matches the expected OTP
 		if otpData != expectedOTP {
 			t.Errorf("expected OTP data %+v, got %+v", expectedOTP, otpData)
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
 		}
 	})
 }
@@ -433,9 +465,14 @@ func TestSetOTP(t *testing.T) {
 		}
 
 		// Simulate Redis Set command failing
-		mock.ExpectSet(cache.OTPKey(otpData.Email, otpData.OTP), otpDataBytes, 0).SetErr(errors.New("failed to set OTP"))
+		mock.ExpectSet(cache.OTPKey(otpData.Email, otpData.OTP), otpDataBytes, time.Duration(configs.GetCacheEviction())*time.Second).SetErr(errors.New("failed to set OTP"))
 
 		cache.SetOTP(appsession, otpData)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 
 	// Test 4: Success
@@ -451,9 +488,14 @@ func TestSetOTP(t *testing.T) {
 		}
 
 		// Simulate Redis Set command succeeding
-		mock.ExpectSet(cache.OTPKey(otpData.Email, otpData.OTP), otpDataBytes, 0).SetVal("OK")
+		mock.ExpectSet(cache.OTPKey(otpData.Email, otpData.OTP), otpDataBytes, time.Duration(configs.GetCacheEviction())*time.Second).SetVal("OK")
 
 		cache.SetOTP(appsession, otpData)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 }
 
@@ -480,6 +522,11 @@ func TestDeleteOTPF(t *testing.T) {
 		mock.ExpectDel(cache.OTPKey(email, otp)).SetErr(errors.New("failed to delete OTP"))
 
 		cache.DeleteOTP(appsession, email, otp)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 
 	// Test 3: Success
@@ -493,6 +540,11 @@ func TestDeleteOTPF(t *testing.T) {
 		mock.ExpectDel(cache.OTPKey(email, otp)).SetVal(1)
 
 		cache.DeleteOTP(appsession, email, otp)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 }
 
@@ -773,9 +825,14 @@ func TestSetImage(t *testing.T) {
 		}
 
 		// Simulate Redis Set command failing
-		mock.ExpectSet(cache.ImageKey(id), imageData, 0).SetErr(errors.New("failed to set image"))
+		mock.ExpectSet(cache.ImageKey(id), imageData, time.Duration(configs.GetCacheEviction())*time.Second).SetErr(errors.New("failed to set image"))
 
 		cache.SetImage(appsession, id, image)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 
 	// Test 4: Success
@@ -792,9 +849,14 @@ func TestSetImage(t *testing.T) {
 		}
 
 		// Simulate Redis Set command succeeding
-		mock.ExpectSet(cache.ImageKey(id), imageData, 0).SetVal("OK")
+		mock.ExpectSet(cache.ImageKey(id), imageData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(imageData))
 
 		cache.SetImage(appsession, id, image)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 }
 
