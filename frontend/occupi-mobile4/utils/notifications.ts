@@ -6,30 +6,37 @@ import * as SecureStore from 'expo-secure-store';
 import { NotificationsReq } from '@/models/requests';
 import { getNotifications } from '@/services/apiservices';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
+export function setupNotificationHandler() {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
-export async function retrievePushToken(): Promise<string | undefined> {
+setupNotificationHandler();
+
+export async function retrievePushToken() {
   if (!Device.isDevice) {
     global.alert('Must use physical device for Push Notifications');
     return undefined;
   }
 
   const token = await registerForPushNotificationsAsync();
-  return token as string;
+  return token;
 }
 
-
-// retrievePushToken();
-// console.log('yurp');
-
-async function registerForPushNotificationsAsync() {
+export async function registerForPushNotificationsAsync() {
   let token;
+
+  if (!Device.isDevice) {
+ 
+    
+    global.alert('Must use physical device for Push Notifications');
+    return;
+  }
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
@@ -51,9 +58,6 @@ async function registerForPushNotificationsAsync() {
       alert('Failed to get push token for push notification!');
       return;
     }
-    // Learn more about projectId:
-    // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
-    // EAS projectId is used here.
     try {
       const projectId =
         Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
@@ -65,7 +69,6 @@ async function registerForPushNotificationsAsync() {
           projectId,
         })
       ).data;
-      // console.log(token);
     } catch (e) {
       token = `${e}`;
     }
@@ -75,6 +78,7 @@ async function registerForPushNotificationsAsync() {
 
   return token;
 }
+
 
  export async function sendPushNotification(expoPushTokens: string[], title: string, body: string) {
   const messages = expoPushTokens.map(token => ({
