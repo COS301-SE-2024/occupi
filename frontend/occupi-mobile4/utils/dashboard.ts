@@ -3,10 +3,10 @@
 const polygon = [
     { latitude: -25.755736, longitude: 28.225309 }, // Point 1
     { latitude: -25.751353, longitude: 28.229415 }, // Point 2
-    { latitude: -25.757187, longitude: 28.235076 }, // Point 3
-    { latitude: -25.754989, longitude: 28.235915 }, // Point 4
-    { latitude: -25.753780, longitude: 28.231629 }, // Point 5
-    { latitude: -25.752242, longitude: 28.231828 }, // Point 6
+    { latitude: -25.752242, longitude: 28.231828 }, // Point 3
+    { latitude: -25.753780, longitude: 28.231629 }, // Point 4
+    { latitude: -25.754989, longitude: 28.235915 }, // Point 5
+    { latitude: -25.757187, longitude: 28.235076 }, // Point 6
   ];
 
 export const isPointInPolygon = (point: { latitude: number; longitude: number }) => {
