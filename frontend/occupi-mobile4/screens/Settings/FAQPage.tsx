@@ -138,21 +138,21 @@ const FAQPage = () => {
   ];
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white', paddingHorizontal: 16, paddingTop: 60 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 20 }}>Frequently Asked Questions</Text>
+    <ScrollView testID="faq-scroll-view" style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white', paddingHorizontal: 16, paddingTop: 60 }}>
+      <Text testID="faq-title" style={{ fontSize: 24, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 20 }}>Frequently Asked Questions</Text>
       <Accordion type="single" defaultValue="item-1" backgroundColor={isDarkMode ? 'black' : 'white'} marginBottom={70} shadowColor="transparent">
         {faqData.map((section, sectionIndex) => (
-          <View key={`section-${sectionIndex}`} style={{ marginBottom: 20, backgroundColor: isDarkMode ? 'black' : 'white'}}>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 10 }}>{section.section}</Text>
+          <View key={`section-${sectionIndex}`} style={{ marginBottom: 20, backgroundColor: isDarkMode ? 'black' : 'white' }}>
+            <Text testID={`faq-section-title-${sectionIndex}`} style={{ fontSize: 20, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 10 }}>{section.section}</Text>
             {section.questions.map((item, index) => (
-              <AccordionItem key={`item-${sectionIndex}-${index}`} value={`item-${sectionIndex}-${index}`} style={{ backgroundColor: isDarkMode ? 'black' : 'white'}}>
-                <AccordionHeader style={{ backgroundColor: isDarkMode ? '#2C2C2E' : '#F3F3F3', borderRadius: 10, marginBottom: 10 }}>
+              <AccordionItem key={`item-${sectionIndex}-${index}`} value={`item-${sectionIndex}-${index}`}>
+                <AccordionHeader>
                   <AccordionTrigger>
-                    <Text style={{ color: isDarkMode ? 'white' : 'black', fontSize: 16, fontWeight: 'bold' }}>{item.question}</Text>
+                    <Text testID={`faq-question-${sectionIndex}-${index}`} style={{ color: isDarkMode ? 'white' : 'black' }}>{item.question}</Text>
                   </AccordionTrigger>
                 </AccordionHeader>
-                <AccordionContent style={{ backgroundColor: isDarkMode ? 'black' : 'white', borderRadius: 10 }}>
-                  <Text style={{ color: isDarkMode ? '#CCCCCC' : '#333333', fontSize: 14 }}>{item.answer}</Text>
+                <AccordionContent>
+                  <Text testID={`faq-answer-${sectionIndex}-${index}`} style={{ color: isDarkMode ? 'white' : 'black' }}>{item.answer}</Text>
                 </AccordionContent>
               </AccordionItem>
             ))}
