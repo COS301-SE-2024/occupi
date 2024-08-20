@@ -8,3 +8,4 @@ seaborn
 matplotlib
 gunicorn
 flask-cors
+pillow>=10.2.0 # not directly required, pinned by Snyk to avoid a vulnerability
