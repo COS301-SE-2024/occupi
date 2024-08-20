@@ -16,7 +16,10 @@ describe('NavBar', () => {
       setCurrentTab: jest.fn(),
     });
 
-    const tree = renderer.create(<NavBar />).toJSON();
+    const tree = renderer.create(
+  
+        <NavBar />
+    ).toJSON();
 
     expect(tree).toMatchSnapshot();
   });
