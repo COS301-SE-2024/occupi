@@ -12,10 +12,11 @@ export async function getPredictions(): Promise<Prediction[] | undefined> {
         });
         return response.data as Prediction[];
     } catch (error) {
-        console.error(`Error in ${Function}:`, error);
+        // console.error(`Error in ${Function}:`, error);
         if (axios.isAxiosError(error) && error.response?.data) {
             return error.response.data;
         }
+        
     }
 
     return undefined;
@@ -32,7 +33,7 @@ export async function getDayPredictions(): Promise<Prediction | undefined> {
         });
         return response.data as Prediction;
     } catch (error) {
-        console.error(`Error in ${Function}:`, error);
+        // console.error(`Error in ${Function}:`, error);
         if (axios.isAxiosError(error) && error.response?.data) {
             return error.response.data;
         }
