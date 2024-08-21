@@ -1889,7 +1889,7 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 	mt.Run("Verification date is due in cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache, _ := redismock.NewClientMock()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:                email2,
