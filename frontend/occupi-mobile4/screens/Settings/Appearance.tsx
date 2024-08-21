@@ -4,13 +4,15 @@ import {
     Alert,
     TextInput,
     TouchableOpacity,
-    useColorScheme
+    useColorScheme,
+   
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
 import {
     Icon,
     View,
+    ScrollView,
     Text,
     Image,
     Box
@@ -21,6 +23,7 @@ import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import { storeTheme, storeAccentColour } from '@/services/securestore';
 import { useTheme } from '@/components/ThemeContext';
+import ColorPicker, { Panel1, Swatches, Preview, OpacitySlider, HueSlider } from 'reanimated-color-picker';
 
 const FONTS = {
     h3: { fontSize: 20, fontWeight: 'bold' },
@@ -35,6 +38,7 @@ const SIZES = {
 
 const Appearance = () => {
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
+    const [customColor, setCustomColor] = useState<string>('#FFFFFF');
     const { theme, setTheme } = useTheme();
     const colorscheme = useColorScheme();
     const currentTheme = theme === "system" ? colorscheme : theme;
@@ -42,7 +46,7 @@ const Appearance = () => {
     const onSave = () => {
         storeAccentColour(accentColour);
         storeTheme(theme);
-        router.back();
+        router.replace('/settings');
     }
 
     useEffect(() => {
@@ -76,7 +80,7 @@ const Appearance = () => {
     // console.log(theme);
 
     return (
-        <View flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
+        <ScrollView flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
             <View style={styles.header}>
                 <Icon
                  testID="back-button"
@@ -105,7 +109,7 @@ const Appearance = () => {
                             <Image
                                 h={hp('18%')}
                                 resizeMode='stretch'
-                                borderRadius="$15"
+                                borderRadius={15}
                                 borderColor={theme === 'light' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
                                 borderWidth={3}
                                 alt="white"
@@ -120,7 +124,7 @@ const Appearance = () => {
                                 h={hp('18%')}
                                 resizeMode='stretch'
                                 borderColor={theme === 'dark' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
-                                borderRadius="$15"
+                                borderRadius={15}
                                 borderWidth={3}
                                 alt="white"
                                 source={require('./assets/black.png')}
@@ -134,7 +138,7 @@ const Appearance = () => {
                                 h={hp('18%')}
                                 resizeMode='stretch'
                                 borderColor={theme === 'system' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
-                                borderRadius="$15"
+                                borderRadius={15}
                                 borderWidth={3}
                                 alt="white"
                                 source={require('./assets/system.png')}
@@ -202,32 +206,34 @@ const Appearance = () => {
                         </TouchableOpacity>
                     </View >
                 </View >
-                <Text mt="$2" color={currentTheme === 'dark' ? 'white' : 'black'}>Or enter a custom colour</Text>
-                <View mt="$2" flexDirection="row" alignItems="$center">
-                    <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Custom colour:   </Text>
-                    <TextInput
+                <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Custom colour</Text>
+                <View mt="$2" flexDirection="row" alignItems="$center" justifyContent="center">
+                    
+                    <ColorPicker
                         style={{
+                            width: wp('45%'),
+                            height: hp('25%'),
                             backgroundColor: currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3',
-                            borderColor: currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3',
-                            borderRadius: 12,
-                            padding: 10,
-                            color: currentTheme ? "#fff" : "#000",
+                            borderRadius: 2,
+                            marginBottom: 40
                         }}
-                        width={wp('40%')}
-                        height={hp('5%')}
-                        placeholder="#FFFFFF"
-                        placeholderTextColor={currentTheme ? "#999" : "#666"}
-                    // onChangeText={setEmail}
-                    />
+                        value={customColor}
+                        onComplete={(color) => setAccentColour(color.hex)}
+                    >
+                        <HueSlider />
+                        <Preview />
+                        <Panel1 />
+                        
+                    </ColorPicker>
                 </View>
             </View >
-            <View position="absolute" left={0} right={0} bottom={36}>
+            <View position="relative" mb="$10" left={0} right={0} bottom={36}>
                 <GradientButton
                     onPress={onSave}
                     text="Save"
                 />
             </View>
-        </View >
+        </ScrollView >
     );
 };
 

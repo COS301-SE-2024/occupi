@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, useColorScheme, TouchableOpacity, Text, Image } from 'react-native';
+import { ScrollView, useColorScheme, TouchableOpacity, Image } from 'react-native';
 import { Ionicons, Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
   Toast,
   ToastTitle,
   useToast,
+  Text,
   View
 } from '@gluestack-ui/themed';
 
@@ -14,6 +15,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import * as SecureStore from 'expo-secure-store';
 import { Skeleton } from 'moti/skeleton';
 import { useTheme } from '@/components/ThemeContext';
+import { fetchRooms } from '@/utils/bookings';
 
 const groupDataInPairs = (data) => {
   if (!data) return [];
@@ -48,8 +50,7 @@ const BookRoom = () => {
   const toggleLayout = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
   };
-  const apiUrl = process.env.EXPO_PUBLIC_DEVELOP_API_URL;
-  const viewroomsendpoint = process.env.EXPO_PUBLIC_VIEW_ROOMS;
+ 
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
   useEffect(() => {
@@ -61,51 +62,21 @@ const BookRoom = () => {
   }, []);
 
   useEffect(() => {
-    const fetchAllRooms = async () => {
-      // console.log("heree");
-      let authToken = await SecureStore.getItemAsync('Token');
+    const getRoomData = async () => {
       try {
-        const response = await fetch(`${apiUrl}${viewroomsendpoint}?floorNo=0`, {
-          method: 'GET',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `${authToken}`
-          },
-      });
-        const data = await response.json();
-        // console.log(data);
-        if (response.ok) {
-          setRoomData(data.data || []); // Ensure data is an array
-          setLoading(false);
-        } else {
-          console.log(data);
-          setLoading(false);
-          toast.show({
-            placement: 'top',
-            render: ({ id }) => {
-              return (
-                <Toast nativeID={id} variant="accent" action="error">
-                  <ToastTitle>{data.error.message}</ToastTitle>
-                </Toast>
-              );
-            },
-          });
-        }
+          const roomData = await fetchRooms('','');
+          if (roomData) {
+              // console.log(roomData);
+              setRoomData(roomData);
+          } else {
+              setRoomData([]);
+          }
       } catch (error) {
-        console.error('Error:', error);
-        toast.show({
-          placement: 'top',
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="error">
-                <ToastTitle>Network Error: {error.message}</ToastTitle>
-              </Toast>
-            );
-          },
-        });
+          console.error('Error fetching bookings:', error);
       }
-    };
-    fetchAllRooms();
+      setLoading(false);
+  };
+  getRoomData();
   }, [toast]);
 
 
@@ -208,7 +179,7 @@ const BookRoom = () => {
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <TouchableOpacity style={{ width: wp('27%'), height: hp('4%'), justifyContent: 'center', alignItems: 'center', borderRadius: 12, backgroundColor: `${accentColour}` }}>
-                      <Text style={{ bottom: 0, color: 'dimgrey', fontSize: 13 }}>Available: now</Text>
+                      <Text fontWeight={600} style={{ bottom: 0, color: 'black', fontSize: 13 }}>Available: now</Text>
                     </TouchableOpacity>
                     <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
                   </View>

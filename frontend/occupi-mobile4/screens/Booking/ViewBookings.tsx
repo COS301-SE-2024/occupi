@@ -17,6 +17,7 @@ import { Skeleton } from 'moti/skeleton';
 import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
+import bookings from '@/app/bookings';
 
 
 
@@ -198,6 +199,10 @@ const ViewBookings = () => {
                         <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
                     </View>
                 </>
+            ) : roomData?.length === 0 ? (
+                <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
+                    <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No bookings found</Text>
+                </View>
             ) :
                 layout === "grid" ? (
                     <ScrollView

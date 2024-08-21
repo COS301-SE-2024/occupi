@@ -32,7 +32,7 @@ export default defineConfig({
     // https: true,
     proxy: {
       '/api': {
-        target: 'https://dev.occupi.tech',
+        target: process.env.NODE_ENV === "development" || process.env.NODE_ENV === "preview-dev" ? 'https://dev.occupi.tech' : "https://occupi.tech",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
@@ -49,7 +49,7 @@ export default defineConfig({
         },
       },
       '/auth': {
-        target: 'https://dev.occupi.tech',
+        target: process.env.NODE_ENV === "development" || process.env.NODE_ENV === "preview-dev" ? 'https://dev.occupi.tech' : "https://occupi.tech",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/auth/, '/auth'),

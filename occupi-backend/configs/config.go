@@ -9,44 +9,53 @@ import (
 )
 
 const (
-	MongodbUsername     = "MONGODB_USERNAME"
-	MongodbPassword     = "MONGODB_PASSWORD"
-	MongodbClusteruri   = "MONGODB_CLUSTERURI"
-	MongodbDbname       = "MONGODB_DBNAME"
-	MongodbStartURI     = "MONGODB_START_URI"
-	Port                = "PORT"
-	LogFileName         = "LOG_FILE_NAME"
-	SMTPHost            = "SMTP_HOST"
-	SMTPPort            = "SMTP_PORT"
-	SMTPPassword        = "SMTP_PASSWORD"
-	SystemEmail         = "SYSTEM_EMAIL"
-	CertificateFilePath = "CERTIFICATE_FILE_PATH"
-	KeyFilePath         = "KEY_FILE_PATH"
-	GinRunMode          = "GIN_RUN_MODE"
-	TrustedProxies      = "TRUSTED_PROXIES"
-	JwtSecret           = "JWT_SECRET"
-	SessionSecret       = "SESSION_SECRET"
-	OccupiDomains       = "OCCUPI_DOMAINS"
-	Env                 = "ENV"
-	OtpExpiration       = "OTP_EXPIRATION"
-	FrontendURL         = "FRONTEND_URL"
-	ConfigLicense       = "CONFIG_LICENSE"
-	CacheEviction       = "CACHE_EVICTION"
-	OtpGenReqEviction   = "OTP_GEN_REQ_EVICTION"
-	AllowOriginsVal     = "ALLOW_ORIGINS"
-	AllowMethodsVal     = "ALLOW_METHODS"
-	AllowHeadersVal     = "ALLOW_HEADERS"
-	ExposeHeadersVal    = "EXPOSE_HEADERS"
-	Caval               = "ALLOW_CREDENTIALS"
-	MaxAgeVal           = "MAX_AGE"
-	IPCIT               = "IP_CLIENT_INFO_TOKEN"
-	RabbitMQUsername    = "RABBITMQ_USERNAME"
-	RabbitMQPassword    = "RABBITMQ_PASSWORD"
-	RabbitMQHost        = "RABBITMQ_HOST"
-	RabbitMQPort        = "RABBITMQ_PORT"
-	RPID                = "RP_ID"
-	RPName              = "RP_NAME"
-	RPOrigins           = "RP_ORIGINS"
+	MongodbUsername        = "MONGODB_USERNAME"
+	MongodbPassword        = "MONGODB_PASSWORD"
+	MongodbClusteruri      = "MONGODB_CLUSTERURI"
+	MongodbDbname          = "MONGODB_DBNAME"
+	MongodbStartURI        = "MONGODB_START_URI"
+	Port                   = "PORT"
+	LogFileName            = "LOG_FILE_NAME"
+	SMTPHost               = "SMTP_HOST"
+	SMTPPort               = "SMTP_PORT"
+	SMTPPassword           = "SMTP_PASSWORD"
+	SystemEmail            = "SYSTEM_EMAIL"
+	CertificateFilePath    = "CERTIFICATE_FILE_PATH"
+	KeyFilePath            = "KEY_FILE_PATH"
+	GinRunMode             = "GIN_RUN_MODE"
+	TrustedProxies         = "TRUSTED_PROXIES"
+	JwtSecret              = "JWT_SECRET"
+	SessionSecret          = "SESSION_SECRET"
+	OccupiDomains          = "OCCUPI_DOMAINS"
+	Env                    = "ENV"
+	OtpExpiration          = "OTP_EXPIRATION"
+	CacheEviction          = "CACHE_EVICTION"
+	OtpGenReqEviction      = "OTP_GEN_REQ_EVICTION"
+	AllowOriginsVal        = "ALLOW_ORIGINS"
+	AllowMethodsVal        = "ALLOW_METHODS"
+	AllowHeadersVal        = "ALLOW_HEADERS"
+	ExposeHeadersVal       = "EXPOSE_HEADERS"
+	Caval                  = "ALLOW_CREDENTIALS"
+	MaxAgeVal              = "MAX_AGE"
+	IPCIT                  = "IP_CLIENT_INFO_TOKEN"
+	RabbitMQUsername       = "RABBITMQ_USERNAME"
+	RabbitMQPassword       = "RABBITMQ_PASSWORD"
+	RabbitMQHost           = "RABBITMQ_HOST"
+	RabbitMQPort           = "RABBITMQ_PORT"
+	RPID                   = "RP_ID"
+	RPName                 = "RP_NAME"
+	RPOrigins              = "RP_ORIGINS"
+	CentrifugoAKy          = "CENTRIFUGO_API_KEY"
+	CentrifugoHost         = "CENTRIFUGO_HOST"
+	CentrifugoPort         = "CENTRIFUGO_PORT"
+	NewRelicAppName        = "NEW_RELIC_APP_NAME"
+	SentryDSN              = "SENTRY_DSN"
+	PassPhrase             = "TEST_PASS_PHRASE"
+	NewRelicLicenseKey     = "NEW_RELIC_LICENSE_KEY"
+	MiddlewareService      = "MIDDLEWARE_SERVICE"
+	MiddelwareAT           = "MIDDLEWARE_AT"
+	MiddlewareTarget       = "MIDDLEWARE_TARGET"
+	MiddlewareAgentService = "MW_AGENT_SERVICE"
 )
 
 // init viper
@@ -258,15 +267,6 @@ func GetOTPExpiration() int {
 	return expiration
 }
 
-// gets the config license as defined in the config.yaml file
-func GetConfigLicense() string {
-	license := viper.GetString(ConfigLicense)
-	if license == "" {
-		license = "CONFIG_LICENSE"
-	}
-	return license
-}
-
 // gets the cache eviction time as defined in the config.yaml file in seconds
 func GetCacheEviction() int {
 	time := viper.GetInt(CacheEviction)
@@ -405,4 +405,93 @@ func GetRPOrigins() []string {
 		return originList
 	}
 	return []string{}
+}
+
+func GetCentrifugoAPIKey() string {
+	key := viper.GetString(CentrifugoAKy)
+	if key == "" {
+		key = "CENTRIFUGO_API_KEY"
+	}
+	return key
+}
+
+func GetCentrifugoHost() string {
+	host := viper.GetString(CentrifugoHost)
+	if host == "" {
+		host = "CENTRIFUGO_HOST"
+	}
+	return host
+}
+
+func GetCentrifugoPort() string {
+	port := viper.GetString(CentrifugoPort)
+	if port == "" {
+		port = "CENTRIFUGO_PORT"
+	}
+	return port
+}
+
+// gets the config license as defined in the config.yaml file
+func GetConfigLicense() string {
+	license := viper.GetString(NewRelicLicenseKey)
+	if license == "" {
+		license = "NEW_RELIC_LICENSE_KEY"
+	}
+	return license
+}
+
+func GetNewRelicAppName() string {
+	appName := viper.GetString(NewRelicAppName)
+	if appName == "" {
+		appName = "NEW_RELIC_APP_NAME"
+	}
+	return appName
+}
+
+func GetSentryDSN() string {
+	dsn := viper.GetString(SentryDSN)
+	if dsn == "" {
+		dsn = "SENTRY_DSN"
+	}
+	return dsn
+}
+
+func GetTestPassPhrase() string {
+	passPhrase := viper.GetString(PassPhrase)
+	if passPhrase == "" {
+		passPhrase = "TEST_PASS_PHRASE"
+	}
+	return passPhrase
+}
+
+func GetMiddlewareService() string {
+	service := viper.GetString(MiddlewareService)
+	if service == "" {
+		service = "MIDDLEWARE_SERVICE"
+	}
+	return service
+}
+
+func GetMiddlewareAccessToken() string {
+	token := viper.GetString(MiddelwareAT)
+	if token == "" {
+		token = "MIDDLEWARE_AT"
+	}
+	return token
+}
+
+func GetMiddlewareTarget() string {
+	target := viper.GetString(MiddlewareTarget)
+	if target == "" {
+		target = "MIDDLEWARE_TARGET"
+	}
+	return target
+}
+
+func GetMiddlewareAgentService() string {
+	service := viper.GetString(MiddlewareAgentService)
+	if service == "" {
+		service = "MW_AGENT_SERVICE"
+	}
+	return service
 }

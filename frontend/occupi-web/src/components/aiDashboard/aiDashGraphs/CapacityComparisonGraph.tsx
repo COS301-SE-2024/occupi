@@ -9,46 +9,18 @@ import {
   Legend,
   Line,
 } from "recharts";
-import axios from "axios";
-
-// Define the interface for the data
-interface CapacityData {
-  day: string;
-  predicted: number;
-}
-interface ResponseItem {
-  Day_of_Week: number;
-  Predicted_Attendance_Level: string;
-  Predicted_Class: number;
-}
+import { getCapacityComparisonData, CapacityData } from "CapacityService";
 
 const CapacityComparisonGraph = () => {
-  const [capacityComparisonData, setCapacityComparisonData] = useState<
-    CapacityData[]
-  >([]);
+  const [capacityComparisonData, setCapacityComparisonData] = useState<Pick<CapacityData, 'day' | 'predicted'>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const convertRangeToNumber = (range: string) => {
-    if (!range) return 0; // Return a default value if range is undefined
-    const [min, max] = range.split("-").map(Number);
-    return (min + max) / 2;
-  };
-
   useEffect(() => {
-    const fetchData = async () => {
+    const loadData = async () => {
       try {
-        const response = await axios.get<ResponseItem[]>(
-          "https://ai.occupi.tech/predict_week"
-        );
-        const formattedData = response.data.map((item: ResponseItem) => ({
-          day: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
-            item.Day_of_Week
-          ],
-          predicted: convertRangeToNumber(item.Predicted_Attendance_Level),
-          // Add additional data processing here if needed
-        }));
-        setCapacityComparisonData(formattedData);
+        const data = await getCapacityComparisonData();
+        setCapacityComparisonData(data);
         setLoading(false);
       } catch (err) {
         setError(err as Error);
@@ -56,7 +28,7 @@ const CapacityComparisonGraph = () => {
       }
     };
 
-    fetchData();
+    loadData();
   }, []);
 
   if (loading) {

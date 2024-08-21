@@ -1,8 +1,9 @@
 import { Booking, Room } from "@/models/data";
-import { bookRoom, cancelBooking, checkin, getUserBookings } from "../services/apiservices";
+import { bookRoom, cancelBooking, checkin, getExpoPushTokens, getRooms, getUserBookings } from "../services/apiservices";
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
-import { BookRoomReq, CancelBookingReq } from "@/models/requests";
+import { BookRoomReq, CancelBookingReq, ViewBookingsReq, ViewRoomsReq } from "@/models/requests";
+import { sendPushNotification } from "./notifications";
 
 export async function fetchUserBookings(): Promise<Booking[]> {
     let email = await SecureStore.getItemAsync('Email');
@@ -17,6 +18,49 @@ export async function fetchUserBookings(): Promise<Booking[]> {
             console.log(response)
         }
         return response.data as Booking[];
+    } catch (error) {
+        console.error('Error:', error);
+        throw error; // Add a throw statement to handle the error case
+    }
+}
+
+export async function fetchRooms(floorNo: string, roomName: string) {
+    let body: ViewRoomsReq = {};
+    if (floorNo !== '') {
+        body = {
+            operator: "eq",
+            filter: {
+                floorNo: floorNo,
+            }
+        }
+    }
+    else if (roomName !== '') {
+        body = {
+            operator: "eq",
+            filter: {
+                roomName: roomName,
+            }
+        }
+    }
+    else {
+        body = {
+            operator: "eq",
+            filter: {
+                floorNo: "0"
+            }
+        }
+    }
+    try {
+        const response = await getRooms(body);
+        if (response.status === 200) {
+            // console.log('response', response.data);
+            return response.data;
+            // console.log(settings);
+        }
+        else {
+            console.log(response)
+        }
+        return response.data as Room[];
     } catch (error) {
         console.error('Error:', error);
         throw error; // Add a throw statement to handle the error case
@@ -42,6 +86,10 @@ export async function userBookRoom(attendees : string[], startTime : string, end
     try {
         const response = await bookRoom(body);
         if (response.status === 200) {
+            console.log('attendees',attendees)
+            const pushTokens : string[] = (await getExpoPushTokens(attendees)).data;
+            console.log(pushTokens);
+            sendPushNotification(pushTokens, 'Meeting Invite', `${email} has invited you to a meeting in ${room.roomName} on ${room.date}`)
             return response.message;
         }
         return response.message;

@@ -33,6 +33,10 @@ export async function storeSecuritySettings(value: string) {
   await SecureStore.setItemAsync('Security', value);
 }
 
+export async function storeCheckInValue(value: boolean) {
+  await SecureStore.setItemAsync('CheckedIn', value.toString());
+}
+
 export async function getUserData() {
   let result: string | null = await SecureStore.getItemAsync('UserData');
   return result ? JSON.parse(result) : null;
@@ -79,4 +83,7 @@ export async function deleteAllData() {
   await SecureStore.deleteItemAsync('UserData');
   await SecureStore.deleteItemAsync('Token');
   await SecureStore.deleteItemAsync('Email');
+  await SecureStore.deleteItemAsync('Notifications');
+  await SecureStore.deleteItemAsync('Security');
+  await SecureStore.setItemAsync('CheckedIn', 'false');
 }

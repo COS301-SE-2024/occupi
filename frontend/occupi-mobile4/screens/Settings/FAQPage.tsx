@@ -1,14 +1,31 @@
 import React from 'react';
-import { ScrollView, useColorScheme } from 'react-native';
+import { ScrollView, useColorScheme , StyleSheet} from 'react-native';
 import { View, Text, Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionContent } from '@gluestack-ui/themed';
 import { useTheme } from '@/components/ThemeContext';
+import { router } from 'expo-router';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
+
+import {
+  Icon,
+  ChevronLeftIcon,
+} from '@gluestack-ui/themed';
+const SIZES = {
+  padding: 16,
+  base: 8,
+  radius: 8,
+};
 
 const FAQPage = () => {
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
   const isDarkMode = currentTheme === 'dark';
-
+  const handleBack = () => {
+    router.back();
+  }
+  let colorScheme = useColorScheme();
+  
+  
   const faqData = [
     {
       section: "Profile Page FAQs",
@@ -138,12 +155,21 @@ const FAQPage = () => {
   ];
 
   return (
-    <ScrollView testID="faq-scroll-view" style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white', paddingHorizontal: 16, paddingTop: 60 }}>
-      <Text testID="faq-title" style={{ fontSize: 24, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 20 }}>Frequently Asked Questions</Text>
+    <ScrollView style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white', paddingHorizontal: 16, paddingTop: 60 }}>
+    <View style={styles.header}>
+          <Icon
+            as={Feather}
+            name="chevron-left"
+            size="xl"
+            color={colorScheme === 'dark' ? 'white' : 'black'}
+            onPress={() => router.back()}
+          />
+          <Text style={{ fontSize: 21, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 2, marginRight : 20 }}>Frequently Asked Questions</Text>
+        </View>
       <Accordion type="single" defaultValue="item-1" backgroundColor={isDarkMode ? 'black' : 'white'} marginBottom={70} shadowColor="transparent">
         {faqData.map((section, sectionIndex) => (
-          <View key={`section-${sectionIndex}`} style={{ marginBottom: 20, backgroundColor: isDarkMode ? 'black' : 'white' }}>
-            <Text testID={`faq-section-title-${sectionIndex}`} style={{ fontSize: 20, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 10 }}>{section.section}</Text>
+          <View key={`section-${sectionIndex}`} style={{ marginBottom: 20, backgroundColor: isDarkMode ? 'black' : 'white'}}>
+            <Text style={{ fontSize: 19, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 10 }}>{section.section}</Text>
             {section.questions.map((item, index) => (
               <AccordionItem key={`item-${sectionIndex}-${index}`} value={`item-${sectionIndex}-${index}`}>
                 <AccordionHeader>
@@ -162,5 +188,16 @@ const FAQPage = () => {
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+ 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SIZES.padding,
+  },
+  
+});
 
 export default FAQPage;

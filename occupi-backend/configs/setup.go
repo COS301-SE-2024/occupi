@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache/v3"
+	"github.com/centrifugal/gocent/v3"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/ipinfo/go/v2/ipinfo/cache"
@@ -225,4 +226,23 @@ func CreateWebAuthnInstance() *webauthn.WebAuthn {
 	fmt.Println("WebAuthn instance created!")
 
 	return webAuthn
+}
+
+func CreateCentrifugoClient() *gocent.Client {
+	// Centrifugo connection parameters
+	centrifugoHost := GetCentrifugoHost()
+	centrifugoPort := GetCentrifugoPort()
+	centrifugoAPIKey := GetCentrifugoAPIKey()
+
+	centrifugoAddr := fmt.Sprintf("http://%s:%s/api", centrifugoHost, centrifugoPort)
+
+	// Create a new Centrifugo client
+	client := gocent.New(gocent.Config{
+		Addr: centrifugoAddr,
+		Key:  centrifugoAPIKey,
+	})
+
+	fmt.Println("Centrifugo client created!")
+
+	return client
 }

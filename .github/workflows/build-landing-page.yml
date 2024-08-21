@@ -1,0 +1,35 @@
+name: Build Landing page 🏗️
+
+on:
+    pull_request:
+        branches: ["develop"]
+        paths: [
+            "frontend/occupi/**",
+            ".github/workflows/build-landing-page.yml"
+        ]
+
+    workflow_dispatch:
+
+defaults:
+    run:
+        working-directory: frontend/occupi
+
+jobs:
+  # Build job
+  build-test:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: 📦 Install dependencies with node
+        run: npm install
+
+      - name: 🚀 Build with Next.js
+        run: npm run build

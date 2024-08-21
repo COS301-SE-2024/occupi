@@ -81,7 +81,7 @@ const LoginForm = (): JSX.Element => {
     }
     
     try {
-      setUserDetails({ email: form.email /* other fields */ });
+      setUserDetails({ email: form.email, name: "", dob: "", gender: "", employeeid: "", number: "", pronouns: "", /* other fields */ });
       const userDetails = await AuthService.getUserDetails(form.email);
       console.log("User details from API:", userDetails);
 

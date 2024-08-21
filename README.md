@@ -26,12 +26,13 @@
 
 <p align="center">
 
+![Build Python App 🏗️](https://github.com/COS301-SE-2024/occupi/actions/workflows/build-python.yml/badge.svg)
 ![Build 🏗️ and Deploy Documentation 🛳️](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-docs.yml/badge.svg)
 ![Build 🏗️ and Deploy Golang App 🛳️ to Develop 🚈](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-develop.yml/badge.svg)
 ![Build 🏗️ and Deploy Landing Page 🛳️](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-landing-page.yml/badge.svg)
 ![Build 🏗️ and Deploy Web 🛳️ to Develop 🚈](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-web-develop.yml/badge.svg)
 ![Build 🏗️ and Deploy 🛳️ Web App to Production 🚝](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-web-prod.yml/badge.svg)
-![Deploy Models 🤖🧠](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-models.yml/badge.svg)
+![Build 🏗️ and Deploy Python App 🛳️](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-python.yml/badge.svg)
 ![Build🏗️ and Deploy Golang App 🛳️ to Prod 🚝](https://github.com/COS301-SE-2024/occupi/actions/workflows/deploy-golang-prod.yml/badge.svg)
 ![Lint🌸 and Test🧪 Mobile](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-mobile.yml/badge.svg)
 ![Lint🌸, Test🧪 and Build🏗️ golang](https://github.com/COS301-SE-2024/occupi/actions/workflows/lint-test-build-golang.yml/badge.svg)
@@ -56,6 +57,13 @@
 - [Additional info](#additional-info)
 - [Sponsors and Stakeholders](#sponsors-and-stakeholders)
 
+
+# Demo Videos
+<a href="https://drive.google.com/file/d/1v7x7XFYvpQImidjSdRyLIqlNk6hofTeL/view?usp=sharing">Demo 1</a><br>
+<a href="https://drive.google.com/file/d/1v7x7XFYvpQImidjSdRyLIqlNk6hofTeL/view?usp=sharing">Demo 2</a><br>
+<a href="https://drive.google.com/file/d/1v7x7XFYvpQImidjSdRyLIqlNk6hofTeL/view?usp=sharing">Demo 3</a>
+
+
 # Documentation
 
 <p align="center">
@@ -63,6 +71,7 @@
 </p>
 
 <p align="center">
+
 
 ### Software Requirements Specification
 [Document](https://docs.occupi.tech/srs)

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
@@ -485,12 +484,12 @@ func AttemptToGetEmail(ctx *gin.Context, appsession *models.AppSession) (string,
 	}
 }
 
-func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
+func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, email string) error {
 	claims, err := utils.GetClaimsFromCTX(ctx)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
+		return err
 	}
 
 	_ = utils.ClearSession(ctx)
@@ -501,21 +500,15 @@ func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, emai
 	// Alternatively, completely remove the Authorization header
 	ctx.Writer.Header().Del("Authorization")
 
-	// List of domains to clear cookies from
-	domains := configs.GetOccupiDomains()
-
-	// Iterate over each domain and clear the "token" and "occupi-sessions-store" cookies
-	for _, domain := range domains {
-		ctx.SetCookie("token", "", -1, "/", domain, false, true)
-		ctx.SetCookie("occupi-sessions-store", "", -1, "/", domain, false, true)
-	}
+	ctx.SetCookie("token", "", -1, "/", "", false, true)
+	ctx.SetCookie("occupi-sessions-store", "", -1, "/", "", false, true)
 
 	// generate a jwt token for the user
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, email, claims.Role)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
+		return err
 	}
 
 	originToken := ctx.GetString("tokenOrigin")
@@ -544,4 +537,5 @@ func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, emai
 			nil,
 		))
 	}
+	return nil
 }

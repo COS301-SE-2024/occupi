@@ -2,6 +2,10 @@
   "index": "Introduction",
   "api-documentation": "Api documentation",
   "coding-standards": "Coding Standards",
+  "installation": {
+    "title": "Installation",
+    "type": "page"
+  },
   "srs": {
     "title": "Software Requirements Specification",
     "type": "page"

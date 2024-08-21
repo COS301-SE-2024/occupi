@@ -21,7 +21,7 @@ test("Tab component renders all three tabs", () => {
     render(<TabComponent setSelectedTab={mockSetSelectedTab} />);
     
     expect(screen.getByText('Overview')).toBeDefined();
-    expect(screen.getByText('Bookings')).toBeDefined();
+    expect(screen.getByText('Employees')).toBeDefined();
     expect(screen.getByText('Visitations')).toBeDefined();
   });
 
@@ -37,7 +37,7 @@ test("Tab component renders all three tabs", () => {
     const mockSetSelectedTab = mock(() => {});
     render(<TabComponent setSelectedTab={mockSetSelectedTab} />);
     
-    const bookingsTab = screen.getByText('Bookings');
+    const bookingsTab = screen.getByText('Employees');
     fireEvent.click(bookingsTab);
     
     const bookingsTabDiv = bookingsTab.closest('div');
@@ -48,7 +48,7 @@ test("Tab component renders all three tabs", () => {
     const mockSetSelectedTab = mock((arg: string) => {arg.toLowerCase()});
     render(<TabComponent setSelectedTab={mockSetSelectedTab} />);
     
-    const bookingsTab = screen.getByText('Bookings');
+    const bookingsTab = screen.getByText('Employees');
     fireEvent.click(bookingsTab);
     
     expect(mockSetSelectedTab.mock.calls.length).toBe(1);

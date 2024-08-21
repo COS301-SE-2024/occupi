@@ -18,7 +18,7 @@ const HeaderComponent: React.FC<HeaderComponentProps> = ({
   return (
     <div className="flex flex-col mt-6 gap-2 w-11/12 mr-auto ml-auto">
       <div className="w-auto h-6 text-text_col text-xl font-extralight leading-snug">
-        {greeting} {userDetails?.email ?? 'Guest'} 👋
+        {greeting} {userDetails?.name ?? 'Guest'} 👋
       </div>
       <div className="w-auto h-7 text-text_col text-2xl font-semibold leading-none">
         {welcomeMessage}
