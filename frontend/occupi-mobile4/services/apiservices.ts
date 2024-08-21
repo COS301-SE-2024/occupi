@@ -13,7 +13,7 @@ export const getUserDetails = async (email: string, authToken: string): Promise<
     });
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in getUserDetails:`, error);
+    // console.error(`Error in getUserDetails:`, error);
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<Unsuccessful>;
       if (axiosError.response?.data) {
@@ -47,7 +47,7 @@ export async function getRooms(req: ViewRoomsReq): Promise<Success | Unsuccessfu
     });
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }
@@ -82,7 +82,7 @@ export async function getNotificationSettings(email: string): Promise<Success | 
     // console.log(response.data);
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }
@@ -129,7 +129,7 @@ export const getUserBookings = async (email: string): Promise<Success | Unsucces
     // console.log(response.data);
     return response.data;
   } catch (error) {
-    console.error("Error in getUserBookings:", error);
+    // console.error("Error in getUserBookings:", error);
     if (axios.isAxiosError(error) && error.response) {
       return error.response.data;
     }
@@ -161,7 +161,7 @@ export async function getNotifications(req: NotificationsReq): Promise<Success |
     });
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }
@@ -180,7 +180,7 @@ export async function getNotifications(req: NotificationsReq): Promise<Success |
 
 export async function checkin(req: CheckInReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  console.log(req);
+  // console.log(req);
   try {
     const response = await axios.post("https://dev.occupi.tech/api/check-in", req, {
       headers: {
@@ -192,9 +192,9 @@ export async function checkin(req: CheckInReq): Promise<Success | Unsuccessful> 
     });
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
-      console.log(error.response.data)
+      // console.log(error.response.data)
       return error.response.data as Unsuccessful;
     }
     return {
@@ -212,7 +212,7 @@ export async function checkin(req: CheckInReq): Promise<Success | Unsuccessful> 
 
 export async function updateUserDetails(req: UpdateDetailsReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  console.log('token',authToken);
+  // console.log('token',authToken);
   try {
     const response = await axios.post("https://dev.occupi.tech/api/update-user", req, {
       headers: {
@@ -225,9 +225,9 @@ export async function updateUserDetails(req: UpdateDetailsReq): Promise<Success 
     storeUserData(JSON.stringify(req));
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
-      console.log(error.response.data)
+      // console.log(error.response.data)
       return error.response.data as Unsuccessful;
     }
     return {
@@ -245,7 +245,7 @@ export async function updateUserDetails(req: UpdateDetailsReq): Promise<Success 
 
 export async function bookRoom(req: BookRoomReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  console.log(req);
+  // console.log(req);
   try {
     const response = await axios.post("https://dev.occupi.tech/api/book-room", req, {
       headers: {
@@ -257,9 +257,9 @@ export async function bookRoom(req: BookRoomReq): Promise<Success | Unsuccessful
     });
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
-      console.log(error.response.data)
+      // console.log(error.response.data)
       return error.response.data as Unsuccessful;
     }
     return {
@@ -277,7 +277,7 @@ export async function bookRoom(req: BookRoomReq): Promise<Success | Unsuccessful
 
 export async function cancelBooking(req: CancelBookingReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  console.log(req);
+  // console.log(req);
   try {
     const response = await axios.post("https://dev.occupi.tech/api/cancel-booking", req, {
       headers: {
@@ -289,9 +289,9 @@ export async function cancelBooking(req: CancelBookingReq): Promise<Success | Un
     });
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
-      console.log(error.response.data)
+      // console.log(error.response.data)
       return error.response.data as Unsuccessful;
     }
     return {
@@ -309,7 +309,7 @@ export async function cancelBooking(req: CancelBookingReq): Promise<Success | Un
 
 export async function getExpoPushTokens(attendees: string[]): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  console.log('emails',attendees);
+  // console.log('emails',attendees);
   try {
   const response = await axios.get(`https://dev.occupi.tech/api/get-push-tokens?emails=${attendees}`, {
       headers: {
@@ -319,10 +319,10 @@ export async function getExpoPushTokens(attendees: string[]): Promise<Success | 
       },
       withCredentials: true
     });
-    console.log('push tokens',response.data);
+    // console.log('push tokens',response.data);
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }
@@ -357,7 +357,7 @@ export async function getSecuritySettings(email: string): Promise<Success | Unsu
     // console.log(response.data);
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }
@@ -388,7 +388,7 @@ export async function updateSecuritySettings(req: SecuritySettingsReq): Promise<
     // console.log(response.data);
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }
@@ -422,7 +422,7 @@ export async function updateNotificationSettings(req: NotificationSettingsReq): 
     // console.log(response.data);
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }
