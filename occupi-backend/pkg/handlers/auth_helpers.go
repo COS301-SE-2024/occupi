@@ -342,6 +342,21 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, err
 	}
 
+	// check if the login location is within 1000km of the other locations, if not block the login and unverify the user
+	if !isIPValid {
+		isInRange := database.IsIPWithinRange(ctx, appsession, email, unrecognizedLogger)
+
+		if !isInRange {
+			ctx.JSON(http.StatusForbidden, utils.ErrorResponse(
+				http.StatusForbidden,
+				"Forbidden from access",
+				constants.ForbiddenCode,
+				"This login attempt is forbidden as the login location is too far away from known locations",
+				nil))
+			return false, nil
+		}
+	}
+
 	// chec if the user has mfa enabled
 	mfaEnabled, err := database.CheckIfUserHasMFAEnabled(ctx, appsession, email)
 

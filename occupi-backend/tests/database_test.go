@@ -13,6 +13,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/ipinfo/go/v2/ipinfo"
 
 	"github.com/stretchr/testify/assert"
 
@@ -4739,4 +4740,58 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		// Validate the result
 		assert.Error(t, err)
 	})
+}
+
+func TestIsLocationInRange(t *testing.T) {
+	// Setup test cases
+	tests := []struct {
+		name               string
+		locations          []models.Location
+		unrecognizedLogger *ipinfo.Core
+		expected           bool
+	}{
+		{
+			name: "Location within 1000 km",
+			locations: []models.Location{
+				{City: "CityA", Region: "RegionA", Country: "CountryA", Location: "37.7749,-122.4194"}, // San Francisco
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           true,
+		},
+		{
+			name: "Location beyond 1000 km",
+			locations: []models.Location{
+				{City: "CityB", Region: "RegionB", Country: "CountryB", Location: "40.7128,-74.0060"}, // New York
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,
+		},
+		{
+			name: "Multiple Locations with one within 1000 km",
+			locations: []models.Location{
+				{City: "CityC", Region: "RegionC", Country: "CountryC", Location: "40.7128,-74.0060"},  // New York
+				{City: "CityD", Region: "RegionD", Country: "CountryD", Location: "36.1699,-115.1398"}, // Las Vegas
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           true,
+		},
+		{
+			name: "No Locations in Range",
+			locations: []models.Location{
+				{City: "CityE", Region: "RegionE", Country: "CountryE", Location: "51.5074,-0.1278"}, // London
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Call the function under test
+			result := database.IsLocationInRange(tt.locations, tt.unrecognizedLogger)
+
+			// Assert the result
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

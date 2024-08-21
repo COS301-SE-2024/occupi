@@ -8,6 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+// TODO: Add methods to prevent users from requesting more than 5 logins per day, 5 otps per day, etc. but waiting for go-redis to be integrated first
+
 func GetUser(appsession *models.AppSession, email string) (models.User, error) {
 	if appsession.Cache == nil {
 		return models.User{}, errors.New("cache not found")
