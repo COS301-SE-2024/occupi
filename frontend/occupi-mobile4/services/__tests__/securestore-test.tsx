@@ -94,4 +94,24 @@ describe('Secure Store Functions', () => {
     expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('Email');
     expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledTimes(5);
   });
+
+describe('storeCheckInValue', () => {
+  it('should store the boolean value as a string', async () => {
+    const mockSetItemAsync = SecureStore.setItemAsync as jest.Mock;
+    mockSetItemAsync.mockResolvedValueOnce(undefined);
+
+    await secureStore.storeCheckInValue(true);
+
+    expect(mockSetItemAsync).toHaveBeenCalledWith('CheckedIn', 'true');
+  });
+
+  it('should store the boolean value as a string', async () => {
+    const mockSetItemAsync = SecureStore.setItemAsync as jest.Mock;
+    mockSetItemAsync.mockResolvedValueOnce(undefined);
+
+    await secureStore.storeCheckInValue(false);
+
+    expect(mockSetItemAsync).toHaveBeenCalledWith('CheckedIn', 'false');
+  });
+});
 });
