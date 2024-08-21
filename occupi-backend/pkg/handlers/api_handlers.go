@@ -891,8 +891,8 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// set the response headers
-	ctx.Header("Content-Disposition", "attachment; filename="+imageData.FileName)
-	ctx.Header("/Content-Type", "application/octet-stream")
+	ctx.Header("Content-Disposition", "inline; filename="+imageData.FileName)
+	ctx.Header("Content-Type", "image/jepg")
 	switch request.Quality {
 	case constants.ThumbnailRes:
 		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
