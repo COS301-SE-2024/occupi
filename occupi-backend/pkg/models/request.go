@@ -1,6 +1,10 @@
 package models
 
-import "github.com/go-webauthn/webauthn/webauthn"
+import (
+	"time"
+
+	"github.com/go-webauthn/webauthn/webauthn"
+)
 
 type RegisterUser struct {
 	Email         string `json:"email" binding:"required,email"`
@@ -112,4 +116,14 @@ type WebAuthnSession struct {
 	Email       string                `json:"email"`
 	Cred        webauthn.Credential   `json:"cred"`
 	SessionData *webauthn.SessionData `json:"sessionData"`
+}
+
+type RequestAvailableSlots struct {
+	RoomID string    `json:"roomId" binding:"required,startswith=RM"`
+	Date   time.Time `json:"date" binding:"required"`
+}
+
+type Slot struct {
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
 }

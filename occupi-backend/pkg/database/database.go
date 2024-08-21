@@ -1637,3 +1637,34 @@ func IsIPWithinRange(ctx *gin.Context, appsession *models.AppSession, email stri
 
 	return IsLocationInRange(user.KnownLocations, unrecognizedLogger)
 }
+
+func GetAvailableSlots(ctx *gin.Context, appsession *models.AppSession, request models.RequestAvailableSlots) ([]models.Slot, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
+
+	filter := bson.M{
+		"roomId": request.RoomID,
+		"date":   request.Date,
+	}
+
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	var bookings []models.Booking
+	if err = cursor.All(ctx, &bookings); err != nil {
+		return nil, err
+	}
+
+	// get all slots for the room
+	slots := ComputeAvailableSlots(bookings, request.Date)
+
+	return slots, nil
+}
