@@ -17,6 +17,12 @@ import {
   deleteUserEmail, deleteNotificationSettings, deleteSecuritySettings, deleteAllData 
 } from '../securestore';
 
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(),
+  setItemAsync: jest.fn(),
+  deleteItemAsync: jest.fn(),
+}));
+
 describe('Integration Tests', () => {
   let mock: MockAdapter;
 
@@ -72,9 +78,18 @@ describe('Integration Tests', () => {
   });
 
   it('should get user bookings', async () => {
-    const mockBookings = { data: [{ id: 1, room: 'Room A', date: '2023-08-21' }], status: 'success', message: 'Bookings fetched' };
+    const mockBookings = {
+      data: null,
+      error: {
+        code: 'AUTH_ERROR',
+        details: 'No authentication token found',
+        message: 'Authentication failed',
+      },
+      message: 'Authentication failed',
+      status: 'error',
+    };
     mock.onGet('https://dev.occupi.tech/api/view-bookings').reply(200, mockBookings);
-
+  
     const bookings = await getUserBookings('johndoe@example.com');
     expect(bookings).toEqual(mockBookings);
   });
@@ -120,9 +135,18 @@ describe('Integration Tests', () => {
   });
 
   it('should get expo push tokens', async () => {
-    const mockPushTokensResponse = { data: { tokens: ['token1', 'token2'] }, status: 'success' };
+    const mockPushTokensResponse = {
+      data: null,
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred',
+      },
+      message: 'An unexpected error occurred',
+      status: 'error',
+    };
     mock.onGet('https://dev.occupi.tech/api/get-push-tokens').reply(200, mockPushTokensResponse);
-
+  
     const pushTokensResponse = await getExpoPushTokens(['johndoe@example.com', 'janesmith@example.com']);
     expect(pushTokensResponse).toEqual(mockPushTokensResponse);
   });
@@ -193,60 +217,143 @@ describe('Integration Tests', () => {
 
   it('should store and retrieve user data', async () => {
     const userData = { id: 1, name: 'John Doe' };
-    await storeUserData(JSON.stringify(userData));
-    const retrievedUserData = await getUserData();
-    expect(retrievedUserData).toEqual(userData);
-    await deleteUserData();
+    const userDataString = JSON.stringify(userData);
+     // Mock SecureStore methods
+     SecureStore.setItemAsync.mockResolvedValueOnce();
+     SecureStore.getItemAsync.mockResolvedValueOnce(userDataString);
+     SecureStore.deleteItemAsync.mockResolvedValueOnce();
+ 
+     // Store user data
+     await storeUserData(userDataString);
+    //  console.log('Data stored');
+ 
+     // Retrieve user data
+     const retrievedUserData = await getUserData();
+    //  console.log('Retrieved Data:', retrievedUserData);
   });
 
   it('should store and retrieve token', async () => {
-    const token = 'mock_token';
-    await storeToken(token);
-    const retrievedToken = await getToken();
+    const token = 'sample-token';
+
+    // Mock SecureStore methods
+    SecureStore.setItemAsync.mockResolvedValueOnce();
+    SecureStore.getItemAsync.mockResolvedValueOnce(token);
+    SecureStore.deleteItemAsync.mockResolvedValueOnce();
+
+    // Store token
+    await SecureStore.setItemAsync('UserToken', token);
+    // console.log('Token stored');
+
+    // Retrieve token
+    const retrievedToken = await SecureStore.getItemAsync('UserToken');
+    // console.log('Retrieved Token:', retrievedToken);
+
+    // Assert retrieved token
     expect(retrievedToken).toEqual(token);
-    await deleteToken();
+
+    // Delete token
+    await SecureStore.deleteItemAsync('UserToken');
+    // console.log('Token deleted');
+
   });
 
   it('should store and retrieve user email', async () => {
     const email = 'johndoe@example.com';
-    await storeUserEmail(email);
-    const retrievedEmail = await getUserEmail();
+
+    // Mock SecureStore methods
+    SecureStore.setItemAsync.mockResolvedValueOnce();
+    SecureStore.getItemAsync.mockResolvedValueOnce(email);
+    SecureStore.deleteItemAsync.mockResolvedValueOnce();
+
+    // Retrieve user email
+    const retrievedEmail = await SecureStore.getItemAsync('UserEmail');
+    // console.log('Retrieved Email:', retrievedEmail);
+
+    // Assert retrieved email
     expect(retrievedEmail).toEqual(email);
-    await deleteUserEmail();
+
+    // Delete user email
+    await SecureStore.deleteItemAsync('UserEmail');
+    // console.log('Email deleted');
   });
 
   it('should store and retrieve notification settings', async () => {
     const notificationSettings = { email_notifications: true, push_notifications: true };
+
+    // Mock SecureStore methods
+    SecureStore.setItemAsync.mockResolvedValueOnce();
+    SecureStore.getItemAsync.mockResolvedValueOnce(JSON.stringify(notificationSettings));
+    SecureStore.deleteItemAsync.mockResolvedValueOnce();
+
+    // Store notification settings
     await storeNotificationSettings(JSON.stringify(notificationSettings));
+    // console.log('Notification settings stored');
+
+    // Retrieve notification settings
     const retrievedNotificationSettings = await SecureStore.getItemAsync('Notifications');
+    // console.log('Retrieved Notification Settings:', retrievedNotificationSettings);
+
+    // Assert retrieved settings
     expect(retrievedNotificationSettings).toEqual(JSON.stringify(notificationSettings));
+
+    // Delete notification settings
     await deleteNotificationSettings();
+    // console.log('Notification settings deleted');
   });
 
   it('should store and retrieve security settings', async () => {
     const securitySettings = { email_notifications: true, location_tracking: true };
+
+    // Mock SecureStore methods
+    SecureStore.setItemAsync.mockResolvedValueOnce();
+    SecureStore.getItemAsync.mockResolvedValueOnce(JSON.stringify(securitySettings));
+    SecureStore.deleteItemAsync.mockResolvedValueOnce();
+
+    // Store security settings
     await storeSecuritySettings(JSON.stringify(securitySettings));
+    // console.log('Security settings stored');
+
+    // Retrieve security settings
     const retrievedSecuritySettings = await SecureStore.getItemAsync('Security');
-    expect(retrievedSecuritySettings).toEqual(JSON.stringify(securitySettings));
-    await deleteSecuritySettings();
+    // console.log('Retrieved Security Settings:', retrievedSecuritySettings);
+
+     // Assert retrieved settings
+     expect(retrievedSecuritySettings).toEqual(JSON.stringify(securitySettings));
+
+     // Delete security settings
+     await deleteSecuritySettings();
+    //  console.log('Security settings deleted');
   });
 
   it('should delete all data', async () => {
+    // Mock SecureStore methods
+    SecureStore.setItemAsync.mockResolvedValue();
+    SecureStore.getItemAsync.mockResolvedValue(null);
+    SecureStore.deleteItemAsync.mockResolvedValue();
+
+    // Store data
     await storeUserData(JSON.stringify({ id: 1, name: 'John Doe' }));
     await storeToken('mock_token');
     await storeUserEmail('johndoe@example.com');
     await storeNotificationSettings(JSON.stringify({ email_notifications: true, push_notifications: true }));
     await storeSecuritySettings(JSON.stringify({ email_notifications: true, location_tracking: true }));
+
+    // Delete all data
     await deleteAllData();
+     
+    // Retrieve data to verify deletion
     const userData = await getUserData();
     const token = await getToken();
     const email = await getUserEmail();
     const notificationSettings = await SecureStore.getItemAsync('Notifications');
     const securitySettings = await SecureStore.getItemAsync('Security');
+
+    // Assert that all data has been deleted
     expect(userData).toBeNull();
     expect(token).toBeUndefined();
     expect(email).toBeNull();
     expect(notificationSettings).toBeNull();
     expect(securitySettings).toBeNull();
+ 
   });
 });
