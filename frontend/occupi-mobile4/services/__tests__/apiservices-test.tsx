@@ -337,5 +337,109 @@ describe('getNotifications', () => {
 
       expect(result).toEqual(mockErrorResponse);
     });
+
+    describe('getRooms', () => {
+      const mockViewRoomsReq = { location: 'Pretoria', startTime: '2023-08-15T10:00:00', endTime: '2023-08-15T11:00:00' };
+    
+      it('should return success response when API call is successful', async () => {
+        mockedAxios.get.mockResolvedValue({ data: mockSuccessResponse });
+    
+        const result = await apiServices.getRooms(mockViewRoomsReq);
+    
+        expect(mockedAxios.get).toHaveBeenCalledWith(
+          "https://dev.occupi.tech/api/view-rooms",
+          expect.objectContaining({
+            params: mockViewRoomsReq,
+            headers: expect.objectContaining({ Authorization: mockAuthToken }),
+          })
+        );
+        expect(result).toEqual(mockSuccessResponse);
+      });
+    
+      it('should return error response when API call fails', async () => {
+        mockedAxios.get.mockRejectedValue({ response: { data: mockErrorResponse } });
+    
+        const result = await apiServices.getRooms(mockViewRoomsReq);
+    
+        expect(result).toEqual(mockErrorResponse);
+      });
+    
+      it('should handle non-Axios errors', async () => {
+        mockedAxios.get.mockRejectedValue(new Error('Network error'));
+    
+        const result = await apiServices.getRooms(mockViewRoomsReq);
+    
+        expect(result).toEqual(expect.objectContaining({
+          data: null,
+          status: 'error',
+          message: 'An unexpected error occurred',
+        }));
+      });
+    });
+    
+    describe('getExpoPushTokens', () => {
+      const mockAttendees = ['test1@example.com', 'test2@example.com'];
+    
+      it('should return success response when API call is successful', async () => {
+        mockedAxios.get.mockResolvedValue({ data: mockSuccessResponse });
+    
+        const result = await apiServices.getExpoPushTokens(mockAttendees);
+    
+        expect(mockedAxios.get).toHaveBeenCalledWith(
+          'https://dev.occupi.tech/api/get-push-tokens?emails=test1@example.com,test2@example.com',
+          expect.objectContaining({
+            headers: expect.objectContaining({ Authorization: mockAuthToken }),
+          })
+        );
+        expect(result).toEqual(mockSuccessResponse);
+      });
+    
+      it('should return error response when API call fails', async () => {
+        mockedAxios.get.mockRejectedValue({ response: { data: mockErrorResponse } });
+    
+        const result = await apiServices.getExpoPushTokens(mockAttendees);
+    
+        expect(result).toEqual(mockErrorResponse);
+      });
+    
+      it('should handle non-Axios errors', async () => {
+        mockedAxios.get.mockRejectedValue(new Error('Network error'));
+    
+        const result = await apiServices.getExpoPushTokens(mockAttendees);
+    
+        expect(result).toEqual(expect.objectContaining({
+          data: null,
+          status: 'error',
+          message: 'An unexpected error occurred',
+        }));
+      });
+    });
+    
+    describe('updateNotificationSettings', () => {
+      const mockNotificationSettingsReq = { email: mockEmail, invites: 'on', bookingReminder: 'off' };
+    
+      it('should return success response when API call is successful', async () => {
+        mockedAxios.get.mockResolvedValue({ data: mockSuccessResponse });
+    
+        const result = await apiServices.updateNotificationSettings(mockNotificationSettingsReq);
+    
+        expect(mockedAxios.get).toHaveBeenCalledWith(
+          "https://dev.occupi.tech/api/update-notification-settings",
+          expect.objectContaining({
+            params: { req: mockNotificationSettingsReq },
+            headers: expect.objectContaining({ Authorization: mockAuthToken }),
+          })
+        );
+        expect(result).toEqual(mockSuccessResponse);
+      });
+    
+      it('should return error response when API call fails', async () => {
+        mockedAxios.get.mockRejectedValue({ response: { data: mockErrorResponse } });
+    
+        const result = await apiServices.updateNotificationSettings(mockNotificationSettingsReq);
+    
+        expect(result).toEqual(mockErrorResponse);
+      });
+    });
   });
 });
