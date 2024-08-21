@@ -4783,6 +4783,12 @@ func TestIsLocationInRange(t *testing.T) {
 			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
 			expected:           false,
 		},
+		{
+			name:               "Empty Locations Array",
+			locations:          []models.Location{},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           true,
+		},
 	}
 
 	for _, tt := range tests {

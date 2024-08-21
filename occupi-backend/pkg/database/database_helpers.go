@@ -10,6 +10,11 @@ import (
 )
 
 func IsLocationInRange(locations []models.Location, unrecognizedLogger *ipinfo.Core) bool {
+	// Return true if there are no locations
+	if len(locations) == 0 {
+		return true
+	}
+
 	for _, loc := range locations {
 		coords1 := strings.Split(loc.Location, ",")
 		lat1, _ := strconv.ParseFloat(coords1[0], 64)
