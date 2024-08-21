@@ -130,7 +130,7 @@ export async function updateDetails(name: string, dob: string, gender: string, c
             if (state === "verify_otp_register") {
                 setState("logged_out");
                 router.replace('/home');
-                return;
+                return "Details updated successfully";
             }
             router.replace('/settings')
             return "Details updated successfully"
@@ -141,6 +141,7 @@ export async function updateDetails(name: string, dob: string, gender: string, c
         }
     } catch (error) {
         console.error('Error:', error);
+        return 'Error occurred';
     }
 }
 

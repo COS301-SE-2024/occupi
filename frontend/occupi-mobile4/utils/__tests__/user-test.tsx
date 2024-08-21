@@ -217,7 +217,7 @@ describe('user utils', () => {
         pronouns: 'He/Him'
       });
       expect(secureStore.setState).toHaveBeenCalledWith('logged_out');
-      expect(router.replace).toHaveBeenCalledWith('login');
+      expect(router.replace).toHaveBeenCalledWith('/home');
       expect(result).toBe('Details updated successfully');
       expect(console.log).toHaveBeenCalledWith(mockResponse);
     });

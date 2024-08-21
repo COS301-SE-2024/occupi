@@ -92,6 +92,6 @@ describe('Secure Store Functions', () => {
     expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('UserData');
     expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('Token');
     expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('Email');
-    expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledTimes(3);
+    expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledTimes(5);
   });
 });

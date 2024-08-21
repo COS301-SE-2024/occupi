@@ -262,6 +262,7 @@ describe('Notifications', () => {
       expect(SecureStore.getItemAsync).toHaveBeenCalledWith('Email');
       expect(getNotifications).toHaveBeenCalledWith({
         filter: { emails: [mockEmail] },
+        operator: "eq"
       });
       expect(result).toEqual(mockNotifications);
     });
@@ -276,6 +277,10 @@ describe('Notifications', () => {
 
       expect(console.log).toHaveBeenCalledWith(mockResponse);
       expect(result).toBe('Error');
+      expect(getNotifications).toHaveBeenCalledWith({
+        filter: { emails: [mockEmail] },
+        operator: "eq"
+      });
     });
 
     it('should handle null email', async () => {
@@ -289,6 +294,7 @@ describe('Notifications', () => {
 
       expect(getNotifications).toHaveBeenCalledWith({
         filter: { emails: [null] },
+        operator: "eq"
       });
       expect(result).toEqual([]);
     });
