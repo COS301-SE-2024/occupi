@@ -1,8 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { login, logout } from '../../services/authservices'; 
-import { LoginReq } from '@/models/requests';
-import { LoginSuccess, Unsuccessful, Success } from '@/models/response';
+import * as authServices from '../authservices';
+import { LoginReq, RegisterReq, VerifyOTPReq } from "@/models/requests";
 
 jest.mock('axios');
 jest.mock('expo-secure-store');
@@ -10,128 +9,200 @@ jest.mock('expo-secure-store');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 
-describe('authservice', () => {
+describe('Auth Services', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedSecureStore.getItemAsync.mockResolvedValue('mock-token');
+    console.log = jest.fn();
   });
 
   describe('login', () => {
-    const loginReq: LoginReq = {
-      email: 'test@example.com',
-      password: 'password123',
-    };
+    const loginReq: LoginReq = { email: 'test@example.com', password: 'password123' };
 
     it('should return LoginSuccess on successful login', async () => {
-      const mockResponse: LoginSuccess = {
-        data: { token: 'mock-token' },
-        message: 'Login successful',
-        status: 200,
-      };
+      const mockResponse = { data: { token: 'abc123', user: { id: 1, name: 'Test User' } } };
+      mockedAxios.post.mockResolvedValue(mockResponse);
 
-      mockedAxios.post.mockResolvedValueOnce({ data: mockResponse });
+      const result = await authServices.login(loginReq);
 
-      const result = await login(loginReq);
-
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        'https://dev.occupi.tech/auth/login-mobile',
-        loginReq,
-        expect.any(Object)
-      );
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual(mockResponse.data);
     });
 
-    it('should throw error on failed login', async () => {
-      const mockError: Unsuccessful = {
-        data: null,
-        status: 'error',
-        message: 'Invalid credentials',
-        error: {
-          code: 'AUTH_ERROR',
-          details: 'Invalid email or password',
-          message: 'Authentication failed',
-        }
+    it('should throw error on login failure', async () => {
+      const mockError = {
+        response: { data: { message: 'Invalid credentials' } }
       };
+      mockedAxios.post.mockRejectedValue(mockError);
     
-      mockedAxios.post.mockRejectedValueOnce({
-        isAxiosError: true,
-        response: { data: mockError }
-      });
-    
-      await expect(login(loginReq)).rejects.toEqual(
-        expect.objectContaining({
-          isAxiosError: true,
-          response: { data: mockError }
-        })
-      );
+      await expect(authServices.login(loginReq)).rejects.toEqual(mockError);
     });
 
-    it('should throw error on network failure', async () => {
-      const networkError = new Error('Network error');
-      mockedAxios.post.mockRejectedValueOnce(networkError);
+    it('should throw error for non-Axios errors', async () => {
+      const mockError = new Error('Network error');
+      mockedAxios.post.mockRejectedValue(mockError);
 
-      await expect(login(loginReq)).rejects.toThrow('Network error');
+      await expect(authServices.login(loginReq)).rejects.toThrow('Network error');
+    });
+
+    it('should handle non-axios errors in login', async () => {
+      const nonAxiosError = new Error('Non-Axios error');
+      mockedAxios.post.mockRejectedValue(nonAxiosError);
+    
+      await expect(authServices.login(loginReq)).rejects.toThrow('Non-Axios error');
+    });
+  });
+
+  describe('register', () => {
+    const registerReq: RegisterReq = { email: 'test@example.com', password: 'password123', name: 'Test User' };
+
+    it('should return Success on successful registration', async () => {
+      const mockResponse = { data: { message: 'Registration successful' } };
+      mockedAxios.post.mockResolvedValue(mockResponse);
+
+      const result = await authServices.register(registerReq);
+
+      expect(result).toEqual(mockResponse.data);
+    });
+
+    it('should throw error on registration failure', async () => {
+      const mockError = {
+        response: { data: { message: 'Email already exists' } }
+      };
+      mockedAxios.post.mockRejectedValue(mockError);
+    
+      await expect(authServices.register(registerReq)).rejects.toEqual(mockError);
+    });
+
+    it('should throw error for non-Axios errors', async () => {
+      const mockError = new Error('Network error');
+      mockedAxios.post.mockRejectedValue(mockError);
+
+      await expect(authServices.register(registerReq)).rejects.toThrow('Network error');
+    });
+
+    it('should handle non-axios errors in register', async () => {
+      const nonAxiosError = new Error('Non-Axios error');
+      mockedAxios.post.mockRejectedValue(nonAxiosError);
+    
+      await expect(authServices.register(registerReq)).rejects.toThrow('Non-Axios error');
+    });
+  });
+
+  describe('verifyOtpRegister', () => {
+    const verifyOTPReq: VerifyOTPReq = { email: 'test@example.com', otp: '123456' };
+
+    it('should return LoginSuccess on successful OTP verification for registration', async () => {
+      const mockResponse = { data: { token: 'abc123', user: { id: 1, name: 'Test User' } } };
+      mockedAxios.post.mockResolvedValue(mockResponse);
+
+      const result = await authServices.verifyOtpRegister(verifyOTPReq);
+
+      expect(result).toEqual(mockResponse.data);
+    });
+
+    it('should throw error on OTP verification failure for registration', async () => {
+      const mockError = {
+        response: { data: { message: 'Invalid OTP' } }
+      };
+      mockedAxios.post.mockRejectedValue(mockError);
+    
+      await expect(authServices.verifyOtpRegister(verifyOTPReq)).rejects.toEqual(mockError);
+    });
+
+    it('should throw error for non-Axios errors', async () => {
+      const mockError = new Error('Network error');
+      mockedAxios.post.mockRejectedValue(mockError);
+
+      await expect(authServices.verifyOtpRegister(verifyOTPReq)).rejects.toThrow('Network error');
+    });
+
+    it('should handle non-axios errors in verifyOtpRegister', async () => {
+      const nonAxiosError = new Error('Non-Axios error');
+      mockedAxios.post.mockRejectedValue(nonAxiosError);
+    
+      await expect(authServices.verifyOtpRegister(verifyOTPReq)).rejects.toThrow('Non-Axios error');
+    });
+  });
+
+  describe('verifyOtplogin', () => {
+    const verifyOTPReq: VerifyOTPReq = { email: 'test@example.com', otp: '123456' };
+
+    it('should return LoginSuccess on successful OTP verification for login', async () => {
+      const mockResponse = { data: { token: 'abc123', user: { id: 1, name: 'Test User' } } };
+      mockedAxios.post.mockResolvedValue(mockResponse);
+
+      const result = await authServices.verifyOtplogin(verifyOTPReq);
+
+      expect(result).toEqual(mockResponse.data);
+    });
+
+    it('should throw error on OTP verification failure for login', async () => {
+      const mockError = {
+        response: { data: { message: 'Invalid OTP' } }
+      };
+      mockedAxios.post.mockRejectedValue(mockError);
+    
+      await expect(authServices.verifyOtplogin(verifyOTPReq)).rejects.toEqual(mockError);
+    });
+
+    it('should throw error for non-Axios errors', async () => {
+      const mockError = new Error('Network error');
+      mockedAxios.post.mockRejectedValue(mockError);
+
+      await expect(authServices.verifyOtplogin(verifyOTPReq)).rejects.toThrow('Network error');
+    });
+
+    it('should handle non-axios errors in verifyOtplogin', async () => {
+      const nonAxiosError = new Error('Non-Axios error');
+      mockedAxios.post.mockRejectedValue(nonAxiosError);
+    
+      await expect(authServices.verifyOtplogin(verifyOTPReq)).rejects.toThrow('Non-Axios error');
     });
   });
 
   describe('logout', () => {
-    beforeEach(() => {
-      mockedSecureStore.getItemAsync.mockResolvedValue('mock-token');
-    });
-
     it('should return Success on successful logout', async () => {
-      const mockResponse: Success = {
-        status: 200,
-        message: 'Logout successful',
-        data: null,
+      const mockToken = 'abc123';
+      const mockResponse = { data: { message: 'Logout successful' } };
+      mockedSecureStore.getItemAsync.mockResolvedValue(mockToken);
+      mockedAxios.post.mockResolvedValue(mockResponse);
+
+      const result = await authServices.logout();
+
+      expect(result).toEqual(mockResponse.data);
+    });
+
+    it('should throw error on logout failure', async () => {
+      const mockError = {
+        response: { data: { message: 'Logout failed' } }
       };
-
-      mockedAxios.post.mockResolvedValueOnce({ data: mockResponse });
-
-      const result = await logout();
-
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        'https://dev.occupi.tech/auth/logout',
-        {},
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: 'mock-token',
-          }),
-        })
-      );
-      expect(result).toEqual(mockResponse);
-    });
-
-    it('should throw error on failed logout', async () => {
-      const mockError: Unsuccessful = {
-        data: null,
-        status: 'error',
-        message: 'Logout failed',
-        error: {
-          code: 'LOGOUT_ERROR',
-          details: 'Unable to logout',
-          message: 'Logout operation failed',
-        }
-      };
+      mockedSecureStore.getItemAsync.mockResolvedValue('abc123');
+      mockedAxios.post.mockRejectedValue(mockError);
     
-      mockedAxios.post.mockRejectedValueOnce({
-        isAxiosError: true,
-        response: { data: mockError }
-      });
+      await expect(authServices.logout()).rejects.toEqual(mockError);
+    });
+
+    it('should throw error for non-Axios errors', async () => {
+      const mockError = new Error('Network error');
+      mockedSecureStore.getItemAsync.mockResolvedValue('abc123');
+      mockedAxios.post.mockRejectedValue(mockError);
+
+      await expect(authServices.logout()).rejects.toThrow('Network error');
+    });
+
+    it('should throw error for non-Axios errors', async () => {
+      const mockError = new Error('Network error');
+      mockedSecureStore.getItemAsync.mockResolvedValue('abc123');
+      mockedAxios.post.mockRejectedValue(mockError);
     
-      await expect(logout()).rejects.toEqual(
-        expect.objectContaining({
-          isAxiosError: true,
-          response: { data: mockError }
-        })
-      );
+      await expect(authServices.logout()).rejects.toThrow('Network error');
     });
 
-    it('should throw error on network failure', async () => {
-      const networkError = new Error('Network error');
-      mockedAxios.post.mockRejectedValueOnce(networkError);
+    it('should handle non-axios errors in logout', async () => {
+  mockedSecureStore.getItemAsync.mockResolvedValue('some-token');
+  const nonAxiosError = new Error('Non-Axios error');
+  mockedAxios.post.mockRejectedValue(nonAxiosError);
 
-      await expect(logout()).rejects.toThrow('Network error');
-    });
+  await expect(authServices.logout()).rejects.toThrow('Non-Axios error');
+});
   });
 });

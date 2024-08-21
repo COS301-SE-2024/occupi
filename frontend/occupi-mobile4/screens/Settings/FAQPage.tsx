@@ -171,14 +171,14 @@ const FAQPage = () => {
           <View key={`section-${sectionIndex}`} style={{ marginBottom: 20, backgroundColor: isDarkMode ? 'black' : 'white'}}>
             <Text style={{ fontSize: 19, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 10 }}>{section.section}</Text>
             {section.questions.map((item, index) => (
-              <AccordionItem key={`item-${sectionIndex}-${index}`} value={`item-${sectionIndex}-${index}`} style={{ backgroundColor: isDarkMode ? 'black' : 'white'}}>
-                <AccordionHeader style={{ backgroundColor: isDarkMode ? '#2C2C2E' : '#F3F3F3', borderRadius: 10, marginBottom: 10 }}>
+              <AccordionItem key={`item-${sectionIndex}-${index}`} value={`item-${sectionIndex}-${index}`}>
+                <AccordionHeader>
                   <AccordionTrigger>
-                    <Text style={{ color: isDarkMode ? 'white' : 'black', fontSize: 16, fontWeight: 'bold' }}>{item.question}</Text>
+                    <Text testID={`faq-question-${sectionIndex}-${index}`} style={{ color: isDarkMode ? 'white' : 'black' }}>{item.question}</Text>
                   </AccordionTrigger>
                 </AccordionHeader>
-                <AccordionContent style={{ backgroundColor: isDarkMode ? 'black' : 'white', borderRadius: 10 }}>
-                  <Text style={{ color: isDarkMode ? '#CCCCCC' : '#333333', fontSize: 14 }}>{item.answer}</Text>
+                <AccordionContent>
+                  <Text testID={`faq-answer-${sectionIndex}-${index}`} style={{ color: isDarkMode ? 'white' : 'black' }}>{item.answer}</Text>
                 </AccordionContent>
               </AccordionItem>
             ))}
