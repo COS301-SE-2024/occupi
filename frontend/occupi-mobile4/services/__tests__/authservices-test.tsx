@@ -12,7 +12,7 @@ const mockedSecureStore = SecureStore as jest.Mocked<typeof SecureStore>;
 describe('Auth Services', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    console.log = jest.fn();
+    // console.log = jest.fn();
   });
 
   describe('login', () => {
@@ -49,6 +49,9 @@ describe('Auth Services', () => {
     
       await expect(authServices.login(loginReq)).rejects.toThrow('Non-Axios error');
     });
+    
+ 
+    
   });
 
   describe('register', () => {
@@ -157,6 +160,15 @@ describe('Auth Services', () => {
     
       await expect(authServices.verifyOtplogin(verifyOTPReq)).rejects.toThrow('Non-Axios error');
     });
+
+     it('should handle non-axios errors in verifyOTP', async () => {
+  mockedSecureStore.getItemAsync.mockResolvedValue('some-token');
+  const nonAxiosError = new Error('Non-Axios error');
+  mockedAxios.post.mockRejectedValue(nonAxiosError);
+
+  await expect(authServices.verifyOtplogin(verifyOTPReq)).rejects.toThrow('Non-Axios error');
+});
+  });
   });
 
   describe('logout', () => {
@@ -205,4 +217,3 @@ describe('Auth Services', () => {
   await expect(authServices.logout()).rejects.toThrow('Non-Axios error');
 });
   });
-});

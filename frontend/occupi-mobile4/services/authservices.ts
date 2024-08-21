@@ -30,7 +30,7 @@ export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful>
 }
 
 export async function register(req: RegisterReq): Promise<Success | Unsuccessful> {
-    console.log(req);
+    // console.log(req);
     try {
         const response = await axios.post("https://dev.occupi.tech/auth/register", req, {
             headers: {
@@ -39,11 +39,11 @@ export async function register(req: RegisterReq): Promise<Success | Unsuccessful
             },
             withCredentials: true
         });
-        console.log(response.data);
+        // console.log(response.data);
         return response.data as Success;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            console.log(error.response.data);
+            // console.log(error.response.data);
             return error.response.data as Unsuccessful;
         } else {
             throw error;
@@ -52,7 +52,7 @@ export async function register(req: RegisterReq): Promise<Success | Unsuccessful
 }
 
 export async function verifyOtpRegister(req: VerifyOTPReq): Promise<LoginSuccess | Unsuccessful> {
-    console.log('sending',req);
+    // console.log('sending',req);
     try {
         const response = await axios.post("https://dev.occupi.tech/auth/verify-otp-mobile-login", req, {
             headers: {
@@ -61,11 +61,11 @@ export async function verifyOtpRegister(req: VerifyOTPReq): Promise<LoginSuccess
             },
             withCredentials: true
         });
-        console.log(response.data);
+        // console.log(response.data);
         return response.data as LoginSuccess;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            console.log(error.response.data);
+            // console.log(error.response.data);
             return error.response.data as Unsuccessful;
         } else {
             throw error;
