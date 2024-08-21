@@ -50,7 +50,7 @@ func main() {
 		AttachTimeZoneMiddleware().
 		AttachRealIPMiddleware().
 		AttachMoniteringMiddleware().
-		//AttachObservabilityMiddleware().
+		// AttachObservabilityMiddleware().
 		RegisterRoutes().
 		SetEnvVariables()
 

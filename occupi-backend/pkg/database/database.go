@@ -320,9 +320,10 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	}
 
 	location := &models.Location{
-		City:    info.City,
-		Region:  info.Region,
-		Country: info.Country,
+		City:     info.City,
+		Region:   info.Region,
+		Country:  info.Country,
+		Location: info.Location,
 	}
 
 	// Verify the user in the database and set next date to verify to 30 days from now
@@ -1604,4 +1605,35 @@ func AddUserCredential(ctx *gin.Context, appsession *models.AppSession, email st
 	}
 
 	return nil
+}
+
+func IsIPWithinRange(ctx *gin.Context, appsession *models.AppSession, email string, unrecognizedLogger *ipinfo.Core) bool {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false
+	}
+
+	// get the ip ranges from the cache
+	if user, err := cache.GetUser(appsession, email); err == nil {
+		return IsLocationInRange(user.KnownLocations, unrecognizedLogger)
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+
+	var user models.User
+
+	err := collection.FindOne(ctx, filter).Decode(&user)
+
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return IsLocationInRange(user.KnownLocations, unrecognizedLogger)
 }
