@@ -361,7 +361,7 @@ func SantizeProjection(queryInput models.QueryInput) []string {
 
 func ConstructProjection(queryInput models.QueryInput, sanitizedProjection []string) bson.M {
 	projection := bson.M{}
-	if queryInput.Projection == nil || len(queryInput.Projection) == 0 {
+	if len(queryInput.Projection) == 0 {
 		projection["password"] = 0 // Exclude password by default
 		projection["unsentExpoPushTokens"] = 0
 	} else {
