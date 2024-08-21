@@ -4801,3 +4801,189 @@ func TestIsLocationInRange(t *testing.T) {
 		})
 	}
 }
+
+func TestComputeAvailableSlots(t *testing.T) {
+	tests := []struct {
+		name          string
+		bookings      []models.Booking
+		dateOfBooking time.Time
+		expectedSlots []models.Slot
+	}{
+		{
+			name:          "No bookings",
+			bookings:      []models.Booking{},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		{
+			name: "Bookings cover the entire day",
+			bookings: []models.Booking{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+				},
+			},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{},
+		},
+		{
+			name: "Bookings leave gaps",
+			bookings: []models.Booking{
+				{
+					Start: time.Date(2024, 8, 21, 10, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 12, 0, 0, 0, time.UTC),
+				},
+				{
+					Start: time.Date(2024, 8, 21, 14, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+				},
+			},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					Start: time.Date(2024, 8, 21, 12, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 14, 0, 0, 0, time.UTC),
+				},
+				{
+					Start: time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		{
+			name: "Bookings at boundaries",
+			bookings: []models.Booking{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 9, 0, 0, 0, time.UTC),
+				},
+				{
+					Start: time.Date(2024, 8, 21, 16, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+				},
+			},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{
+				{
+					Start: time.Date(2024, 8, 21, 9, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 16, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		{
+			name: "Booking ends after day",
+			bookings: []models.Booking{
+				{
+					Start: time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 18, 0, 0, 0, time.UTC),
+				},
+			},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := database.ComputeAvailableSlots(tt.bookings, tt.dateOfBooking)
+			assert.ElementsMatch(t, tt.expectedSlots, got)
+		})
+	}
+}
+
+func TestGetAvailableSlots(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Test case: Database is nil
+	mt.Run("Database is nil", func(mt *mtest.T) {
+		// Define the appsession with a mock database
+		appsession := &models.AppSession{}
+		request := models.RequestAvailableSlots{
+			RoomID: "RM101",
+			Date:   time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+		}
+		slots, err := database.GetAvailableSlots(ctx, appsession, request)
+		assert.EqualError(t, err, "database is nil")
+		assert.Nil(t, slots)
+	})
+
+	// Test case: Database find error
+	mt.Run("Database find error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		// Define the appsession with a mock database
+		appsession := &models.AppSession{DB: mt.Client}
+
+		request := models.RequestAvailableSlots{
+			RoomID: "RM101",
+			Date:   time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+		}
+		slots, err := database.GetAvailableSlots(ctx, appsession, request)
+		assert.EqualError(t, err, "find error")
+		assert.Nil(t, slots)
+	})
+
+	// Test case: Successful retrieval
+	mt.Run("Successful retrieval", func(mt *mtest.T) {
+		bookings := []bson.D{
+			{
+				{Key: "roomID", Value: "RM101"},
+				{Key: "date", Value: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC)},
+				{Key: "start", Value: time.Date(2024, 8, 21, 10, 0, 0, 0, time.UTC)},
+				{Key: "end", Value: time.Date(2024, 8, 21, 12, 0, 0, 0, time.UTC)},
+			},
+			{
+				{Key: "roomID", Value: "RM101"},
+				{Key: "date", Value: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC)},
+				{Key: "start", Value: time.Date(2024, 8, 21, 14, 0, 0, 0, time.UTC)},
+				{Key: "end", Value: time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC)},
+			},
+		}
+		expectedSlots := []models.Slot{
+			{
+				Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+				End:   time.Date(2024, 8, 21, 10, 0, 0, 0, time.UTC),
+			},
+			{
+				Start: time.Date(2024, 8, 21, 12, 0, 0, 0, time.UTC),
+				End:   time.Date(2024, 8, 21, 14, 0, 0, 0, time.UTC),
+			},
+			{
+				Start: time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+				End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+			},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bookings[0]))
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.NextBatch, bookings[1]))
+
+		appsession := &models.AppSession{DB: mt.Client}
+
+		request := models.RequestAvailableSlots{
+			RoomID: "RM101",
+			Date:   time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+		}
+		slots, err := database.GetAvailableSlots(ctx, appsession, request)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, expectedSlots, slots)
+	})
+}

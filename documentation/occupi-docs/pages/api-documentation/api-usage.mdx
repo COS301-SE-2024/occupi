@@ -32,6 +32,7 @@ The API also allows you to retrieve information about these resources.
     - [Upload Image](#UploadImage)
     - [Upload Room Image](#UploadRoomImage)
     - [Add Room](#AddRoom)
+    - [Available slots](#AvailableSlots)
 
 ## Api
 
@@ -947,3 +948,49 @@ This endpoint is used to add a room in the Occupi system. Only Admins can add ro
 
 - **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
 
+### Available Slots
+
+This endpoint is used to get the available slots for a room in the Occupi system.
+
+- **URL**
+
+  `/api/available-slots`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "roomId": "RM000", // required
+  "date": "2024-07-01T00:00:00.000Z", // required
+}
+```
+
+or
+
+```
+/api/available-slots?roomId=RM000&date=2024-07-01T00:00:00.000Z
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched available slots!", "data": ["list of available slots"] }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`

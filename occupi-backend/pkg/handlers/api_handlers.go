@@ -437,9 +437,6 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 		filter.Filter["emails"] = bson.M{"$in": []string{email.(string)}}
 	}
 
-	fmt.Printf("Filter: %v\n", filter)
-	fmt.Printf("Collection Name: %v\n", collectionName)
-
 	res, totalResults, err := database.FilterCollectionWithProjection(ctx, appsession, collectionName, filter)
 
 	if err != nil {
@@ -1065,4 +1062,57 @@ func AddRoom(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully added room!", gin.H{"roomid": roomID}))
+}
+
+func GetAvailableSlots(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestAvailableSlots
+
+	// Try binding from JSON payload
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		captureError(ctx, err)
+		// If JSON binding fails, try to bind from URL parameters
+		roomID := ctx.Query("roomId")
+		dateStr := ctx.Query("date")
+
+		// If URL parameters are not empty, try parsing them
+		if roomID != "" {
+			request.RoomID = roomID
+		}
+		if dateStr != "" {
+			// Parse the date string to time.Time
+			parsedDate, err := time.Parse(time.RFC3339, dateStr)
+			if err != nil {
+				captureError(ctx, err)
+				ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+				return
+			}
+			request.Date = parsedDate
+		}
+
+		// Validate roomID and Date
+		if request.RoomID == "" || request.Date.IsZero() {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Valid room id and date are required",
+				constants.BadRequestCode,
+				"You may have sent an empty room id or an invalid date",
+				nil))
+			return
+		}
+	}
+
+	// Get the available slots
+	availableSlots, err := database.GetAvailableSlots(ctx, appsession, request)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to get available slots",
+			constants.InternalServerErrorCode,
+			"Failed to get available slots",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched available slots!", availableSlots))
 }

@@ -3,6 +3,7 @@ package database
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/ipinfo/go/v2/ipinfo"
@@ -35,4 +36,35 @@ func IsLocationInRange(locations []models.Location, unrecognizedLogger *ipinfo.C
 	}
 
 	return false
+}
+
+func ComputeAvailableSlots(bookings []models.Booking, dateOfBooking time.Time) []models.Slot {
+	var availableSlots []models.Slot
+
+	// Define the boundaries
+	// 8:00 AM to 5:00 PM
+	startOfDay := time.Date(dateOfBooking.Year(), dateOfBooking.Month(), dateOfBooking.Day(), 8, 0, 0, 0, time.UTC) // 8:00 AM
+	endOfDay := time.Date(dateOfBooking.Year(), dateOfBooking.Month(), dateOfBooking.Day(), 17, 0, 0, 0, time.UTC)  // 5:00 PM
+
+	previousEnd := startOfDay
+
+	for _, booking := range bookings {
+		if booking.Start.After(previousEnd) {
+			availableSlots = append(availableSlots, models.Slot{
+				Start: previousEnd,
+				End:   booking.Start,
+			})
+		}
+		previousEnd = booking.End
+	}
+
+	// Check for a slot after the last booking
+	if previousEnd.Before(endOfDay) {
+		availableSlots = append(availableSlots, models.Slot{
+			Start: previousEnd,
+			End:   endOfDay,
+		})
+	}
+
+	return availableSlots
 }
