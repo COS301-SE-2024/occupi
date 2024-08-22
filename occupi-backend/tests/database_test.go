@@ -4789,6 +4789,46 @@ func TestIsLocationInRange(t *testing.T) {
 			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
 			expected:           true,
 		},
+		{
+			name: "Empty Location String",
+			locations: []models.Location{
+				{City: "CityF", Region: "RegionF", Country: "CountryF", Location: ""}, // Empty location
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,                                       // Should skip and return false since there's no valid location within range
+		},
+		{
+			name: "Invalid Location Format (empty string) for Unrecognized Logger",
+			locations: []models.Location{
+				{City: "CityG", Region: "RegionG", Country: "CountryG", Location: "40.7128,-74.0060"}, // New York
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: ""}, // Empty location
+			expected:           false,                      // Should skip and return false since the location format is invalid
+		},
+		{
+			name: "Invalid Location Format (single coordinate)",
+			locations: []models.Location{
+				{City: "CityG", Region: "RegionG", Country: "CountryG", Location: "40.7128"}, // Incomplete location
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,                                       // Should skip and return false since the location format is invalid
+		},
+		{
+			name: "Invalid Location Format (non-numeric coordinates)",
+			locations: []models.Location{
+				{City: "CityH", Region: "RegionH", Country: "CountryH", Location: "abc,xyz"}, // Non-numeric location
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,                                       // Should skip and return false since the location format is invalid
+		},
+		{
+			name: "Invalid Location Format (non-numeric latitude) for Unrecognized Logger",
+			locations: []models.Location{
+				{City: "CityI", Region: "RegionI", Country: "CountryI", Location: "40.7128,-74.0060"}, // New York
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "abc,-118"}, // Non-numeric latitude
+			expected:           false,                              // Should skip and return false since the location format is invalid
+		},
 	}
 
 	for _, tt := range tests {

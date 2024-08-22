@@ -17,13 +17,36 @@ func IsLocationInRange(locations []models.Location, unrecognizedLogger *ipinfo.C
 	}
 
 	for _, loc := range locations {
+		// Skip if loc.Location is empty
+		if loc.Location == "" {
+			continue
+		}
+
 		coords1 := strings.Split(loc.Location, ",")
-		lat1, _ := strconv.ParseFloat(coords1[0], 64)
-		lon1, _ := strconv.ParseFloat(coords1[1], 64)
+		// Skip if coords1 does not contain exactly 2 elements (latitude and longitude)
+		if len(coords1) != 2 {
+			continue
+		}
+
+		lat1, err1 := strconv.ParseFloat(coords1[0], 64)
+		lon1, err2 := strconv.ParseFloat(coords1[1], 64)
+		// Skip if parsing latitude or longitude fails
+		if err1 != nil || err2 != nil {
+			continue
+		}
 
 		coords2 := strings.Split(unrecognizedLogger.Location, ",")
-		lat2, _ := strconv.ParseFloat(coords2[0], 64)
-		lon2, _ := strconv.ParseFloat(coords2[1], 64)
+		// Skip if coords2 does not contain exactly 2 elements (latitude and longitude)
+		if len(coords2) != 2 {
+			continue
+		}
+
+		lat2, err3 := strconv.ParseFloat(coords2[0], 64)
+		lon2, err4 := strconv.ParseFloat(coords2[1], 64)
+		// Skip if parsing latitude or longitude fails
+		if err3 != nil || err4 != nil {
+			continue
+		}
 
 		loc1 := haversine.Coord{Lat: lat1, Lon: lon1}
 		loc2 := haversine.Coord{Lat: lat2, Lon: lon2}
