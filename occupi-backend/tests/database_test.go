@@ -13,6 +13,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redismock/v9"
 	"github.com/ipinfo/go/v2/ipinfo"
 
 	"github.com/stretchr/testify/assert"
@@ -30,6 +31,23 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/router"
 )
 
+func TestCreateUser(t *testing.T) {
+	user := models.RegisterUser{
+		EmployeeID:    "OCCUPI01",
+		Password:      "password",
+		Email:         "test@example.com",
+		ExpoPushToken: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+	}
+
+	newU := database.CreateBasicUser(user)
+
+	assert.Equal(t, user.EmployeeID, newU.OccupiID)
+	assert.Equal(t, user.Password, newU.Password)
+	assert.Equal(t, user.Email, newU.Email)
+	assert.Equal(t, constants.Basic, newU.Role)
+	assert.Equal(t, user.ExpoPushToken, newU.ExpoPushToken)
+}
+
 func TestMockDatabase(t *testing.T) {
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
@@ -39,8 +57,7 @@ func TestMockDatabase(t *testing.T) {
 
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// creating a new valid session for management of shared variables
@@ -182,12 +199,24 @@ func TestSaveBooking(t *testing.T) {
 	mt.Run("Add room successfully to Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// Marshal and add the booking to cache
+		bookingData, err := bson.Marshal(booking)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, bookingData)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.RoomBookingKey(booking.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(bookingData))
+
+		// Mock the Get operation to return the booking data
+		mock.ExpectGet(cache.RoomBookingKey(booking.OccupiID)).SetVal(string(bookingData))
 
 		// Call the function under test
 		success, err := database.SaveBooking(ctx, appsession, booking)
@@ -197,10 +226,65 @@ func TestSaveBooking(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the room was added to the Cache
-		roomv, err := Cache.Get(cache.RoomBookingKey(booking.OccupiID))
+		res := Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
+		roomv, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, roomv)
+		assert.Equal(t, bookingData, roomv)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Add room successfully to Cache and Expire after a while", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Marshal and add the booking to cache
+		bookingData, err := bson.Marshal(booking)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, bookingData)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.RoomBookingKey(booking.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(bookingData))
+
+		// Mock the Get operation to return the booking data
+		mock.ExpectGet(cache.RoomBookingKey(booking.OccupiID)).SetVal(string(bookingData))
+
+		// Call the function under test
+		success, err := database.SaveBooking(ctx, appsession, booking)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// Verify the room was added to the Cache
+		res := Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
+		roomv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, roomv)
+		assert.Equal(t, bookingData, roomv)
+
+		// sleep for 2 * Cache expiry time to ensure the Cache expires
+		time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
+
+		// Verify the booking is not in the Cache
+		cachedBooking2 := Cache.Get(context.Background(), cache.UserKey(booking.OccupiID))
+		res1, errv := cachedBooking2.Bytes()
+		assert.NotNil(t, errv)
+		assert.Nil(t, res1)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("InsertOne error", func(mt *mtest.T) {
@@ -276,7 +360,61 @@ func TestConfirmCheckIn(t *testing.T) {
 	mt.Run("Check in successfully in Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		booking := models.Booking{
+			OccupiID:  checkin.BookingID,
+			Creator:   checkin.Creator,
+			CheckedIn: false,
+		}
+
+		// marshall and add the booking to cache
+		bookingData, err := bson.Marshal(booking)
+		assert.Nil(t, err)
+
+		// mock expect set and get
+		mock.ExpectSet(cache.RoomBookingKey(booking.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(bookingData))
+		mock.ExpectGet(cache.RoomBookingKey(booking.OccupiID)).SetVal(string(bookingData))
+
+		res := Cache.Set(context.Background(), cache.RoomBookingKey(booking.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		success, err := database.ConfirmCheckIn(ctx, appsession, checkin)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		mock.ExpectGet(cache.RoomBookingKey(booking.OccupiID)).SetVal(string(bookingData))
+
+		// Verify the room was added to the Cache
+		res1 := Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
+		bookingv, err := res1.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, bookingv)
+
+		// unmarshall
+		var booking2 models.Booking
+		err = bson.Unmarshal(bookingv, &booking2)
+
+		assert.Nil(t, err)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Check in successfully in Cache and Expire", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -292,11 +430,15 @@ func TestConfirmCheckIn(t *testing.T) {
 		// marshall and add the booking to cache
 		bookingData, err := bson.Marshal(booking)
 
+		// mock expect set and get
+		mock.ExpectSet(cache.RoomBookingKey(booking.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(bookingData))
+		mock.ExpectGet(cache.RoomBookingKey(booking.OccupiID)).SetVal(string(bookingData))
+
 		assert.Nil(t, err)
 
-		err = Cache.Set(cache.RoomBookingKey(booking.OccupiID), bookingData)
+		res := Cache.Set(context.Background(), cache.RoomBookingKey(booking.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second)
 
-		assert.Nil(t, err)
+		assert.Nil(t, res.Err())
 
 		// Call the function under test
 		success, err := database.ConfirmCheckIn(ctx, appsession, checkin)
@@ -305,8 +447,11 @@ func TestConfirmCheckIn(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		mock.ExpectGet(cache.RoomBookingKey(booking.OccupiID)).SetVal(string(bookingData))
+
 		// Verify the room was added to the Cache
-		bookingv, err := Cache.Get(cache.RoomBookingKey(booking.OccupiID))
+		res1 := Cache.Get(context.Background(), cache.RoomBookingKey(booking.OccupiID))
+		bookingv, err := res1.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, bookingv)
@@ -317,7 +462,17 @@ func TestConfirmCheckIn(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		assert.True(t, booking2.CheckedIn)
+		// sleep for 2 * Cache expiry time to ensure the Cache expires
+		time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
+
+		// Verify the booking is not in the Cache
+		cachedBooking2 := Cache.Get(context.Background(), cache.UserKey(checkin.BookingID))
+		res2, errv := cachedBooking2.Bytes()
+		assert.NotNil(t, errv)
+		assert.Nil(t, res2)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("InsertOne error", func(mt *mtest.T) {
@@ -383,17 +538,35 @@ func TestEmailExists(t *testing.T) {
 		assert.True(t, exists)
 	})
 
-	mt.Run("Email exists adding to Cache", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
-			{Key: "email", Value: email},
-		}))
+	mt.Run("Email exists in Cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		user := models.User{
+			Email: email,
+		}
+
+		// marshal and add the user to cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// mock expect set
+		mock.ExpectSet(cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// add email to Cache
+		res1 := Cache.Set(context.Background(), cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res1.Err())
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
 
 		// Call the function under test
 		exists := database.EmailExists(ctx, appsession, email)
@@ -401,10 +574,101 @@ func TestEmailExists(t *testing.T) {
 		// Validate the result
 		assert.True(t, exists)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+
 		// Check if the email exists in the Cache
-		email, err := Cache.Get(cache.UserKey(email))
-		assert.NoError(t, err)
-		assert.NotNil(t, email)
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		emailv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, emailv)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Email does not exist in Cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch))
+
+		Cache, mock := redismock.NewClientMock()
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetErr(errors.New("key does not exist"))
+
+		exists := database.EmailExists(ctx, appsession, email)
+
+		// Validate the result
+		assert.False(t, exists)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Email exists in Cache and Expired", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		user := models.User{
+			Email: email,
+		}
+
+		// marshal and add the user to cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// mock expect set
+		mock.ExpectSet(cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// add email to Cache
+		res1 := Cache.Set(context.Background(), cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res1.Err())
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+
+		// Call the function under test
+		exists := database.EmailExists(ctx, appsession, email)
+
+		// Validate the result
+		assert.True(t, exists)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+
+		// Check if the email exists in the Cache
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		emailv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, emailv)
+
+		// sleep for 2 * Cache expiry time to ensure the Cache expires
+		time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
+
+		// Verify the email is not in the Cache
+		cachedEmail := Cache.Get(context.Background(), cache.UserKey(email))
+
+		res2, errv := cachedEmail.Bytes()
+		assert.NotNil(t, errv)
+		assert.Nil(t, res2)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Email does not exist", func(mt *mtest.T) {
@@ -482,17 +746,37 @@ func TestBookingExists(t *testing.T) {
 		assert.True(t, exists)
 	})
 
-	mt.Run("Email exists adding to Cache", func(mt *mtest.T) {
+	mt.Run("Booking exists in Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
 			{Key: "occupiId", Value: id},
 		}))
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
+
+		booking := models.Booking{
+			OccupiID: id,
+		}
+
+		// marshal and add the booking to cache
+		bookingData, err := bson.Marshal(booking)
+
+		assert.Nil(t, err)
+
+		// mock expect set
+		mock.ExpectSet(cache.RoomBookingKey(id), bookingData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(bookingData))
+
+		// add booking to Cache
+		res1 := Cache.Set(context.Background(), cache.RoomBookingKey(id), bookingData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res1.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.RoomBookingKey(id)).SetVal(string(bookingData))
 
 		// Call the function under test
 		exists := database.BookingExists(ctx, appsession, id)
@@ -500,10 +784,80 @@ func TestBookingExists(t *testing.T) {
 		// Validate the result
 		assert.True(t, exists)
 
-		// Check if the email exists in the Cache
-		booking, err := Cache.Get(cache.RoomBookingKey(id))
-		assert.NoError(t, err)
-		assert.NotNil(t, booking)
+		// mock expect get
+		mock.ExpectGet(cache.RoomBookingKey(id)).SetVal(string(bookingData))
+
+		// Check if the booking exists in the Cache
+		res := Cache.Get(context.Background(), cache.RoomBookingKey(id))
+		idv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, idv)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Booking exists in Cache and Expires", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "occupiId", Value: id},
+		}))
+
+		Cache, mock := redismock.NewClientMock()
+
+		booking := models.Booking{
+			OccupiID: id,
+		}
+
+		// marshal and add the booking to cache
+		bookingData, err := bson.Marshal(booking)
+
+		assert.Nil(t, err)
+
+		// mock expect set
+		mock.ExpectSet(cache.RoomBookingKey(id), bookingData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(bookingData))
+
+		// add booking to Cache
+		res1 := Cache.Set(context.Background(), cache.RoomBookingKey(id), bookingData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res1.Err())
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.RoomBookingKey(id)).SetVal(string(bookingData))
+
+		// Call the function under test
+		exists := database.BookingExists(ctx, appsession, id)
+
+		// Validate the result
+		assert.True(t, exists)
+
+		// mock expect get
+		mock.ExpectGet(cache.RoomBookingKey(id)).SetVal(string(bookingData))
+
+		// Check if the booking exists in the Cache
+		res := Cache.Get(context.Background(), cache.RoomBookingKey(id))
+		idv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, idv)
+
+		// sleep for 2 * Cache expiry time to ensure the Cache expires
+		time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
+
+		// Verify the booking is not in the Cache
+		cachedBooking := Cache.Get(context.Background(), cache.UserKey(id))
+		res2, errv := cachedBooking.Bytes()
+
+		assert.NotNil(t, errv)
+		assert.Nil(t, res2)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Email does not exist", func(mt *mtest.T) {
@@ -588,12 +942,20 @@ func TestAddUser(t *testing.T) {
 	mt.Run("Add user successfully to Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// Marshal and add the user to cache
+		userData, err := bson.Marshal(database.CreateBasicUser(user))
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
 
 		// Call the function under test
 		success, err := database.AddUser(ctx, appsession, user)
@@ -602,11 +964,67 @@ func TestAddUser(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
 		// Verify the user was added to the Cache
-		user, err := Cache.Get(cache.UserKey(user.Email))
+		res := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+		assert.NotNil(t, userv)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Add user successfully to Cache and Expire", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Marshal and add the user to cache
+		userData, err := bson.Marshal(database.CreateBasicUser(user))
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// Call the function under test
+		success, err := database.AddUser(ctx, appsession, user)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Verify the user was added to the Cache
+		res := Cache.Get(context.Background(), cache.UserKey(user.Email))
+		userv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, userv)
+
+		// sleep for 2 * Cache expiry time to ensure the Cache expires
+		time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
+
+		// Verify the user is not in the Cache
+		cachedUser := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		res1, errv := cachedUser.Bytes()
+		assert.NotNil(t, errv)
+		assert.Nil(t, res1)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("InsertOne error", func(mt *mtest.T) {
@@ -682,7 +1100,7 @@ func TestOTPExists(t *testing.T) {
 	mt.Run("OTP exists and is valid in Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		otpStruct := models.OTP{
 			Email:      email,
@@ -691,24 +1109,26 @@ func TestOTPExists(t *testing.T) {
 		}
 
 		// add otp to Cache
-		if otpData, err := bson.Marshal(otpStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.OTPKey(email, otp), otpData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the otp is in the Cache
-		otpA, err := Cache.Get(cache.OTPKey(email, otp))
+		otpData, err := bson.Marshal(otpStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, otpA)
 
+		// Mock the Set operation
+		mock.ExpectSet(cache.OTPKey(email, otp), otpData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(otpData))
+
+		// set the otp in the Cache
+		res := Cache.Set(context.Background(), cache.OTPKey(email, otp), otpData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// call the function under test
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(otpData))
 
 		// Call the function under test
 		exists, err := database.OTPExists(ctx, appsession, email, otp)
@@ -716,6 +1136,83 @@ func TestOTPExists(t *testing.T) {
 		// Validate the result
 		assert.NoError(t, err)
 		assert.True(t, exists)
+
+		// mock expect get
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(otpData))
+
+		// Verify the otp is in the Cache
+		res1 := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+		otpa, err := res1.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, otpa)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("OTP exists and is valid in Cache and Expired", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		otpStruct := models.OTP{
+			Email:      email,
+			OTP:        otp,
+			ExpireWhen: validOTP,
+		}
+
+		// add otp to Cache
+		otpData, err := bson.Marshal(otpStruct)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.OTPKey(email, otp), otpData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(otpData))
+
+		// set the otp in the Cache
+		res := Cache.Set(context.Background(), cache.OTPKey(email, otp), otpData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(otpData))
+
+		// Call the function under test
+		exists, err := database.OTPExists(ctx, appsession, email, otp)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, exists)
+
+		// mock expect get
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(otpData))
+
+		// Verify the otp is in the Cache
+		res1 := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+		otpa, err := res1.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, otpa)
+
+		// sleep for 2 * Cache expiry time to ensure the Cache expires
+		time.Sleep(time.Duration(configs.GetCacheEviction()) * 2 * time.Second)
+
+		// Verify the otp is not in the Cache
+		cachedOTP := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+
+		res2, errv := cachedOTP.Bytes()
+		assert.NotNil(t, errv)
+		assert.Nil(t, res2)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("OTP exists but is expired", func(mt *mtest.T) {
@@ -729,45 +1226,6 @@ func TestOTPExists(t *testing.T) {
 		appsession := &models.AppSession{
 			DB: mt.Client,
 		}
-		exists, err := database.OTPExists(ctx, appsession, email, otp)
-
-		// Validate the result
-		assert.NoError(t, err)
-		assert.False(t, exists)
-	})
-
-	mt.Run("OTP exists but is expired in Cache", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-		Cache := configs.CreateCache()
-
-		otpStruct := models.OTP{
-			Email:      email,
-			OTP:        otp,
-			ExpireWhen: expiredOTP,
-		}
-
-		// add otp to Cache
-		if otpData, err := bson.Marshal(otpStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.OTPKey(email, otp), otpData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the otp is in the Cache
-		otpA, err := Cache.Get(cache.OTPKey(email, otp))
-
-		assert.Nil(t, err)
-		assert.NotNil(t, otpA)
-
-		appsession := &models.AppSession{
-			DB:    mt.Client,
-			Cache: Cache,
-		}
-
-		// Call the function under test
 		exists, err := database.OTPExists(ctx, appsession, email, otp)
 
 		// Validate the result
@@ -858,12 +1316,26 @@ func TestAddOTP(t *testing.T) {
 	mt.Run("Add OTP successfully to Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// marshal and add the otp to cache
+		otpStruct := models.OTP{
+			Email:      email,
+			OTP:        otp,
+			ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetOTPExpiration())),
+		}
+
+		otpData, err := bson.Marshal(otpStruct)
+
+		assert.Nil(t, err)
+
+		// marshal and add the otp to cache
+		mock.ExpectSet(cache.OTPKey(email, otp), otpData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(otpData))
 
 		// Call the function under test
 		success, err := database.AddOTP(ctx, appsession, email, otp)
@@ -872,11 +1344,18 @@ func TestAddOTP(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(otpData))
+
 		// Verify the otp was added to the Cache
-		otp, err := Cache.Get(cache.OTPKey(email, otp))
+		res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+		otpv, err := res.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, otp)
+		assert.NotNil(t, otpv)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("InsertOne error", func(mt *mtest.T) {
@@ -943,6 +1422,41 @@ func TestDeleteOTP(t *testing.T) {
 		assert.True(t, success)
 
 		// Verify the deletion
+	})
+
+	mt.Run("Delete OTP successfully from Cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect delete
+		mock.ExpectDel(cache.OTPKey(email, otp)).SetVal(0)
+
+		// Call the function under test
+		success, err := database.DeleteOTP(ctx, appsession, email, otp)
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, success)
+
+		// mock expect get
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetErr(errors.New("key does not exist"))
+
+		// Verify the otp was deleted from the Cache
+		res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
+
+		otpv, err := res.Bytes()
+
+		assert.NotNil(t, err)
+		assert.Nil(t, otpv)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("DeleteOne error", func(mt *mtest.T) {
@@ -1021,7 +1535,7 @@ func TestVerifyUser(t *testing.T) {
 			{Key: "nextVerificationDate", Value: time.Now().Add(-1 * time.Hour)},
 		}))
 
-		Cache := configs.CreateCache()
+		Cache, _ := redismock.NewClientMock()
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -1045,7 +1559,7 @@ func TestVerifyUser(t *testing.T) {
 			{Key: "nextVerificationDate", Value: time.Now().Add(-1 * time.Hour)},
 		}))
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:                email,
@@ -1053,25 +1567,40 @@ func TestVerifyUser(t *testing.T) {
 			NextVerificationDate: time.Now().Add(-1 * time.Hour),
 		}
 
-		// add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		// marshal and add the user to cache
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// expect set
+		mock.ExpectSet(cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// Add user to Cache
+		if res := Cache.Set(context.Background(), cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second); res.Err() != nil {
+			t.Fatal(res.Err())
+		}
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		userStruct.IsVerified = true
+		userStruct.NextVerificationDate = time.Now().AddDate(0, 0, 30)
+		userStruct.KnownLocations = append(userStruct.KnownLocations, models.Location{
+			City:    "Cape Town",
+			Region:  "Western Cape",
+			Country: "South Africa",
+		})
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(userStruct)
+
+		assert.Nil(t, err)
+
+		//expect get and set
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
 
 		// Call the function under test
 		success, err := database.VerifyUser(ctx, appsession, email, ctx.ClientIP())
@@ -1080,8 +1609,12 @@ func TestVerifyUser(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		//expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		user, err := res.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
@@ -1098,6 +1631,9 @@ func TestVerifyUser(t *testing.T) {
 			Region:  "Western Cape",
 			Country: "South Africa",
 		}, userB.KnownLocations[0])
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("UpdateOne error", func(mt *mtest.T) {
@@ -1170,7 +1706,7 @@ func TestGetPassword(t *testing.T) {
 	mt.Run("Get password successfully from Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:    email,
@@ -1178,19 +1714,20 @@ func TestGetPassword(t *testing.T) {
 		}
 
 		// Add password to Cache
-		if passData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), passData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the password is in the Cache
-		pass, err := Cache.Get(cache.UserKey(email))
+		passData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, pass)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(email), passData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(passData))
+
+		// set the password in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(email), passData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(passData))
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -1203,6 +1740,19 @@ func TestGetPassword(t *testing.T) {
 		// Validate the result
 		assert.NoError(t, err)
 		assert.Equal(t, password, passwordv)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(passData))
+
+		// Verify the password was added to the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(email))
+		pass, err := res1.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, pass)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("FindOne error", func(mt *mtest.T) {
@@ -1297,7 +1847,7 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 	mt.Run("Verification date is not due in cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:                email1,
@@ -1306,36 +1856,41 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email1), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email1))
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(email1), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(email1), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		// Call the function under test
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email1)).SetVal(string(userData))
+
 		isDue, err := database.CheckIfNextVerificationDateIsDue(ctx, appsession, email1)
 
 		// Validate the result
 		assert.NoError(t, err)
 		assert.False(t, isDue)
+
+		// ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Verification date is due in cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:                email2,
@@ -1344,30 +1899,35 @@ func TestCheckIfNextVerificationDateIsDue(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email2), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email2))
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(email2), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(email2), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		// Call the function under test
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email2)).SetVal(string(userData))
+
 		isDue, err := database.CheckIfNextVerificationDateIsDue(ctx, appsession, email2)
 
 		// Validate the result
 		assert.NoError(t, err)
 		assert.True(t, isDue)
+
+		// ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("FindOne error", func(mt *mtest.T) {
@@ -1459,7 +2019,7 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 			{Key: "isVerified", Value: true},
 		}))
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:      email,
@@ -1467,39 +2027,41 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		userdata, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(email), userdata, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userdata))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(email), userdata, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		// Call the function under test
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userdata))
+
 		isVerified, err := database.CheckIfUserIsVerified(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
 		assert.True(t, isVerified)
+
+		// ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("User is not verified in cache", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
-			{Key: "email", Value: email},
-			{Key: "isVerified", Value: false},
-		}))
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:      email,
@@ -1507,29 +2069,33 @@ func TestCheckIfUserIsVerified(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		userdata, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
 
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(email), userdata, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userdata))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(email), userdata, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 		// Call the function under test
 		appsession := &models.AppSession{
-			DB: mt.Client,
+			DB:    mt.Client,
+			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userdata))
 		isVerified, err := database.CheckIfUserIsVerified(ctx, appsession, email)
 
 		// Validate the result
 		assert.NoError(t, err)
 		assert.False(t, isVerified)
+
+		// ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("FindOne error", func(mt *mtest.T) {
@@ -1600,32 +2166,42 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 	mt.Run("Update verification status successfully in Cache to true", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:      email,
 			IsVerified: false,
 		}
 
-		// Add password to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the password is in the Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		// add user to Cache
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
 
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		userStruct.IsVerified = true
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(userStruct)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
 
 		success, err := database.UpdateVerificationStatusTo(ctx, appsession, email, true)
 
@@ -1633,50 +2209,66 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(email))
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
 
 		// unmarshal the user data
 		var userB models.User
+
 		if err := bson.Unmarshal(user, &userB); err != nil {
 			t.Fatal(err)
 		}
 
 		assert.True(t, userB.IsVerified)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update verification status successfully in Cache to false", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:      email,
 			IsVerified: true,
 		}
 
-		// Add password to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the password is in the Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		// Add user to Cache
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// mock expect set
+		mock.ExpectSet(cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// Add user to Cache
+		res := Cache.Set(context.Background(), cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		userStruct.IsVerified = false
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(userStruct)
+
+		assert.Nil(t, err)
+
+		//mock expect get and set
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
 
 		success, err := database.UpdateVerificationStatusTo(ctx, appsession, email, false)
 
@@ -1684,19 +2276,28 @@ func TestUpdateVerificationStatusTo(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(email))
+
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
 		assert.NotNil(t, user)
 
 		// unmarshal the user data
 		var userB models.User
+
 		if err := bson.Unmarshal(user, &userB); err != nil {
 			t.Fatal(err)
 		}
 
 		assert.False(t, userB.IsVerified)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("UpdateOne error", func(mt *mtest.T) {
@@ -1770,7 +2371,7 @@ func TestConfirmCancellation(t *testing.T) {
 	mt.Run("Confirm cancellation successfully in Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		bookingStruct := models.Booking{
 			OccupiID: checkin.BookingID,
@@ -1778,24 +2379,25 @@ func TestConfirmCancellation(t *testing.T) {
 		}
 
 		// Add checkin to Cache
-		if checkinData, err := bson.Marshal(bookingStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.RoomBookingKey(bookingStruct.OccupiID), checkinData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the checkin is in the Cache
-		checkinv, err := Cache.Get(cache.RoomBookingKey(bookingStruct.OccupiID))
+		bookingData, err := bson.Marshal(bookingStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, checkinv)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.RoomBookingKey(bookingStruct.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(bookingData))
+
+		// Add checkin to Cache
+		res := Cache.Set(context.Background(), cache.RoomBookingKey(bookingStruct.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		//mock expect delete
+		mock.ExpectDel(cache.RoomBookingKey(checkin.BookingID)).SetVal(1)
 
 		// Call the function under test
 		success, err := database.ConfirmCancellation(ctx, appsession, checkin.BookingID, checkin.Creator)
@@ -1804,11 +2406,16 @@ func TestConfirmCancellation(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
-		// Verify the update in Cache
-		checkinv2, err := Cache.Get(cache.RoomBookingKey(checkin.BookingID))
+		// mock expect del
+		mock.ExpectDel(cache.RoomBookingKey(checkin.BookingID)).SetVal(1)
 
-		assert.NotNil(t, err)
-		assert.Nil(t, checkinv2)
+		// Verify the delete in Cache
+		res1 := Cache.Del(context.Background(), cache.RoomBookingKey(checkin.BookingID))
+
+		assert.Nil(t, res1.Err())
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("UpdateOne error", func(mt *mtest.T) {
@@ -1946,27 +2553,28 @@ func TestGetUserDetails(t *testing.T) {
 	mt.Run("Get user details successfully from Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(userStruct.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		usera, err := Cache.Get(cache.UserKey(userStruct.Email))
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, usera)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(userStruct.Email)).SetVal(string(userData))
 
 		// Call the function under test
 		user, err := database.GetUserDetails(ctx, appsession, userStruct.Email)
@@ -1987,6 +2595,9 @@ func TestGetUserDetails(t *testing.T) {
 		assert.Equal(t, expectedUser.Gender, user.Gender)
 		assert.Equal(t, expectedUser.Pronouns, user.Pronouns)
 		assert.Equal(t, expectedUser.Number, user.Number)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("FindOne error", func(mt *mtest.T) {
@@ -2050,7 +2661,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	mt.Run("Update user name in Cache successfully", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userDetails := models.User{
 			Email: "test@example.com",
@@ -2060,19 +2671,17 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userDetails); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		userData, err := bson.Marshal(userDetails)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -2084,6 +2693,22 @@ func TestUpdateUserDetails(t *testing.T) {
 			Name:         "Michael",
 		}
 
+		updatedUser := models.User{
+			Email: userDetails.Email,
+			Details: models.Details{
+				Name: "Michael",
+			},
+		}
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(userDetails.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		// Call the function under test
 		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
 
@@ -2091,11 +2716,15 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
+
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
 
 		// unmarshal the user data
 		var userB models.User
@@ -2104,6 +2733,9 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		assert.Equal(t, updateUser.Name, userB.Details.Name)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update user dob successfully", func(mt *mtest.T) {
@@ -2129,7 +2761,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	mt.Run("Update user dob in Cache successfully", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userDetails := models.User{
 			Email: "test@example.com",
@@ -2139,43 +2771,69 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userDetails); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		userData, err := bson.Marshal(userDetails)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		updatedUser := models.User{
+			Email: userDetails.Email,
+			Details: models.Details{
+				DOB: time.Now().Add(1 * time.Hour),
+			},
+		}
+
+		updateUser := models.UserDetailsRequest{
+			SessionEmail: userDetails.Email,
+			Dob:          updatedUser.Details.DOB.String(),
+		}
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
 
-		updateUser := models.UserDetailsRequest{
-			SessionEmail: userDetails.Email,
-			Dob:          time.Now().Add(1 * time.Hour).String(),
-		}
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(userData))
+		//mock.ExpectSet(cache.UserKey(userDetails.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
 
 		// Call the function under test
 		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
 
 		// Validate the result
-
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
+
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// unmarshal the user data
+		var userB models.User
+		if err := bson.Unmarshal(user, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update gender successfully", func(mt *mtest.T) {
@@ -2201,7 +2859,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	mt.Run("Update gender in Cache successfully", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userDetails := models.User{
 			Email: "test@example.com",
@@ -2211,19 +2869,17 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userDetails); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		userData, err := bson.Marshal(userDetails)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -2235,6 +2891,22 @@ func TestUpdateUserDetails(t *testing.T) {
 			Gender:       "Male",
 		}
 
+		updatedUser := models.User{
+			Email: userDetails.Email,
+			Details: models.Details{
+				Gender: "Male",
+			},
+		}
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(userDetails.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		// Call the function under test
 		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
 
@@ -2242,11 +2914,15 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
+
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
 
 		// unmarshal the user data
 		var userB models.User
@@ -2255,6 +2931,9 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		assert.Equal(t, updateUser.Gender, userB.Details.Gender)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update email successfully", func(mt *mtest.T) {
@@ -2280,7 +2959,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	mt.Run("Update email in Cache successfully", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userDetails := models.User{
 			Email:      "test@example.com",
@@ -2288,19 +2967,17 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userDetails); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		userData, err := bson.Marshal(userDetails)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -2312,6 +2989,19 @@ func TestUpdateUserDetails(t *testing.T) {
 			Email:        "test1@example.com",
 		}
 
+		updatedUser := models.User{
+			Email: updateUser.Email,
+		}
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(updateUser.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		// Call the function under test
 		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
 
@@ -2319,11 +3009,15 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(updatedUser.Email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(updateUser.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(updatedUser.Email))
+
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
 
 		// unmarshal the user data
 		var userB models.User
@@ -2332,7 +3026,9 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		assert.Equal(t, updateUser.Email, userB.Email)
-		assert.False(t, userB.IsVerified)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update employee id successfully", func(mt *mtest.T) {
@@ -2358,7 +3054,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	mt.Run("Update employee id in Cache successfully", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userDetails := models.User{
 			Email:    "test@example.com",
@@ -2366,19 +3062,17 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userDetails); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		userData, err := bson.Marshal(userDetails)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -2390,6 +3084,20 @@ func TestUpdateUserDetails(t *testing.T) {
 			Employeeid:   "123456",
 		}
 
+		updatedUser := models.User{
+			Email:    userDetails.Email,
+			OccupiID: "123456",
+		}
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(userDetails.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		// Call the function under test
 		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
 
@@ -2397,11 +3105,15 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
+
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
 
 		// unmarshal the user data
 		var userB models.User
@@ -2410,6 +3122,9 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		assert.Equal(t, updateUser.Employeeid, userB.OccupiID)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update number successfully", func(mt *mtest.T) {
@@ -2432,10 +3147,10 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.True(t, success)
 	})
 
-	mt.Run("Update email in Cache successfully", func(mt *mtest.T) {
+	mt.Run("Update number in Cache successfully", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userDetails := models.User{
 			Email: "test@example.com",
@@ -2445,19 +3160,17 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userDetails); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		userData, err := bson.Marshal(userDetails)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -2469,6 +3182,22 @@ func TestUpdateUserDetails(t *testing.T) {
 			Number:       "011 123 4567",
 		}
 
+		updatedUser := models.User{
+			Email: userDetails.Email,
+			Details: models.Details{
+				ContactNo: "011 123 4567",
+			},
+		}
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(userDetails.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		// Call the function under test
 		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
 
@@ -2476,11 +3205,15 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
+
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
 
 		// unmarshal the user data
 		var userB models.User
@@ -2489,6 +3222,9 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		assert.Equal(t, updateUser.Number, userB.Details.ContactNo)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update pronouns successfully", func(mt *mtest.T) {
@@ -2514,7 +3250,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	mt.Run("Update pronouns in Cache successfully", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userDetails := models.User{
 			Email: "test@example.com",
@@ -2524,19 +3260,17 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userDetails); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(userDetails.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(userDetails.Email))
+		userData, err := bson.Marshal(userDetails)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userDetails.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
@@ -2548,6 +3282,22 @@ func TestUpdateUserDetails(t *testing.T) {
 			Pronouns:     "He/Him",
 		}
 
+		updatedUser := models.User{
+			Email: userDetails.Email,
+			Details: models.Details{
+				Pronouns: "He/Him",
+			},
+		}
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(userDetails.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		// Call the function under test
 		success, err := database.UpdateUserDetails(ctx, appsession, updateUser)
 
@@ -2555,11 +3305,15 @@ func TestUpdateUserDetails(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(userDetails.Email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		user, err = Cache.Get(cache.UserKey(userDetails.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(userDetails.Email))
+
+		user, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
 
 		// unmarshal the user data
 		var userB models.User
@@ -2568,6 +3322,9 @@ func TestUpdateUserDetails(t *testing.T) {
 		}
 
 		assert.Equal(t, updateUser.Pronouns, userB.Details.Pronouns)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update Error", func(mt *mtest.T) {
@@ -2645,7 +3402,7 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 	mt.Run("User is admin in Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email: email,
@@ -2653,24 +3410,25 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
 
 		// Call the function under test
 		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
@@ -2678,6 +3436,9 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		// Validate the result
 		assert.NoError(t, err)
 		assert.True(t, isAdmin)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("User is not admin", func(mt *mtest.T) {
@@ -2700,7 +3461,7 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 	mt.Run("User is not admin in Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email: email,
@@ -2708,24 +3469,25 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		}
 
 		// Add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		user, err := Cache.Get(cache.UserKey(email))
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, user)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
 
 		// Call the function under test
 		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
@@ -2734,11 +3496,8 @@ func TestCheckIfUserIsAdmin(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, isAdmin)
 
-		// Verify the user was not updated in the Cache
-		user, err = Cache.Get(cache.UserKey(email))
-
-		assert.Nil(t, err)
-		assert.NotNil(t, user)
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("FindOne error", func(mt *mtest.T) {
@@ -2919,7 +3678,7 @@ func TestUpdateUserPassword(t *testing.T) {
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email:    email,
@@ -2927,19 +3686,17 @@ func TestUpdateUserPassword(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		// Call the function under test
 		appsession := &models.AppSession{
@@ -2947,17 +3704,35 @@ func TestUpdateUserPassword(t *testing.T) {
 			Cache: Cache,
 		}
 
+		update := models.User{
+			Email:    email,
+			Password: newPassword,
+		}
+
+		// marshal and add the user to cache
+		updatedUserData, err := bson.Marshal(update)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		success, err := database.UpdateUserPassword(ctx, appsession, email, newPassword)
 
 		// Validate the result
 		assert.NoError(t, err)
 		assert.True(t, success)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(updatedUserData))
+
 		// Verify the update in Cache
-		userB, err := Cache.Get(cache.UserKey(email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(email))
+
+		userB, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userB)
 
 		// unmarshal the user data
 		var user models.User
@@ -2966,6 +3741,9 @@ func TestUpdateUserPassword(t *testing.T) {
 		}
 
 		assert.Equal(t, newPassword, user.Password)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("error", func(mt *mtest.T) {
@@ -3454,7 +4232,7 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 	mt.Run("Location exists and is valid in Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email: email,
@@ -3468,24 +4246,25 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		}
 
 		// add userstruct to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
 
 		// Call the function under test
 		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
@@ -3494,12 +4273,15 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, yes)
 		assert.Nil(t, info)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Location exists but does not match what is in Cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		userStruct := models.User{
 			Email: email,
@@ -3513,24 +4295,25 @@ func TestCheckIfUserIsLoggingInFromKnownLocation(t *testing.T) {
 		}
 
 		// add userstruct to Cache
-		if userData, err := bson.Marshal(userStruct); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(email))
+		userData, err := bson.Marshal(userStruct)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(userStruct.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		appsession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
 
 		// Call the function under test
 		yes, info, err := database.CheckIfUserIsLoggingInFromKnownLocation(ctx, appsession, email, ctx.ClientIP())
@@ -4103,7 +4886,7 @@ func TestGetSecuritySettings(t *testing.T) {
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email: "test@example.com",
@@ -4114,25 +4897,26 @@ func TestGetSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		// Initialize the app session with the mock client
 		appSession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
 
 		// Call the function under test
 		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
@@ -4141,6 +4925,9 @@ func TestGetSecuritySettings(t *testing.T) {
 		assert.NoError(mt, err)
 		assert.NotNil(mt, result)
 		assert.Equal(mt, expectedSettings, result)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Retrieve security settings with mfa off and force logout off successfully from cache", func(mt *mtest.T) {
@@ -4153,7 +4940,7 @@ func TestGetSecuritySettings(t *testing.T) {
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email: "test@example.com",
@@ -4164,25 +4951,26 @@ func TestGetSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		// Initialize the app session with the mock client
 		appSession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
 
 		// Call the function under test
 		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
@@ -4191,6 +4979,9 @@ func TestGetSecuritySettings(t *testing.T) {
 		assert.NoError(mt, err)
 		assert.NotNil(mt, result)
 		assert.Equal(mt, expectedSettings, result)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Retrieve security settings with mfa off and force logout on successfully from cache", func(mt *mtest.T) {
@@ -4203,7 +4994,7 @@ func TestGetSecuritySettings(t *testing.T) {
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email: "test@example.com",
@@ -4214,25 +5005,26 @@ func TestGetSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		// Initialize the app session with the mock client
 		appSession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
 
 		// Call the function under test
 		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
@@ -4241,6 +5033,9 @@ func TestGetSecuritySettings(t *testing.T) {
 		assert.NoError(mt, err)
 		assert.NotNil(mt, result)
 		assert.Equal(mt, expectedSettings, result)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Retrieve security settings with mfa on and force logout on successfully from cache", func(mt *mtest.T) {
@@ -4253,7 +5048,7 @@ func TestGetSecuritySettings(t *testing.T) {
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email: "test@example.com",
@@ -4264,25 +5059,26 @@ func TestGetSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		// Initialize the app session with the mock client
 		appSession := &models.AppSession{
 			DB:    mt.Client,
 			Cache: Cache,
 		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
 
 		// Call the function under test
 		result, err := database.GetSecuritySettings(ctx, appSession, "test@example.com")
@@ -4291,6 +5087,9 @@ func TestGetSecuritySettings(t *testing.T) {
 		assert.NoError(mt, err)
 		assert.NotNil(mt, result)
 		assert.Equal(mt, expectedSettings, result)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Find returns an error", func(mt *mtest.T) {
@@ -4431,7 +5230,7 @@ func TestUpdateSecuritySettings(t *testing.T) {
 	mt.Run("Test set password successfully in cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email:    "test@example.com",
@@ -4439,19 +5238,17 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		security := models.SecuritySettingsRequest{
 			Email:       "test@example.com",
@@ -4464,16 +5261,34 @@ func TestUpdateSecuritySettings(t *testing.T) {
 			Cache: Cache,
 		}
 
+		updatedUser := models.User{
+			Email:    user.Email,
+			Password: security.NewPassword,
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		err = database.UpdateSecuritySettings(ctx, appsession, security)
 
 		// Validate the result
 		assert.NoError(t, err)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
 
 		// unmarshal user
 		var userB models.User
@@ -4482,12 +5297,15 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		assert.Equal(t, "blah-blah-blah", userB.Password)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Test set mfa on successfully in cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email: "test@example.com",
@@ -4498,19 +5316,17 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		security := models.SecuritySettingsRequest{
 			Email: "test@example.com",
@@ -4523,16 +5339,37 @@ func TestUpdateSecuritySettings(t *testing.T) {
 			Cache: Cache,
 		}
 
+		updatedUser := models.User{
+			Email: user.Email,
+			Security: models.Security{
+				MFA:         true,
+				ForceLogout: false,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		err = database.UpdateSecuritySettings(ctx, appsession, security)
 
 		// Validate the result
 		assert.NoError(t, err)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
 
 		// unmarshal user
 		var userB models.User
@@ -4541,12 +5378,15 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		assert.Equal(t, true, userB.Security.MFA)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Test set mfa off successfully in cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email: "test@example.com",
@@ -4557,19 +5397,17 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		security := models.SecuritySettingsRequest{
 			Email: "test@example.com",
@@ -4582,16 +5420,37 @@ func TestUpdateSecuritySettings(t *testing.T) {
 			Cache: Cache,
 		}
 
+		updatedUser := models.User{
+			Email: user.Email,
+			Security: models.Security{
+				MFA:         false,
+				ForceLogout: false,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		err = database.UpdateSecuritySettings(ctx, appsession, security)
 
 		// Validate the result
 		assert.NoError(t, err)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
 
 		// unmarshal user
 		var userB models.User
@@ -4600,12 +5459,15 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		assert.Equal(t, false, userB.Security.MFA)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Test set force logout on successfully in cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email: "test@example.com",
@@ -4616,19 +5478,17 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		security := models.SecuritySettingsRequest{
 			Email:       "test@example.com",
@@ -4641,16 +5501,37 @@ func TestUpdateSecuritySettings(t *testing.T) {
 			Cache: Cache,
 		}
 
+		updatedUser := models.User{
+			Email: user.Email,
+			Security: models.Security{
+				MFA:         false,
+				ForceLogout: true,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		err = database.UpdateSecuritySettings(ctx, appsession, security)
 
 		// Validate the result
 		assert.NoError(t, err)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
 
 		// unmarshal user
 		var userB models.User
@@ -4659,12 +5540,15 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		assert.Equal(t, true, userB.Security.ForceLogout)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Test set force logout off successfully in cache", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		Cache := configs.CreateCache()
+		Cache, mock := redismock.NewClientMock()
 
 		user := models.User{
 			Email: "test@example.com",
@@ -4675,19 +5559,17 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		// add user to Cache
-		if userData, err := bson.Marshal(user); err != nil {
-			t.Fatal(err)
-		} else {
-			if err := Cache.Set(cache.UserKey(user.Email), userData); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// Assert that the user is in the Cache
-		userA, err := Cache.Get(cache.UserKey(user.Email))
+		userData, err := bson.Marshal(user)
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
 
 		security := models.SecuritySettingsRequest{
 			Email:       "test@example.com",
@@ -4700,16 +5582,37 @@ func TestUpdateSecuritySettings(t *testing.T) {
 			Cache: Cache,
 		}
 
+		updatedUser := models.User{
+			Email: user.Email,
+			Security: models.Security{
+				MFA:         false,
+				ForceLogout: false,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
 		err = database.UpdateSecuritySettings(ctx, appsession, security)
 
 		// Validate the result
 		assert.NoError(t, err)
 
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
 		// Assert that the user is in the Cache
-		userA, err = Cache.Get(cache.UserKey(user.Email))
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
 
 		assert.Nil(t, err)
-		assert.NotNil(t, userA)
 
 		// unmarshal user
 		var userB models.User
@@ -4718,6 +5621,9 @@ func TestUpdateSecuritySettings(t *testing.T) {
 		}
 
 		assert.Equal(t, false, userB.Security.ForceLogout)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	mt.Run("Update Error", func(mt *mtest.T) {

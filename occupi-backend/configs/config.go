@@ -56,6 +56,10 @@ const (
 	MiddelwareAT           = "MIDDLEWARE_AT"
 	MiddlewareTarget       = "MIDDLEWARE_TARGET"
 	MiddlewareAgentService = "MW_AGENT_SERVICE"
+	RedisUsername          = "REDIS_USERNAME"
+	RedisPassword          = "REDIS_PASSWORD"
+	RedisHost              = "REDIS_HOST"
+	RedisPort              = "REDIS_PORT"
 )
 
 // init viper
@@ -494,4 +498,36 @@ func GetMiddlewareAgentService() string {
 		service = "MW_AGENT_SERVICE"
 	}
 	return service
+}
+
+func GetRedisUsername() string {
+	username := viper.GetString(RedisUsername)
+	if username == "" {
+		username = "REDIS_USERNAME"
+	}
+	return username
+}
+
+func GetRedisPassword() string {
+	password := viper.GetString(RedisPassword)
+	if password == "" {
+		password = "REDIS_PASSWORD"
+	}
+	return password
+}
+
+func GetRedisHost() string {
+	host := viper.GetString(RedisHost)
+	if host == "" {
+		host = "REDIS_HOST"
+	}
+	return host
+}
+
+func GetRedisPort() string {
+	port := viper.GetString(RedisPort)
+	if port == "" {
+		port = "REDIS_PORT"
+	}
+	return port
 }

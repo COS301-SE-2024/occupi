@@ -40,7 +40,6 @@ func TestViewBookingsHandler(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
 		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
 	}
 
 	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
@@ -183,8 +182,7 @@ func setupTestEnvironment(t *testing.T) (*gin.Engine, []*http.Cookie) {
 
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	store := cookie.NewStore([]byte(configs.GetSessionSecret()))
@@ -600,8 +598,7 @@ func TestPingRoute(t *testing.T) {
 
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	store := cookie.NewStore([]byte(configs.GetSessionSecret()))

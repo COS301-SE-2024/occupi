@@ -21,8 +21,7 @@ import (
 func TestInvalidLogoutHandler(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -59,8 +58,7 @@ func TestInvalidLogoutHandler(t *testing.T) {
 func TestValidLogoutHandler(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -126,8 +124,7 @@ func TestValidLogoutHandler(t *testing.T) {
 func TestValidLogoutHandlerFromDomains(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode

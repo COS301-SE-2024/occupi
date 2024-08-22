@@ -8,6 +8,7 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
@@ -16,7 +17,7 @@ import (
 // state management for the web app during runtime
 type AppSession struct {
 	DB           *mongo.Client
-	Cache        *bigcache.BigCache
+	Cache        *redis.Client
 	EmailsSent   int
 	CurrentDate  time.Time
 	OtpReqCache  *bigcache.BigCache
@@ -30,7 +31,7 @@ type AppSession struct {
 }
 
 // constructor for app session
-func New(db *mongo.Client, cache *bigcache.BigCache) *AppSession {
+func New(db *mongo.Client, cache *redis.Client) *AppSession {
 	conn := configs.CreateRabbitConnection()
 	ch := configs.CreateRabbitChannel(conn)
 	q := configs.CreateRabbitQueue(ch)

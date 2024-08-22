@@ -39,11 +39,14 @@ require (
 
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fluent/fluent-logger-golang v1.9.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-redis/redismock/v9 v9.2.0 // indirect
 	github.com/go-webauthn/x v0.1.12 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -53,6 +56,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
+	github.com/redis/go-redis/v9 v9.6.1 // indirect
 	github.com/tinylib/msgp v1.1.9 // indirect
 	github.com/umahmood/haversine v0.0.0-20151105152445-808ab04add26 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
