@@ -1,10 +1,10 @@
 package database
 
 import (
-	"time"
-  "strconv"
+	"strconv"
 	"strings"
-  
+	"time"
+
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/umahmood/haversine"
 
@@ -78,6 +78,7 @@ func CreateAdminUser(user models.RegisterUser) models.User {
 		DepartmentNo:  "",
 		ExpoPushToken: user.ExpoPushToken,
 	}
+}
 
 func IsLocationInRange(locations []models.Location, unrecognizedLogger *ipinfo.Core) bool {
 	// Return true if there are no locations
