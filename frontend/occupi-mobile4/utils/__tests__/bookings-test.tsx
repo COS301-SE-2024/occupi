@@ -2,14 +2,13 @@ import * as bookingsUtils from '../bookings';
 import * as apiServices from '../../services/apiservices';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
+import * as notifications from '../notifications';
+
 
 jest.mock('../../services/apiservices');
 jest.mock('expo-secure-store');
-jest.mock('expo-router', () => ({
-  router: {
-    replace: jest.fn(),
-  },
-}));
+jest.mock('expo-router', () => ({ router: { replace: jest.fn() } }));
+jest.mock('../notifications');
 
 describe('bookings utils', () => {
   beforeEach(() => {
@@ -123,6 +122,54 @@ describe('bookings utils', () => {
       await expect(bookingsUtils.userBookRoom([], '09:00', '10:00')).rejects.toThrow('Booking Error');
       expect(console.error).toHaveBeenCalledWith('Error:', mockError);
     });
+
+
+    it('should handle empty push tokens', async () => {
+      const mockBookingInfo = JSON.stringify({
+        roomName: 'Room 1',
+        date: '2024-08-22',
+        floorNo: '1',
+        roomId: '123'
+      });
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce(mockBookingInfo)
+        .mockResolvedValueOnce('user@example.com');
+      
+      const mockBookResponse = { status: 'success', message: 'Room booked successfully' };
+      (apiServices.bookRoom as jest.Mock).mockResolvedValue(mockBookResponse);
+      
+      const mockPushTokens = { data: null };
+      (apiServices.getExpoPushTokens as jest.Mock).mockResolvedValue(mockPushTokens);
+      
+      const result = await bookingsUtils.userBookRoom(['attendee1@example.com'], '09:00', '10:00');
+      
+      expect(result).toBe('Room booked successfully');
+      expect(apiServices.getExpoPushTokens).toHaveBeenCalledWith(['attendee1@example.com']);
+      expect(notifications.sendPushNotification).toHaveBeenCalledWith(
+        [],
+        'Meeting Invite',
+        'user@example.com has invited you to a meeting in Room 1 on 2024-08-22'
+      );
+    });
+
+    it('should return default message when booking fails without a specific message', async () => {
+      const mockBookingInfo = JSON.stringify({
+        roomName: 'Room 1',
+        date: '2024-08-22',
+        floorNo: '1',
+        roomId: '123'
+      });
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce(mockBookingInfo)
+        .mockResolvedValueOnce('user@example.com');
+      
+      const mockBookResponse = { status: 'failure' };
+      (apiServices.bookRoom as jest.Mock).mockResolvedValue(mockBookResponse);
+      
+      const result = await bookingsUtils.userBookRoom(['attendee1@example.com'], '09:00', '10:00');
+      
+      expect(result).toBe('Booking failed');
+    });
   });
 
   describe('userCheckin', () => {
@@ -232,6 +279,92 @@ describe('bookings utils', () => {
 
       await expect(bookingsUtils.userCancelBooking()).rejects.toThrow('Cancellation Error');
       expect(console.error).toHaveBeenCalledWith('Error:', mockError);
+    });
+  });
+
+  describe('fetchRooms', () => {
+    it('should fetch rooms with floor number', async () => {
+      const mockResponse = { status: 200, data: [{ id: 1, name: 'Room 1' }] };
+      (apiServices.getRooms as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await bookingsUtils.fetchRooms('1', '');
+      expect(result).toEqual(mockResponse.data);
+      expect(apiServices.getRooms).toHaveBeenCalledWith({
+        operator: 'eq',
+        filter: { floorNo: '1' }
+      });
+    });
+
+    it('should fetch rooms with room name', async () => {
+      const mockResponse = { status: 200, data: [{ id: 1, name: 'Room 1' }] };
+      (apiServices.getRooms as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await bookingsUtils.fetchRooms('', 'Room 1');
+      expect(result).toEqual(mockResponse.data);
+      expect(apiServices.getRooms).toHaveBeenCalledWith({
+        operator: 'eq',
+        filter: { roomName: 'Room 1' }
+      });
+    });
+
+    it('should fetch rooms with default floor 0 when no parameters are provided', async () => {
+      const mockResponse = { status: 200, data: [{ id: 1, name: 'Room 1' }] };
+      (apiServices.getRooms as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await bookingsUtils.fetchRooms('', '');
+      expect(result).toEqual(mockResponse.data);
+      expect(apiServices.getRooms).toHaveBeenCalledWith({
+        operator: 'eq',
+        filter: { floorNo: '0' }
+      });
+    });
+
+    it('should handle non-200 status', async () => {
+      const mockResponse = { status: 400, data: 'Error message' };
+      (apiServices.getRooms as jest.Mock).mockResolvedValue(mockResponse);
+      console.log = jest.fn();
+
+      const result = await bookingsUtils.fetchRooms('', '');
+      expect(console.log).toHaveBeenCalledWith(mockResponse);
+      expect(result).toEqual('Error message');
+    });
+
+    it('should handle and throw errors', async () => {
+      const error = new Error('Network error');
+      (apiServices.getRooms as jest.Mock).mockRejectedValue(error);
+
+      await expect(bookingsUtils.fetchRooms('', '')).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('userBookRoom', () => {
+    it('should book a room and send push notifications', async () => {
+      const mockBookingInfo = JSON.stringify({
+        roomName: 'Room 1',
+        date: '2024-08-22',
+        floorNo: '1',
+        roomId: '123'
+      });
+      (SecureStore.getItemAsync as jest.Mock)
+        .mockResolvedValueOnce(mockBookingInfo)
+        .mockResolvedValueOnce('user@example.com');
+      
+      const mockBookResponse = { status: 'success', message: 'Room booked successfully' };
+      (apiServices.bookRoom as jest.Mock).mockResolvedValue(mockBookResponse);
+      
+      const mockPushTokens = { data: ['token1', 'token2'] };
+      (apiServices.getExpoPushTokens as jest.Mock).mockResolvedValue(mockPushTokens);
+      
+      const result = await bookingsUtils.userBookRoom(['attendee1@example.com'], '09:00', '10:00');
+      
+      expect(result).toBe('Room booked successfully');
+      expect(apiServices.bookRoom).toHaveBeenCalled();
+      expect(apiServices.getExpoPushTokens).toHaveBeenCalledWith(['attendee1@example.com']);
+      expect(notifications.sendPushNotification).toHaveBeenCalledWith(
+        ['token1', 'token2'],
+        'Meeting Invite',
+        'user@example.com has invited you to a meeting in Room 1 on 2024-08-22'
+      );
     });
   });
 });
