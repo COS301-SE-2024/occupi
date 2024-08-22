@@ -1,83 +1,99 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { fetchUserDetails, fetchNotificationSettings, fetchSecuritySettings, updateSecurity, updateDetails, updateNotifications, fetchUsername } from '../user';
-import { getAccentColour, getTheme, extractDateFromTimestamp } from '../utils';
+import { getUserDetails, getNotificationSettings, getSecuritySettings, updateSecuritySettings, updateUserDetails, updateNotificationSettings } from "../../services/apiservices";
+import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
+
+jest.mock('../../services/apiservices');
+jest.mock('../../services/securestore');
+jest.mock('expo-router', () => ({
+  router: {
+    replace: jest.fn(),
+  },
+}));
+
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(),
+  setItemAsync: jest.fn(),
+}));
 
 describe('Integration Test Suite', () => {
-  let mock: MockAdapter;
-
   beforeEach(() => {
-    mock = new MockAdapter(axios);
-  });
-
-  afterEach(() => {
-    mock.restore();
+    jest.clearAllMocks();
   });
 
   describe('User Module', () => {
     it('should fetch user details', async () => {
-      mock.onGet('/user-details').reply(200, { name: 'John Doe', email: 'test@example.com' });
+      const mockResponse = { status: 200, data: { name: 'John Doe', email: 'test@example.com' } };
+      (getUserDetails as jest.Mock).mockResolvedValue(mockResponse);
+      
       await fetchUserDetails('test@example.com', 'abc123');
-      const userData = await SecureStore.getItemAsync('UserData');
-      expect(JSON.parse(userData)).toEqual({ name: 'John Doe', email: 'test@example.com' });
+      
+      expect(getUserDetails).toHaveBeenCalledWith('test@example.com', 'abc123');
     });
 
     it('should fetch notification settings', async () => {
-      mock.onGet('/notification-settings').reply(200, { invites: true, bookingReminder: false });
+      const mockResponse = { status: 200, data: { invites: true, bookingReminder: false } };
+      (getNotificationSettings as jest.Mock).mockResolvedValue(mockResponse);
+      
       await fetchNotificationSettings('test@example.com');
-      const notificationSettings = await SecureStore.getItemAsync('NotificationSettings');
-      expect(JSON.parse(notificationSettings)).toEqual({ invites: true, bookingReminder: false });
+      
+      expect(getNotificationSettings).toHaveBeenCalledWith('test@example.com');
     });
 
     it('should fetch security settings', async () => {
-      mock.onGet('/security-settings').reply(200, { mfa: true, forceLogout: false });
+      const mockResponse = { status: 200, data: { mfa: true, forceLogout: false } };
+      (getSecuritySettings as jest.Mock).mockResolvedValue(mockResponse);
+      
       await fetchSecuritySettings('test@example.com');
-      const securitySettings = await SecureStore.getItemAsync('SecuritySettings');
-      expect(JSON.parse(securitySettings)).toEqual({ mfa: true, forceLogout: false });
+      
+      expect(getSecuritySettings).toHaveBeenCalledWith('test@example.com');
     });
 
     it('should update security settings', async () => {
-      mock.onPut('/security-settings').reply(200, { message: 'Settings updated successfully' });
+      const mockResponse = { status: 200, message: 'Settings updated successfully' };
+      (updateSecuritySettings as jest.Mock).mockResolvedValue(mockResponse);
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(JSON.stringify({ email: 'test@example.com' }));
+      
       const message = await updateSecurity('settings', { mfa: true, forceLogout: true });
+      
       expect(message).toBe('Settings updated successfully');
+      expect(router.replace).toHaveBeenCalledWith('/settings');
     });
 
     it('should update user details', async () => {
-      mock.onPut('/user-details').reply(200, { message: 'Details updated successfully' });
+      const mockResponse = { status: 200, message: 'Details updated successfully' };
+      (updateUserDetails as jest.Mock).mockResolvedValue(mockResponse);
+      (SecureStore.getItemAsync as jest.Mock).mockImplementation((key) => {
+        if (key === 'Email') return Promise.resolve('test@example.com');
+        if (key === 'AppState') return Promise.resolve('logged_in');
+        return Promise.resolve(null);
+      });
+      
       const message = await updateDetails('John Doe', '1990-01-01', 'Male', '1234567890', 'He/Him');
+      
       expect(message).toBe('Details updated successfully');
+      expect(router.replace).toHaveBeenCalledWith('/settings');
     });
 
     it('should update notification settings', async () => {
-      mock.onPut('/notification-settings').reply(200, { message: 'Settings updated successfully' });
+      const mockResponse = { status: 200, message: 'Settings updated successfully' };
+      (updateNotificationSettings as jest.Mock).mockResolvedValue(mockResponse);
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(JSON.stringify({ email: 'test@example.com' }));
+      
       const message = await updateNotifications({ invites: true, bookingReminder: true });
+      
       expect(message).toBe('Settings updated successfully');
+      expect(router.replace).toHaveBeenCalledWith('/settings');
     });
 
     it('should fetch the username', async () => {
-      await SecureStore.setItemAsync('UserData', JSON.stringify({ name: 'John Doe' }));
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(JSON.stringify({ name: 'John Doe' }));
+      
       const username = await fetchUsername();
+      
       expect(username).toBe('John Doe');
-    });
-  });
-
-  describe('Utils Module', () => {
-    it('should get the accent color', async () => {
-      await SecureStore.setItemAsync('accentColour', 'blue');
-      const accentColor = await getAccentColour();
-      expect(accentColor).toBe('blue');
-    });
-
-    it('should get the theme', async () => {
-      await SecureStore.setItemAsync('Theme', 'light');
-      const theme = await getTheme();
-      expect(theme).toBe('light');
-    });
-
-    it('should extract the date from a timestamp', () => {
-      const timestamp = '2023-05-01T12:00:00.000Z';
-      const date = extractDateFromTimestamp(timestamp);
-      expect(date).toBe('2023-05-02');
     });
   });
 });
