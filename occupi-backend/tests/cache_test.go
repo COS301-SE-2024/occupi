@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/allegro/bigcache/v3"
 	"github.com/go-redis/redismock/v9"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -88,7 +87,7 @@ func TestGetUser(t *testing.T) {
 		appsession := &models.AppSession{Cache: db}
 
 		// Expect the Get command to succeed, but Bytes() to fail
-		mock.ExpectGet(cache.UserKey("test@example.com")).SetVal("invalid_data")
+		mock.ExpectGet(cache.UserKey("test@example.com")).SetErr(errors.New("failed to get bytes"))
 
 		_, err := cache.GetUser(appsession, "test@example.com")
 		if err == nil {
@@ -336,7 +335,7 @@ func TestGetOTP(t *testing.T) {
 		otp := "123456"
 
 		// Simulate redis.Get command with invalid data
-		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal("invalid_data")
+		mock.ExpectGet(cache.OTPKey(email, otp)).SetErr(errors.New("failed to get bytes"))
 
 		// Call GetOTP
 		otpData, err := cache.GetOTP(appsession, email, otp)
@@ -630,7 +629,7 @@ func TestGetBooking(t *testing.T) {
 		bookingID := "123"
 
 		// Simulate Redis Get command returning an error
-		mock.ExpectGet(cache.RoomBookingKey(bookingID)).SetErr(errors.New("key does not exist"))
+		mock.ExpectGet(cache.RoomBookingKey(bookingID)).RedisNil()
 
 		_, err := cache.GetBooking(appsession, bookingID)
 		if err == nil {
@@ -643,7 +642,28 @@ func TestGetBooking(t *testing.T) {
 		}
 	})
 
-	// Test 3: Success
+	// Test 3: res.Bytes() returns an error
+	t.Run("res.Bytes() returns error", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{Cache: db}
+		bookingID := "123"
+
+		// Simulate Redis Get command returning an error
+		mock.ExpectGet(cache.RoomBookingKey(bookingID)).SetErr(errors.New("failed to get bytes"))
+
+		_, err := cache.GetBooking(appsession, bookingID)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test 4: Success
 	t.Run("success", func(t *testing.T) {
 		db, mock := redismock.NewClientMock()
 		appsession := &models.AppSession{Cache: db}
@@ -742,7 +762,7 @@ func TestGetImage(t *testing.T) {
 		id := "image123"
 
 		// Simulate Redis Get command returning an error
-		mock.ExpectGet(cache.ImageKey(id)).SetErr(errors.New("key does not exist"))
+		mock.ExpectGet(cache.ImageKey(id)).RedisNil()
 
 		_, err := cache.GetImage(appsession, id)
 		if err == nil {
@@ -755,7 +775,29 @@ func TestGetImage(t *testing.T) {
 		}
 	})
 
-	// Test 3: Success
+	// Test 3: res.Bytes() returns an error
+	t.Run("res.Bytes() returns error", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{Cache: db}
+
+		id := "image123"
+
+		// Simulate Redis Get command returning an error
+		mock.ExpectGet(cache.ImageKey(id)).SetErr(errors.New("failed to get bytes"))
+
+		_, err := cache.GetImage(appsession, id)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test 4: Success
 	t.Run("success", func(t *testing.T) {
 		db, mock := redismock.NewClientMock()
 		appsession := &models.AppSession{Cache: db}
@@ -924,8 +966,7 @@ func TestSetSessionF(t *testing.T) {
 
 	// Test 2: Marshalling fails
 	t.Run("marshal fails", func(t *testing.T) {
-		Cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * 60 * 60))
-		appsession := &models.AppSession{SessionCache: Cache}
+		appsession := &models.AppSession{SessionCache: configs.CreateSessionCache()}
 
 		// Create invalid session data (e.g., by including a function)
 		invalidSession := models.WebAuthnSession{}
@@ -935,11 +976,10 @@ func TestSetSessionF(t *testing.T) {
 
 	// Test 3: Set fails (Simulate by using a full cache)
 	t.Run("set fails", func(t *testing.T) {
-		Cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(1))
-		appsession := &models.AppSession{SessionCache: Cache}
+		appsession := &models.AppSession{SessionCache: configs.CreateSessionCache()}
 
 		// Fill the cache to capacity
-		Cache.Set("full", []byte("data"))
+		appsession.SessionCache.Set("full", []byte("data"))
 
 		session := models.WebAuthnSession{}
 		uuid := "test-uuid"
@@ -949,8 +989,7 @@ func TestSetSessionF(t *testing.T) {
 
 	// Test 4: Success
 	t.Run("success", func(t *testing.T) {
-		Cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * 60 * 60))
-		appsession := &models.AppSession{SessionCache: Cache}
+		appsession := &models.AppSession{SessionCache: configs.CreateSessionCache()}
 		session := models.WebAuthnSession{}
 		uuid := "test-uuid"
 
@@ -977,8 +1016,7 @@ func TestGetSessionF(t *testing.T) {
 
 	// Test 2: Key does not exist
 	t.Run("key does not exist", func(t *testing.T) {
-		Cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * 60 * 60))
-		appsession := &models.AppSession{SessionCache: Cache}
+		appsession := &models.AppSession{SessionCache: configs.CreateSessionCache()}
 		uuid := "test-uuid"
 
 		_, err := cache.GetSession(appsession, uuid)
@@ -989,12 +1027,11 @@ func TestGetSessionF(t *testing.T) {
 
 	// Test 3: Unmarshal fails
 	t.Run("unmarshal fails", func(t *testing.T) {
-		Cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * 60 * 60))
-		appsession := &models.AppSession{SessionCache: Cache}
+		appsession := &models.AppSession{SessionCache: configs.CreateSessionCache()}
 		uuid := "test-uuid"
 
 		// Set invalid data in the cache
-		Cache.Set(cache.SessionKey(uuid), []byte("invalid data"))
+		appsession.SessionCache.Set(cache.SessionKey(uuid), []byte("invalid data"))
 
 		_, err := cache.GetSession(appsession, uuid)
 		if err == nil {
@@ -1004,8 +1041,7 @@ func TestGetSessionF(t *testing.T) {
 
 	// Test 4: Success
 	t.Run("success", func(t *testing.T) {
-		Cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * 60 * 60))
-		appsession := &models.AppSession{SessionCache: Cache}
+		appsession := &models.AppSession{SessionCache: configs.CreateSessionCache()}
 		session := models.WebAuthnSession{}
 		uuid := "test-uuid"
 
@@ -1016,7 +1052,7 @@ func TestGetSessionF(t *testing.T) {
 		}
 
 		// Set the marshalled data in the cache
-		Cache.Set(cache.SessionKey(uuid), sessionData)
+		appsession.SessionCache.Set(cache.SessionKey(uuid), sessionData)
 
 		result, err := cache.GetSession(appsession, uuid)
 		if err != nil {
@@ -1043,22 +1079,20 @@ func TestDeleteSession(t *testing.T) {
 
 	// Test 2: Deleting session from cache fails (Simulate by deleting a non-existent key)
 	t.Run("delete fails", func(t *testing.T) {
-		Cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * 60 * 60))
-		appsession := &models.AppSession{SessionCache: Cache}
+		appsession := &models.AppSession{SessionCache: configs.CreateSessionCache()}
 		uuid := "test-uuid"
 
 		cache.DeleteSession(appsession, uuid)
 
 		// Expect no error, but we can verify with the absence of the key
-		if _, err := Cache.Get(cache.SessionKey(uuid)); err == nil {
+		if _, err := appsession.SessionCache.Get(cache.SessionKey(uuid)); err == nil {
 			t.Errorf("expected key to be absent, but it exists")
 		}
 	})
 
 	// Test 3: Success
 	t.Run("success", func(t *testing.T) {
-		Cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * 60 * 60))
-		appsession := &models.AppSession{SessionCache: Cache}
+		appsession := &models.AppSession{SessionCache: configs.CreateSessionCache()}
 		uuid := "test-uuid"
 		session := models.WebAuthnSession{}
 
@@ -1069,13 +1103,13 @@ func TestDeleteSession(t *testing.T) {
 		}
 
 		// Set the marshalled data in the cache
-		Cache.Set(cache.SessionKey(uuid), sessionData)
+		appsession.SessionCache.Set(cache.SessionKey(uuid), sessionData)
 
 		// Now delete it
 		cache.DeleteSession(appsession, uuid)
 
 		// Verify that the key no longer exists
-		if _, err := Cache.Get(cache.SessionKey(uuid)); err == nil {
+		if _, err := appsession.SessionCache.Get(cache.SessionKey(uuid)); err == nil {
 			t.Errorf("expected key to be deleted, but it still exists")
 		}
 	})

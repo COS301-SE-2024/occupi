@@ -55,7 +55,6 @@ func SetUser(appsession *models.AppSession, user models.User) {
 	}
 
 	// set the user in the cache
-	logrus.Info("Setting user in cache")
 	res := appsession.Cache.Set(context.Background(), UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
 
 	if res.Err() != nil {
