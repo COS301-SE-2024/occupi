@@ -11,7 +11,6 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
-	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/gin-gonic/gin"
@@ -20,16 +19,9 @@ import (
 
 // handler for logging a new user on occupi /auth/login
 func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var requestUser models.RequestUser
 	if err := ctx.ShouldBindBodyWithJSON(&requestUser); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -44,7 +36,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 
 	// validate employee id if it exists
 	if requestUser.EmployeeID != "" {
-		hub.CaptureMessage("Employee ID found in request payload, this field is not required for login")
+		captureMessage(ctx, "Employee ID found in request payload, this field is not required for login")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Unexpected payload field",
@@ -57,20 +49,20 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, requestUser.Email); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("ValidateEmailExists failed")
+		captureMessage(ctx, "ValidateEmailExists failed")
 		return
 	}
 
 	// validate password
 	if valid, err := ValidatePasswordCorrectness(ctx, appsession, requestUser); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating password")
 		}
-		hub.CaptureMessage("ValidatePasswordCorrectness failed")
+		captureMessage(ctx, "ValidatePasswordCorrectness failed")
 		return
 	}
 
@@ -78,10 +70,10 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	if configs.GetTestPassPhrase() != requestUser.IsTest {
 		if success, err := PreLoginAccountChecks(ctx, appsession, requestUser.Email, role); !success {
 			if err != nil {
-				hub.CaptureException(err)
+				captureError(ctx, err)
 				logrus.WithError(err).Error("Error validating email")
 			}
-			hub.CaptureMessage("PreLoginAccountChecks failed")
+			captureMessage(ctx, "PreLoginAccountChecks failed")
 			return
 		}
 	}
@@ -90,7 +82,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, requestUser.Email, role)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error generating JWT token")
 		return
 	}
@@ -100,16 +92,9 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 }
 
 func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var requestEmail models.RequestEmail
 	if err := ctx.ShouldBindBodyWithJSON(&requestEmail); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
@@ -123,27 +108,27 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, requestEmail.Email); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("ValidateEmailExists failed")
+		captureMessage(ctx, "ValidateEmailExists failed")
 		return
 	}
 
 	// pre-login checks
 	if success, err := PreLoginAccountChecks(ctx, appsession, requestEmail.Email, constants.Admin); !success {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("PreLoginAccountChecks failed")
+		captureMessage(ctx, "PreLoginAccountChecks failed")
 		return
 	}
 
 	// Begin WebAuthn login process
 	cred, err := database.GetUserCredentials(ctx, appsession, requestEmail.Email)
 	if err != nil || len(cred.ID) == 0 {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusOK, utils.SuccessResponse(
 			http.StatusOK,
 			"Error getting user credentials, please register for WebAuthn",
@@ -154,7 +139,7 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	webauthnUser := models.NewWebAuthnUser([]byte(requestEmail.Email), requestEmail.Email, requestEmail.Email, cred)
 	options, sessionData, err := appsession.WebAuthn.BeginLogin(webauthnUser)
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		fmt.Printf("error beginning WebAuthn login: %v", err)
 		return
@@ -171,7 +156,7 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Save the session data - cache will expire in x defined minutes according to the config
 	if err := cache.SetSession(appsession, session, uuid); err != nil && err.Error() != "cache not found" {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		fmt.Printf("error saving WebAuthn session data: %v", err)
 		return
@@ -185,17 +170,10 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	uuid := ctx.Param("id")
 
 	if uuid == "" {
-		hub.CaptureMessage("Expected id field")
+		captureMessage(ctx, "Expected id field")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -209,7 +187,7 @@ func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role stri
 	sessionData, err := cache.GetSession(appsession, uuid)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.WithError(err).Error("Error fetching session data from cache")
 		return
@@ -220,7 +198,7 @@ func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role stri
 	credential, err := appsession.WebAuthn.FinishLogin(user, *sessionData.SessionData, ctx.Request)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.WithError(err).Error("Error finishing login")
 		return
@@ -229,7 +207,7 @@ func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role stri
 	err = database.AddUserCredential(ctx, appsession, sessionData.Email, credential)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.WithError(err).Error("Error finishing login")
 		return
@@ -239,7 +217,7 @@ func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role stri
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, sessionData.Email, role)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error generating JWT token")
 		return
 	}
@@ -249,16 +227,9 @@ func FinishLoginAdmin(ctx *gin.Context, appsession *models.AppSession, role stri
 }
 
 func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var requestEmail models.RequestEmail
 	if err := ctx.ShouldBindBodyWithJSON(&requestEmail); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -271,27 +242,27 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, requestEmail.Email); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("ValidateEmailExists failed")
+		captureMessage(ctx, "ValidateEmailExists failed")
 		return
 	}
 
 	// pre-login checks
 	if success, err := PreLoginAccountChecks(ctx, appsession, requestEmail.Email, constants.Admin); !success {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("PreLoginAccountChecks failed")
+		captureMessage(ctx, "PreLoginAccountChecks failed")
 		return
 	}
 
 	webauthnUser := models.NewWebAuthnUser([]byte(requestEmail.Email), requestEmail.Email, requestEmail.Email, webauthn.Credential{})
 	options, sessionData, err := appsession.WebAuthn.BeginRegistration(webauthnUser)
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error beginning WebAuthn registration")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -308,7 +279,7 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 
 	// Save the session data - cache will expire in x defined minutes according to the config
 	if err := cache.SetSession(appsession, session, uuid); err != nil && err.Error() != "cache not found" {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error saving session data in cache")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -322,16 +293,10 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
 	uuid := ctx.Param("id")
 
 	if uuid == "" {
-		hub.CaptureMessage("Expected id field")
+		captureMessage(ctx, "Expected id field")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -345,7 +310,7 @@ func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, ro
 	sessionData, err := cache.GetSession(appsession, uuid)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.WithError(err).Error("Error fetching session data from cache")
 		return
@@ -356,7 +321,7 @@ func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, ro
 	credential, err := appsession.WebAuthn.FinishRegistration(user, *sessionData.SessionData, ctx.Request)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.WithError(err).Error("Error finishing login")
 		return
@@ -365,7 +330,7 @@ func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, ro
 	err = database.AddUserCredential(ctx, appsession, sessionData.Email, credential)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.WithError(err).Error("Error finishing login")
 		return
@@ -375,7 +340,7 @@ func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, ro
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, sessionData.Email, role)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error generating JWT token")
 		return
 	}
@@ -386,16 +351,9 @@ func FinishRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession, ro
 
 // handler for registering a new user on occupi /auth/register
 func Register(ctx *gin.Context, appsession *models.AppSession) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var requestUser models.RegisterUser
 	if err := ctx.ShouldBindBodyWithJSON(&requestUser); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -410,7 +368,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 
 	// validate employee id if it exists
 	if requestUser.EmployeeID != "" && !utils.ValidateEmployeeID(requestUser.EmployeeID) {
-		hub.CaptureMessage("Invalid employee ID")
+		captureMessage(ctx, "Invalid employee ID")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid employee ID",
@@ -425,27 +383,27 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 	// validate password
 	if valid, err := ValidatePasswordEntry(ctx, appsession, requestUser.Password); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating password")
 		}
-		hub.CaptureMessage("ValidatePasswordEntry failed")
+		captureMessage(ctx, "ValidatePasswordEntry failed")
 		return
 	}
 
 	// validate email exists
 	if valid, err := ValidateEmailDoesNotExist(ctx, appsession, requestUser.Email); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("ValidateEmailDoesNotExist failed")
+		captureMessage(ctx, "ValidateEmailDoesNotExist failed")
 		return
 	}
 
 	// hash password
 	hashedPassword, err := utils.Argon2IDHash(requestUser.Password)
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
@@ -454,7 +412,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 
 	// save user to database
 	if _, err := database.AddUser(ctx, appsession, requestUser); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
@@ -462,7 +420,7 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 
 	if configs.GetTestPassPhrase() != requestUser.IsTest {
 		if _, err := SendOTPEmail(ctx, appsession, requestUser.Email, constants.VerifyEmail); err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error sending OTP email")
 			return
 		}
@@ -476,16 +434,9 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 
 // handler for generating a new otp for a user and resending it via email
 func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType string) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var request models.RequestEmail
 	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid email address",
@@ -498,10 +449,10 @@ func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType strin
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, request.Email); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("ValidateEmailExists failed")
+		captureMessage(ctx, "ValidateEmailExists failed")
 		return
 	}
 
@@ -516,7 +467,7 @@ func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType strin
 	}
 	// sned the otp to verify the email
 	if _, err := SendOTPEmail(ctx, appsession, request.Email, emailType); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error sending OTP email")
 		return
 	}
@@ -526,16 +477,9 @@ func ResendOTP(ctx *gin.Context, appsession *models.AppSession, resendType strin
 
 // handler for verifying a users otp /api/verify-otp
 func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role string, cookies bool) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var userotp models.RequestUserOTP
 	if err := ctx.ShouldBindBodyWithJSON(&userotp); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -548,16 +492,16 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, userotp.Email); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("ValidateEmailExists failed")
+		captureMessage(ctx, "ValidateEmailExists failed")
 		return
 	}
 
 	if valid, err := ValidateOTPExists(ctx, appsession, userotp.Email, userotp.OTP); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating otp")
 		}
 		return
@@ -565,7 +509,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 
 	// delete the otp from the database
 	if _, err := database.DeleteOTP(ctx, appsession, userotp.Email, userotp.OTP); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		// the otp will autodelete after an hour so we can continue
@@ -573,7 +517,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 
 	// change users verification status to true
 	if _, err := database.VerifyUser(ctx, appsession, userotp.Email, utils.GetClientIP(ctx)); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
@@ -592,7 +536,7 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, userotp.Email, role)
 
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error generating JWT token")
 		return
 	}
@@ -603,16 +547,9 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 
 // handler for Verify 2fa
 func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var request models.RequestEmail
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -625,7 +562,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
 	// Generate OTP
 	otp, err := utils.GenerateOTP()
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error generating OTP")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -634,7 +571,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
 	// Save OTP in the database
 	err = database.SaveTwoFACode(ctx, appsession.DB, request.Email, otp)
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Error saving OTP in database")
@@ -646,7 +583,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
 	subject := "Occupi Two-Factor Authentication Code"
 	body := utils.FormatTwoFAEmailBody(otp, request.Email)
 	if err := mail.SendMail(request.Email, subject, body); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error sending OTP email")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -659,20 +596,12 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
-	hub := sentrygin.GetHubFromContext(ctx)
-
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var request struct {
 		Email string `json:"email" binding:"required,email"`
 		Code  string `json:"code" binding:"required,len=6"`
 	}
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -685,14 +614,14 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 	// Verify the 2FA code
 	valid, err := database.VerifyTwoFACode(ctx, appsession.DB, request.Email, request.Code)
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error verifying 2FA code")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
 	if !valid {
-		hub.CaptureMessage("Invalid 2FA code")
+		captureMessage(ctx, "Invalid 2FA code")
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid 2FA code",
@@ -705,7 +634,7 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 	// Enable 2FA for the user
 	err = database.SetTwoFAEnabled(ctx, appsession.DB.Database("Occupi"), request.Email, true)
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error enabling 2FA")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -718,16 +647,10 @@ func VerifyOTPAndEnable2FA(ctx *gin.Context, appsession *models.AppSession) {
 }
 
 func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string, cookies bool) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
 	var resetRequest models.ResetPassword
 
 	if err := ctx.ShouldBindJSON(&resetRequest); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid request payload",
@@ -740,34 +663,34 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	// Validate email
 	if valid, err := ValidateEmailExists(ctx, appsession, resetRequest.Email); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("ValidateEmailExists failed")
+		captureMessage(ctx, "ValidateEmailExists failed")
 		return
 	}
 
 	// Validate OTP
 	if valid, err := ValidateOTPExists(ctx, appsession, resetRequest.Email, resetRequest.OTP); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating OTP")
 		}
-		hub.CaptureMessage("ValidateOTPExists failed")
+		captureMessage(ctx, "ValidateOTPExists failed")
 		return
 	}
 
 	// Validate new password
 	password, err := ValidatePasswordEntryAndReturnHash(ctx, appsession, resetRequest.NewPassword)
 	if err != nil || password == "" {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error validating password")
 		return
 	}
 
 	// change users verification status to true
 	if _, err := database.VerifyUser(ctx, appsession, resetRequest.Email, utils.GetClientIP(ctx)); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return
@@ -776,7 +699,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	// Update password in database
 	success, err := database.UpdateUserPassword(ctx, appsession, resetRequest.Email, password)
 	if err != nil || !success {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
 			http.StatusInternalServerError,
 			"Password update failed",
@@ -789,7 +712,7 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 	// Log the user in and Generate a JWT token
 	token, exp, err := GenerateJWTTokenAndStartSession(ctx, appsession, resetRequest.Email, role)
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		logrus.WithError(err).Error("Error generating JWT token")
 		return
 	}
@@ -820,16 +743,9 @@ func Logout(ctx *gin.Context) {
 
 // handler for checking if this email is verified
 func IsEmailVerified(ctx *gin.Context, appsession *models.AppSession) {
-	hub := sentrygin.GetHubFromContext(ctx)
-	if hub == nil {
-		logrus.Info("Sentry hub not found in context")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
-
 	var request models.RequestEmail
 	if err := ctx.ShouldBindBodyWithJSON(&request); err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
 			http.StatusBadRequest,
 			"Invalid email address",
@@ -842,17 +758,17 @@ func IsEmailVerified(ctx *gin.Context, appsession *models.AppSession) {
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, request.Email); !valid {
 		if err != nil {
-			hub.CaptureException(err)
+			captureError(ctx, err)
 			logrus.WithError(err).Error("Error validating email")
 		}
-		hub.CaptureMessage("ValidateEmailExists failed")
+		captureMessage(ctx, "ValidateEmailExists failed")
 		return
 	}
 
 	// check if the user is verified
 	verified, err := database.CheckIfUserIsVerified(ctx, appsession, request.Email)
 	if err != nil {
-		hub.CaptureException(err)
+		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		return

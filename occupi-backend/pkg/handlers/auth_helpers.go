@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
@@ -343,6 +342,21 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, err
 	}
 
+	// check if the login location is within 1000km of the other locations, if not block the login and unverify the user
+	if !isIPValid {
+		isInRange := database.IsIPWithinRange(ctx, appsession, email, unrecognizedLogger)
+
+		if !isInRange {
+			ctx.JSON(http.StatusForbidden, utils.ErrorResponse(
+				http.StatusForbidden,
+				"Forbidden from access",
+				constants.ForbiddenCode,
+				"This login attempt is forbidden as the login location is too far away from known locations",
+				nil))
+			return false, nil
+		}
+	}
+
 	// chec if the user has mfa enabled
 	mfaEnabled, err := database.CheckIfUserHasMFAEnabled(ctx, appsession, email)
 
@@ -485,12 +499,12 @@ func AttemptToGetEmail(ctx *gin.Context, appsession *models.AppSession) (string,
 	}
 }
 
-func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, email string) {
+func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, email string) error {
 	claims, err := utils.GetClaimsFromCTX(ctx)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
+		return err
 	}
 
 	_ = utils.ClearSession(ctx)
@@ -501,21 +515,15 @@ func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, emai
 	// Alternatively, completely remove the Authorization header
 	ctx.Writer.Header().Del("Authorization")
 
-	// List of domains to clear cookies from
-	domains := configs.GetOccupiDomains()
-
-	// Iterate over each domain and clear the "token" and "occupi-sessions-store" cookies
-	for _, domain := range domains {
-		ctx.SetCookie("token", "", -1, "/", domain, false, true)
-		ctx.SetCookie("occupi-sessions-store", "", -1, "/", domain, false, true)
-	}
+	ctx.SetCookie("token", "", -1, "/", "", false, true)
+	ctx.SetCookie("occupi-sessions-store", "", -1, "/", "", false, true)
 
 	// generate a jwt token for the user
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, email, claims.Role)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
+		return err
 	}
 
 	originToken := ctx.GetString("tokenOrigin")
@@ -544,4 +552,5 @@ func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, emai
 			nil,
 		))
 	}
+	return nil
 }

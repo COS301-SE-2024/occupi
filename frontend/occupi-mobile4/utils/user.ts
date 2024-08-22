@@ -83,7 +83,7 @@ export async function updateSecurity(type: string, values: any) {
                 return "Settings updated successfully"
             }
             else {
-                console.log(response)
+                // console.log(response)
                 return response.message;
             }
         } catch (error) {
@@ -103,7 +103,7 @@ export async function updateSecurity(type: string, values: any) {
                 return "Successfully changed password"
             }
             else {
-                console.log(response);
+                // console.log(response);
                 return response.message;
             }
         } catch (error) {
@@ -130,17 +130,18 @@ export async function updateDetails(name: string, dob: string, gender: string, c
             if (state === "verify_otp_register") {
                 setState("logged_out");
                 router.replace('/home');
-                return;
+                return "Details updated successfully";
             }
             router.replace('/settings')
             return "Details updated successfully"
         }
         else {
-            console.log(response)
+            // console.log(response)
             return response.message;
         }
     } catch (error) {
         console.error('Error:', error);
+        return 'Error occurred';
     }
 }
 
@@ -151,8 +152,8 @@ export async function updateNotifications(values: any) {
     try {
         const request = {
             email: email,
-            invites: values.mfa,
-            bookingReminder: values.forceLogout
+            invites: values.invites,  // Changed from values.mfa
+            bookingReminder: values.bookingReminder  // Changed from values.forceLogout
         }
         const response = await updateNotificationSettings(request);
         if (response.status === 200) {

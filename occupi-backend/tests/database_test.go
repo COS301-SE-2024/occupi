@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redismock/v9"
+	"github.com/ipinfo/go/v2/ipinfo"
 
 	"github.com/stretchr/testify/assert"
 
@@ -5644,5 +5645,291 @@ func TestUpdateSecuritySettings(t *testing.T) {
 
 		// Validate the result
 		assert.Error(t, err)
+	})
+}
+
+func TestIsLocationInRange(t *testing.T) {
+	// Setup test cases
+	tests := []struct {
+		name               string
+		locations          []models.Location
+		unrecognizedLogger *ipinfo.Core
+		expected           bool
+	}{
+		{
+			name: "Location within 1000 km",
+			locations: []models.Location{
+				{City: "CityA", Region: "RegionA", Country: "CountryA", Location: "37.7749,-122.4194"}, // San Francisco
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           true,
+		},
+		{
+			name: "Location beyond 1000 km",
+			locations: []models.Location{
+				{City: "CityB", Region: "RegionB", Country: "CountryB", Location: "40.7128,-74.0060"}, // New York
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,
+		},
+		{
+			name: "Multiple Locations with one within 1000 km",
+			locations: []models.Location{
+				{City: "CityC", Region: "RegionC", Country: "CountryC", Location: "40.7128,-74.0060"},  // New York
+				{City: "CityD", Region: "RegionD", Country: "CountryD", Location: "36.1699,-115.1398"}, // Las Vegas
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           true,
+		},
+		{
+			name: "No Locations in Range",
+			locations: []models.Location{
+				{City: "CityE", Region: "RegionE", Country: "CountryE", Location: "51.5074,-0.1278"}, // London
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,
+		},
+		{
+			name:               "Empty Locations Array",
+			locations:          []models.Location{},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           true,
+		},
+		{
+			name: "Empty Location String",
+			locations: []models.Location{
+				{City: "CityF", Region: "RegionF", Country: "CountryF", Location: ""}, // Empty location
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,                                       // Should skip and return false since there's no valid location within range
+		},
+		{
+			name: "Invalid Location Format (empty string) for Unrecognized Logger",
+			locations: []models.Location{
+				{City: "CityG", Region: "RegionG", Country: "CountryG", Location: "40.7128,-74.0060"}, // New York
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: ""}, // Empty location
+			expected:           false,                      // Should skip and return false since the location format is invalid
+		},
+		{
+			name: "Invalid Location Format (single coordinate)",
+			locations: []models.Location{
+				{City: "CityG", Region: "RegionG", Country: "CountryG", Location: "40.7128"}, // Incomplete location
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,                                       // Should skip and return false since the location format is invalid
+		},
+		{
+			name: "Invalid Location Format (non-numeric coordinates)",
+			locations: []models.Location{
+				{City: "CityH", Region: "RegionH", Country: "CountryH", Location: "abc,xyz"}, // Non-numeric location
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           false,                                       // Should skip and return false since the location format is invalid
+		},
+		{
+			name: "Invalid Location Format (non-numeric latitude) for Unrecognized Logger",
+			locations: []models.Location{
+				{City: "CityI", Region: "RegionI", Country: "CountryI", Location: "40.7128,-74.0060"}, // New York
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "abc,-118"}, // Non-numeric latitude
+			expected:           false,                              // Should skip and return false since the location format is invalid
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Call the function under test
+			result := database.IsLocationInRange(tt.locations, tt.unrecognizedLogger)
+
+			// Assert the result
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestComputeAvailableSlots(t *testing.T) {
+	tests := []struct {
+		name          string
+		bookings      []models.Booking
+		dateOfBooking time.Time
+		expectedSlots []models.Slot
+	}{
+		{
+			name:          "No bookings",
+			bookings:      []models.Booking{},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		{
+			name: "Bookings cover the entire day",
+			bookings: []models.Booking{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+				},
+			},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{},
+		},
+		{
+			name: "Bookings leave gaps",
+			bookings: []models.Booking{
+				{
+					Start: time.Date(2024, 8, 21, 10, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 12, 0, 0, 0, time.UTC),
+				},
+				{
+					Start: time.Date(2024, 8, 21, 14, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+				},
+			},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					Start: time.Date(2024, 8, 21, 12, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 14, 0, 0, 0, time.UTC),
+				},
+				{
+					Start: time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		{
+			name: "Bookings at boundaries",
+			bookings: []models.Booking{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 9, 0, 0, 0, time.UTC),
+				},
+				{
+					Start: time.Date(2024, 8, 21, 16, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+				},
+			},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{
+				{
+					Start: time.Date(2024, 8, 21, 9, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 16, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		{
+			name: "Booking ends after day",
+			bookings: []models.Booking{
+				{
+					Start: time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 18, 0, 0, 0, time.UTC),
+				},
+			},
+			dateOfBooking: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+			expectedSlots: []models.Slot{
+				{
+					Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+					End:   time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := database.ComputeAvailableSlots(tt.bookings, tt.dateOfBooking)
+			assert.ElementsMatch(t, tt.expectedSlots, got)
+		})
+	}
+}
+
+func TestGetAvailableSlots(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Test case: Database is nil
+	mt.Run("Database is nil", func(mt *mtest.T) {
+		// Define the appsession with a mock database
+		appsession := &models.AppSession{}
+		request := models.RequestAvailableSlots{
+			RoomID: "RM101",
+			Date:   time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+		}
+		slots, err := database.GetAvailableSlots(ctx, appsession, request)
+		assert.EqualError(t, err, "database is nil")
+		assert.Nil(t, slots)
+	})
+
+	// Test case: Database find error
+	mt.Run("Database find error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		// Define the appsession with a mock database
+		appsession := &models.AppSession{DB: mt.Client}
+
+		request := models.RequestAvailableSlots{
+			RoomID: "RM101",
+			Date:   time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+		}
+		slots, err := database.GetAvailableSlots(ctx, appsession, request)
+		assert.EqualError(t, err, "find error")
+		assert.Nil(t, slots)
+	})
+
+	// Test case: Successful retrieval
+	mt.Run("Successful retrieval", func(mt *mtest.T) {
+		bookings := []bson.D{
+			{
+				{Key: "roomID", Value: "RM101"},
+				{Key: "date", Value: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC)},
+				{Key: "start", Value: time.Date(2024, 8, 21, 10, 0, 0, 0, time.UTC)},
+				{Key: "end", Value: time.Date(2024, 8, 21, 12, 0, 0, 0, time.UTC)},
+			},
+			{
+				{Key: "roomID", Value: "RM101"},
+				{Key: "date", Value: time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC)},
+				{Key: "start", Value: time.Date(2024, 8, 21, 14, 0, 0, 0, time.UTC)},
+				{Key: "end", Value: time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC)},
+			},
+		}
+		expectedSlots := []models.Slot{
+			{
+				Start: time.Date(2024, 8, 21, 8, 0, 0, 0, time.UTC),
+				End:   time.Date(2024, 8, 21, 10, 0, 0, 0, time.UTC),
+			},
+			{
+				Start: time.Date(2024, 8, 21, 12, 0, 0, 0, time.UTC),
+				End:   time.Date(2024, 8, 21, 14, 0, 0, 0, time.UTC),
+			},
+			{
+				Start: time.Date(2024, 8, 21, 15, 0, 0, 0, time.UTC),
+				End:   time.Date(2024, 8, 21, 17, 0, 0, 0, time.UTC),
+			},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bookings[0]))
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.NextBatch, bookings[1]))
+
+		appsession := &models.AppSession{DB: mt.Client}
+
+		request := models.RequestAvailableSlots{
+			RoomID: "RM101",
+			Date:   time.Date(2024, 8, 21, 0, 0, 0, 0, time.UTC),
+		}
+		slots, err := database.GetAvailableSlots(ctx, appsession, request)
+		assert.NoError(t, err)
+		assert.ElementsMatch(t, expectedSlots, slots)
 	})
 }

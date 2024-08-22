@@ -24,7 +24,11 @@ def is_special_event(date):
 
 @app.route('/', methods=['GET'])
 def ping():
-    return jsonify({'response': 'Prediction API is up and running'}), 200
+    try:
+        return jsonify({'response': 'Prediction API is up and running'}), 200
+    except Exception as e:
+        logging.error(f"Error in ping endpoint: {str(e)}")
+        return jsonify({"error": "Models unavailable"}), 500
 
 @app.route('/predict', methods=['GET'])
 def predict():
@@ -52,7 +56,7 @@ def predict():
         })
     except Exception as e:
         logging.error(f"Error in predict endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occured"}), 500
 
 @app.route('/predict_week', methods=['GET'])
 def predict_week():
@@ -93,7 +97,7 @@ def predict_week():
         return jsonify(predictions)
     except Exception as e:
         logging.error(f"Error in predict_week endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occured"}), 500
 
 @app.route('/predict_date', methods=['GET'])
 def predict_date():
@@ -128,7 +132,7 @@ def predict_date():
         })
     except Exception as e:
         logging.error(f"Error in predict_date endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error":"An error occured"}), 500
     
 @app.route('/predict_week_from_date', methods=['GET'])
 def predict_week_from_date():
@@ -171,7 +175,7 @@ def predict_week_from_date():
         return jsonify(predictions)
     except Exception as e:
         logging.error(f"Error in predict_week_from_date endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error":"An error occured"}), 500
     
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=9000)

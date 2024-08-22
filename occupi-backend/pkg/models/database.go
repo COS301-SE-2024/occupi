@@ -74,9 +74,10 @@ type Security struct {
 }
 
 type Location struct {
-	City    string `json:"city" bson:"city"`
-	Region  string `json:"region" bson:"region"`
-	Country string `json:"country" bson:"country"`
+	City     string `json:"city" bson:"city"`
+	Region   string `json:"region" bson:"region"`
+	Country  string `json:"country" bson:"country"`
+	Location string `json:"location" bson:"location"`
 }
 
 // structure of booking

@@ -83,6 +83,7 @@ const Appearance = () => {
         <ScrollView flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
             <View style={styles.header}>
                 <Icon
+                 testID="back-button"
                     as={Feather}
                     name="chevron-left"
                     size="xl"
@@ -103,7 +104,7 @@ const Appearance = () => {
             <View mt="$4" flexDirection="column" >
                 <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Mode</Text>
                 <View p="$8" justifyContent='space-between' flexDirection='row' borderRadius={18} my="$2" height={hp('28%')} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-                    <TouchableOpacity onPress={() => setTheme("light")} style={{ width: wp('25%') }}>
+                    <TouchableOpacity  onPress={() => setTheme("light")} style={{ width: wp('25%') }}>
                         <View alignItems='center'>
                             <Image
                                 h={hp('18%')}
@@ -151,55 +152,55 @@ const Appearance = () => {
                 <Text mt="$2" color={currentTheme === 'dark' ? 'white' : 'black'}>Accent colour</Text>
                 <View p="$5" borderRadius={18} justifyContent='space-between' my="$2" height={hp('18%')} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
                     <View flexDirection="row" justifyContent='space-between'>
-                        <TouchableOpacity onPress={() => setAccentColour("lightgrey")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("lightgrey")}>
                             <View borderColor='lightgrey' borderRadius="$full" borderWidth={accentColour === 'lightgrey' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="lightgrey" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#FF4343")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("#FF4343")}>
                             <View borderColor='#FF4343' borderRadius="$full" borderWidth={accentColour === '#FF4343' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FF4343" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#FFB443")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("#FFB443")}>
                             <View borderColor='#FFB443' borderRadius="$full" borderWidth={accentColour === '#FFB443' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FFB443" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("greenyellow")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("greenyellow")}>
                             <View borderColor='greenyellow' borderRadius="$full" borderWidth={accentColour === 'greenyellow' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="greenyellow" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#43FF61")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("#43FF61")}>
                             <View borderColor='#43FF61' borderRadius="$full" borderWidth={accentColour === '#43FF61' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#43FF61" />
                             </View>
                         </TouchableOpacity>
                     </View>
                     <View flexDirection="row" justifyContent='space-between'>
-                        <TouchableOpacity onPress={() => setAccentColour("#43F4FF")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("#43F4FF")}>
                             <View borderColor='#43F4FF' borderRadius="$full" borderWidth={accentColour === '#43F4FF' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#43F4FF" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#4383FF")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("#4383FF")}>
                             <View borderColor='#4383FF' borderRadius="$full" borderWidth={accentColour === '#4383FF' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#4383FF" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#AC43FF")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("#AC43FF")}>
                             <View borderColor='#AC43FF' borderRadius="$full" borderWidth={accentColour === '#AC43FF' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#AC43FF" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#FF43F7")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("#FF43F7")}>
                             <View borderColor='#FF43F7' borderRadius="$full" borderWidth={accentColour === '#FF43F7' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FF43F7" />
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("purple")}>
-                            <View borderColor='purple' borderRadius="$full" borderWidth={accentColour === 'purple' ? 2 : 0} onPress={() => setAccentColour("#FF4343")}>
+                        <TouchableOpacity testID={`color-option-${color}`} onPress={() => setAccentColour("purple")}>
+                            <View borderColor='purple' borderRadius="$full" borderWidth={accentColour === 'purple' ? 2 : 0} testID={`color-option-${color}`} onPress={() => setAccentColour("#FF4343")}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="purple" />
                             </View>
                         </TouchableOpacity>
