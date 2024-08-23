@@ -13,7 +13,7 @@ import {
   ChevronDownIcon,
   Feather
 } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import RNPickerSelect from 'react-native-picker-select';
 import { Icon, ScrollView, View, Text, Image, Divider } from '@gluestack-ui/themed';
@@ -44,19 +44,31 @@ const OfficeDetails = () => {
   const currentTheme = theme === "system" ? colorscheme : theme;
   const isDarkMode = currentTheme === 'dark';
   const [room, setRoom] = useState();
+  const [isDateSelected, setIsDateSelected] = useState(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const scrollX = useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
   const animatedCurrent = useRef(Animated.divide(scrollX, width)).current;
+
   const getUpcomingDates = () => {
     const dates = [];
-    for (let i = 1; i <= 4; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() + i);
+    const currentDate = new Date();
+  
+    // Check if the current time is past 4 PM
+    if (currentDate.getHours() >= 16) {
+      currentDate.setDate(currentDate.getDate() + 1); // Move to tomorrow
+    }
+  
+    // Get the next 4 dates
+    for (let i = 0; i < 4; i++) {
+      const date = new Date(currentDate);
+      date.setDate(currentDate.getDate() + i);
       dates.push(date.toISOString().split('T')[0]);
     }
+  
     return dates;
   };
+  
   const upcomingDates = getUpcomingDates();
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
@@ -70,7 +82,7 @@ const OfficeDetails = () => {
 
   useEffect(() => {
     const getCurrentRoom = async () => {
-      let result : string = await SecureStore.getItemAsync('CurrentRoom');
+      let result: string = await SecureStore.getItemAsync('CurrentRoom');
       // console.log("CurrentRoom:",result);
       // setUserDetails(JSON.parse(result).data);
       let jsonresult = JSON.parse(result);
@@ -80,15 +92,69 @@ const OfficeDetails = () => {
     getCurrentRoom();
   }, []);
 
-  const handleBookRoom = async () => {
-    // console.log('Booking Room');
-    // console.log(date);
-    // console.log(startTime);
-    // console.log(endTime);
-    // console.log(room?.roomName);
-    // console.log(room?.roomId);
-    // console.log(room?.floorNo);
+  const getEndTimeOptions = () => {
+    const options = [];
+    const currentDate = new Date();
+    let currentHour = currentDate.getHours() + 1; // Start at the next hour
+  
+    // Check if the current time is past 4 PM
+    if (currentDate.getHours() >= 16) {
+     return [
+        { label: '08:00', value: '08:00' },
+        { label: '09:00', value: '09:00' },
+        { label: '10:00', value: '10:00' },
+        { label: '11:00', value: '11:00' },
+        { label: '12:00', value: '12:00' },
+        { label: '13:00', value: '13:00' },
+        { label: '14:00', value: '14:00' },
+        { label: '15:00', value: '15:00' },
+        { label: '16:00', value: '16:00' },
+        { label: '17:00', value: '17:00' }
+      ];
+    }
+  
+    // Generate time options from the next hour up to 17:00
+    while (currentHour <= 17) {
+      const hourString = currentHour.toString().padStart(2, '0') + ':00';
+      options.push({ label: hourString, value: hourString });
+      currentHour++;
+    }
+  
+    return options;
+  };
 
+  const getStartTimeOptions = () => {
+    const options = [];
+    const currentDate = new Date();
+    let currentHour = currentDate.getHours() + 1; // Start at the next hour
+
+    if (currentDate.getHours() >= 16) {
+      return [
+         { label: '07:00', value: '07:00' },
+         { label: '08:00', value: '08:00' },
+         { label: '09:00', value: '09:00' },
+         { label: '10:00', value: '10:00' },
+         { label: '11:00', value: '11:00' },
+         { label: '12:00', value: '12:00' },
+         { label: '13:00', value: '13:00' },
+         { label: '14:00', value: '14:00' },
+         { label: '15:00', value: '15:00' },
+         { label: '16:00', value: '16:00' }
+       ];
+     }
+  
+    // Generate time options from the next hour up to 17:00
+    while (currentHour <= 16) {
+      const hourString = currentHour.toString().padStart(2, '0') + ':00';
+      options.push({ label: hourString, value: hourString });
+      currentHour++;
+    }
+  
+    return options;
+  };
+  
+
+  const handleBookRoom = async () => {
     // Check if any of the required fields are blank
     if (!date || !startTime || !endTime) {
       alert('Please fill in all the information.');
@@ -119,7 +185,12 @@ const OfficeDetails = () => {
     router.replace('/booking-details');
   }
 
-  console.log(theme);
+  const handleDateSelect = (date: any) => {
+    setDate(date);
+    setIsDateSelected(true);
+  }
+
+  // console.log(isDateSelected);
   // console.log(room?);
   // console.log(userEmail);
 
@@ -178,31 +249,6 @@ const OfficeDetails = () => {
           </View>
         </View>
 
-        {/* Category Icons */}
-        {/* <Text style={{ fontSize: wp('6%'), color: isDarkMode ? '#fff' : '#000', paddingLeft: wp('5%') }}>Categories</Text> */}
-        {/* <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: wp('5%') }}>
-          <View style={{ alignItems: 'center' }}>
-            <MaterialCommunityIcons name="coffee" size={wp('6%')} color="#2196F3" />
-            <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: wp('4%'), marginTop: hp('0.5%') }}>Focus</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <MaterialCommunityIcons name="leaf" size={wp('6%')} color="#4CAF50" />
-            <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: wp('4%'), marginTop: hp('0.5%') }}>Chill</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <MaterialCommunityIcons name="lightbulb-on" size={wp('6%')} color="#FFC107" />
-            <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: wp('4%'), marginTop: hp('0.5%') }}>Ideas</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <MaterialCommunityIcons name="volume-high" size={wp('6%')} color="#9C27B0" />
-            <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: wp('4%'), marginTop: hp('0.5%') }}>Loud</Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <MaterialCommunityIcons name="gamepad-variant" size={wp('6%')} color="#E91E63" />
-            <Text style={{ color: isDarkMode ? '#fff' : '#000', fontSize: wp('4%'), marginTop: hp('0.5%') }}>Game</Text>
-          </View>
-        </View> */}
-
         {/* Description */}
         <View px="$5">
           <Text fontSize={24} fontWeight="$bold" style={{ color: isDarkMode ? '#fff' : '#000' }}>Description</Text>
@@ -215,7 +261,7 @@ const OfficeDetails = () => {
           <Text color={isDarkMode ? '#fff' : '#000'}>Date:</Text>
           <RNPickerSelect
             darkTheme={isDarkMode ? true : false}
-            onValueChange={(value) => { setDate(value) }}
+            onValueChange={(value) => handleDateSelect(value)}
             items={[
               { label: upcomingDates[0], value: upcomingDates[0] },
               { label: upcomingDates[1], value: upcomingDates[1] },
@@ -251,112 +297,94 @@ const OfficeDetails = () => {
             }}
           />
         </View>
-        <View mx="$4" flexDirection='$row' mt="$2" justifyContent='space-between'>
-          <View width="45%">
-            <Text color={isDarkMode ? '#fff' : '#000'}>Start Time:</Text>
-            <RNPickerSelect
-              darkTheme={isDarkMode ? true : false}
-              onValueChange={(value) => setStartTime(value)}
-              items={[
-                { label: '07:00', value: '07:00' },
-                { label: '08:00', value: '08:00' },
-                { label: '09:00', value: '09:00' },
-                { label: '10:00', value: '10:00' },
-                { label: '11:00', value: '11:00' },
-                { label: '12:00', value: '12:00' },
-                { label: '13:00', value: '13:00' },
-                { label: '14:00', value: '14:00' },
-                { label: '15:00', value: '15:00' },
-                { label: '16:00', value: '16:00' }
-              ]}
-              placeholder={{ label: 'Select a time', value: null, color: isDarkMode ? '#fff' : '#000' }}
-              style={{
-                inputIOS: {
-                  fontSize: 16,
-                  paddingVertical: 12,
-                  marginVertical: 4,
-                  paddingHorizontal: 16,
-                  borderWidth: 1,
-                  borderColor: 'lightgrey',
-                  borderRadius: 10,
-                  color: isDarkMode ? '#fff' : '#000',
-                  paddingRight: 30, // to ensure the text is never behind the icon
-                },
-                inputAndroid: {
-                  fontSize: 16,
-                  paddingVertical: 8,
-                  paddingHorizontal: 16,
-                  borderWidth: 1,
-                  borderColor: 'lightgrey',
-                  borderRadius: 4,
-                  color: isDarkMode ? '#fff' : '#000',
-                  paddingRight: 30, // to ensure the text is never behind the icon
-                },
-              }}
-              Icon={() => {
-                return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center" />;
-              }}
-            />
+        {isDateSelected === true &&
+          <View mx="$4" flexDirection='$row' mt="$2" justifyContent='space-between'>
+            <View width="45%">
+              <Text color={isDarkMode ? '#fff' : '#000'}>Start Time:</Text>
+              <RNPickerSelect
+                darkTheme={isDarkMode ? true : false}
+                onValueChange={(value) => setStartTime(value)}
+                items={getStartTimeOptions()}
+                placeholder={{ label: 'Select a time', value: null, color: isDarkMode ? '#fff' : '#000' }}
+                style={{
+                  inputIOS: {
+                    fontSize: 16,
+                    paddingVertical: 12,
+                    marginVertical: 4,
+                    paddingHorizontal: 16,
+                    borderWidth: 1,
+                    borderColor: 'lightgrey',
+                    borderRadius: 10,
+                    color: isDarkMode ? '#fff' : '#000',
+                    paddingRight: 30, // to ensure the text is never behind the icon
+                  },
+                  inputAndroid: {
+                    fontSize: 16,
+                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    borderWidth: 1,
+                    borderColor: 'lightgrey',
+                    borderRadius: 4,
+                    color: isDarkMode ? '#fff' : '#000',
+                    paddingRight: 30, // to ensure the text is never behind the icon
+                  },
+                }}
+                Icon={() => {
+                  return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center" />;
+                }}
+              />
+            </View>
+            <View width="45%">
+              <Text color={isDarkMode ? '#fff' : '#000'}>End Time:</Text>
+              <RNPickerSelect
+                darkTheme={isDarkMode ? true : false}
+                onValueChange={(value) => setEndTime(value)}
+                items={getEndTimeOptions()}
+                placeholder={{ label: 'Select a time', value: null, color: isDarkMode ? '#fff' : '#000' }}
+                style={{
+                  inputIOS: {
+                    fontSize: 16,
+                    paddingVertical: 12,
+                    marginVertical: 4,
+                    paddingHorizontal: 16,
+                    borderWidth: 1,
+                    borderColor: 'lightgrey',
+                    borderRadius: 10,
+                    color: isDarkMode ? '#fff' : '#000',
+                    paddingRight: 30, // to ensure the text is never behind the icon
+                  },
+                  inputAndroid: {
+                    fontSize: 16,
+                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    borderWidth: 1,
+                    borderColor: 'lightgrey',
+                    borderRadius: 4,
+                    color: isDarkMode ? '#fff' : '#000',
+                    paddingRight: 30, // to ensure the text is never behind the icon
+                  },
+                }}
+                Icon={() => {
+                  return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center" />;
+                }}
+              />
+            </View>
           </View>
-          <View width="45%">
-            <Text color={isDarkMode ? '#fff' : '#000'}>End Time:</Text>
-            <RNPickerSelect
-              darkTheme={isDarkMode ? true : false}
-              onValueChange={(value) => setEndTime(value)}
-              items={[
-                { label: '08:00', value: '08:00' },
-                { label: '09:00', value: '09:00' },
-                { label: '10:00', value: '10:00' },
-                { label: '11:00', value: '11:00' },
-                { label: '12:00', value: '12:00' },
-                { label: '13:00', value: '13:00' },
-                { label: '14:00', value: '14:00' },
-                { label: '15:00', value: '15:00' },
-                { label: '16:00', value: '16:00' },
-                { label: '17:00', value: '17:00' }
-              ]}
-              placeholder={{ label: 'Select a time', value: null, color: isDarkMode ? '#fff' : '#000' }}
-              style={{
-                inputIOS: {
-                  fontSize: 16,
-                  paddingVertical: 12,
-                  marginVertical: 4,
-                  paddingHorizontal: 16,
-                  borderWidth: 1,
-                  borderColor: 'lightgrey',
-                  borderRadius: 10,
-                  color: isDarkMode ? '#fff' : '#000',
-                  paddingRight: 30, // to ensure the text is never behind the icon
-                },
-                inputAndroid: {
-                  fontSize: 16,
-                  paddingVertical: 8,
-                  paddingHorizontal: 16,
-                  borderWidth: 1,
-                  borderColor: 'lightgrey',
-                  borderRadius: 4,
-                  color: isDarkMode ? '#fff' : '#000',
-                  paddingRight: 30, // to ensure the text is never behind the icon
-                },
-              }}
-              Icon={() => {
-                return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center" />;
-              }}
-            />
-          </View>
-        </View>
+        }
 
         {/* Check Availability Button */}
-        <TouchableOpacity style={{ margin: wp('5%') }} onPress={() => handleBookRoom()}>
-          <LinearGradient
-            colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ padding: wp('4%'), alignItems: 'center', borderRadius: 18 }}
-          >
-            <Text color={isDarkMode ? '#000' : '#fff'} fontSize={16} fontWeight="$bold">Check availability</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        {isDateSelected &&
+          <TouchableOpacity style={{ margin: wp('5%') }} onPress={() => handleBookRoom()}>
+            <LinearGradient
+              colors={['#614DC8', '#86EBCC', '#B2FC3A', '#EEF060']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ padding: wp('4%'), alignItems: 'center', borderRadius: 18 }}
+            >
+              <Text color={isDarkMode ? '#000' : '#fff'} fontSize={16} fontWeight="$bold">Check availability</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        }
       </ScrollView>
     </>
   );
