@@ -1018,12 +1018,13 @@ func TestRealIPMiddleware_RemoteAddr(t *testing.T) {
 func TestLimitRequestBodySize(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	t.Run("Request body within limit", func(t *testing.T) {
+	t.Run("Request body within limit with known Content-Length", func(t *testing.T) {
 		// Arrange
 		maxSize := int64(1024)                     // 1 KB
 		body := bytes.NewReader(make([]byte, 512)) // 512 bytes
 		req, _ := http.NewRequest(http.MethodPost, "/", body)
 		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = 512
 		w := httptest.NewRecorder()
 
 		r := gin.Default()
@@ -1040,12 +1041,13 @@ func TestLimitRequestBodySize(t *testing.T) {
 		assert.JSONEq(t, `{"message":"ok"}`, w.Body.String())
 	})
 
-	t.Run("Request body exceeds limit", func(t *testing.T) {
+	t.Run("Request body exceeds limit with known Content-Length", func(t *testing.T) {
 		// Arrange
 		maxSize := int64(1024)                      // 1 KB
 		body := bytes.NewReader(make([]byte, 2048)) // 2 KB
 		req, _ := http.NewRequest(http.MethodPost, "/", body)
 		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = 2048
 		w := httptest.NewRecorder()
 
 		r := gin.Default()
@@ -1059,13 +1061,36 @@ func TestLimitRequestBodySize(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
-		assert.Contains(t, w.Body.String(), `"Request body too large"`)
+		assert.Contains(t, w.Body.String(), "{\"error\":{\"code\":\"REQUEST_ENTITY_TOO_LARGE\",\"details\":null,\"message\":\"Request body too large by 1024 bytes, max 1024 bytes\"},\"message\":\"Request Entity Too Large\",\"status\":413}")
+	})
+
+	t.Run("Request body within limit with unknown Content-Length", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                     // 1 KB
+		body := bytes.NewReader(make([]byte, 512)) // 512 bytes
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = -1
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, `{"message":"ok"}`, w.Body.String())
 	})
 
 	t.Run("Multipart form within limit", func(t *testing.T) {
 		// Arrange
 		maxSize := int64(1024 * 1024) // 1 MB
-		body := bytes.NewBufferString("--boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"test.txt\"\r\nContent-Type: text/plain\r\n\r\nHello, World!\r\n--boundary--\r\n")
+		body := strings.NewReader("--boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"test.txt\"\r\nContent-Type: text/plain\r\n\r\nHello, World!\r\n--boundary--\r\n")
 		req, _ := http.NewRequest(http.MethodPost, "/", body)
 		req.Header.Set("Content-Type", "multipart/form-data; boundary=boundary")
 		w := httptest.NewRecorder()
@@ -1103,6 +1128,6 @@ func TestLimitRequestBodySize(t *testing.T) {
 
 		// Assert
 		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
-		assert.Contains(t, w.Body.String(), `"Request body too large"`)
+		assert.Contains(t, w.Body.String(), "{\"error\":{\"code\":\"REQUEST_ENTITY_TOO_LARGE\",\"details\":null,\"message\":\"Request body too large by 1024 bytes, max 1024 bytes\"},\"message\":\"Request Entity Too Large\",\"status\":413}")
 	})
 }

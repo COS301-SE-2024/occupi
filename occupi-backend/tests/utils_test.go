@@ -2843,3 +2843,102 @@ func TestConvertImageToBytes(t *testing.T) {
 		})
 	}
 }
+
+func TestConvertTokensToStringArray(t *testing.T) {
+	t.Run("Successful conversion", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{
+			{"token": "abc"},
+			{"token": "def"},
+			{"token": "ghi"},
+		}
+		expected := []string{"abc", "def", "ghi"}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Missing key in one of the tokens", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{
+			{"token": "abc"},
+			{"missing_key": "def"},
+			{"token": "ghi"},
+		}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "key token does not exist")
+	})
+
+	t.Run("Non-string value for a key", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{
+			{"token": "abc"},
+			{"token": 123},
+			{"token": "ghi"},
+		}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "value for key token is not a string")
+	})
+
+	t.Run("Empty token array", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{}
+		expected := []string{}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Key exists but value is empty string", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{
+			{"token": ""},
+			{"token": "abc"},
+		}
+		expected := []string{"", "abc"}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
+}
+
+func TestGenerateUUID(t *testing.T) {
+	var emptyUUIDGenerated bool
+	var validUUIDGenerated bool
+	// Generate 1000 UUIDs
+	for i := 0; i < 1000; i++ {
+		uuid := utils.GenerateUUID()
+		if uuid == "" {
+			emptyUUIDGenerated = true
+		} else {
+			validUUIDGenerated = true
+		}
+	}
+
+	assert.False(t, emptyUUIDGenerated)
+	assert.True(t, validUUIDGenerated)
+}

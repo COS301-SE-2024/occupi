@@ -206,18 +206,35 @@ func RealIPMiddleware() gin.HandlerFunc {
 func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, maxSize)
-		if err := ctx.Request.ParseMultipartForm(maxSize); err != nil {
+
+		// Only parse the multipart form if the content type is multipart/form-data
+		if strings.HasPrefix(ctx.ContentType(), "multipart/form-data") {
+			if err := ctx.Request.ParseMultipartForm(maxSize); err != nil {
+				ctx.JSON(http.StatusRequestEntityTooLarge, utils.ErrorResponse(
+					http.StatusRequestEntityTooLarge,
+					"Request Entity Too Large",
+					constants.RequestEntityTooLargeCode,
+					fmt.Sprintf("Request body too large by %d bytes, max %d bytes", ctx.Request.ContentLength-maxSize, maxSize),
+					nil,
+				))
+				ctx.Abort()
+				return
+			}
+		}
+
+		// If ContentLength is known and exceeds maxSize, block the request
+		if ctx.Request.ContentLength > maxSize {
 			ctx.JSON(http.StatusRequestEntityTooLarge, utils.ErrorResponse(
 				http.StatusRequestEntityTooLarge,
 				"Request Entity Too Large",
 				constants.RequestEntityTooLargeCode,
 				fmt.Sprintf("Request body too large by %d bytes, max %d bytes", ctx.Request.ContentLength-maxSize, maxSize),
 				nil,
-			),
-			)
+			))
 			ctx.Abort()
 			return
 		}
+
 		ctx.Next()
 	}
 }
