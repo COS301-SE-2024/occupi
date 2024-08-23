@@ -246,7 +246,7 @@ export async function updateUserDetails(req: UpdateDetailsReq): Promise<Success 
 export async function getAvailableTimes(req : AvailableSlotsReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
   try {
-  const response = await axios.get(`https://dev.occupi.tech/api/available-slots`, {
+  const response = await axios.get(`https://dev.occupi.tech/api/available-slots?roomId=${req.roomId}&date=${req.date}`, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -273,11 +273,6 @@ export async function getAvailableTimes(req : AvailableSlotsReq): Promise<Succes
     } as Unsuccessful;
   }
 }
-
-getAvailableTimes({
-  roomId: "RM002", // required
-  date: "2024-08-13T00:00:00.000+00:00" // required
-})
 
 export async function bookRoom(req: BookRoomReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');

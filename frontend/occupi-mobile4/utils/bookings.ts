@@ -1,5 +1,5 @@
 import { Booking, Room } from "@/models/data";
-import { bookRoom, cancelBooking, checkin, getExpoPushTokens, getRooms, getUserBookings } from "../services/apiservices";
+import { bookRoom, cancelBooking, checkin, getAvailableTimes, getExpoPushTokens, getRooms, getUserBookings } from "../services/apiservices";
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { BookRoomReq, CancelBookingReq, ViewBookingsReq, ViewRoomsReq } from "@/models/requests";
@@ -63,6 +63,25 @@ export async function fetchRooms(floorNo: string, roomName: string) {
         throw error; // Add a throw statement to handle the error case
     }
 }
+
+export async function fetchSlots(roomId: string, date: string) {
+    const body = {
+        roomId: roomId,
+        date: date
+    }
+    try {
+        const response = await getAvailableTimes(body);
+        if (response.status === 200) {
+            return response.data;
+        }
+        return response.data;
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+}
+
+fetchSlots("RM002", "2024-07-01T00:00:00.000Z");
 
 export async function userBookRoom(attendees: string[], startTime: string, endTime: string) {
     let roomstring = await SecureStore.getItemAsync("BookingInfo");
