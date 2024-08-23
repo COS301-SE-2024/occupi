@@ -84,12 +84,12 @@ const Profile = () => {
       console.log('dateee',dateString);
 
       // Manually parse the date string
-      const [datePart] = dateString.split('T');
+      const [datePart] = dateString.split(' ');
       const [year, month, day] = datePart.split('-').map(Number);
 
       // Create a new Date object
       const date = new Date(year, month, day);
-      // console.log(date.getDate());
+      console.log(date.getDate());
 
       // Get the day, month, and year
       const formattedDay = date.getDate();
