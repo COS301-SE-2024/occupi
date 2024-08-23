@@ -582,7 +582,7 @@ func VerifyTwoFA(ctx *gin.Context, appsession *models.AppSession) {
 	// Send OTP via email
 	subject := "Occupi Two-Factor Authentication Code"
 	body := utils.FormatTwoFAEmailBody(otp, request.Email)
-	if err := mail.SendMail(request.Email, subject, body); err != nil {
+	if err := mail.SendMail(appsession, request.Email, subject, body); err != nil {
 		captureError(ctx, err)
 		logrus.WithError(err).Error("Error sending OTP email")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())

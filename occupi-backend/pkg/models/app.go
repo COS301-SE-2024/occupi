@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	"github.com/allegro/bigcache/v3"
 	"github.com/centrifugal/gocent/v3"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -10,6 +8,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
+	"gopkg.in/gomail.v2"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 )
@@ -18,8 +17,6 @@ import (
 type AppSession struct {
 	DB           *mongo.Client
 	Cache        *redis.Client
-	EmailsSent   int
-	CurrentDate  time.Time
 	OtpReqCache  *bigcache.BigCache
 	IPInfo       *ipinfo.Client
 	RabbitMQ     *amqp.Connection
@@ -28,6 +25,7 @@ type AppSession struct {
 	WebAuthn     *webauthn.WebAuthn
 	SessionCache *bigcache.BigCache
 	Centrifugo   *gocent.Client
+	MailConn     *gomail.Dialer
 }
 
 // constructor for app session
@@ -38,8 +36,6 @@ func New(db *mongo.Client, cache *redis.Client) *AppSession {
 	return &AppSession{
 		DB:           db,
 		Cache:        cache,
-		EmailsSent:   0,
-		CurrentDate:  time.Now(),
 		OtpReqCache:  configs.CreateOTPRateLimitCache(),
 		IPInfo:       configs.CreateIPInfoClient(),
 		RabbitMQ:     conn,
@@ -48,6 +44,7 @@ func New(db *mongo.Client, cache *redis.Client) *AppSession {
 		WebAuthn:     configs.CreateWebAuthnInstance(),
 		SessionCache: configs.CreateSessionCache(),
 		Centrifugo:   configs.CreateCentrifugoClient(),
+		MailConn:     configs.CreateMailServerConnection(),
 	}
 }
 
