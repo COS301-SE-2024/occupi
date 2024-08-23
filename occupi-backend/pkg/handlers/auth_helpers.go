@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -51,7 +52,7 @@ func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string,
 		body = utils.FormatEmailVerificationBody(otp, email)
 	}
 
-	if err := mail.SendMail(email, subject, body); err != nil {
+	if err := mail.SendMail(appsession, email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
@@ -80,7 +81,7 @@ func SendOTPEMailForIPInfo(ctx *gin.Context, appsession *models.AppSession, emai
 	subject := "Confirm IP Address - Your One-Time Password (OTP)"
 	body := utils.FormatIPAddressConfirmationEmailBodyWithIPInfo(otp, email, unrecognizedLogger)
 
-	if err := mail.SendMail(email, subject, body); err != nil {
+	if err := mail.SendMail(appsession, email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
@@ -553,4 +554,17 @@ func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, emai
 		))
 	}
 	return nil
+}
+
+func CanLogin(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	if canLogin, err := cache.CanMakeLogin(appsession, email); !canLogin && (err == nil || err.Error() != "cache not found") {
+		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
+			http.StatusTooManyRequests,
+			"Too many login attempts",
+			constants.TooManyRequestsCode,
+			"Too many login attempts, please try again later",
+			nil))
+		return false, err
+	}
+	return true, nil
 }

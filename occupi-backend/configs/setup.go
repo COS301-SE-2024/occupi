@@ -10,6 +10,7 @@ import (
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/ipinfo/go/v2/ipinfo/cache"
 	"github.com/redis/go-redis/v9"
+	"gopkg.in/gomail.v2"
 
 	"context"
 	"fmt"
@@ -231,6 +232,7 @@ func CreateWebAuthnInstance() *webauthn.WebAuthn {
 	}
 
 	fmt.Println("WebAuthn instance created!")
+	logrus.Info("WebAuthn instance created!")
 
 	return webAuthn
 }
@@ -250,6 +252,23 @@ func CreateCentrifugoClient() *gocent.Client {
 	})
 
 	fmt.Println("Centrifugo client created!")
+	logrus.Info("Centrifugo client created!")
 
 	return client
+}
+
+func CreateMailServerConnection() *gomail.Dialer {
+	// Mail server connection parameters
+	mailHost := GetSMTPHost()
+	mailPort := GetSMTPPort()
+	mailUsername := GetSystemEmail()
+	mailPassword := GetSMTPPassword()
+
+	// Create a new mail server connection
+	d := gomail.NewDialer(mailHost, mailPort, mailUsername, mailPassword)
+
+	fmt.Println("Mail server connection created!")
+	logrus.Info("Mail server connection created!")
+
+	return d
 }
