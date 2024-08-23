@@ -1,5 +1,5 @@
 import { Success, Unsuccessful } from "@/models/response";
-import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq, NotificationsReq, UpdateDetailsReq, ViewRoomsReq } from "@/models/requests";
+import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq, NotificationsReq, UpdateDetailsReq, ViewRoomsReq, AvailableSlotsReq } from "@/models/requests";
 // import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import axios, { AxiosError } from 'axios';
@@ -242,6 +242,42 @@ export async function updateUserDetails(req: UpdateDetailsReq): Promise<Success 
     } as Unsuccessful;
   }
 }
+
+export async function getAvailableTimes(req : AvailableSlotsReq): Promise<Success | Unsuccessful> {
+  let authToken = await SecureStore.getItemAsync('Token');
+  try {
+  const response = await axios.get(`https://dev.occupi.tech/api/available-slots`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `${authToken}`
+      },
+      withCredentials: true
+    });
+    console.log('slots',response.data);
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in ${Function}:`, error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+}
+
+getAvailableTimes({
+  roomId: "RM002", // required
+  date: "2024-08-13T00:00:00.000+00:00" // required
+})
 
 export async function bookRoom(req: BookRoomReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');

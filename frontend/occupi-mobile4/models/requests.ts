@@ -30,6 +30,11 @@ export interface ResetPasswordReq {
 
 //Rooms & Bookings
 
+export interface AvailableSlotsReq {
+    roomId: string,
+    date: string
+}
+
 export interface BookRoomReq {
     roomId: string;
     roomName: string;
