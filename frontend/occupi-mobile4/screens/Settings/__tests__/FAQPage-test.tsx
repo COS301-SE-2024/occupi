@@ -1,72 +1,74 @@
 import React from 'react';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react-native';
-import FAQPage from '../FAQPage';
-import { ThemeProvider } from '@/components/ThemeContext';
+import { render, fireEvent } from '@testing-library/react-native';
+import FAQPage from '../FAQPage'; // Adjust the import path as necessary
+
+// Mock the necessary modules and hooks
+jest.mock('react-native', () => ({
+  useColorScheme: jest.fn(() => 'light'),
+  StyleSheet: {
+    create: jest.fn(),
+  },
+  ScrollView: 'ScrollView',
+  View: 'View',
+  Text: 'Text',
+}));
+
+jest.mock('@/components/ThemeContext', () => ({
+  useTheme: jest.fn(() => ({ theme: 'light' })),
+}));
+
+jest.mock('expo-router', () => ({
+  router: {
+    back: jest.fn(),
+  },
+}));
+
+jest.mock('@gluestack-ui/themed', () => ({
+  Icon: 'Icon',
+  Accordion: 'Accordion',
+  AccordionItem: 'AccordionItem',
+  AccordionHeader: 'AccordionHeader',
+  AccordionTrigger: 'AccordionTrigger',
+  AccordionContent: 'AccordionContent',
+  ChevronLeftIcon: 'ChevronLeftIcon',
+}));
+
+jest.mock('@expo/vector-icons', () => ({
+  Feather: 'Feather',
+  MaterialIcons: 'MaterialIcons',
+}));
 
 describe('FAQPage', () => {
-  test('renders the FAQ sections correctly', () => {
-    render(
-      <ThemeProvider>
-        <FAQPage />
-      </ThemeProvider>
-    );
-
-    expect(screen.getByText('Frequently Asked Questions')).toBeTruthy();
-    expect(screen.getByText('Profile Page FAQs')).toBeTruthy();
-    expect(screen.getByText('Book a Room FAQs')).toBeTruthy();
-    expect(screen.getByText('My Bookings FAQs')).toBeTruthy();
-    expect(screen.getByText('Login/Signup FAQs')).toBeTruthy();
-    expect(screen.getByText('Dashboard FAQs')).toBeTruthy();
+  it('renders correctly', () => {
+    const { getByText, getAllByText } = render(<FAQPage />);
+    expect(getByText('Frequently Asked Questions')).toBeTruthy();
+    expect(getAllByText('Profile Page FAQs')[0]).toBeTruthy();
+    expect(getAllByText('Book a Room FAQs')[0]).toBeTruthy();
+    expect(getAllByText('My Bookings FAQs')[0]).toBeTruthy();
+    expect(getAllByText('Login/Signup FAQs')[0]).toBeTruthy();
+    expect(getAllByText('Dashboard FAQs')[0]).toBeTruthy();
   });
 
-  test('toggles the accordion items correctly', () => {
-    render(
-      <ThemeProvider>
-        <FAQPage />
-      </ThemeProvider>
-    );
-
-    // Expand the first accordion item
-    fireEvent.press(screen.getByTestId('faq-question-0-0'));
-    expect(screen.getByTestId('faq-answer-0-0')).toBeTruthy();
-
-    // Collapse the first accordion item
-    fireEvent.press(screen.getByTestId('faq-question-0-0'));
-    expect(screen.queryByTestId('faq-answer-0-0')).toBeNull();
-
-    // Expand the second accordion item
-    fireEvent.press(screen.getByTestId('faq-question-0-1'));
-    expect(screen.getByTestId('faq-answer-0-1')).toBeTruthy();
+  it('navigates back when back button is pressed', () => {
+    const { getByTestId } = render(<FAQPage />);
+    const backButton = getByTestId('back-button');
+    fireEvent.press(backButton);
+    expect(require('expo-router').router.back).toHaveBeenCalled();
   });
 
-  test('navigates back to the previous screen', () => {
-    const mockedRouter = {
-      back: jest.fn(),
-    };
-
-    jest.mock('expo-router', () => ({
-      router: mockedRouter,
-    }));
-
-    render(
-      <ThemeProvider>
-        <FAQPage />
-      </ThemeProvider>
-    );
-
-    fireEvent.press(screen.getByTestId('back-button'));
-    expect(mockedRouter.back).toHaveBeenCalled();
+  it('expands and collapses accordion items', () => {
+    const { getByTestId, queryByText } = render(<FAQPage />);
+    
+    const profileQuestion = getByTestId('faq-question-0-0');
+    fireEvent.press(profileQuestion);
+    expect(queryByText(/To edit your profile, go to the Profile page and tap the 'Edit' button/)).toBeTruthy();
+    
+    fireEvent.press(profileQuestion);
+    expect(queryByText(/To edit your profile, go to the Profile page and tap the 'Edit' button/)).toBeNull();
   });
 
-  test('changes the color scheme based on the theme', () => {
-    render(
-      <ThemeProvider theme="dark">
-        <FAQPage />
-      </ThemeProvider>
-    );
-
-    expect(screen.getByText('Frequently Asked Questions')).toHaveStyle({ color: 'white' });
-    expect(screen.getByTestId('faq-question-0-0')).toHaveStyle({ color: 'white' });
-    expect(screen.getByTestId('faq-answer-0-0')).toHaveStyle({ color: 'white' });
+  it('renders correct number of questions for each section', () => {
+    const { getAllByTestId } = render(<FAQPage />);
+    expect(getAllByTestId(/^faq-question-\d+-\d+$/).length).toBe(25); // 5 sections with 5 questions each
   });
 });

@@ -158,6 +158,7 @@ const FAQPage = () => {
     <ScrollView style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white', paddingHorizontal: 16, paddingTop: 60 }}>
     <View style={styles.header}>
           <Icon
+          testID="back-button"
             as={Feather}
             name="chevron-left"
             size="xl"

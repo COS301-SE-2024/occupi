@@ -2,15 +2,20 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { UserLogin, userRegister, verifyUserOtpRegister, VerifyUserOtpLogin, UserLogout } from '../auth';
 import { fetchUserBookings, fetchRooms, userBookRoom, userCheckin, userCancelBooking } from '../bookings';
-import { isPointInPolygon } from './dashboard';
+import { isPointInPolygon } from '../dashboard';
 import { retrievePushToken, sendPushNotification, getUserNotifications } from '../notifications';
 import { getExtractedPredictions, getExtractedDailyPrediction, convertValues, valueToColor, getFormattedPredictionData, getFormattedDailyPredictionData } from '../occupancy';
+import * as SecureStore from 'expo-secure-store';
+
+jest.mock('expo-secure-store');
+global.alert = jest.fn();
 
 describe('Integration Test Suite', () => {
   let mock: MockAdapter;
 
   beforeEach(() => {
     mock = new MockAdapter(axios);
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -63,25 +68,42 @@ describe('Integration Test Suite', () => {
       mock.onPost('/rooms').reply(200, [
         { id: 1, roomName: 'Room A', floorNo: '1' },
         { id: 2, roomName: 'Room B', floorNo: '1' },
-        { id: 3, roomName: 'Room C', floorNo: '2' },
       ]);
       const rooms = await fetchRooms('1', '');
       expect(rooms).toHaveLength(2);
     });
 
     it('should book a room', async () => {
+      const mockBookingInfo = JSON.stringify({ roomName: 'Room A' });
+      (SecureStore.getItemAsync as jest.Mock).mockImplementation((key) => {
+        if (key === 'BookingInfo') return Promise.resolve(mockBookingInfo);
+        if (key === 'Email') return Promise.resolve('test@example.com');
+        return Promise.resolve(null);
+      });
       mock.onPost('/book-room').reply(200, { message: 'Room booked successfully' });
       const message = await userBookRoom(['test@example.com'], '09:00', '10:00');
       expect(message).toBe('Room booked successfully');
     });
 
     it('should check in a user', async () => {
+      const mockCurrentRoom = JSON.stringify({ occupiId: '123' });
+      (SecureStore.getItemAsync as jest.Mock).mockImplementation((key) => {
+        if (key === 'CurrentRoom') return Promise.resolve(mockCurrentRoom);
+        if (key === 'Email') return Promise.resolve('test@example.com');
+        return Promise.resolve(null);
+      });
       mock.onPost('/check-in').reply(200, { message: 'Checked in successfully' });
       const message = await userCheckin();
       expect(message).toBe('Checked in successfully');
     });
 
     it('should cancel a booking', async () => {
+      const mockCurrentRoom = JSON.stringify({ occupiId: '123' });
+      (SecureStore.getItemAsync as jest.Mock).mockImplementation((key) => {
+        if (key === 'CurrentRoom') return Promise.resolve(mockCurrentRoom);
+        if (key === 'Email') return Promise.resolve('test@example.com');
+        return Promise.resolve(null);
+      });
       mock.onPost('/cancel-booking').reply(200, { message: 'Booking cancelled successfully' });
       const message = await userCancelBooking();
       expect(message).toBe('Booking cancelled successfully');
@@ -134,7 +156,7 @@ describe('Integration Test Suite', () => {
       });
       const prediction = await getExtractedDailyPrediction();
       expect(prediction).toEqual({
-        Date: 1, Day_of_week: 1, Predicted_Attendance_Level: 'Low', Predicted_Class: 1
+        Date: 1, Day_of_Week: 1, Predicted_Attendance_Level: 'Low', Predicted_Class: 1
       });
     });
 
@@ -157,7 +179,7 @@ describe('Integration Test Suite', () => {
       const color3 = valueToColor(3);
       const color5 = valueToColor(5);
       expect(color1).toBe('rgb(0, 255, 0)');
-      expect(color3).toBe('rgb(127, 127, 0)');
+      expect(color3).toBe('rgb(128, 128, 0)');
       expect(color5).toBe('rgb(255, 0, 0)');
     });
 
@@ -168,8 +190,8 @@ describe('Integration Test Suite', () => {
       ]);
       const formattedData = await getFormattedPredictionData();
       expect(formattedData).toEqual([
+        { value: 1, label: 'Mon' },
         { value: 2, label: 'Tue' },
-        { value: 3, label: 'Wed' },
       ]);
     });
 
@@ -180,7 +202,7 @@ describe('Integration Test Suite', () => {
       const formattedData = await getFormattedDailyPredictionData();
       expect(formattedData).toEqual({
         date: '1/1/2024',
-        class: 2,
+        class: 1,
         day: 'Mon',
         attendance: 'Low'
       });

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { fetchRooms, userCheckin, userCancelBooking, fetchUserBookings } from '@/utils/bookings';
+import { fetchRooms, userCheckin, userCancelBooking, fetchUserBookings } from '../../../utils/bookings';
 import BookRoom from '../BookRoom';
 import ViewBookingDetails from '../ViewBookingDetails';
 import ViewBookings from '../ViewBookings';
@@ -16,7 +16,7 @@ jest.mock('expo-secure-store', () => ({
   setItemAsync: jest.fn(),
 }));
 
-jest.mock('@/utils/bookings', () => ({
+jest.mock('../../../utils/bookings', () => ({
   fetchRooms: jest.fn(),
   userCheckin: jest.fn(),
   userCancelBooking: jest.fn(),

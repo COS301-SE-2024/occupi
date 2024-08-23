@@ -2,19 +2,19 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ViewBookingDetails from '../ViewBookingDetails';
 import * as SecureStore from 'expo-secure-store';
-import { userCheckin, userCancelBooking } from '@/utils/bookings';
+import { userCheckin, userCancelBooking } from '../../../utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn(),
 }));
 
-jest.mock('@/utils/bookings', () => ({
+jest.mock('../../../utils/bookings', () => ({
   userCheckin: jest.fn(),
   userCancelBooking: jest.fn(),
 }));
 
-jest.mock('@/components/ThemeContext', () => ({
+jest.mock('../../../components/ThemeContext', () => ({
   useTheme: jest.fn(),
 }));
 

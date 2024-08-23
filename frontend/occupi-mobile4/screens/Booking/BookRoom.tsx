@@ -14,8 +14,8 @@ import Navbar from '../../components/NavBar';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import * as SecureStore from 'expo-secure-store';
 import { Skeleton } from 'moti/skeleton';
-import { useTheme } from '@/components/ThemeContext';
-import { fetchRooms } from '@/utils/bookings';
+import { useTheme } from '../../components/ThemeContext';
+import { fetchRooms } from '../../utils/bookings';
 
 const groupDataInPairs = (data) => {
   if (!data) return [];
