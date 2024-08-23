@@ -52,6 +52,15 @@ func TestImageKey(t *testing.T) {
 	}
 }
 
+func TestLoginKey(t *testing.T) {
+	email := "test@example.com"
+	expected := "Login:test@example.com"
+	result := cache.LoginKey(email)
+	if result != expected {
+		t.Errorf("LoginKey(%s) = %s; want %s", email, result, expected)
+	}
+}
+
 func TestGetUser(t *testing.T) {
 	// Test case: cache is nil
 	t.Run("cache is nil", func(t *testing.T) {
@@ -1078,5 +1087,126 @@ func TestDeleteSession(t *testing.T) {
 		if _, err := Cache.Get(cache.SessionKey(uuid)); err == nil {
 			t.Errorf("expected key to be deleted, but it still exists")
 		}
+	})
+}
+
+func TestCanMakeLogin(t *testing.T) {
+	email := "test@example.com"
+	key := cache.LoginKey(email)
+
+	t.Run("cache not found", func(t *testing.T) {
+		// Set up a mock Redis client
+		db, _ := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			Cache: db,
+		}
+		appsession.Cache = nil
+		canLogin, err := cache.CanMakeLogin(appsession, email)
+		assert.False(t, canLogin)
+		assert.EqualError(t, err, "cache not found")
+	})
+
+	t.Run("new user - set value", func(t *testing.T) {
+		// Set up a mock Redis client
+		db, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			Cache: db,
+		}
+		// Simulate Get returning a nil value (key not found)
+		mock.ExpectGet(key).RedisNil()
+		// Simulate successful Set operation
+		mock.ExpectSet(key, 1, 2*time.Second).SetVal("OK")
+
+		canLogin, err := cache.CanMakeLogin(appsession, email)
+		assert.True(t, canLogin)
+		assert.NoError(t, err)
+
+		// Ensure all expectations were met
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("existing user with login count less than 5", func(t *testing.T) {
+		// Set up a mock Redis client
+		db, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			Cache: db,
+		}
+		// Simulate Get returning a value of 3
+		mock.ExpectGet(key).SetVal("3")
+		// Simulate successful Set operation to update the value to 4
+		mock.ExpectSet(key, 4, 2*time.Second).SetVal("OK")
+
+		canLogin, err := cache.CanMakeLogin(appsession, email)
+		assert.True(t, canLogin)
+		assert.NoError(t, err)
+
+		// Ensure all expectations were met
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("existing user with login count 5 or more", func(t *testing.T) {
+		// Set up a mock Redis client
+		db, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			Cache: db,
+		}
+		// Simulate Get returning a value of 5
+		mock.ExpectGet(key).SetVal("5")
+
+		canLogin, err := cache.CanMakeLogin(appsession, email)
+		assert.False(t, canLogin)
+		assert.NoError(t, err)
+
+		// Ensure all expectations were met
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("error on Get", func(t *testing.T) {
+		// Set up a mock Redis client
+		db, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			Cache: db,
+		}
+		// Simulate Get operation error
+		mock.ExpectGet(key).SetErr(errors.New("redis get error"))
+		// Simulate successful Set operation
+		mock.ExpectSet(key, 1, 2*time.Second).SetVal("OK")
+
+		canLogin, err := cache.CanMakeLogin(appsession, email)
+		assert.True(t, canLogin)
+		assert.NoError(t, err)
+
+		// Ensure all expectations were met
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
+	})
+
+	t.Run("error on Set", func(t *testing.T) {
+		// Set up a mock Redis client
+		db, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			Cache: db,
+		}
+		// Simulate Get returning a value of 3
+		mock.ExpectGet(key).SetVal("3")
+		// Simulate Set operation error
+		mock.ExpectSet(key, 4, 2*time.Second).SetErr(errors.New("redis set error"))
+
+		canLogin, err := cache.CanMakeLogin(appsession, email)
+		assert.False(t, canLogin)
+		assert.EqualError(t, err, "redis set error")
+
+		// Ensure all expectations were met
+		err = mock.ExpectationsWereMet()
+		assert.NoError(t, err)
 	})
 }

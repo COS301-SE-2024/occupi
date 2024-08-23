@@ -9,6 +9,7 @@ const (
 	UnAuthorizedCode          = "UNAUTHORIZED"
 	RequestEntityTooLargeCode = "REQUEST_ENTITY_TOO_LARGE"
 	ForbiddenCode             = "FORBIDDEN"
+	TooManyRequestsCode       = "TOO_MANY_REQUESTS"
 	Admin                     = "admin"
 	Basic                     = "basic"
 	AdminDBAccessOption       = "authSource=admin"
