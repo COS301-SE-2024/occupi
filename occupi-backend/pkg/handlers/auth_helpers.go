@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/mail"
@@ -553,4 +554,17 @@ func AttemptToSignNewEmail(ctx *gin.Context, appsession *models.AppSession, emai
 		))
 	}
 	return nil
+}
+
+func CanLogin(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	if canLogin, err := cache.CanMakeLogin(appsession, email); !canLogin && (err == nil || err.Error() != "cache not found") {
+		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
+			http.StatusTooManyRequests,
+			"Too many login attempts",
+			constants.TooManyRequestsCode,
+			"Too many login attempts, please try again later",
+			nil))
+		return false, err
+	}
+	return true, nil
 }

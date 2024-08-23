@@ -31,18 +31,11 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 		return
 	}
 
-	if canLogin, err := cache.CanMakeLogin(appsession, requestUser.Email); !canLogin && (err == nil || err.Error() != "cache not found") {
+	if canLogin, err := CanLogin(ctx, appsession, requestUser.Email); !canLogin {
 		if err != nil {
 			captureError(ctx, err)
 			logrus.WithError(err).Error("Error checking if user can login")
 		}
-
-		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
-			http.StatusTooManyRequests,
-			"Too many login attempts",
-			constants.TooManyRequestsCode,
-			"Too many login attempts, please try again later",
-			nil))
 		return
 	}
 
@@ -120,18 +113,11 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	if canLogin, err := cache.CanMakeLogin(appsession, requestEmail.Email); !canLogin && (err == nil || err.Error() != "cache not found") {
+	if canLogin, err := CanLogin(ctx, appsession, requestEmail.Email); !canLogin {
 		if err != nil {
 			captureError(ctx, err)
 			logrus.WithError(err).Error("Error checking if user can login")
 		}
-
-		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
-			http.StatusTooManyRequests,
-			"Too many login attempts",
-			constants.TooManyRequestsCode,
-			"Too many login attempts, please try again later",
-			nil))
 		return
 	}
 
@@ -185,7 +171,7 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Save the session data - cache will expire in x defined minutes according to the config
-	if err := cache.SetSession(appsession, session, uuid); err != nil && err.Error() != "cache not found" {
+	if err := cache.SetSession(appsession, session, uuid); err != nil {
 		captureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		fmt.Printf("error saving WebAuthn session data: %v", err)
@@ -269,18 +255,11 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	if canLogin, err := cache.CanMakeLogin(appsession, requestEmail.Email); !canLogin && (err == nil || err.Error() != "cache not found") {
+	if canLogin, err := CanLogin(ctx, appsession, requestEmail.Email); !canLogin {
 		if err != nil {
 			captureError(ctx, err)
 			logrus.WithError(err).Error("Error checking if user can login")
 		}
-
-		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
-			http.StatusTooManyRequests,
-			"Too many registration attempts",
-			constants.TooManyRequestsCode,
-			"Too many registration attempts, please try again later",
-			nil))
 		return
 	}
 
@@ -323,7 +302,7 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Save the session data - cache will expire in x defined minutes according to the config
-	if err := cache.SetSession(appsession, session, uuid); err != nil && err.Error() != "cache not found" {
+	if err := cache.SetSession(appsession, session, uuid); err != nil {
 		captureError(ctx, err)
 		logrus.WithError(err).Error("Error saving session data in cache")
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
@@ -408,18 +387,11 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	if canLogin, err := cache.CanMakeLogin(appsession, requestUser.Email); !canLogin && (err == nil || err.Error() != "cache not found") {
+	if canLogin, err := CanLogin(ctx, appsession, requestUser.Email); !canLogin {
 		if err != nil {
 			captureError(ctx, err)
 			logrus.WithError(err).Error("Error checking if user can login")
 		}
-
-		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
-			http.StatusTooManyRequests,
-			"Too many registration attempts",
-			constants.TooManyRequestsCode,
-			"Too many registration attempts, please try again later",
-			nil))
 		return
 	}
 
