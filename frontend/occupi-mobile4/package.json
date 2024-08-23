@@ -28,8 +28,8 @@
     "./jest.setup.js"
   ],
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/$1"
-  }
+  "^@/(.*)$": "<rootDir>/$1"
+}
 },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",

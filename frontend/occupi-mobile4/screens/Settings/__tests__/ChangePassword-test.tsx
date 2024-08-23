@@ -1,23 +1,24 @@
-// ChangePassword.tsx unit tests
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ChangePassword from '../ChangePassword';
 import { ThemeProvider } from '@/components/ThemeContext';
 import { updateSecurity } from '@/utils/user';
-import { Toast, useToast } from '@gluestack-ui/themed';
+import { useToast } from '@gluestack-ui/themed';
 
+// Mocking expo-router
 jest.mock('expo-router', () => ({
   router: {
     back: jest.fn(),
   },
 }));
 
+// Mocking updateSecurity function
 jest.mock('@/utils/user', () => ({
   updateSecurity: jest.fn(),
 }));
 
+// Mocking useToast hook from gluestack-ui
 jest.mock('@gluestack-ui/themed', () => ({
-  ...jest.requireActual('@gluestack-ui/themed'),
   useToast: jest.fn(() => ({
     show: jest.fn(),
   })),
@@ -79,4 +80,3 @@ describe('ChangePassword', () => {
     });
   });
 });
-
