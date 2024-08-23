@@ -48,6 +48,23 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, user.ExpoPushToken, newU.ExpoPushToken)
 }
 
+func TestCreateAdminUser(t *testing.T) {
+	user := models.RegisterUser{
+		EmployeeID:    "OCCUPI01",
+		Password:      "password",
+		Email:         "test@example.com",
+		ExpoPushToken: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+	}
+
+	newU := database.CreateAdminUser(user)
+
+	assert.Equal(t, user.EmployeeID, newU.OccupiID)
+	assert.Equal(t, user.Password, newU.Password)
+	assert.Equal(t, user.Email, newU.Email)
+	assert.Equal(t, constants.Admin, newU.Role)
+	assert.Equal(t, user.ExpoPushToken, newU.ExpoPushToken)
+}
+
 func TestMockDatabase(t *testing.T) {
 	// set gin run mode
 	gin.SetMode(configs.GetGinRunMode())
