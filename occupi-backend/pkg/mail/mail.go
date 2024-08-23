@@ -3,10 +3,8 @@ package mail
 import (
 	"errors"
 	"strings"
-	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
-	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"gopkg.in/gomail.v2"
@@ -15,7 +13,7 @@ import (
 const test = "test"
 
 // SendMail sends an email using gomail
-func SendMail(to string, subject string, body string) error {
+func SendMail(appsession *models.AppSession, to string, subject string, body string) error {
 	if configs.GetGinRunMode() == test {
 		return nil // Do not send emails in test mode
 	}
@@ -26,9 +24,7 @@ func SendMail(to string, subject string, body string) error {
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer(configs.GetSMTPHost(), configs.GetSMTPPort(), configs.GetSystemEmail(), configs.GetSMTPPassword())
-
-	if err := d.DialAndSend(m); err != nil {
+	if err := appsession.MailConn.DialAndSend(m); err != nil {
 		return err
 	}
 
@@ -36,16 +32,18 @@ func SendMail(to string, subject string, body string) error {
 }
 
 // SendMailBCC sends an email using gomail with BCC
-func SendMailBCC(subject, body, bcc string) error {
+func SendMailBCC(appsession *models.AppSession, subject, body, bcc string) error {
+	if configs.GetGinRunMode() == test {
+		return nil // Do not send emails in test mode
+	}
+
 	m := gomail.NewMessage()
 	m.SetHeader("From", configs.GetSystemEmail())
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
 	m.SetHeader("Bcc", bcc)
 
-	d := gomail.NewDialer(configs.GetSMTPHost(), configs.GetSMTPPort(), configs.GetSystemEmail(), configs.GetSMTPPassword())
-
-	if err := d.DialAndSend(m); err != nil {
+	if err := appsession.MailConn.DialAndSend(m); err != nil {
 		return err
 	}
 
@@ -54,32 +52,13 @@ func SendMailBCC(subject, body, bcc string) error {
 
 // SendBulkEmailWithBCC sends an email to multiple recipients using BCC
 func SendBulkEmailWithBCC(emails []string, subject, body string, appsession *models.AppSession) error {
-	// if new day, reset email count
-	if time.Now().Day() != appsession.CurrentDate.Day() {
-		appsession.EmailsSent = 0
-		appsession.CurrentDate = time.Now()
-	}
-
-	// if email addresses exceed limit, return error
-	if len(emails) > constants.RecipientsLimit {
-		return errors.New("exceeded maximum number of recipients")
-	}
-
-	// if we will exceed max allowed emails, return error
-	if appsession.EmailsSent+1 > constants.EmailsSentLimit {
-		return errors.New("exceeded maximum number of emails sent per day")
-	}
-
 	// Send the email
 	if configs.GetGinRunMode() != test {
 		bcc := strings.Join(emails, ",")
-		if err := SendMailBCC(subject, body, bcc); err != nil {
+		if err := SendMailBCC(appsession, subject, body, bcc); err != nil {
 			return err
 		}
 	}
-
-	// Update the email count
-	appsession.EmailsSent++
 
 	return nil
 }
@@ -100,7 +79,7 @@ func SendBookingEmails(booking models.Booking, appsession *models.AppSession) er
 		}
 	}
 
-	creatorEmailError := SendMail(booking.Creator, creatorSubject, creatorBody)
+	creatorEmailError := SendMail(appsession, booking.Creator, creatorSubject, creatorBody)
 	if creatorEmailError != nil {
 		return creatorEmailError
 	}
@@ -131,7 +110,7 @@ func SendCancellationEmails(cancel models.Cancel, appsession *models.AppSession)
 		}
 	}
 
-	creatorEmailError := SendMail(cancel.Creator, creatorSubject, creatorBody)
+	creatorEmailError := SendMail(appsession, cancel.Creator, creatorSubject, creatorBody)
 	if creatorEmailError != nil {
 		return creatorEmailError
 	}

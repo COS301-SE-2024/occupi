@@ -51,7 +51,7 @@ func SendOTPEmail(ctx *gin.Context, appsession *models.AppSession, email string,
 		body = utils.FormatEmailVerificationBody(otp, email)
 	}
 
-	if err := mail.SendMail(email, subject, body); err != nil {
+	if err := mail.SendMail(appsession, email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
@@ -80,7 +80,7 @@ func SendOTPEMailForIPInfo(ctx *gin.Context, appsession *models.AppSession, emai
 	subject := "Confirm IP Address - Your One-Time Password (OTP)"
 	body := utils.FormatIPAddressConfirmationEmailBodyWithIPInfo(otp, email, unrecognizedLogger)
 
-	if err := mail.SendMail(email, subject, body); err != nil {
+	if err := mail.SendMail(appsession, email, subject, body); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return false, err
 	}
