@@ -6780,3 +6780,81 @@ func TestUpdateNotificationSettings(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestUploadImageData(t *testing.T) {
+	// Set Gin mode to match your configuration
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a new mtest instance
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("database is nil", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: nil,
+		}
+		image := models.Image{}
+
+		id, err := database.UploadImageData(ctx, appsession, image)
+		assert.Empty(t, id)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("insert success", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		image := models.Image{}
+
+		// Mock the insert operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		id, err := database.UploadImageData(ctx, appsession, image)
+		assert.NotEmpty(t, id)
+		assert.NoError(t, err)
+	})
+
+	mt.Run("insert fail", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		image := models.Image{}
+
+		// Mock the insert operation to return an error
+		mt.AddMockResponses(mtest.CreateWriteErrorsResponse(mtest.WriteError{
+			Index:   0,
+			Code:    11000,
+			Message: "duplicate key error",
+		}))
+
+		id, err := database.UploadImageData(ctx, appsession, image)
+		assert.Empty(t, id)
+		assert.EqualError(t, err, "duplicate key error")
+	})
+	mt.Run("insert and cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+		image := models.Image{
+			ID: primitive.NewObjectID().Hex(),
+		}
+
+		// marshal image
+		imageData, err := bson.Marshal(image)
+
+		assert.Nil(t, err)
+
+		// mock expect set
+		mock.ExpectSet(cache.ImageKey(image.ID), image, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(imageData))
+
+		// Mock the insert operation with this id
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		id, err := database.UploadImageData(ctx, appsession, image)
+		assert.NotEmpty(t, id)
+		assert.NoError(t, err)
+	})
+}
