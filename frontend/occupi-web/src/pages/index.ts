@@ -14,6 +14,8 @@ import Rooms from "./rooms/Rooms";
 import { NotificationsSettings } from "./notificationsSettings/NotificationsSettings";
 import AboutPage from "./about/AboutPage";
 import SecurityPage from "./securityPage/SecurityPage";
+import ForgotPassword from './forgot-password/ForgotPassword';
+import ResetPassword from './reset-password/ResetPassword';
 export {
   LoginForm,
   OtpPage,
@@ -31,4 +33,6 @@ export {
   NotificationsSettings,
   AboutPage,
   SecurityPage,
+  ForgotPassword,
+  ResetPassword
 };

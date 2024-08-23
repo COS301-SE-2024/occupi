@@ -10,6 +10,8 @@ import {
   Rooms,
   AboutPage,
   SecurityPage,
+  ForgotPassword,
+  ResetPassword,
 } from "@pages/index";
 import {
   Appearance,
@@ -84,6 +86,26 @@ function App() {
               <Navigate to="/dashboard/overview" />
             ) : (
               <OtpPage />
+            )
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard/overview" />
+            ) : (
+              <ForgotPassword />
+            )
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard/overview" />
+            ) : (
+              <ResetPassword />
             )
           }
         />
