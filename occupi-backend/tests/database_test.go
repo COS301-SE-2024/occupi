@@ -5950,3 +5950,833 @@ func TestGetAvailableSlots(t *testing.T) {
 		assert.ElementsMatch(t, expectedSlots, slots)
 	})
 }
+
+func TestGetNotificationSettings(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Database is nil", func(mt *mtest.T) {
+		// Call the function under test with a nil database
+		appSession := &models.AppSession{}
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		emptySettings := models.NotificationsRequest{}
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Equal(mt, emptySettings, result)
+		assert.Equal(mt, "database is nil", err.Error())
+	})
+
+	mt.Run("Retrieve notifications settings with invites on and booking reminder off successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			Invites:         "on",
+			BookingReminder: "off",
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "notifications", Value: bson.D{
+				{Key: "invites", Value: true},
+				{Key: "bookingReminder", Value: false},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve notifications settings with invites off and booking reminder off successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			Invites:         "off",
+			BookingReminder: "off",
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "notifications", Value: bson.D{
+				{Key: "invites", Value: false},
+				{Key: "bookingReminder", Value: false},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve notifications settings with invites off and booking reminder on successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			Invites:         "off",
+			BookingReminder: "on",
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "notifications", Value: bson.D{
+				{Key: "invites", Value: false},
+				{Key: "bookingReminder", Value: true},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve notifications settings with invites on and booking reminder on successfully", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			Invites:         "on",
+			BookingReminder: "on",
+		}
+
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "notifications", Value: bson.D{
+				{Key: "invites", Value: true},
+				{Key: "bookingReminder", Value: true},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+	})
+
+	mt.Run("Retrieve security settings with invites on and booking reminder off successfully from cache", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			Invites:         "on",
+			BookingReminder: "off",
+		}
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Notifications: models.Notifications{
+				Invites:         true,
+				BookingReminder: false,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Retrieve security settings with invites off and booking reminder off successfully from cache", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			Invites:         "off",
+			BookingReminder: "off",
+		}
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Notifications: models.Notifications{
+				Invites:         false,
+				BookingReminder: false,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Retrieve security settings with invites off and booking reminder on successfully from cache", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			Invites:         "off",
+			BookingReminder: "on",
+		}
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Notifications: models.Notifications{
+				Invites:         false,
+				BookingReminder: true,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Retrieve security settings with invites on and booking reminder on successfully from cache", func(mt *mtest.T) {
+		// Add a mock response for a successful find
+		expectedSettings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			Invites:         "on",
+			BookingReminder: "on",
+		}
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Notifications: models.Notifications{
+				Invites:         true,
+				BookingReminder: true,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(mt, err)
+		assert.NotNil(mt, result)
+		assert.Equal(mt, expectedSettings, result)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Find returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		emptySettings := models.NotificationsRequest{}
+
+		// Call the function under test
+		result, err := database.GetNotificationSettings(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Error(mt, err)
+		assert.Equal(mt, emptySettings, result)
+		assert.Contains(mt, err.Error(), "find error")
+	})
+}
+
+func TestUpdateNotificationSettings(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		err := database.UpdateNotificationSettings(ctx, appsession, models.NotificationsRequest{})
+
+		// Validate the result
+		assert.Error(t, err)
+	})
+
+	mt.Run("Test set invites on successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		security := models.NotificationsRequest{
+			Email:   "test@example.com",
+			Invites: "on",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.UpdateNotificationSettings(ctx, appsession, security)
+
+		// Validate the result
+		assert.NoError(t, err)
+	})
+
+	mt.Run("Test set invites off successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		security := models.NotificationsRequest{
+			Email:   "test@example.com",
+			Invites: "off",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.UpdateNotificationSettings(ctx, appsession, security)
+
+		// Validate the result
+		assert.NoError(t, err)
+	})
+
+	mt.Run("Test set booking reminder on successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		security := models.NotificationsRequest{
+			Email:           "test@example.com",
+			BookingReminder: "on",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.UpdateNotificationSettings(ctx, appsession, security)
+
+		// Validate the result
+		assert.NoError(t, err)
+	})
+
+	mt.Run("Test set booking reminder off successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		security := models.NotificationsRequest{
+			Email:           "test@example.com",
+			BookingReminder: "off",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.UpdateNotificationSettings(ctx, appsession, security)
+
+		// Validate the result
+		assert.NoError(t, err)
+	})
+
+	mt.Run("Test set invites on successfully in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Notifications: models.Notifications{
+				Invites:         false,
+				BookingReminder: false,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		settings := models.NotificationsRequest{
+			Email:   "test@example.com",
+			Invites: "on",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updatedUser := models.User{
+			Email: user.Email,
+			Notifications: models.Notifications{
+				Invites:         true,
+				BookingReminder: false,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
+		err = database.UpdateNotificationSettings(ctx, appsession, settings)
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
+		// Assert that the user is in the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
+
+		assert.Nil(t, err)
+
+		// unmarshal user
+		var userB models.User
+		if err := bson.Unmarshal(userA, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, true, userB.Notifications.Invites)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Test set invites off successfully in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Notifications: models.Notifications{
+				Invites:         true,
+				BookingReminder: false,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		settings := models.NotificationsRequest{
+			Email:   "test@example.com",
+			Invites: "off",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updatedUser := models.User{
+			Email: user.Email,
+			Notifications: models.Notifications{
+				Invites:         false,
+				BookingReminder: false,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
+		err = database.UpdateNotificationSettings(ctx, appsession, settings)
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
+		// Assert that the user is in the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
+
+		assert.Nil(t, err)
+
+		// unmarshal user
+		var userB models.User
+		if err := bson.Unmarshal(userA, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, false, userB.Notifications.Invites)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Test set booking reminder on successfully in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Notifications: models.Notifications{
+				Invites:         false,
+				BookingReminder: false,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		settings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			BookingReminder: "on",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updatedUser := models.User{
+			Email: user.Email,
+			Notifications: models.Notifications{
+				Invites:         false,
+				BookingReminder: true,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
+		err = database.UpdateNotificationSettings(ctx, appsession, settings)
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
+		// Assert that the user is in the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
+
+		assert.Nil(t, err)
+
+		// unmarshal user
+		var userB models.User
+		if err := bson.Unmarshal(userA, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, true, userB.Notifications.BookingReminder)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Test set booking reminder off on successfully in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Notifications: models.Notifications{
+				Invites:         false,
+				BookingReminder: true,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		settings := models.NotificationsRequest{
+			Email:           "test@example.com",
+			BookingReminder: "off",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		updatedUser := models.User{
+			Email: user.Email,
+			Notifications: models.Notifications{
+				Invites:         false,
+				BookingReminder: false,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
+		err = database.UpdateNotificationSettings(ctx, appsession, settings)
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
+		// Assert that the user is in the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
+
+		assert.Nil(t, err)
+
+		// unmarshal user
+		var userB models.User
+		if err := bson.Unmarshal(userA, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Equal(t, false, userB.Notifications.BookingReminder)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Update Error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		settings := models.NotificationsRequest{
+			Email: "test@example.com",
+		}
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.UpdateNotificationSettings(ctx, appsession, settings)
+
+		// Validate the result
+		assert.Error(t, err)
+	})
+}
