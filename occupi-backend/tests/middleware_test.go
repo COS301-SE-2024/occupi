@@ -845,8 +845,6 @@ func TestAttachOTPRateLimitMiddleware(t *testing.T) {
 			appsession := &models.AppSession{
 				DB:          nil,
 				Cache:       nil,
-				EmailsSent:  0,
-				CurrentDate: time.Now(),
 				OtpReqCache: configs.CreateOTPRateLimitCache(),
 			}
 
