@@ -31,6 +31,21 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 		return
 	}
 
+	if canLogin, err := cache.CanMakeLogin(appsession, requestUser.Email); !canLogin && (err == nil || err.Error() != "cache not found") {
+		if err != nil {
+			captureError(ctx, err)
+			logrus.WithError(err).Error("Error checking if user can login")
+		}
+
+		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
+			http.StatusTooManyRequests,
+			"Too many login attempts",
+			constants.TooManyRequestsCode,
+			"Too many login attempts, please try again later",
+			nil))
+		return
+	}
+
 	// sanitize user password and email
 	requestUser.EmployeeID = utils.SanitizeInput(requestUser.EmployeeID)
 
@@ -101,6 +116,21 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
 			"Expected email field",
+			nil))
+		return
+	}
+
+	if canLogin, err := cache.CanMakeLogin(appsession, requestEmail.Email); !canLogin && (err == nil || err.Error() != "cache not found") {
+		if err != nil {
+			captureError(ctx, err)
+			logrus.WithError(err).Error("Error checking if user can login")
+		}
+
+		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
+			http.StatusTooManyRequests,
+			"Too many login attempts",
+			constants.TooManyRequestsCode,
+			"Too many login attempts, please try again later",
 			nil))
 		return
 	}
@@ -239,6 +269,21 @@ func BeginRegistrationAdmin(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	if canLogin, err := cache.CanMakeLogin(appsession, requestEmail.Email); !canLogin && (err == nil || err.Error() != "cache not found") {
+		if err != nil {
+			captureError(ctx, err)
+			logrus.WithError(err).Error("Error checking if user can login")
+		}
+
+		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
+			http.StatusTooManyRequests,
+			"Too many registration attempts",
+			constants.TooManyRequestsCode,
+			"Too many registration attempts, please try again later",
+			nil))
+		return
+	}
+
 	// validate email exists
 	if valid, err := ValidateEmailExists(ctx, appsession, requestEmail.Email); !valid {
 		if err != nil {
@@ -359,6 +404,21 @@ func Register(ctx *gin.Context, appsession *models.AppSession) {
 			"Invalid request payload",
 			constants.InvalidRequestPayloadCode,
 			"Expected at least email and password fields with optional emloyee_id or you may have placed a comma at the end of the json payload",
+			nil))
+		return
+	}
+
+	if canLogin, err := cache.CanMakeLogin(appsession, requestUser.Email); !canLogin && (err == nil || err.Error() != "cache not found") {
+		if err != nil {
+			captureError(ctx, err)
+			logrus.WithError(err).Error("Error checking if user can login")
+		}
+
+		ctx.JSON(http.StatusTooManyRequests, utils.ErrorResponse(
+			http.StatusTooManyRequests,
+			"Too many registration attempts",
+			constants.TooManyRequestsCode,
+			"Too many registration attempts, please try again later",
 			nil))
 		return
 	}

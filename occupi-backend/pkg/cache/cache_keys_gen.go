@@ -19,3 +19,7 @@ func ImageKey(imageID string) string {
 func SessionKey(email string) string {
 	return "Sessions:" + email
 }
+
+func LoginKey(email string) string {
+	return "Login:" + email
+}

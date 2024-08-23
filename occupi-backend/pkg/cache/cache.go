@@ -11,8 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// TODO: Add methods to prevent users from requesting more than 5 logins per day, 5 otps per day, etc. but waiting for go-redis to be integrated first
-
 func GetUser(appsession *models.AppSession, email string) (models.User, error) {
 	if appsession.Cache == nil {
 		return models.User{}, errors.New("cache not found")
@@ -316,4 +314,56 @@ func DeleteSession(appsession *models.AppSession, uuid string) {
 		logrus.Error("failed to delete session from cache", err)
 		return
 	}
+}
+
+func CanMakeLogin(appsession *models.AppSession, email string) (bool, error) {
+	if appsession.Cache == nil {
+		return false, errors.New("cache not found")
+	}
+
+	var eviction time.Duration
+	if configs.GetGinRunMode() == "test" {
+		eviction = 2 * time.Second
+	} else {
+		eviction = 24 * time.Hour
+	}
+
+	// check if the user can make a login request
+	res := appsession.Cache.Get(context.Background(), LoginKey(email))
+
+	if res.Err() != nil {
+		// add the user to the cache with a value of 1 and evict after one day
+		// set the image in the cache
+		res1 := appsession.Cache.Set(context.Background(), LoginKey(email), 1, eviction)
+
+		if res1.Err() != nil {
+			logrus.Error("failed to set user in cache", res1.Err())
+			return false, res1.Err()
+		}
+
+		return true, nil
+	}
+
+	// check if the user has made more than 5 login requests
+	loginCount, err := res.Int()
+
+	if err != nil {
+		return false, err
+	}
+
+	// Check if the value is less than 5
+	if loginCount < 5 {
+		// Increment the value
+		loginCount += 1
+
+		// Set the new value with the same expiration time (24 hours)
+		err = appsession.Cache.Set(context.Background(), LoginKey(email), loginCount, eviction).Err()
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return false, nil
 }
