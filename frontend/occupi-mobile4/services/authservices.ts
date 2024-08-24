@@ -74,6 +74,7 @@ export async function verifyOtpRegister(req: VerifyOTPReq): Promise<LoginSuccess
 }
 
 export async function verifyOtplogin(req: VerifyOTPReq): Promise<LoginSuccess | Unsuccessful> {
+    console.log(req);
     try {
         const response = await axios.post("https://dev.occupi.tech/auth/verify-otp-mobile-login", req, {
             headers: {
@@ -84,6 +85,27 @@ export async function verifyOtplogin(req: VerifyOTPReq): Promise<LoginSuccess | 
         });
         // console.log(response.data);
         return response.data as LoginSuccess;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            // console.log(error.response.data);
+            return error.response.data as Unsuccessful;
+        } else {
+            throw error;
+        }
+    }
+}
+
+export async function forgotPassword(req: any): Promise<Success | Unsuccessful> {
+    try {
+        const response = await axios.post("https://dev.occupi.tech/auth/forgot-password", req, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            withCredentials: true
+        });
+        console.log(response.data);
+        return response.data as Success;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
             // console.log(error.response.data);
@@ -117,8 +139,3 @@ export async function logout(): Promise<Success | Unsuccessful> {
         }
     }
 }
-
-// login({
-//     email: "boygenius31115@gmail.com",
-//     password: "Qwert@123"
-// })

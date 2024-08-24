@@ -33,6 +33,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { AlertTriangle } from 'lucide-react-native';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { useNavigation } from '@react-navigation/native';
+import { userForgotPassword } from '@/utils/auth';
 
 const forgotPasswordSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
@@ -52,23 +53,24 @@ export default function ForgotPassword() {
   });
 
   const toast = useToast();
-  const navigation = useNavigation();
 
-  const onSubmit = (data: SignUpSchemaType) => {
-    toast.show({
-      placement: 'bottom right',
+  const onSubmit = async (data: SignUpSchemaType) => {
+    const response = await userForgotPassword(data.email);
+    console.log(response);
+    if (response === "Invalid email") {
+      toast.show({
+      placement: 'top',
       render: ({ id }) => {
         return (
-          <Toast nativeID={id} variant="accent" action="success">
-            <ToastTitle>OTP sent successfully </ToastTitle>
+          <Toast nativeID={id} variant="accent" action="warning">
+            <ToastTitle>This email does not have an account.</ToastTitle>
           </Toast>
         );
       },
     });
-    reset();
-
+    }
+   
     // Navigate to OTP Verification screen with email as a parameter
-    navigation.navigate('verify-otp', { email: data.email });
   };
 
   const handleKeyPress = () => {
@@ -232,7 +234,7 @@ export default function ForgotPassword() {
           </FormControl>
 
           <GradientButton
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(onSubmit())}
             text="Send OTP"
           />
     </View>

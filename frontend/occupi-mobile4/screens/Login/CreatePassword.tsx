@@ -98,11 +98,6 @@ export default function CreatePassword() {
           );
         },
       });
-
-      // Navigate screen to appropriate location
-      router.replace('/');
-
-      reset();
     } else {
       toast.show({
         placement: 'bottom right',
@@ -288,7 +283,7 @@ export default function CreatePassword() {
                     },
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
-                    <Input   borderRadius="$full" backgroundColor="#f2f2f2">
+                    <Input backgroundColor="#F3F3F3" borderColor="#F3F3F3" borderRadius="$xl" h={hp('6%')}>
                       <InputField
                         fontSize={wp('4%')}
                         placeholder="Password"
@@ -348,7 +343,7 @@ export default function CreatePassword() {
                     },
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
-                    <Input   borderRadius="$full" backgroundColor="#f2f2f2">
+                    <Input backgroundColor="#F3F3F3" borderColor="#F3F3F3" borderRadius="$xl" h={hp('6%')}>
                       <InputField
                         fontSize={wp('4%')}
                         placeholder="Confirm Password"
