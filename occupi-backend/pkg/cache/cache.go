@@ -197,69 +197,6 @@ func DeleteBooking(appsession *models.AppSession, bookingID string) {
 	}
 }
 
-func GetImage(appsession *models.AppSession, id string) (models.Image, error) {
-	if appsession.Cache == nil {
-		return models.Image{}, errors.New("cache not found")
-	}
-
-	// unmarshal the image from the cache
-	var image models.Image
-	res := appsession.Cache.Get(context.Background(), ImageKey(id))
-
-	if res.Err() != nil {
-		logrus.Error("key does not exist: ", res.Err())
-		return models.Image{}, res.Err()
-	}
-
-	imageData, err := res.Bytes()
-
-	if err != nil {
-		logrus.Error("failed to get bytes", err)
-		return models.Image{}, err
-	}
-
-	if err := bson.Unmarshal(imageData, &image); err != nil {
-		logrus.Error("Failed to unmarshall", err)
-		return models.Image{}, err
-	}
-
-	return image, nil
-}
-
-func SetImage(appsession *models.AppSession, id string, image models.Image) {
-	if appsession.Cache == nil {
-		return
-	}
-
-	// marshal the image
-	imageData, err := bson.Marshal(image)
-	if err != nil {
-		logrus.Error("failed to marshall", err)
-		return
-	}
-
-	// set the image in the cache
-	res := appsession.Cache.Set(context.Background(), ImageKey(id), imageData, time.Duration(configs.GetCacheEviction())*time.Second)
-
-	if res.Err() != nil {
-		logrus.Error("failed to set user in cache", err)
-		return
-	}
-}
-
-func DeleteImage(appsession *models.AppSession, id string) {
-	if appsession.Cache == nil {
-		return
-	}
-
-	// delete the image from the cache
-	res := appsession.Cache.Del(context.Background(), ImageKey(id))
-
-	if res.Err() != nil {
-		logrus.Error("failed to delete image from cache", res.Err())
-	}
-}
-
 func SetSession(appsession *models.AppSession, session models.WebAuthnSession, uuid string) error {
 	if appsession.SessionCache == nil {
 		return errors.New("cache not found")

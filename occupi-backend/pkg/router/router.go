@@ -51,9 +51,10 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		// limit request body size to 16MB when uploading profile image due to mongoDB document size limit
 		api.POST("/upload-profile-image", middleware.ProtectedRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadProfileImage(ctx, appsession) })
 		api.GET("/download-profile-image", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadProfileImage(ctx, appsession) })
-		api.GET("/image/:id", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadImage(ctx, appsession) })
-		api.POST("/upload-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadImage(ctx, appsession, false) })
-		api.POST("/upload-room-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadImage(ctx, appsession, true) })
+		api.DELETE("/delete-profile-image", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DeleteProfileImage(ctx, appsession) })
+		api.GET("/image/:id", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadRoomImage(ctx, appsession) })
+		api.POST("/upload-room-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadRoomImage(ctx, appsession) })
+		api.DELETE("/delete-room-image", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.DeleteRoomImage(ctx, appsession) })
 		api.PUT("/add-room", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
 		api.GET("/available-slots", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAvailableSlots(ctx, appsession) })
 	}

@@ -1,17 +1,11 @@
 package utils
 
 import (
-	"bytes"
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"image"
-	"image/jpeg"
-	"image/png"
 	"log"
-	"mime/multipart"
 	"os"
-	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -23,7 +17,6 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/nfnt/resize"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -602,75 +595,6 @@ func GetClientTime(ctx *gin.Context) time.Time {
 	return time.Now().In(loc.(*time.Location))
 }
 
-// ConvertImageToBytes reads an image from a multipart.FileHeader, resizes it if required, and returns the image as a byte slice.
-func ConvertImageToBytes(fh *multipart.FileHeader, width uint, thumbnail bool, openFunc ...func() (multipart.File, error)) ([]byte, error) {
-	const (
-		pngExt  = ".png"
-		jpgExt  = ".jpg"
-		jpegExt = ".jpeg"
-	)
-	// Check the file extension
-	ext := filepath.Ext(fh.Filename)
-	ext = RemoveNumbersFromExtension(ext)
-	if ext != jpegExt && ext != jpgExt && ext != pngExt {
-		return nil, errors.New("unsupported file type")
-	}
-
-	var file multipart.File
-	var err error
-
-	if len(openFunc) == 0 {
-		file, err = fh.Open()
-		if err != nil {
-			return nil, err
-		}
-		defer func() {
-			if ferr := file.Close(); ferr != nil {
-				err = ferr
-			}
-		}()
-	} else {
-		file, err = openFunc[0]()
-		if err != nil {
-			return nil, err
-		}
-		defer func() {
-			if ferr := file.Close(); ferr != nil {
-				err = ferr
-			}
-		}()
-	}
-
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
-
-	// Resize the image
-	var m image.Image
-	if !thumbnail {
-		m = resize.Resize(width, 0, img, resize.NearestNeighbor)
-	} else {
-		m = resize.Thumbnail(200, 200, img, resize.NearestNeighbor)
-	}
-
-	// Convert the image to bytes
-	buf := new(bytes.Buffer)
-	switch ext {
-	case jpegExt, jpgExt:
-		err = jpeg.Encode(buf, m, nil)
-	case pngExt:
-		err = png.Encode(buf, m)
-	default:
-		return nil, errors.New("unsupported file format")
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
 func GenerateUUID() string {
 	uuid, err := uuid.NewRandom()
 
@@ -685,4 +609,19 @@ func RemoveNumbersFromExtension(ext string) string {
 	// Remove numbers from the file extension
 	extension := strings.TrimRight(ext, "0123456789")
 	return extension
+}
+
+// remove ".jpg", ".jpeg", ".png" from the extension eg "image1.jpg" -> "image1"
+func RemoveImageExtension(fileName string) string {
+	// Define the extensions to remove
+	extensions := []string{".jpg", ".jpeg", ".png"}
+
+	for _, ext := range extensions {
+		if strings.HasSuffix(strings.ToLower(fileName), ext) {
+			return strings.TrimSuffix(fileName, ext)
+		}
+	}
+
+	// Return the original filename if no extension matches
+	return fileName
 }

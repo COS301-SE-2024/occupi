@@ -1,6 +1,7 @@
 package models
 
 import (
+	"os"
 	"time"
 
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -169,4 +170,9 @@ type Image struct {
 	ImageMidRes  []byte `json:"image_mid_res" bson:"image_mid_res"`
 	ImageHighRes []byte `json:"image_high_res" bson:"image_high_res"`
 	FileName     string `json:"fileName" bson:"fileName"`
+}
+
+type File struct {
+	FileName string   `json:"fileName" bson:"fileName"`
+	File     *os.File `json:"file" bson:"file"`
 }
