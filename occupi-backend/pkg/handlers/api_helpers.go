@@ -70,7 +70,7 @@ func MultiUploadImages(ctx *gin.Context, appsession *models.AppSession, containe
 
 func ResizeImagesAndReturnAsFiles(ctx *gin.Context, appsession *models.AppSession, fh *multipart.FileHeader, fileName string) ([]models.File, error) {
 	imageWidths := []int{constants.ThumbnailWidth, constants.LowWidth, constants.MidWidth, constants.HighWidth}
-	var files []models.File
+	files := make([]models.File, 0, len(imageWidths)) // Pre-allocate the slice
 
 	for _, width := range imageWidths {
 		widthV := uint(width)
@@ -150,10 +150,10 @@ func ResizeImageAndReturnAsFile(ctx *gin.Context, fh *multipart.FileHeader, widt
 	switch ext {
 	case jpegExt, jpgExt:
 		err = jpeg.Encode(buf, m, nil)
-		newFileName = newFileName + jpgExt
+		newFileName += jpgExt
 	case pngExt:
 		err = png.Encode(buf, m)
-		newFileName = newFileName + pngExt
+		newFileName += pngExt
 	default:
 		return models.File{}, nil
 	}
@@ -162,7 +162,7 @@ func ResizeImageAndReturnAsFile(ctx *gin.Context, fh *multipart.FileHeader, widt
 	}
 
 	// Create a temp file from the bytes
-	if errv := os.WriteFile(newFileName, buf.Bytes(), 0644); errv != nil {
+	if errv := os.WriteFile(newFileName, buf.Bytes(), 0600); errv != nil {
 		return models.File{}, errv
 	}
 

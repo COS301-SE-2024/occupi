@@ -792,7 +792,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 		}
 	}
 
-	//remove @ from email
+	// remove @ from email
 	requestEmail.Email = strings.ReplaceAll(requestEmail.Email, "@", "")
 
 	imageIds := []string{requestEmail.Email + constants.ThumbnailRes, requestEmail.Email + constants.LowRes, requestEmail.Email + constants.MidRes, requestEmail.Email + constants.HighRes}
