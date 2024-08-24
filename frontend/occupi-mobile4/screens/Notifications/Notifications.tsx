@@ -3,17 +3,13 @@ import Navbar from '../../components/NavBar';
 import {
     Text,
     View,
-    Toast,
-    useToast,
-    ToastTitle,
     Divider,
     ScrollView
 } from '@gluestack-ui/themed';
 import * as SecureStore from 'expo-secure-store';
-import { StatusBar, useColorScheme, Dimensions } from 'react-native';
-import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
+import { useColorScheme } from 'react-native';
+import { AntDesign, Entypo } from '@expo/vector-icons';
 import { Skeleton } from 'moti/skeleton';
-import axios from 'axios';
 import { useTheme } from '@/components/ThemeContext';
 import { getUserNotifications } from '@/utils/notifications';
 

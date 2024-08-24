@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   useColorScheme
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import {
@@ -33,19 +30,10 @@ import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import GradientButton from '@/components/GradientButton';
-import * as SecureStore from 'expo-secure-store';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import axios from 'axios';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
 import { updateSecurity } from '@/utils/user';
 import { useTheme } from '@/components/ThemeContext';
-
-const COLORS = {
-  white: '#FFFFFF',
-  black: '#000000',
-  gray: '#BEBEBE',
-  primary: '#3366FF',
-};
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },

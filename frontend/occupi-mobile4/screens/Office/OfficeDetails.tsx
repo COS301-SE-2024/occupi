@@ -19,7 +19,6 @@ import RNPickerSelect from 'react-native-picker-select';
 import { Icon, ScrollView, View, Text, Image, Divider } from '@gluestack-ui/themed';
 import {
   widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 // import Carousel from 'react-native-snap-carousel';
 import * as SecureStore from 'expo-secure-store';

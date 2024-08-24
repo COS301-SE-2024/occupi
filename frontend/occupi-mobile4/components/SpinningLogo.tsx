@@ -1,5 +1,5 @@
-import { Keyboard, Animated, Easing } from 'react-native';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { Animated, Easing } from 'react-native';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import React, { useEffect, useRef } from 'react'
 import { HStack, Image } from '@gluestack-ui/themed';
 import Logo from '../screens/Login/assets/images/Occupi/Occupi-gradient.png';

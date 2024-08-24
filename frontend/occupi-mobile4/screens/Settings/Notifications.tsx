@@ -12,21 +12,11 @@ import {
 } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 import { useColorScheme, Switch } from 'react-native';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
-import axios from 'axios';
 import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
 import { updateNotifications } from '@/utils/user';
 import { useTheme } from '@/components/ThemeContext';
-
-
-const COLORS = {
-  white: '#FFFFFF',
-  black: '#000000',
-  gray: '#BEBEBE',
-  primary: '#3366FF',
-};
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },

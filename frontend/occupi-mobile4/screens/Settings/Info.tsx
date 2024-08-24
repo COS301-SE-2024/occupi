@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Button, Animated, Easing } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useColorScheme } from 'react-native';
 import { router } from 'expo-router';
 import { View, Text, Icon } from '@gluestack-ui/themed';
 import SpinningLogo from '@/components/SpinningLogo';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useTheme } from '@/components/ThemeContext';
 import * as Device from 'expo-device';
 import * as WebBrowser from 'expo-web-browser';
@@ -25,11 +24,9 @@ const Info = () => {
     const colorscheme = useColorScheme();
     const { theme } = useTheme();
     const currentTheme = theme === "system" ? colorscheme : theme;
-    const [result, setResult] = useState(null);
 
     const handlePressPrivacy = async () => {
-        let result = await WebBrowser.openBrowserAsync('https://www.freeprivacypolicy.com/live/8f124563-97fc-43fa-bf37-7a82ba153ea3');
-        setResult(result);
+        await WebBrowser.openBrowserAsync('https://www.freeprivacypolicy.com/live/8f124563-97fc-43fa-bf37-7a82ba153ea3');
     };
 
     return (

@@ -5,7 +5,6 @@ import { VStack, Box, HStack, Image, Heading, Toast, useToast, ToastTitle, Text,
 import { z } from 'zod';
 // import { zodResolver } from '@hookform/resolvers/zod';
 import * as SecureStore from 'expo-secure-store';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';

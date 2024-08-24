@@ -1,9 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView, useColorScheme, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, useColorScheme, TouchableOpacity, RefreshControl } from 'react-native';
 import {
-    Icon, View, Text, Input, InputField, Image, Box, ChevronDownIcon, Toast, Stack,
-    ToastTitle,
-    useToast,
+    View, Text, Input, InputField, Image, Box
 } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SimpleLineIcons } from '@expo/vector-icons';

@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
-    Alert,
-    TextInput,
     TouchableOpacity,
     useColorScheme,
-   
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
     Icon,
     View,
     ScrollView,
     Text,
     Image,
-    Box
 } from '@gluestack-ui/themed';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -23,7 +19,7 @@ import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
 import { storeTheme, storeAccentColour } from '@/services/securestore';
 import { useTheme } from '@/components/ThemeContext';
-import ColorPicker, { Panel1, Swatches, Preview, OpacitySlider, HueSlider } from 'reanimated-color-picker';
+import ColorPicker, { Panel1, Preview, HueSlider } from 'reanimated-color-picker';
 
 const FONTS = {
     h3: { fontSize: 20, fontWeight: 'bold' },

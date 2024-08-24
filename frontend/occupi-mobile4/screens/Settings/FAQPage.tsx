@@ -3,11 +3,10 @@ import { ScrollView, useColorScheme , StyleSheet} from 'react-native';
 import { View, Text, Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionContent } from '@gluestack-ui/themed';
 import { useTheme } from '@/components/ThemeContext';
 import { router } from 'expo-router';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 
 import {
   Icon,
-  ChevronLeftIcon,
 } from '@gluestack-ui/themed';
 const SIZES = {
   padding: 16,
@@ -20,9 +19,6 @@ const FAQPage = () => {
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
   const isDarkMode = currentTheme === 'dark';
-  const handleBack = () => {
-    router.back();
-  }
   let colorScheme = useColorScheme();
   
   

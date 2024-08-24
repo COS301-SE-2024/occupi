@@ -1,6 +1,6 @@
 import React from 'react'
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Heading } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 

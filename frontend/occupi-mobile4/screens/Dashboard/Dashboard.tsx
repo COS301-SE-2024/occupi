@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StatusBar, useColorScheme, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import { StatusBar, useColorScheme, TouchableOpacity, Alert } from 'react-native';
 import Navbar from '../../components/NavBar';
 import {
   Text,
@@ -31,7 +31,6 @@ import * as Location from 'expo-location';
 import { storeCheckInValue } from '@/services/securestore';
 import { isPointInPolygon } from '@/utils/dashboard';
 import PagerView from 'react-native-pager-view';
-import SetDetails from '../Login/SetDetails';
 
 // import { number } from 'zod';
 
