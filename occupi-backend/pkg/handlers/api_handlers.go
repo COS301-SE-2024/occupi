@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -770,71 +772,44 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 
 	var requestEmail models.RequestEmail
 	if err := ctx.ShouldBindJSON(&requestEmail); err != nil {
-		email, err := AttemptToGetEmail(ctx, appsession)
-		if err != nil {
-			captureError(ctx, err)
-			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-				http.StatusBadRequest,
-				"Invalid request payload",
-				constants.InvalidRequestPayloadCode,
-				"Email must be provided",
-				nil))
-			return
-		}
-		requestEmail.Email = email
-	}
-
-	// get user image if it exists and delete it
-	id, err := database.GetUserImage(ctx, appsession, requestEmail.Email)
-	if err == nil {
-		err = database.DeleteImageData(ctx, appsession, id)
-		if err != nil {
-			captureError(ctx, err)
-			logrus.WithError(err).Error("Failed to delete user image")
-			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-			return
+		// attempt to get email from form data
+		email := ctx.PostForm("email")
+		if email == "" {
+			emaila, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				captureError(ctx, err)
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			}
+			requestEmail.Email = emaila
+		} else {
+			requestEmail.Email = email
 		}
 	}
 
-	// convert to bytes
-	fileBytesThumbnail, errThumbnail := utils.ConvertImageToBytes(file, constants.ThumbnailWidth, true)
-	fileBytesLow, errLow := utils.ConvertImageToBytes(file, constants.LowWidth, false)
-	fileBytesMid, errMid := utils.ConvertImageToBytes(file, constants.MidWidth, false)
-	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, constants.HighWidth, false)
+	//remove @ from email
+	requestEmail.Email = strings.ReplaceAll(requestEmail.Email, "@", "")
 
-	if err != nil || errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
-		captureError(ctx, err)
-		logrus.WithError(err).Error("Failed to convert image to bytes")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+	imageIds := []string{requestEmail.Email + constants.ThumbnailRes, requestEmail.Email + constants.LowRes, requestEmail.Email + constants.MidRes, requestEmail.Email + constants.HighRes}
+
+	// del user image if it exists
+	if err := MultiDeleteImages(ctx, appsession, configs.GetAzurePFPContainerName(), imageIds); err != nil {
 		return
 	}
 
-	// Create a ProfileImage document
-	profileImage := models.Image{
-		FileName:     file.Filename,
-		Thumbnail:    fileBytesThumbnail,
-		ImageLowRes:  fileBytesLow,
-		ImageMidRes:  fileBytesMid,
-		ImageHighRes: fileBytesHigh,
-	}
-
-	// Save the image to the database
-	newID, err := database.UploadImageData(ctx, appsession, profileImage)
+	files, err := ResizeImagesAndReturnAsFiles(ctx, appsession, file, requestEmail.Email)
 
 	if err != nil {
-		captureError(ctx, err)
-		logrus.WithError(err).Error("Failed to upload image data")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
-	// Update the user details with the image id
-	err = database.SetUserImage(ctx, appsession, requestEmail.Email, newID)
-
-	if err != nil {
-		captureError(ctx, err)
-		logrus.WithError(err).Error("Failed to set user image")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+	// upload image associated with this email
+	if err := MultiUploadImages(ctx, appsession, configs.GetAzurePFPContainerName(), files); err != nil {
 		return
 	}
 
@@ -872,48 +847,51 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 		request.Quality = constants.MidRes
 	}
 
-	// get the image id
-	id, err := database.GetUserImage(ctx, appsession, request.Email)
-	if err != nil {
-		captureError(ctx, err)
-		logrus.WithError(err).Error("Failed to get user image")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
+	// remove @ from email
+	request.Email = strings.ReplaceAll(request.Email, "@", "")
 
-	// get the image data
-	imageData, err := database.GetImageData(ctx, appsession, id, request.Quality)
-	if err != nil {
-		captureError(ctx, err)
-		logrus.WithError(err).Error("Failed to get image data")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		return
-	}
+	// redirect to the image on azure
+	blobURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), request.Email, request.Quality)
 
-	// set the response headers
-	ctx.Header("Content-Disposition", "inline; filename="+imageData.FileName)
-	ctx.Header("Content-Type", "image/jepg")
-	switch request.Quality {
-	case constants.ThumbnailRes:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
-
-		go PreloadAllImageResolutions(ctx, appsession, id)
-	case constants.LowRes:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
-
-		go PreloadMidAndHighResolutions(ctx, appsession, id)
-	case constants.MidRes:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
-
-		go PreloadHighResolution(ctx, appsession, id)
-	case constants.HighRes:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
-	default:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
-	}
+	http.Redirect(ctx.Writer, ctx.Request, blobURL, http.StatusSeeOther)
 }
 
-func DownloadImage(ctx *gin.Context, appsession *models.AppSession) {
+func DeleteProfileImage(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		email := ctx.Query("email")
+		if email == "" {
+			email, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				captureError(ctx, err)
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			}
+			request.Email = email
+		} else {
+			request.Email = email
+		}
+	}
+
+	// remove @ from email
+	request.Email = strings.ReplaceAll(request.Email, "@", "")
+
+	imageIds := []string{request.Email + constants.ThumbnailRes, request.Email + constants.LowRes, request.Email + constants.MidRes, request.Email + constants.HighRes}
+
+	// del user image if it exists
+	if err := MultiDeleteImages(ctx, appsession, configs.GetAzurePFPContainerName(), imageIds); err != nil {
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully deleted image!", nil))
+}
+
+func DownloadRoomImage(ctx *gin.Context, appsession *models.AppSession) {
 	var request models.ImageRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		request.ID = ctx.Param("id")
@@ -936,32 +914,13 @@ func DownloadImage(ctx *gin.Context, appsession *models.AppSession) {
 		request.Quality = constants.MidRes
 	}
 
-	// get the image data
-	imageData, err := database.GetImageData(ctx, appsession, request.ID, request.Quality)
-	if err != nil {
-		captureError(ctx, err)
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to get image", constants.InternalServerErrorCode, "Failed to get image", nil))
-		return
-	}
+	// redirect to the image on azure
+	blobURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), request.ID, request.Quality)
 
-	// set the response headers
-	ctx.Header("Content-Disposition", "attachment; filename="+imageData.FileName)
-	ctx.Header("/Content-Type", "application/octet-stream")
-	switch request.Quality {
-	case constants.ThumbnailRes:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.Thumbnail)
-	case constants.LowRes:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageLowRes)
-	case constants.MidRes:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
-	case constants.HighRes:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageHighRes)
-	default:
-		ctx.Data(http.StatusOK, "application/octet-stream", imageData.ImageMidRes)
-	}
+	http.Redirect(ctx.Writer, ctx.Request, blobURL, http.StatusSeeOther)
 }
 
-func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload bool) {
+func UploadRoomImage(ctx *gin.Context, appsession *models.AppSession) {
 	file, err := ctx.FormFile("image")
 	if err != nil {
 		captureError(ctx, err)
@@ -974,59 +933,74 @@ func UploadImage(ctx *gin.Context, appsession *models.AppSession, roomUpload boo
 		return
 	}
 
-	// convert to bytes
-	fileBytesThumbnail, errThumbnail := utils.ConvertImageToBytes(file, constants.ThumbnailWidth, true)
-	fileBytesLow, errLow := utils.ConvertImageToBytes(file, constants.LowWidth, false)
-	fileBytesMid, errMid := utils.ConvertImageToBytes(file, constants.MidWidth, false)
-	fileBytesHigh, errHigh := utils.ConvertImageToBytes(file, constants.HighWidth, false)
+	uuid := utils.GenerateUUID()
 
-	if errThumbnail != nil || errLow != nil || errMid != nil || errHigh != nil {
-		captureError(ctx, err)
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to convert file to bytes", constants.InternalServerErrorCode, "Failed to convert file to bytes", nil))
-		return
-	}
-
-	// Create a ProfileImage document
-	profileImage := models.Image{
-		FileName:     file.Filename,
-		Thumbnail:    fileBytesThumbnail,
-		ImageLowRes:  fileBytesLow,
-		ImageMidRes:  fileBytesMid,
-		ImageHighRes: fileBytesHigh,
-	}
-
-	// Save the image to the database
-	newID, err := database.UploadImageData(ctx, appsession, profileImage)
+	files, err := ResizeImagesAndReturnAsFiles(ctx, appsession, file, uuid)
 
 	if err != nil {
-		captureError(ctx, err)
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to upload image", constants.InternalServerErrorCode, "Failed to upload image", nil))
 		return
 	}
 
-	if roomUpload {
-		// get room id from json body
-		roomid := ctx.Query("roomid")
+	// upload image associated with this email
+	if err := MultiUploadImages(ctx, appsession, configs.GetAzureRoomsContainerName(), files); err != nil {
+		return
+	}
 
+	// get room id from json body
+	roomid := ctx.Query("roomid")
+
+	if roomid == "" {
+		roomid = ctx.PostForm("roomid")
 		if roomid == "" {
-			roomid = ctx.PostForm("roomid")
-			if roomid == "" {
-				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
-				return
-			}
-		}
-
-		// Update the room details with the image id
-		err = database.AddImageIDToRoom(ctx, appsession, roomid, newID)
-
-		if err != nil {
-			captureError(ctx, err)
-			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update room image", constants.InternalServerErrorCode, "Failed to update room image", nil))
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
 			return
 		}
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", gin.H{"id": newID}))
+	// Update the room details with the image id
+	err = database.AddImageIDToRoom(ctx, appsession, roomid, uuid)
+
+	if err != nil {
+		captureError(ctx, err)
+		logrus.WithError(err).Error("Failed to update image id")
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to update room image id", constants.InternalServerErrorCode, "Failed to update room image", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully uploaded image!", gin.H{"id": uuid}))
+}
+
+func DeleteRoomImage(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.ImageRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		request.ID = ctx.Query("id")
+		request.RoomID = ctx.Query("roomid")
+		if request.ID == "" || request.RoomID == "" {
+			captureError(ctx, errors.New("id and roomid must be provided"))
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"ID and roomid must be provided",
+				nil))
+			return
+		}
+	}
+
+	// del user image if it exists
+	if err := MultiDeleteImages(ctx, appsession, configs.GetAzureRoomsContainerName(), []string{request.ID + constants.ThumbnailRes, request.ID + constants.LowRes, request.ID + constants.MidRes, request.ID + constants.HighRes}); err != nil {
+		return
+	}
+
+	// Update the room details with the image id
+	if err := database.DeleteImageIDFromRoom(ctx, appsession, request.RoomID, request.ID); err != nil {
+		captureError(ctx, err)
+		logrus.WithError(err).Error("Failed to delete image id")
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to delete room image id", constants.InternalServerErrorCode, "Failed to delete room image", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully deleted image!", nil))
 }
 
 func AddRoom(ctx *gin.Context, appsession *models.AppSession) {
