@@ -54,6 +54,14 @@ func MultiUploadImages(ctx *gin.Context, appsession *models.AppSession, containe
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
 		}
+
+		if err := fileData.Close(); err != nil {
+			deleteTempFiles(files)
+			captureError(ctx, err)
+			logrus.WithError(err).Error("Failed to close image")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return err
+		}
 	}
 
 	deleteTempFiles(files)
