@@ -9,57 +9,61 @@ import (
 )
 
 const (
-	MongodbUsername        = "MONGODB_USERNAME"
-	MongodbPassword        = "MONGODB_PASSWORD"
-	MongodbClusteruri      = "MONGODB_CLUSTERURI"
-	MongodbDbname          = "MONGODB_DBNAME"
-	MongodbStartURI        = "MONGODB_START_URI"
-	Port                   = "PORT"
-	LogFileName            = "LOG_FILE_NAME"
-	SMTPHost               = "SMTP_HOST"
-	SMTPPort               = "SMTP_PORT"
-	SMTPPassword           = "SMTP_PASSWORD"
-	SystemEmail            = "SYSTEM_EMAIL"
-	CertificateFilePath    = "CERTIFICATE_FILE_PATH"
-	KeyFilePath            = "KEY_FILE_PATH"
-	GinRunMode             = "GIN_RUN_MODE"
-	TrustedProxies         = "TRUSTED_PROXIES"
-	JwtSecret              = "JWT_SECRET"
-	SessionSecret          = "SESSION_SECRET"
-	OccupiDomains          = "OCCUPI_DOMAINS"
-	Env                    = "ENV"
-	OtpExpiration          = "OTP_EXPIRATION"
-	CacheEviction          = "CACHE_EVICTION"
-	OtpGenReqEviction      = "OTP_GEN_REQ_EVICTION"
-	AllowOriginsVal        = "ALLOW_ORIGINS"
-	AllowMethodsVal        = "ALLOW_METHODS"
-	AllowHeadersVal        = "ALLOW_HEADERS"
-	ExposeHeadersVal       = "EXPOSE_HEADERS"
-	Caval                  = "ALLOW_CREDENTIALS"
-	MaxAgeVal              = "MAX_AGE"
-	IPCIT                  = "IP_CLIENT_INFO_TOKEN"
-	RabbitMQUsername       = "RABBITMQ_USERNAME"
-	RabbitMQPassword       = "RABBITMQ_PASSWORD"
-	RabbitMQHost           = "RABBITMQ_HOST"
-	RabbitMQPort           = "RABBITMQ_PORT"
-	RPID                   = "RP_ID"
-	RPName                 = "RP_NAME"
-	RPOrigins              = "RP_ORIGINS"
-	CentrifugoAKy          = "CENTRIFUGO_API_KEY"
-	CentrifugoHost         = "CENTRIFUGO_HOST"
-	CentrifugoPort         = "CENTRIFUGO_PORT"
-	NewRelicAppName        = "NEW_RELIC_APP_NAME"
-	SentryDSN              = "SENTRY_DSN"
-	PassPhrase             = "TEST_PASS_PHRASE"
-	NewRelicLicenseKey     = "NEW_RELIC_LICENSE_KEY"
-	MiddlewareService      = "MIDDLEWARE_SERVICE"
-	MiddelwareAT           = "MIDDLEWARE_AT"
-	MiddlewareTarget       = "MIDDLEWARE_TARGET"
-	MiddlewareAgentService = "MW_AGENT_SERVICE"
-	RedisUsername          = "REDIS_USERNAME"
-	RedisPassword          = "REDIS_PASSWORD"
-	RedisHost              = "REDIS_HOST"
-	RedisPort              = "REDIS_PORT"
+	MongodbUsername         = "MONGODB_USERNAME"
+	MongodbPassword         = "MONGODB_PASSWORD"
+	MongodbClusteruri       = "MONGODB_CLUSTERURI"
+	MongodbDbname           = "MONGODB_DBNAME"
+	MongodbStartURI         = "MONGODB_START_URI"
+	Port                    = "PORT"
+	LogFileName             = "LOG_FILE_NAME"
+	SMTPHost                = "SMTP_HOST"
+	SMTPPort                = "SMTP_PORT"
+	SMTPPassword            = "SMTP_PASSWORD"
+	SystemEmail             = "SYSTEM_EMAIL"
+	CertificateFilePath     = "CERTIFICATE_FILE_PATH"
+	KeyFilePath             = "KEY_FILE_PATH"
+	GinRunMode              = "GIN_RUN_MODE"
+	TrustedProxies          = "TRUSTED_PROXIES"
+	JwtSecret               = "JWT_SECRET"
+	SessionSecret           = "SESSION_SECRET"
+	OccupiDomains           = "OCCUPI_DOMAINS"
+	Env                     = "ENV"
+	OtpExpiration           = "OTP_EXPIRATION"
+	CacheEviction           = "CACHE_EVICTION"
+	OtpGenReqEviction       = "OTP_GEN_REQ_EVICTION"
+	AllowOriginsVal         = "ALLOW_ORIGINS"
+	AllowMethodsVal         = "ALLOW_METHODS"
+	AllowHeadersVal         = "ALLOW_HEADERS"
+	ExposeHeadersVal        = "EXPOSE_HEADERS"
+	Caval                   = "ALLOW_CREDENTIALS"
+	MaxAgeVal               = "MAX_AGE"
+	IPCIT                   = "IP_CLIENT_INFO_TOKEN"
+	RabbitMQUsername        = "RABBITMQ_USERNAME"
+	RabbitMQPassword        = "RABBITMQ_PASSWORD"
+	RabbitMQHost            = "RABBITMQ_HOST"
+	RabbitMQPort            = "RABBITMQ_PORT"
+	RPID                    = "RP_ID"
+	RPName                  = "RP_NAME"
+	RPOrigins               = "RP_ORIGINS"
+	CentrifugoAKy           = "CENTRIFUGO_API_KEY"
+	CentrifugoHost          = "CENTRIFUGO_HOST"
+	CentrifugoPort          = "CENTRIFUGO_PORT"
+	NewRelicAppName         = "NEW_RELIC_APP_NAME"
+	SentryDSN               = "SENTRY_DSN"
+	PassPhrase              = "TEST_PASS_PHRASE"
+	NewRelicLicenseKey      = "NEW_RELIC_LICENSE_KEY"
+	MiddlewareService       = "MIDDLEWARE_SERVICE"
+	MiddelwareAT            = "MIDDLEWARE_AT"
+	MiddlewareTarget        = "MIDDLEWARE_TARGET"
+	MiddlewareAgentService  = "MW_AGENT_SERVICE"
+	RedisUsername           = "REDIS_USERNAME"
+	RedisPassword           = "REDIS_PASSWORD"
+	RedisHost               = "REDIS_HOST"
+	RedisPort               = "REDIS_PORT"
+	AzureAccountName        = "AZURE_ACCOUNT_NAME"
+	AzurePFPContainerName   = "AZURE_PFP_CONTAINER_NAME"
+	AzureRoomsContainerName = "AZURE_ROOMS_CONTAINER_NAME"
+	AzureAccountKey         = "AZURE_ACCOUNT_KEY"
 )
 
 // init viper
@@ -530,4 +534,36 @@ func GetRedisPort() string {
 		port = "REDIS_PORT"
 	}
 	return port
+}
+
+func GetAzureAccountName() string {
+	accountName := viper.GetString(AzureAccountName)
+	if accountName == "" {
+		accountName = "AZURE_ACCOUNT_NAME"
+	}
+	return accountName
+}
+
+func GetAzurePFPContainerName() string {
+	containerName := viper.GetString(AzurePFPContainerName)
+	if containerName == "" {
+		containerName = "AZURE_PFP_CONTAINER_NAME"
+	}
+	return containerName
+}
+
+func GetAzureRoomsContainerName() string {
+	containerName := viper.GetString(AzureRoomsContainerName)
+	if containerName == "" {
+		containerName = "AZURE_ROOMS_CONTAINER_NAME"
+	}
+	return containerName
+}
+
+func GetAzureAccountKey() string {
+	accountKey := viper.GetString(AzureAccountKey)
+	if accountKey == "" {
+		accountKey = "AZURE_ACCOUNT_KEY"
+	}
+	return accountKey
 }
