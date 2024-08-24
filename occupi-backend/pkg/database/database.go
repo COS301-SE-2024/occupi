@@ -1290,6 +1290,27 @@ func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, i
 	return nil
 }
 
+func DeleteImageIDFromRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
+
+	filter := bson.M{"roomId": roomID}
+	update := bson.M{"$pull": bson.M{"roomImageIds": imageID}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
 func CheckIfUserHasMFAEnabled(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
 	// check if database is nil
 	if appsession.DB == nil {
@@ -1476,25 +1497,4 @@ func GetAvailableSlots(ctx *gin.Context, appsession *models.AppSession, request 
 	slots := ComputeAvailableSlots(bookings, request.Date)
 
 	return slots, nil
-}
-
-func DeleteImageIDFromRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return errors.New("database is nil")
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
-
-	filter := bson.M{"roomId": roomID}
-	update := bson.M{"$pull": bson.M{"roomImageIds": imageID}}
-
-	_, err := collection.UpdateOne(ctx, filter, update)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-
-	return nil
 }

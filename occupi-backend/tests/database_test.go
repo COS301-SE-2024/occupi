@@ -6780,3 +6780,201 @@ func TestUpdateNotificationSettings(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func TestAddImageIDToRoom(t *testing.T) {
+	// Set Gin mode to match your configuration
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a new mtest instance
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("database is nil", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: nil,
+		}
+
+		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("update image ID successful", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		assert.NoError(t, err)
+	})
+
+	mt.Run("update image ID failure", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock the UpdateOne operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		assert.EqualError(t, err, "update error")
+	})
+}
+
+func TestDeleteImageIDFromRoom(t *testing.T) {
+	// Set Gin mode to match your configuration
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a new mtest instance
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("database is nil", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: nil,
+		}
+
+		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("delete image ID successful", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		assert.NoError(t, err)
+	})
+
+	mt.Run("delete image ID failure", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock the UpdateOne operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		assert.EqualError(t, err, "delete error")
+	})
+}
+
+func TestAddRoom(t *testing.T) {
+	// Set Gin mode to match your configuration
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a new mtest instance
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("database is nil", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: nil,
+		}
+
+		rroom := models.RequestRoom{
+			RoomID:       "room1",
+			RoomNo:       "101",
+			FloorNo:      "1",
+			MinOccupancy: 1,
+			MaxOccupancy: 4,
+			Description:  "Test Room",
+			RoomName:     "Test Room Name",
+		}
+
+		_, err := database.AddRoom(ctx, appsession, rroom)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("room already exists", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		rroom := models.RequestRoom{
+			RoomID:       "room1",
+			RoomNo:       "101",
+			FloorNo:      "1",
+			MinOccupancy: 1,
+			MaxOccupancy: 4,
+			Description:  "Test Room",
+			RoomName:     "Test Room Name",
+		}
+
+		// Mock the FindOne operation to return a matching room
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Rooms", mtest.FirstBatch, bson.D{
+			{Key: "roomId", Value: rroom.RoomID},
+			{Key: "roomNo", Value: rroom.RoomNo},
+		}))
+
+		_, err := database.AddRoom(ctx, appsession, rroom)
+		assert.EqualError(t, err, "room already exists")
+	})
+
+	mt.Run("add room successful", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		rroom := models.RequestRoom{
+			RoomID:       "room2",
+			RoomNo:       "102",
+			FloorNo:      "1",
+			MinOccupancy: 1,
+			MaxOccupancy: 4,
+			Description:  "Another Test Room",
+			RoomName:     "Another Test Room Name",
+		}
+
+		// Mock the FindOne operation to return no matching room (room does not exist)
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Rooms", mtest.FirstBatch))
+
+		// Mock the InsertOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		id, err := database.AddRoom(ctx, appsession, rroom)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, id)
+	})
+
+	mt.Run("add room failure", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		rroom := models.RequestRoom{
+			RoomID:       "room3",
+			RoomNo:       "103",
+			FloorNo:      "1",
+			MinOccupancy: 1,
+			MaxOccupancy: 4,
+			Description:  "Third Test Room",
+			RoomName:     "Third Test Room Name",
+		}
+
+		// Mock the FindOne operation to return no matching room (room does not exist)
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Rooms", mtest.FirstBatch))
+
+		// Mock the InsertOne operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "duplicate key error",
+		}))
+
+		_, err := database.AddRoom(ctx, appsession, rroom)
+		assert.EqualError(t, err, "duplicate key error")
+	})
+}
