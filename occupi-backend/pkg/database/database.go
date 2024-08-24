@@ -1269,167 +1269,6 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession,
 	return nil
 }
 
-func UploadImageData(ctx *gin.Context, appsession *models.AppSession, image models.Image) (string, error) {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return "", errors.New("database is nil")
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
-
-	id, err := collection.InsertOne(ctx, image)
-	if err != nil {
-		logrus.Error(err)
-		return "", err
-	}
-
-	// add image to cache
-	cache.SetImage(appsession, id.InsertedID.(primitive.ObjectID).Hex(), image)
-
-	return id.InsertedID.(primitive.ObjectID).Hex(), nil
-}
-
-func GetImageData(ctx *gin.Context, appsession *models.AppSession, imageID string, quality string) (models.Image, error) {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return models.Image{}, errors.New("database is nil")
-	}
-
-	if imageData, err := cache.GetImage(appsession, imageID); err == nil {
-		resolutions := map[string][]byte{
-			constants.ThumbnailRes: imageData.Thumbnail,
-			constants.LowRes:       imageData.ImageLowRes,
-			constants.MidRes:       imageData.ImageMidRes,
-			constants.HighRes:      imageData.ImageHighRes,
-		}
-
-		if data, ok := resolutions[quality]; ok && len(data) > 0 {
-			return imageData, nil
-		}
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
-
-	id, err := primitive.ObjectIDFromHex(imageID)
-
-	if err != nil {
-		logrus.Error(err)
-		return models.Image{}, err
-	}
-
-	filter := bson.M{"_id": id}
-
-	// add quality attribute to projection
-	findOptions := options.FindOne()
-	findOptions.SetProjection(bson.M{"image_" + quality + "_res": 1, "_id": 0, "fileName": 1})
-
-	var image models.Image
-	err = collection.FindOne(ctx, filter, findOptions).Decode(&image)
-	if err != nil {
-		logrus.WithError(err).Error("Failed to get image data")
-		return models.Image{}, err
-	}
-
-	if imageData, err := cache.GetImage(appsession, imageID); err == nil {
-		switch quality {
-		case constants.ThumbnailRes:
-			imageData.Thumbnail = image.Thumbnail
-		case constants.LowRes:
-			imageData.ImageLowRes = image.ImageLowRes
-		case constants.MidRes:
-			imageData.ImageMidRes = image.ImageMidRes
-		case constants.HighRes:
-			imageData.ImageHighRes = image.ImageHighRes
-		}
-
-		cache.SetImage(appsession, imageID, imageData)
-	}
-
-	return image, nil
-}
-
-func DeleteImageData(ctx *gin.Context, appsession *models.AppSession, imageID string) error {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return errors.New("database is nil")
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
-
-	filter := bson.M{"_id": imageID}
-	_, err := collection.DeleteOne(ctx, filter)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-
-	// delete image from cache
-	cache.DeleteImage(appsession, imageID)
-
-	return nil
-}
-
-func SetUserImage(ctx *gin.Context, appsession *models.AppSession, email, imageID string) error {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return errors.New("database is nil")
-	}
-
-	// get user from cache
-	userData, cacheErr := cache.GetUser(appsession, email)
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
-
-	filter := bson.M{"email": email}
-	update := bson.M{"$set": bson.M{"details.imageid": imageID}}
-
-	_, err := collection.UpdateOne(ctx, filter, update)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-
-	// update user in cache
-	if cacheErr == nil {
-		userData.Details.ImageID = imageID
-		cache.SetUser(appsession, userData)
-	}
-
-	return nil
-}
-
-func GetUserImage(ctx *gin.Context, appsession *models.AppSession, email string) (string, error) {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return "", errors.New("database is nil")
-	}
-
-	// check if user is in cache
-	if userData, err := cache.GetUser(appsession, email); err == nil {
-		return userData.Details.ImageID, nil
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
-
-	filter := bson.M{"email": email}
-	var user models.User
-	err := collection.FindOne(ctx, filter).Decode(&user)
-	if err != nil {
-		logrus.WithError(err).Error("Failed to get user image id")
-		return "", err
-	}
-
-	// Add the user to the cache if cache is not nil
-	cache.SetUser(appsession, user)
-
-	return user.Details.ImageID, nil
-}
-
 func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
 	// check if database is nil
 	if appsession.DB == nil {
@@ -1637,4 +1476,25 @@ func GetAvailableSlots(ctx *gin.Context, appsession *models.AppSession, request 
 	slots := ComputeAvailableSlots(bookings, request.Date)
 
 	return slots, nil
+}
+
+func DeleteImageIDFromRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
+
+	filter := bson.M{"roomId": roomID}
+	update := bson.M{"$pull": bson.M{"roomImageIds": imageID}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
 }

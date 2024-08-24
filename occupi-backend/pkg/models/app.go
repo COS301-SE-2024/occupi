@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/allegro/bigcache/v3"
 	"github.com/centrifugal/gocent/v3"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -26,6 +27,7 @@ type AppSession struct {
 	SessionCache *bigcache.BigCache
 	Centrifugo   *gocent.Client
 	MailConn     *gomail.Dialer
+	AzureClient  *azblob.Client
 }
 
 // constructor for app session
@@ -45,6 +47,7 @@ func New(db *mongo.Client, cache *redis.Client) *AppSession {
 		SessionCache: configs.CreateSessionCache(),
 		Centrifugo:   configs.CreateCentrifugoClient(),
 		MailConn:     configs.CreateMailServerConnection(),
+		AzureClient:  configs.CreateAzureBlobClient(),
 	}
 }
 

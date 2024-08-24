@@ -97,6 +97,7 @@ type ProfileImageRequest struct {
 
 type ImageRequest struct {
 	ID      string `json:"id" binding:"required"`
+	RoomID  string `json:"roomId" binding:"omitempty,startswith=RM"`
 	Quality string `json:"quality"`
 }
 
