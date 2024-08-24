@@ -4,6 +4,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/allegro/bigcache/v3"
 	"github.com/centrifugal/gocent/v3"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -271,4 +272,24 @@ func CreateMailServerConnection() *gomail.Dialer {
 	logrus.Info("Mail server connection created!")
 
 	return d
+}
+
+func CreateAzureBlobClient() *azblob.Client {
+	url := fmt.Sprintf("https://%s.blob.core.windows.net/", GetAzureAccountName())
+
+	credential, err := azblob.NewSharedKeyCredential(GetAzureAccountName(), GetAzureAccountKey())
+
+	if err != nil {
+		logrus.Fatal("Unable to create azure credentials due to error: ", err)
+	}
+
+	client, err := azblob.NewClientWithSharedKeyCredential(url, credential, nil)
+	if err != nil {
+		logrus.Fatal("Unable to create azure credentials due to error: ", err)
+	}
+
+	fmt.Println("Azure blob storage connection created!")
+	logrus.Info("Azure blob storage connection created!")
+
+	return client
 }
