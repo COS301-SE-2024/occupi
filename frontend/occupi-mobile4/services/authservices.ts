@@ -116,6 +116,29 @@ export async function forgotPassword(req: any): Promise<Success | Unsuccessful> 
     }
 }
 
+export async function resetPassword(req: any): Promise<LoginSuccess | Unsuccessful> {
+    try {
+        const response = await axios.post("https://dev.occupi.tech/auth/reset-password-mobile-login", req, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            withCredentials: true
+        });
+        console.log(response.data);
+        return response.data as Success;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            // console.log(error.response.data);
+            return error.response.data as Unsuccessful;
+        } else {
+            throw error;
+        }
+    }
+}
+
+
+
 export async function logout(): Promise<Success | Unsuccessful> {
     let authToken = await SecureStore.getItemAsync('Token');
     // console.log('token',authToken);

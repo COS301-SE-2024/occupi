@@ -1,11 +1,11 @@
 //this folder contains functions that will call the service functions which make api requests for authentication
 //the purpose of this file is to refine and process the data and return these to the View
 
-import { forgotPassword, login, logout, register, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
+import { forgotPassword, login, logout, register, resetPassword, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { storeUserEmail, storeToken, setState, deleteAllData } from "../services/securestore";
+import { storeUserEmail, storeToken, setState, deleteAllData, storeOtp } from "../services/securestore";
 import { retrievePushToken } from "./notifications";
 
 
@@ -101,6 +101,7 @@ export async function VerifyUserOtpLogin(email : string, otp : string) {
             const state = await SecureStore.getItemAsync('AppState');
             console.log('staaate',state)
             if (state === 'reset_password') {
+                storeOtp(otp);
                 router.replace('/create-password');
             }
             else {
@@ -135,6 +136,36 @@ export async function userForgotPassword(email: string) {
             console.log('responseee',response);
             setState('reset_password');
             router.replace('/verify-otp');
+            return response.message as string;
+        }
+        else {
+            console.log('woahhh', response)
+            return response.message as string;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+export async function userResetPassword(newPassword: string, newPasswordConfirm: string) {
+    const email = await SecureStore.getItemAsync('Email') || "";
+    const otp = await SecureStore.getItemAsync('Otp');
+    const body = {
+        email: email,
+        otp: otp,
+        newPassword: newPassword,
+        newPasswordConfirm: newPasswordConfirm
+    }
+    try {
+        const response = await resetPassword(body);
+        if (response.status === 200) {
+            console.log('responseee',response);
+            setState('logged_in');
+            storeToken(response.data.token);
+            fetchUserDetails(email, response.data.token);
+            fetchNotificationSettings(email);
+            fetchSecuritySettings(email);
+            router.replace('/home');
             return response.message as string;
         }
         else {

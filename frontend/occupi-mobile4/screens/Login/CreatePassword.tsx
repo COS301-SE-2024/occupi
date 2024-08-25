@@ -40,6 +40,7 @@ import GuestLayout from '../../layouts/GuestLayout';
 import { router } from 'expo-router';
 import { styled } from '@gluestack-style/react';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
+import { userResetPassword } from '@/utils/auth';
 
 const StyledImage = styled(Image, {
   props: {
@@ -86,14 +87,15 @@ export default function CreatePassword() {
 
   const toast = useToast();
 
-  const onSubmit = (data: CreatePasswordSchemaType) => {
+  const onSubmit = async (data: CreatePasswordSchemaType) => {
     if (data.password === data.confirmpassword) {
+      const response = await userResetPassword(data.password, data.confirmpassword);
       toast.show({
         placement: 'bottom right',
         render: ({ id }) => {
           return (
             <Toast nativeID={id} variant="accent" action="success">
-              <ToastTitle>Password updated successfully</ToastTitle>
+              <ToastTitle>{response === "Successful login!" ? "Password updated successfully!" : response}</ToastTitle>
             </Toast>
           );
         },
