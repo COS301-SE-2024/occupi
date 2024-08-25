@@ -539,14 +539,6 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 		return
 	}
 
-	// delete the otp from the database
-	if _, err := database.DeleteOTP(ctx, appsession, userotp.Email, userotp.OTP); err != nil {
-		captureError(ctx, err)
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		// the otp will autodelete after an hour so we can continue
-	}
-
 	// change users verification status to true
 	if _, err := database.VerifyUser(ctx, appsession, userotp.Email, utils.GetClientIP(ctx)); err != nil {
 		captureError(ctx, err)
@@ -559,9 +551,17 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 	if !login {
 		ctx.JSON(http.StatusOK, utils.SuccessResponse(
 			http.StatusOK,
-			"Email verified successfully!",
+			"OTP verified successfully!",
 			nil))
 		return
+	}
+
+	// delete the otp from the database
+	if _, err := database.DeleteOTP(ctx, appsession, userotp.Email, userotp.OTP); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		logrus.Error(err)
+		// the otp will autodelete after an hour so we can continue
 	}
 
 	// generate a jwt token for the user
@@ -710,6 +710,14 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 		}
 		captureMessage(ctx, "ValidateOTPExists failed")
 		return
+	}
+
+	// delete the otp from the database
+	if _, err := database.DeleteOTP(ctx, appsession, resetRequest.Email, resetRequest.OTP); err != nil {
+		captureError(ctx, err)
+		logrus.WithError(err).Error("Error deleting OTP")
+
+		// the otp will autodelete after an hour so we can continue
 	}
 
 	// Validate new password
