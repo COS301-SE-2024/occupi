@@ -1,7 +1,7 @@
 //this folder contains functions that will call the service functions which make api requests for authentication
 //the purpose of this file is to refine and process the data and return these to the View
 
-import { forgotPassword, login, logout, register, resetPassword, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
+import { forgotPassword, login, logout, register, resetPassword, verifyOtp, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -26,7 +26,7 @@ export async function UserLogin(email: string, password: string) {
                 fetchNotificationSettings(email);
                 fetchSecuritySettings(email);
                 router.replace('/home');
-            } 
+            }
             else {
                 setState('verify_otp_login');
                 router.replace('/verify-otp')
@@ -90,30 +90,21 @@ export async function verifyUserOtpRegister(email: string, otp: string) {
     }
 }
 
-export async function VerifyUserOtpLogin(email : string, otp : string) {
+export async function VerifyUserOtpLogin(email: string, otp: string) {
     try {
         const response = await verifyOtplogin({
             email: email,
             otp: otp
         });
         if (response.status === 200) {
-            // console.log('responseee',response);
-            const state = await SecureStore.getItemAsync('AppState');
-            console.log('staaate',state)
-            if (state === 'reset_password') {
-                storeOtp(otp);
-                router.replace('/create-password');
-            }
-            else {
-                setState('logged_in');
-                storeToken(response.data.token);
-                console.log('here');
-                fetchUserDetails(email, response.data.token);
-                fetchNotificationSettings(email);
-                fetchSecuritySettings(email);
-                router.replace('/home');
-            }
-
+            // console.log('responseee',response)
+            setState('logged_in');
+            storeToken(response.data.token);
+            console.log('here');
+            fetchUserDetails(email, response.data.token);
+            fetchNotificationSettings(email);
+            fetchSecuritySettings(email);
+            router.replace('/home');
             return response.message;
         }
         else {
@@ -123,7 +114,28 @@ export async function VerifyUserOtpLogin(email : string, otp : string) {
     } catch (error) {
         console.error('Error:', error);
     }
-} 
+}
+
+export async function verifyUserOtp(email: string, otp: string) {
+    try {
+        const response = await verifyOtp({
+            email: email,
+            otp: otp
+        });
+        console.log(response);
+        if (response.status === 200) {
+            storeOtp(otp);
+            router.replace('/create-password');
+            return response.message;
+        }
+        else {
+            console.log('woahhh', response)
+            return response.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
 export async function userForgotPassword(email: string) {
     storeUserEmail(email);
@@ -133,7 +145,7 @@ export async function userForgotPassword(email: string) {
     try {
         const response = await forgotPassword(body);
         if (response.status === 200) {
-            console.log('responseee',response);
+            console.log('responseee', response);
             setState('reset_password');
             router.replace('/verify-otp');
             return response.message as string;
@@ -159,7 +171,7 @@ export async function userResetPassword(newPassword: string, newPasswordConfirm:
     try {
         const response = await resetPassword(body);
         if (response.status === 200) {
-            console.log('responseee',response);
+            console.log('responseee', response);
             setState('logged_in');
             storeToken(response.data.token);
             fetchUserDetails(email, response.data.token);

@@ -91,7 +91,7 @@ export default function CreatePassword() {
     if (data.password === data.confirmpassword) {
       const response = await userResetPassword(data.password, data.confirmpassword);
       toast.show({
-        placement: 'bottom right',
+        placement: 'top',
         render: ({ id }) => {
           return (
             <Toast nativeID={id} variant="accent" action="success">
@@ -102,7 +102,7 @@ export default function CreatePassword() {
       });
     } else {
       toast.show({
-        placement: 'bottom right',
+        placement: 'top',
         render: ({ id }) => {
           return (
             <Toast nativeID={id} variant="accent" action="error">
