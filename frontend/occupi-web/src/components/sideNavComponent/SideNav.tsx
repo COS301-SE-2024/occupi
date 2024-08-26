@@ -25,10 +25,10 @@ const sidebarcontent = [
     icon: Grid,
     text: "Dashboard",
   },
-  // {
-  //   // icon: PieChart,
-  //   // text: "Analysis",
-  // },
+  {
+    icon: PieChart,
+    text: "Booking",
+  },
   {
     icon: PieChart,
     text: "AI Analysis",
