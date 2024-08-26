@@ -52,6 +52,21 @@ func SendMailBCC(appsession *models.AppSession, subject, body, bcc string) error
 
 // SendBulkEmailWithBCC sends an email to multiple recipients using BCC
 func SendBulkEmailWithBCC(emails []string, subject, body string, appsession *models.AppSession) error {
+	// if no emails to send to, return
+	if len(emails) == 0 {
+		return nil
+	}
+
+	// if only one email to send to, send directly
+	if configs.GetGinRunMode() != test {
+		if len(emails) == 1 {
+			if err := SendMail(appsession, emails[0], subject, body); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
 	// Send the email
 	if configs.GetGinRunMode() != test {
 		bcc := strings.Join(emails, ",")
@@ -88,7 +103,7 @@ func SendBookingEmails(booking models.Booking, appsession *models.AppSession) er
 	err := SendBulkEmailWithBCC(attendeesEmails, attendeesSubject, attendeesBody, appsession)
 
 	if err != nil {
-		return errors.New("failed to send booking emails")
+		return err
 	}
 
 	return nil
