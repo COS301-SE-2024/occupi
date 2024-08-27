@@ -11,11 +11,16 @@ import { Alert } from 'react-native';
 
 // Mock dependencies
 jest.mock('expo-secure-store');
-jest.mock('@/utils/user');
+jest.mock('@/utils/auth', () => ({
+  UserLogout: jest.fn().mockResolvedValue(),
+}));
+
 jest.mock('expo-router', () => ({
   router: {
     back: jest.fn(),
     replace: jest.fn(),
+    push: jest.fn(),
+    setCurrentTab: jest.fn(),
   },
 }));
 jest.mock('@gluestack-ui/themed', () => ({
@@ -23,6 +28,15 @@ jest.mock('@gluestack-ui/themed', () => ({
   useToast: jest.fn(() => ({
     show: jest.fn(),
   })),
+}));
+
+jest.mock('@/components/ThemeContext', () => ({
+  ...jest.requireActual('@/components/ThemeContext'),
+  useToast: jest.fn().mockReturnValue({
+    show: jest.fn(),
+    hide: jest.fn(),
+  }),
+  useTheme: jest.fn().mockReturnValue({ theme: 'light', setTheme: jest.fn() }),
 }));
 
 describe('Notifications Settings Component', () => {

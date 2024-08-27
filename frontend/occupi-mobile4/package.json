@@ -12,25 +12,25 @@
     "test:coverage": "jest --coverage",
     "lint": "expo lint"
   },
- "jest": {
-  "preset": "jest-expo",
-  "transformIgnorePatterns": [
-    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui/themed|expo-device|moti)"
-  ],
-  "collectCoverage": true,
-  "coverageReporters": [
-    "lcov",
-    "text"
-  ],
-  "coverageDirectory": "coverage",
-  "setupFiles": [
-    "./node_modules/react-native-gesture-handler/jestSetup.js",
-    "./jest.setup.js"
-  ],
-  "moduleNameMapper": {
-  "^@/(.*)$": "<rootDir>/$1"
-}
-},
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui/themed|expo-device|moti)"
+    ],
+    "collectCoverage": true,
+    "coverageReporters": [
+      "lcov",
+      "text"
+    ],
+    "coverageDirectory": "coverage",
+    "setupFiles": [
+      "./node_modules/react-native-gesture-handler/jestSetup.js",
+      "./jest.setup.js"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    }
+  },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
     "@expo/vector-icons": "^14.0.0",
@@ -47,7 +47,6 @@
     "@react-native-picker/picker": "^2.7.7",
     "@react-native-segmented-control/segmented-control": "^2.5.2",
     "@react-navigation/native": "^6.1.17",
-    "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.5.1",
     "@ui-kitten/components": "^5.3.1",
     "axios": "^1.7.2",
@@ -109,6 +108,7 @@
     "@babel/preset-react": "^7.24.7",
     "@babel/preset-typescript": "^7.24.7",
     "@lingui/cli": "^4.11.2",
+    "@testing-library/jest-native": "^5.4.3",
     "@types/jest": "^29.5.12",
     "@types/react": "~18.2.45",
     "@types/react-test-renderer": "^18.0.7",

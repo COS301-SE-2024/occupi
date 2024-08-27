@@ -24,10 +24,13 @@ jest.mock('@/services/securestore', () => ({
   storeAccentColour: jest.fn(),
 }));
 
-// Mock the useTheme hook
+let mockTheme = 'light';
 jest.mock('@/components/ThemeContext', () => ({
-  ...jest.requireActual('@/components/ThemeContext'),
-  useTheme: jest.fn(),
+  ThemeProvider: ({ children }) => children,
+  useTheme: () => ({ 
+    theme: mockTheme, 
+    setTheme: jest.fn((newTheme) => { mockTheme = newTheme; })
+  }),
 }));
 
 describe('Appearance', () => {
