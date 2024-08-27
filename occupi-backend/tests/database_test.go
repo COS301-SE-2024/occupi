@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redismock/v9"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 
 	"github.com/stretchr/testify/assert"
@@ -6979,7 +6980,7 @@ func TestAddRoom(t *testing.T) {
 	})
 }
 
-func CheckIfUserHasMFAenabled(t *testing.T) {
+func TestCheckIfUserHasMFAenabled(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
 	// set gin run mode
@@ -7083,5 +7084,461 @@ func CheckIfUserHasMFAenabled(t *testing.T) {
 		assert.Error(t, err)
 		assert.False(t, res)
 		assert.Contains(t, err.Error(), "find error")
+	})
+}
+
+func TestGetUserCredentials(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		res, err := database.GetUserCredentials(ctx, appsession, "test@example.com")
+
+		// Validate the result
+		assert.Empty(t, res)
+		assert.Error(t, err)
+	})
+
+	mt.Run("Get user credentials from database", func(mt *mtest.T) {
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "security", Value: bson.D{
+				{Key: "credentials", Value: bson.D{
+					//stored as bytes[]
+					{Key: "id", Value: primitive.Binary{Data: []byte("testID")}},
+					{Key: "publicKey", Value: primitive.Binary{Data: []byte("testPublicKey")}},
+					{Key: "attestationType", Value: "testAttestationType"},
+				},
+				},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.GetUserCredentials(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.NotEmpty(t, res)
+	})
+
+	mt.Run("Get user credentials from cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Security: models.Security{
+				Credentials: webauthn.Credential{
+					ID:              []byte("testID"),
+					PublicKey:       []byte("testPublicKey"),
+					AttestationType: "testAttestationType",
+				},
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1, err := database.GetUserCredentials(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+
+		assert.NotEmpty(t, res1)
+	})
+
+	mt.Run("Find returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.GetUserCredentials(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Empty(t, res)
+
+		assert.Contains(t, err.Error(), "find error")
+
+	})
+}
+
+func TestAddUserCredentials(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		err := database.AddUserCredential(ctx, appsession, "test@example.com", &webauthn.Credential{})
+
+		// Validate the result
+		assert.Error(t, err)
+	})
+
+	mt.Run("Add user credentials successfully", func(mt *mtest.T) {
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.AddUserCredential(ctx, appSession, "test@example.com", &webauthn.Credential{
+			ID:              []byte("testID"),
+			PublicKey:       []byte("testPublicKey"),
+			AttestationType: "testAttestationType",
+		})
+
+		// Validate the result
+		assert.NoError(t, err)
+	})
+
+	mt.Run("Add user credentials successfully in cache", func(mt *mtest.T) {
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Security: models.Security{
+				Credentials: webauthn.Credential{
+					ID:              []byte("testID"),
+					PublicKey:       []byte("testPublicKey"),
+					AttestationType: "testAttestationType",
+				},
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// updated user
+		updatedUser := models.User{
+			Email: "test@example.com",
+			Security: models.Security{
+				Credentials: webauthn.Credential{
+					ID:              []byte("newtestID"),
+					PublicKey:       []byte("newtestPublicKey"),
+					AttestationType: "newtestAttestationType",
+				},
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
+		err = database.AddUserCredential(ctx, appSession, "test@example.com", &webauthn.Credential{
+			ID:              []byte("newtestID"),
+			PublicKey:       []byte("newtestPublicKey"),
+			AttestationType: "newtestAttestationType",
+		})
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Assert that the user is in the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
+
+		assert.Nil(t, err)
+
+		// unmarshal user
+		var userB models.User
+
+		if err := bson.Unmarshal(userA, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Add user credentials failure", func(mt *mtest.T) {
+		// Mock the UpdateOne operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.AddUserCredential(ctx, appSession, "test@example.com", &webauthn.Credential{
+			ID:              []byte("testID"),
+			PublicKey:       []byte("testPublicKey"),
+			AttestationType: "testAttestationType",
+		})
+
+		// Validate the result
+		assert.EqualError(t, err, "update error")
+	})
+}
+
+func TestIsIPWithinRange(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		res := database.IsIPWithinRange(ctx, appsession, "test@example.com", &ipinfo.Core{Location: "37.7749,-122.4194"})
+
+		// Validate the result
+		assert.False(t, res)
+	})
+
+	mt.Run("IP within range", func(mt *mtest.T) {
+		// insert user with location for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			// knownLocations is an array of locations
+			{Key: "knownLocations", Value: bson.A{
+				bson.D{
+					{Key: "city", Value: "CityA"},
+					{Key: "region", Value: "RegionA"},
+					{Key: "country", Value: "CountryA"},
+					{Key: "location", Value: "37.7749,-122.4194"}, // San Francisco
+				},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res := database.IsIPWithinRange(ctx, appSession, "test@example.com", &ipinfo.Core{Location: "34.0522,-118.2437"}) // Los Angeles
+
+		// Validate the result
+		assert.True(t, res)
+	})
+
+	mt.Run("IP not within range", func(mt *mtest.T) {
+		// insert user with location for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			// knownLocations is an array of locations
+			{Key: "knownLocations", Value: bson.A{
+				bson.D{
+					{Key: "city", Value: "CityA"},
+					{Key: "region", Value: "RegionA"},
+					{Key: "country", Value: "CountryA"},
+					{Key: "location", Value: "37.7749,-122.4194"}, // San Francisco
+				},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res := database.IsIPWithinRange(ctx, appSession, "test@example.com", &ipinfo.Core{Location: "40.7128,-74.0060"}) // New York
+
+		// Validate the result
+		assert.False(t, res)
+	})
+
+	mt.Run("IP in range in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			KnownLocations: []models.Location{
+				{
+					City:     "CityA",
+					Region:   "RegionA",
+					Country:  "CountryA",
+					Location: "37.7749,-122.4194",
+				},
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1 := database.IsIPWithinRange(ctx, appSession, "test@example.com", &ipinfo.Core{Location: "34.0522,-118.2437"}) // Los Angeles
+		assert.True(t, res1)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("IP not in range in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			KnownLocations: []models.Location{
+				{
+					City:     "CityA",
+					Region:   "RegionA",
+					Country:  "CountryA",
+					Location: "37.7749,-122.4194",
+				},
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1 := database.IsIPWithinRange(ctx, appSession, "test@example.com", &ipinfo.Core{Location: "40.7128,-74.0060"}) // New York
+		assert.False(t, res1)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Find returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res := database.IsIPWithinRange(ctx, appSession, "test@example.com", &ipinfo.Core{Location: "37.7749,-122.4194"})
+
+		// Validate the result
+		assert.False(t, res)
 	})
 }
