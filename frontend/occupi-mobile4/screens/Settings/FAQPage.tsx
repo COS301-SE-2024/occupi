@@ -20,9 +20,9 @@ const FAQPage = () => {
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
   const isDarkMode = currentTheme === 'dark';
-  const handleBack = () => {
-    router.back();
-  }
+  // const handleBack = () => {
+  //   router.back();
+  // }
   let colorScheme = useColorScheme();
   
   
@@ -175,11 +175,11 @@ const FAQPage = () => {
               <AccordionItem key={`item-${sectionIndex}-${index}`} value={`item-${sectionIndex}-${index}`}>
                 <AccordionHeader>
                   <AccordionTrigger>
-                    <Text testID={`faq-question-${sectionIndex}-${index}`} style={{ color: isDarkMode ? 'white' : 'black' }}>{item.question}</Text>
+                    <Text style={{ color: isDarkMode ? 'white' : 'black' }}>{item.question}</Text>
                   </AccordionTrigger>
                 </AccordionHeader>
                 <AccordionContent>
-                  <Text testID={`faq-answer-${sectionIndex}-${index}`} style={{ color: isDarkMode ? 'white' : 'black' }}>{item.answer}</Text>
+                  <Text style={{ color: isDarkMode ? 'white' : 'black' }}>{item.answer}</Text>
                 </AccordionContent>
               </AccordionItem>
             ))}
