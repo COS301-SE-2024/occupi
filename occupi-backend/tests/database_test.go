@@ -6978,3 +6978,110 @@ func TestAddRoom(t *testing.T) {
 		assert.EqualError(t, err, "duplicate key error")
 	})
 }
+
+func CheckIfUserHasMFAenabled(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		res, err := database.CheckIfUserHasMFAEnabled(ctx, appsession, "test@example.com")
+
+		// Validate the result
+		assert.False(t, res)
+		assert.Error(t, err)
+	})
+
+	mt.Run("Check from database", func(mt *mtest.T) {
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "security", Value: bson.D{
+				{Key: "mfa", Value: true},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.CheckIfUserHasMFAEnabled(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(t, err)
+		assert.True(t, res)
+	})
+
+	mt.Run("Check from cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Security: models.Security{
+				MFA: true,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1, err := database.CheckIfUserHasMFAEnabled(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+
+		assert.True(t, res1)
+	})
+
+	mt.Run("Find returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.CheckIfUserHasMFAEnabled(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.False(t, res)
+		assert.Contains(t, err.Error(), "find error")
+	})
+}
