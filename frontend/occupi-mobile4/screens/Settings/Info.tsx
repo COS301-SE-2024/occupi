@@ -33,7 +33,7 @@ const Info = () => {
     };
 
     return (
-        <View flex={1} pt="$16" px="$6" backgroundColor={currentTheme === 'dark' ? 'black' : 'white'}>
+        <View testID="info-container" flex={1} pt="$16" px="$6" backgroundColor={currentTheme === 'dark' ? 'black' : 'white'}>
             <View style={styles.header}>
                 <Icon
                     as={Feather}
