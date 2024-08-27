@@ -21,16 +21,11 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         const fetchTheme = async () => {
             try {
                 const storedTheme = await SecureStore.getItemAsync('Theme');
-                if (storedTheme) {
-                    setTheme(storedTheme);
-                } else {
-                    // If no theme is found, set a default theme
-                    setTheme('light');
-                }
-            } catch (error) {
+                setTheme(storedTheme || 'light');
+              } catch (error) {
                 console.error('Failed to load theme from SecureStore:', error);
-                setTheme('light'); // Set a default theme in case of an error
-            }
+                setTheme('light');
+              }
         };
 
         fetchTheme();
