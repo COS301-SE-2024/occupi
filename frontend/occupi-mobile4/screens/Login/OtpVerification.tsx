@@ -10,7 +10,7 @@ import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import StyledExpoRouterLink from '@/components/StyledExpoRouterLink';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { LinearGradient } from 'expo-linear-gradient';
-import { VerifyUserOtpLogin, verifyUserOtpRegister } from '@/utils/auth';
+import { verifyUserOtp, VerifyUserOtpLogin, verifyUserOtpRegister } from '@/utils/auth';
 
 const OTPSchema = z.object({
   OTP: z.string().min(6, 'OTP must be at least 6 characters in length'),
@@ -75,6 +75,19 @@ const OTPVerification = () => {
           return (
             <Toast nativeID={String(id)} variant="accent" action={response === 'Successful login!' ? 'success' : 'error'}>
               <ToastTitle>Registration Successful</ToastTitle>
+            </Toast>
+          );
+        }
+      });
+    }
+    else if (state === 'reset_password') {
+      const response = await verifyUserOtp(email, pin);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action={response === 'OTP verified successfully!' ? 'success' : 'error'}>
+              <ToastTitle>{response}</ToastTitle>
             </Toast>
           );
         }
