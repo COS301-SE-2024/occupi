@@ -6864,7 +6864,7 @@ func TestDeleteImageIDFromRoom(t *testing.T) {
 		// Mock the UpdateOne operation to return an error
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
 			Code:    11000,
-			Message: "update error",
+			Message: "delete error",
 		}))
 
 		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
