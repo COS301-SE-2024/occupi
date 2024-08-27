@@ -41,6 +41,10 @@ export async function storeOtp(value: string) {
   await SecureStore.setItemAsync('Otp',value);
 }
 
+export async function storeCheckInTime(value: string) {
+  await SecureStore.setItemAsync('CheckInTime', value);
+}
+
 export async function getUserData() {
   let result: string | null = await SecureStore.getItemAsync('UserData');
   return result ? JSON.parse(result) : null;

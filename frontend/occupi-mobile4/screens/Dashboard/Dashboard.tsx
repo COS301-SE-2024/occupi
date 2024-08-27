@@ -55,16 +55,18 @@ const Dashboard: React.FC = () => {
   const pagerRef = useRef<PagerView>(null);
   const [activeTab, setActiveTab] = useState('Tab1');
   const [weeklyData, setWeeklyData] = useState();
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [elapsedTime, setElapsedTime] = useState({ hours: 0, minutes: 0 })
   // console.log(currentTheme);
   // console.log(isDarkMode);
 
   const mockhourly = [
     { "label": "07:00", "value": 2 },
     { "label": "09:00", "value": 4 },
-    { "label": "11:00", "value": 5 }, 
-    { "label": "12:00", "value": 2 }, 
-    { "label": "13:00", "value": 2 }, 
-    { "label": "15:00", "value": 3 }, 
+    { "label": "11:00", "value": 5 },
+    { "label": "12:00", "value": 2 },
+    { "label": "13:00", "value": 2 },
+    { "label": "15:00", "value": 3 },
     { "label": "17:00", "value": 2 }
   ]
 
@@ -235,6 +237,26 @@ const Dashboard: React.FC = () => {
 
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (startTime) {
+      interval = setInterval(() => {
+        const now = new Date();
+        const diff = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        const hours = Math.floor(diff / 3600);
+        const minutes = Math.floor((diff % 3600) / 60);
+        setElapsedTime({ hours, minutes });
+      }, 60000); // Update every minute
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [startTime]);
+
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -251,6 +273,9 @@ const Dashboard: React.FC = () => {
     setCheckedIn(true);
     storeCheckInValue(true);
     // setCurrentData(hourlyData);
+    if (startTime === null) {
+      setStartTime(new Date());
+    }
     toast.show({
       placement: 'top',
       render: ({ id }) => (
@@ -433,6 +458,11 @@ const Dashboard: React.FC = () => {
             </View>
           </PagerView>
         </View >
+        {startTime && (
+          <Text>
+            Time Elapsed: {elapsedTime.hours} hours and {elapsedTime.minutes} minutes
+          </Text>
+        )}
       </ScrollView >
       <Navbar />
     </>
