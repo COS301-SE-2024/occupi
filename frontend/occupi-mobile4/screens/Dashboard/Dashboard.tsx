@@ -28,7 +28,7 @@ import LineGraph from '@/components/LineGraph';
 import BarGraph from '@/components/BarGraph';
 import { getFormattedDailyPredictionData, getFormattedPredictionData, valueToColor } from '@/utils/occupancy';
 import * as Location from 'expo-location';
-import { storeCheckInValue } from '@/services/securestore';
+import { storeCheckInTime, storeCheckInValue } from '@/services/securestore';
 import { isPointInPolygon } from '@/utils/dashboard';
 import PagerView from 'react-native-pager-view';
 import SetDetails from '../Login/SetDetails';
@@ -55,8 +55,8 @@ const Dashboard: React.FC = () => {
   const pagerRef = useRef<PagerView>(null);
   const [activeTab, setActiveTab] = useState('Tab1');
   const [weeklyData, setWeeklyData] = useState();
-  const [startTime, setStartTime] = useState<Date | null>(null);
-  const [elapsedTime, setElapsedTime] = useState({ hours: 0, minutes: 0 })
+  const [startTime, setStartTime] = useState<Date>();
+  const [elapsedTime, setElapsedTime] = useState({ hours: 0, minutes: 0, seconds: 0 })
   // console.log(currentTheme);
   // console.log(isDarkMode);
 
@@ -231,11 +231,26 @@ const Dashboard: React.FC = () => {
         console.error('Error fetching bookings:', error);
       }
     };
+    
+    const getStartTime = async () => {
+      let time = await SecureStore.getItemAsync('CheckInTime');
+      if (time === null) {
+        console.log('null time');
+        return;
+      }
+      const startTime = new Date(time);
+      if (startTime) {
+        setStartTime(startTime);
+      }
+    }
+
+    getStartTime();
     getRoomData();
     getUsername();
   }, [username]);
 
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
+  console.log(startTime);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -246,8 +261,9 @@ const Dashboard: React.FC = () => {
         const diff = Math.floor((now.getTime() - startTime.getTime()) / 1000);
         const hours = Math.floor(diff / 3600);
         const minutes = Math.floor((diff % 3600) / 60);
-        setElapsedTime({ hours, minutes });
-      }, 60000); // Update every minute
+        const seconds = Math.floor((now.getTime() - startTime.getTime()) / 1000 % 60);
+        setElapsedTime({ hours, minutes, seconds });
+      }, 1000); // Update every minute
     }
 
     return () => {
@@ -273,8 +289,9 @@ const Dashboard: React.FC = () => {
     setCheckedIn(true);
     storeCheckInValue(true);
     // setCurrentData(hourlyData);
-    if (startTime === null) {
+    if (!startTime) {
       setStartTime(new Date());
+      storeCheckInTime(new Date().toString());
     }
     toast.show({
       placement: 'top',
@@ -340,6 +357,11 @@ const Dashboard: React.FC = () => {
             style={{ width: wp('7%'), height: wp('7%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
           />
         </View>
+        {checkedIn && (
+          <Text>
+            Time Elapsed: {elapsedTime.hours} hours and {elapsedTime.minutes} minutes {elapsedTime.seconds} seconds
+          </Text>
+        )}
         <Text mt="$1" fontSize={wp('4%')} fontWeight="light" color={textColor}>
           Next booking:
         </Text>
@@ -458,11 +480,7 @@ const Dashboard: React.FC = () => {
             </View>
           </PagerView>
         </View >
-        {startTime && (
-          <Text>
-            Time Elapsed: {elapsedTime.hours} hours and {elapsedTime.minutes} minutes
-          </Text>
-        )}
+
       </ScrollView >
       <Navbar />
     </>
