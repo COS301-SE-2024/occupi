@@ -177,7 +177,7 @@ def predict_week_from_date():
         logging.error(f"Error in predict_week_from_date endpoint: {str(e)}")
         return jsonify({"error":"An error occured"}), 500
 
-@app.route('/recommend', methods=['GET'])
+@app.route('/recommendations', methods=['GET'])
 def recommend():
     try:
         # Get the current date
