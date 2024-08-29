@@ -221,11 +221,11 @@ def recommend():
                 'Message': 'All days within the next week are weekends.'
             }), 200
 
-        # Find the minimum attendance level from the predictions
-        min_attendance_level = min(predictions, key=lambda x: x['Predicted_Attendance_Level'])['Predicted_Attendance_Level']
+        # Find the minimum predicted class value
+        min_predicted_class = min(predictions, key=lambda x: x['Predicted_Class'])['Predicted_Class']
         
-        # Filter the days with the minimum predicted attendance level
-        recommended_days = [prediction for prediction in predictions if prediction['Predicted_Attendance_Level'] == min_attendance_level]
+        # Filter the days with the minimum predicted class value
+        recommended_days = [prediction for prediction in predictions if prediction['Predicted_Class'] == min_predicted_class]
         
         # Sort the recommendations by date for better readability
         recommended_days = sorted(recommended_days, key=lambda x: x['Date'])
