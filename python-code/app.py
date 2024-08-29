@@ -176,6 +176,62 @@ def predict_week_from_date():
     except Exception as e:
         logging.error(f"Error in predict_week_from_date endpoint: {str(e)}")
         return jsonify({"error":"An error occured"}), 500
+
+@app.route('/recommendations', methods=['GET'])
+def recommend():
+    try:
+        # Get the current date
+        current_date = datetime.now()
+        
+        # Find the upcoming Monday to start the week
+        start_date = current_date + timedelta(days=(0 - current_date.weekday()))
+        
+        predictions = []
+        for i in range(7):
+            # Calculate the date for each day of the week
+            date = start_date + timedelta(days=i)
+            
+            # Extract day of the week, month, and day of the month
+            day_of_week = date.weekday()
+            month = date.month
+            day_of_month = date.day
+            weekend = is_weekend(date)
+            special_event = is_special_event(date)
+            
+            # Get prediction
+            predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler)
+            
+            # Append the results only if it's not a weekend
+            if not weekend:
+                predictions.append({
+                    'Date': date.strftime('%Y-%m-%d'),
+                    'Day_of_Week': day_of_week,
+                    'Month': month,
+                    'Day_of_month': day_of_month,
+                    'Is_Weekend': weekend,
+                    'Special_Event': special_event,
+                    'Predicted_Class': predicted_class,
+                    'Predicted_Attendance_Level': predicted_attendance_level
+                })
+        
+        # Check if there are any non-weekend days to recommend
+        if not predictions:
+            return jsonify({
+                'Recommendation': 'No suitable weekdays available for recommendation.',
+                'Message': 'All days are weekends.'
+            }), 200
+
+        # Find the day(s) with the lowest predicted attendance level among the filtered days
+        min_attendance_level = min(predictions, key=lambda x: x['Predicted_Attendance_Level'])['Predicted_Attendance_Level']
+        recommended_days = [prediction for prediction in predictions if prediction['Predicted_Attendance_Level'] == min_attendance_level]
+        
+        return jsonify({
+            'Recommendation': 'Best day(s) to go to the office based on predicted attendance levels, excluding weekends.',
+            'Recommended_Days': recommended_days
+        })
+    except Exception as e:
+        logging.error(f"Error in recommend endpoint: {str(e)}")
+        return jsonify({"error": "An error occurred"}), 500
     
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=9000)
