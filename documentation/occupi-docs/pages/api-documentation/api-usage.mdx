@@ -35,6 +35,7 @@ The API also allows you to retrieve information about these resources.
     - [Delete Room Image](#DeleteRoomImage)
     - [Add Room](#AddRoom)
     - [Available slots](#AvailableSlots)
+    - [Toggle on site](#ToggleOnSite)
 
 ## Api
 
@@ -1027,6 +1028,51 @@ or
 - **Code:** 200
 
 - **Content:** `{ "status":  200, "message": "Successfully fetched available slots!", "data": ["list of available slots"] }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+### Toggle On Site
+
+This endpoint is used to toggle the on site status of a user in the Occupi system. That is whether or not they are in the office
+Just some notes about this endpoint:
+- If the user is on site, they cannot become on site again and vice versa
+- If the user tries to toggle their status outside of office hours (8am - 5pm)Monday to Friday, they will not be able to do so
+- If the user forgets to toggle their status, the system will automatically limit their hours for the day they had forgotten to toggle their status to 5pm
+
+- **URL**
+
+  `/api/toggle-onsite`
+
+- **Method**
+    
+    `PUT`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // this is not explicitly required as it can be determined by the system
+  "onSite": "Yes" // required, can be "Yes" or "No" (exact match)
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully toggled on site status!", "data": null }`
 
 **Error Response**
 
