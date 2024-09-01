@@ -1709,6 +1709,73 @@ func TestGetLimitPageSkip(t *testing.T) {
 	}
 }
 
+func TestComputeLimitPageSkip(t *testing.T) {
+	tests := []struct {
+		name      string
+		Limit     int64
+		Page      int64
+		wantLimit int64
+		wantPage  int64
+		wantSkip  int64
+	}{
+		{
+			name:      "Valid limit and page",
+			Limit:     10,
+			Page:      2,
+			wantLimit: 10,
+			wantPage:  2,
+			wantSkip:  10,
+		},
+		{
+			name:      "Limit exceeds maximum",
+			Limit:     100,
+			Page:      1,
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Negative limit",
+			Limit:     -1,
+			Page:      1,
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Zero page",
+			Limit:     10,
+			Page:      0,
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Negative page",
+			Limit:     10,
+			Page:      -1,
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotLimit, gotPage, gotSkip := utils.ComputeLimitPageSkip(tt.Limit, tt.Page)
+			if gotLimit != tt.wantLimit {
+				t.Errorf("ComputeLimitPageSkip() gotLimit = %v, want %v", gotLimit, tt.wantLimit)
+			}
+			if gotPage != tt.wantPage {
+				t.Errorf("ComputeLimitPageSkip() gotPage = %v, want %v", gotPage, tt.wantPage)
+			}
+			if gotSkip != tt.wantSkip {
+				t.Errorf("ComputeLimitPageSkip() gotSkip = %v, want %v", gotSkip, tt.wantSkip)
+			}
+		})
+	}
+}
+
 func TestFormatIPAddressConfirmationEmailBody(t *testing.T) {
 	tests := []struct {
 		otp      string
