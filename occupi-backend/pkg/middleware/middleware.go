@@ -240,36 +240,34 @@ func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
 }
 
 // block endpoint on weekends and after hours that is only allow access betwen Mon - Fri 08:00 - 17:00
-func BlockWeekendsAndAfterHours(ctx *gin.Context) {
-	// Get the current time in the timezone set by the TimezoneMiddleware
-	timezone, _ := ctx.Get("timezone")
-	now := time.Now().In(timezone.(*time.Location))
+func BlockWeekendsAndAfterHours(now time.Time) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Check if the current day is a weekend
+		if now.Weekday() == time.Saturday || now.Weekday() == time.Sunday {
+			ctx.JSON(http.StatusForbidden,
+				utils.ErrorResponse(
+					http.StatusForbidden,
+					"Forbidden",
+					constants.ForbiddenCode,
+					"Access denied on weekends, only allowed between Monday and Friday",
+					nil))
+			ctx.Abort()
+			return
+		}
 
-	// Check if the current day is a weekend
-	if now.Weekday() == time.Saturday || now.Weekday() == time.Sunday {
-		ctx.JSON(http.StatusForbidden,
-			utils.ErrorResponse(
-				http.StatusForbidden,
-				"Forbidden",
-				constants.ForbiddenCode,
-				"Access denied on weekends, only allowed between Monday and Friday",
-				nil))
-		ctx.Abort()
-		return
+		// Check if the current time is outside working hours
+		if now.Hour() < 8 || now.Hour() >= 17 {
+			ctx.JSON(http.StatusForbidden,
+				utils.ErrorResponse(
+					http.StatusForbidden,
+					"Forbidden",
+					constants.ForbiddenCode,
+					"Access denied after hours, only allowed between 08:00 and 17:00",
+					nil))
+			ctx.Abort()
+			return
+		}
+
+		ctx.Next()
 	}
-
-	// Check if the current time is after working hours
-	if now.Hour() < 8 || now.Hour() >= 17 {
-		ctx.JSON(http.StatusForbidden,
-			utils.ErrorResponse(
-				http.StatusForbidden,
-				"Forbidden",
-				constants.ForbiddenCode,
-				"Access denied after hours, only allowed between 08:00 and 17:00",
-				nil))
-		ctx.Abort()
-		return
-	}
-
-	ctx.Next()
 }

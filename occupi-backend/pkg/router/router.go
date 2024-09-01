@@ -1,6 +1,8 @@
 package router
 
 import (
+	"time"
+
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
@@ -57,7 +59,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.DELETE("/delete-room-image", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.DeleteRoomImage(ctx, appsession) })
 		api.PUT("/add-room", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
 		api.GET("/available-slots", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAvailableSlots(ctx, appsession) })
-		api.PUT("/toggle-onsite", middleware.ProtectedRoute, middleware.BlockWeekendsAndAfterHours, func(ctx *gin.Context) { handlers.ToggleOnsite(ctx, appsession) })
+		api.PUT("/toggle-onsite", middleware.ProtectedRoute, middleware.BlockWeekendsAndAfterHours(time.Now()), func(ctx *gin.Context) { handlers.ToggleOnsite(ctx, appsession) })
 	}
 	analytics := router.Group("/analytics")
 	{
