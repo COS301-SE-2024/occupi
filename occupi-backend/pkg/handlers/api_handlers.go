@@ -1090,3 +1090,186 @@ func GetAvailableSlots(ctx *gin.Context, appsession *models.AppSession) {
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched available slots!", availableSlots))
 }
+
+func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestOnsite
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// if email is not set, get it from the appsession
+	if request.Email == "" {
+		email, err := AttemptToGetEmail(ctx, appsession)
+		if err != nil {
+			captureError(ctx, err)
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"Email must be provided",
+				nil))
+			return
+		}
+		request.Email = email
+	}
+
+	// Toggle the onsite status
+	err := database.ToggleOnsite(ctx, appsession, request)
+	if err != nil {
+		captureError(ctx, err)
+		logrus.Error("Failed to toggle onsite status because: ", err)
+		if err.Error() == "invalid status" || err.Error() == "user is already onsite" || err.Error() == "user is already offsite" {
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Failed to toggle onsite status",
+				constants.InvalidRequestPayloadCode,
+				"Failed due to invalid status or user is perhaps already onsite or offsite",
+				nil))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to toggle onsite status",
+			constants.InternalServerErrorCode,
+			"Failed to toggle onsite status",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled onsite status!", nil))
+}
+
+func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calculate string, forAllUsers bool) {
+	var request models.RequestHours
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		emailStr := ctx.DefaultQuery("email", "")
+		if emailStr == "" && !forAllUsers {
+			email, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				captureError(ctx, err)
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			} else {
+				request.Email = email
+			}
+		} else {
+			request.Email = emailStr
+		}
+
+		// default time is since 1970
+		timeFromStr := ctx.DefaultQuery("timeFrom", "1970-01-01T00:00:00Z")
+		// default time is now
+		timeToStr := ctx.DefaultQuery("timeTo", time.Now().Format(time.RFC3339))
+
+		timeFrom, err1 := time.Parse(time.RFC3339, timeFromStr)
+		timeTo, err2 := time.Parse(time.RFC3339, timeToStr)
+
+		if err1 != nil || err2 != nil {
+			captureError(ctx, err1)
+			ctx.JSON(http.StatusBadRequest, utils.InternalServerError())
+			return
+		}
+
+		request.TimeFrom = timeFrom
+		request.TimeTo = timeTo
+
+		limitStr := ctx.DefaultQuery("limit", "50")
+		limit, err := strconv.ParseInt(limitStr, 10, 64)
+		if err != nil {
+			captureError(ctx, err)
+			ctx.JSON(http.StatusBadRequest, utils.InternalServerError())
+			return
+		}
+
+		request.Limit = limit
+
+		skipStr := ctx.DefaultQuery("skip", "0")
+		page, err := strconv.ParseInt(skipStr, 10, 64)
+		if err != nil {
+			captureError(ctx, err)
+			ctx.JSON(http.StatusBadRequest, utils.InternalServerError())
+			return
+		}
+
+		request.Page = page
+	} else {
+		// ensure that the time from and time to are set else set them to default
+		if request.TimeFrom.IsZero() || request.TimeTo.IsZero() {
+			request.TimeFrom = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+			request.TimeTo = time.Now()
+		}
+
+		// ensure that the limit is set else set it to default
+		if request.Limit == 0 {
+			request.Limit = 50
+		}
+
+	}
+
+	limit, page, skip := utils.ComputeLimitPageSkip(request.Limit, request.Page)
+
+	filter := models.OfficeHoursFilterStruct{
+		Filter: bson.M{
+			"timeFrom": request.TimeFrom,
+			"timeTo":   request.TimeTo,
+		},
+		Limit: limit, // or whatever limit you want to apply
+		Skip:  skip,  // or whatever skip you want to apply
+	}
+
+	// if for all users set email to empty string
+	if forAllUsers {
+		request.Email = ""
+	}
+
+	// Get the user analytics
+	if calculate == "most" || calculate == "least" {
+		email, totalHours, averageHours, err := database.GetUserAnalytics(ctx, appsession, filter, calculate)
+		if err != nil {
+			captureError(ctx, err)
+			logrus.Error("Failed to get user analytics because: ", err)
+			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+				http.StatusInternalServerError,
+				"Failed to get user analytics",
+				constants.InternalServerErrorCode,
+				"Failed to get user analytics",
+				nil))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched user analytics!", gin.H{
+			"email":        email,
+			"totalHours":   totalHours,
+			"averageHours": averageHours,
+		}))
+	} else {
+		userHours, totalResults, err := database.GetAnalyticsOnHours(ctx, appsession, request.Email, filter, calculate)
+		if err != nil {
+			captureError(ctx, err)
+			logrus.Error("Failed to get user analytics because: ", err)
+			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+				http.StatusInternalServerError,
+				"Failed to get user analytics",
+				constants.InternalServerErrorCode,
+				"Failed to get user analytics",
+				nil))
+			return
+		}
+
+		ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "Successfully fetched user analytics! Note that all analytics are measured in hours.", userHours,
+			gin.H{"totalResults": len(userHours), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
+	}
+
+}
