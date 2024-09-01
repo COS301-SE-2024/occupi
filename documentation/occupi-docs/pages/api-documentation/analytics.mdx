@@ -29,3 +29,114 @@ The base URL for the Occupi API is `https://occupi.tech`, `https://dev.occupi.te
 
 The analytics endpoint is used to get the analytics of the office space.
 
+### User hours
+
+The user hours endpoint is used to get the hours of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-hours`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-hours?email=abcd@gmail&timeFrom=2021-01-01T00json&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### User average hours
+
+The user average hours endpoint is used to get the average hours of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-average-hours`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-hours?email=abcd@gmail&timeFrom=2021-01-01T00json&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
