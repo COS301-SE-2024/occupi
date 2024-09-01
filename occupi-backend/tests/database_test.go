@@ -7542,3 +7542,20 @@ func TestIsIPWithinRange(t *testing.T) {
 		assert.False(t, res)
 	})
 }
+
+func TestCapTimeRange(t *testing.T) {
+	// Test Case 1: Before 8 AM
+	t.Run("Before 8 AM", func(t *testing.T) {
+		_ = database.CapTimeRange()
+	})
+
+	// Test Case 2: After 5 PM
+	t.Run("After 5 PM", func(t *testing.T) {
+		_ = database.CapTimeRange()
+	})
+
+	// Test Case 3: Between 8 AM and 5 PM
+	t.Run("Between 8 AM and 5 PM", func(t *testing.T) {
+		_ = database.CapTimeRange()
+	})
+}
