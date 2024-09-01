@@ -1588,7 +1588,7 @@ func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request model
 
 		// update the fields and add to the OfficeHoursArchive time series collection
 		officeHours.Closed = true
-		officeHours.Exited = CapTimeRange()
+		officeHours.Exited = CompareAndReturnTime(officeHours.Entered, CapTimeRange())
 
 		collection = appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
 

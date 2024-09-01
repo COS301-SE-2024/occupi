@@ -7559,3 +7559,70 @@ func TestCapTimeRange(t *testing.T) {
 		_ = database.CapTimeRange()
 	})
 }
+
+func TestCompareAndReturnTime(t *testing.T) {
+	tests := []struct {
+		name     string
+		oldTime  time.Time
+		newTime  time.Time
+		expected time.Time
+	}{
+		{
+			name:     "NewTime is after 5 PM on same date",
+			oldTime:  time.Date(2024, 9, 1, 10, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 18, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is exactly at 5 PM on same date",
+			oldTime:  time.Date(2024, 9, 1, 9, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is before 5 PM on same date",
+			oldTime:  time.Date(2024, 9, 1, 8, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 15, 30, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 15, 30, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is on next day",
+			oldTime:  time.Date(2024, 9, 1, 12, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 2, 10, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is several days after oldTime",
+			oldTime:  time.Date(2024, 9, 1, 14, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 5, 9, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is before oldTime's date",
+			oldTime:  time.Date(2024, 9, 2, 14, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 16, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 16, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is before oldTime's date and after 5 PM",
+			oldTime:  time.Date(2024, 9, 2, 14, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 18, 30, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 18, 30, 0, 0, time.UTC),
+		},
+		{
+			name:     "OldTime and NewTime on same date with different time zones",
+			oldTime:  time.Date(2024, 9, 1, 10, 0, 0, 0, time.FixedZone("PST", -8*3600)),
+			newTime:  time.Date(2024, 9, 1, 16, 30, 0, 0, time.FixedZone("EST", -5*3600)),
+			expected: time.Date(2024, 9, 1, 16, 30, 0, 0, time.FixedZone("EST", -5*3600)),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.CompareAndReturnTime(tt.oldTime, tt.newTime)
+			if !result.Equal(tt.expected) {
+				t.Errorf("CompareAndReturnTime()\nGot:      %v\nExpected: %v", result, tt.expected)
+			}
+		})
+	}
+}

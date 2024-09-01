@@ -172,3 +172,23 @@ func CapTimeRange() time.Time {
 	}
 	return now
 }
+
+// CompareAndReturnTime validates the newTime against the oldTime and returns:
+// - oldTime's date at 5 PM if newTime's date is after oldTime's date or newTime's time is after 5 PM on the same date.
+// - newTime if it's on the same date as oldTime and before or at 5 PM.
+func CompareAndReturnTime(oldTime, newTime time.Time) time.Time {
+	// Set 5 PM time on oldTime's date
+	oldDateFivePM := time.Date(oldTime.Year(), oldTime.Month(), oldTime.Day(), 17, 0, 0, 0, oldTime.Location())
+
+	// Compare dates
+	oldDate := time.Date(oldTime.Year(), oldTime.Month(), oldTime.Day(), 0, 0, 0, 0, oldTime.Location())
+	newDate := time.Date(newTime.Year(), newTime.Month(), newTime.Day(), 0, 0, 0, 0, newTime.Location())
+
+	if newDate.After(oldDate) {
+		return oldDateFivePM
+	} else if newDate.Equal(oldDate) && newTime.After(oldDateFivePM) {
+		return oldDateFivePM
+	}
+
+	return newTime
+}
