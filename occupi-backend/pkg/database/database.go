@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/analytics"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -1497,4 +1498,205 @@ func GetAvailableSlots(ctx *gin.Context, appsession *models.AppSession, request 
 	slots := ComputeAvailableSlots(bookings, request.Date)
 
 	return slots, nil
+}
+
+func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request models.RequestOnsite) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	var updatedStatus bool
+	if request.OnSite == "Yes" {
+		updatedStatus = true
+	} else if request.OnSite == "No" {
+		updatedStatus = false
+	} else {
+		return errors.New("invalid status")
+	}
+
+	// check if user is already on site or off site and are trying to perform the same action again
+	var userData models.User
+	userData, err := cache.GetUser(appsession, request.Email)
+	if err != nil {
+		// get the user from the database
+		filter := bson.M{"email": request.Email}
+		err := collection.FindOne(ctx, filter).Decode(&userData)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	}
+
+	if userData.OnSite && updatedStatus {
+		return errors.New("user is already onsite")
+	} else if !userData.OnSite && !updatedStatus {
+		return errors.New("user is already offsite")
+	}
+
+	filter := bson.M{"email": request.Email}
+	update := bson.M{"$set": bson.M{"onSite": updatedStatus}}
+
+	_, err = collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// update user in cache
+	userData.OnSite = updatedStatus
+	cache.SetUser(appsession, userData)
+
+	if updatedStatus {
+		// add the user to the office hours collection
+		officeHours := models.OfficeHours{
+			Email:   request.Email,
+			Entered: CapTimeRange(),
+			Exited:  CapTimeRange(),
+			Closed:  false,
+		}
+
+		collection = appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
+
+		_, err = collection.InsertOne(ctx, officeHours)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	} else {
+		// find the user's office hours and remove them and add the removed office hours to the OfficeHoursArchive collection
+		filter := bson.M{"email": request.Email, "closed": false}
+
+		collection = appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
+
+		var officeHours models.OfficeHours
+		err := collection.FindOne(ctx, filter).Decode(&officeHours)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+
+		// remove the office hours from the OfficeHours collection
+		_, err = collection.DeleteOne(ctx, filter)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+
+		// update the fields and add to the OfficeHoursArchive time series collection
+		officeHours.Closed = true
+		officeHours.Exited = CapTimeRange()
+
+		collection = appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+		_, err = collection.InsertOne(ctx, officeHours)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email string, filter models.OfficeHoursFilterStruct, calculate string) ([]primitive.M, int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	// Prepare the filter based on time range and email if email is not == ""
+	mongoFilter := bson.M{}
+	if email != "" {
+		mongoFilter["email"] = email
+	}
+	if filter.Filter["timeFrom"] != "" {
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
+	}
+	if filter.Filter["timeTo"] != "" {
+		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+	findOptions := options.Find()
+	findOptions.SetLimit(filter.Limit)
+	findOptions.SetSkip(filter.Skip)
+
+	cursor, err := collection.Find(ctx, mongoFilter, findOptions)
+	if err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	var hours []models.OfficeHours
+	if err = cursor.All(ctx, &hours); err != nil {
+		return nil, 0, err
+	}
+
+	// count documents
+	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if calculate == "hoursbyday" {
+		return analytics.GroupOfficeHoursByDay(hours), totalResults, nil
+	} else if calculate == "hoursbyweekday" {
+		return analytics.AverageOfficeHoursByWeekday(hours), totalResults, nil
+	} else if calculate == "ratio" {
+		return analytics.RatioInOutOfficeByWeekday(hours), totalResults, nil
+	} else if calculate == "peakhours" {
+		return analytics.BusiestHoursByWeekday(hours), totalResults, nil
+	} else {
+		return nil, 0, errors.New("invalid calculation")
+	}
+}
+
+func GetUserAnalytics(ctx *gin.Context, appsession *models.AppSession, filter models.OfficeHoursFilterStruct, calculate string) (string, float64, float64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return "", 0, 0, errors.New("database is nil")
+	}
+
+	// Prepare the filter based on time range
+	mongoFilter := bson.M{}
+	if filter.Filter["timeFrom"] != "" {
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
+	}
+	if filter.Filter["timeTo"] != "" {
+		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+	findOptions := options.Find()
+	findOptions.SetLimit(filter.Limit)
+	findOptions.SetSkip(filter.Skip)
+
+	cursor, err := collection.Find(ctx, mongoFilter, findOptions)
+	if err != nil {
+		logrus.Error(err)
+		return "", 0, 0, err
+	}
+
+	var hours []models.OfficeHours
+	if err = cursor.All(ctx, &hours); err != nil {
+		return "", 0, 0, err
+	}
+
+	if calculate == "least" {
+		email, totalHours, averageHours := analytics.LeastInOfficeWorker(hours)
+		return email, totalHours, averageHours, nil
+	} else if calculate == "most" {
+		email, totalHours, averageHours := analytics.MostInOfficeWorker(hours)
+		return email, totalHours, averageHours, nil
+	} else {
+		return "", 0, 0, errors.New("invalid calculation")
+	}
 }
