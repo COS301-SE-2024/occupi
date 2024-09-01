@@ -128,3 +128,16 @@ type Slot struct {
 	Start time.Time `json:"start"`
 	End   time.Time `json:"end"`
 }
+
+type RequestOnsite struct {
+	Email  string `json:"email" binding:"omitempty,email"`
+	OnSite string `json:"onSite" binding:"required"`
+}
+
+type RequestHours struct {
+	Email    string    `json:"email" binding:"omitempty,email"`
+	TimeFrom time.Time `json:"timeFrom" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	TimeTo   time.Time `json:"timeTo" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	Limit    int64     `json:"limit"`
+	Page     int64     `json:"page"`
+}
