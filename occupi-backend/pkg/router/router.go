@@ -57,6 +57,22 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.DELETE("/delete-room-image", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.DeleteRoomImage(ctx, appsession) })
 		api.PUT("/add-room", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
 		api.GET("/available-slots", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAvailableSlots(ctx, appsession) })
+		api.PUT("/toggle-onsite", middleware.ProtectedRoute, middleware.BlockWeekendsAndAfterHours, func(ctx *gin.Context) { handlers.ToggleOnsite(ctx, appsession) })
+	}
+	analytics := router.Group("/analytics")
+	{
+		analytics.GET("/user-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "hoursbyday", false) })
+		analytics.GET("/user-average-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "hoursbyweekday", false) })
+		analytics.GET("/user-work-ratio", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "ratio", false) })
+		analytics.GET("/user-peak-office-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "peakhours", false) })
+		analytics.GET("/most-active-employee", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "most", true) })
+		analytics.GET("/least-active-employee", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "least", true) })
+		analytics.GET("/hours", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "hoursbyday", true) })
+		analytics.GET("/average-hours", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "hoursbyweekday", true) })
+		analytics.GET("/work-ratio", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "ratio", true) })
+		analytics.GET("/peak-office-hours", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "peakhours", true) })
+
+		//analytics.GET("/booking-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetBookingHours(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{
