@@ -8178,3 +8178,68 @@ func TestFindAndRemoveOfficeHours(t *testing.T) {
 		assert.EqualError(t, err, "delete failed", "Expected error for failed delete operation")
 	})
 }
+
+func TestAddOfficeHoursToArchive(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	officeHours := models.OfficeHours{
+		Email:   "test@example.com",
+		Entered: database.CapTimeRange(),
+		Exited:  database.CapTimeRange(),
+		Closed:  false,
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.AddOfficeHoursToArchive(ctx, appsession, officeHours)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	mt.Run("Successful insert", func(mt *mtest.T) {
+		// Update officeHours for expected outcome
+		officeHours.Closed = true
+		officeHours.Exited = database.CompareAndReturnTime(officeHours.Entered, database.CapTimeRange())
+
+		// Mock InsertOne success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddOfficeHoursToArchive(ctx, appsession, officeHours)
+		assert.NoError(t, err, "Expected no error for successful insert")
+	})
+
+	mt.Run("Failed insert", func(mt *mtest.T) {
+		// Update officeHours for expected outcome
+		officeHours.Closed = true
+		officeHours.Exited = database.CompareAndReturnTime(officeHours.Entered, database.CapTimeRange())
+
+		// Mock InsertOne failure response
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
+			mtest.CommandError{
+				Code:    1,
+				Message: "insert failed",
+			},
+		))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddOfficeHoursToArchive(ctx, appsession, officeHours)
+		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
+	})
+}
