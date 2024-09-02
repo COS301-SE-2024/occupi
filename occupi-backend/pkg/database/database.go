@@ -1787,6 +1787,10 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		return analytics.MostInOfficeWorker(hours), 0, nil
 	} else if calculate == "least" {
 		return analytics.LeastInOfficeWorker(hours), 0, nil
+	} else if calculate == "arrivaldeparture" {
+		return analytics.AverageArrivalAndDepartureTimesByWeekday(hours), 0, nil
+	} else if calculate == "absenteeism" {
+		return analytics.CalculateAbsenteeismRates(hours), 0, nil
 	} else {
 		return nil, 0, errors.New("invalid calculation")
 	}

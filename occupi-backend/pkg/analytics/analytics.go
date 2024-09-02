@@ -415,65 +415,142 @@ func MostInOfficeWorker(officeHours []models.OfficeHours) []bson.M {
 	return result
 }
 
-// AverageArrivalTimesByWeekday function to calculate the average arrival time for each weekday
-func AverageArrivalTimesByWeekday(officeHours []models.OfficeHours) []bson.M {
+// AverageArrivalAndDepartureTimesByWeekday function to calculate the average arrival and departure times for each weekday
+func AverageArrivalAndDepartureTimesByWeekday(officeHours []models.OfficeHours) []bson.M {
 	weekdayArrivalTimes := make(map[time.Weekday]time.Duration)
+	weekdayDepartureTimes := make(map[time.Weekday]time.Duration)
 	weekdayCount := make(map[time.Weekday]int)
 
-	// Iterate over each office hour entry
 	for _, oh := range officeHours {
-		// Get the weekday (Monday = 1, ..., Friday = 5)
 		weekday := oh.Entered.Weekday()
+		if weekday == time.Saturday || weekday == time.Sunday {
+			continue
+		}
+		arrivalTime := time.Duration(oh.Entered.Hour())*time.Hour + time.Duration(oh.Entered.Minute())*time.Minute
+		departureTime := time.Duration(oh.Exited.Hour())*time.Hour + time.Duration(oh.Exited.Minute())*time.Minute
 
-		// Skip Saturday and Sunday
+		weekdayArrivalTimes[weekday] += arrivalTime
+		weekdayDepartureTimes[weekday] += departureTime
+		weekdayCount[weekday]++
+	}
+
+	var result []bson.M
+	var totalArrivalTime, totalDepartureTime time.Duration
+	var totalCount int
+
+	for weekday := time.Monday; weekday <= time.Friday; weekday++ {
+		averageArrivalTime := time.Duration(0)
+		averageDepartureTime := time.Duration(0)
+
+		if weekdayCount[weekday] > 0 {
+			averageArrivalTime = weekdayArrivalTimes[weekday] / time.Duration(weekdayCount[weekday])
+			averageDepartureTime = weekdayDepartureTimes[weekday] / time.Duration(weekdayCount[weekday])
+		}
+
+		arrivalHours := averageArrivalTime / time.Hour
+		arrivalMinutes := (averageArrivalTime % time.Hour) / time.Minute
+
+		departureHours := averageDepartureTime / time.Hour
+		departureMinutes := (averageDepartureTime % time.Hour) / time.Minute
+
+		dayData := bson.M{
+			"weekday":              weekday.String(),
+			"averageArrivalTime":   fmt.Sprintf("%02d:%02d", arrivalHours, arrivalMinutes),
+			"averageDepartureTime": fmt.Sprintf("%02d:%02d", departureHours, departureMinutes),
+		}
+		result = append(result, dayData)
+
+		totalArrivalTime += weekdayArrivalTimes[weekday]
+		totalDepartureTime += weekdayDepartureTimes[weekday]
+		totalCount += weekdayCount[weekday]
+	}
+
+	overallAverageArrivalTime := time.Duration(0)
+	overallAverageDepartureTime := time.Duration(0)
+
+	if totalCount > 0 {
+		overallAverageArrivalTime = totalArrivalTime / time.Duration(totalCount)
+		overallAverageDepartureTime = totalDepartureTime / time.Duration(totalCount)
+	}
+
+	overallArrivalHours := overallAverageArrivalTime / time.Hour
+	overallArrivalMinutes := (overallAverageArrivalTime % time.Hour) / time.Minute
+
+	overallDepartureHours := overallAverageDepartureTime / time.Hour
+	overallDepartureMinutes := (overallAverageDepartureTime % time.Hour) / time.Minute
+
+	result = append(result, bson.M{
+		"overallAverageArrivalTime":   fmt.Sprintf("%02d:%02d", overallArrivalHours, overallArrivalMinutes),
+		"overallAverageDepartureTime": fmt.Sprintf("%02d:%02d", overallDepartureHours, overallDepartureMinutes),
+	})
+
+	return result
+}
+
+// CalculateAbsenteeismRates function to calculate absenteeism rates
+func CalculateAbsenteeismRates(officeHours []models.OfficeHours) []bson.M {
+	expectedDailyHours := 9.0 // 8 AM to 5 PM
+	weekdayInHours := make(map[time.Weekday]float64)
+	weekdayAbsenteeism := make(map[time.Weekday]float64)
+	weekdayCount := make(map[time.Weekday]int)
+
+	// Iterate over office hours entries
+	for _, oh := range officeHours {
+		weekday := oh.Entered.Weekday()
 		if weekday == time.Saturday || weekday == time.Sunday {
 			continue
 		}
 
-		// Calculate the arrival time in terms of duration from midnight
-		arrivalTime := time.Duration(oh.Entered.Hour())*time.Hour + time.Duration(oh.Entered.Minute())*time.Minute
+		// Define the office hours for the day
+		officeStart := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 8, 0, 0, 0, oh.Entered.Location())
+		officeEnd := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 17, 0, 0, 0, oh.Entered.Location())
 
-		// Accumulate the arrival time and increment the count for the weekday
-		weekdayArrivalTimes[weekday] += arrivalTime
+		// Calculate the overlap between actual office hours and standard office hours
+		actualStart := MaxTime(oh.Entered, officeStart)
+		actualEnd := MinTime(oh.Exited, officeEnd)
+
+		// Calculate the duration in hours for the overlap (in-office time)
+		inOfficeDuration := 0.0
+		if actualStart.Before(actualEnd) {
+			inOfficeDuration = actualEnd.Sub(actualStart).Hours()
+		}
+
+		weekdayInHours[weekday] += inOfficeDuration
+		weekdayAbsenteeism[weekday] += expectedDailyHours - inOfficeDuration
 		weekdayCount[weekday]++
 	}
 
 	// Prepare the result as a slice of bson.M
 	var result []bson.M
-	var totalArrivalTime time.Duration
+	var overallAbsenteeism float64
+	var overallInHours float64
 	var totalCount int
 
 	for weekday := time.Monday; weekday <= time.Friday; weekday++ {
-		averageArrivalTime := time.Duration(0)
+		absenteeismRate := 0.0
 		if weekdayCount[weekday] > 0 {
-			averageArrivalTime = weekdayArrivalTimes[weekday] / time.Duration(weekdayCount[weekday])
+			absenteeismRate = (weekdayAbsenteeism[weekday] / (float64(weekdayCount[weekday]) * expectedDailyHours)) * 100
 		}
 
-		// Convert the average arrival time to a readable format (HH:mm)
-		hours := averageArrivalTime / time.Hour
-		minutes := (averageArrivalTime % time.Hour) / time.Minute
-
 		dayData := bson.M{
-			"weekday":            weekday.String(),
-			"averageArrivalTime": fmt.Sprintf("%02d:%02d", hours, minutes),
+			"weekday":         weekday.String(),
+			"absenteeismRate": absenteeismRate,
 		}
 		result = append(result, dayData)
 
-		totalArrivalTime += weekdayArrivalTimes[weekday]
+		overallAbsenteeism += weekdayAbsenteeism[weekday]
+		overallInHours += weekdayInHours[weekday]
 		totalCount += weekdayCount[weekday]
 	}
 
-	// Calculate overall average arrival time
-	overallAverageArrivalTime := time.Duration(0)
+	// Calculate overall absenteeism rate
+	overallAbsenteeismRate := 0.0
 	if totalCount > 0 {
-		overallAverageArrivalTime = totalArrivalTime / time.Duration(totalCount)
+		overallAbsenteeismRate = (overallAbsenteeism / (float64(totalCount) * expectedDailyHours)) * 100
 	}
-	hours := overallAverageArrivalTime / time.Hour
-	minutes := (overallAverageArrivalTime % time.Hour) / time.Minute
 
-	// Append overall average to the result
 	result = append(result, bson.M{
-		"overallAverageArrivalTime": fmt.Sprintf("%02d:%02d", hours, minutes),
+		"overallAbsenteeismRate": overallAbsenteeismRate,
 	})
 
 	return result
