@@ -438,3 +438,4 @@ export async function updateNotificationSettings(req: NotificationSettingsReq): 
     } as Unsuccessful;
   }
 }
+
