@@ -1,6 +1,7 @@
 package analytics
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -410,6 +411,70 @@ func MostInOfficeWorker(officeHours []models.OfficeHours) []bson.M {
 	var result []bson.M
 
 	result = append(result, bson.M{"email": mostEmail, "totalHours": mostHours, "averageHours": averageHours})
+
+	return result
+}
+
+// AverageArrivalTimesByWeekday function to calculate the average arrival time for each weekday
+func AverageArrivalTimesByWeekday(officeHours []models.OfficeHours) []bson.M {
+	weekdayArrivalTimes := make(map[time.Weekday]time.Duration)
+	weekdayCount := make(map[time.Weekday]int)
+
+	// Iterate over each office hour entry
+	for _, oh := range officeHours {
+		// Get the weekday (Monday = 1, ..., Friday = 5)
+		weekday := oh.Entered.Weekday()
+
+		// Skip Saturday and Sunday
+		if weekday == time.Saturday || weekday == time.Sunday {
+			continue
+		}
+
+		// Calculate the arrival time in terms of duration from midnight
+		arrivalTime := time.Duration(oh.Entered.Hour())*time.Hour + time.Duration(oh.Entered.Minute())*time.Minute
+
+		// Accumulate the arrival time and increment the count for the weekday
+		weekdayArrivalTimes[weekday] += arrivalTime
+		weekdayCount[weekday]++
+	}
+
+	// Prepare the result as a slice of bson.M
+	var result []bson.M
+	var totalArrivalTime time.Duration
+	var totalCount int
+
+	for weekday := time.Monday; weekday <= time.Friday; weekday++ {
+		averageArrivalTime := time.Duration(0)
+		if weekdayCount[weekday] > 0 {
+			averageArrivalTime = weekdayArrivalTimes[weekday] / time.Duration(weekdayCount[weekday])
+		}
+
+		// Convert the average arrival time to a readable format (HH:mm)
+		hours := averageArrivalTime / time.Hour
+		minutes := (averageArrivalTime % time.Hour) / time.Minute
+
+		dayData := bson.M{
+			"weekday":            weekday.String(),
+			"averageArrivalTime": fmt.Sprintf("%02d:%02d", hours, minutes),
+		}
+		result = append(result, dayData)
+
+		totalArrivalTime += weekdayArrivalTimes[weekday]
+		totalCount += weekdayCount[weekday]
+	}
+
+	// Calculate overall average arrival time
+	overallAverageArrivalTime := time.Duration(0)
+	if totalCount > 0 {
+		overallAverageArrivalTime = totalArrivalTime / time.Duration(totalCount)
+	}
+	hours := overallAverageArrivalTime / time.Hour
+	minutes := (overallAverageArrivalTime % time.Hour) / time.Minute
+
+	// Append overall average to the result
+	result = append(result, bson.M{
+		"overallAverageArrivalTime": fmt.Sprintf("%02d:%02d", hours, minutes),
+	})
 
 	return result
 }
