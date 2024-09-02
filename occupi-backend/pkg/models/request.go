@@ -141,3 +141,8 @@ type RequestHours struct {
 	Limit    int64     `json:"limit"`
 	Page     int64     `json:"page"`
 }
+
+type RequestSpecialEvent struct {
+	Date           time.Time `json:"date" binding:"required"`
+	IsSpecialEvent string    `json:"isSpecialEvent" binding:"required"`
+}

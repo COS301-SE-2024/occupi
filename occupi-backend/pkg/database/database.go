@@ -1552,51 +1552,182 @@ func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request model
 
 	if updatedStatus {
 		// add the user to the office hours collection
-		officeHours := models.OfficeHours{
-			Email:   request.Email,
-			Entered: CapTimeRange(),
-			Exited:  CapTimeRange(),
-			Closed:  false,
-		}
-
-		collection = appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
-
-		_, err = collection.InsertOne(ctx, officeHours)
-		if err != nil {
-			logrus.WithError(err).Error("Failed to add user to office hours")
-			return err
-		}
-	} else {
-		// find the user's office hours and remove them and add the removed office hours to the OfficeHoursArchive collection
-		filter := bson.M{"email": request.Email, "closed": false}
-
-		collection = appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
-
-		var officeHours models.OfficeHours
-		err := collection.FindOne(ctx, filter).Decode(&officeHours)
+		err = AddHoursToOfficeHoursCollection(ctx, appsession, request.Email)
 		if err != nil {
 			logrus.Error(err)
 			return err
 		}
 
-		// remove the office hours from the OfficeHours collection
-		_, err = collection.DeleteOne(ctx, filter)
+		// add their attendance to the attendance collection if there is no
+		// attendance object for this date otherwise increment the Number_Attended field
+		err = AddAttendance(ctx, appsession)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	} else {
+		// find the user's office hours and remove them and add the removed office hours to the OfficeHoursArchive collection
+		officeHours, err := FindAndRemoveOfficeHours(ctx, appsession, request.Email)
 		if err != nil {
 			logrus.Error(err)
 			return err
 		}
 
 		// update the fields and add to the OfficeHoursArchive time series collection
-		officeHours.Closed = true
-		officeHours.Exited = CompareAndReturnTime(officeHours.Entered, CapTimeRange())
-
-		collection = appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
-
-		_, err = collection.InsertOne(ctx, officeHours)
+		err = AddOfficeHoursToArchive(ctx, appsession, officeHours)
 		if err != nil {
 			logrus.Error(err)
 			return err
 		}
+	}
+
+	return nil
+}
+
+func AddHoursToOfficeHoursCollection(ctx *gin.Context, appsession *models.AppSession, email string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// add the user to the office hours collection
+	officeHours := models.OfficeHours{
+		Email:   email,
+		Entered: CapTimeRange(),
+		Exited:  CapTimeRange(),
+		Closed:  false,
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
+
+	_, err := collection.InsertOne(ctx, officeHours)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to add user to office hours")
+		return err
+	}
+
+	return nil
+}
+
+func FindAndRemoveOfficeHours(ctx *gin.Context, appsession *models.AppSession, email string) (models.OfficeHours, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return models.OfficeHours{}, errors.New("database is nil")
+	}
+
+	// find the user's office hours and remove them
+	filter := bson.M{"email": email, "closed": false}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
+
+	var officeHours models.OfficeHours
+	err := collection.FindOne(ctx, filter).Decode(&officeHours)
+	if err != nil {
+		logrus.Error(err)
+		return models.OfficeHours{}, err
+	}
+
+	// remove the office hours from the OfficeHours collection
+	_, err = collection.DeleteOne(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return models.OfficeHours{}, err
+	}
+
+	return officeHours, nil
+}
+
+func AddOfficeHoursToArchive(ctx *gin.Context, appsession *models.AppSession, officeHours models.OfficeHours) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// update the fields and add to the OfficeHoursArchive time series collection
+	officeHours.Closed = true
+	officeHours.Exited = CompareAndReturnTime(officeHours.Entered, CapTimeRange())
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+	_, err := collection.InsertOne(ctx, officeHours)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func AddAttendance(ctx *gin.Context, appsession *models.AppSession) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+	// add their attendance to the attendance collection if there is no
+	// attendance object for this date otherwise increment the Number_Attended field
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("attendance")
+
+	filter := bson.M{"date": time.Now().Format("2006-01-02")}
+
+	var attendance models.Attendance
+	err := collection.FindOne(ctx, filter).Decode(&attendance)
+	if err != nil {
+		attendance = models.Attendance{
+			Date:            time.Now(),
+			IsWeekend:       IsWeekend(time.Now()),
+			WeekOfTheYear:   WeekOfTheYear(time.Now()),
+			DayOfWeek:       DayOfTheWeek(time.Now()),
+			Month:           Month(time.Now()),
+			SpecialEvent:    false, // admins can set this to true if there is a special event at a later stage
+			Number_Attended: 1,
+		}
+
+		_, err = collection.InsertOne(ctx, attendance)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to add user to attendance")
+			return err
+		}
+	} else {
+		update := bson.M{"$inc": bson.M{"Number_Attended": 1}}
+		_, err = collection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to update attendance")
+			return err
+		}
+	}
+	return nil
+}
+
+func ToggleSpecialEvent(ctx *gin.Context, appsession *models.AppSession, request models.RequestSpecialEvent) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	var isSE bool
+	if request.IsSpecialEvent == "Yes" {
+		isSE = true
+	} else if request.IsSpecialEvent == "No" {
+		isSE = false
+	} else {
+		return errors.New("invalid special event status")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("attendance")
+
+	filter := bson.M{"date": request.Date}
+
+	update := bson.M{"$set": bson.M{"specialEvent": isSE}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
 	}
 
 	return nil

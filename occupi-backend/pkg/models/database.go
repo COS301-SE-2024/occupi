@@ -180,3 +180,14 @@ type OfficeHoursFilterStruct struct {
 	Limit  int64
 	Skip   int64
 }
+
+type Attendance struct {
+	Date            time.Time `json:"Date" bson:"Date"`
+	IsWeekend       bool      `json:"Is_Weekend" bson:"Is_Weekend"`
+	WeekOfTheYear   int       `json:"Week_of_the_year" bson:"Week_of_the_year"`
+	DayOfWeek       string    `json:"Day_of_week" bson:"Day_of_week"`
+	DayOfMonth      int       `json:"Day_of_month" bson:"Day_of_month"`
+	Month           int       `json:"Month" bson:"Month"`
+	SpecialEvent    bool      `json:"Special_Event" bson:"Special_Event"`
+	Number_Attended int       `json:"Number_Attended" bson:"Number_Attended"`
+}
