@@ -7626,3 +7626,97 @@ func TestCompareAndReturnTime(t *testing.T) {
 		})
 	}
 }
+
+func TestToggleOnsite(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	email := "test@example.com"
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("Invalid status", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			OnSite: "Invalid",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "invalid status")
+	})
+
+	mt.Run("User is already on site", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: true},
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "user is already onsite")
+	})
+
+	mt.Run("User is already off site", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: false},
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			OnSite: "No",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "user is already offsite")
+	})
+
+	mt.Run("User is already on site in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "user is already onsite")
+	})
+
+}
