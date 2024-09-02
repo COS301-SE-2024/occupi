@@ -7988,9 +7988,6 @@ func TestToggleOnsite(t *testing.T) {
 
 		// Mock the InsertOne operation as successful
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
-		// mongo db is insane. this extra response is needed to avoid "no responses remaining" error
-		// however it shouldn't have been necessary since we are only performing 3 operations
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		// Call the function under test
 		appsession := &models.AppSession{
@@ -8003,6 +8000,86 @@ func TestToggleOnsite(t *testing.T) {
 		})
 
 		// Validate the result
-		assert.NoError(t, err)
+		assert.Error(t, err)
+	})
+
+	mt.Run("Toggle onsite to false and add office hours successfully to archive", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: true},
+		}))
+
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Mock the InsertOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "No",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+	})
+}
+
+func TestAddHoursToOfficeHoursCollection(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	email := "test@example.com"
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.AddHoursToOfficeHoursCollection(ctx, appsession, email)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	mt.Run("Successful insert", func(mt *mtest.T) {
+		// Create a mock collection and response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Set the database and collection
+
+		err := database.AddHoursToOfficeHoursCollection(ctx, appsession, email)
+		assert.NoError(t, err, "Expected no error for successful insert")
+	})
+
+	mt.Run("Failed insert", func(mt *mtest.T) {
+		// Create a mock collection and response
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
+			mtest.CommandError{
+				Code:    1,
+				Message: "insert failed",
+			},
+		))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddHoursToOfficeHoursCollection(ctx, appsession, email)
+		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
 	})
 }
