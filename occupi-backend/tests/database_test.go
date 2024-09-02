@@ -8083,3 +8083,98 @@ func TestAddHoursToOfficeHoursCollection(t *testing.T) {
 		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
 	})
 }
+
+func TestFindAndRemoveOfficeHours(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	email := "test@example.com"
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		officeHours, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+		assert.Equal(t, models.OfficeHours{}, officeHours, "Expected empty OfficeHours for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	mt.Run("Successful find and remove", func(mt *mtest.T) {
+		// Define the expected result
+		expectedOfficeHours := models.OfficeHours{
+			Email:   email,
+			Entered: database.CapTimeRange(),
+			Exited:  database.CapTimeRange(),
+			Closed:  false,
+		}
+
+		// Create mock responses for FindOne and DeleteOne operations
+		mt.AddMockResponses(
+			mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHours", mtest.FirstBatch, bson.D{
+				{Key: "email", Value: email},
+				{Key: "entered", Value: expectedOfficeHours.Entered},
+				{Key: "exited", Value: expectedOfficeHours.Exited},
+				{Key: "closed", Value: expectedOfficeHours.Closed},
+			}),
+			mtest.CreateSuccessResponse(),
+			mtest.CreateSuccessResponse(),
+		)
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		officeHours, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		assert.NoError(t, err, "Expected no error for successful find and remove")
+		assert.Equal(t, expectedOfficeHours, officeHours, "Expected matching OfficeHours after successful find and remove")
+	})
+
+	mt.Run("Failed find", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock FindOne failure
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find failed",
+		}))
+
+		officeHours, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		assert.EqualError(t, err, "find failed", "Expected error for failed find operation")
+		assert.Equal(t, models.OfficeHours{}, officeHours, "Expected empty OfficeHours for failed find")
+	})
+
+	mt.Run("Failed remove", func(mt *mtest.T) {
+		// Create mock responses for FindOne and DeleteOne operations
+		mt.AddMockResponses(
+			mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHours", mtest.FirstBatch, bson.D{
+				{Key: "email", Value: email},
+				{Key: "entered", Value: database.CapTimeRange()},
+				{Key: "exited", Value: database.CapTimeRange()},
+				{Key: "closed", Value: false},
+			}),
+			mtest.CreateSuccessResponse(),
+			mtest.CreateCommandErrorResponse(mtest.CommandError{
+				Code:    1,
+				Message: "delete failed",
+			}),
+		)
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		_, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		assert.EqualError(t, err, "delete failed", "Expected error for failed delete operation")
+	})
+}
