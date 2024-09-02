@@ -302,7 +302,7 @@ func BusiestHoursByWeekday(officeHours []models.OfficeHours) []bson.M {
 }
 
 // LeastInOfficeWorker function to calculate the least "in office" worker
-func LeastInOfficeWorker(officeHours []models.OfficeHours) (email string, totalHours, averageHours float64) {
+func LeastInOfficeWorker(officeHours []models.OfficeHours) []bson.M {
 	// Map to store total hours worked per email
 	hoursWorked := make(map[string]float64)
 	// Map to store number of days worked per email
@@ -346,15 +346,19 @@ func LeastInOfficeWorker(officeHours []models.OfficeHours) (email string, totalH
 
 	// Calculate average hours for the least "in office" worker
 	totalDays := float64(daysWorked[leastEmail])
+	var averageHours float64
 	if totalDays > 0 {
 		averageHours = leastHours / totalDays
 	}
 
-	return leastEmail, leastHours, averageHours
+	var result []bson.M
+	result = append(result, bson.M{"email": leastEmail, "totalHours": leastHours, "averageHours": averageHours})
+
+	return result
 }
 
 // MostInOfficeWorker function to calculate the most "in office" worker
-func MostInOfficeWorker(officeHours []models.OfficeHours) (email string, totalHours, averageHours float64) {
+func MostInOfficeWorker(officeHours []models.OfficeHours) []bson.M {
 	// Map to store total hours worked per email
 	hoursWorked := make(map[string]float64)
 	// Map to store number of days worked per email
@@ -398,9 +402,14 @@ func MostInOfficeWorker(officeHours []models.OfficeHours) (email string, totalHo
 
 	// Calculate average hours for the most "in office" worker
 	totalDays := float64(daysWorked[mostEmail])
+	var averageHours float64
 	if totalDays > 0 {
 		averageHours = mostHours / totalDays
 	}
 
-	return mostEmail, mostHours, averageHours
+	var result []bson.M
+
+	result = append(result, bson.M{"email": mostEmail, "totalHours": mostHours, "averageHours": averageHours})
+
+	return result
 }

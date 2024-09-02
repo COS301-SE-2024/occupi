@@ -1652,51 +1652,11 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		return analytics.RatioInOutOfficeByWeekday(hours), totalResults, nil
 	} else if calculate == "peakhours" {
 		return analytics.BusiestHoursByWeekday(hours), totalResults, nil
+	} else if calculate == "most" {
+		return analytics.MostInOfficeWorker(hours), 0, nil
+	} else if calculate == "least" {
+		return analytics.LeastInOfficeWorker(hours), 0, nil
 	} else {
 		return nil, 0, errors.New("invalid calculation")
-	}
-}
-
-func GetUserAnalytics(ctx *gin.Context, appsession *models.AppSession, filter models.OfficeHoursFilterStruct, calculate string) (string, float64, float64, error) {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return "", 0, 0, errors.New("database is nil")
-	}
-
-	// Prepare the filter based on time range
-	mongoFilter := bson.M{}
-	if filter.Filter["timeFrom"] != "" {
-		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
-	}
-	if filter.Filter["timeTo"] != "" {
-		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
-
-	findOptions := options.Find()
-	findOptions.SetLimit(filter.Limit)
-	findOptions.SetSkip(filter.Skip)
-
-	cursor, err := collection.Find(ctx, mongoFilter, findOptions)
-	if err != nil {
-		logrus.Error(err)
-		return "", 0, 0, err
-	}
-
-	var hours []models.OfficeHours
-	if err = cursor.All(ctx, &hours); err != nil {
-		return "", 0, 0, err
-	}
-
-	if calculate == "least" {
-		email, totalHours, averageHours := analytics.LeastInOfficeWorker(hours)
-		return email, totalHours, averageHours, nil
-	} else if calculate == "most" {
-		email, totalHours, averageHours := analytics.MostInOfficeWorker(hours)
-		return email, totalHours, averageHours, nil
-	} else {
-		return "", 0, 0, errors.New("invalid calculation")
 	}
 }

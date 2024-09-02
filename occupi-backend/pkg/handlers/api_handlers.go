@@ -1235,41 +1235,20 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 	}
 
 	// Get the user analytics
-	if calculate == "most" || calculate == "least" {
-		email, totalHours, averageHours, err := database.GetUserAnalytics(ctx, appsession, filter, calculate)
-		if err != nil {
-			captureError(ctx, err)
-			logrus.Error("Failed to get user analytics because: ", err)
-			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
-				http.StatusInternalServerError,
-				"Failed to get user analytics",
-				constants.InternalServerErrorCode,
-				"Failed to get user analytics",
-				nil))
-			return
-		}
-
-		ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched user analytics!", gin.H{
-			"email":        email,
-			"totalHours":   totalHours,
-			"averageHours": averageHours,
-		}))
-	} else {
-		userHours, totalResults, err := database.GetAnalyticsOnHours(ctx, appsession, request.Email, filter, calculate)
-		if err != nil {
-			captureError(ctx, err)
-			logrus.Error("Failed to get user analytics because: ", err)
-			ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
-				http.StatusInternalServerError,
-				"Failed to get user analytics",
-				constants.InternalServerErrorCode,
-				"Failed to get user analytics",
-				nil))
-			return
-		}
-
-		ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "Successfully fetched user analytics! Note that all analytics are measured in hours.", userHours,
-			gin.H{"totalResults": len(userHours), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
+	userHours, totalResults, err := database.GetAnalyticsOnHours(ctx, appsession, request.Email, filter, calculate)
+	if err != nil {
+		captureError(ctx, err)
+		logrus.Error("Failed to get user analytics because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to get user analytics",
+			constants.InternalServerErrorCode,
+			"Failed to get user analytics",
+			nil))
+		return
 	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "Successfully fetched user analytics! Note that all analytics are measured in hours.", userHours,
+		gin.H{"totalResults": len(userHours), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
 
 }
