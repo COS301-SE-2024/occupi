@@ -7672,6 +7672,7 @@ func TestToggleOnsite(t *testing.T) {
 		}
 
 		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
 			OnSite: "Yes",
 		})
 
@@ -7692,6 +7693,7 @@ func TestToggleOnsite(t *testing.T) {
 		}
 
 		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
 			OnSite: "No",
 		})
 
@@ -7790,4 +7792,116 @@ func TestToggleOnsite(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
+	mt.Run("Find error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "find error")
+	})
+
+	mt.Run("Update error", func(mt *mtest.T) {
+		// mock success find followed by an update error
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: false},
+		}))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "update error")
+	})
+
+	mt.Run("Toggle onsite to true and add office hours successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: false},
+		}))
+
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Mock the InsertOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+		// mongo db is insane. this extra response is needed to avoid "no responses remaining" error
+		// however it shouldn't have been necessary since we are only performing 3 operations
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.NoError(t, err)
+	})
+
+	mt.Run("Toggle onsite to true and fsil to add office hours successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: false},
+		}))
+
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Mock the InsertOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Mock the InsertOne operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "insert error",
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "insert error")
+	})
 }

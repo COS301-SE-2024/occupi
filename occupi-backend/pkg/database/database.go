@@ -1526,7 +1526,7 @@ func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request model
 		filter := bson.M{"email": request.Email}
 		err := collection.FindOne(ctx, filter).Decode(&userData)
 		if err != nil {
-			logrus.Error(err)
+			logrus.WithError(err).Error("Failed to get user from database")
 			return err
 		}
 	}
@@ -1542,7 +1542,7 @@ func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request model
 
 	_, err = collection.UpdateOne(ctx, filter, update)
 	if err != nil {
-		logrus.Error(err)
+		logrus.WithError(err).Error("Failed to update user status")
 		return err
 	}
 
@@ -1563,7 +1563,7 @@ func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request model
 
 		_, err = collection.InsertOne(ctx, officeHours)
 		if err != nil {
-			logrus.Error(err)
+			logrus.WithError(err).Error("Failed to add user to office hours")
 			return err
 		}
 	} else {
