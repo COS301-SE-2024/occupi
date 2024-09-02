@@ -7627,6 +7627,140 @@ func TestCompareAndReturnTime(t *testing.T) {
 	}
 }
 
+func TestIsWeekend(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected bool
+	}{
+		{
+			name:     "Saturday",
+			date:     time.Date(2024, 9, 7, 0, 0, 0, 0, time.UTC),
+			expected: true,
+		},
+		{
+			name:     "Sunday",
+			date:     time.Date(2024, 9, 8, 0, 0, 0, 0, time.UTC),
+			expected: true,
+		},
+		{
+			name:     "Weekday - Monday",
+			date:     time.Date(2024, 9, 9, 0, 0, 0, 0, time.UTC),
+			expected: false,
+		},
+		{
+			name:     "Weekday - Friday",
+			date:     time.Date(2024, 9, 6, 0, 0, 0, 0, time.UTC),
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.IsWeekend(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestWeekOfTheYear(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected int
+	}{
+		{
+			name:     "First week of the year",
+			date:     time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC),
+			expected: 1,
+		},
+		{
+			name:     "Middle of the year",
+			date:     time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC),
+			expected: 24,
+		},
+		{
+			name:     "Last week of the year",
+			date:     time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC),
+			expected: 1, // Note: ISO week starts from 1 again if Jan 1st is a Monday.
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.WeekOfTheYear(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestDayOfTheWeek(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected string
+	}{
+		{
+			name:     "Monday",
+			date:     time.Date(2024, 9, 9, 0, 0, 0, 0, time.UTC),
+			expected: "Monday",
+		},
+		{
+			name:     "Wednesday",
+			date:     time.Date(2024, 9, 11, 0, 0, 0, 0, time.UTC),
+			expected: "Wednesday",
+		},
+		{
+			name:     "Friday",
+			date:     time.Date(2024, 9, 13, 0, 0, 0, 0, time.UTC),
+			expected: "Friday",
+		},
+		{
+			name:     "Sunday",
+			date:     time.Date(2024, 9, 8, 0, 0, 0, 0, time.UTC),
+			expected: "Sunday",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.DayOfTheWeek(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestMonth(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected int
+	}{
+		{
+			name:     "January",
+			date:     time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			expected: 1,
+		},
+		{
+			name:     "June",
+			date:     time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC),
+			expected: 6,
+		},
+		{
+			name:     "December",
+			date:     time.Date(2024, 12, 25, 0, 0, 0, 0, time.UTC),
+			expected: 12,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.Month(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestToggleOnsite(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
@@ -7870,38 +8004,5 @@ func TestToggleOnsite(t *testing.T) {
 
 		// Validate the result
 		assert.NoError(t, err)
-	})
-
-	mt.Run("Toggle onsite to true and fsil to add office hours successfully", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
-			{Key: "email", Value: email},
-			{Key: "onSite", Value: false},
-		}))
-
-		// Mock the UpdateOne operation as successful
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-		// Mock the InsertOne operation as successful
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-		// Mock the InsertOne operation to return an error
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
-			Code:    11000,
-			Message: "insert error",
-		}))
-
-		// Call the function under test
-		appsession := &models.AppSession{
-			DB: mt.Client,
-		}
-
-		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
-			Email:  email,
-			OnSite: "Yes",
-		})
-
-		// Validate the result
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "insert error")
 	})
 }

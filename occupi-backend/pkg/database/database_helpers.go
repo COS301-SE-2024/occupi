@@ -192,3 +192,25 @@ func CompareAndReturnTime(oldTime, newTime time.Time) time.Time {
 
 	return newTime
 }
+
+// IsWeekend checks if the given date is a weekend
+func IsWeekend(date time.Time) bool {
+	// Check if the given date is a Saturday or Sunday
+	return date.Weekday() == time.Saturday || date.Weekday() == time.Sunday
+}
+
+// WeekOfTheYear returns the week number of the year for the given date
+func WeekOfTheYear(date time.Time) int {
+	_, week := date.ISOWeek()
+	return week
+}
+
+// DayOfTheWeek returns the day of the week for the given date as a string
+func DayOfTheWeek(date time.Time) string {
+	return date.Weekday().String()
+}
+
+// Month returns the month as an int
+func Month(date time.Time) int {
+	return int(date.Month())
+}
