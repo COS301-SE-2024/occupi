@@ -1671,11 +1671,22 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession) error {
 	// attendance object for this date otherwise increment the Number_Attended field
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("attendance")
 
-	filter := bson.M{"date": time.Now().Format("2006-01-02")}
+	// Define the start and end of the day
+	now := time.Now().Truncate(24 * time.Hour)
+	endOfDay := now.Add(24 * time.Hour)
+
+	// Create the filter
+	filter := bson.M{
+		"Date": bson.M{
+			"$gte": now,
+			"$lt":  endOfDay,
+		},
+	}
 
 	var attendance models.Attendance
 	err := collection.FindOne(ctx, filter).Decode(&attendance)
 	if err != nil {
+		logrus.WithError(err).Error("Failed to get attendance")
 		attendance = models.Attendance{
 			Date:            time.Now(),
 			IsWeekend:       IsWeekend(time.Now()),
@@ -1699,37 +1710,6 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession) error {
 			return err
 		}
 	}
-	return nil
-}
-
-func ToggleSpecialEvent(ctx *gin.Context, appsession *models.AppSession, request models.RequestSpecialEvent) error {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return errors.New("database is nil")
-	}
-
-	var isSE bool
-	if request.IsSpecialEvent == "Yes" {
-		isSE = true
-	} else if request.IsSpecialEvent == "No" {
-		isSE = false
-	} else {
-		return errors.New("invalid special event status")
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("attendance")
-
-	filter := bson.M{"date": request.Date}
-
-	update := bson.M{"$set": bson.M{"specialEvent": isSE}}
-
-	_, err := collection.UpdateOne(ctx, filter, update)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-
 	return nil
 }
 

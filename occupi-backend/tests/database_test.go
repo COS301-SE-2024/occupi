@@ -8243,3 +8243,130 @@ func TestAddOfficeHoursToArchive(t *testing.T) {
 		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
 	})
 }
+
+func TestAddAttendance(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Define the attendance object
+	attendance := models.Attendance{
+		Date:            time.Now(),
+		IsWeekend:       database.IsWeekend(time.Now()),
+		WeekOfTheYear:   database.WeekOfTheYear(time.Now()),
+		DayOfWeek:       database.DayOfTheWeek(time.Now()),
+		Month:           database.Month(time.Now()),
+		SpecialEvent:    false,
+		Number_Attended: 1,
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	mt.Run("Successful insert", func(mt *mtest.T) {
+		// Mock FindOne to return no document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".attendance", mtest.FirstBatch))
+
+		// Mock InsertOne success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.NoError(t, err, "Expected no error for successful insert")
+	})
+
+	mt.Run("Successful update", func(mt *mtest.T) {
+		// Mock FindOne to return an existing document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".attendance", mtest.FirstBatch, bson.D{
+			{Key: "Date", Value: attendance.Date},
+			{Key: "Special_Event", Value: attendance.SpecialEvent},
+			{Key: "Month", Value: attendance.Month},
+			{Key: "Day_of_month", Value: attendance.Date.Day()},
+			{Key: "Number_Attended", Value: attendance.Number_Attended},
+			{Key: "Day_of_week", Value: attendance.DayOfWeek},
+			{Key: "Is_Weekend", Value: attendance.IsWeekend},
+			{Key: "Week_of_the_year", Value: attendance.WeekOfTheYear},
+		}))
+
+		// Mock findone success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+		// Mock UpdateOne success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.NoError(t, err, "Expected no error for successful update")
+	})
+
+	mt.Run("Failed insert", func(mt *mtest.T) {
+		// Mock FindOne to return no document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".attendance", mtest.FirstBatch))
+
+		// Mock InsertOne failure response
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
+			mtest.CommandError{
+				Code:    1,
+				Message: "insert failed",
+			},
+		))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
+	})
+
+	mt.Run("Failed update", func(mt *mtest.T) {
+		// Mock FindOne to return an existing document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".attendance", mtest.FirstBatch, bson.D{
+			{Key: "Date", Value: attendance.Date},
+			{Key: "Special_Event", Value: attendance.SpecialEvent},
+			{Key: "Month", Value: attendance.Month},
+			{Key: "Day_of_month", Value: attendance.Date.Day()},
+			{Key: "Number_Attended", Value: attendance.Number_Attended},
+			{Key: "Day_of_week", Value: attendance.DayOfWeek},
+			{Key: "Is_Weekend", Value: attendance.IsWeekend},
+			{Key: "Week_of_the_year", Value: attendance.WeekOfTheYear},
+		}))
+
+		// Mock findone success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Mock UpdateOne failure response
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
+			mtest.CommandError{
+				Code:    1,
+				Message: "update failed",
+			},
+		))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.EqualError(t, err, "update failed", "Expected error for failed update")
+	})
+}
