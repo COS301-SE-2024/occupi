@@ -7705,18 +7705,89 @@ func TestToggleOnsite(t *testing.T) {
 
 		Cache, mock := redismock.NewClientMock()
 
-		// Call the function under test
-		appsession := &models.AppSession{
-			DB: mt.Client,
+		// add user to Cache
+		user := models.User{
+			Email:  email,
+			OnSite: true,
 		}
 
-		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		err = database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
 			OnSite: "Yes",
 		})
 
 		// Validate the result
 		assert.Error(t, err)
 		assert.EqualError(t, err, "user is already onsite")
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("User is already off site in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		// add user to Cache
+		user := models.User{
+			Email:  email,
+			OnSite: false,
+		}
+
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		err = database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "No",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "user is already offsite")
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 }
