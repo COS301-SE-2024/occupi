@@ -78,7 +78,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		analytics.GET("/peak-office-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "peakhours", true) })
 		analytics.GET("/arrival-departure-average", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "arrivaldeparture", true) })
 		analytics.GET("/in-office", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "inofficehours", true) })
-		//analytics.GET("/booking-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetBookingHours(ctx, appsession) })
+		// analytics.GET("/booking-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetBookingHours(ctx, appsession) })
 	}
 	auth := router.Group("/auth")
 	{

@@ -8253,13 +8253,13 @@ func TestAddAttendance(t *testing.T) {
 
 	// Define the attendance object
 	attendance := models.Attendance{
-		Date:            time.Now(),
-		IsWeekend:       database.IsWeekend(time.Now()),
-		WeekOfTheYear:   database.WeekOfTheYear(time.Now()),
-		DayOfWeek:       database.DayOfTheWeek(time.Now()),
-		Month:           database.Month(time.Now()),
-		SpecialEvent:    false,
-		Number_Attended: 1,
+		Date:           time.Now(),
+		IsWeekend:      database.IsWeekend(time.Now()),
+		WeekOfTheYear:  database.WeekOfTheYear(time.Now()),
+		DayOfWeek:      database.DayOfTheWeek(time.Now()),
+		Month:          database.Month(time.Now()),
+		SpecialEvent:   false,
+		NumberAttended: 1,
 	}
 
 	mt.Run("Nil database", func(mt *mtest.T) {
@@ -8296,7 +8296,7 @@ func TestAddAttendance(t *testing.T) {
 			{Key: "Special_Event", Value: attendance.SpecialEvent},
 			{Key: "Month", Value: attendance.Month},
 			{Key: "Day_of_month", Value: attendance.Date.Day()},
-			{Key: "Number_Attended", Value: attendance.Number_Attended},
+			{Key: "Number_Attended", Value: attendance.NumberAttended},
 			{Key: "Day_of_week", Value: attendance.DayOfWeek},
 			{Key: "Is_Weekend", Value: attendance.IsWeekend},
 			{Key: "Week_of_the_year", Value: attendance.WeekOfTheYear},
@@ -8344,7 +8344,7 @@ func TestAddAttendance(t *testing.T) {
 			{Key: "Special_Event", Value: attendance.SpecialEvent},
 			{Key: "Month", Value: attendance.Month},
 			{Key: "Day_of_month", Value: attendance.Date.Day()},
-			{Key: "Number_Attended", Value: attendance.Number_Attended},
+			{Key: "Number_Attended", Value: attendance.NumberAttended},
 			{Key: "Day_of_week", Value: attendance.DayOfWeek},
 			{Key: "Is_Weekend", Value: attendance.IsWeekend},
 			{Key: "Week_of_the_year", Value: attendance.WeekOfTheYear},
