@@ -14,12 +14,16 @@ all the users in the office space.
         - [User average hours](#user-average-hours)
         - [User work ratio](#user-work-ratio)
         - [User peak office hours](#user-peak-office-hours)
+        - [User arrival departure average](#user-arival-departure-average)
+        - [User in office rate](#user-in-office-rate)
         - [Most active employee](#most-active-employee)
         - [Least active employee](#least-active-employee)
         - [Workers hours](#workers-hours)
         - [Workers average hours](#workers-average-hours)
         - [Workers work ratio](#workers-work-ratio)
         - [Workers peak office hours](#workers-peak-office-hours)
+        - [Workers arrival departure average](#workers-arival-departure-average)
+        - [Workers in office rate](#workers-in-office-rate)
 
 ## Base URL
 
@@ -225,6 +229,118 @@ The user peak office hours endpoint is used to get the peak office hours of a sp
 
 ```
 /analytics/user-peak-office-hours?email=abcd@gmail&timeFrom=2021-01-01T00json&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### User arrival departure average
+
+The user arrival departure average endpoint is used to get the arrival departure average of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-arrival-departure-average`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-arrival-departure-average?email=abcd@gmail&timeFrom=2021-01-01T00json&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### User in office rate
+
+The user in office rate endpoint is used to get the in office rate of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-in-office-rate`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-in-office-rate?email=abcd@gmail&timeFrom=2021-01-01T00json&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
 ```
 
 - **Success Response**
@@ -541,7 +657,6 @@ The workers peak office hours endpoint is used to get the peak office hours of a
 - **URL**
 
   `/analytics/peak-office-hours`
-
   
 - **Method**
 
@@ -563,6 +678,118 @@ The workers peak office hours endpoint is used to get the peak office hours of a
 
 ```
 /analytics/peak-office-hours?email=abcd@gmail&timeFrom=2021-01-01T00json&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Workers arrival departure average
+
+The workers arrival departure average endpoint is used to get the arrival departure average of all the workers in the office space.
+
+- **URL**
+
+  `/analytics/arrival-departure-average`
+  
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/arrival-departure-average?email=abcd@gmail&timeFrom=2021-01-01T00json&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Workers in office rate
+
+The workers in office rate endpoint is used to get the in office rate of all the workers in the office space.
+
+- **URL**
+
+  `/analytics/in-office-rate`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/in-office-rate?email=abcd@gmail&timeFrom=2021-01-01T00json&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
 ```
 
 - **Success Response**
