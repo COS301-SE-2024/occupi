@@ -40,6 +40,7 @@ func main() {
 		SetEnvironment(*env).
 		InitializeConfig().
 		SetupLogger().
+		SetUpTimeZone().
 		CreateAppSession().
 		StartConsumer().
 		SetupRouter().

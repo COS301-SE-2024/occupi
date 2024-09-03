@@ -1129,3 +1129,58 @@ func TestLimitRequestBodySize(t *testing.T) {
 		assert.Contains(t, w.Body.String(), "{\"error\":{\"code\":\"REQUEST_ENTITY_TOO_LARGE\",\"details\":null,\"message\":\"Request body too large by 1024 bytes, max 1024 bytes\"},\"message\":\"Request Entity Too Large\",\"status\":413}")
 	})
 }
+
+func TestBlockWeekendsAndAfterHours(t *testing.T) {
+	// Helper function to create a gin context with a specific time
+	createTestContext := func() (*gin.Context, *httptest.ResponseRecorder) {
+		gin.SetMode(gin.TestMode)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+		return ctx, w
+	}
+
+	tests := []struct {
+		name         string
+		mockTime     time.Time
+		expectedCode int
+	}{
+		{
+			name:         "Access on a Saturday",
+			mockTime:     time.Date(2024, 9, 7, 10, 0, 0, 0, time.UTC), // Saturday at 10:00 AM
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Access on a Sunday",
+			mockTime:     time.Date(2024, 9, 8, 10, 0, 0, 0, time.UTC), // Sunday at 10:00 AM
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Access before working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 6, 30, 0, 0, time.UTC), // Monday at 6:30 AM
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Access after working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 18, 0, 0, 0, time.UTC), // Monday at 6:00 PM
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Access during working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 10, 0, 0, 0, time.UTC), // Monday at 10:00 AM
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, w := createTestContext()
+
+			// Call the middleware with the test context and mock time
+			handler := middleware.BlockWeekendsAndAfterHours(tt.mockTime)
+			handler(ctx)
+
+			// Assert the expected status code
+			assert.Equal(t, tt.expectedCode, w.Code)
+		})
+	}
+}

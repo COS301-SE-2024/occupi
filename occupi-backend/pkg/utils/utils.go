@@ -390,6 +390,19 @@ func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
 	return limit, page, skip
 }
 
+func ComputeLimitPageSkip(limit, page int64) (int64, int64, int64) {
+	if limit <= 0 || limit > 50 {
+		limit = 50 // Default limit
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+	skip := (page - 1) * limit
+
+	return limit, page, skip
+}
+
 func ConstructBookingScheduledString(emails []string) string {
 	n := len(emails)
 	if n == 0 { // this cannot happen as the creator is always included in the emails

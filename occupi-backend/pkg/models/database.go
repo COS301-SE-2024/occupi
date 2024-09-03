@@ -163,16 +163,31 @@ type FilterStruct struct {
 	Sort       primitive.M
 }
 
-type Image struct {
-	ID           string `json:"_id" bson:"_id,omitempty"`
-	Thumbnail    []byte `json:"image_thumbnail_res" bson:"image_thumbnail_res"`
-	ImageLowRes  []byte `json:"image_low_res" bson:"image_low_res"`
-	ImageMidRes  []byte `json:"image_mid_res" bson:"image_mid_res"`
-	ImageHighRes []byte `json:"image_high_res" bson:"image_high_res"`
-	FileName     string `json:"fileName" bson:"fileName"`
-}
-
 type File struct {
 	FileName string   `json:"fileName" bson:"fileName"`
 	File     *os.File `json:"file" bson:"file"`
+}
+
+type OfficeHours struct {
+	Email   string    `json:"email" bson:"email"`
+	Entered time.Time `json:"entered" bson:"entered"`
+	Exited  time.Time `json:"exited" bson:"exited"`
+	Closed  bool      `json:"closed" bson:"closed"`
+}
+
+type OfficeHoursFilterStruct struct {
+	Filter primitive.M
+	Limit  int64
+	Skip   int64
+}
+
+type Attendance struct {
+	Date           time.Time `json:"Date" bson:"Date"`
+	IsWeekend      bool      `json:"Is_Weekend" bson:"Is_Weekend"`
+	WeekOfTheYear  int       `json:"Week_of_the_year" bson:"Week_of_the_year"`
+	DayOfWeek      string    `json:"Day_of_week" bson:"Day_of_week"`
+	DayOfMonth     int       `json:"Day_of_month" bson:"Day_of_month"`
+	Month          int       `json:"Month" bson:"Month"`
+	SpecialEvent   bool      `json:"Special_Event" bson:"Special_Event"`
+	NumberAttended int       `json:"Number_Attended" bson:"Number_Attended"`
 }

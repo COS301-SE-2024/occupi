@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/analytics"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -1497,4 +1498,284 @@ func GetAvailableSlots(ctx *gin.Context, appsession *models.AppSession, request 
 	slots := ComputeAvailableSlots(bookings, request.Date)
 
 	return slots, nil
+}
+
+func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request models.RequestOnsite) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	var updatedStatus bool
+	switch request.OnSite {
+	case "Yes":
+		updatedStatus = true
+	case "No":
+		updatedStatus = false
+	default:
+		return errors.New("invalid status")
+	}
+
+	// check if user is already on site or off site and are trying to perform the same action again
+	var userData models.User
+	userData, err := cache.GetUser(appsession, request.Email)
+	if err != nil {
+		// get the user from the database
+		filter := bson.M{"email": request.Email}
+		err := collection.FindOne(ctx, filter).Decode(&userData)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to get user from database")
+			return err
+		}
+	}
+
+	if userData.OnSite && updatedStatus {
+		return errors.New("user is already onsite")
+	} else if !userData.OnSite && !updatedStatus {
+		return errors.New("user is already offsite")
+	}
+
+	filter := bson.M{"email": request.Email}
+	update := bson.M{"$set": bson.M{"onSite": updatedStatus}}
+
+	_, err = collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to update user status")
+		return err
+	}
+
+	// update user in cache
+	userData.OnSite = updatedStatus
+	cache.SetUser(appsession, userData)
+
+	if updatedStatus {
+		// add the user to the office hours collection
+		err = AddHoursToOfficeHoursCollection(ctx, appsession, request.Email)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+
+		// add their attendance to the attendance collection if there is no
+		// attendance object for this date otherwise increment the Number_Attended field
+		err = AddAttendance(ctx, appsession)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	} else {
+		// find the user's office hours and remove them and add the removed office hours to the OfficeHoursArchive collection
+		officeHours, err := FindAndRemoveOfficeHours(ctx, appsession, request.Email)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+
+		// update the fields and add to the OfficeHoursArchive time series collection
+		err = AddOfficeHoursToArchive(ctx, appsession, officeHours)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func AddHoursToOfficeHoursCollection(ctx *gin.Context, appsession *models.AppSession, email string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// add the user to the office hours collection
+	officeHours := models.OfficeHours{
+		Email:   email,
+		Entered: CapTimeRange(),
+		Exited:  CapTimeRange(),
+		Closed:  false,
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
+
+	_, err := collection.InsertOne(ctx, officeHours)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to add user to office hours")
+		return err
+	}
+
+	return nil
+}
+
+func FindAndRemoveOfficeHours(ctx *gin.Context, appsession *models.AppSession, email string) (models.OfficeHours, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return models.OfficeHours{}, errors.New("database is nil")
+	}
+
+	// find the user's office hours and remove them
+	filter := bson.M{"email": email, "closed": false}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
+
+	var officeHours models.OfficeHours
+	err := collection.FindOne(ctx, filter).Decode(&officeHours)
+	if err != nil {
+		logrus.Error(err)
+		return models.OfficeHours{}, err
+	}
+
+	// remove the office hours from the OfficeHours collection
+	_, err = collection.DeleteOne(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return models.OfficeHours{}, err
+	}
+
+	return officeHours, nil
+}
+
+func AddOfficeHoursToArchive(ctx *gin.Context, appsession *models.AppSession, officeHours models.OfficeHours) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// update the fields and add to the OfficeHoursArchive time series collection
+	officeHours.Closed = true
+	officeHours.Exited = CompareAndReturnTime(officeHours.Entered, CapTimeRange())
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+	_, err := collection.InsertOne(ctx, officeHours)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func AddAttendance(ctx *gin.Context, appsession *models.AppSession) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+	// add their attendance to the attendance collection if there is no
+	// attendance object for this date otherwise increment the Number_Attended field
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("attendance")
+
+	// Define the start and end of the day
+	now := time.Now().Truncate(24 * time.Hour)
+	endOfDay := now.Add(24 * time.Hour)
+
+	// Create the filter
+	filter := bson.M{
+		"Date": bson.M{
+			"$gte": now,
+			"$lt":  endOfDay,
+		},
+	}
+
+	var attendance models.Attendance
+	err := collection.FindOne(ctx, filter).Decode(&attendance)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get attendance")
+		attendance = models.Attendance{
+			Date:           time.Now(),
+			IsWeekend:      IsWeekend(time.Now()),
+			WeekOfTheYear:  WeekOfTheYear(time.Now()),
+			DayOfWeek:      DayOfTheWeek(time.Now()),
+			Month:          Month(time.Now()),
+			SpecialEvent:   false, // admins can set this to true if there is a special event at a later stage
+			NumberAttended: 1,
+		}
+
+		_, err = collection.InsertOne(ctx, attendance)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to add user to attendance")
+			return err
+		}
+	} else {
+		update := bson.M{"$inc": bson.M{"Number_Attended": 1}}
+		_, err = collection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to update attendance")
+			return err
+		}
+	}
+	return nil
+}
+
+func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email string, filter models.OfficeHoursFilterStruct, calculate string) ([]primitive.M, int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	// Prepare the filter based on time range and email if email is not == ""
+	mongoFilter := bson.M{}
+	if email != "" {
+		mongoFilter["email"] = email
+	}
+	if filter.Filter["timeFrom"] != "" {
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
+	}
+	if filter.Filter["timeTo"] != "" {
+		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+	findOptions := options.Find()
+	findOptions.SetLimit(filter.Limit)
+	findOptions.SetSkip(filter.Skip)
+
+	cursor, err := collection.Find(ctx, mongoFilter, findOptions)
+	if err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	var hours []models.OfficeHours
+	if err = cursor.All(ctx, &hours); err != nil {
+		logrus.WithError(err).Error("Failed to get hours")
+		return nil, 0, err
+	}
+
+	// count documents
+	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to count documents")
+		return nil, 0, err
+	}
+
+	switch calculate {
+	case "hoursbyday":
+		return analytics.GroupOfficeHoursByDay(hours), totalResults, nil
+	case "hoursbyweekday":
+		return analytics.AverageOfficeHoursByWeekday(hours), totalResults, nil
+	case "ratio":
+		return analytics.RatioInOutOfficeByWeekday(hours), totalResults, nil
+	case "peakhours":
+		return analytics.BusiestHoursByWeekday(hours), totalResults, nil
+	case "most":
+		return analytics.MostInOfficeWorker(hours), 0, nil
+	case "least":
+		return analytics.LeastInOfficeWorker(hours), 0, nil
+	case "arrivaldeparture":
+		return analytics.AverageArrivalAndDepartureTimesByWeekday(hours), 0, nil
+	case "inofficehours":
+		return analytics.CalculateInOfficeRate(hours), 0, nil
+	default:
+		return nil, 0, errors.New("invalid calculation")
+	}
 }

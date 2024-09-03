@@ -161,3 +161,56 @@ func ComputeAvailableSlots(bookings []models.Booking, dateOfBooking time.Time) [
 
 	return availableSlots
 }
+
+// caps time now to range of 8:00 AM to 5:00 PM
+func CapTimeRange() time.Time {
+	now := time.Now()
+	if now.Hour() < 7 {
+		now = time.Date(now.Year(), now.Month(), now.Day(), 7, 0, 0, 0, time.UTC)
+	} else if now.Hour() > 17 {
+		now = time.Date(now.Year(), now.Month(), now.Day(), 17, 0, 0, 0, time.UTC)
+	}
+	return now
+}
+
+// CompareAndReturnTime validates the newTime against the oldTime and returns:
+// - oldTime's date at 5 PM if newTime's date is after oldTime's date or newTime's time is after 5 PM on the same date.
+// - newTime if it's on the same date as oldTime and before or at 5 PM.
+func CompareAndReturnTime(oldTime, newTime time.Time) time.Time {
+	// Set 5 PM time on oldTime's date
+	oldDateFivePM := time.Date(oldTime.Year(), oldTime.Month(), oldTime.Day(), 17, 0, 0, 0, oldTime.Location())
+
+	// Compare dates
+	oldDate := time.Date(oldTime.Year(), oldTime.Month(), oldTime.Day(), 0, 0, 0, 0, oldTime.Location())
+	newDate := time.Date(newTime.Year(), newTime.Month(), newTime.Day(), 0, 0, 0, 0, newTime.Location())
+
+	if newDate.After(oldDate) {
+		return oldDateFivePM
+	} else if newDate.Equal(oldDate) && newTime.After(oldDateFivePM) {
+		return oldDateFivePM
+	}
+
+	return newTime
+}
+
+// IsWeekend checks if the given date is a weekend
+func IsWeekend(date time.Time) bool {
+	// Check if the given date is a Saturday or Sunday
+	return date.Weekday() == time.Saturday || date.Weekday() == time.Sunday
+}
+
+// WeekOfTheYear returns the week number of the year for the given date
+func WeekOfTheYear(date time.Time) int {
+	_, week := date.ISOWeek()
+	return week
+}
+
+// DayOfTheWeek returns the day of the week for the given date as a string
+func DayOfTheWeek(date time.Time) string {
+	return date.Weekday().String()
+}
+
+// Month returns the month as an int
+func Month(date time.Time) int {
+	return int(date.Month())
+}

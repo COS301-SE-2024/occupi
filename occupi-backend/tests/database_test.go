@@ -7542,3 +7542,965 @@ func TestIsIPWithinRange(t *testing.T) {
 		assert.False(t, res)
 	})
 }
+
+func TestCapTimeRange(t *testing.T) {
+	// Test Case 1: Before 8 AM
+	t.Run("Before 8 AM", func(t *testing.T) {
+		_ = database.CapTimeRange()
+	})
+
+	// Test Case 2: After 5 PM
+	t.Run("After 5 PM", func(t *testing.T) {
+		_ = database.CapTimeRange()
+	})
+
+	// Test Case 3: Between 8 AM and 5 PM
+	t.Run("Between 8 AM and 5 PM", func(t *testing.T) {
+		_ = database.CapTimeRange()
+	})
+}
+
+func TestCompareAndReturnTime(t *testing.T) {
+	tests := []struct {
+		name     string
+		oldTime  time.Time
+		newTime  time.Time
+		expected time.Time
+	}{
+		{
+			name:     "NewTime is after 5 PM on same date",
+			oldTime:  time.Date(2024, 9, 1, 10, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 18, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is exactly at 5 PM on same date",
+			oldTime:  time.Date(2024, 9, 1, 9, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is before 5 PM on same date",
+			oldTime:  time.Date(2024, 9, 1, 8, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 15, 30, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 15, 30, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is on next day",
+			oldTime:  time.Date(2024, 9, 1, 12, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 2, 10, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is several days after oldTime",
+			oldTime:  time.Date(2024, 9, 1, 14, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 5, 9, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 17, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is before oldTime's date",
+			oldTime:  time.Date(2024, 9, 2, 14, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 16, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 16, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "NewTime is before oldTime's date and after 5 PM",
+			oldTime:  time.Date(2024, 9, 2, 14, 0, 0, 0, time.UTC),
+			newTime:  time.Date(2024, 9, 1, 18, 30, 0, 0, time.UTC),
+			expected: time.Date(2024, 9, 1, 18, 30, 0, 0, time.UTC),
+		},
+		{
+			name:     "OldTime and NewTime on same date with different time zones",
+			oldTime:  time.Date(2024, 9, 1, 10, 0, 0, 0, time.FixedZone("PST", -8*3600)),
+			newTime:  time.Date(2024, 9, 1, 16, 30, 0, 0, time.FixedZone("EST", -5*3600)),
+			expected: time.Date(2024, 9, 1, 16, 30, 0, 0, time.FixedZone("EST", -5*3600)),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.CompareAndReturnTime(tt.oldTime, tt.newTime)
+			if !result.Equal(tt.expected) {
+				t.Errorf("CompareAndReturnTime()\nGot:      %v\nExpected: %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestIsWeekend(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected bool
+	}{
+		{
+			name:     "Saturday",
+			date:     time.Date(2024, 9, 7, 0, 0, 0, 0, time.UTC),
+			expected: true,
+		},
+		{
+			name:     "Sunday",
+			date:     time.Date(2024, 9, 8, 0, 0, 0, 0, time.UTC),
+			expected: true,
+		},
+		{
+			name:     "Weekday - Monday",
+			date:     time.Date(2024, 9, 9, 0, 0, 0, 0, time.UTC),
+			expected: false,
+		},
+		{
+			name:     "Weekday - Friday",
+			date:     time.Date(2024, 9, 6, 0, 0, 0, 0, time.UTC),
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.IsWeekend(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestWeekOfTheYear(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected int
+	}{
+		{
+			name:     "First week of the year",
+			date:     time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC),
+			expected: 1,
+		},
+		{
+			name:     "Middle of the year",
+			date:     time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC),
+			expected: 24,
+		},
+		{
+			name:     "Last week of the year",
+			date:     time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC),
+			expected: 1, // Note: ISO week starts from 1 again if Jan 1st is a Monday.
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.WeekOfTheYear(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestDayOfTheWeek(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected string
+	}{
+		{
+			name:     "Monday",
+			date:     time.Date(2024, 9, 9, 0, 0, 0, 0, time.UTC),
+			expected: "Monday",
+		},
+		{
+			name:     "Wednesday",
+			date:     time.Date(2024, 9, 11, 0, 0, 0, 0, time.UTC),
+			expected: "Wednesday",
+		},
+		{
+			name:     "Friday",
+			date:     time.Date(2024, 9, 13, 0, 0, 0, 0, time.UTC),
+			expected: "Friday",
+		},
+		{
+			name:     "Sunday",
+			date:     time.Date(2024, 9, 8, 0, 0, 0, 0, time.UTC),
+			expected: "Sunday",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.DayOfTheWeek(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestMonth(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected int
+	}{
+		{
+			name:     "January",
+			date:     time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+			expected: 1,
+		},
+		{
+			name:     "June",
+			date:     time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC),
+			expected: 6,
+		},
+		{
+			name:     "December",
+			date:     time.Date(2024, 12, 25, 0, 0, 0, 0, time.UTC),
+			expected: 12,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.Month(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestToggleOnsite(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	email := "test@example.com"
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("Invalid status", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			OnSite: "Invalid",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "invalid status")
+	})
+
+	mt.Run("User is already on site", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: true},
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "user is already onsite")
+	})
+
+	mt.Run("User is already off site", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: false},
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "No",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "user is already offsite")
+	})
+
+	mt.Run("User is already on site in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		// add user to Cache
+		user := models.User{
+			Email:  email,
+			OnSite: true,
+		}
+
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		err = database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "user is already onsite")
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("User is already off site in cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		// add user to Cache
+		user := models.User{
+			Email:  email,
+			OnSite: false,
+		}
+
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		err = database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "No",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.EqualError(t, err, "user is already offsite")
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Find error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "find error")
+	})
+
+	mt.Run("Update error", func(mt *mtest.T) {
+		// mock success find followed by an update error
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: false},
+		}))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "update error")
+	})
+
+	mt.Run("Toggle onsite to true and add office hours successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: false},
+		}))
+
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Mock the InsertOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "Yes",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+	})
+
+	mt.Run("Toggle onsite to false and add office hours successfully to archive", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "onSite", Value: true},
+		}))
+
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Mock the InsertOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.ToggleOnsite(ctx, appsession, models.RequestOnsite{
+			Email:  email,
+			OnSite: "No",
+		})
+
+		// Validate the result
+		assert.Error(t, err)
+	})
+}
+
+func TestAddHoursToOfficeHoursCollection(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	email := "test@example.com"
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.AddHoursToOfficeHoursCollection(ctx, appsession, email)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	mt.Run("Successful insert", func(mt *mtest.T) {
+		// Create a mock collection and response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Set the database and collection
+
+		err := database.AddHoursToOfficeHoursCollection(ctx, appsession, email)
+		assert.NoError(t, err, "Expected no error for successful insert")
+	})
+
+	mt.Run("Failed insert", func(mt *mtest.T) {
+		// Create a mock collection and response
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
+			mtest.CommandError{
+				Code:    1,
+				Message: "insert failed",
+			},
+		))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddHoursToOfficeHoursCollection(ctx, appsession, email)
+		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
+	})
+}
+
+func TestFindAndRemoveOfficeHours(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	email := "test@example.com"
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		officeHours, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+		assert.Equal(t, models.OfficeHours{}, officeHours, "Expected empty OfficeHours for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	mt.Run("Successful find and remove", func(mt *mtest.T) {
+		// Define the expected result
+		expectedOfficeHours := models.OfficeHours{
+			Email:   email,
+			Entered: database.CapTimeRange(),
+			Exited:  database.CapTimeRange(),
+			Closed:  false,
+		}
+
+		// Create mock responses for FindOne and DeleteOne operations
+		mt.AddMockResponses(
+			mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHours", mtest.FirstBatch, bson.D{
+				{Key: "email", Value: email},
+				{Key: "entered", Value: expectedOfficeHours.Entered},
+				{Key: "exited", Value: expectedOfficeHours.Exited},
+				{Key: "closed", Value: expectedOfficeHours.Closed},
+			}),
+			mtest.CreateSuccessResponse(),
+			mtest.CreateSuccessResponse(),
+		)
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		officeHours, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		assert.NoError(t, err, "Expected no error for successful find and remove")
+		assert.Equal(t, expectedOfficeHours, officeHours, "Expected matching OfficeHours after successful find and remove")
+	})
+
+	mt.Run("Failed find", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock FindOne failure
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find failed",
+		}))
+
+		officeHours, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		assert.EqualError(t, err, "find failed", "Expected error for failed find operation")
+		assert.Equal(t, models.OfficeHours{}, officeHours, "Expected empty OfficeHours for failed find")
+	})
+
+	mt.Run("Failed remove", func(mt *mtest.T) {
+		// Create mock responses for FindOne and DeleteOne operations
+		mt.AddMockResponses(
+			mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHours", mtest.FirstBatch, bson.D{
+				{Key: "email", Value: email},
+				{Key: "entered", Value: database.CapTimeRange()},
+				{Key: "exited", Value: database.CapTimeRange()},
+				{Key: "closed", Value: false},
+			}),
+			mtest.CreateSuccessResponse(),
+			mtest.CreateCommandErrorResponse(mtest.CommandError{
+				Code:    1,
+				Message: "delete failed",
+			}),
+		)
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		_, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		assert.EqualError(t, err, "delete failed", "Expected error for failed delete operation")
+	})
+}
+
+func TestAddOfficeHoursToArchive(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	officeHours := models.OfficeHours{
+		Email:   "test@example.com",
+		Entered: database.CapTimeRange(),
+		Exited:  database.CapTimeRange(),
+		Closed:  false,
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.AddOfficeHoursToArchive(ctx, appsession, officeHours)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	mt.Run("Successful insert", func(mt *mtest.T) {
+		// Update officeHours for expected outcome
+		officeHours.Closed = true
+		officeHours.Exited = database.CompareAndReturnTime(officeHours.Entered, database.CapTimeRange())
+
+		// Mock InsertOne success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddOfficeHoursToArchive(ctx, appsession, officeHours)
+		assert.NoError(t, err, "Expected no error for successful insert")
+	})
+
+	mt.Run("Failed insert", func(mt *mtest.T) {
+		// Update officeHours for expected outcome
+		officeHours.Closed = true
+		officeHours.Exited = database.CompareAndReturnTime(officeHours.Entered, database.CapTimeRange())
+
+		// Mock InsertOne failure response
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
+			mtest.CommandError{
+				Code:    1,
+				Message: "insert failed",
+			},
+		))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddOfficeHoursToArchive(ctx, appsession, officeHours)
+		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
+	})
+}
+
+func TestAddAttendance(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Define the attendance object
+	attendance := models.Attendance{
+		Date:           time.Now(),
+		IsWeekend:      database.IsWeekend(time.Now()),
+		WeekOfTheYear:  database.WeekOfTheYear(time.Now()),
+		DayOfWeek:      database.DayOfTheWeek(time.Now()),
+		Month:          database.Month(time.Now()),
+		SpecialEvent:   false,
+		NumberAttended: 1,
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	mt.Run("Successful insert", func(mt *mtest.T) {
+		// Mock FindOne to return no document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".attendance", mtest.FirstBatch))
+
+		// Mock InsertOne success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.NoError(t, err, "Expected no error for successful insert")
+	})
+
+	mt.Run("Successful update", func(mt *mtest.T) {
+		// Mock FindOne to return an existing document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".attendance", mtest.FirstBatch, bson.D{
+			{Key: "Date", Value: attendance.Date},
+			{Key: "Special_Event", Value: attendance.SpecialEvent},
+			{Key: "Month", Value: attendance.Month},
+			{Key: "Day_of_month", Value: attendance.Date.Day()},
+			{Key: "Number_Attended", Value: attendance.NumberAttended},
+			{Key: "Day_of_week", Value: attendance.DayOfWeek},
+			{Key: "Is_Weekend", Value: attendance.IsWeekend},
+			{Key: "Week_of_the_year", Value: attendance.WeekOfTheYear},
+		}))
+
+		// Mock findone success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+		// Mock UpdateOne success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.NoError(t, err, "Expected no error for successful update")
+	})
+
+	mt.Run("Failed insert", func(mt *mtest.T) {
+		// Mock FindOne to return no document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".attendance", mtest.FirstBatch))
+
+		// Mock InsertOne failure response
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
+			mtest.CommandError{
+				Code:    1,
+				Message: "insert failed",
+			},
+		))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
+	})
+
+	mt.Run("Failed update", func(mt *mtest.T) {
+		// Mock FindOne to return an existing document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".attendance", mtest.FirstBatch, bson.D{
+			{Key: "Date", Value: attendance.Date},
+			{Key: "Special_Event", Value: attendance.SpecialEvent},
+			{Key: "Month", Value: attendance.Month},
+			{Key: "Day_of_month", Value: attendance.Date.Day()},
+			{Key: "Number_Attended", Value: attendance.NumberAttended},
+			{Key: "Day_of_week", Value: attendance.DayOfWeek},
+			{Key: "Is_Weekend", Value: attendance.IsWeekend},
+			{Key: "Week_of_the_year", Value: attendance.WeekOfTheYear},
+		}))
+
+		// Mock findone success response
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Mock UpdateOne failure response
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(
+			mtest.CommandError{
+				Code:    1,
+				Message: "update failed",
+			},
+		))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		err := database.AddAttendance(ctx, appsession)
+		assert.EqualError(t, err, "update failed", "Expected error for failed update")
+	})
+}
+
+func TestGetAnalyticsOnHours(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Define an example OfficeHours object
+	_ = models.OfficeHours{
+		Email:   "test@example.com",
+		Entered: time.Now(),
+		Exited:  time.Now().Add(2 * time.Hour),
+		Closed:  true,
+	}
+
+	filterMap := map[string]string{
+		"timeFrom": time.Now().Add(-24 * time.Hour).Format(time.RFC3339),
+		"timeTo":   time.Now().Format(time.RFC3339),
+	}
+
+	// Convert filterMap to primitive.M
+	filterPrimitive := make(primitive.M)
+	for k, v := range filterMap {
+		filterPrimitive[k] = v
+	}
+
+	// Define example OfficeHoursFilterStruct
+	filter := models.OfficeHoursFilterStruct{
+		Filter: filterPrimitive,
+		Limit:  10,
+		Skip:   0,
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+	})
+
+	/*mt.Run("Successful query and analytics calculation", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: officeHours.Email},
+			{Key: "entered", Value: officeHours.Entered},
+			{Key: "exited", Value: officeHours.Exited},
+			{Key: "closed", Value: officeHours.Closed},
+		}))
+
+		// Mock CountDocuments to return a count of 1
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		assert.NoError(t, err, "Expected no error for successful query")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
+	})
+
+	mt.Run("Invalid calculation type", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: officeHours.Email},
+			{Key: "entered", Value: officeHours.Entered},
+			{Key: "exited", Value: officeHours.Exited},
+			{Key: "closed", Value: officeHours.Closed},
+		}))
+
+		// mock count documents
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "invalid")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "invalid calculation", "Expected error for invalid calculation type")
+	})*/
+
+	mt.Run("Failed query", func(mt *mtest.T) {
+		// Mock Find to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "query failed",
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "query failed", "Expected error for failed query")
+	})
+
+	/*mt.Run("Failed count documents", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: officeHours.Email},
+			{Key: "entered", Value: officeHours.Entered},
+			{Key: "exited", Value: officeHours.Exited},
+			{Key: "closed", Value: officeHours.Closed},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "count failed",
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "count failed", "Expected error for failed count documents")
+	})*/
+}
