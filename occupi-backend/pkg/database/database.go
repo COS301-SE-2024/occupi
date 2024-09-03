@@ -1746,12 +1746,14 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 
 	var hours []models.OfficeHours
 	if err = cursor.All(ctx, &hours); err != nil {
+		logrus.WithError(err).Error("Failed to get hours")
 		return nil, 0, err
 	}
 
 	// count documents
 	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
 	if err != nil {
+		logrus.WithError(err).Error("Failed to count documents")
 		return nil, 0, err
 	}
 
@@ -1769,8 +1771,8 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		return analytics.LeastInOfficeWorker(hours), 0, nil
 	} else if calculate == "arrivaldeparture" {
 		return analytics.AverageArrivalAndDepartureTimesByWeekday(hours), 0, nil
-	} else if calculate == "absenteeism" {
-		return analytics.CalculateAbsenteeismRates(hours), 0, nil
+	} else if calculate == "inofficehours" {
+		return analytics.CalculateInOfficeRate(hours), 0, nil
 	} else {
 		return nil, 0, errors.New("invalid calculation")
 	}

@@ -487,8 +487,8 @@ func AverageArrivalAndDepartureTimesByWeekday(officeHours []models.OfficeHours) 
 	return result
 }
 
-// CalculateAbsenteeismRates function to calculate absenteeism rates
-func CalculateAbsenteeismRates(officeHours []models.OfficeHours) []bson.M {
+// CalculateInOfficeRate function to calculate absenteeism rates
+func CalculateInOfficeRate(officeHours []models.OfficeHours) []bson.M {
 	expectedDailyHours := 9.0 // 8 AM to 5 PM
 	weekdayInHours := make(map[time.Weekday]float64)
 	weekdayAbsenteeism := make(map[time.Weekday]float64)
@@ -533,8 +533,8 @@ func CalculateAbsenteeismRates(officeHours []models.OfficeHours) []bson.M {
 		}
 
 		dayData := bson.M{
-			"weekday":         weekday.String(),
-			"absenteeismRate": absenteeismRate,
+			"weekday":      weekday.String(),
+			"inOfficeRate": 100.0 - absenteeismRate,
 		}
 		result = append(result, dayData)
 
@@ -550,7 +550,7 @@ func CalculateAbsenteeismRates(officeHours []models.OfficeHours) []bson.M {
 	}
 
 	result = append(result, bson.M{
-		"overallAbsenteeismRate": overallAbsenteeismRate,
+		"overallInOfficeRate": 100.0 - overallAbsenteeismRate,
 	})
 
 	return result
