@@ -1510,11 +1510,12 @@ func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request model
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	var updatedStatus bool
-	if request.OnSite == "Yes" {
+	switch request.OnSite {
+	case "Yes":
 		updatedStatus = true
-	} else if request.OnSite == "No" {
+	case "No":
 		updatedStatus = false
-	} else {
+	default:
 		return errors.New("invalid status")
 	}
 
@@ -1688,13 +1689,13 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession) error {
 	if err != nil {
 		logrus.WithError(err).Error("Failed to get attendance")
 		attendance = models.Attendance{
-			Date:            time.Now(),
-			IsWeekend:       IsWeekend(time.Now()),
-			WeekOfTheYear:   WeekOfTheYear(time.Now()),
-			DayOfWeek:       DayOfTheWeek(time.Now()),
-			Month:           Month(time.Now()),
-			SpecialEvent:    false, // admins can set this to true if there is a special event at a later stage
-			Number_Attended: 1,
+			Date:           time.Now(),
+			IsWeekend:      IsWeekend(time.Now()),
+			WeekOfTheYear:  WeekOfTheYear(time.Now()),
+			DayOfWeek:      DayOfTheWeek(time.Now()),
+			Month:          Month(time.Now()),
+			SpecialEvent:   false, // admins can set this to true if there is a special event at a later stage
+			NumberAttended: 1,
 		}
 
 		_, err = collection.InsertOne(ctx, attendance)
@@ -1757,23 +1758,24 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		return nil, 0, err
 	}
 
-	if calculate == "hoursbyday" {
+	switch calculate {
+	case "hoursbyday":
 		return analytics.GroupOfficeHoursByDay(hours), totalResults, nil
-	} else if calculate == "hoursbyweekday" {
+	case "hoursbyweekday":
 		return analytics.AverageOfficeHoursByWeekday(hours), totalResults, nil
-	} else if calculate == "ratio" {
+	case "ratio":
 		return analytics.RatioInOutOfficeByWeekday(hours), totalResults, nil
-	} else if calculate == "peakhours" {
+	case "peakhours":
 		return analytics.BusiestHoursByWeekday(hours), totalResults, nil
-	} else if calculate == "most" {
+	case "most":
 		return analytics.MostInOfficeWorker(hours), 0, nil
-	} else if calculate == "least" {
+	case "least":
 		return analytics.LeastInOfficeWorker(hours), 0, nil
-	} else if calculate == "arrivaldeparture" {
+	case "arrivaldeparture":
 		return analytics.AverageArrivalAndDepartureTimesByWeekday(hours), 0, nil
-	} else if calculate == "inofficehours" {
+	case "inofficehours":
 		return analytics.CalculateInOfficeRate(hours), 0, nil
-	} else {
+	default:
 		return nil, 0, errors.New("invalid calculation")
 	}
 }

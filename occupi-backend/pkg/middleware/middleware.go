@@ -239,7 +239,7 @@ func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
 	}
 }
 
-// block endpoint on weekends and after hours that is only allow access betwen Mon - Fri 08:00 - 17:00
+// block endpoint on weekends and after hours that is only allow access between Mon - Fri 08:00 - 17:00
 func BlockWeekendsAndAfterHours(now time.Time) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Check if the current day is a weekend
