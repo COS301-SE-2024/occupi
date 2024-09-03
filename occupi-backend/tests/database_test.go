@@ -8370,3 +8370,24 @@ func TestAddAttendance(t *testing.T) {
 		assert.EqualError(t, err, "update failed", "Expected error for failed update")
 	})
 }
+
+func TestGetAnalyticsOnHours(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		res, count, err := database.GetAnalyticsOnHours(ctx, appsession, "", models.OfficeHoursFilterStruct{}, "")
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+		assert.Nil(t, res)
+		assert.Equal(t, int64(0), count)
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+}
