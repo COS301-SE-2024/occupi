@@ -8378,16 +8378,129 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 	gin.SetMode(configs.GetGinRunMode())
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 
+	// Define an example OfficeHours object
+	officeHours := models.OfficeHours{
+		Email:   "test@example.com",
+		Entered: time.Now(),
+		Exited:  time.Now().Add(2 * time.Hour),
+		Closed:  true,
+	}
+
+	filterMap := map[string]string{
+		"timeFrom": time.Now().Add(-24 * time.Hour).Format(time.RFC3339),
+		"timeTo":   time.Now().Format(time.RFC3339),
+	}
+
+	// Convert filterMap to primitive.M
+	filterPrimitive := make(primitive.M)
+	for k, v := range filterMap {
+		filterPrimitive[k] = v
+	}
+
+	// Define example OfficeHoursFilterStruct
+	filter := models.OfficeHoursFilterStruct{
+		Filter: filterPrimitive,
+		Limit:  10,
+		Skip:   0,
+	}
+
 	mt.Run("Nil database", func(mt *mtest.T) {
 		// Create a mock AppSession with a nil database
 		appsession := &models.AppSession{DB: nil}
 
-		res, count, err := database.GetAnalyticsOnHours(ctx, appsession, "", models.OfficeHoursFilterStruct{}, "")
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
 		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
-		assert.Nil(t, res)
-		assert.Equal(t, int64(0), count)
+	})
 
-		// Verify that no MongoDB operations were called
-		mt.ClearMockResponses()
+	mt.Run("Successful query and analytics calculation", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: officeHours.Email},
+			{Key: "entered", Value: officeHours.Entered},
+			{Key: "exited", Value: officeHours.Exited},
+			{Key: "closed", Value: officeHours.Closed},
+		}))
+
+		// Mock CountDocuments to return a count of 1
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		assert.NoError(t, err, "Expected no error for successful query")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
+	})
+
+	mt.Run("Invalid calculation type", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: officeHours.Email},
+			{Key: "entered", Value: officeHours.Entered},
+			{Key: "exited", Value: officeHours.Exited},
+			{Key: "closed", Value: officeHours.Closed},
+		}))
+
+		// mock count documents
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "invalid")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "invalid calculation", "Expected error for invalid calculation type")
+	})
+
+	mt.Run("Failed query", func(mt *mtest.T) {
+		// Mock Find to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "query failed",
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "query failed", "Expected error for failed query")
+	})
+
+	mt.Run("Failed count documents", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: officeHours.Email},
+			{Key: "entered", Value: officeHours.Entered},
+			{Key: "exited", Value: officeHours.Exited},
+			{Key: "closed", Value: officeHours.Closed},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "count failed",
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "count failed", "Expected error for failed count documents")
 	})
 }
