@@ -64,6 +64,7 @@ const (
 	AzurePFPContainerName   = "AZURE_PFP_CONTAINER_NAME"
 	AzureRoomsContainerName = "AZURE_ROOMS_CONTAINER_NAME"
 	AzureAccountKey         = "AZURE_ACCOUNT_KEY"
+	TimeZone                = "TIMEZONE"
 )
 
 // init viper
@@ -566,4 +567,12 @@ func GetAzureAccountKey() string {
 		accountKey = "AZURE_ACCOUNT_KEY"
 	}
 	return accountKey
+}
+
+func GetTimeZone() string {
+	timeZone := viper.GetString(TimeZone)
+	if timeZone == "" {
+		timeZone = "TIMEZONE"
+	}
+	return timeZone
 }
