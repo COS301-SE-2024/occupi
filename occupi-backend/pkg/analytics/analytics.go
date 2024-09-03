@@ -57,7 +57,8 @@ func GroupOfficeHoursByDay(officeHours []models.OfficeHours) []bson.M {
 	}
 
 	// Convert the map to a slice of bson.M
-	var result []bson.M
+	// prealloc
+	result := make([]bson.M, 0, len(grouped)+1)
 	var overallTotal float64
 	for date, totalHours := range grouped {
 		dayData := bson.M{
@@ -103,7 +104,8 @@ func AverageOfficeHoursByWeekday(officeHours []models.OfficeHours) []bson.M {
 	}
 
 	// Prepare the result as a slice of bson.M
-	var result []bson.M
+	// prealloc
+	result := make([]bson.M, 0, 6)
 	overallTotal := 0.0
 	overallWeekdayCount := 0
 
@@ -175,7 +177,8 @@ func RatioInOutOfficeByWeekday(officeHours []models.OfficeHours) []bson.M {
 	}
 
 	// Prepare the result as a slice of bson.M
-	var result []bson.M
+	// prealloc
+	result := make([]bson.M, 0, 6)
 	overallOutHours := 0.0
 	overallInHours := 0.0
 
@@ -242,7 +245,8 @@ func BusiestHoursByWeekday(officeHours []models.OfficeHours) []bson.M {
 	}
 
 	// Determine the top 3 busiest hours for each weekday
-	var result []bson.M
+	// prealloc
+	result := make([]bson.M, 0, 6)
 	for weekday, hours := range hourlyActivity {
 		// Create a slice to store the hours and their activity counts
 		type hourActivity struct {
@@ -280,7 +284,9 @@ func BusiestHoursByWeekday(officeHours []models.OfficeHours) []bson.M {
 		Hour     int
 		Activity int
 	}
-	var overallActivities []overallHourActivity
+	// prealloc
+	overallActivities := make([]overallHourActivity, 0, len(overallActivity))
+
 	for hour, activity := range overallActivity {
 		overallActivities = append(overallActivities, overallHourActivity{Hour: hour, Activity: activity})
 	}
