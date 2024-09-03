@@ -140,7 +140,7 @@ func AverageOfficeHoursByWeekday(officeHours []models.OfficeHours) []bson.M {
 func RatioInOutOfficeByWeekday(officeHours []models.OfficeHours) []bson.M {
 	weekdayInHours := make(map[time.Weekday]float64)
 	totalWeekdayOfficeHours := make(map[time.Weekday]float64)
-	totalOfficeHours := 9.0 // 8 AM to 5 PM is 9 hours
+	totalOfficeHours := 10.0 // 7 AM to 5 PM is 10 hours
 
 	// Initialize Monday to Friday in the map with zero values
 	for _, weekday := range []time.Weekday{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday} {
@@ -159,7 +159,7 @@ func RatioInOutOfficeByWeekday(officeHours []models.OfficeHours) []bson.M {
 		}
 
 		// Define the office hours for the day
-		officeStart := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 8, 0, 0, 0, oh.Entered.Location())
+		officeStart := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 7, 0, 0, 0, oh.Entered.Location())
 		officeEnd := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 17, 0, 0, 0, oh.Entered.Location())
 
 		// Calculate the overlap between actual office hours and standard office hours
@@ -489,7 +489,7 @@ func AverageArrivalAndDepartureTimesByWeekday(officeHours []models.OfficeHours) 
 
 // CalculateInOfficeRate function to calculate absenteeism rates
 func CalculateInOfficeRate(officeHours []models.OfficeHours) []bson.M {
-	expectedDailyHours := 9.0 // 8 AM to 5 PM
+	expectedDailyHours := 10.0 // 7 AM to 5 PM
 	weekdayInHours := make(map[time.Weekday]float64)
 	weekdayAbsenteeism := make(map[time.Weekday]float64)
 	weekdayCount := make(map[time.Weekday]int)
@@ -502,7 +502,7 @@ func CalculateInOfficeRate(officeHours []models.OfficeHours) []bson.M {
 		}
 
 		// Define the office hours for the day
-		officeStart := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 8, 0, 0, 0, oh.Entered.Location())
+		officeStart := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 7, 0, 0, 0, oh.Entered.Location())
 		officeEnd := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 17, 0, 0, 0, oh.Entered.Location())
 
 		// Calculate the overlap between actual office hours and standard office hours

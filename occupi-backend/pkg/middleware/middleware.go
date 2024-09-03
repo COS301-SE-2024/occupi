@@ -256,7 +256,7 @@ func BlockWeekendsAndAfterHours(now time.Time) gin.HandlerFunc {
 		}
 
 		// Check if the current time is outside working hours
-		if now.Hour() < 8 || now.Hour() >= 17 {
+		if now.Hour() < 7 || now.Hour() >= 17 {
 			ctx.JSON(http.StatusForbidden,
 				utils.ErrorResponse(
 					http.StatusForbidden,

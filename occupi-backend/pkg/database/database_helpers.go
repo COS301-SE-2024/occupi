@@ -165,8 +165,8 @@ func ComputeAvailableSlots(bookings []models.Booking, dateOfBooking time.Time) [
 // caps time now to range of 8:00 AM to 5:00 PM
 func CapTimeRange() time.Time {
 	now := time.Now()
-	if now.Hour() < 8 {
-		now = time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.UTC)
+	if now.Hour() < 7 {
+		now = time.Date(now.Year(), now.Month(), now.Day(), 7, 0, 0, 0, time.UTC)
 	} else if now.Hour() > 17 {
 		now = time.Date(now.Year(), now.Month(), now.Day(), 17, 0, 0, 0, time.UTC)
 	}
