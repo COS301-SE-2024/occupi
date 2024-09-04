@@ -32,7 +32,6 @@ const LineGraph = (data) => {
         //   backgroundColor: '#414141',
         // }}
         >
-          <Text color={currentTheme === "dark" ? 'white' : 'black'} fontWeight="$medium" underline mb="$4" alignSelf='center'>Predicted Occupancy by level</Text>
         <LineChart
           isAnimated
           width={wp('80%')}
@@ -40,7 +39,7 @@ const LineGraph = (data) => {
           color={accentColour}
           maxValue={5}
           noOfSections={5}
-          // hideRules
+          hideRules
           animateOnDataChange
           animationDuration={1000}
           onDataChangeAnimationDuration={300}
@@ -55,14 +54,14 @@ const LineGraph = (data) => {
           startOpacity={0.5}
           endOpacity={0.1}
           spacing={47}
-          backgroundColor={currentTheme === 'dark' ? "#414141" : "white"}
+          backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
           // rulesColor="gray"
-          rulesType="dashed"
+          // rulesType="dashed"
           initialSpacing={16}
-          yAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
-          xAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
+          // yAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
+          // xAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
         />
       </View>
   )

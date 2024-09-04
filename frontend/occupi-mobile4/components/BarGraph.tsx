@@ -34,7 +34,6 @@ const BarGraph = (data) => {
         //   backgroundColor: '#414141',
         // }}
         >
-          <Text color={currentTheme === "dark" ? 'white' : 'black'} fontWeight="$medium" underline mb="$4" alignSelf='center'>Predicted Occupancy by Number</Text>
         <BarChart
           isAnimated
           width={wp('80%')}
@@ -55,7 +54,7 @@ const BarGraph = (data) => {
         //   barBorderTopLeftRadius={5}
         //   barBorderTopRightRadius={5}
           spacing={20}
-          backgroundColor={currentTheme === 'dark' ? "#414141" : "white"}
+          backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
           // rulesColor="gray"

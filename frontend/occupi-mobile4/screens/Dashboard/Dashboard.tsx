@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StatusBar, useColorScheme, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import Navbar from '../../components/NavBar';
+import Entypo from '@expo/vector-icons/Entypo';
 import {
   Text,
   View,
@@ -61,10 +62,10 @@ const Dashboard: React.FC = () => {
   const mockhourly = [
     { "label": "07:00", "value": 2 },
     { "label": "09:00", "value": 4 },
-    { "label": "11:00", "value": 5 }, 
-    { "label": "12:00", "value": 2 }, 
-    { "label": "13:00", "value": 2 }, 
-    { "label": "15:00", "value": 3 }, 
+    { "label": "11:00", "value": 5 },
+    { "label": "12:00", "value": 2 },
+    { "label": "13:00", "value": 2 },
+    { "label": "15:00", "value": 3 },
     { "label": "17:00", "value": 2 }
   ]
 
@@ -300,12 +301,12 @@ const Dashboard: React.FC = () => {
       <ScrollView pt="$16" px="$4" flex={1} flexDirection="column" backgroundColor={backgroundColor}>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <View flexDirection="row" justifyContent="space-between">
-          <View>
-            <Text fontSize={wp('5%')} fontWeight="light" color={textColor}>
-              Hi {username} 👋
+          <View justifyContent='flex-start'>
+            <Text fontSize={wp('3%')} fontWeight="light" color={textColor}>
+              {username}
             </Text>
-            <Text mt="$4" fontSize={wp('5.5%')} fontWeight="bold" color={textColor}>
-              Welcome back to Occupi
+            <Text mt="$2" fontSize={wp('5.5%')} fontWeight="bold" color={textColor}>
+              Dashboard
             </Text>
           </View>
           <Image
@@ -315,7 +316,7 @@ const Dashboard: React.FC = () => {
             style={{ width: wp('7%'), height: wp('7%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
           />
         </View>
-        <Text mt="$1" fontSize={wp('4%')} fontWeight="light" color={textColor}>
+        {/* <Text mt="$1" fontSize={wp('4%')} fontWeight="light" color={textColor}>
           Next booking:
         </Text>
         <TouchableOpacity
@@ -369,18 +370,27 @@ const Dashboard: React.FC = () => {
             <Text color={textColor} fontSize={28}>{numbers[0]}</Text>
             <Text fontSize={15}>Compared to </Text>
             <Text pb={6} fontSize={15}>Yesterday</Text>
-            {/* <View flexDirection="column">
-            <View flexDirection="row" alignItems="center"><FontAwesome6 name="arrow-trend-up" size={24} color="yellowgreen" /><Text color="yellowgreen"> {numbers[0] / 10 + 5}%</Text></View>
-          </View> */}
           </Card>
           <Card flexDirection="column" alignItems='center' variant="elevated" p="$2.5" mt="$4" style={{ width: wp('43%'), height: hp('13%') }} backgroundColor={cardBackgroundColor} borderRadius={10} >
             <View flexDirection="row" alignItems="center"><Text mr={8} fontWeight={'$bold'} color={textColor} fontSize={20}>Predicted: </Text></View>
             <Text color={valueToColor(currentDayData?.class)} fontSize={28}>Level: {currentDayData?.class}</Text>
             <Text color={valueToColor(currentDayData?.class)} fontSize={18}>{currentDayData?.attendance} people</Text>
           </Card>
+        </View> */}
+        <View alignItems='center' >
+          <Text fontWeight="bold" flexDirection='row' fontSize={wp('7%')} color={textColor}>
+            333
+          </Text>
+          <Text fontWeight="bold" flexDirection='row' fontSize={wp('3%')} color={textColor}>
+          <View py="$2" flexDirection='row' alignItems='center'><Entypo name="triangle-up" size={20} color="green" /><Text fontSize={wp('4%')} color="green">1.35%</Text><Text fontSize={wp('4%')}> Today</Text></View>
+            <Text>
+
+            </Text>
+          </Text>
         </View>
-        <View flexDirection="row" justifyContent="space-between" mt="$6" h="$12" alignItems="center">
-          <View w={wp('50%')} flexDirection='row' justifyContent='space-around' h="$12" borderColor={cardBackgroundColor} paddingVertical={5} borderWidth={2} borderRadius={10}>
+
+        {/* <View flexDirection="row" justifyContent="space-between" mt="$6" h="$12" alignItems="center">
+          <View w={wp('50%')} flex  Direction='row' justifyContent='space-around' h="$12" borderColor={cardBackgroundColor} paddingVertical={5} borderWidth={2} borderRadius={10}>
             <TouchableOpacity
               style={{
                 paddingVertical: 7,
@@ -418,8 +428,8 @@ const Dashboard: React.FC = () => {
               <ButtonText color="black">Check in</ButtonText>
             </Button>
           )}
-        </View>
-        <View w='$full' height={hp('40%')} mb="$32">
+        </View> */}
+        <View w='$full' height={hp('40%')}>
           <PagerView
             initialPage={0}
             style={{ flex: 1, alignItems: 'center' }}
@@ -433,6 +443,35 @@ const Dashboard: React.FC = () => {
             </View>
           </PagerView>
         </View >
+        <View w={wp('50%')} flexDirection='row' justifyContent='space-around' h="$12" borderColor={cardBackgroundColor} paddingVertical={5} borderWidth={2} borderRadius={10}>
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab1' ? accentColour : 'transparent',
+              }}
+              onPress={goToPreviousPage}
+            >
+              <Text color={activeTab === 'Tab1' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
+                Weekly
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab2' ? accentColour : 'transparent',
+              }}
+              onPress={goToNextPage}
+            >
+              <Text color={activeTab === 'Tab2' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
+                Hourly
+              </Text>
+            </TouchableOpacity>
+          </View>
       </ScrollView >
       <Navbar />
     </>
