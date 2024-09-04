@@ -18,7 +18,7 @@ import {
 //   LineChart
 // } from "react-native-chart-kit";
 import * as SecureStore from 'expo-secure-store';
-import { FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fetchUsername } from '@/utils/user';
@@ -71,16 +71,32 @@ const Dashboard: React.FC = () => {
 
   // console.log(currentData);
 
-  const goToNextPage = () => {
-    setActiveTab('Tab2');
+  const showLive = () => {
+    setActiveTab('Tab1');
     // if (pagerRef.current) {
     //   pagerRef.current.setPage(1);
     // }
     setHourly();
   };
 
-  const goToPreviousPage = () => {
-    setActiveTab('Tab1');
+  const showHourly = () => {
+    setActiveTab('Tab2');
+    setHourly();
+    // if (pagerRef.current) {
+    //   pagerRef.current.setPage(0);
+    // }
+  };
+
+  const showWeek = () => {
+    setActiveTab('Tab3');
+    setWeekly();
+    // if (pagerRef.current) {
+    //   pagerRef.current.setPage(0);
+    // }
+  };
+
+  const showMonth = () => {
+    setActiveTab('Tab4');
     setWeekly();
     // if (pagerRef.current) {
     //   pagerRef.current.setPage(0);
@@ -292,15 +308,15 @@ const Dashboard: React.FC = () => {
     return date.toDateString();
   }
 
-  const backgroundColor = isDarkMode ? '#1C1C1E' : 'white';
+  const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
-  const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
+  const cardBackgroundColor = isDarkMode ? '#101010' : '#F3F3F3';
 
   return (
     <>
-      <ScrollView pt="$16" px="$4" flex={1} flexDirection="column" backgroundColor={backgroundColor}>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <View flexDirection="row" justifyContent="space-between">
+      <ScrollView pt="$16" px="$3" backgroundColor={backgroundColor} showsVerticalScrollIndicator={false}>
+        {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
+        <View flexDirection="row" alignItems='center' justifyContent="space-between">
           <View justifyContent='flex-start'>
             <Text fontSize={wp('3%')} fontWeight="light" color={textColor}>
               {username}
@@ -377,19 +393,15 @@ const Dashboard: React.FC = () => {
             <Text color={valueToColor(currentDayData?.class)} fontSize={18}>{currentDayData?.attendance} people</Text>
           </Card>
         </View> */}
-        <View alignItems='center' >
-          <Text fontWeight="bold" flexDirection='row' fontSize={wp('7%')} color={textColor}>
-            333
-          </Text>
-          <Text fontWeight="bold" flexDirection='row' fontSize={wp('3%')} color={textColor}>
-          <View py="$2" flexDirection='row' alignItems='center'><Entypo name="triangle-up" size={20} color="green" /><Text fontSize={wp('4%')} color="green">1.35%</Text><Text fontSize={wp('4%')}> Today</Text></View>
-            <Text>
-
+        <View pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
+          <View alignItems='center'>
+            <Text fontWeight="bold" flexDirection='row' fontSize={wp('7%')} color={textColor}>
+              333
             </Text>
-          </Text>
-        </View>
+            <View py="$2" flexDirection='row' alignItems='center'><Entypo name="triangle-up" size={20} color="green" /><Text fontSize={wp('4%')} color="green">1.35%</Text><Text fontSize={wp('4%')}> Today</Text></View>
+          </View>
 
-        {/* <View flexDirection="row" justifyContent="space-between" mt="$6" h="$12" alignItems="center">
+          {/* <View flexDirection="row" justifyContent="space-between" mt="$6" h="$12" alignItems="center">
           <View w={wp('50%')} flex  Direction='row' justifyContent='space-around' h="$12" borderColor={cardBackgroundColor} paddingVertical={5} borderWidth={2} borderRadius={10}>
             <TouchableOpacity
               style={{
@@ -429,49 +441,152 @@ const Dashboard: React.FC = () => {
             </Button>
           )}
         </View> */}
-        <View w='$full' height={hp('40%')}>
-          <PagerView
-            initialPage={0}
-            style={{ flex: 1, alignItems: 'center' }}
-            ref={pagerRef}
-          >
-            <View key="1" justifyContent='center'>
-              <LineGraph data={currentData} />
+          {/* <View flexDirection='column'> */}
+          <View>
+            <View w='$full' height={hp('30%')}>
+              <PagerView
+                initialPage={0}
+                style={{ flex: 1, alignItems: 'center' }}
+                ref={pagerRef}
+              >
+                <View key="1" justifyContent='center'>
+                  <LineGraph data={currentData} />
+                </View>
+                <View key="2" justifyContent='center'>
+                  <BarGraph data={currentData} />
+                </View>
+              </PagerView>
+            </View >
+            <View flexDirection='row' justifyContent='space-around' h="$12" paddingVertical={5}>
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 7,
+                  paddingHorizontal: 14,
+                  borderRadius: 8,
+                  backgroundColor: activeTab === 'Tab1' ? '#242424' : 'transparent',
+                }}
+                onPress={showLive}
+              >
+                <Text color={activeTab === 'Tab1' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
+                  Live
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 7,
+                  paddingHorizontal: 14,
+                  borderRadius: 8,
+                  backgroundColor: activeTab === 'Tab2' ? '#242424' : 'transparent',
+                }}
+                onPress={showHourly}
+              >
+                <Text color={activeTab === 'Tab2' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
+                  1D
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 7,
+                  paddingHorizontal: 14,
+                  borderRadius: 8,
+                  backgroundColor: activeTab === 'Tab3' ? '#242424' : 'transparent',
+                }}
+                onPress={showWeek}
+              >
+                <Text color={activeTab === 'Tab3' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab3' ? 'bold' : 'normal'}>
+                  1W
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 7,
+                  paddingHorizontal: 14,
+                  borderRadius: 8,
+                  backgroundColor: activeTab === 'Tab4' ? '#242424' : 'transparent',
+                }}
+                onPress={showMonth}
+              >
+                <Text color={activeTab === 'Tab4' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab4' ? 'bold' : 'normal'}>
+                  1M
+                </Text>
+              </TouchableOpacity>
             </View>
-            <View key="2" justifyContent='center'>
-              <BarGraph data={currentData} />
-            </View>
-          </PagerView>
-        </View >
-        <View w={wp('50%')} flexDirection='row' justifyContent='space-around' h="$12" borderColor={cardBackgroundColor} paddingVertical={5} borderWidth={2} borderRadius={10}>
-            <TouchableOpacity
-              style={{
-                paddingVertical: 7,
-                paddingHorizontal: 14,
-                borderRadius: 8,
-                backgroundColor: activeTab === 'Tab1' ? accentColour : 'transparent',
-              }}
-              onPress={goToPreviousPage}
-            >
-              <Text color={activeTab === 'Tab1' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
-                Weekly
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={{
-                paddingVertical: 7,
-                paddingHorizontal: 14,
-                borderRadius: 8,
-                backgroundColor: activeTab === 'Tab2' ? accentColour : 'transparent',
-              }}
-              onPress={goToNextPage}
-            >
-              <Text color={activeTab === 'Tab2' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
-                Hourly
-              </Text>
-            </TouchableOpacity>
           </View>
+        </View>
+        <TouchableOpacity
+          style={{
+            paddingVertical: 7,
+            paddingHorizontal: 20,
+            borderRadius: 8,
+            marginTop: 18,
+            height: 60,
+            backgroundColor: cardBackgroundColor,
+            justifyContent: 'center'
+          }}
+        >
+          <View flexDirection="row" alignItems="center" justifyContent='space-between'><Text color="white" fontWeight="$bold" fontSize={18}>My Stats</Text><Ionicons name="chevron-forward-outline" size={30} color={textColor} /></View>
+        </TouchableOpacity>
+        <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
+          <Text fontSize={18} color='white'>Favourite Days</Text>
+          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor="#1c1c1c" h={hp('6%')}>
+            <Text color={textColor} fontWeight="$bold" fontSize={18}>1       Monday</Text><Text color={textColor}>Avr: 1756</Text>
+          </View>
+          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor="#1c1c1c" h={hp('6%')}>
+            <Text color={textColor} fontWeight="$bold" fontSize={18}>2       Wednesday</Text><Text color={textColor}>Avr: 1469</Text>
+          </View>
+          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor="#1c1c1c" h={hp('6%')}>
+            <Text color={textColor} fontWeight="$bold" fontSize={18}>3       Thursday</Text><Text color={textColor}>Avr: 1238</Text>
+          </View>
+        </View>
+        <View mb="$48" px="$4" mt="$4" pb="$3" pt="$2" borderRadius={7} backgroundColor={cardBackgroundColor}>
+          <Text mt="$1" fontSize={18} fontWeight="light" color={textColor}>
+            Next booking:
+          </Text>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              borderWidth: 1,
+              borderColor: cardBackgroundColor,
+              borderRadius: 12,
+              backgroundColor: cardBackgroundColor,
+              marginTop: 4,
+              flexDirection: "row"
+            }}>
+            <Image
+              width={"45%"}
+              h="$full"
+              alt="image"
+              borderRadius={10}
+              source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
+            />
+            <View
+              // key={room.title}
+              w="$48"
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 18,
+                flexDirection: "column",
+                justifyContent: "space-between"
+              }}
+            >
+              <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{roomData.roomName}</Text>
+              <View flexDirection="column">
+                <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
+                  <View>
+                    <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>
+                      {extractDateFromDate(roomData.date)}
+                    </Text>
+                    <Text>
+                      {extractTimeFromDate(roomData.start)}
+                      {extractTimeFromDate(roomData.start) && extractTimeFromDate(roomData.end) ? '-' : ''}
+                      {extractTimeFromDate(roomData.end)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
       </ScrollView >
       <Navbar />
     </>

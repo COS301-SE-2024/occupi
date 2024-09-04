@@ -25,7 +25,7 @@ const LineGraph = (data) => {
       }, []);
   return (
     <View
-        style={{ width: wp('100%'), height: hp('35%'), flexDirection: 'column' }}
+        style={{ width: wp('100%'), flexDirection: 'column' }}
         // style={{
         //   // marginVertical: 100,
         //   paddingVertical: 20,
@@ -59,6 +59,8 @@ const LineGraph = (data) => {
           // verticalLinesColor="rgba(14,164,164,0.5)"
           // rulesColor="gray"
           // rulesType="dashed"
+          xAxisColor="transparent"
+          yAxisColor="transparent"
           initialSpacing={16}
           // yAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
           // xAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
