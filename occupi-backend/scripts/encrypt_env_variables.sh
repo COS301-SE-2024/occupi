@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the files to be encrypted
-files=("config.yaml" "dev.deployed.yaml" "dev.localhost.yaml" "dev.localhost.yaml" "prod.yaml" "test.yaml" "config.json")
+files=("config.yaml" "dev.deployed.yaml" "dev.localhost.yaml" "dev.localhost.yaml" "prod.yaml" "test.yaml" "centrifugo.config.json")
 
 # cd to configs directory
 cd ../configs

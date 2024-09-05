@@ -48,9 +48,9 @@ services:
     image: centrifugo/centrifugo:v5
     container_name: centrifugo-dev
     volumes:
-      - ./configs/config.json:/centrifugo/config.json
+      - ./configs/centrifugo.config.json:/centrifugo/centrifugo.config.json
       - centrifugo-dev:/centrifugo/data
-    command: centrifugo -c config.json
+    command: centrifugo -c centrifugo.config.json
     ports:
       - 8001:8000
     ulimits:
@@ -85,4 +85,3 @@ volumes:
 networks:
   webnet:
     external: true
-
