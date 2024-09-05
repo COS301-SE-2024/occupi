@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the files to be decrypted
-files=("config.yaml.gpg" "dev.deployed.yaml.gpg" "dev.localhost.yaml.gpg" "prod.yaml.gpg" "test.yaml.gpg" "centrifugo.config.json.gpg")
+files=("config.yaml.gpg" "dev.deployed.yaml.gpg" "dev.localhost.yaml.gpg" "prod.yaml.gpg" "test.yaml.gpg" "config.json.gpg")
 
 # cd to configs directory
 cd ../configs
