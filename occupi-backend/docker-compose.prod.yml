@@ -48,7 +48,7 @@ services:
     image: centrifugo/centrifugo:v5
     container_name: centrifugo-prod
     volumes:
-      - ./config.json:/centrifugo/config.json
+      - ./configs/config.json:/centrifugo/config.json
       - centrifugo-prod:/centrifugo/data
     command: centrifugo -c config.json --health
     ports:
