@@ -8116,7 +8116,7 @@ func TestFindAndRemoveOfficeHours(t *testing.T) {
 		// Create mock responses for FindOne and DeleteOne operations
 		mt.AddMockResponses(
 			mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHours", mtest.FirstBatch, bson.D{
-				{Key: "email", Value: email},
+				{Key: "email", Value: expectedOfficeHours.Email},
 				{Key: "entered", Value: expectedOfficeHours.Entered},
 				{Key: "exited", Value: expectedOfficeHours.Exited},
 			}),
@@ -8129,7 +8129,7 @@ func TestFindAndRemoveOfficeHours(t *testing.T) {
 			DB: mt.Client,
 		}
 
-		officeHours, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
+		_, err := database.FindAndRemoveOfficeHours(ctx, appsession, email)
 		assert.NoError(t, err, "Expected no error for successful find and remove")
 		//assert.Equal(t, expectedOfficeHours, officeHours, "Expected matching OfficeHours after successful find and remove")
 	})
