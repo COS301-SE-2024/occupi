@@ -391,7 +391,7 @@ func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
 }
 
 func ComputeLimitPageSkip(limit, page int64) (int64, int64, int64) {
-	if limit <= 0 || limit > 50 {
+	if limit <= 0 {
 		limit = 50 // Default limit
 	}
 

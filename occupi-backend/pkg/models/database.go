@@ -172,7 +172,6 @@ type OfficeHours struct {
 	Email   string    `json:"email" bson:"email"`
 	Entered time.Time `json:"entered" bson:"entered"`
 	Exited  time.Time `json:"exited" bson:"exited"`
-	Closed  bool      `json:"closed" bson:"closed"`
 }
 
 type OfficeHoursFilterStruct struct {

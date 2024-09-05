@@ -8111,7 +8111,6 @@ func TestFindAndRemoveOfficeHours(t *testing.T) {
 			Email:   email,
 			Entered: database.CapTimeRange(),
 			Exited:  database.CapTimeRange(),
-			Closed:  false,
 		}
 
 		// Create mock responses for FindOne and DeleteOne operations
@@ -8120,7 +8119,6 @@ func TestFindAndRemoveOfficeHours(t *testing.T) {
 				{Key: "email", Value: email},
 				{Key: "entered", Value: expectedOfficeHours.Entered},
 				{Key: "exited", Value: expectedOfficeHours.Exited},
-				{Key: "closed", Value: expectedOfficeHours.Closed},
 			}),
 			mtest.CreateSuccessResponse(),
 			mtest.CreateSuccessResponse(),
@@ -8190,7 +8188,6 @@ func TestAddOfficeHoursToArchive(t *testing.T) {
 		Email:   "test@example.com",
 		Entered: database.CapTimeRange(),
 		Exited:  database.CapTimeRange(),
-		Closed:  false,
 	}
 
 	mt.Run("Nil database", func(mt *mtest.T) {
@@ -8206,7 +8203,6 @@ func TestAddOfficeHoursToArchive(t *testing.T) {
 
 	mt.Run("Successful insert", func(mt *mtest.T) {
 		// Update officeHours for expected outcome
-		officeHours.Closed = true
 		officeHours.Exited = database.CompareAndReturnTime(officeHours.Entered, database.CapTimeRange())
 
 		// Mock InsertOne success response
@@ -8223,7 +8219,6 @@ func TestAddOfficeHoursToArchive(t *testing.T) {
 
 	mt.Run("Failed insert", func(mt *mtest.T) {
 		// Update officeHours for expected outcome
-		officeHours.Closed = true
 		officeHours.Exited = database.CompareAndReturnTime(officeHours.Entered, database.CapTimeRange())
 
 		// Mock InsertOne failure response
@@ -8383,7 +8378,6 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 		Email:   "test@example.com",
 		Entered: time.Now(),
 		Exited:  time.Now().Add(2 * time.Hour),
-		Closed:  true,
 	}
 
 	filterMap := map[string]string{
@@ -8420,7 +8414,6 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
-			{Key: "closed", Value: officeHours.Closed},
 		}))
 
 		// Mock CountDocuments to return a count of 1
@@ -8443,7 +8436,6 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
-			{Key: "closed", Value: officeHours.Closed},
 		}))
 
 		// mock count documents
@@ -8484,7 +8476,6 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
-			{Key: "closed", Value: officeHours.Closed},
 		}))
 
 		// Mock CountDocuments to return an error

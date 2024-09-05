@@ -1597,7 +1597,6 @@ func AddHoursToOfficeHoursCollection(ctx *gin.Context, appsession *models.AppSes
 		Email:   email,
 		Entered: CapTimeRange(),
 		Exited:  CapTimeRange(),
-		Closed:  false,
 	}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
@@ -1648,7 +1647,6 @@ func AddOfficeHoursToArchive(ctx *gin.Context, appsession *models.AppSession, of
 	}
 
 	// update the fields and add to the OfficeHoursArchive time series collection
-	officeHours.Closed = true
 	officeHours.Exited = CompareAndReturnTime(officeHours.Entered, CapTimeRange())
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
