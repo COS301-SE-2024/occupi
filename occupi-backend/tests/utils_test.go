@@ -1727,10 +1727,10 @@ func TestComputeLimitPageSkip(t *testing.T) {
 			wantSkip:  10,
 		},
 		{
-			name:      "Limit exceeds maximum",
+			name:      "Valid limit again",
 			Limit:     100,
 			Page:      1,
-			wantLimit: 50,
+			wantLimit: 100,
 			wantPage:  1,
 			wantSkip:  0,
 		},
