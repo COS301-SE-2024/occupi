@@ -60,13 +60,13 @@ const Dashboard: React.FC = () => {
   // console.log(isDarkMode);
 
   const mockhourly = [
-    { "label": "07:00", "value": 2 },
-    { "label": "09:00", "value": 4 },
-    { "label": "11:00", "value": 5 },
-    { "label": "12:00", "value": 2 },
-    { "label": "13:00", "value": 2 },
-    { "label": "15:00", "value": 3 },
-    { "label": "17:00", "value": 2 }
+    { "label": "7am", "value": 2 },
+    { "label": "9am", "value": 4 },
+    { "label": "11am", "value": 5 },
+    { "label": "12pm", "value": 2 },
+    { "label": "1pm", "value": 2 },
+    { "label": "3pm", "value": 3 },
+    { "label": "5pm", "value": 2 }
   ]
 
   // console.log(currentData);

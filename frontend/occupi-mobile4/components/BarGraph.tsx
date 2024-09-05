@@ -27,7 +27,7 @@ const BarGraph = (data) => {
       }, []);
   return (
     <View
-        style={{ width: wp('100%'), height: hp('35%'), flexDirection: 'column' }}
+        style={{ width: wp('100%'), flexDirection: 'column' }}
         // style={{
         //   // marginVertical: 100,
         //   paddingVertical: 20,
@@ -49,19 +49,20 @@ const BarGraph = (data) => {
           xAxisLabelTextStyle={{color: labels}}
           data={convertValues(data.data)}
           showGradient
+          hideRules
           frontColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
           gradientColor={accentColour}
         //   barBorderTopLeftRadius={5}
         //   barBorderTopRightRadius={5}
-          spacing={20}
+          spacing={12}
           backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
           // rulesColor="gray"
-          rulesType="dashed"
+          // rulesType="dashed"
+          xAxisColor="transparent"
+          yAxisColor="transparent"
           initialSpacing={16}
-          yAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
-          xAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
         />
       </View>
   )

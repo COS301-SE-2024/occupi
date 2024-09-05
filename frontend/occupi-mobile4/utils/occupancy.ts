@@ -104,19 +104,19 @@ export function valueToColor(value: number): string {
 function convertNumToDay(num: number) {
     switch (num) {
         case 0:
-            return 'Mon';
+            return 'M';
         case 1:
-            return 'Tue';
+            return 'T';
         case 2:
-            return 'Wed';
+            return 'W';
         case 3:
-            return 'Thu';
+            return 'T';
         case 4:
-            return 'Fri';
+            return 'F';
         case 5:
-            return 'Sat';
+            return 'S';
         case 6:
-            return 'Sun';
+            return 'S';
         default:
             return 'Invalid day';
     }
