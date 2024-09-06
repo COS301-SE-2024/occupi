@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image } from 'react-native';
+import React, { useState, useEffect,useRef } from 'react';
+import { View, Text, Image, useColorScheme,Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { widthPercentageToDP as wp , heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import {Video} from 'expo-av';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { router } from 'expo-router';
 
 const OccuBot = ({ onComplete }) => {
   const [statusText, setStatusText] = useState('Analyzing ...');
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
 
+  const translateY = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const textInterval = setInterval(() => {
       setStatusText((prevText) => {
@@ -14,13 +17,14 @@ const OccuBot = ({ onComplete }) => {
           case 'Searching...': return 'Processing...';
           case 'Processing...': return 'Analyzing ...';
           case 'Analyzing ...': return 'Searching...';
+          default: return 'Analyzing ...';
         }
       });
     }, 5000);
 
     const completionTimer = setTimeout(() => {
       clearInterval(textInterval);
-      // onComplete();
+      router.replace('stats');
     }, 10000); // Adjust time as needed
 
     return () => {
@@ -31,7 +35,7 @@ const OccuBot = ({ onComplete }) => {
 
   return (
     <LinearGradient
-      colors={['#FFFFFF', '#FFFFFF']}
+      colors={isDarkMode ? ['#1A1A1A', '#2A2A2A'] : ['#FFFFFF', '#F0F0F0']}
       style={{
         flex: 1,
         borderRadius: wp('5%'),
@@ -39,52 +43,23 @@ const OccuBot = ({ onComplete }) => {
         justifyContent: 'space-between',
       }}
     >
-       <Video
-        source={require('../../screens/Dashboard/assets/aee94850e2461bb7a507a49764a1c1ba.mp4')}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          bottom: 0,
-          right: 0,
-        }}
-        resizeMode="cover"
-        shouldPlay
-        isLooping
-        isMuted={true}
-      />
-
       {/* OccuBot Header */}
-      <View style={{
-        alignItems: 'center',
-        marginTop: hp('10%'),
-      }}>
-        <View
-          style={{
-            // backgroundColor: '#CA32F4',
-            paddingVertical: hp('0.5%'),
-            paddingHorizontal: wp('5%'),
-            borderRadius: wp('5%'),
-          }}
-        >
-          <Text
-            style={{
-              
-              fontSize: wp('5%'),
-              color: 'white',
-              textAlign: 'center',
-              fontStyle: 'italic',
-              fontWeight: 'bold',
-            }}
-          >
-            OccuBot
-          </Text>
-        </View>
+      <View style={{ alignItems: 'center', marginTop: hp('10%') }}>
         <Text
           style={{
-          
+            fontSize: wp('5%'),
+            color: isDarkMode ? '#FFFFFF' : '#000000',
+            textAlign: 'center',
+            fontStyle: 'italic',
+            fontWeight: 'bold',
+          }}
+        >
+          OccuBot
+        </Text>
+        <Text
+          style={{
             fontSize: wp('3.5%'),
-            color: '#9AE66E',
+            color: '#E0FF7B',
             marginTop: hp('1%'),
             fontStyle: 'italic',
             fontWeight: 'bold',
@@ -95,31 +70,31 @@ const OccuBot = ({ onComplete }) => {
       </View>
 
       {/* Centered GIF */}
-      <View style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
+      <Animated.View
+        style={{
+          transform: [{ translateY }],
+          marginBottom: 20,
+          shadowColor: '#E0FF7B',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 1,
+          shadowRadius: 80,
+          elevation: 50,
+          zIndex: 1,
+        }}
+        >
         <Image
           source={require('../../screens/Dashboard/assets/1d0f933ffa6ccaf0d1ae783f9a73d0-unscreen.gif')}
-          style={{
-            width: wp('90%'),
-            height: wp('90%'),
-            resizeMode: 'contain',
-          }}
+          style={{ width: 400, height: 400 }}
+              resizeMode="contain"
         />
-      </View>
+      </Animated.View>
 
       {/* Status Text */}
-      <View style={{
-        alignItems: 'center',
-        marginBottom: hp('20%'),
-      }}>
+      <View style={{ alignItems: 'center', marginBottom: hp('20%') }}>
         <Text
           style={{
-           
             fontSize: wp('5%'),
-            color: 'white',
+            color: isDarkMode ? '#FFFFFF' : '#000000',
             textAlign: 'center',
             fontStyle: 'italic',
             fontWeight: 'bold',
