@@ -638,3 +638,12 @@ func RemoveImageExtension(fileName string) string {
 	// Return the original filename if no extension matches
 	return fileName
 }
+
+func Contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
