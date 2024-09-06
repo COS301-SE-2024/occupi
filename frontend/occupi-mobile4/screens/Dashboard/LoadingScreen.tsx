@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Animated, useColorScheme, Image, StyleSheet } f
 import { Text, Heading } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Svg, { Path } from 'react-native-svg'; 
-
+import { router } from 'expo-router';
 const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats }) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
@@ -28,20 +28,20 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
   }, [translateY]);
 
   const generateContourPaths = () => {
-    const paths = [];
-    for (let i = 0; i < 25; i++) {
-      const yOffset = i * 15;
-      paths.push(
-        <Path
-          key={i}
-          d={`M0 ${10 + yOffset} Q50 ${30 + yOffset}, 100 ${10 + yOffset} T200 ${30 + yOffset}`}
-          stroke={isDarkMode ? '#2F2F2F' : '#D3D3D3'}
-          strokeWidth="0.8"
-          fill="none"
-        />
-      );
-    }
-    return paths;
+    // const paths = [];
+    // for (let i = 0; i < 25; i++) {
+    //   const yOffset = i * 15;
+    //   paths.push(
+    //     <Path
+    //       key={i}
+    //       d={`M0 ${1 + yOffset} Q50 ${30 + yOffset}, 100 ${1 + yOffset} T200 ${0 + yOffset}`}
+    //       stroke={isDarkMode ? '#2F2F2F' : '#D3D3D3'}
+    //       strokeWidth="0.8"
+    //       fill="none"
+    //     />
+    //   );
+    // }
+    // return paths;
   };
 
   return (
@@ -54,7 +54,7 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
         padding: 20,
       }}
     >
-      {/* Contour Background */}
+      {/* Contour Background
       <Svg
         height="100%"
         width="100%"
@@ -62,13 +62,13 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
         viewBox="0 0 200 200"
       >
         {generateContourPaths()}
-      </Svg>
+      </Svg> */}
 
      
       {/* OccuBot Header */}
       <View
         style={{
-          backgroundColor: '#C6F432',
+          backgroundColor: '#E0FF7B',
           paddingVertical: 5,
           paddingHorizontal: 20,
           borderRadius: 15,
@@ -81,8 +81,8 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
             fontFamily: 'Roboto-Bold',
             fontSize: 16,
             color: 'black',
-            textAlign: 'center',
             fontStyle: 'italic',
+            fontWeight: 'bold',
           }}
         >
           OccuBot
@@ -103,8 +103,8 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
         }}
       >
         <Image
-          source={require('./assets/OccuBot.png')}
-          style={{ width: 200, height: 400 }}
+          source={require('./assets/LCPW-unscreen.gif')}
+          style={{ width: 400, height: 400 }}
           resizeMode="contain"
         />
       </Animated.View>
@@ -120,7 +120,7 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
           zIndex: 1,
         }}
       >
-        How may I help{'\n'}you today!
+        Get your personalized{'\n'}data today!
       </Heading>
 
       {/* Fetch My Stats Button */}
@@ -136,7 +136,7 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
           height: hp('6%'),
           zIndex: 1,
         }}
-        onPress={onFetchStats}
+        onPress={() =>  router.replace('occubot')}
       >
         <Text
           style={{
@@ -144,6 +144,8 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
             color: isDarkMode ? 'black' : 'white',
             fontSize: 20,
             textAlign: 'center',
+            fontStyle: 'italic',
+            fontWeight: 'bold',
           }}
         >
           Fetch My Stats

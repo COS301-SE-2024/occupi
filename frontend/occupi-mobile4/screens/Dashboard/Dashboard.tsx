@@ -33,6 +33,7 @@ import { storeCheckInValue } from '@/services/securestore';
 import { isPointInPolygon } from '@/utils/dashboard';
 import PagerView from 'react-native-pager-view';
 import SetDetails from '../Login/SetDetails';
+import { router } from 'expo-router';
 
 // import { number } from 'zod';
 
@@ -523,8 +524,14 @@ const Dashboard: React.FC = () => {
             backgroundColor: cardBackgroundColor,
             justifyContent: 'center'
           }}
+          onPress={() =>  router.replace('loadingscreen')}
         >
-          <View flexDirection="row" alignItems="center" justifyContent='space-between'><Text color="white" fontWeight="$bold" fontSize={18}>My Stats</Text><Ionicons name="chevron-forward-outline" size={30} color={textColor} /></View>
+
+          <View flexDirection="row" alignItems="center" justifyContent='space-between'>
+            <Text color="white" fontWeight="$bold" fontSize={18}>My Stats</Text>
+          <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
+          </View>
+          
         </TouchableOpacity>
         <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <Text fontSize={18} color='white'>Favourite Days</Text>
