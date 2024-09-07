@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/umahmood/haversine"
 
@@ -18,7 +19,7 @@ func CreateBasicUser(user models.RegisterUser) models.User {
 		Password:             user.Password,
 		Email:                user.Email,
 		Role:                 constants.Basic,
-		OnSite:               true,
+		OnSite:               false,
 		IsVerified:           false,
 		NextVerificationDate: time.Now(), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
@@ -38,11 +39,14 @@ func CreateBasicUser(user models.RegisterUser) models.User {
 			MFA:         false,
 			Biometrics:  false,
 			ForceLogout: false,
+			Credentials: webauthn.Credential{},
 		},
-		Status:        "",
-		Position:      "",
-		DepartmentNo:  "",
-		ExpoPushToken: user.ExpoPushToken,
+		Status:                  "",
+		Position:                "",
+		DepartmentNo:            "",
+		ExpoPushToken:           user.ExpoPushToken,
+		ResetPassword:           false,
+		BlockAnonymousIPAddress: false,
 	}
 }
 
@@ -52,7 +56,7 @@ func CreateAdminUser(user models.RegisterUser) models.User {
 		Password:             user.Password,
 		Email:                user.Email,
 		Role:                 constants.Admin,
-		OnSite:               true,
+		OnSite:               false,
 		IsVerified:           false,
 		NextVerificationDate: time.Now(), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
@@ -72,11 +76,50 @@ func CreateAdminUser(user models.RegisterUser) models.User {
 			MFA:         false,
 			Biometrics:  false,
 			ForceLogout: false,
+			Credentials: webauthn.Credential{},
 		},
-		Status:        "",
-		Position:      "",
-		DepartmentNo:  "",
-		ExpoPushToken: user.ExpoPushToken,
+		Status:                  "",
+		Position:                "",
+		DepartmentNo:            "",
+		ExpoPushToken:           user.ExpoPushToken,
+		ResetPassword:           false,
+		BlockAnonymousIPAddress: false,
+	}
+}
+
+func CreateAUser(user models.UserRequest) models.User {
+	return models.User{
+		OccupiID:             user.EmployeeID,
+		Password:             user.Password,
+		Email:                user.Email,
+		Role:                 user.Role,
+		OnSite:               false,
+		IsVerified:           false,
+		NextVerificationDate: time.Now(), // this will be updated once the email is verified
+		TwoFAEnabled:         false,
+		KnownLocations:       []models.Location{},
+		Details: models.Details{
+			ContactNo: user.Details.ContactNo,
+			Name:      user.Details.Name,
+			DOB:       user.Details.DOB,
+			Gender:    user.Details.Gender,
+			Pronouns:  user.Details.Pronouns,
+		},
+		Notifications: models.Notifications{
+			BookingReminder: user.Notifications.BookingReminder,
+			Invites:         user.Notifications.Invites,
+		},
+		Security: models.Security{
+			MFA:         false,
+			ForceLogout: false,
+			Credentials: webauthn.Credential{},
+		},
+		Status:                  user.Status,
+		Position:                user.Position,
+		DepartmentNo:            user.DepartmentNo,
+		ExpoPushToken:           user.ExpoPushToken,
+		ResetPassword:           true,
+		BlockAnonymousIPAddress: user.BlockAnonymousIPAddress,
 	}
 }
 
