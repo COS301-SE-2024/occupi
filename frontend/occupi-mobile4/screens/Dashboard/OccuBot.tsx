@@ -20,12 +20,12 @@ const OccuBot = ({ onComplete }) => {
           default: return 'Analyzing ...';
         }
       });
-    }, 5000);
+    }, 2000);
 
     const completionTimer = setTimeout(() => {
       clearInterval(textInterval);
       router.replace('stats');
-    }, 10000); // Adjust time as needed
+    }, 15000); // Adjust time as needed
 
     return () => {
       clearInterval(textInterval);
@@ -84,7 +84,7 @@ const OccuBot = ({ onComplete }) => {
         >
         <Image
           source={require('../../screens/Dashboard/assets/1d0f933ffa6ccaf0d1ae783f9a73d0-unscreen.gif')}
-          style={{ width: 400, height: 400 }}
+          style={{ width: 350, height: 400 }}
               resizeMode="contain"
         />
       </Animated.View>
