@@ -793,6 +793,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// remove @ from email
+	email := requestEmail.Email
 	requestEmail.Email = strings.ReplaceAll(requestEmail.Email, "@", "")
 
 	imageIds := []string{requestEmail.Email + constants.ThumbnailRes, requestEmail.Email + constants.LowRes, requestEmail.Email + constants.MidRes, requestEmail.Email + constants.HighRes}
@@ -810,6 +811,13 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 
 	// upload image associated with this email
 	if err := MultiUploadImages(ctx, appsession, configs.GetAzurePFPContainerName(), files); err != nil {
+		return
+	}
+
+	// update has image field in the database
+	if err := database.SetHasImage(ctx, appsession, email, false); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -838,7 +846,29 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 			request.Email = email
 		}
 		request.Quality = quality
+	}
 
+	if hasImage := database.UserHasImage(ctx, appsession, request.Email); !hasImage {
+		gender, error := database.GetUsersGender(ctx, appsession, request.Email)
+
+		if error != nil {
+			captureError(ctx, error)
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return
+		}
+
+		var blobURL string
+
+		if gender == "Male" {
+			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultMalePFP())
+		} else if gender == "Female" {
+			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultMalePFP())
+		} else {
+			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultNBPFP())
+		}
+
+		http.Redirect(ctx.Writer, ctx.Request, blobURL, http.StatusSeeOther)
+		return
 	}
 
 	if request.Quality != "" && request.Quality != constants.ThumbnailRes && request.Quality != constants.LowRes && request.Quality != constants.MidRes && request.Quality != constants.HighRes {
@@ -879,12 +909,20 @@ func DeleteProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// remove @ from email
+	email := request.Email
 	request.Email = strings.ReplaceAll(request.Email, "@", "")
 
 	imageIds := []string{request.Email + constants.ThumbnailRes, request.Email + constants.LowRes, request.Email + constants.MidRes, request.Email + constants.HighRes}
 
 	// del user image if it exists
 	if err := MultiDeleteImages(ctx, appsession, configs.GetAzurePFPContainerName(), imageIds); err != nil {
+		return
+	}
+
+	// update has image field in the database
+	if err := database.SetHasImage(ctx, appsession, email, false); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 

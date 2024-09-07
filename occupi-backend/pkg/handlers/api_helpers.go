@@ -191,3 +191,52 @@ func deleteTempFiles(files []models.File) {
 		}
 	}
 }
+
+func DefaultMalePFP(race ...string) string {
+	pfps := []string{
+		"default-wm1.jpg",
+		"default-wm2.jpg",
+		"default-wm3.jpg",
+		"default-wm4.jpg",
+		"default-bm1.jpg",
+	}
+
+	if len(race) == 0 {
+		// choose a random pfp
+		return pfps[utils.RandomInt(0, len(pfps))]
+	} else {
+		// choose a random pfp based on the race
+		if race[0] == "white" {
+			return pfps[utils.RandomInt(0, 4)]
+		} else {
+			return pfps[utils.RandomInt(4, len(pfps))]
+		}
+	}
+}
+
+func DefaultFemalePFP(race ...string) string {
+	pfps := []string{
+		"default-ww1.jpg",
+		"default-ww2.jpg",
+		"default-ww3.jpg",
+		"default-ww4.jpg",
+		"default-bw1.jpg",
+		"default-bw1.jpg",
+	}
+
+	if len(race) == 0 {
+		// choose a random pfp
+		return pfps[utils.RandomInt(0, len(pfps))]
+	} else {
+		// choose a random pfp based on the race
+		if race[0] == "white" {
+			return pfps[utils.RandomInt(0, 4)]
+		} else {
+			return pfps[utils.RandomInt(4, len(pfps))]
+		}
+	}
+}
+
+func DefaultNBPFP() string {
+	return "default-nb1.jpg"
+}
