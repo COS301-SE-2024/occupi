@@ -39,7 +39,7 @@ type FilterUsers struct {
 }
 
 type Details struct {
-	ImageID   string    `json:"imageid" bson:"imageid"` // image id in image collection
+	HasImage  bool      `json:"hasImage" bson:"hasImage"`
 	ContactNo string    `json:"contactNo" bson:"contactNo"`
 	Name      string    `json:"name" bson:"name"`
 	DOB       time.Time `json:"dob" bson:"dob"`
