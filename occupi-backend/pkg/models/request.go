@@ -146,3 +146,35 @@ type RequestSpecialEvent struct {
 	Date           time.Time `json:"date" binding:"required"`
 	IsSpecialEvent string    `json:"isSpecialEvent" binding:"required"`
 }
+
+type UserRequest struct {
+	EmployeeID              string              `json:"employee_id" binding:"omitempty,startswith=OCCUPI"`
+	Password                string              `json:"password" binding:"required,min=8"`
+	Email                   string              `json:"email" binding:"required,email"`
+	Role                    string              `json:"role" binding:"omitempty"`
+	Details                 DetailsRequest      `json:"details" binding:"omitempty"`
+	Notifications           NotificationRequest `json:"notifications" binding:"omitempty"`
+	Status                  string              `json:"status" bson:"status, omitempty"`
+	Position                string              `json:"position" bson:"position, omitempty"`
+	DepartmentNo            string              `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ExpoPushToken           string              `json:"expoPushToken" binding:"omitempty"`
+	BlockAnonymousIPAddress bool                `json:"blockAnonymousIPAddress" binding:"omitempty"`
+}
+
+type DetailsRequest struct {
+	ContactNo string    `json:"contactNo" binding:"omitempty"`
+	Name      string    `json:"name" binding:"omitempty"`
+	DOB       time.Time `json:"dob" binding:"omitempty"`
+	Gender    string    `json:"gender" binding:"omitempty"`
+	Pronouns  string    `json:"pronouns" binding:"omitempty"`
+}
+
+type NotificationRequest struct {
+	Invites         bool `json:"invites" binding:"omitempty"`
+	BookingReminder bool `json:"bookingReminder" binding:"omitempty"`
+}
+
+type RequestIP struct {
+	IP     string   `json:"ip" binding:"omitempty"`
+	Emails []string `json:"emails" binding:"omitempty"`
+}
