@@ -3926,7 +3926,7 @@ func TestFilterUsersWithProjectionSuccess(t *testing.T) {
 	skip := 0
 
 	// Create test users
-	users := []models.UserDetails{
+	users := []models.User{
 		{
 			Email: email,
 		},
@@ -4008,7 +4008,7 @@ func TestFilterUsersWithProjectionAndSortAscSuccess(t *testing.T) {
 	sort := bson.M{"email": 1}
 
 	// Create test users
-	users := []models.UserDetails{
+	users := []models.User{
 		{
 			Email: "TestFilterUsersWithProjectionAndSortAscSuccess3@example.com",
 		},
@@ -4091,7 +4091,7 @@ func TestFilterUsersWithProjectionAndSortDescSuccess(t *testing.T) {
 	sort := bson.M{"email": -1}
 
 	// Create test users
-	users := []models.UserDetails{
+	users := []models.User{
 		{
 			Email: "TestFilterUsersWithProjectionAndSortDescSuccess3@example.com",
 		},
