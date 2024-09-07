@@ -1783,3 +1783,99 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		return nil, 0, errors.New("invalid calculation")
 	}
 }
+
+func CreateUser(ctx *gin.Context, appsession *models.AppSession, user models.UserRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// validate role
+	if user.Role != "admin" && user.Role != "user" {
+		return errors.New("invalid role")
+	}
+
+	_, err := collection.InsertOne(ctx, CreateAUser(user))
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	ipInfo, err := configs.GetIPInfo(request.IP, appsession.IPInfo)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	location := models.Location{
+		City:     ipInfo.City,
+		Region:   ipInfo.Region,
+		Country:  ipInfo.Country,
+		Location: ipInfo.Location,
+	}
+
+	// filter for all users emails which are in the request.Emails array also these emails
+	// don't have this location in the knownLocations array
+	filter := bson.M{"email": bson.M{"$in": request.Emails}, "knownLocations": bson.M{"$ne": location}}
+
+	update := bson.M{"$push": bson.M{"knownLocations": location}}
+
+	_, err = collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	ipInfo, err := configs.GetIPInfo(request.IP, appsession.IPInfo)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	location := models.Location{
+		City:     ipInfo.City,
+		Region:   ipInfo.Region,
+		Country:  ipInfo.Country,
+		Location: ipInfo.Location,
+	}
+
+	// filter for all users emails which are in the request.Emails array and have this location in the knownLocations array
+	filter := bson.M{"email": bson.M{"$in": request.Emails}, "knownLocations": location}
+
+	update := bson.M{"$pull": bson.M{"knownLocations": location}}
+
+	_, err = collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}

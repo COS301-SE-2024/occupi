@@ -11,40 +11,25 @@ import (
 
 // structure of user
 type User struct {
-	ID                   string        `json:"_id" bson:"_id,omitempty"`
-	OccupiID             string        `json:"occupiId" bson:"occupiId"`
-	Password             string        `json:"password" bson:"password"`
-	Email                string        `json:"email" bson:"email"`
-	Role                 string        `json:"role" bson:"role"`
-	OnSite               bool          `json:"onSite" bson:"onSite"`
-	IsVerified           bool          `json:"isVerified" bson:"isVerified"`
-	NextVerificationDate time.Time     `json:"nextVerificationDate" bson:"nextVerificationDate"`
-	TwoFAEnabled         bool          `json:"twoFAEnabled" bson:"twoFAEnabled"`
-	KnownLocations       []Location    `json:"knownLocations" bson:"knownLocations"`
-	Details              Details       `json:"details" bson:"details, omitempty"`
-	Notifications        Notifications `json:"notifications" bson:"notifications, omitempty"`
-	Security             Security      `json:"security" bson:"security, omitempty"`
-	Status               string        `json:"status" bson:"status, omitempty"`
-	Position             string        `json:"position" bson:"position, omitempty"`
-	DepartmentNo         string        `json:"departmentNo" bson:"departmentNo, omitempty"`
-	ExpoPushToken        string        `json:"expoPushToken" bson:"expoPushToken"`
-}
-
-type UserDetails struct {
-	ID                   string         `json:"_id" bson:"_id,omitempty"`
-	OccupiID             string         `json:"occupiId" bson:"occupiId"`
-	Password             string         `json:"password" bson:"password"`
-	Email                string         `json:"email" bson:"email"`
-	Role                 string         `json:"role" bson:"role"`
-	OnSite               bool           `json:"onSite" bson:"onSite"`
-	IsVerified           bool           `json:"isVerified" bson:"isVerified"`
-	NextVerificationDate time.Time      `json:"nextVerificationDate" bson:"nextVerificationDate"`
-	Details              *Details       `json:"details" bson:"details"`
-	Notifications        *Notifications `json:"notifications" bson:"notifications"`
-	Security             *Security      `json:"security" bson:"security"`
-	Status               string         `json:"status" bson:"status"`
-	Position             string         `json:"position" bson:"position"`
-	DepartmentNo         string         `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ID                      string        `json:"_id" bson:"_id,omitempty"`
+	OccupiID                string        `json:"occupiId" bson:"occupiId"`
+	Password                string        `json:"password" bson:"password"`
+	Email                   string        `json:"email" bson:"email"`
+	Role                    string        `json:"role" bson:"role"`
+	OnSite                  bool          `json:"onSite" bson:"onSite"`
+	IsVerified              bool          `json:"isVerified" bson:"isVerified"`
+	NextVerificationDate    time.Time     `json:"nextVerificationDate" bson:"nextVerificationDate"`
+	TwoFAEnabled            bool          `json:"twoFAEnabled" bson:"twoFAEnabled"`
+	KnownLocations          []Location    `json:"knownLocations" bson:"knownLocations"`
+	Details                 Details       `json:"details" bson:"details, omitempty"`
+	Notifications           Notifications `json:"notifications" bson:"notifications, omitempty"`
+	Security                Security      `json:"security" bson:"security, omitempty"`
+	Status                  string        `json:"status" bson:"status, omitempty"`
+	Position                string        `json:"position" bson:"position, omitempty"`
+	DepartmentNo            string        `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ExpoPushToken           string        `json:"expoPushToken" bson:"expoPushToken"`
+	ResetPassword           bool          `json:"resetPassword" bson:"resetPassword"`
+	BlockAnonymousIPAddress bool          `json:"blockAnonymousIPAddress" bson:"blockAnonymousIPAddress"`
 }
 
 type FilterUsers struct {
