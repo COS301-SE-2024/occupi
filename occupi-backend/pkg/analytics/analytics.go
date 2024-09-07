@@ -41,179 +41,252 @@ func MinTime(t1, t2 time.Time) time.Time {
 	return t2
 }
 
+func createMatchFilter(email string, filter models.OfficeHoursFilterStruct) bson.D {
+	// Create a match filter
+	matchFilter := bson.D{}
+
+	// Conditionally add the email filter if email is not empty
+	if email != "" {
+		matchFilter = append(matchFilter, bson.E{Key: "email", Value: bson.D{{Key: "$eq", Value: email}}})
+	}
+
+	// Conditionally add the time range filter if provided
+	timeRangeFilter := bson.D{}
+	if filter.Filter["timeFrom"] != "" {
+		timeRangeFilter = append(timeRangeFilter, bson.E{Key: "$gte", Value: filter.Filter["timeFrom"]})
+	}
+	if filter.Filter["timeTo"] != "" {
+		timeRangeFilter = append(timeRangeFilter, bson.E{Key: "$lte", Value: filter.Filter["timeTo"]})
+	}
+
+	// If there are time range filters, append them to the match filter
+	if len(timeRangeFilter) > 0 {
+		matchFilter = append(matchFilter, bson.E{Key: "entered", Value: timeRangeFilter})
+	}
+
+	return matchFilter
+}
+
 // GroupOfficeHoursByDay function with total hours calculation
-func GroupOfficeHoursByDay(officeHours []models.OfficeHours) []bson.M {
-	grouped := make(map[string]float64)
-
-	for _, oh := range officeHours {
-		// Extract date without time as the key
-		dateKey := oh.Entered.Format("2006-01-02")
-
-		// Calculate the duration in hours for this office hour
-		duration := oh.Exited.Sub(oh.Entered).Hours()
-
-		// Sum the duration to the corresponding date's total
-		grouped[dateKey] += duration
+func GroupOfficeHoursByDay(email string, filter models.OfficeHoursFilterStruct) bson.D {
+	return bson.D{
+		// Stage 1: Match filter conditions (email and time range)
+		{Key: "$match", Value: createMatchFilter(email, filter)},
+		// Stage 2: Apply skip for pagination
+		{Key: "$skip", Value: filter.Skip},
+		// Stage 3: Apply limit for pagination
+		{Key: "$limit", Value: filter.Limit},
+		// Stage 4: Project the date and calculate the duration
+		{Key: "$project", Value: bson.D{
+			{Key: "email", Value: 1},
+			{Key: "date", Value: bson.D{
+				{Key: "$dateToString", Value: bson.D{
+					{Key: "format", Value: "%Y-%m-%d"},
+					{Key: "date", Value: "$entered"},
+				}},
+			}},
+			{Key: "duration", Value: bson.D{
+				{Key: "$divide", Value: bson.A{
+					bson.D{{Key: "$subtract", Value: bson.A{"$exited", "$entered"}}},
+					1000 * 60 * 60, // Convert milliseconds to hours
+				}},
+			}},
+		}},
+		// Stage 5: Group by the date and sum the durations
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$date"},
+			{Key: "totalHours", Value: bson.D{
+				{Key: "$sum", Value: "$duration"},
+			}},
+		}},
+		// Stage 6: Group to calculate the overall total and prepare the days array
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: nil},
+			{Key: "days", Value: bson.D{
+				{Key: "$push", Value: bson.D{
+					{Key: "date", Value: "$_id"},
+					{Key: "totalHours", Value: "$totalHours"},
+				}},
+			}},
+			{Key: "overallTotal", Value: bson.D{
+				{Key: "$sum", Value: "$totalHours"},
+			}},
+		}},
+		// Stage 7: Unwind the days array for individual results
+		{Key: "$unwind", Value: "$days"},
+		// Stage 8: Project the final result format
+		{Key: "$project", Value: bson.D{
+			{Key: "date", Value: "$days.date"},
+			{Key: "totalHours", Value: "$days.totalHours"},
+			{Key: "overallTotal", Value: "$overallTotal"},
+		}},
 	}
-
-	// Convert the map to a slice of bson.M
-	// prealloc
-	result := make([]bson.M, 0, len(grouped)+1)
-	var overallTotal float64
-	for date, totalHours := range grouped {
-		dayData := bson.M{
-			"date":       date,
-			"totalHours": totalHours,
-		}
-		result = append(result, dayData)
-		overallTotal += totalHours
-	}
-	result = append(result, bson.M{"overallTotal": overallTotal})
-
-	return result
 }
 
-// AverageOfficeHoursByWeekday function
-func AverageOfficeHoursByWeekday(officeHours []models.OfficeHours) []bson.M {
-	// Initialize the maps for storing total hours and count of entries for each weekday
-	weekdayHours := make(map[time.Weekday]float64)
-	weekdayCount := make(map[time.Weekday]int)
+func AverageOfficeHoursByWeekday(email string, filter models.OfficeHoursFilterStruct) bson.D {
+	// Create the match filter using the reusable function
+	matchFilter := createMatchFilter(email, filter)
 
-	// Initialize Monday to Friday in the map with zero values
-	for _, weekday := range []time.Weekday{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday} {
-		weekdayHours[weekday] = 0
-		weekdayCount[weekday] = 0
+	return bson.D{
+		// Stage 1: Match filter conditions (email and time range)
+		{Key: "$match", Value: matchFilter},
+		// Stage 2: Apply skip for pagination
+		{Key: "$skip", Value: filter.Skip},
+		// Stage 3: Apply limit for pagination
+		{Key: "$limit", Value: filter.Limit},
+		// Stage 4: Project the weekday and duration
+		{Key: "$project", Value: bson.D{
+			{Key: "weekday", Value: bson.D{{Key: "$dayOfWeek", Value: "$entered"}}},
+			{Key: "duration", Value: bson.D{
+				{Key: "$divide", Value: bson.A{
+					bson.D{{Key: "$subtract", Value: bson.A{"$exited", "$entered"}}},
+					1000 * 60 * 60,
+				}},
+			}},
+		}},
+		// Stage 5: Group by the weekday and calculate the total hours and count
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$weekday"},
+			{Key: "totalHours", Value: bson.D{{Key: "$sum", Value: "$duration"}}},
+			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}},
+		// Stage 6: Project the weekday name and average hours
+		{Key: "$project", Value: bson.D{
+			{Key: "weekday", Value: bson.D{
+				{Key: "$switch", Value: bson.D{
+					{Key: "branches", Value: bson.A{
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 1}}}}, {Key: "then", Value: "Sunday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 2}}}}, {Key: "then", Value: "Monday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 3}}}}, {Key: "then", Value: "Tuesday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 4}}}}, {Key: "then", Value: "Wednesday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 5}}}}, {Key: "then", Value: "Thursday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 6}}}}, {Key: "then", Value: "Friday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 7}}}}, {Key: "then", Value: "Saturday"}},
+					}},
+					{Key: "default", Value: "Unknown"},
+				}},
+			}},
+			{Key: "averageHours", Value: bson.D{
+				{Key: "$cond", Value: bson.D{
+					{Key: "if", Value: bson.D{{Key: "$gt", Value: bson.A{"$count", 0}}}},
+					{Key: "then", Value: bson.D{{Key: "$divide", Value: bson.A{"$totalHours", "$count"}}}},
+					{Key: "else", Value: 0},
+				}},
+			}},
+			{Key: "totalHours", Value: "$totalHours"},
+			{Key: "count", Value: "$count"},
+		}},
+		// Stage 7: Group all results together to calculate the overall totals
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: nil},
+			{Key: "days", Value: bson.D{{Key: "$push", Value: bson.D{
+				{Key: "weekday", Value: "$weekday"},
+				{Key: "averageHours", Value: "$averageHours"},
+			}}}},
+			{Key: "overallTotal", Value: bson.D{{Key: "$sum", Value: "$totalHours"}}},
+			{Key: "overallWeekdayCount", Value: bson.D{{Key: "$sum", Value: "$count"}}},
+		}},
+		// Stage 8: Project final structure with overall average
+		{Key: "$project", Value: bson.D{
+			{Key: "days", Value: 1},
+			{Key: "overallAverage", Value: bson.D{
+				{Key: "$cond", Value: bson.D{
+					{Key: "if", Value: bson.D{{Key: "$gt", Value: bson.A{"$overallWeekdayCount", 0}}}},
+					{Key: "then", Value: bson.D{{Key: "$divide", Value: bson.A{"$overallTotal", "$overallWeekdayCount"}}}},
+					{Key: "else", Value: 0},
+				}},
+			}},
+			{Key: "overallTotal", Value: 1},
+			{Key: "overallWeekdayCount", Value: 1},
+		}},
 	}
-
-	// Iterate over each office hour entry
-	for _, oh := range officeHours {
-		// Get the weekday (Monday = 1, ..., Friday = 5)
-		weekday := oh.Entered.Weekday()
-
-		// Skip Saturday and Sunday
-		if weekday == time.Saturday || weekday == time.Sunday {
-			continue
-		}
-
-		// Calculate the duration in hours for this office hour
-		duration := oh.Exited.Sub(oh.Entered).Hours()
-
-		// Accumulate the duration and increment the count for the weekday
-		weekdayHours[weekday] += duration
-		weekdayCount[weekday]++
-	}
-
-	// Prepare the result as a slice of bson.M
-	// prealloc
-	result := make([]bson.M, 0, 6)
-	overallTotal := 0.0
-	overallWeekdayCount := 0
-
-	for _, weekday := range []time.Weekday{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday} {
-		var averageHours float64
-
-		if weekdayCount[weekday] > 0 {
-			averageHours = weekdayHours[weekday] / float64(weekdayCount[weekday])
-		} else {
-			averageHours = 0
-		}
-
-		dayData := bson.M{
-			"weekday":      weekday.String(),
-			"averageHours": averageHours,
-		}
-		result = append(result, dayData)
-
-		overallTotal += weekdayHours[weekday]
-		overallWeekdayCount += weekdayCount[weekday]
-	}
-
-	// Calculate the overall average if there are any entries, otherwise set to 0
-	if overallWeekdayCount == 0 {
-		result = append(result, bson.M{"overallAverage": 0, "overallTotal": 0, "overallWeekdayCount": 0})
-	} else {
-		result = append(result, bson.M{"overallAverage": overallTotal / float64(overallWeekdayCount), "overallTotal": overallTotal, "overallWeekdayCount": overallWeekdayCount})
-	}
-
-	return result
 }
 
-// RatioInOutOfficeByWeekday function
-func RatioInOutOfficeByWeekday(officeHours []models.OfficeHours) []bson.M {
-	weekdayInHours := make(map[time.Weekday]float64)
-	totalWeekdayOfficeHours := make(map[time.Weekday]float64)
-	totalOfficeHours := 10.0 // 7 AM to 5 PM is 10 hours
+func RatioInOutOfficeByWeekday(email string, filter models.OfficeHoursFilterStruct) bson.D {
+	// Create the match filter using the reusable function
+	matchFilter := createMatchFilter(email, filter)
 
-	// Initialize Monday to Friday in the map with zero values
-	for _, weekday := range []time.Weekday{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday} {
-		weekdayInHours[weekday] = 0
-		totalWeekdayOfficeHours[weekday] = totalOfficeHours
+	return bson.D{
+		// Stage 1: Match filter conditions (email and time range)
+		{Key: "$match", Value: matchFilter},
+		// Stage 2: Apply skip for pagination
+		{Key: "$skip", Value: filter.Skip},
+		// Stage 3: Apply limit for pagination
+		{Key: "$limit", Value: filter.Limit},
+		// Stage 4: Project the weekday, entered and exited times
+		{Key: "$addFields", Value: bson.D{
+			{Key: "weekday", Value: bson.D{{Key: "$dayOfWeek", Value: "$entered"}}},
+			{Key: "enteredHour", Value: bson.D{{Key: "$hour", Value: "$entered"}}},
+			{Key: "exitedHour", Value: bson.D{{Key: "$hour", Value: "$exited"}}},
+		}},
+		// Stage 5: Project the weekday, email, enteredHour, exitedHour and hoursInOffice
+		{Key: "$project", Value: bson.D{
+			{Key: "weekday", Value: 1},
+			{Key: "email", Value: 1},
+			{Key: "enteredHour", Value: bson.D{
+				{Key: "$cond", Value: bson.A{
+					bson.D{{Key: "$lt", Value: bson.A{"$enteredHour", 7}}},
+					7,
+					"$enteredHour",
+				}},
+			}},
+			{Key: "exitedHour", Value: bson.D{
+				{Key: "$cond", Value: bson.A{
+					bson.D{{Key: "$gt", Value: bson.A{"$exitedHour", 17}}},
+					17,
+					"$exitedHour",
+				}},
+			}},
+			{Key: "hoursInOffice", Value: bson.D{
+				{Key: "$subtract", Value: bson.A{"$exitedHour", "$enteredHour"}},
+			}},
+		}},
+		// Stage 6: Group by the weekday and calculate the total hours in office and count
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$weekday"},
+			{Key: "totalHoursInOffice", Value: bson.D{{Key: "$sum", Value: "$hoursInOffice"}}},
+			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}},
+		{Key: "$addFields", Value: bson.D{
+			{Key: "ratio", Value: bson.D{
+				{Key: "$divide", Value: bson.A{"$totalHoursInOffice", "$count"}},
+			}},
+			{Key: "weekdayName", Value: bson.D{
+				{Key: "$switch", Value: bson.D{
+					{Key: "branches", Value: bson.A{
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 1}}}}, {Key: "then", Value: "Sunday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 2}}}}, {Key: "then", Value: "Monday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 3}}}}, {Key: "then", Value: "Tuesday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 4}}}}, {Key: "then", Value: "Wednesday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 5}}}}, {Key: "then", Value: "Thursday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 6}}}}, {Key: "then", Value: "Friday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 7}}}}, {Key: "then", Value: "Saturday"}},
+					}},
+					{Key: "default", Value: "Unknown"},
+				}},
+			}},
+		}},
+		// Stage 7: Sort by weekday
+		{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}},
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: nil},
+			{Key: "days", Value: bson.D{
+				{Key: "$push", Value: bson.D{
+					{Key: "weekday", Value: "$weekdayName"},
+					{Key: "ratio", Value: "$ratio"},
+				}},
+			}},
+			{Key: "overallRatio", Value: bson.D{{Key: "$avg", Value: "$ratio"}}},
+			{Key: "overallWeekdayCount", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}},
+		// Stage 8: Project the final result format
+		{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 0},
+			{Key: "days", Value: 1},
+			{Key: "ratio", Value: "$overallRatio"},
+			{Key: "overallWeekdayCount", Value: 1},
+		}},
 	}
-
-	// Iterate over each office hour entry
-	for _, oh := range officeHours {
-		// Get the weekday (Monday = 1, ..., Friday = 5)
-		weekday := oh.Entered.Weekday()
-
-		// Skip Saturday and Sunday
-		if weekday == time.Saturday || weekday == time.Sunday {
-			continue
-		}
-
-		// Define the office hours for the day
-		officeStart := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 7, 0, 0, 0, oh.Entered.Location())
-		officeEnd := time.Date(oh.Entered.Year(), oh.Entered.Month(), oh.Entered.Day(), 17, 0, 0, 0, oh.Entered.Location())
-
-		// Calculate the overlap between actual office hours and standard office hours
-		actualStart := MaxTime(oh.Entered, officeStart)
-		actualEnd := MinTime(oh.Exited, officeEnd)
-
-		// Calculate the duration in hours for the overlap (in-office time)
-		if actualStart.Before(actualEnd) {
-			inOfficeDuration := actualEnd.Sub(actualStart).Hours()
-			weekdayInHours[weekday] += inOfficeDuration
-			totalWeekdayOfficeHours[weekday] += totalOfficeHours
-		}
-	}
-
-	// Prepare the result as a slice of bson.M
-	// prealloc
-	result := make([]bson.M, 0, 6)
-	overallOutHours := 0.0
-	overallInHours := 0.0
-
-	for _, weekday := range []time.Weekday{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday} {
-		inHours := weekdayInHours[weekday]
-		outHours := totalWeekdayOfficeHours[weekday] - inHours
-
-		// Calculate ratio, ensuring no division by zero
-		var ratio float64
-		if outHours > 0 {
-			ratio = inHours / outHours
-		} else {
-			ratio = 0
-		}
-
-		dayData := bson.M{
-			"weekday":        weekday.String(),
-			"inOfficeHours":  inHours,
-			"outOfficeHours": outHours,
-			"ratio":          ratio,
-		}
-		result = append(result, dayData)
-
-		overallInHours += inHours
-		overallOutHours += outHours
-	}
-
-	// Calculate the overall ratio if there are any entries, otherwise set to 0
-	if overallOutHours == 0 {
-		result = append(result, bson.M{"overallRatio": 0, "overallInHours": 0, "overallOutHours": 0})
-	} else {
-		result = append(result, bson.M{"overallRatio": overallInHours / overallOutHours, "overallInHours": overallInHours, "overallOutHours": overallOutHours})
-	}
-
-	return result
 }
 
 // BusiestHoursByWeekday function to return the 3 busiest hours per weekday
