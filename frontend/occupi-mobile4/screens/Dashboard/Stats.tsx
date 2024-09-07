@@ -1,25 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, useColorScheme } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import LineGraph from '@/components/LineGraph';
-import BarGraph from '@/components/BarGraph';
-import { LinearGradient } from 'expo-linear-gradient';
-import {Video} from 'expo-av';
-import { Image } from 'react-native';
 import { router } from 'expo-router';
-// import PieChart from '@/components/PieChart';
 
 const Stats = () => {
   const navigation = useNavigation();
-  const [userHours, setUserHours] = useState(null);
-  const [userAverageHours, setUserAverageHours] = useState(null);
-  const [userWorkRatio, setUserWorkRatio] = useState(null);
-  const [userPeakOfficeHours, setUserPeakOfficeHours] = useState(null);
-  const [userArrivalDepartureAverage, setUserArrivalDepartureAverage] = useState(null);
-  const [userInOfficeRate, setUserInOfficeRate] = useState(null);
-  const [mostActiveEmployee, setMostActiveEmployee] = useState(null);
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
+
   const [summary, setSummary] = useState('');
 
   useEffect(() => {
@@ -28,73 +18,37 @@ const Stats = () => {
 
   const fetchUserAnalytics = async () => {
     try {
-      const [hours, avgHours, workRatio, peakHours, arrivalDeparture, inOfficeRate, mostActive] = await Promise.all([
-        fetch('/analytics/user-hours').then(res => res.json()),
-        fetch('/analytics/user-average-hours').then(res => res.json()),
-        fetch('/analytics/user-work-ratio').then(res => res.json()),
-        fetch('/analytics/user-peak-office-hours').then(res => res.json()),
-        fetch('/analytics/user-arrival-departure-average').then(res => res.json()),
-        fetch('/analytics/user-in-office-rate').then(res => res.json()),
-        fetch('/analytics/most-active-employee').then(res => res.json()),
-      ]);
-
-      setUserHours(hours.data);
-      setUserAverageHours(avgHours.data);
-      setUserWorkRatio(workRatio.data);
-      setUserPeakOfficeHours(peakHours.data);
-      setUserArrivalDepartureAverage(arrivalDeparture.data);
-      setUserInOfficeRate(inOfficeRate.data);
-      setMostActiveEmployee(mostActive);
-
-      // Generate personalized summary
-      generateSummary(hours.data, avgHours.data, workRatio.data, inOfficeRate.data, mostActive);
+      // Fetch data and generate summary
+      // ...
     } catch (error) {
       console.error('Error fetching user analytics:', error);
     }
   };
 
-  const generateSummary = (hours, avgHours, workRatio, inOfficeRate, mostActive) => {
-    const totalHours = hours.reduce((sum, day) => sum + day.value, 0);
-    const avgWorkRatio = workRatio.reduce((sum, day) => sum + day.value, 0) / workRatio.length;
-    const avgInOfficeRate = inOfficeRate.reduce((sum, day) => sum + day.value, 0) / inOfficeRate.length;
+  const scrollCards = [
+    { title: 'Daily Progress', color: '#E0FA88', border: '#C6F432' },
+    { title: 'Average Hours', color: '#C09FF8', border: '#843BFF' },
+    { title: 'Work Ratio', color: '#FEC4DD', border: '#FF99C5' },
+    { title: 'In-Office Rate', color: '#FF896E', border: '#F45632' },
+    { title: 'Task Completion', color: '#90EE90', border: '#32CD32' },
+    { title: 'Collaboration Score', color: '#FFD700', border: '#FFA500' },
+  ];
 
-    let summary = `Over the past ${hours.length} days, you've worked a total of ${totalHours.toFixed(1)} hours, `;
-    summary += `with an average of ${(totalHours / hours.length).toFixed(1)} hours per day. `;
-    summary += `Your work ratio is ${avgWorkRatio.toFixed(2)}, indicating a ${avgWorkRatio > 0.7 ? 'high' : 'moderate'} level of productivity. `;
-    summary += `You've been in the office ${(avgInOfficeRate * 100).toFixed(1)}% of the time. `;
-    
-    if (mostActive.email === 'your.email@example.com') {
-      summary += "Congratulations! You're currently the most active employee in the office!";
-    } else {
-      summary += `The most active employee is ${mostActive.email} with an average of ${mostActive.averageHours.toFixed(1)} hours per day.`;
-    }
-
-    setSummary(summary);
-  };
+  const analyticsCards = [
+    { title: 'Your Peak Office Hours', color: '#A3B5E1', border: '#4A77E5' },
+    { title: 'Arrival & Departure Times', color: '#F185C1', border: '#E61D8C' },
+    { title: 'Productivity Trends', color: '#98FB98', border: '#00FA9A' },
+    { title: 'Team Collaboration Metrics', color: '#DDA0DD', border: '#BA55D3' },
+  ];
 
   return (
-
-    <LinearGradient
-      colors={['#FFFFFF', '#FFFFFF']}
-      style={{
-        flex: 1,
-        borderRadius: wp('5%'),
-        padding: wp('5%'),
-        justifyContent: 'space-between',
-      }}
-    >
-        {/* <Image
-          source={require('../../screens/Dashboard/assets/ce8f784a-89c7-4272-9e41-06fb784f0dda.jpeg')}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            right: 0,
-          
-          }}
-        /> */}
-   
+    <View style={{
+      flex: 1,
+      borderRadius: wp('5%'),
+      padding: wp('5%'),
+      justifyContent: 'space-between',
+      backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
+    }}>
       <TouchableOpacity
         style={{
           position: 'absolute',
@@ -102,183 +56,151 @@ const Stats = () => {
           left: wp('5%'),
           zIndex: 1,
         }}
-        onPress={() =>  router.replace('home')}
+        onPress={() => router.replace('home')}
       >
-        <Ionicons name="arrow-back" size={24} color="black"
-        style = {{
-          padding: wp('3%'),
-          borderRadius: wp('4%'),
-          marginBottom: hp('3%'),
-        }} />
+        <Ionicons 
+          name="arrow-back" 
+          size={24} 
+          color={isDarkMode ? 'white' : 'black'}
+          style={{
+            padding: wp('3%'),
+            borderRadius: wp('4%'),
+            marginBottom: hp('3%'),
+          }} 
+        />
       </TouchableOpacity>
 
       <Text style={{
         fontSize: wp('6%'),
         fontWeight: 'bold',
-        color: 'black',
+        color: isDarkMode ? 'white' : 'black',
         marginTop: hp('8%'),
         marginBottom: hp('1%'),
-      }}>
-        AI Analyser
-      </Text>
+      }}>OccuBot - AI Analyser</Text>
+      
       <Text style={{
         fontSize: wp('4%'),
-        color: '#888',
+        color: isDarkMode ? '#888' : '#555',
         marginBottom: hp('2%'),
-      }}>
-        Process Personalization
-      </Text>
+      }}>Comprehensive Office Analytics</Text>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{
-          backgroundColor: '#E1E1E1',
+          backgroundColor: isDarkMode ? '#333' : '#E1E1E1',
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
-          
+          borderColor: isDarkMode ? '#555' : '#979595',
+          borderWidth: 2,
         }}>
           <Text style={{
             fontSize: wp('4.5%'),
             fontWeight: 'bold',
-            color: 'black',
+            color: isDarkMode ? 'white' : 'black',
             marginBottom: hp('1%'),
-          }}>
-            Your Performance Summary
-          </Text>
-          <Text style={{ color: 'white', fontSize: wp('3.5%') }}>
-            {summary}
-          </Text>
+          }}>Your Performance Summary</Text>
+          <Text style={{
+            color: isDarkMode ? '#CCC' : '#333',
+            fontSize: wp('3.5%'),
+          }}>{summary}</Text>
         </View>
+
+        <Text style={{
+          fontSize: wp('4%'),
+          color: isDarkMode ? '#888' : '#555',
+          marginBottom: hp('2%'),
+        }}>Key Performance Indicators</Text>
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{
-            marginBottom: hp('3%'),
-          }}
+          style={{ marginBottom: hp('3%') }}
         >
-          <View style={{
-            backgroundColor: '#F4B732',
-            borderRadius: wp('4%'),
-            padding: wp('4%'),
-            marginRight: wp('4%'),
-            width: wp('70%'),
-            overflow: 'hidden',
-            alignItems: 'center',
-          
-          }}>
-            <Text style={{
-              fontSize: wp('4.5%'),
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: hp('1%'),
+          {scrollCards.map((item, index) => (
+            <View key={index} style={{
+              backgroundColor: item.color,
+              borderRadius: wp('4%'),
+              padding: wp('4%'),
+              marginRight: wp('4%'),
+              width: wp('70%'),
+              overflow: 'hidden',
+              alignItems: 'center',
+              borderColor: item.border,
+              borderWidth: 2,
             }}>
-              Daily Progress
-            </Text>
-            {userHours && <BarGraph data={userHours} />}
-          </View>
-
-          <View style={{
-            backgroundColor: '#91EAE4',
-            borderRadius: wp('4%'),
-            padding: wp('4%'),
-            marginRight: wp('4%'),
-            width: wp('70%'),
-            overflow: 'hidden',
-            alignItems: 'center',
-          
-          }}>
-            <Text style={{
-              fontSize: wp('4.5%'),
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: hp('1%'),
-            }}>
-              Average Hours
-            </Text>
-            {userAverageHours && <LineGraph data={userAverageHours} />}
-          </View>
-
-          <View style={{
-            backgroundColor: '#C6F432',
-            borderRadius: wp('4%'),
-            padding: wp('4%'),
-            marginRight: wp('4%'),
-            width: wp('70%'),
-            overflow: 'hidden',
-            alignItems: 'center',
-          
-          }}>
-            <Text style={{
-              fontSize: wp('4.5%'),
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: hp('1%'),
-            }}>
-              Work Ratio
-            </Text>
-            {/* {userWorkRatio && <PieChart data={userWorkRatio} />} */}
-          </View>
-
-          <View style={{
-            backgroundColor: '#F45632',
-            borderRadius: wp('4%'),
-            padding: wp('4%'),
-            marginRight: wp('4%'),
-            width: wp('70%'),
-            overflow: 'hidden',
-            alignItems: 'center',
-          
-          }}>
-            <Text style={{
-              fontSize: wp('4.5%'),
-              fontWeight: 'bold',
-              color: 'white',
-              marginBottom: hp('1%'),
-            }}>
-              In-Office Rate
-            </Text>
-            {userInOfficeRate && <LineGraph data={userInOfficeRate} />}
-          </View>
+              <Text style={{
+                fontSize: wp('4.5%'),
+                fontWeight: 'bold',
+                color: 'black',
+                marginBottom: hp('1%'),
+              }}>{item.title}</Text>
+            </View>
+          ))}
         </ScrollView>
 
+        <Text style={{
+          fontSize: wp('4%'),
+          color: isDarkMode ? '#888' : '#555',
+          marginBottom: hp('2%'),
+        }}>Detailed Analytics</Text>
+
+        {analyticsCards.map((item, index) => (
+          <View key={index} style={{
+            backgroundColor: item.color,
+            borderRadius: wp('4%'),
+            padding: wp('4%'),
+            marginBottom: hp('3%'),
+            borderColor: item.border,
+            borderWidth: 2,
+          }}>
+            <Text style={{
+              fontSize: wp('5%'),
+              fontWeight: 'bold',
+              color: 'white',
+              marginBottom: hp('2%'),
+            }}>{item.title}</Text>
+          </View>
+        ))}
+
+        <Text style={{
+          fontSize: wp('4%'),
+          color: isDarkMode ? '#888' : '#555',
+          marginBottom: hp('2%'),
+        }}>Workplace Optimization</Text>
+
         <View style={{
-          backgroundColor: '#FF9898',
+          backgroundColor: '#9CF0E2',
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
-        
+          borderColor: '#1EE9C8',
+          borderWidth: 2,
         }}>
           <Text style={{
             fontSize: wp('5%'),
             fontWeight: 'bold',
             color: 'white',
             marginBottom: hp('2%'),
-          }}>
-            Your Peak Office Hours
-          </Text>
-          {userPeakOfficeHours && <BarGraph data={userPeakOfficeHours} />}
+          }}>Meeting Room Utilization</Text>
         </View>
 
         <View style={{
-          backgroundColor: '#E61D8C',
+          backgroundColor: '#FFB6C1',
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
-        
+          borderColor: '#FF69B4',
+          borderWidth: 2,
         }}>
           <Text style={{
             fontSize: wp('5%'),
             fontWeight: 'bold',
             color: 'white',
             marginBottom: hp('2%'),
-          }}>
-            Arrival & Departure Times
-          </Text>
-          {userArrivalDepartureAverage && <LineGraph data={userArrivalDepartureAverage} />}
+          }}>Workspace Efficiency</Text>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 };
 
