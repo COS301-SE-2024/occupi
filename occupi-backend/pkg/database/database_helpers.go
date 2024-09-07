@@ -25,7 +25,7 @@ func CreateBasicUser(user models.RegisterUser) models.User {
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
 		Details: models.Details{
-			ImageID:  "",
+			HasImage: false,
 			Name:     "",
 			DOB:      time.Now(),
 			Gender:   "",
@@ -62,7 +62,7 @@ func CreateAdminUser(user models.RegisterUser) models.User {
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
 		Details: models.Details{
-			ImageID:  "",
+			HasImage: false,
 			Name:     "",
 			DOB:      time.Now(),
 			Gender:   "",
@@ -99,6 +99,7 @@ func CreateAUser(user models.UserRequest) models.User {
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
 		Details: models.Details{
+			HasImage:  false,
 			ContactNo: user.Details.ContactNo,
 			Name:      user.Details.Name,
 			DOB:       user.Details.DOB,

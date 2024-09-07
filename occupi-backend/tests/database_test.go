@@ -2490,7 +2490,7 @@ func TestGetUserDetails(t *testing.T) {
 			},
 		},
 		Details: models.Details{
-			ImageID:  "",
+			HasImage: false,
 			Name:     "Michael",
 			DOB:      time.Now(),
 			Gender:   "Male",
