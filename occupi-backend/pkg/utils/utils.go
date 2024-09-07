@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	rd "math/rand"
 	"os"
 	"reflect"
 	"regexp"
@@ -646,4 +647,8 @@ func Contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func RandomInt(min, max int) int {
+	return min + rd.Intn(max-min)
 }
