@@ -1730,6 +1730,8 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		pipeline = analytics.AverageOfficeHoursByWeekday(email, filter)
 	case "ratio":
 		pipeline = analytics.RatioInOutOfficeByWeekday(email, filter)
+	case "peakhours":
+		pipeline = analytics.BusiestHoursByWeekday(email, filter)
 	default:
 		return nil, 0, errors.New("invalid calculate value")
 	}

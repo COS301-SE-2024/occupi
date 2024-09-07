@@ -2,28 +2,11 @@ package analytics
 
 import (
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
-
-// Helper function to get the minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-// Helper function to get the maximum of two integers
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
 
 // Helper function to get the maximum of two time values
 func MaxTime(t1, t2 time.Time) time.Time {
@@ -290,95 +273,114 @@ func RatioInOutOfficeByWeekday(email string, filter models.OfficeHoursFilterStru
 }
 
 // BusiestHoursByWeekday function to return the 3 busiest hours per weekday
-func BusiestHoursByWeekday(officeHours []models.OfficeHours) []bson.M {
-	// Map to store the total overlaps for each weekday and hour
-	hourlyActivity := make(map[time.Weekday]map[int]int)
-	overallActivity := make(map[int]int)
+func BusiestHoursByWeekday(email string, filter models.OfficeHoursFilterStruct) bson.D {
+	// Create the match filter using the reusable function
+	matchFilter := createMatchFilter(email, filter)
 
-	// Initialize the map
-	for _, weekday := range []time.Weekday{time.Monday, time.Tuesday, time.Wednesday, time.Thursday, time.Friday} {
-		hourlyActivity[weekday] = make(map[int]int)
+	return bson.D{
+		// Stage 1: Match filter conditions (email and time range)
+		{Key: "$match", Value: matchFilter},
+		// Stage 2: Apply skip for pagination
+		{Key: "$skip", Value: filter.Skip},
+		// Stage 3: Apply limit for pagination
+		{Key: "$limit", Value: filter.Limit},
+		// Stage 4: Project the weekday, entered and exited times
+		{Key: "$addFields", Value: bson.D{
+			{Key: "weekday", Value: bson.D{{Key: "$dayOfWeek", Value: "$entered"}}},
+			{Key: "enteredHour", Value: bson.D{{Key: "$hour", Value: "$entered"}}},
+			{Key: "exitedHour", Value: bson.D{{Key: "$hour", Value: "$exited"}}},
+		}},
+		// Stage 5: Project the weekday, enteredHour and exitedHour
+		{Key: "$addFields", Value: bson.D{
+			{Key: "hoursInOffice", Value: bson.D{
+				{Key: "$map", Value: bson.D{
+					{Key: "input", Value: bson.D{
+						{Key: "$range", Value: bson.A{
+							"$enteredHour",
+							bson.D{{Key: "$add", Value: bson.A{"$exitedHour", 1}}},
+						}},
+					}},
+					{Key: "as", Value: "hour"},
+					{Key: "in", Value: "$$hour"},
+				}},
+			}},
+		}},
+		// Stage 6: Unwind the hoursInOffice array
+		{Key: "$unwind", Value: "$hoursInOffice"},
+		// Stage 7: Group by the weekday and hour to count the occurrences
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: bson.D{
+				{Key: "weekday", Value: "$weekday"},
+				{Key: "hour", Value: "$hoursInOffice"},
+			}},
+			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}},
+		// Stage 8: Group by the weekday to prepare the top 3 busiest hours
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$_id.weekday"},
+			{Key: "hours", Value: bson.D{
+				{Key: "$push", Value: bson.D{
+					{Key: "hour", Value: "$_id.hour"},
+					{Key: "count", Value: "$count"},
+				}},
+			}},
+		}},
+		// Stage 9: Add the weekday name and sort the hours by count
+		{Key: "$addFields", Value: bson.D{
+			{Key: "topHours", Value: bson.D{
+				{Key: "$slice", Value: bson.A{
+					bson.D{
+						{Key: "$sortArray", Value: bson.D{
+							{Key: "input", Value: "$hours"},
+							{Key: "sortBy", Value: bson.D{{Key: "count", Value: -1}}},
+						}},
+					},
+					3,
+				}},
+			}},
+		}},
+		// Stage 10: Project the final result format
+		{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 0},
+			{Key: "weekday", Value: bson.D{
+				{Key: "$switch", Value: bson.D{
+					{Key: "branches", Value: bson.A{
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 1}}}}, {Key: "then", Value: "Sunday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 2}}}}, {Key: "then", Value: "Monday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 3}}}}, {Key: "then", Value: "Tuesday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 4}}}}, {Key: "then", Value: "Wednesday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 5}}}}, {Key: "then", Value: "Thursday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 6}}}}, {Key: "then", Value: "Friday"}},
+						bson.D{{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$_id", 7}}}}, {Key: "then", Value: "Saturday"}},
+					}},
+					{Key: "default", Value: "Unknown"},
+				}},
+			}},
+			{Key: "hours", Value: bson.D{
+				{Key: "$map", Value: bson.D{
+					{Key: "input", Value: "$topHours"},
+					{Key: "as", Value: "topHour"},
+					{Key: "in", Value: "$$topHour.hour"},
+				}},
+			}},
+		}},
+		// Stage 11: Sort by weekday
+		{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: nil},
+			{Key: "days", Value: bson.D{
+				{Key: "$push", Value: bson.D{
+					{Key: "weekday", Value: "$weekday"},
+					{Key: "hours", Value: "$hours"},
+				}},
+			}},
+			{Key: "overallWeekdayCount", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}},
+		// Stage 12: Project the final result format
+		{Key: "$project", Value: bson.D{
+			{Key: "days", Value: 1},
+			{Key: "overallWeekdayCount", Value: 1},
+		}},
 	}
-
-	// Iterate over office hours entries
-	for _, oh := range officeHours {
-		// Get the weekday (Monday = 1, ..., Friday = 5)
-		weekday := oh.Entered.Weekday()
-
-		// Skip Saturday and Sunday
-		if weekday == time.Saturday || weekday == time.Sunday {
-			continue
-		}
-
-		// Calculate the hours between Entered and Exited, ensuring they are within 07:00 and 17:00
-		for hour := max(7, oh.Entered.Hour()); hour < min(17, oh.Exited.Hour()); hour++ {
-			hourlyActivity[weekday][hour]++
-			overallActivity[hour]++
-		}
-	}
-
-	// Determine the top 3 busiest hours for each weekday
-	// prealloc
-	result := make([]bson.M, 0, 6)
-	for weekday, hours := range hourlyActivity {
-		// Create a slice to store the hours and their activity counts
-		type hourActivity struct {
-			Hour     int
-			Activity int
-		}
-		var activities []hourActivity
-
-		// Collect the hourly activity for the current weekday
-		for hour, activity := range hours {
-			activities = append(activities, hourActivity{Hour: hour, Activity: activity})
-		}
-
-		// Sort the activities by activity count in descending order
-		sort.Slice(activities, func(i, j int) bool {
-			return activities[i].Activity > activities[j].Activity
-		})
-
-		// Get the top 3 busiest hours
-		busiestHours := make([]int, 0, 3)
-		for i := 0; i < min(3, len(activities)); i++ {
-			busiestHours = append(busiestHours, activities[i].Hour)
-		}
-
-		// Store the result for the current weekday
-		peakData := bson.M{
-			"weekday":      weekday.String(),
-			"busiestHours": busiestHours,
-		}
-		result = append(result, peakData)
-	}
-
-	// Determine the overall top 3 busiest hours across the entire week
-	type overallHourActivity struct {
-		Hour     int
-		Activity int
-	}
-	// prealloc
-	overallActivities := make([]overallHourActivity, 0, len(overallActivity))
-
-	for hour, activity := range overallActivity {
-		overallActivities = append(overallActivities, overallHourActivity{Hour: hour, Activity: activity})
-	}
-
-	// Sort the overall activities by activity count in descending order
-	sort.Slice(overallActivities, func(i, j int) bool {
-		return overallActivities[i].Activity > overallActivities[j].Activity
-	})
-
-	// Get the top 3 busiest hours overall
-	overallBusiestHours := make([]int, 0, 3)
-	for i := 0; i < min(3, len(overallActivities)); i++ {
-		overallBusiestHours = append(overallBusiestHours, overallActivities[i].Hour)
-	}
-
-	// Append the overall busiest hours to the result
-	result = append(result, bson.M{"overallBusiestHours": overallBusiestHours})
-
-	return result
 }
 
 // LeastInOfficeWorker function to calculate the least "in office" worker
