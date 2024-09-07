@@ -60,6 +60,10 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.PUT("/add-room", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
 		api.GET("/available-slots", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAvailableSlots(ctx, appsession) })
 		api.PUT("/toggle-onsite", middleware.ProtectedRoute, middleware.BlockWeekendsAndAfterHours(time.Now()), func(ctx *gin.Context) { handlers.ToggleOnsite(ctx, appsession) })
+		api.POST("/create-user", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.CreateUser(ctx, appsession) })
+		api.GET("/get-ip-info", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetIPInfo(ctx, appsession) })
+		api.POST("/add-ip", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddIP(ctx, appsession) })
+		api.POST("/remove-ip", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.RemoveIP(ctx, appsession) })
 	}
 	analytics := router.Group("/analytics")
 	{

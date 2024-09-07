@@ -1252,3 +1252,129 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 		gin.H{"totalResults": len(userHours), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
 
 }
+
+func CreateUser(ctx *gin.Context, appsession *models.AppSession) {
+	var user models.UserRequest
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// if employee id is not set, generate a random one
+	if user.EmployeeID == "" {
+		user.EmployeeID = utils.GenerateEmployeeID()
+	}
+
+	// check email does not exist
+	if exists := database.EmailExists(ctx, appsession, user.Email); exists {
+		captureError(ctx, errors.New("email already exists"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Email already exists",
+			constants.InvalidRequestPayloadCode,
+			"Email already exists",
+			nil))
+		return
+	}
+
+	// hash the password
+	hashedPassword, err := utils.Argon2IDHash(user.Password)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	user.Password = hashedPassword
+
+	// Create the user in the database
+	errv := database.CreateUser(ctx, appsession, user)
+	if errv != nil {
+		captureError(ctx, errv)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to create user",
+			constants.InternalServerErrorCode,
+			"Failed to create user",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully created user!", nil))
+}
+
+func GetIPInfo(ctx *gin.Context, appsession *models.AppSession) {
+	ipAddress := ctx.ClientIP()
+	info, err := configs.GetIPInfo(ipAddress, appsession.IPInfo)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched IP information!", info))
+}
+
+func AddIP(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestIP
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// Add the IP to the database
+	err := database.AddIP(ctx, appsession, request)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to add IP",
+			constants.InternalServerErrorCode,
+			"Failed to add IP",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully added IP!", nil))
+}
+
+func RemoveIP(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestIP
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// Remove the IP from the database
+	err := database.RemoveIP(ctx, appsession, request)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to remove IP",
+			constants.InternalServerErrorCode,
+			"Failed to remove IP",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully removed IP!", nil))
+}
