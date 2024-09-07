@@ -1879,3 +1879,89 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.Re
 
 	return nil
 }
+
+func UserHasImage(ctx *gin.Context, appsession *models.AppSession, email string) bool {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Details.HasImage
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.Details.HasImage
+}
+
+func SetHasImage(ctx *gin.Context, appsession *models.AppSession, email string, hasImage bool) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// get user from cache
+	userData, cacheErr := cache.GetUser(appsession, email)
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"details.hasImage": hasImage}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// update user in cache
+	if cacheErr == nil {
+		userData.Details.HasImage = hasImage
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
+}
+
+func GetUsersGender(ctx *gin.Context, appsession *models.AppSession, email string) (string, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return "", errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Details.Gender, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.Details.Gender, nil
+}
