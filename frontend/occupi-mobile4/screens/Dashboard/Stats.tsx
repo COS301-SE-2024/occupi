@@ -109,39 +109,6 @@ const Stats = () => {
           fontSize: wp('4%'),
           color: isDarkMode ? '#888' : '#555',
           marginBottom: hp('2%'),
-        }}>Key Performance Indicators</Text>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginBottom: hp('3%') }}
-        >
-          {scrollCards.map((item, index) => (
-            <View key={index} style={{
-              backgroundColor: item.color,
-              borderRadius: wp('4%'),
-              padding: wp('4%'),
-              marginRight: wp('4%'),
-              width: wp('70%'),
-              overflow: 'hidden',
-              alignItems: 'center',
-              borderColor: item.border,
-              borderWidth: 2,
-            }}>
-              <Text style={{
-                fontSize: wp('4.5%'),
-                fontWeight: 'bold',
-                color: 'black',
-                marginBottom: hp('1%'),
-              }}>{item.title}</Text>
-            </View>
-          ))}
-        </ScrollView>
-
-        <Text style={{
-          fontSize: wp('4%'),
-          color: isDarkMode ? '#888' : '#555',
-          marginBottom: hp('2%'),
         }}>Detailed Analytics</Text>
 
         {analyticsCards.map((item, index) => (
