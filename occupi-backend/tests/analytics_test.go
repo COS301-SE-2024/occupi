@@ -114,14 +114,14 @@ func TestRatioInOutOfficeByWeekday(t *testing.T) {
 	}
 }
 
-func TestRatioInOutOfficeByWeekday(t *testing.T) {
+func TestBusiestHoursByWeekday(t *testing.T) {
 	email := "test@example.com"
 	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
 
-	res := analytics.RatioInOutOfficeByWeekday(email, filter)
+	res := analytics.BusiestHoursByWeekday(email, filter)
 
 	// check len is greater than 0
 	if len(res) == 0 {
-		t.Errorf("RatioInOutOfficeByWeekday() = %v, want greater than 0", res)
+		t.Errorf("BusiestHoursByWeekday() = %v, want greater than 0", res)
 	}
 }
