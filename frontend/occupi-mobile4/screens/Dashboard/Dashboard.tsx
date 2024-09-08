@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
   const toast = useToast();
   const [currentData, setCurrentData] = useState();
   const pagerRef = useRef<PagerView>(null);
-  const [activeTab, setActiveTab] = useState('Tab1');
+  const [activeTab, setActiveTab] = useState(1);
   const [weeklyData, setWeeklyData] = useState();
   // console.log(currentTheme);
   // console.log(isDarkMode);
@@ -76,7 +76,8 @@ const Dashboard: React.FC = () => {
   // console.log(currentData);
 
   const showLive = () => {
-    setActiveTab('Tab1');
+    setActiveTab(1);
+    setDate("");
     // if (pagerRef.current) {
     //   pagerRef.current.setPage(1);
     // }
@@ -84,24 +85,27 @@ const Dashboard: React.FC = () => {
   };
 
   const showHourly = () => {
-    setActiveTab('Tab2');
+    setActiveTab(2);
     setHourly();
+    setDate("");
     // if (pagerRef.current) {
     //   pagerRef.current.setPage(0);
     // }
   };
 
   const showWeek = () => {
-    setActiveTab('Tab3');
+    setActiveTab(3);
     setWeekly();
+    setDate("");
     // if (pagerRef.current) {
     //   pagerRef.current.setPage(0);
     // }
   };
 
   const showMonth = () => {
-    setActiveTab('Tab4');
+    setActiveTab(4);
     setWeekly();
+    setDate("");
     // if (pagerRef.current) {
     //   pagerRef.current.setPage(0);
     // }
@@ -195,7 +199,7 @@ const Dashboard: React.FC = () => {
     getAccentColour();
   }, []);
 
-  const getPredictionsFromWeek = async (date : string) => {
+  const getPredictionsFromWeek = async (date: string) => {
     try {
       const prediction = await getFormattedPredictionWeekData(date);
       if (prediction) {
@@ -324,8 +328,8 @@ const Dashboard: React.FC = () => {
   };
 
   const handleConfirm = (date: Date) => {
-    const selectedDate : string = date.toString();
-    console.log('selected',extractDateFromTimestamp(selectedDate));
+    const selectedDate: string = date.toString();
+    console.log('selected', extractDateFromTimestamp(selectedDate));
     setDate(extractDateFromTimestamp(selectedDate));
     getPredictionsFromWeek(extractDateFromTimestamp(selectedDate));
     hideDatePicker();
@@ -431,11 +435,11 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 'Tab1' ? accentColour : 'transparent',
+                backgroundColor: activeTab === 1 ? accentColour : 'transparent',
               }}
               onPress={goToPreviousPage}
             >
-              <Text color={activeTab === 'Tab1' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
+              <Text color={activeTab === 1 ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 1 ? 'bold' : 'normal'}>
                 Weekly
               </Text>
             </TouchableOpacity>
@@ -445,11 +449,11 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 'Tab2' ? accentColour : 'transparent',
+                backgroundColor: activeTab === 2 ? accentColour : 'transparent',
               }}
               onPress={goToNextPage}
             >
-              <Text color={activeTab === 'Tab2' ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
+              <Text color={activeTab === 2 ? 'black' : 'gray'} fontSize={16} fontWeight={activeTab === 2 ? 'bold' : 'normal'}>
                 Hourly
               </Text>
             </TouchableOpacity>
@@ -485,11 +489,11 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 'Tab1' ? '#242424' : 'transparent',
+                backgroundColor: activeTab === 1 ? '#242424' : 'transparent',
               }}
               onPress={showLive}
             >
-              <Text color={activeTab === 'Tab1' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
+              <Text color={activeTab === 1 ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 1 ? 'bold' : 'normal'}>
                 Live
               </Text>
             </TouchableOpacity>
@@ -498,11 +502,11 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 'Tab2' ? '#242424' : 'transparent',
+                backgroundColor: activeTab === 2 ? '#242424' : 'transparent',
               }}
               onPress={showHourly}
             >
-              <Text color={activeTab === 'Tab2' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
+              <Text color={activeTab === 2 ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 2 ? 'bold' : 'normal'}>
                 1D
               </Text>
             </TouchableOpacity>
@@ -511,11 +515,11 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 'Tab3' ? '#242424' : 'transparent',
+                backgroundColor: activeTab === 3 ? '#242424' : 'transparent',
               }}
               onPress={showWeek}
             >
-              <Text color={activeTab === 'Tab3' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab3' ? 'bold' : 'normal'}>
+              <Text color={activeTab === 3 ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 3 ? 'bold' : 'normal'}>
                 1W
               </Text>
             </TouchableOpacity>
@@ -524,44 +528,54 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 'Tab4' ? '#242424' : 'transparent',
+                backgroundColor: activeTab === 4 ? '#242424' : 'transparent',
               }}
               onPress={showMonth}
             >
-              <Text color={activeTab === 'Tab4' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab4' ? 'bold' : 'normal'}>
+              <Text color={activeTab === 4 ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 4 ? 'bold' : 'normal'}>
                 1M
               </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={{
-              paddingVertical: 7,
-              paddingHorizontal: 14,
-              borderRadius: 8,
-              backgroundColor: '#242424',
-              marginHorizontal: 48,
-              marginTop: 8,
-              marginBottom: 8,
-              alignItems: 'center'
-            }}
-            onPress={showDatePicker}
-          > 
-            {date ? (
-              <Text color={textColor} fontSize={16} fontWeight={activeTab === 'Tab4' ? 'bold' : 'normal'}>
-              Week from: {date}
-            </Text>
-            ) : (
-              <Text color={textColor} fontSize={16} fontWeight={activeTab === 'Tab4' ? 'bold' : 'normal'}>
-              Select Starting Date
-            </Text>
-            )}
-          </TouchableOpacity>
-          <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirm}
-          onCancel={hideDatePicker}
-        />
+          {activeTab !== 1 &&
+            <>
+              <TouchableOpacity
+                style={{
+                  paddingVertical: 7,
+                  paddingHorizontal: 14,
+                  borderRadius: 8,
+                  backgroundColor: '#242424',
+                  marginHorizontal: 48,
+                  marginTop: 8,
+                  marginBottom: 8,
+                  alignItems: 'center'
+                }}
+                onPress={showDatePicker}
+              >
+                {date ? (
+                  <Text color={textColor} fontSize={16}>
+                    Week from: {date}
+                  </Text>
+                ) : (
+                  activeTab === 2 ? (
+                    <Text color={textColor} fontSize={16}>Select Day:</Text>
+                  ) : activeTab === 3 ? (
+                    <Text color={textColor} fontSize={16}>Select Week From:</Text>
+                  ) : activeTab === 4 && (
+                    <Text color={textColor} fontSize={16}>Select Month:</Text>
+                  )
+                )}
+
+              </TouchableOpacity>
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="date"
+                // display="calendar"
+                onConfirm={handleConfirm}
+                onCancel={hideDatePicker}
+              />
+            </>
+          }
         </View>
         <TouchableOpacity
           style={{
@@ -573,7 +587,7 @@ const Dashboard: React.FC = () => {
             backgroundColor: cardBackgroundColor,
             justifyContent: 'center'
           }}
-          onPress={() => router.replace('stats')}
+          onPress={() => router.replace('loadingscreen')}
         >
 
           <View flexDirection="row" alignItems="center" justifyContent='space-between'>

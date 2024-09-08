@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Dimensions, useColorScheme } from 'react-native';
+import { useTheme } from '@/components/ThemeContext';
+import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -8,7 +10,10 @@ import { router } from 'expo-router';
 const Stats = () => {
   const navigation = useNavigation();
   const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
+  const { theme } = useTheme();
+  const currentTheme = theme === "system" ? colorScheme : theme;
+  const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
+  const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
   const [summary, setSummary] = useState('');
 
@@ -25,6 +30,14 @@ const Stats = () => {
     }
   };
 
+  useEffect(() => {
+    const getAccentColour = async () => {
+      let accentcolour = await SecureStore.getItemAsync('accentColour');
+      setAccentColour(accentcolour);
+    };
+    getAccentColour();
+  }, []);
+
   const scrollCards = [
     { title: 'Daily Progress', color: '#E0FA88', border: '#C6F432' },
     { title: 'Average Hours', color: '#C09FF8', border: '#843BFF' },
@@ -35,10 +48,10 @@ const Stats = () => {
   ];
 
   const analyticsCards = [
-    { title: 'Your Peak Office Hours', color: '#A3B5E1', border: '#4A77E5' },
-    { title: 'Arrival & Departure Times', color: '#F185C1', border: '#E61D8C' },
-    { title: 'Productivity Trends', color: '#98FB98', border: '#00FA9A' },
-    { title: 'Team Collaboration Metrics', color: '#DDA0DD', border: '#BA55D3' },
+    { title: 'Your Peak Office Hours', color: '#101010', border: accentColour },
+    { title: 'Arrival & Departure Times', color: '#101010', border: accentColour },
+    { title: 'Productivity Trends', color: '#101010', border: accentColour },
+    { title: 'Team Collaboration Metrics', color: '#101010', border: accentColour },
   ];
 
   return (
@@ -129,7 +142,7 @@ const Stats = () => {
           </View>
         ))}
 
-        <Text style={{
+        {/* <Text style={{
           fontSize: wp('4%'),
           color: isDarkMode ? '#888' : '#555',
           marginBottom: hp('2%'),
@@ -165,7 +178,7 @@ const Stats = () => {
             color: 'white',
             marginBottom: hp('2%'),
           }}>Workspace Efficiency</Text>
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );
