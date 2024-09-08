@@ -1758,16 +1758,7 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		return nil, 0, err
 	}
 
-	mongoFilter := bson.M{}
-	if email != "" {
-		mongoFilter["email"] = email
-	}
-	if filter.Filter["timeFrom"] != "" {
-		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
-	}
-	if filter.Filter["timeTo"] != "" {
-		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
-	}
+	mongoFilter := MakeEmailAndTimeFilter(email, filter)
 
 	// count documents
 	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
