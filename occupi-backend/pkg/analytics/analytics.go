@@ -24,7 +24,7 @@ func CreateMatchFilter(email string, filter models.OfficeHoursFilterStruct) bson
 	}
 
 	// If there are time range filters, append them to the match filter
-	if len(timeRangeFilter) > 0 {
+	if len(timeRangeFilter) > 0 && len(filter.Filter) > 0 {
 		matchFilter = append(matchFilter, bson.E{Key: "entered", Value: timeRangeFilter})
 	}
 
