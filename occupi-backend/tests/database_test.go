@@ -8387,8 +8387,10 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 	}
 
 	filterMap := map[string]string{
-		"timeFrom": time.Now().Add(-24 * time.Hour).Format(time.RFC3339),
-		"timeTo":   time.Now().Format(time.RFC3339),
+		// 1970-01-01T00:00:00Z
+		"timeFrom": time.Unix(0, 0).Format(time.RFC3339),
+		// time now
+		"timeTo": time.Now().Format(time.RFC3339),
 	}
 
 	// Convert filterMap to primitive.M
@@ -8414,6 +8416,18 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
 	})
 
+	mt.Run("Invalid calculation type", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "invalid")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "invalid calculate value", "Expected error for invalid calculation type")
+	})
+
 	mt.Run("Successful query and hoursbyday calculation", func(mt *mtest.T) {
 		// Mock Find to return the OfficeHours document
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
@@ -8431,36 +8445,11 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 			DB: mt.Client,
 		}
 
-		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "hoursbyday")
+		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "hoursbyday")
 		assert.NoError(t, err, "Expected no error for successful query")
 		assert.Equal(t, int64(1), total, "Expected 1 total result")
 		assert.NotNil(t, results, "Expected non-nil results")
 	})
-
-	/*
-
-		mt.Run("Invalid calculation type", func(mt *mtest.T) {
-			// Mock Find to return the OfficeHours document
-			mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
-				{Key: "email", Value: officeHours.Email},
-				{Key: "entered", Value: officeHours.Entered},
-				{Key: "exited", Value: officeHours.Exited},
-				{Key: "closed", Value: officeHours.Closed},
-			}))
-
-			// mock count documents
-			mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-			// Create a mock AppSession with a valid database
-			appsession := &models.AppSession{
-				DB: mt.Client,
-			}
-
-			results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "invalid")
-			assert.Nil(t, results)
-			assert.Equal(t, int64(0), total)
-			assert.EqualError(t, err, "invalid calculation", "Expected error for invalid calculation type")
-		})*/
 
 	mt.Run("Failed query", func(mt *mtest.T) {
 		// Mock Find to return an error
