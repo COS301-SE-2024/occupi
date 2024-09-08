@@ -77,3 +77,15 @@ func TestCreateMatchFilter(t *testing.T) {
 func equalBsonD(a, b bson.D) bool {
 	return len(a) == len(b) && reflect.DeepEqual(a, b)
 }
+
+func TestGroupOfficeHoursByDay(t *testing.T) {
+	email := "test@example.com"
+	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+
+	res := analytics.GroupOfficeHoursByDay(email, filter)
+
+	// check len is greater than 0
+	if len(res) == 0 {
+		t.Errorf("GroupOfficeHoursByDay() = %v, want greater than 0", res)
+	}
+}

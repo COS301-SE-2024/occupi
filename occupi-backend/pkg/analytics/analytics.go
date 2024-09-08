@@ -33,9 +33,11 @@ func CreateMatchFilter(email string, filter models.OfficeHoursFilterStruct) bson
 
 // GroupOfficeHoursByDay function with total hours calculation
 func GroupOfficeHoursByDay(email string, filter models.OfficeHoursFilterStruct) bson.A {
+	matchFilter := CreateMatchFilter(email, filter)
+
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
-		bson.D{{Key: "$match", Value: CreateMatchFilter(email, filter)}},
+		bson.D{{Key: "$match", Value: matchFilter}},
 		// Stage 2: Apply skip for pagination
 		bson.D{{Key: "$skip", Value: filter.Skip}},
 		// Stage 3: Apply limit for pagination
