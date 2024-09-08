@@ -1738,6 +1738,8 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		pipeline = analytics.LeastMostInOfficeWorker(email, filter, true)
 	case "arrivaldeparture":
 		pipeline = analytics.AverageArrivalAndDepartureTimesByWeekday(email, filter)
+	case "inofficehours":
+		pipeline = analytics.AverageInOfficeHoursByWeekday(email, filter)
 	default:
 		return nil, 0, errors.New("invalid calculate value")
 	}
