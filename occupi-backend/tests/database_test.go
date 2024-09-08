@@ -8379,7 +8379,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 
 	// Define an example OfficeHours object
-	_ = models.OfficeHours{
+	officeHours := models.OfficeHours{
 		Email:   "test@example.com",
 		Entered: time.Now(),
 		Exited:  time.Now().Add(2 * time.Hour),
@@ -8414,7 +8414,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
 	})
 
-	/*mt.Run("Successful query and analytics calculation", func(mt *mtest.T) {
+	mt.Run("Successful query and hoursbyday calculation", func(mt *mtest.T) {
 		// Mock Find to return the OfficeHours document
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
 			{Key: "email", Value: officeHours.Email},
@@ -8437,28 +8437,30 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
-	mt.Run("Invalid calculation type", func(mt *mtest.T) {
-		// Mock Find to return the OfficeHours document
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
-			{Key: "email", Value: officeHours.Email},
-			{Key: "entered", Value: officeHours.Entered},
-			{Key: "exited", Value: officeHours.Exited},
-			{Key: "closed", Value: officeHours.Closed},
-		}))
+	/*
 
-		// mock count documents
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
+		mt.Run("Invalid calculation type", func(mt *mtest.T) {
+			// Mock Find to return the OfficeHours document
+			mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+				{Key: "email", Value: officeHours.Email},
+				{Key: "entered", Value: officeHours.Entered},
+				{Key: "exited", Value: officeHours.Exited},
+				{Key: "closed", Value: officeHours.Closed},
+			}))
 
-		// Create a mock AppSession with a valid database
-		appsession := &models.AppSession{
-			DB: mt.Client,
-		}
+			// mock count documents
+			mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "invalid")
-		assert.Nil(t, results)
-		assert.Equal(t, int64(0), total)
-		assert.EqualError(t, err, "invalid calculation", "Expected error for invalid calculation type")
-	})*/
+			// Create a mock AppSession with a valid database
+			appsession := &models.AppSession{
+				DB: mt.Client,
+			}
+
+			results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "test@example.com", filter, "invalid")
+			assert.Nil(t, results)
+			assert.Equal(t, int64(0), total)
+			assert.EqualError(t, err, "invalid calculation", "Expected error for invalid calculation type")
+		})*/
 
 	mt.Run("Failed query", func(mt *mtest.T) {
 		// Mock Find to return an error
@@ -8503,4 +8505,113 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 		assert.Equal(t, int64(0), total)
 		assert.EqualError(t, err, "count failed", "Expected error for failed count documents")
 	})*/
+}
+
+func TestMakeEmailAndTimeFilter(t *testing.T) {
+	// Define a base filter for testing
+	baseFilter := models.OfficeHoursFilterStruct{
+		Filter: bson.M{
+			"timeFrom": "",
+			"timeTo":   "",
+		},
+	}
+
+	// Test case: Email is provided, but no time filters
+	t.Run("EmailOnly", func(t *testing.T) {
+		email := "test@example.com"
+		filter := baseFilter
+		expected := bson.M{"email": email}
+
+		result := database.MakeEmailAndTimeFilter(email, filter)
+		assert.Equal(t, expected, result, "The filter should only contain the email field.")
+	})
+
+	// Test case: No email and no time filters
+	t.Run("NoEmailNoTime", func(t *testing.T) {
+		email := ""
+		filter := baseFilter
+		expected := bson.M{}
+
+		result := database.MakeEmailAndTimeFilter(email, filter)
+		assert.Equal(t, expected, result, "The filter should be empty when no email or time filters are provided.")
+	})
+
+	// Test case: Email and timeFrom provided
+	t.Run("EmailAndTimeFrom", func(t *testing.T) {
+		email := "test@example.com"
+		filter := models.OfficeHoursFilterStruct{
+			Filter: bson.M{
+				"timeFrom": "2023-09-01T09:00:00",
+				"timeTo":   "",
+			},
+		}
+		expected := bson.M{
+			"email":   email,
+			"entered": bson.M{"$gte": "2023-09-01T09:00:00"},
+		}
+
+		result := database.MakeEmailAndTimeFilter(email, filter)
+		assert.Equal(t, expected, result, "The filter should contain the email and timeFrom fields.")
+	})
+
+	// Test case: Email and timeTo provided
+	t.Run("EmailAndTimeTo", func(t *testing.T) {
+		email := "test@example.com"
+		filter := models.OfficeHoursFilterStruct{
+			Filter: bson.M{
+				"timeFrom": "",
+				"timeTo":   "2023-09-01T17:00:00",
+			},
+		}
+
+		expected := bson.M{
+			"email":   email,
+			"entered": bson.M{"$lte": "2023-09-01T17:00:00"},
+		}
+
+		result := database.MakeEmailAndTimeFilter(email, filter)
+
+		assert.Equal(t, expected, result, "The filter should contain the email and timeTo fields.")
+	})
+
+	// Test case: timeFrom and timeTo provided, but no email
+	t.Run("TimeFromAndTimeTo", func(t *testing.T) {
+		email := ""
+		filter := models.OfficeHoursFilterStruct{
+			Filter: bson.M{
+				"timeFrom": "2023-09-01T09:00:00",
+				"timeTo":   "2023-09-01T17:00:00",
+			},
+		}
+		expected := bson.M{
+			"entered": bson.M{
+				"$gte": "2023-09-01T09:00:00",
+				"$lte": "2023-09-01T17:00:00",
+			},
+		}
+
+		result := database.MakeEmailAndTimeFilter(email, filter)
+		assert.Equal(t, expected, result, "The filter should contain timeFrom and timeTo, but no email.")
+	})
+
+	// Test case: Email, timeFrom, and timeTo provided
+	t.Run("EmailAndFullTimeRange", func(t *testing.T) {
+		email := "test@example.com"
+		filter := models.OfficeHoursFilterStruct{
+			Filter: bson.M{
+				"timeFrom": "2023-09-01T09:00:00",
+				"timeTo":   "2023-09-01T17:00:00",
+			},
+		}
+		expected := bson.M{
+			"email": email,
+			"entered": bson.M{
+				"$gte": "2023-09-01T09:00:00",
+				"$lte": "2023-09-01T17:00:00",
+			},
+		}
+
+		result := database.MakeEmailAndTimeFilter(email, filter)
+		assert.Equal(t, expected, result, "The filter should contain the email and full time range.")
+	})
 }

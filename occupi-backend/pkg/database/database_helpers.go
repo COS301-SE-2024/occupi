@@ -7,6 +7,7 @@ import (
 
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/umahmood/haversine"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -213,4 +214,20 @@ func DayOfTheWeek(date time.Time) string {
 // Month returns the month as an int
 func Month(date time.Time) int {
 	return int(date.Month())
+}
+
+func MakeEmailAndTimeFilter(email string, filter models.OfficeHoursFilterStruct) bson.M {
+	mongoFilter := bson.M{}
+	if email != "" {
+		mongoFilter["email"] = email
+	}
+	if filter.Filter["timeFrom"] != "" && filter.Filter["timeTo"] != "" {
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"], "$lte": filter.Filter["timeTo"]}
+	} else if filter.Filter["timeTo"] != "" {
+		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
+	} else if filter.Filter["timeFrom"] != "" {
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
+	}
+
+	return mongoFilter
 }
