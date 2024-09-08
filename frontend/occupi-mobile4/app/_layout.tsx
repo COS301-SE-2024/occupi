@@ -63,6 +63,9 @@ export default function RootLayout() {
             <Stack.Screen name="notiftester" options={{ headerShown: false }} />
             <Stack.Screen name="changepassword" options={{ headerShown: false }} />
             <Stack.Screen name="info" options={{ headerShown: false }} />
+            <Stack.Screen name="loadingscreen" options={{headerShown: false}} />
+            <Stack.Screen name="occubot" options={{headerShown: false}} />
+            <Stack.Screen name="stats" options={{headerShown: false}} />
           </Stack>
         </NavBarProvider>
       </ThemeProvider>
