@@ -1722,7 +1722,7 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 	}
 
 	// Prepare the aggregate
-	var pipeline primitive.D
+	var pipeline bson.A
 	switch calculate {
 	case "hoursbyday":
 		pipeline = analytics.GroupOfficeHoursByDay(email, filter)
@@ -1732,6 +1732,12 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		pipeline = analytics.RatioInOutOfficeByWeekday(email, filter)
 	case "peakhours":
 		pipeline = analytics.BusiestHoursByWeekday(email, filter)
+	case "most":
+		pipeline = analytics.LeastMostInOfficeWorker(email, filter, false)
+	case "least":
+		pipeline = analytics.LeastMostInOfficeWorker(email, filter, true)
+	case "arrivaldeparture":
+		pipeline = analytics.AverageArrivalAndDepartureTimesByWeekday(email, filter)
 	default:
 		return nil, 0, errors.New("invalid calculate value")
 	}
