@@ -89,3 +89,15 @@ func TestGroupOfficeHoursByDay(t *testing.T) {
 		t.Errorf("GroupOfficeHoursByDay() = %v, want greater than 0", res)
 	}
 }
+
+func TestAverageOfficeHoursByWeekday(t *testing.T) {
+	email := "test@example.com"
+	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+
+	res := analytics.AverageOfficeHoursByWeekday(email, filter)
+
+	// check len is greater than 0
+	if len(res) == 0 {
+		t.Errorf("AverageOfficeHoursByWeekday() = %v, want greater than 0", res)
+	}
+}
