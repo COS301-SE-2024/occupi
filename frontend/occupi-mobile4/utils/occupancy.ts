@@ -1,4 +1,4 @@
-import { getDayPredictions, getPredictions } from '../services/aimodel';
+import { getDayPredictions, getPredictions, getWeekPredictions } from '../services/aimodel';
 import { Prediction } from '@/models/data';
 
 export interface ExtractedPrediction {
@@ -11,6 +11,34 @@ export interface ExtractedPrediction {
 export async function getExtractedPredictions(): Promise<ExtractedPrediction[] | undefined> {
     try {
         const predictions = await getPredictions();
+
+        if (!predictions) {
+            console.error('No predictions data received');
+            return undefined;
+        }
+
+        // console.log(predictions.map((prediction: Prediction) => ({
+        //     Date: prediction.Date,
+        //     Day_of_week: prediction.Day_of_Week,
+        //     Predicted_Attendance_Level: prediction.Predicted_Attendance_Level,
+        //     Predicted_Class: prediction.Predicted_Class
+        // })));
+
+        return predictions.map((prediction: Prediction) => ({
+            Date: prediction.Date,
+            Day_of_week: prediction.Day_of_Week,
+            Predicted_Attendance_Level: prediction.Predicted_Attendance_Level,
+            Predicted_Class: prediction.Predicted_Class
+        }));
+    } catch (error) {
+        console.error('Error in getExtractedPredictions:', error);
+        return undefined;
+    }
+}
+
+export async function getExtractedPredictionsFromDate(date : string): Promise<ExtractedPrediction[] | undefined> {
+    try {
+        const predictions = await getWeekPredictions(date);
 
         if (!predictions) {
             console.error('No predictions data received');
@@ -134,6 +162,27 @@ export async function getFormattedPredictionData() {
         label: convertNumToDay(prediction.Day_of_week)
     }));
 }
+
+export async function getFormattedPredictionWeekData(date : string) {
+    const data = await getExtractedPredictionsFromDate(date);
+
+    if (!data) {
+        return [];
+    }
+
+    console.log(data.map((prediction: ExtractedPrediction) => ({
+        value: prediction.Predicted_Class + 1,
+        label: convertNumToDay(prediction.Day_of_week)
+    })));
+
+    return data.map((prediction: ExtractedPrediction) => ({
+        value: prediction.Predicted_Class + 1,
+        label: convertNumToDay(prediction.Day_of_week)
+    }));
+}
+
+getFormattedPredictionWeekData("2025-09-23");
+// getFormattedPredictionData();
 
 function convertNumToDate(day: number): string {
     const date = new Date();

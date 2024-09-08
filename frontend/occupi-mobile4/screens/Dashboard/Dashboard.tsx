@@ -18,6 +18,7 @@ import {
 //   LineChart
 // } from "react-native-chart-kit";
 import * as SecureStore from 'expo-secure-store';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
@@ -27,10 +28,11 @@ import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
 import BarGraph from '@/components/BarGraph';
-import { getFormattedDailyPredictionData, getFormattedPredictionData, valueToColor } from '@/utils/occupancy';
+import { getFormattedDailyPredictionData, getFormattedPredictionData, getFormattedPredictionWeekData, valueToColor } from '@/utils/occupancy';
 import * as Location from 'expo-location';
 import { storeCheckInValue } from '@/services/securestore';
 import { isPointInPolygon } from '@/utils/dashboard';
+import { extractDateFromTimestamp } from '@/utils/utils';
 import PagerView from 'react-native-pager-view';
 import SetDetails from '../Login/SetDetails';
 import { router } from 'expo-router';
@@ -50,10 +52,11 @@ const Dashboard: React.FC = () => {
   const [checkedIn, setCheckedIn] = useState<boolean>();
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
+  const [date, setDate] = useState('');
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [shouldCheckin, setShouldCheckin] = useState(false);
   const toast = useToast();
   const [currentData, setCurrentData] = useState();
-  const [currentDayData, setCurrentDayData] = useState();
   const pagerRef = useRef<PagerView>(null);
   const [activeTab, setActiveTab] = useState('Tab1');
   const [weeklyData, setWeeklyData] = useState();
@@ -188,21 +191,22 @@ const Dashboard: React.FC = () => {
       }
     }
 
-    const getDayPrediction = async () => {
-      try {
-        const prediction = await getFormattedDailyPredictionData();
-        if (prediction) {
-          // console.log(prediction);
-          setCurrentDayData(prediction);
-        }
-      } catch (error) {
-        console.error('Error fetching predictions:', error);
-      }
-    }
-    getDayPrediction();
     getWeeklyPrediction();
     getAccentColour();
   }, []);
+
+  const getPredictionsFromWeek = async (date : string) => {
+    try {
+      const prediction = await getFormattedPredictionWeekData(date);
+      if (prediction) {
+        // console.log(prediction);
+        setCurrentData(prediction);
+        // setWeeklyData(prediction);
+      }
+    } catch (error) {
+      console.error('Error fetching predictions:', error);
+    }
+  }
 
   useEffect(() => {
     const getUsername = async () => {
@@ -240,6 +244,8 @@ const Dashboard: React.FC = () => {
               creator: 'N/A',
               emails: [],
               floorNo: "0",
+              occupiId: "0",
+              roomId: "0"
             }
           );
         }
@@ -308,6 +314,22 @@ const Dashboard: React.FC = () => {
     const date = new Date(dateString);
     return date.toDateString();
   }
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const handleConfirm = (date: Date) => {
+    const selectedDate : string = date.toString();
+    console.log('selected',extractDateFromTimestamp(selectedDate));
+    setDate(extractDateFromTimestamp(selectedDate));
+    getPredictionsFromWeek(extractDateFromTimestamp(selectedDate));
+    hideDatePicker();
+  };
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
@@ -431,88 +453,115 @@ const Dashboard: React.FC = () => {
                 Hourly
               </Text>
             </TouchableOpacity>
-          </View>
-          {checkedIn ? (
-            <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkOut}>
-              <ButtonText color="black">Check out</ButtonText>
-            </Button>
-          ) : (
-            <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
-              <ButtonText color="black">Check in</ButtonText>
-            </Button>
-          )}
-        </View> */}
-          {/* <View flexDirection='column'> */}
-          <View>
-            <View w='$full' height={hp('30%')}>
-              <PagerView
-                initialPage={0}
-                style={{ flex: 1, alignItems: 'center' }}
-                ref={pagerRef}
-              >
-                <View key="1" justifyContent='center'>
-                  <LineGraph data={currentData} />
-                </View>
-                <View key="2" justifyContent='center'>
-                  <BarGraph data={currentData} />
-                </View>
-              </PagerView>
-            </View >
-            <View flexDirection='row' justifyContent='space-around' h="$12" paddingVertical={5}>
-              <TouchableOpacity
-                style={{
-                  paddingVertical: 7,
-                  paddingHorizontal: 14,
-                  borderRadius: 8,
-                  backgroundColor: activeTab === 'Tab1' ? '#242424' : 'transparent',
-                }}
-                onPress={showLive}
-              >
-                <Text color={activeTab === 'Tab1' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
-                  Live
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  paddingVertical: 7,
-                  paddingHorizontal: 14,
-                  borderRadius: 8,
-                  backgroundColor: activeTab === 'Tab2' ? '#242424' : 'transparent',
-                }}
-                onPress={showHourly}
-              >
-                <Text color={activeTab === 'Tab2' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
-                  1D
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  paddingVertical: 7,
-                  paddingHorizontal: 14,
-                  borderRadius: 8,
-                  backgroundColor: activeTab === 'Tab3' ? '#242424' : 'transparent',
-                }}
-                onPress={showWeek}
-              >
-                <Text color={activeTab === 'Tab3' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab3' ? 'bold' : 'normal'}>
-                  1W
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  paddingVertical: 7,
-                  paddingHorizontal: 14,
-                  borderRadius: 8,
-                  backgroundColor: activeTab === 'Tab4' ? '#242424' : 'transparent',
-                }}
-                onPress={showMonth}
-              >
-                <Text color={activeTab === 'Tab4' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab4' ? 'bold' : 'normal'}>
-                  1M
-                </Text>
-              </TouchableOpacity>
             </View>
+            {checkedIn ? (
+              <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkOut}>
+                <ButtonText color="black">Check out</ButtonText>
+              </Button>
+            ) : (
+              <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
+                <ButtonText color="black">Check in</ButtonText>
+              </Button>
+            )}
+          </View> */}
+          {/* <View flexDirection='column'> */}
+          <View w='$full' height={hp('30%')}>
+            <PagerView
+              initialPage={0}
+              style={{ flex: 1, alignItems: 'center' }}
+              ref={pagerRef}
+            >
+              <View key="1" justifyContent='center'>
+                <LineGraph data={currentData} />
+              </View>
+              <View key="2" justifyContent='center'>
+                <BarGraph data={currentData} />
+              </View>
+            </PagerView>
+          </View >
+          <View flexDirection='row' justifyContent='space-around' h="$12" paddingVertical={5}>
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab1' ? '#242424' : 'transparent',
+              }}
+              onPress={showLive}
+            >
+              <Text color={activeTab === 'Tab1' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab1' ? 'bold' : 'normal'}>
+                Live
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab2' ? '#242424' : 'transparent',
+              }}
+              onPress={showHourly}
+            >
+              <Text color={activeTab === 'Tab2' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab2' ? 'bold' : 'normal'}>
+                1D
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab3' ? '#242424' : 'transparent',
+              }}
+              onPress={showWeek}
+            >
+              <Text color={activeTab === 'Tab3' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab3' ? 'bold' : 'normal'}>
+                1W
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                paddingVertical: 7,
+                paddingHorizontal: 14,
+                borderRadius: 8,
+                backgroundColor: activeTab === 'Tab4' ? '#242424' : 'transparent',
+              }}
+              onPress={showMonth}
+            >
+              <Text color={activeTab === 'Tab4' ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 'Tab4' ? 'bold' : 'normal'}>
+                1M
+              </Text>
+            </TouchableOpacity>
           </View>
+          <TouchableOpacity
+            style={{
+              paddingVertical: 7,
+              paddingHorizontal: 14,
+              borderRadius: 8,
+              backgroundColor: '#242424',
+              marginHorizontal: 48,
+              marginTop: 8,
+              marginBottom: 8,
+              alignItems: 'center'
+            }}
+            onPress={showDatePicker}
+          > 
+            {date ? (
+              <Text color={textColor} fontSize={16} fontWeight={activeTab === 'Tab4' ? 'bold' : 'normal'}>
+              Week from: {date}
+            </Text>
+            ) : (
+              <Text color={textColor} fontSize={16} fontWeight={activeTab === 'Tab4' ? 'bold' : 'normal'}>
+              Select Starting Date
+            </Text>
+            )}
+          </TouchableOpacity>
+          <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+        />
         </View>
         <TouchableOpacity
           style={{
@@ -524,14 +573,14 @@ const Dashboard: React.FC = () => {
             backgroundColor: cardBackgroundColor,
             justifyContent: 'center'
           }}
-          onPress={() =>  router.replace('loadingscreen')}
+          onPress={() => router.replace('loadingscreen')}
         >
 
           <View flexDirection="row" alignItems="center" justifyContent='space-between'>
             <Text color="white" fontWeight="$bold" fontSize={18}>My Stats</Text>
-          <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
+            <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
           </View>
-          
+
         </TouchableOpacity>
         <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <Text fontSize={18} color='white'>Favourite Days</Text>
