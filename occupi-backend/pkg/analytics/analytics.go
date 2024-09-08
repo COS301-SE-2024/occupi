@@ -379,13 +379,17 @@ func LeastMostInOfficeWorker(email string, filter models.OfficeHoursFilterStruct
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
 		bson.D{{Key: "$match", Value: matchFilter}},
-		// Stage 2: Project the weekday, entered and exited times
+		// Stage 2: Apply skip for pagination
+		bson.D{{Key: "$skip", Value: filter.Skip}},
+		// Stage 3: Apply limit for pagination
+		bson.D{{Key: "$limit", Value: filter.Limit}},
+		// Stage 4: Project the weekday, entered and exited times
 		bson.D{{Key: "$addFields", Value: bson.D{
 			{Key: "weekday", Value: bson.D{{Key: "$dayOfWeek", Value: "$entered"}}},
 			{Key: "enteredHour", Value: bson.D{{Key: "$hour", Value: "$entered"}}},
 			{Key: "exitedHour", Value: bson.D{{Key: "$hour", Value: "$exited"}}},
 		}}},
-		// Stage 3: Project the weekday, enteredHour, exitedHour and hoursWorked
+		// Stage 5: Project the weekday, enteredHour, exitedHour and hoursWorked
 		bson.D{{Key: "$addFields", Value: bson.D{
 			{Key: "hoursWorked", Value: bson.D{
 				{Key: "$subtract", Value: bson.A{
@@ -394,7 +398,7 @@ func LeastMostInOfficeWorker(email string, filter models.OfficeHoursFilterStruct
 				}},
 			}},
 		}}},
-		// Stage 4: Group by the email and weekday to calculate the total hours and count
+		// Stage 6: Group by the email and weekday to calculate the total hours and count
 		bson.D{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: bson.D{
 				{Key: "email", Value: "$email"},
@@ -403,7 +407,7 @@ func LeastMostInOfficeWorker(email string, filter models.OfficeHoursFilterStruct
 			{Key: "totalHours", Value: bson.D{{Key: "$sum", Value: "$hoursWorked"}}},
 			{Key: "weekdayCount", Value: bson.D{{Key: "$sum", Value: 1}}},
 		}}},
-		// Stage 5: Group by the email to calculate the overall total hours and average hours
+		// Stage 7: Group by the email to calculate the overall total hours and average hours
 		bson.D{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: "$_id.email"},
 			{Key: "days", Value: bson.D{
@@ -464,7 +468,7 @@ func LeastMostInOfficeWorker(email string, filter models.OfficeHoursFilterStruct
 			{Key: "totalHours", Value: bson.D{{Key: "$sum", Value: "$totalHours"}}},
 			{Key: "averageHours", Value: bson.D{{Key: "$avg", Value: "$totalHours"}}},
 		}}},
-		// Stage 6: Sort by total hours and limit to 1 result
+		// Stage 8: Sort by total hours and limit to 1 result
 		bson.D{{Key: "$sort", Value: bson.D{{Key: "totalHours", Value: sortV}}}},
 		bson.D{{Key: "$limit", Value: 1}},
 		bson.D{{Key: "$project", Value: bson.D{
