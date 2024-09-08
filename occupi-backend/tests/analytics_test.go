@@ -137,3 +137,15 @@ func TestLeastInOfficeWorker(t *testing.T) {
 		t.Errorf("LeastMostInOfficeWorker() = %v, want greater than 0", res)
 	}
 }
+
+func TestMostInOfficeWorker(t *testing.T) {
+	email := "test@example.com"
+	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+
+	res := analytics.LeastMostInOfficeWorker(email, filter, false)
+
+	// check len is greater than 0
+	if len(res) == 0 {
+		t.Errorf("LeastMostInOfficeWorker() = %v, want greater than 0", res)
+	}
+}
