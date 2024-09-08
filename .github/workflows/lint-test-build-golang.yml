@@ -117,7 +117,7 @@ jobs:
 
     - name: 🧪 Run tests
       run: |
-        gotestsum --format testname --junitfile tmp/test-results/gotestsum-report.xml -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
+        gotestsum --format testname --junitfile tmp/test-results/gotestsum-report.xml -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/analytics,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
 
     - name: 📋 Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
