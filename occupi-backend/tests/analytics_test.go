@@ -149,3 +149,15 @@ func TestMostInOfficeWorker(t *testing.T) {
 		t.Errorf("LeastMostInOfficeWorker() = %v, want greater than 0", res)
 	}
 }
+
+func TestAverageArrivalAndDepartureTimesByWeekday(t *testing.T) {
+	email := "test@example.com"
+	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+
+	res := analytics.AverageArrivalAndDepartureTimesByWeekday(email, filter)
+
+	// check len is greater than 0
+	if len(res) == 0 {
+		t.Errorf("AverageArrivalAndDepartureTimesByWeekday() = %v, want greater than 0", res)
+	}
+}
