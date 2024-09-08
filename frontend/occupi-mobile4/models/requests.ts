@@ -126,3 +126,11 @@ export interface NotificationSettingsReq {
     invites: "on" | "off";
     bookingReminder: "on" | "off";
 }
+
+//analytics
+
+export interface AnalyticsReq {
+    email?: string;
+    timeFrom?: string;
+    timeTo?: string;
+}

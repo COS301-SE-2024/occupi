@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from 'expo-router';
+import { getAnalytics } from '@/services/analyticsservices';
 
 const Stats = () => {
   const navigation = useNavigation();
@@ -14,8 +15,8 @@ const Stats = () => {
   const currentTheme = theme === "system" ? colorScheme : theme;
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
-
   const [summary, setSummary] = useState('');
+  const [userHours, setUserHours] = useState();
 
   useEffect(() => {
     fetchUserAnalytics();
@@ -23,8 +24,8 @@ const Stats = () => {
 
   const fetchUserAnalytics = async () => {
     try {
-      // Fetch data and generate summary
-      // ...
+      const hours = getAnalytics({},'user-hours');
+      setUserHours(hours);
     } catch (error) {
       console.error('Error fetching user analytics:', error);
     }
@@ -48,6 +49,7 @@ const Stats = () => {
   ];
 
   const analyticsCards = [
+    { title: `Your Total Hours: ${userHours}`, color: '#101010', border: accentColour },
     { title: 'Your Peak Office Hours', color: '#101010', border: accentColour },
     { title: 'Arrival & Departure Times', color: '#101010', border: accentColour },
     { title: 'Productivity Trends', color: '#101010', border: accentColour },
