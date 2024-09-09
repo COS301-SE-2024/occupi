@@ -225,11 +225,13 @@ func MakeEmailAndTimeFilter(email string, filter models.OfficeHoursFilterStruct)
 	if email != "" {
 		mongoFilter["email"] = email
 	}
-	if filter.Filter["timeFrom"] != "" && filter.Filter["timeTo"] != "" {
+
+	switch {
+	case filter.Filter["timeFrom"] != "" && filter.Filter["timeTo"] != "":
 		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"], "$lte": filter.Filter["timeTo"]}
-	} else if filter.Filter["timeTo"] != "" {
+	case filter.Filter["timeTo"] != "":
 		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
-	} else if filter.Filter["timeFrom"] != "" {
+	case filter.Filter["timeFrom"] != "":
 		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
 	}
 
