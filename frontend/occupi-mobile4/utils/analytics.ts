@@ -11,6 +11,7 @@ export const fetchUserTotalHours = async (timeFrom : string, timeTo : string) =>
         timeTo: timeTo
     }
     const total = await getAnalytics(req, 'user-hours');
+    console.log('totals',total.data[0].overallTotal);
     return total.data[0].overallTotal;
 }
 
@@ -20,8 +21,8 @@ export const fetchUserAverageHours = async (timeFrom : string, timeTo : string) 
         timeTo: timeTo
     }
     const total = await getAnalytics(req, 'user-average-hours');
-    console.log(total);
-    return total.data.overallAverage;
+    console.log('averages', total.data[0].overallAverage);
+    return total.data[0].overallAverage;
 }
 
 export const fetchWorkRatio = async (timeFrom : string, timeTo : string) => {
@@ -30,7 +31,8 @@ export const fetchWorkRatio = async (timeFrom : string, timeTo : string) => {
         timeTo: timeTo
     }
     const total = await getAnalytics(req, 'user-work-ratio');
-    return total.data.ratio;
+    console.log('work ratio', total.data[0].ratio)
+    return total.data[0].ratio;
 }
 
 export const fetchUserPeakHours = async (timeFrom : string, timeTo : string) => {
@@ -39,6 +41,7 @@ export const fetchUserPeakHours = async (timeFrom : string, timeTo : string) => 
         timeTo: timeTo
     }
     const total = await getAnalytics(req, 'user-peak-office-hours');
+    console.log('peak', total.data[0].overallWeekdayCount)
     return total.data.days;
 }
 
@@ -48,7 +51,9 @@ export const fetchUserArrivalAndDeparture = async (timeFrom : string, timeTo : s
         timeTo: timeTo
     }
     const total = await getAnalytics(req, 'user-arrival-departure-average');
-    return [ total.data.overallavgArrival, total.data.overallavgDeparture];
+    console.log('arrival', total.data[0].overallavgArrival);
+    console.log('departure', total.data[0].overallavgDeparture);
+    return [ total.data[0].overallavgArrival, total.data[0].overallavgDeparture];
 }
 
 export const fetchUserInOfficeRate = async (timeFrom : string, timeTo : string) => {
@@ -56,6 +61,7 @@ export const fetchUserInOfficeRate = async (timeFrom : string, timeTo : string) 
         timeFrom: timeFrom,
         timeTo: timeTo
     }
-    const total = await getAnalytics(req, 'user-in-office-rate');
-    return total.data.overallRate;
+    const total = await getAnalytics(req, 'user-in-office');
+    console.log('totals2',total.data[0].overallRate);
+    return total.data[0].overallRate;
 }

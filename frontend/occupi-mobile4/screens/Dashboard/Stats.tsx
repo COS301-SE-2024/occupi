@@ -8,6 +8,7 @@ import { Text, View, Icon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from 'expo-router';
 import { getAnalytics } from '@/services/analyticsservices';
+import { fetchUserArrivalAndDeparture, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchWorkRatio } from '@/utils/analytics';
 
 const Stats = () => {
   const navigation = useNavigation();
@@ -20,12 +21,15 @@ const Stats = () => {
   const [userHours, setUserHours] = useState<number>();
   const [userAverage, setUserAverage] = useState<number>();
   const [workRatio, setWorkRatio] = useState<number>();
-  const [peakHours, setPeakHours] = useState<number>();
+  const [peakHours, setPeakHours] = useState([]);
   const [arrival, setArrival] = useState<number>();
   const [departure, setDeparture] = useState<number>();
   const [inOfficeRate, setInOfficeRate] = useState<number>();
+  const [timeFrom, setTimeFrom] = useState("1970-01-01T00:00:00.000Z");
+  const [timeTo, setTimeTo] = useState("");
 
   useEffect(() => {
+    resetTimeFrames();
     fetchUserAnalytics();
   }, []);
 
@@ -36,17 +40,24 @@ const Stats = () => {
   };
 
   const fetchUserAnalytics = async () => {
+    // console.log(timeTo);
     try {
-      const hours = await getAnalytics({},'user-hours');
-      const average = await getAnalytics({},'user-average-hours');
-      const ratio = await getAnalytics({},'user-work-ratio');
-      const peak = await getAnalytics({},'user-peak-office-hours');
-      const arrivalDeparture = await getAnalytics({},'user-arrival-departure-average');
-      const inOffice = await getAnalytics({},'user-in-office-rate');
-      setUserHours(hours.data[0].overallTotal);
+      const hours = await fetchUserTotalHours(timeFrom, timeTo);
+      const average = await fetchUserAverageHours(timeFrom, timeTo);
+      const ratio = await fetchWorkRatio(timeFrom, timeTo);
+      // const peak = await fetchUserPeakHours(timeFrom, timeTo);
+      const arrivalDeparture = await fetchUserArrivalAndDeparture(timeFrom, timeTo);
+      const inOffice = await fetchUserInOfficeRate(timeFrom, timeTo);
+      console.log('hours', hours);
+      console.log('average', average);
+      console.log('ratio', ratio);
+      // console.log('peak', peak);
+      console.log('arrivalDeparture', arrivalDeparture[0]);
+      console.log('inOffice', inOffice);
+      setUserHours(hours);
       setUserAverage(average);
       setWorkRatio(ratio);
-      setPeakHours(peak);
+      // setPeakHours(peak);
       setArrival(arrivalDeparture[0]);
       setDeparture(arrivalDeparture[1]);
       setInOfficeRate(inOffice);
@@ -54,6 +65,14 @@ const Stats = () => {
       console.error('Error fetching user analytics:', error);
     }
   };
+
+  const resetTimeFrames = () => {
+    const timeFrom = "1970-01-01T00:00:00.000Z";
+    const timeTo = new Date().toISOString();
+    // console.log(timeTo);
+    setTimeFrom(timeFrom);
+    setTimeTo(timeTo);
+  }
 
   useEffect(() => {
     const getAccentColour = async () => {
@@ -98,15 +117,15 @@ const Stats = () => {
         }}
         onPress={() => router.replace('home')}
       >
-        <Ionicons 
-          name="arrow-back" 
-          size={24} 
+        <Ionicons
+          name="arrow-back"
+          size={24}
           color={isDarkMode ? 'white' : 'black'}
           style={{
             padding: wp('3%'),
             borderRadius: wp('4%'),
             marginBottom: hp('3%'),
-          }} 
+          }}
         />
       </TouchableOpacity>
 
@@ -117,7 +136,7 @@ const Stats = () => {
         marginTop: hp('8%'),
         marginBottom: hp('1%'),
       }}>OccuBot - AI Analyser</Text>
-      
+
       <Text style={{
         fontSize: wp('4%'),
         color: isDarkMode ? '#888' : '#555',
@@ -151,28 +170,127 @@ const Stats = () => {
           marginBottom: hp('2%'),
         }}>Detailed Analytics</Text>
 
-        {analyticsCards.map((item, index) => (
-          <View key={index} style={{
-            backgroundColor: item.color,
+          <View style={{
+            backgroundColor: '#101010',
             borderRadius: wp('4%'),
             padding: wp('4%'),
             marginBottom: hp('3%'),
-            borderColor: item.border,
+            borderColor: accentColour,
             borderWidth: 2,
             flexDirection: 'row',
             justifyContent: 'space-between'
           }}>
             <View>
               <Text style={{
-              fontSize: wp('5%'),
-              fontWeight: 'bold',
-              color: 'white',
-            }}>{item.title}</Text>
-            <Text color='white'>{item.value}</Text>
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>Total Hours: </Text>
+              <Text color='white'>{convertToHoursAndMinutes(userHours)}</Text>
             </View>
             <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
           </View>
-        ))}
+          <View style={{
+            backgroundColor: '#101010',
+            borderRadius: wp('4%'),
+            padding: wp('4%'),
+            marginBottom: hp('3%'),
+            borderColor: accentColour,
+            borderWidth: 2,
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+          }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>Average Office Hours: </Text>
+              <Text color='white'>{convertToHoursAndMinutes(userAverage)} per day</Text>
+            </View>
+            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
+          </View>
+          <View style={{
+            backgroundColor: '#101010',
+            borderRadius: wp('4%'),
+            padding: wp('4%'),
+            marginBottom: hp('3%'),
+            borderColor: accentColour,
+            borderWidth: 2,
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+          }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>Work Ratio: </Text>
+              <Text color='white'>{convertToHoursAndMinutes(workRatio)}</Text>
+            </View>
+            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
+          </View>
+          <View style={{
+            backgroundColor: '#101010',
+            borderRadius: wp('4%'),
+            padding: wp('4%'),
+            marginBottom: hp('3%'),
+            borderColor: accentColour,
+            borderWidth: 2,
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+          }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>Peak Hours:</Text>
+              <Text color='white'>{convertToHoursAndMinutes(peakHours)}</Text>
+            </View>
+            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
+          </View>
+          <View style={{
+            backgroundColor: '#101010',
+            borderRadius: wp('4%'),
+            padding: wp('4%'),
+            marginBottom: hp('3%'),
+            borderColor: accentColour,
+            borderWidth: 2,
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+          }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>Arrival and Departure: </Text>
+              <Text color='white'>Arrival: {arrival}</Text>
+              <Text color='white'>Departure: {departure}</Text>
+            </View>
+            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
+          </View>
+          <View style={{
+            backgroundColor: '#101010',
+            borderRadius: wp('4%'),
+            padding: wp('4%'),
+            marginBottom: hp('3%'),
+            borderColor: accentColour,
+            borderWidth: 2,
+            flexDirection: 'row',
+            justifyContent: 'space-between'
+          }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>In Office Rate: </Text>
+              <Text color='white'>{Math.floor(inOfficeRate)}%</Text>
+            </View>
+            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
+          </View>
 
         {/* <Text style={{
           fontSize: wp('4%'),
