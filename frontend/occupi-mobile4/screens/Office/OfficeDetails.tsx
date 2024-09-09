@@ -374,6 +374,7 @@ const OfficeDetails = () => {
         </TouchableOpacity>
       </ScrollView>
     </>
+    
   );
 };
 
