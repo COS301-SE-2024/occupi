@@ -1195,8 +1195,8 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 
 		request.Limit = limit
 
-		skipStr := ctx.DefaultQuery("skip", "0")
-		page, err := strconv.ParseInt(skipStr, 10, 64)
+		pageStr := ctx.DefaultQuery("page", "1")
+		page, err := strconv.ParseInt(pageStr, 10, 64)
 		if err != nil {
 			captureError(ctx, err)
 			ctx.JSON(http.StatusBadRequest, utils.InternalServerError())

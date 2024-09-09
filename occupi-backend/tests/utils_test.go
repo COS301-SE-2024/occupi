@@ -1727,10 +1727,10 @@ func TestComputeLimitPageSkip(t *testing.T) {
 			wantSkip:  10,
 		},
 		{
-			name:      "Limit exceeds maximum",
+			name:      "Valid limit again",
 			Limit:     100,
 			Page:      1,
-			wantLimit: 50,
+			wantLimit: 100,
 			wantPage:  1,
 			wantSkip:  0,
 		},
@@ -2895,6 +2895,55 @@ func TestRemoveImageExtension(t *testing.T) {
 			result := utils.RemoveImageExtension(tt.input)
 			if result != tt.expected {
 				t.Errorf("RemoveImageExtension(%s) = %s; expected %s", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestContains(t *testing.T) {
+	tests := []struct {
+		name     string
+		slice    []string
+		element  string
+		expected bool
+	}{
+		{
+			name:     "element present in slice",
+			slice:    []string{"apple", "banana", "cherry"},
+			element:  "banana",
+			expected: true,
+		},
+		{
+			name:     "element not present in slice",
+			slice:    []string{"apple", "banana", "cherry"},
+			element:  "orange",
+			expected: false,
+		},
+		{
+			name:     "empty slice",
+			slice:    []string{},
+			element:  "banana",
+			expected: false,
+		},
+		{
+			name:     "element present as the only element",
+			slice:    []string{"apple"},
+			element:  "apple",
+			expected: true,
+		},
+		{
+			name:     "element present multiple times",
+			slice:    []string{"apple", "banana", "apple", "cherry"},
+			element:  "apple",
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.Contains(tt.slice, tt.element)
+			if result != tt.expected {
+				t.Errorf("Contains(%v, %v) = %v; want %v", tt.slice, tt.element, result, tt.expected)
 			}
 		})
 	}

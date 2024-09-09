@@ -12,6 +12,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/sender"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
@@ -1558,7 +1559,7 @@ func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request model
 
 		// add their attendance to the attendance collection if there is no
 		// attendance object for this date otherwise increment the Number_Attended field
-		err = AddAttendance(ctx, appsession)
+		err = AddAttendance(ctx, appsession, request.Email)
 		if err != nil {
 			logrus.Error(err)
 			return err
@@ -1594,7 +1595,6 @@ func AddHoursToOfficeHoursCollection(ctx *gin.Context, appsession *models.AppSes
 		Email:   email,
 		Entered: CapTimeRange(),
 		Exited:  CapTimeRange(),
-		Closed:  false,
 	}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
@@ -1645,7 +1645,6 @@ func AddOfficeHoursToArchive(ctx *gin.Context, appsession *models.AppSession, of
 	}
 
 	// update the fields and add to the OfficeHoursArchive time series collection
-	officeHours.Closed = true
 	officeHours.Exited = CompareAndReturnTime(officeHours.Entered, CapTimeRange())
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
@@ -1659,7 +1658,7 @@ func AddOfficeHoursToArchive(ctx *gin.Context, appsession *models.AppSession, of
 	return nil
 }
 
-func AddAttendance(ctx *gin.Context, appsession *models.AppSession) error {
+func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string) error {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -1673,7 +1672,7 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession) error {
 	now := time.Now().Truncate(24 * time.Hour)
 	endOfDay := now.Add(24 * time.Hour)
 
-	// Create the filter
+	// Create the filter for date
 	filter := bson.M{
 		"Date": bson.M{
 			"$gte": now,
@@ -1701,7 +1700,12 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession) error {
 			return err
 		}
 	} else {
-		update := bson.M{"$inc": bson.M{"Number_Attended": 1}}
+		// check if the email is in the Attendees_Email array
+		if utils.Contains(attendance.AttendeesEmail, email) {
+			return nil
+		}
+
+		update := bson.M{"$inc": bson.M{"Number_Attended": 1}, "$push": bson.M{"Attendees_Email": email}}
 		_, err = collection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			logrus.WithError(err).Error("Failed to update attendance")

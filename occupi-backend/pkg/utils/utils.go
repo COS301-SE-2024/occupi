@@ -391,7 +391,7 @@ func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
 }
 
 func ComputeLimitPageSkip(limit, page int64) (int64, int64, int64) {
-	if limit <= 0 || limit > 50 {
+	if limit <= 0 {
 		limit = 50 // Default limit
 	}
 
@@ -637,4 +637,13 @@ func RemoveImageExtension(fileName string) string {
 
 	// Return the original filename if no extension matches
 	return fileName
+}
+
+func Contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }

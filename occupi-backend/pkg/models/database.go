@@ -172,7 +172,6 @@ type OfficeHours struct {
 	Email   string    `json:"email" bson:"email"`
 	Entered time.Time `json:"entered" bson:"entered"`
 	Exited  time.Time `json:"exited" bson:"exited"`
-	Closed  bool      `json:"closed" bson:"closed"`
 }
 
 type OfficeHoursFilterStruct struct {
@@ -190,4 +189,5 @@ type Attendance struct {
 	Month          int       `json:"Month" bson:"Month"`
 	SpecialEvent   bool      `json:"Special_Event" bson:"Special_Event"`
 	NumberAttended int       `json:"Number_Attended" bson:"Number_Attended"`
+	AttendeesEmail []string  `json:"Attendees_Email" bson:"Attendees_Email"`
 }
