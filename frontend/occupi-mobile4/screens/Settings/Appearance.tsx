@@ -166,7 +166,9 @@ const Appearance = () => {
                             <View borderColor='#FFB443' borderRadius="$full" borderWidth={accentColour === '#FFB443' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FFB443" />
                             </View>
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={() => setAccentColour("greenyellow")}>
+                            <View borderColor='greenyellow' borderRadius="$full" borderWidth={accentColour === 'greenyellow' ? 2 : 0}>
                                 <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="greenyellow" />
                             </View>
                         </TouchableOpacity>
