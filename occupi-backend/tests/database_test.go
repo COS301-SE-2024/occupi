@@ -8454,7 +8454,15 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 	mt.Run("Successful query and hoursbyday calculation", func(mt *mtest.T) {
 		// Mock Find to return the OfficeHours document
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: officeHours.Email},
+			{Key: "entered", Value: officeHours.Entered},
+			{Key: "exited", Value: officeHours.Exited},
+		}))
+
+		// Mock CountDocuments to return a count of 1
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
@@ -8467,8 +8475,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "hoursbyday")
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), total, "Expected 1 total result")
-		assert.Nil(t, results, "Expected non-nil results")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
 	mt.Run("Successful query and hoursbyweekday calculation", func(mt *mtest.T) {
@@ -8481,6 +8489,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		// Mock CountDocuments to return a count of 1
 		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
@@ -8493,8 +8502,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "hoursbyweekday")
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), total, "Expected 0 total result")
-		assert.Nil(t, results, "Expected nil results")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
 	mt.Run("Successful query and ratio calculation", func(mt *mtest.T) {
@@ -8507,6 +8516,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		// Mock CountDocuments to return a count of 1
 		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
@@ -8519,8 +8529,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "ratio")
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), total, "Expected 0 total result")
-		assert.Nil(t, results, "Expected nil results")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
 	mt.Run("Successful query and peakhours calculation", func(mt *mtest.T) {
@@ -8533,6 +8543,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		// Mock CountDocuments to return a count of 1
 		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
@@ -8545,8 +8556,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "peakhours")
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), total, "Expected 0 total result")
-		assert.Nil(t, results, "Expected nil results")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
 	mt.Run("Successful query and most calculation", func(mt *mtest.T) {
@@ -8559,6 +8570,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		// Mock CountDocuments to return a count of 1
 		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
@@ -8571,8 +8583,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "most")
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), total, "Expected 0 total result")
-		assert.Nil(t, results, "Expected nil results")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
 	mt.Run("Successful query and least calculation", func(mt *mtest.T) {
@@ -8585,6 +8597,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		// Mock CountDocuments to return a count of 1
 		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
@@ -8597,8 +8610,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "least")
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), total, "Expected 0 total result")
-		assert.Nil(t, results, "Expected nil results")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
 	mt.Run("Successful query and arrivaldeparture calculation", func(mt *mtest.T) {
@@ -8611,6 +8624,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		// Mock CountDocuments to return a count of 1
 		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
@@ -8623,8 +8637,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "arrivaldeparture")
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), total, "Expected 0 total result")
-		assert.Nil(t, results, "Expected nil results")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
 	mt.Run("Successful query and inofficehours calculation", func(mt *mtest.T) {
@@ -8637,6 +8651,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		// Mock CountDocuments to return a count of 1
 		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
 			{Key: "email", Value: officeHours.Email},
 			{Key: "entered", Value: officeHours.Entered},
 			{Key: "exited", Value: officeHours.Exited},
@@ -8649,8 +8664,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 		results, total, err := database.GetAnalyticsOnHours(ctx, appsession, "", filter, "inofficehours")
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), total, "Expected 0 total result")
-		assert.Nil(t, results, "Expected nil results")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
 	})
 
 	mt.Run("Failed aggregate query", func(mt *mtest.T) {
