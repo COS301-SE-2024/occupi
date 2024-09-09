@@ -80,7 +80,9 @@ func GroupOfficeHoursByDay(email string, filter models.OfficeHoursFilterStruct) 
 		}}},
 		// Stage 7: Unwind the days array for individual results
 		bson.D{{Key: "$unwind", Value: "$days"}},
-		// Stage 8: Project the final result format
+		// Stage 8: Sort the results by date
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "days.date", Value: 1}}}},
+		// Stage 9: Project the final result format
 		bson.D{{Key: "$project", Value: bson.D{
 			{Key: "date", Value: "$days.date"},
 			{Key: "totalHours", Value: "$days.totalHours"},
@@ -152,7 +154,9 @@ func AverageOfficeHoursByWeekday(email string, filter models.OfficeHoursFilterSt
 			{Key: "overallTotal", Value: bson.D{{Key: "$sum", Value: "$totalHours"}}},
 			{Key: "overallWeekdayCount", Value: bson.D{{Key: "$sum", Value: "$count"}}},
 		}}},
-		// Stage 8: Project final structure with overall average
+		// Stage 8: Sort the results by weekday
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "days.weekday", Value: 1}}}},
+		// Stage 9: Project final structure with overall average
 		bson.D{{Key: "$project", Value: bson.D{
 			{Key: "days", Value: 1},
 			{Key: "overallAverage", Value: bson.D{
@@ -245,7 +249,9 @@ func RatioInOutOfficeByWeekday(email string, filter models.OfficeHoursFilterStru
 			{Key: "overallRatio", Value: bson.D{{Key: "$avg", Value: "$ratio"}}},
 			{Key: "overallWeekdayCount", Value: bson.D{{Key: "$sum", Value: 1}}},
 		}}},
-		// Stage 8: Project the final result format
+		// Stage 8: Sort by weekday
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "days.weekday", Value: 1}}}},
+		// Stage 9: Project the final result format
 		bson.D{{Key: "$project", Value: bson.D{
 			{Key: "_id", Value: 0},
 			{Key: "days", Value: 1},
