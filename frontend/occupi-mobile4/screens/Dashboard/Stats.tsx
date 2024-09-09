@@ -19,6 +19,11 @@ const Stats = () => {
   const [summary, setSummary] = useState('');
   const [userHours, setUserHours] = useState<number>();
   const [userAverage, setUserAverage] = useState<number>();
+  const [workRatio, setWorkRatio] = useState<number>();
+  const [peakHours, setPeakHours] = useState<number>();
+  const [arrival, setArrival] = useState<number>();
+  const [departure, setDeparture] = useState<number>();
+  const [inOfficeRate, setInOfficeRate] = useState<number>();
 
   useEffect(() => {
     fetchUserAnalytics();
@@ -33,8 +38,18 @@ const Stats = () => {
   const fetchUserAnalytics = async () => {
     try {
       const hours = await getAnalytics({},'user-hours');
-      console.log(hours.data[0].overallTotal);
+      const average = await getAnalytics({},'user-average-hours');
+      const ratio = await getAnalytics({},'user-work-ratio');
+      const peak = await getAnalytics({},'user-peak-office-hours');
+      const arrivalDeparture = await getAnalytics({},'user-arrival-departure-average');
+      const inOffice = await getAnalytics({},'user-in-office-rate');
       setUserHours(hours.data[0].overallTotal);
+      setUserAverage(average);
+      setWorkRatio(ratio);
+      setPeakHours(peak);
+      setArrival(arrivalDeparture[0]);
+      setDeparture(arrivalDeparture[1]);
+      setInOfficeRate(inOffice);
     } catch (error) {
       console.error('Error fetching user analytics:', error);
     }
@@ -58,12 +73,12 @@ const Stats = () => {
   ];
 
   const analyticsCards = [
-    { title: `Total Hours: `, value: convertToHoursAndMinutes(userHours) , color: '#101010', border: accentColour },
-    { title: 'Office Hours', color: '#101010', border: accentColour },
-    { title: 'Work Ratio', color: '#101010', border: accentColour },
-    { title: 'Peak Office Hours', color: '#101010', border: accentColour },
-    { title: 'Arrival and Departure', color: '#101010', border: accentColour },
-    { title: 'In Office Rate', color: '#101010', border: accentColour },
+    { title: `Total Hours: `, value: convertToHoursAndMinutes(userHours), color: '#101010', border: accentColour },
+    { title: 'Office Hours', value: convertToHoursAndMinutes(userAverage), color: '#101010', border: accentColour },
+    { title: 'Work Ratio', value: convertToHoursAndMinutes(workRatio), color: '#101010', border: accentColour },
+    { title: 'Peak Office Hours', value: convertToHoursAndMinutes(peakHours), color: '#101010', border: accentColour },
+    { title: 'Arrival and Departure', value: convertToHoursAndMinutes(userHours), color: '#101010', border: accentColour },
+    { title: 'In Office Rate', value: convertToHoursAndMinutes(inOfficeRate), color: '#101010', border: accentColour },
   ];
 
   return (

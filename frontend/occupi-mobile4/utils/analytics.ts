@@ -20,6 +20,7 @@ export const fetchUserAverageHours = async (timeFrom : string, timeTo : string) 
         timeTo: timeTo
     }
     const total = await getAnalytics(req, 'user-average-hours');
+    console.log(total);
     return total.data.overallAverage;
 }
 

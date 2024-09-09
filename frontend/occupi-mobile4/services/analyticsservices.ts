@@ -9,7 +9,7 @@ export async function getAnalytics(req: AnalyticsReq, endpoint: string): Promise
   let authToken = await SecureStore.getItemAsync('Token');
   let email = await SecureStore.getItemAsync('Email');
   try {
-    const response = await axios.get(`https://dev.occupi.tech/analytics/${endpoint}?email=${email}`, {
+    const response = await axios.get(`https://dev.occupi.tech/analytics/user-average-hours?email=${email}`, {
       params: {
         req
       },
