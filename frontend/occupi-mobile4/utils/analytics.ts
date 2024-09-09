@@ -11,8 +11,19 @@ export const fetchUserTotalHours = async (timeFrom : string, timeTo : string) =>
         timeTo: timeTo
     }
     const total = await getAnalytics(req, 'user-hours');
-    console.log('totals',total.data[0].overallTotal);
+    // console.log('totals',total.data[0].overallTotal);
     return total.data[0].overallTotal;
+}
+
+export const fetchUserTotalHoursArray = async (timeFrom : string, timeTo : string) => {
+    const req: AnalyticsReq = {
+        timeFrom: timeFrom,
+        timeTo: timeTo,
+        limit: 10
+    }
+    const total = await getAnalytics(req, 'user-hours');
+    console.log('totalsss',total.data);
+    return total.data;
 }
 
 export const fetchUserAverageHours = async (timeFrom : string, timeTo : string) => {
@@ -65,3 +76,22 @@ export const fetchUserInOfficeRate = async (timeFrom : string, timeTo : string) 
     console.log('totals2',total.data[0].overallRate);
     return total.data[0].overallRate;
 }
+
+interface InputObject {
+    _id: any;
+    date: string;
+    overallTotal: number;
+    totalHours: number;
+  }
+  
+  interface OutputObject {
+    label: string;
+    value: number;
+  }
+
+export const convertData = (data: InputObject[]): OutputObject[] => {
+    return data.map(item => ({
+      label: item.date,
+      value: item.totalHours,
+    }));
+  };

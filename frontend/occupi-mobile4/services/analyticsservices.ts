@@ -10,9 +10,7 @@ export async function getAnalytics(req: AnalyticsReq, endpoint: string): Promise
   let email = await SecureStore.getItemAsync('Email');
   try {
     const response = await axios.get(`https://dev.occupi.tech/analytics/${endpoint}?email=${email}`, {
-      params: {
-        req
-      },
+      params: req,
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',

@@ -133,4 +133,5 @@ export interface AnalyticsReq {
     email?: string;
     timeFrom?: string;
     timeTo?: string;
+    limit?: number
 }
