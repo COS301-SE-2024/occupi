@@ -356,9 +356,28 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 				nil))
 			return false, nil
 		}
+
+		isAllowedNewIP, err := database.CheckIfUserIsAllowedNewIP(ctx, appsession, email)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return false, err
+		}
+
+		if !isAllowedNewIP {
+			ctx.JSON(http.StatusForbidden, utils.ErrorResponse(
+				http.StatusForbidden,
+				"Forbidden from access",
+				constants.ForbiddenCode,
+				"This login attempt is forbidden as this account is not allowed to login from anonymous locations",
+				nil))
+			return false, nil
+		}
 	}
 
-	// chec if the user has mfa enabled
+	// check if the user should reset their password
+
+	// check if the user has mfa enabled
 	mfaEnabled, err := database.CheckIfUserHasMFAEnabled(ctx, appsession, email)
 
 	if err != nil {

@@ -1965,3 +1965,35 @@ func GetUsersGender(ctx *gin.Context, appsession *models.AppSession, email strin
 
 	return user.Details.Gender, nil
 }
+
+func CheckIfUserIsAllowedNewIP(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.BlockAnonymousIPAddress, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.BlockAnonymousIPAddress, nil
+}
+
+func CheckAndToggleResetPassword(ctx *gin.Context, appsession *models.AppSession, email string) bool {
+
+}
