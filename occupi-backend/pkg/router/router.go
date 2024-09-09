@@ -12,6 +12,7 @@ import (
 )
 
 // creates available endpoints and attaches handlers for each endpoint
+// Initialize the counter
 
 func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	ping := router.Group("/ping")
@@ -112,9 +113,11 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		})
 		auth.POST("/is-verified", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.IsEmailVerified(ctx, appsession) })
 	}
+	counter := handlers.NewCounter()
 	rtc := router.Group("/rtc")
 	{
-		rtc.POST("/enter", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, appsession) })
-		rtc.POST("/exit", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, appsession) })
+		rtc.GET("/enter", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, counter) })
+		rtc.GET("/exit", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, counter) })
+		rtc.GET("/get-token", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.GetRTCToken(ctx) })
 	}
 }
