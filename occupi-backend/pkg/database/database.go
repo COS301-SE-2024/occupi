@@ -828,13 +828,10 @@ func FilterCollectionWithProjection(ctx *gin.Context, appsession *models.AppSess
 		return nil, 0, err
 	}
 
-	var results []bson.M
-	if err = cursor.All(ctx, &results); err != nil {
-		return nil, 0, err
-	}
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, filter.Filter)
 
-	totalResults, err := collection.CountDocuments(ctx, filter.Filter)
-	if err != nil {
+	if errv != nil {
+		logrus.Error(err)
 		return nil, 0, err
 	}
 
@@ -1752,19 +1749,13 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		return nil, 0, err
 	}
 
-	var results []bson.M
-	if err = cursor.All(ctx, &results); err != nil {
-		logrus.WithError(err).Error("Failed to get hours")
-		return nil, 0, err
-	}
-
 	mongoFilter := MakeEmailAndTimeFilter(email, filter)
 
-	// count documents
-	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
-	if err != nil {
-		logrus.WithError(err).Error("Failed to count documents")
-		return nil, 0, err
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, mongoFilter)
+
+	if errv != nil {
+		logrus.Error(errv)
+		return nil, 0, errv
 	}
 
 	return results, totalResults, nil

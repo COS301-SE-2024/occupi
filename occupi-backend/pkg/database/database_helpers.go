@@ -5,9 +5,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/ipinfo/go/v2/ipinfo"
+	"github.com/sirupsen/logrus"
 	"github.com/umahmood/haversine"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -230,4 +234,21 @@ func MakeEmailAndTimeFilter(email string, filter models.OfficeHoursFilterStruct)
 	}
 
 	return mongoFilter
+}
+
+func GetResultsAndCount(ctx *gin.Context, collection *mongo.Collection, cursor *mongo.Cursor, mongoFilter primitive.M) ([]bson.M, int64, error) {
+	var results []bson.M
+	if err := cursor.All(ctx, &results); err != nil {
+		logrus.WithError(err).Error("Failed to get data")
+		return []bson.M{}, 0, err
+	}
+
+	// count documents
+	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to count documents")
+		return []bson.M{}, 0, err
+	}
+
+	return results, totalResults, nil
 }
