@@ -26,10 +26,10 @@ if "%1 %2" == "run dev" (
     gotestsum --format testname --junitfile reports/gotestsum-report.xml -- -v ./tests/...
     exit /b 0
 ) else if "%1 %2" == "test codecov" (
-    gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
+    gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/analytics,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
     exit /b 0
 ) else if "%1 %2" == "report codecov" (
-    gotestsum --format testname --junitfile reports/gotestsum-report.xml -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
+    gotestsum --format testname --junitfile reports/gotestsum-report.xml -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/analytics,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
     exit /b 0
 ) else if "%1" == "lint" (
     golangci-lint run
@@ -55,8 +55,8 @@ echo   docker build      : docker compose -f docker-compose.localdev.yml build
 echo   docker up         : docker compose -f docker-compose.localdev.yml up -d
 echo   test              : gotestsum --format testname -- -v ./tests/...
 echo   report            : gotestsum --format testname --junitfile reports/gotestsum-report.xml -- -v ./tests/...
-echo   test codecov      : gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
-echo   report codecov    : gotestsum --format testname --junitfile reports/gotestsum-report.xml -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
+echo   test codecov      : gotestsum --format testname -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/analytics,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
+echo   report codecov    : gotestsum --format testname --junitfile reports/gotestsum-report.xml -- -v -coverpkg=github.com/COS301-SE-2024/occupi/occupi-backend/pkg/analytics,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware,github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils ./tests/... -coverprofile=coverage.out
 echo   lint              : golangci-lint run
 echo   convert report    : python reports/convert_report.py reports.json -o allure-results
 echo   help              : Show this help message
