@@ -94,7 +94,7 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
         style={{
           transform: [{ translateY }],
           marginBottom: 20,
-          // shadowColor: '#E0FF7B',
+          shadowColor: '#E0FF7B',
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 1,
           shadowRadius: 80,
@@ -103,7 +103,7 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
         }}
       >
         <Image
-          source={require('./assets/ai-loader.gif')}
+          source={require('./assets/LCPW-unscreen.gif')}
           style={{ width: 400, height: 400 }}
           resizeMode="contain"
         />

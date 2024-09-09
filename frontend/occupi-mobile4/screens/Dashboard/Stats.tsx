@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions, useColorScheme } from 'react-native';
+import { ScrollView, TouchableOpacity, Dimensions, useColorScheme } from 'react-native';
 import { useTheme } from '@/components/ThemeContext';
 import * as SecureStore from 'expo-secure-store';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { Text, View, Icon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from 'expo-router';
 import { getAnalytics } from '@/services/analyticsservices';
@@ -16,16 +17,24 @@ const Stats = () => {
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
   const [summary, setSummary] = useState('');
-  const [userHours, setUserHours] = useState();
+  const [userHours, setUserHours] = useState<number>();
+  const [userAverage, setUserAverage] = useState<number>();
 
   useEffect(() => {
     fetchUserAnalytics();
   }, []);
 
+  const convertToHoursAndMinutes = (totalHours: number): string => {
+    const hours = Math.floor(totalHours);
+    const minutes = Math.round((totalHours - hours) * 60);
+    return `${hours} hours and ${minutes} minutes`;
+  };
+
   const fetchUserAnalytics = async () => {
     try {
-      const hours = getAnalytics({},'user-hours');
-      setUserHours(hours);
+      const hours = await getAnalytics({},'user-hours');
+      console.log(hours.data[0].overallTotal);
+      setUserHours(hours.data[0].overallTotal);
     } catch (error) {
       console.error('Error fetching user analytics:', error);
     }
@@ -49,11 +58,12 @@ const Stats = () => {
   ];
 
   const analyticsCards = [
-    { title: `Your Total Hours: ${userHours}`, color: '#101010', border: accentColour },
-    { title: 'Your Peak Office Hours', color: '#101010', border: accentColour },
-    { title: 'Arrival & Departure Times', color: '#101010', border: accentColour },
-    { title: 'Productivity Trends', color: '#101010', border: accentColour },
-    { title: 'Team Collaboration Metrics', color: '#101010', border: accentColour },
+    { title: `Total Hours: `, value: convertToHoursAndMinutes(userHours) , color: '#101010', border: accentColour },
+    { title: 'Office Hours', color: '#101010', border: accentColour },
+    { title: 'Work Ratio', color: '#101010', border: accentColour },
+    { title: 'Peak Office Hours', color: '#101010', border: accentColour },
+    { title: 'Arrival and Departure', color: '#101010', border: accentColour },
+    { title: 'In Office Rate', color: '#101010', border: accentColour },
   ];
 
   return (
@@ -134,13 +144,18 @@ const Stats = () => {
             marginBottom: hp('3%'),
             borderColor: item.border,
             borderWidth: 2,
+            flexDirection: 'row',
+            justifyContent: 'space-between'
           }}>
-            <Text style={{
+            <View>
+              <Text style={{
               fontSize: wp('5%'),
               fontWeight: 'bold',
               color: 'white',
-              marginBottom: hp('2%'),
             }}>{item.title}</Text>
+            <Text color='white'>{item.value}</Text>
+            </View>
+            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
           </View>
         ))}
 

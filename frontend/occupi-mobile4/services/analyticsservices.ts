@@ -7,8 +7,9 @@ import axios, { AxiosError } from 'axios';
 
 export async function getAnalytics(req: AnalyticsReq, endpoint: string): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
+  let email = await SecureStore.getItemAsync('Email');
   try {
-    const response = await axios.get(`https://dev.occupi.tech/analytics/${endpoint}`, {
+    const response = await axios.get(`https://dev.occupi.tech/analytics/${endpoint}?email=${email}`, {
       params: {
         req
       },
@@ -19,7 +20,7 @@ export async function getAnalytics(req: AnalyticsReq, endpoint: string): Promise
       },
       withCredentials: true
     });
-    console.log(response.data);
+    // console.log(response.data);
     return response.data as Success;
   } catch (error) {
     console.error(`Error in ${Function}:`, error);
@@ -39,4 +40,4 @@ export async function getAnalytics(req: AnalyticsReq, endpoint: string): Promise
   }
 }
 
-getAnalytics({}, 'user-hours');
+// getAnalytics({}, 'user-hours');

@@ -587,7 +587,7 @@ const Dashboard: React.FC = () => {
             backgroundColor: cardBackgroundColor,
             justifyContent: 'center'
           }}
-          onPress={() => router.replace('stats')}
+          onPress={() => router.replace('/stats')}
         >
 
           <View flexDirection="row" alignItems="center" justifyContent='space-between'>
