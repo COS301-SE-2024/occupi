@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -14,8 +15,8 @@ import (
 
 func generateToken(expirationMinutes int) (string, error) {
 	// Define the secret key used to sign the token
-	var secretKey = []byte("UtMy3+ZaGa5cJ2cnZSrHsBWlifuBdg6f5qRfSOUdaQY=")
-	// var secretKey = configs.GetCentrifugoSecret()
+	var secretKey = []byte(configs.GetCentrifugoSecret())
+	fmt.Println(secretKey)
 
 	// Define the token claims
 	claims := jwt.MapClaims{
@@ -77,4 +78,8 @@ func Exit(ctx *gin.Context, app *models.AppSession) {
 		return
 	}
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Counter decremented", app.Counter.GetCounterValue()))
+}
+
+func GetCurrentCount(ctx *gin.Context, app *models.AppSession) {
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Current count", app.Counter.GetCounterValue()))
 }

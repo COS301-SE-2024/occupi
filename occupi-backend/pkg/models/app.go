@@ -112,10 +112,16 @@ func (c *Counter) Increment(ctx *gin.Context) error {
 }
 
 // decrement decreases the counter by 1 and publishes the change
+// Decrement decrements the counter but ensures it doesn't go below zero and publishes the value to Centrifugo.
 func (c *Counter) Decrement(ctx *gin.Context) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.value--
+
+	if c.value > 0 {
+		c.value--
+	} else {
+		c.value = 0
+	}
 	return c.publishToCentrifugo(ctx, "occupi-counter", c.value)
 }
 

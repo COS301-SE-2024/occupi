@@ -114,8 +114,9 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	}
 	rtc := router.Group("/rtc")
 	{
-		rtc.GET("/enter", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, appsession) })
-		rtc.GET("/exit", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, appsession) })
-		rtc.GET("/get-token", middleware.UnProtectedRoute, func(ctx *gin.Context) { handlers.GetRTCToken(ctx, appsession) })
+		rtc.GET("/enter", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, appsession) })
+		rtc.GET("/exit", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, appsession) })
+		rtc.GET("/get-token", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetRTCToken(ctx, appsession) })
+		rtc.GET("/current-count", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetCurrentCount(ctx, appsession) })
 	}
 }
