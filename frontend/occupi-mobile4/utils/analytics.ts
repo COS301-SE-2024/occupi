@@ -17,7 +17,7 @@ export const fetchUserTotalHoursArray = async (timeFrom : string, timeTo : strin
     const req: AnalyticsReq = {
         timeFrom: timeFrom,
         timeTo: timeTo,
-        limit: 10
+        limit: 50
     }
     const total = await getAnalytics(req, 'user-hours');
     // console.log('totalsss',total.data);
@@ -83,16 +83,31 @@ interface InputObject {
   }
   
   interface OutputObject {
-    label: string;
+    label?: string;
     value: number;
+    dataPointText: string;
   }
+
+  function formatDate(inputDate: string): string {
+    const date = new Date(inputDate);
+    const day = date.getDate();
+    const month = date.toLocaleString('default', { month: 'short' });
+    return `${day} ${month}`;
+}
+
+const convertToHoursAndMinutes = (totalHours: number): string => {
+    const hours = Math.floor(totalHours);
+    const minutes = Math.round((totalHours - hours) * 60);
+    return `${hours} hours and ${minutes} minutes`;
+  };
 
 export const convertData = (data: InputObject[]): OutputObject[] => {
     return data.map((item, index) => {
-        const output: OutputObject = {
+        return {
             value: item.totalHours,
-            dataPointText: item.totalHours
+            label: (index+1) % 2 === 0 ? formatDate(item.date) : "",
+            dataPointText: convertToHoursAndMinutes(item.totalHours)
         };
-        return output;
+        // return output;
     });
   };

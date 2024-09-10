@@ -9,11 +9,11 @@ import { useColorScheme } from 'react-native';
 import { useTheme } from './ThemeContext';
 
 
-const AnalyticsGraph = (data) => {
+const AnalyticsGraph = ({data,title,x_axis}) => {
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
-    // console.log(data.data);
+    console.log(data);
     const labels = currentTheme === 'dark' ? "lightgray" : "darkgrey";
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
     useEffect(() => {
@@ -23,22 +23,19 @@ const AnalyticsGraph = (data) => {
         };
         getAccentColour();
       }, []);
+
+    const spacing = data.length;
+    console.log(spacing);
   return (
-    <View
-        style={{ width: wp('100%'), flexDirection: 'column' }}
-        // style={{
-        //   // marginVertical: 100,
-        //   paddingVertical: 20,
-        //   backgroundColor: '#414141',
-        // }}
-        >
+    <View my="$2" w="$full" flexDirection='column' alignItems='center' justifyContent='space-around'>
+        <Text underline color={currentTheme === 'dark' ? "$white" : "$black"}>{title}</Text>
         <LineChart
           isAnimated
-          width={wp('80%')}
+          width={wp('85%')}
           thickness={3}
           color={accentColour}
           maxValue={10}
-          noOfSections={data.length}
+          noOfSections={10}
           hideRules
           animateOnDataChange
           animationDuration={1000}
@@ -46,21 +43,22 @@ const AnalyticsGraph = (data) => {
           areaChart
           focusEnabled
           showDataPointOnFocus
+          textColor1={currentTheme === 'dark' ? "white" : "black"}
           focusedDataPointColor={'white'}
           showStripOnFocus
           showTextOnFocus
-          endSpacing={0}
+          endSpacing={20}
           yAxisTextStyle={{color: labels}}
-          xAxisLabelTextStyle={{color: labels, fontSize: 4}}
-          data={data.data}
+          xAxisLabelTextStyle={{color: labels, fontSize: 8.5}}
+          data={data}
           // hideDataPoints
-          // curved
+          curved
           startFillColor={accentColour}
           endFillColor={accentColour}
           startOpacity={0.5}
           endOpacity={0.1}
-          spacing={29}
-          rotateLabel
+          spacing={30}
+          // rotateLabel
           backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
@@ -68,10 +66,11 @@ const AnalyticsGraph = (data) => {
           // rulesType="dashed"
           xAxisColor="transparent"
           yAxisColor="transparent"
-          initialSpacing={10}
+          initialSpacing={2}
           // yAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
           // xAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
         />
+        <Text color={currentTheme === 'dark' ? "$white" : "$black"}>{x_axis}</Text>
       </View>
   )
 }

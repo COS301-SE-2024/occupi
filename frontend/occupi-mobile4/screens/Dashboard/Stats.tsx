@@ -123,7 +123,8 @@ const Stats = () => {
     <View style={{
       flex: 1,
       borderRadius: wp('5%'),
-      padding: wp('5%'),
+      paddingVertical: wp('5%'),
+      paddingHorizontal: wp('3%'),
       justifyContent: 'space-between',
       backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
     }}>
@@ -218,7 +219,10 @@ const Stats = () => {
             {totalGraph === true &&
               <>
                 {graphData !== null ? (
-                  <AnalyticsGraph data={graphData} />
+                  <AnalyticsGraph 
+                  data={graphData} 
+                  title='Hours per day Overtime' 
+                  x_axis='Day' />
                 ) : (
                   <WaveIndicator color={accentColour} />
                 )
