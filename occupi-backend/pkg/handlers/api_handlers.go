@@ -1372,6 +1372,25 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// validate the IP
+	if !utils.ValidateIP(request.IP) {
+		captureError(ctx, errors.New("invalid IP address"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid IP address",
+			nil))
+		return
+	}
+
+	// valdidate the emails
+	if !utils.ValidateEmails(request.Emails) || len(request.Emails) == 0 {
+		captureError(ctx, errors.New("one or more of the emails are of invalid format"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "One or more of email addresses are of Invalid format", nil))
+		return
+	}
+
 	// Add the IP to the database
 	err := database.AddIP(ctx, appsession, request)
 	if err != nil {
@@ -1398,6 +1417,13 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession) {
 			constants.InvalidRequestPayloadCode,
 			"Invalid JSON payload",
 			nil))
+		return
+	}
+
+	// valdidate the emails
+	if !utils.ValidateEmails(request.Emails) || len(request.Emails) == 0 {
+		captureError(ctx, errors.New("one or more of the emails are of invalid format"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "One or more of email addresses are of Invalid format", nil))
 		return
 	}
 

@@ -1994,6 +1994,43 @@ func CheckIfUserIsAllowedNewIP(ctx *gin.Context, appsession *models.AppSession, 
 	return user.BlockAnonymousIPAddress, nil
 }
 
-func CheckAndToggleResetPassword(ctx *gin.Context, appsession *models.AppSession, email string) bool {
+func CheckIfUserShouldResetPassword(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
 
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	filter := bson.M{"email": email}
+
+	// get user from cache
+	var userData models.User
+	var cacheErr error
+	if userData, cacheErr = cache.GetUser(appsession, email); cacheErr != nil {
+		// get the user from the database
+		err := collection.FindOne(ctx, filter).Decode(&userData)
+		if err != nil {
+			logrus.Error(err)
+			return false, err
+		}
+	}
+
+	if !userData.ResetPassword {
+		return false, nil
+	}
+
+	update := bson.M{"$set": bson.M{"resetPassword": !userData.ResetPassword}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+
+	// update user in cache
+	userData.ResetPassword = !userData.ResetPassword
+	cache.SetUser(appsession, userData)
+
+	return true, nil
 }

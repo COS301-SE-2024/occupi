@@ -369,13 +369,19 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 				http.StatusForbidden,
 				"Forbidden from access",
 				constants.ForbiddenCode,
-				"This login attempt is forbidden as this account is not allowed to login from anonymous locations",
+				"This login attempt is forbidden as this account is not allowed to login from new anonymous locations",
 				nil))
 			return false, nil
 		}
 	}
 
 	// check if the user should reset their password
+	shouldResetPassword, err := database.CheckIfUserShouldResetPassword(ctx, appsession, email)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return false, err
+	}
 
 	// check if the user has mfa enabled
 	mfaEnabled, err := database.CheckIfUserHasMFAEnabled(ctx, appsession, email)
@@ -406,6 +412,12 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 
 	case !isIPValid:
 		if _, err := SendOTPEMailForIPInfo(ctx, appsession, email, constants.ConfirmIPAddress, unrecognizedLogger); err != nil {
+			return false, err
+		}
+		return false, nil
+
+	case shouldResetPassword:
+		if _, err := SendOTPEmail(ctx, appsession, email, constants.ResetPassword); err != nil {
 			return false, err
 		}
 		return false, nil

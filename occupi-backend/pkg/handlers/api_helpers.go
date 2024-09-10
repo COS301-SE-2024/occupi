@@ -194,11 +194,11 @@ func deleteTempFiles(files []models.File) {
 
 func DefaultMalePFP(race ...string) string {
 	pfps := []string{
-		"default-wm1.jpg",
-		"default-wm2.jpg",
-		"default-wm3.jpg",
-		"default-wm4.jpg",
-		"default-bm1.jpg",
+		"default_wm1.jpg",
+		"default_wm2.jpg",
+		"default_wm3.jpg",
+		"default_wm4.jpg",
+		"default_bm1.jpg",
 	}
 
 	if len(race) == 0 {
@@ -216,12 +216,12 @@ func DefaultMalePFP(race ...string) string {
 
 func DefaultFemalePFP(race ...string) string {
 	pfps := []string{
-		"default-ww1.jpg",
-		"default-ww2.jpg",
-		"default-ww3.jpg",
-		"default-ww4.jpg",
-		"default-bw1.jpg",
-		"default-bw1.jpg",
+		"default_ww1.jpg",
+		"default_ww2.jpg",
+		"default_ww3.jpg",
+		"default_ww4.jpg",
+		"default_bw1.jpg",
+		"default_bw1.jpg",
 	}
 
 	if len(race) == 0 {
@@ -238,5 +238,5 @@ func DefaultFemalePFP(race ...string) string {
 }
 
 func DefaultNBPFP() string {
-	return "default-nb1.jpg"
+	return "default_nb1.jpg"
 }

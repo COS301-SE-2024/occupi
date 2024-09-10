@@ -652,3 +652,9 @@ func Contains(s []string, e string) bool {
 func RandomInt(min, max int) int {
 	return min + rd.Intn(max-min)
 }
+
+func ValidateIP(ip string) bool {
+	// Regex pattern for IP validation
+	var ipRegex = regexp.MustCompile(`^(\d{1,3}\.){3}\d{1,3}$`)
+	return ipRegex.MatchString(ip)
+}
