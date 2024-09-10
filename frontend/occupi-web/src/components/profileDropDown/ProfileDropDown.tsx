@@ -36,6 +36,9 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
     loadNotifications();
   }, []);
 
+
+  
+
   const loadNotifications = async () => {
     try {
       const fetchedNotifications =
