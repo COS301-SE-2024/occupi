@@ -1,6 +1,4 @@
 import { getAnalytics } from "../services/analyticsservices";
-import * as SecureStore from 'expo-secure-store';
-import { router } from 'expo-router';
 import { AnalyticsReq } from "@/models/requests";
 
 // getAnalytics({},'user-hours');
@@ -22,7 +20,7 @@ export const fetchUserTotalHoursArray = async (timeFrom : string, timeTo : strin
         limit: 10
     }
     const total = await getAnalytics(req, 'user-hours');
-    console.log('totalsss',total.data);
+    // console.log('totalsss',total.data);
     return total.data;
 }
 
@@ -90,8 +88,11 @@ interface InputObject {
   }
 
 export const convertData = (data: InputObject[]): OutputObject[] => {
-    return data.map(item => ({
-      label: item.date,
-      value: item.totalHours,
-    }));
+    return data.map((item, index) => {
+        const output: OutputObject = {
+            value: item.totalHours,
+            dataPointText: item.totalHours
+        };
+        return output;
+    });
   };

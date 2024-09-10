@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, TouchableOpacity, Dimensions, useColorScheme } from 'react-native';
 import { useTheme } from '@/components/ThemeContext';
 import * as SecureStore from 'expo-secure-store';
+import { WaveIndicator } from 'react-native-indicators';
 import { useNavigation } from '@react-navigation/native';
+import { Skeleton } from 'moti/skeleton';
+import { ActivityIndicator } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import AnalyticsGraph from '@/components/AnalyticsGraph';
 import { Text, View, Icon } from '@gluestack-ui/themed';
@@ -27,9 +30,9 @@ const Stats = () => {
   const [departure, setDeparture] = useState<number>();
   const [inOfficeRate, setInOfficeRate] = useState<number>();
   const [timeFrom, setTimeFrom] = useState("1970-01-01T00:00:00.000Z");
-  const [timeTo, setTimeTo] = useState("2024-01-01T00:00:00.000Z");
+  const [timeTo, setTimeTo] = useState("2024-06-01T00:00:00.000Z");
   const [totalGraph, setTotalGraph] = useState(false);
-  const [graphData, setGraphData] = useState([]);
+  const [graphData, setGraphData] = useState(null);
 
   useEffect(() => {
     resetTimeFrames();
@@ -43,9 +46,16 @@ const Stats = () => {
   };
 
   const fetchData = async (data: string) => {
-    const total = await fetchUserTotalHoursArray(timeFrom, timeTo);
-    setGraphData(convertData(total));
-    setTotalGraph(!totalGraph);
+    if (totalGraph === true) {
+      setGraphData(null);
+      setTotalGraph(false);
+      resetTimeFrames();
+    } else {
+      setTotalGraph(true);
+      console.log(timeFrom, timeTo);
+      const total = await fetchUserTotalHoursArray(timeFrom, timeTo);
+      setGraphData(convertData(total));
+    }
   }
 
   const fetchUserAnalytics = async () => {
@@ -179,7 +189,7 @@ const Stats = () => {
           marginBottom: hp('2%'),
         }}>Detailed Analytics</Text>
 
-        <TouchableOpacity style={{
+        <View style={{
           backgroundColor: '#101010',
           borderRadius: wp('4%'),
           padding: wp('4%'),
@@ -188,23 +198,36 @@ const Stats = () => {
           borderWidth: 2,
           justifyContent: 'space-between'
         }}
-        onPress={()=>fetchData('total')}>
-          <View flexDirection='row' justifyContent='space-between'>
+        >
+          <TouchableOpacity onPress={() => fetchData('total')} style={{ flexDirection: 'row', justifyContent: 'space-between' }} justifyContent='space-between'>
             <View>
               <Text style={{
                 fontSize: wp('5%'),
                 fontWeight: 'bold',
                 color: 'white',
               }}>Total Hours: </Text>
-              <Text color='white'>{convertToHoursAndMinutes(userHours)}</Text>
+              {userHours ? (
+                <Text color='white'>{convertToHoursAndMinutes(userHours)}</Text>
+              ) : (
+                <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
+              )}
             </View>
             <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
-          </View>
+          </TouchableOpacity>
           <View>
-            {totalGraph && <AnalyticsGraph data={graphData} />}
+            {totalGraph === true &&
+              <>
+                {graphData !== null ? (
+                  <AnalyticsGraph data={graphData} />
+                ) : (
+                  <WaveIndicator color={accentColour} />
+                )
+                }
+              </>
+            }
           </View>
 
-        </TouchableOpacity>
+        </View>
         <View style={{
           backgroundColor: '#101010',
           borderRadius: wp('4%'),
@@ -221,7 +244,11 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>Average Office Hours: </Text>
-            <Text color='white'>{convertToHoursAndMinutes(userAverage)} per day</Text>
+            {userAverage ? (
+              <Text color='white'>{convertToHoursAndMinutes(userAverage)}</Text>
+            ) : (
+              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
+            )}
           </View>
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
@@ -241,7 +268,11 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>Work Ratio: </Text>
-            <Text color='white'>{convertToHoursAndMinutes(workRatio)}</Text>
+            {workRatio ? (
+              <Text color='white'>{convertToHoursAndMinutes(workRatio)}</Text>
+            ) : (
+              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
+            )}
           </View>
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
@@ -261,7 +292,11 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>Peak Hours:</Text>
-            <Text color='white'>{convertToHoursAndMinutes(peakHours)}</Text>
+            {peakHours ? (
+              <Text color='white'>{convertToHoursAndMinutes(peakHours)}</Text>
+            ) : (
+              <Text color='white'>No peak hours found</Text>
+            )}
           </View>
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
@@ -281,8 +316,14 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>Arrival and Departure: </Text>
-            <Text color='white'>Arrival: {arrival}</Text>
-            <Text color='white'>Departure: {departure}</Text>
+            {arrival ? (
+              <>
+                <Text color='white'>Arrival: {arrival}</Text>
+                <Text color='white'>Departure: {departure}</Text>
+              </>
+            ) : (
+              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
+            )}
           </View>
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
@@ -302,7 +343,11 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>In Office Rate: </Text>
-            <Text color='white'>{Math.floor(inOfficeRate)}%</Text>
+            {inOfficeRate ? (
+              <Text color='white'>{Math.floor(inOfficeRate)}%</Text>
+            ) : (
+              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
+            )}
           </View>
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>

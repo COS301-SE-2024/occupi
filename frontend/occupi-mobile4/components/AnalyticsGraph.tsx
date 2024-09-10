@@ -44,16 +44,23 @@ const AnalyticsGraph = (data) => {
           animationDuration={1000}
           onDataChangeAnimationDuration={300}
           areaChart
+          focusEnabled
+          showDataPointOnFocus
+          focusedDataPointColor={'white'}
+          showStripOnFocus
+          showTextOnFocus
           endSpacing={0}
           yAxisTextStyle={{color: labels}}
-          xAxisLabelTextStyle={{color: labels}}
+          xAxisLabelTextStyle={{color: labels, fontSize: 4}}
           data={data.data}
-          hideDataPoints
+          // hideDataPoints
+          // curved
           startFillColor={accentColour}
           endFillColor={accentColour}
           startOpacity={0.5}
           endOpacity={0.1}
           spacing={29}
+          rotateLabel
           backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
