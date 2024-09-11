@@ -41,6 +41,7 @@ interface Room {
   roomNo: string;
   imageUrl?: string;
   isDisabled: boolean;
+  resources: string[];
 }
 
 interface ApiResponse {
@@ -66,6 +67,7 @@ const Rooms: React.FC = () => {
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [roomToDisable, setRoomToDisable] = useState<Room | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     fetchRooms();
@@ -83,6 +85,7 @@ const Rooms: React.FC = () => {
     } catch (error) {
       console.error("Error fetching rooms:", error);
       setLoading(false);
+      setErrorMessage("Failed to fetch rooms. Please try again later.");
     }
   };
 
@@ -113,7 +116,7 @@ const Rooms: React.FC = () => {
       }
     } catch (error) {
       console.error("Error uploading image:", error);
-      
+      setErrorMessage("Failed to upload image. Please try again.");
     }
   };
 
@@ -147,6 +150,7 @@ const Rooms: React.FC = () => {
       setRoomToDisable(null);
     } catch (error) {
       console.error("Error toggling room state:", error);
+      setErrorMessage("Failed to update room state. Please try again.");
     }
   };
 
@@ -157,19 +161,45 @@ const Rooms: React.FC = () => {
       setFilteredRooms(filteredRooms.map((r) => (r.roomId === updatedRoom.roomId ? updatedRoom : r)));
     } catch (error) {
       console.error("Error updating room:", error);
+      setErrorMessage("Failed to update room. Please try again.");
     }
   };
 
-  const handleAddRoom = async (newRoom: Room) => {
+  const handleAddRoom = async (newRoom: Omit<Room, 'roomId' | 'imageUrl' | 'isDisabled'>) => {
     try {
-      const response = await axios.put("/api/add-room", newRoom);
+      // Generate a unique roomId
+      const roomId = `RM${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+      
+      const roomToAdd = {
+        ...newRoom,
+        roomId,
+        resources: [], // Add default resources or get from form
+        isDisabled: false
+      };
+
+      console.log("Sending room data:", roomToAdd); // Log the data being sent
+
+      const response = await axios.put("/api/add-room", roomToAdd);
+      
+      console.log("Server response:", response.data); // Log the server's response
+
       if (response.data.status === 200) {
-        setRooms([...rooms, newRoom]);
-        setFilteredRooms([...filteredRooms, newRoom]);
+        setRooms([...rooms, roomToAdd]);
+        setFilteredRooms([...filteredRooms, roomToAdd]);
         setIsAddRoomModalOpen(false);
+      } else {
+        console.error("Error adding room:", response.data.message);
+        setErrorMessage(`Failed to add room: ${response.data.message}`);
       }
     } catch (error) {
-      console.error("Error adding room:", error);
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error details:", error.response?.data);
+        console.error("Request config:", error.config);
+        setErrorMessage(`Error adding room: ${error.response?.data?.message || error.message}`);
+      } else {
+        console.error("Error adding room:", error);
+        setErrorMessage("An unexpected error occurred while adding the room.");
+      }
     }
   };
 
@@ -189,6 +219,19 @@ const Rooms: React.FC = () => {
           console.log(e.target.value);
         }}
       />
+
+      {errorMessage && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{errorMessage}</span>
+          <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
+            <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" onClick={() => setErrorMessage("")}>
+              <title>Close</title>
+              <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+            </svg>
+          </span>
+        </div>
+      )}
 
       <div className="flex items-center justify-between mb-4 mt-2">
         <h2 className="text-text_col text-2xl font-bold"></h2>
@@ -340,12 +383,12 @@ const Rooms: React.FC = () => {
         </ModalContent>
       </Modal>
 
-      <EditRoomModal
+      {/* <EditRoomModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveRoom}
         room={selectedRoom}
-      />
+      /> */}
 
       <AddRoomModal
         isOpen={isAddRoomModalOpen}
