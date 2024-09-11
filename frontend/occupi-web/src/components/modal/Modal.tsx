@@ -107,11 +107,11 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                       name={user.name}
                       officeStatus={user.status.toLowerCase() as "onsite" | "offsite" | "booked"}
                     />
-                    <KeyStats />
+                    <KeyStats email={user.email} />
                   </div>
 
                   {/* Charts Section */}
-                  <div className="grid grid-cols-2 gap-6">
+                  {/* <div className="grid grid-cols-2 gap-6">
                     <div className="border bg-secondary p-4 rounded-lg shadow">
                       <WeeklyAttendanceChart />
                     </div>
@@ -121,7 +121,7 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                     <div className="border bg-secondary p-4 rounded-lg shadow col-span-2">
                       <OccupancyRatingChart />
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Bookings Section */}
                   <div className="border bg-secondary p-4 rounded-lg shadow">
