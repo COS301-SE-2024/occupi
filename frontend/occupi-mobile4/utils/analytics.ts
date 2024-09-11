@@ -3,28 +3,44 @@ import { AnalyticsReq } from "@/models/requests";
 
 // getAnalytics({},'user-hours');
 
-export const fetchUserTotalHours = async (timeFrom : string, timeTo : string) => {
-    const req: AnalyticsReq = {
-        timeFrom: timeFrom,
-        timeTo: timeTo
+export const fetchUserTotalHours = async (timeFrom?: string, timeTo?: string) => {
+    const req: Partial<AnalyticsReq> = {};
+    // console.log(timeFrom);
+
+    if (timeFrom !== "") {
+        req.timeFrom = timeFrom;
     }
+
+    if (timeTo !== "") {
+        req.timeTo = timeTo;
+    }
+    console.log(req);
     const total = await getAnalytics(req, 'user-hours');
     // console.log('totals',total.data[0].overallTotal);
+    if (total.data === null) {
+        console.log("returning zero")
+        return -1;
+    }
     return total.data[0].overallTotal;
 }
 
-export const fetchUserTotalHoursArray = async (timeFrom : string, timeTo : string) => {
-    const req: AnalyticsReq = {
-        timeFrom: timeFrom,
-        timeTo: timeTo,
-        limit: 50
+export const fetchUserTotalHoursArray = async (timeFrom?: string, timeTo?: string) => {
+    const req: Partial<AnalyticsReq> = {};
+    // console.log(timeFrom);
+
+    if (timeFrom !== "") {
+        req.timeFrom = timeFrom;
+    }
+
+    if (timeTo !== "") {
+        req.timeTo = timeTo;
     }
     const total = await getAnalytics(req, 'user-hours');
     // console.log('totalsss',total.data);
     return total.data;
 }
 
-export const fetchUserAverageHours = async (timeFrom : string, timeTo : string) => {
+export const fetchUserAverageHours = async (timeFrom?: string, timeTo?: string) => {
     const req: AnalyticsReq = {
         timeFrom: timeFrom,
         timeTo: timeTo
@@ -34,7 +50,7 @@ export const fetchUserAverageHours = async (timeFrom : string, timeTo : string) 
     return total.data[0].overallAverage;
 }
 
-export const fetchWorkRatio = async (timeFrom : string, timeTo : string) => {
+export const fetchWorkRatio = async (timeFrom?: string, timeTo?: string) => {
     const req: AnalyticsReq = {
         timeFrom: timeFrom,
         timeTo: timeTo
@@ -44,7 +60,7 @@ export const fetchWorkRatio = async (timeFrom : string, timeTo : string) => {
     return total.data[0].ratio;
 }
 
-export const fetchUserPeakHours = async (timeFrom : string, timeTo : string) => {
+export const fetchUserPeakHours = async (timeFrom?: string, timeTo?: string) => {
     const req: AnalyticsReq = {
         timeFrom: timeFrom,
         timeTo: timeTo
@@ -54,7 +70,7 @@ export const fetchUserPeakHours = async (timeFrom : string, timeTo : string) => 
     return total.data.days;
 }
 
-export const fetchUserArrivalAndDeparture = async (timeFrom : string, timeTo : string) => {
+export const fetchUserArrivalAndDeparture = async (timeFrom?: string, timeTo?: string) => {
     const req: AnalyticsReq = {
         timeFrom: timeFrom,
         timeTo: timeTo
@@ -62,16 +78,16 @@ export const fetchUserArrivalAndDeparture = async (timeFrom : string, timeTo : s
     const total = await getAnalytics(req, 'user-arrival-departure-average');
     console.log('arrival', total.data[0].overallavgArrival);
     console.log('departure', total.data[0].overallavgDeparture);
-    return [ total.data[0].overallavgArrival, total.data[0].overallavgDeparture];
+    return [total.data[0].overallavgArrival, total.data[0].overallavgDeparture];
 }
 
-export const fetchUserInOfficeRate = async (timeFrom : string, timeTo : string) => {
+export const fetchUserInOfficeRate = async (timeFrom?: string, timeTo?: string) => {
     const req: AnalyticsReq = {
         timeFrom: timeFrom,
         timeTo: timeTo
     }
     const total = await getAnalytics(req, 'user-in-office');
-    console.log('totals2',total.data[0].overallRate);
+    console.log('totals2', total.data[0].overallRate);
     return total.data[0].overallRate;
 }
 
@@ -80,15 +96,15 @@ interface InputObject {
     date: string;
     overallTotal: number;
     totalHours: number;
-  }
-  
-  interface OutputObject {
+}
+
+interface OutputObject {
     label?: string;
     value: number;
     dataPointText: string;
-  }
+}
 
-  function formatDate(inputDate: string): string {
+function formatDate(inputDate: string): string {
     const date = new Date(inputDate);
     const day = date.getDate();
     const month = date.toLocaleString('default', { month: 'short' });
@@ -99,15 +115,15 @@ const convertToHoursAndMinutes = (totalHours: number): string => {
     const hours = Math.floor(totalHours);
     const minutes = Math.round((totalHours - hours) * 60);
     return `${hours} hours and ${minutes} minutes`;
-  };
+};
 
 export const convertData = (data: InputObject[]): OutputObject[] => {
     return data.map((item, index) => {
         return {
             value: item.totalHours,
-            label: (index+1) % 2 === 0 ? formatDate(item.date) : "",
+            label: (index + 1) % 2 === 0 ? formatDate(item.date) : "",
             dataPointText: convertToHoursAndMinutes(item.totalHours)
         };
         // return output;
     });
-  };
+};

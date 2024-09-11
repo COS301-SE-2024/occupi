@@ -6,6 +6,7 @@ import { WaveIndicator } from 'react-native-indicators';
 import { useNavigation } from '@react-navigation/native';
 import { Skeleton } from 'moti/skeleton';
 import { ActivityIndicator } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import AnalyticsGraph from '@/components/AnalyticsGraph';
 import { Text, View, Icon } from '@gluestack-ui/themed';
@@ -24,18 +25,24 @@ const Stats = () => {
   const [summary, setSummary] = useState('');
   const [userHours, setUserHours] = useState<number>();
   const [userAverage, setUserAverage] = useState<number>();
+  const [isDatePicker1Visible, setDatePicker1Visibility] = useState(false);
+  const [isDatePicker2Visible, setDatePicker2Visibility] = useState(false);
   const [workRatio, setWorkRatio] = useState<number>();
   const [peakHours, setPeakHours] = useState([]);
   const [arrival, setArrival] = useState<number>();
   const [departure, setDeparture] = useState<number>();
   const [inOfficeRate, setInOfficeRate] = useState<number>();
-  const [timeFrom, setTimeFrom] = useState("1970-01-01T00:00:00.000Z");
-  const [timeTo, setTimeTo] = useState("2024-06-01T00:00:00.000Z");
+  const [timeFrom, setTimeFrom] = useState<string>("");
+  const [timeTo, setTimeTo] = useState<string>("");
   const [totalGraph, setTotalGraph] = useState(false);
   const [graphData, setGraphData] = useState(null);
 
+  const backgroundColor = isDarkMode ? 'black' : 'white';
+  const textColor = isDarkMode ? 'white' : 'black';
+  const cardBackgroundColor = isDarkMode ? '#101010' : '#F3F3F3';
+
   useEffect(() => {
-    resetTimeFrames();
+    // resetTimeFrames();
     fetchUserAnalytics();
   }, []);
 
@@ -46,10 +53,13 @@ const Stats = () => {
   };
 
   const fetchData = async (data: string) => {
-    if (totalGraph === true) {
+    if (userHours === -1) {
+      return;
+    }
+    else if (totalGraph === true) {
       setGraphData(null);
       setTotalGraph(false);
-      resetTimeFrames();
+      // resetTimeFrames();
     } else {
       setTotalGraph(true);
       console.log(timeFrom, timeTo);
@@ -62,11 +72,12 @@ const Stats = () => {
     // console.log(timeTo);
     try {
       const hours = await fetchUserTotalHours(timeFrom, timeTo);
-      const average = await fetchUserAverageHours(timeFrom, timeTo);
-      const ratio = await fetchWorkRatio(timeFrom, timeTo);
+      console.log('hours', hours);
+      // const average = await fetchUserAverageHours(timeFrom, timeTo);
+      // const ratio = await fetchWorkRatio(timeFrom, timeTo);
       // const peak = await fetchUserPeakHours(timeFrom, timeTo);
-      const arrivalDeparture = await fetchUserArrivalAndDeparture(timeFrom, timeTo);
-      const inOffice = await fetchUserInOfficeRate(timeFrom, timeTo);
+      // const arrivalDeparture = await fetchUserArrivalAndDeparture(timeFrom, timeTo);
+      // const inOffice = await fetchUserInOfficeRate(timeFrom, timeTo);
       // console.log('hours', hours);
       // console.log('average', average);
       // console.log('ratio', ratio);
@@ -74,23 +85,61 @@ const Stats = () => {
       // console.log('arrivalDeparture', arrivalDeparture[0]);
       // console.log('inOffice', inOffice);
       setUserHours(hours);
-      setUserAverage(average);
-      setWorkRatio(ratio);
+      // setUserAverage(average);
+      // setWorkRatio(ratio);
       // setPeakHours(peak);
-      setArrival(arrivalDeparture[0]);
-      setDeparture(arrivalDeparture[1]);
-      setInOfficeRate(inOffice);
+      // setArrival(arrivalDeparture[0]);
+      // setDeparture(arrivalDeparture[1]);
+      // setInOfficeRate(inOffice);
     } catch (error) {
       console.error('Error fetching user analytics:', error);
     }
   };
 
+  const hideDatePicker1 = () => {
+    setDatePicker1Visibility(false);
+  };
+
+  const showDatePicker1 = () => {
+    setDatePicker1Visibility(true);
+  };
+
+  const hideDatePicker2 = () => {
+    setDatePicker2Visibility(false);
+  };
+
+  const showDatePicker2 = () => {
+    setDatePicker2Visibility(true);
+  };
+
+  const handleConfirm1 = async (date: Date) => {
+    const selectedDate: string = date.toISOString();
+    console.log('selected', selectedDate);
+    setTimeFrom(selectedDate);
+    hideDatePicker1();
+    setGraphData(null);
+    setTotalGraph(false);
+    await fetchUserAnalytics();
+  };
+
+  const handleConfirm2 = async (date: Date) => {
+    const selectedDate: string = date.toISOString();
+    console.log('selected', selectedDate);
+    setTimeTo(selectedDate);
+    hideDatePicker2();
+    setGraphData(null);
+    setTotalGraph(false);
+    await fetchUserAnalytics();
+  };
+
   const resetTimeFrames = () => {
-    const timeFrom = "1970-01-01T00:00:00.000Z";
-    const timeTo = new Date().toISOString();
-    // console.log(timeTo);
-    setTimeFrom(timeFrom);
-    setTimeTo(timeTo);
+    setTimeFrom("");
+    setTimeTo("");
+  }
+
+  function extractDateFromDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toDateString();
   }
 
   useEffect(() => {
@@ -187,8 +236,56 @@ const Stats = () => {
         <Text style={{
           fontSize: wp('4%'),
           color: isDarkMode ? '#888' : '#555',
-          marginBottom: hp('2%'),
+          marginBottom: hp('1%'),
         }}>Detailed Analytics</Text>
+        <View mb="$2" flexDirection='row' justifyContent='space-around' alignItems='center'>
+          <TouchableOpacity
+            style={{
+              paddingVertical: 7,
+              paddingHorizontal: 14,
+              borderRadius: 8,
+              backgroundColor: '#242424',
+              marginTop: 8,
+              marginBottom: 8,
+              alignItems: 'center'
+            }}
+            onPress={showDatePicker1}
+          >
+            <Text color={textColor}>{timeFrom === "" ? "Select Start Date:" : extractDateFromDate(timeFrom)}</Text>
+          </TouchableOpacity>
+          <Text color={textColor}>to</Text>
+          <TouchableOpacity
+            style={{
+              paddingVertical: 7,
+              paddingHorizontal: 14,
+              borderRadius: 8,
+              backgroundColor: '#242424',
+              marginTop: 8,
+              marginBottom: 8,
+              alignItems: 'center'
+            }}
+            onPress={showDatePicker2}
+          >
+            <Text color={textColor}>{timeTo === "" ? "Select End Date:" : extractDateFromDate(timeTo)}</Text>
+          </TouchableOpacity>
+          <DateTimePickerModal
+            isVisible={isDatePicker1Visible}
+            mode="date"
+            date={timeFrom === "" ? new Date() : new Date(timeFrom)}
+            // display="calendar"
+            onConfirm={handleConfirm1}
+            onCancel={hideDatePicker1}
+          />
+          <DateTimePickerModal
+            isVisible={isDatePicker2Visible}
+            mode="date"
+            date={timeTo === "" ? new Date() : new Date(timeTo)}
+            // display="calendar"
+            onConfirm={handleConfirm2}
+            onCancel={hideDatePicker2}
+          />
+        </View>
+
 
         <View style={{
           backgroundColor: '#101010',
@@ -208,21 +305,21 @@ const Stats = () => {
                 color: 'white',
               }}>Total Hours: </Text>
               {userHours ? (
-                <Text color='white'>{convertToHoursAndMinutes(userHours)}</Text>
+                <Text color='white'>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userHours)}</Text>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
             </View>
-            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
+            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
           </TouchableOpacity>
           <View>
             {totalGraph === true &&
               <>
                 {graphData !== null ? (
-                  <AnalyticsGraph 
-                  data={graphData} 
-                  title='Hours per day Overtime' 
-                  x_axis='Day' />
+                  <AnalyticsGraph
+                    data={graphData}
+                    title='Hours per day Overtime'
+                    x_axis='Day' />
                 ) : (
                   <WaveIndicator color={accentColour} />
                 )

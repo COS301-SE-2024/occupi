@@ -13,7 +13,7 @@ const AnalyticsGraph = ({data,title,x_axis}) => {
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
-    console.log(data);
+    // console.log(data);
     const labels = currentTheme === 'dark' ? "lightgray" : "darkgrey";
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
     useEffect(() => {
@@ -24,10 +24,8 @@ const AnalyticsGraph = ({data,title,x_axis}) => {
         getAccentColour();
       }, []);
 
-    const spacing = data.length;
-    console.log(spacing);
   return (
-    <View my="$2" w="$full" flexDirection='column' alignItems='center' justifyContent='space-around'>
+    <View  my="$2" w="$full" flexDirection='column' alignItems='center' justifyContent='space-around'>
         <Text underline color={currentTheme === 'dark' ? "$white" : "$black"}>{title}</Text>
         <LineChart
           isAnimated
@@ -57,7 +55,7 @@ const AnalyticsGraph = ({data,title,x_axis}) => {
           endFillColor={accentColour}
           startOpacity={0.5}
           endOpacity={0.1}
-          spacing={30}
+          spacing={data.length > 30 ? 30 : data.length*7}
           // rotateLabel
           backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
           // showVerticalLines
