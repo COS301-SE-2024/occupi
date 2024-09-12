@@ -73,6 +73,7 @@ func ResizeImagesAndReturnAsFiles(ctx *gin.Context, appsession *models.AppSessio
 	files := make([]models.File, 0, len(imageWidths)) // Pre-allocate the slice
 
 	for _, width := range imageWidths {
+		// Convert the width to uint
 		widthV := uint(width)
 
 		var newFileName string
