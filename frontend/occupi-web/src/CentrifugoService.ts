@@ -38,12 +38,12 @@ const initCentrifuge = async () => {
       debug: true,
     });
 
-    centrifuge.on("connected", (ctx) => {
+    centrifuge.on("connected", (ctx: unknown) => {
       console.log("Connected to Centrifuge:", ctx);
     });
 
-    centrifuge.on("disconnected", (ctx) => {
-      console.log("Disconnected from Centrifuge:", ctx.reason);
+    centrifuge.on("disconnected", (ctx: unknown) => {
+      console.log("Disconnected from Centrifuge:", ctx);
     });
 
     centrifuge.on("error", (err) => {
