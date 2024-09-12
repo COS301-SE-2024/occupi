@@ -73,11 +73,11 @@ const Stats = () => {
     try {
       const hours = await fetchUserTotalHours(timeFrom, timeTo);
       console.log('hours', hours);
-      // const average = await fetchUserAverageHours(timeFrom, timeTo);
-      // const ratio = await fetchWorkRatio(timeFrom, timeTo);
+      const average = await fetchUserAverageHours(timeFrom, timeTo);
+      const ratio = await fetchWorkRatio(timeFrom, timeTo);
       // const peak = await fetchUserPeakHours(timeFrom, timeTo);
-      // const arrivalDeparture = await fetchUserArrivalAndDeparture(timeFrom, timeTo);
-      // const inOffice = await fetchUserInOfficeRate(timeFrom, timeTo);
+      const arrivalDeparture = await fetchUserArrivalAndDeparture(timeFrom, timeTo);
+      const inOffice = await fetchUserInOfficeRate(timeFrom, timeTo);
       // console.log('hours', hours);
       // console.log('average', average);
       // console.log('ratio', ratio);
@@ -85,12 +85,12 @@ const Stats = () => {
       // console.log('arrivalDeparture', arrivalDeparture[0]);
       // console.log('inOffice', inOffice);
       setUserHours(hours);
-      // setUserAverage(average);
-      // setWorkRatio(ratio);
+      setUserAverage(average);
+      setWorkRatio(ratio);
       // setPeakHours(peak);
-      // setArrival(arrivalDeparture[0]);
-      // setDeparture(arrivalDeparture[1]);
-      // setInOfficeRate(inOffice);
+      setArrival(arrivalDeparture[0]);
+      setDeparture(arrivalDeparture[1]);
+      setInOfficeRate(inOffice);
     } catch (error) {
       console.error('Error fetching user analytics:', error);
     }

@@ -55,7 +55,7 @@ const AnalyticsGraph = ({data,title,x_axis}) => {
           endFillColor={accentColour}
           startOpacity={0.5}
           endOpacity={0.1}
-          spacing={data.length > 30 ? 30 : data.length*7}
+          spacing={data.length > 30 ? 30 : data.length*10}
           // rotateLabel
           backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
           // showVerticalLines
