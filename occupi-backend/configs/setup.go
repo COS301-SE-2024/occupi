@@ -245,7 +245,6 @@ func CreateCentrifugoClient() *gocent.Client {
 	centrifugoAPIKey := GetCentrifugoAPIKey()
 
 	centrifugoAddr := fmt.Sprintf("http://%s:%s/api", centrifugoHost, centrifugoPort)
-
 	// Create a new Centrifugo client
 	client := gocent.New(gocent.Config{
 		Addr: centrifugoAddr,

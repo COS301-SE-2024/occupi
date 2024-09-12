@@ -16,6 +16,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
+	"github.com/ccoveille/go-safecast"
 	"github.com/gin-gonic/gin"
 	"github.com/nfnt/resize"
 	"github.com/sirupsen/logrus"
@@ -73,7 +74,15 @@ func ResizeImagesAndReturnAsFiles(ctx *gin.Context, appsession *models.AppSessio
 	files := make([]models.File, 0, len(imageWidths)) // Pre-allocate the slice
 
 	for _, width := range imageWidths {
-		widthV := uint(width)
+		// Convert the width to uint
+		widthV, err := safecast.ToUint(width)
+		if err != nil {
+			deleteTempFiles(files)
+			captureError(ctx, err)
+			logrus.WithError(err).Error("Failed to convert width to uint")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return nil, err
+		}
 
 		var newFileName string
 
