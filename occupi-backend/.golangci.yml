@@ -34,15 +34,13 @@ linters:
 
 issues:
   exclude:
-    - "G115: integer overflow conversion"
+    - "don't use underscores in Go names"
   exclude-dirs:
     - tests
   exclude-rules:
     - text: "tests/.go"
-    - linters:
+      linters:
         - errcheck
-        - gosec
-      text: G115
       path: internal/mocks/*
     - text: "deprecated"
       linters:
