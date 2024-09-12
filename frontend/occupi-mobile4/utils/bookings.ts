@@ -5,10 +5,18 @@ import { router } from 'expo-router';
 import { BookRoomReq, CancelBookingReq, ViewBookingsReq, ViewRoomsReq } from "@/models/requests";
 import { sendPushNotification } from "./notifications";
 
-export async function fetchUserBookings(): Promise<Booking[]> {
+  export async function fetchUserBookings(orderAsc?: string, orderDes?: string)  {
     let email = await SecureStore.getItemAsync('Email');
+    const body: ViewBookingsReq = {
+      operator: "eq",
+      filter: {
+        email: email,
+      },
+      orderAsc: orderAsc,
+      orderDes: orderDes
+    };
     try {
-      const response = await getUserBookings(email);
+      const response = await getUserBookings(body);
       if (response.status === 200) {
         return response.data;
       } else {
