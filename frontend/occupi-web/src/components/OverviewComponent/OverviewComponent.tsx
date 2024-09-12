@@ -9,57 +9,9 @@ import {
 } from "@components/index";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-  getCentrifugeInstance,
-  connectCentrifuge,
-  disconnectCentrifuge,
-} from "CapacityService";
-import { Centrifuge } from "centrifuge";
-
+import { useCentrifugeCounter } from "CentrifugoService";
 const OverviewComponent = () => {
-  const [counter, setCounter] = useState(0);
-
-  useEffect(() => {
-    let centrifuge: Centrifuge | null = null;
-
-    const init = async () => {
-      centrifuge = new Centrifuge(, {
-        debug: true,
-      });
-      centrifuge.connect();
-    };
-    // Subscribe to the channel
-    const subscription = centrifuge?.newSubscription("occupi-counter");
-
-    subscription?.on("publication", (ctx) => {
-      console.log("Received message:", ctx.data);
-      // Update counter state with the new value received from Centrifugo
-      if (ctx.data && ctx.data.counter !== undefined) {
-        setCounter(ctx.data.counter);
-      }
-    });
-
-    subscription?.on("subscribed", (ctx) => {
-      console.log("Subscribed to channel:", ctx);
-    });
-
-    subscription?.on("error", (err) => {
-      console.error("Subscription error:", err);
-    });
-
-    subscription?.subscribe(); // Activate the subscription
-
-    // Connect to Centrifuge
-    connectCentrifuge();
-
-    // Cleanup function to disconnect Centrifuge when the component unmounts
-    return () => {
-      console.log("Disconnecting Centrifuge");
-      disconnectCentrifuge();
-    };
-  }, []);
-
+  const counter = useCentrifugeCounter();
   return (
     <div className="">
       <Header />

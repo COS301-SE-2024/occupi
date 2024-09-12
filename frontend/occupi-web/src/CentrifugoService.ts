@@ -1,99 +1,120 @@
-// centrifugeSingleton.js
-import { Centrifuge } from "centrifuge";
-import AuthService from "./AuthService"; // Adjust the path as necessary
+import { useState, useEffect, useRef } from "react";
+import { Centrifuge, Subscription, PublicationContext } from "centrifuge";
+import AuthService from "./AuthService"; // Adjust import paths as necessary
+import axios from "axios"; // Assuming axios is used for API calls
 
-let centrifuge = Centrifuge :| null;
-const subscriptions = {}; // Object to track active subscriptions
+let centrifuge: Centrifuge | null = null; // Singleton instance of Centrifuge
+const CENTRIFUGO_URL = "ws://localhost:8001/connection/websocket"; // Adjust the URL to match your Centrifugo server
+const RTC_URL = "/rtc";
+// Helper function to get a cookie value by name
+const getCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? match[2] : null;
+};
 
-// Function to initialize or update Centrifuge with a new token
-const initCentrifuge = async () => {
-  try {
+// Function to fetch or retrieve a valid RTC token
+const fetchToken = async (): Promise<string> => {
+  let token = getCookie("rtc-token");
+
+  if (!token) {
     const response = await AuthService.getToken();
-    const token = response.token;
-
-    if (!centrifuge) {
-      centrifuge = new Centrifuge("ws://localhost:8001/connection/websocket", {
-        token: token,
-        debug: true,
-      });
-
-      // Add connection event listeners
-      centrifuge.on("connected", (ctx) => {
-        console.log("Connected to Centrifuge:", ctx);
-      });
-
-      centrifuge.on("disconnected", (ctx) => {
-        console.log("Disconnected from Centrifuge:", ctx.reason);
-      });
-
-      centrifuge.on("error", (err) => {
-        console.error("Centrifuge error:", err);
-      });
-    } else {
-      centrifuge.setToken(token);
-      centrifuge.connect();
-    }
-  } catch (error) {
-    console.error("Error initializing Centrifuge:", error);
+    token = response; // Assuming the response returns the token directly
+    console.log("Received RTC token:", token);
   }
+
+  if (!token) {
+    throw new Error("Failed to retrieve a valid RTC token");
+  }
+
+  return token;
 };
 
-// Function to get the Centrifuge instance, ensuring only one instance exists
-export const getCentrifugeInstance = () => {
+// Function to initialize Centrifuge
+const initCentrifuge = async () => {
   if (!centrifuge) {
-    initCentrifuge();
-  }
-  return centrifuge;
-};
+    const token = await fetchToken();
+    centrifuge = new Centrifuge(CENTRIFUGO_URL, {
+      token,
+      debug: true,
+    });
 
-// Function to subscribe to a channel with duplicate subscription prevention
-export const subscribeToChannel = (channelName, handlers) => {
-  const centrifuge = getCentrifugeInstance();
+    centrifuge.on("connected", (ctx) => {
+      console.log("Connected to Centrifuge:", ctx);
+    });
 
-  // Check if already subscribed to the channel
-  if (subscriptions[channelName]) {
-    console.warn(`Already subscribed to channel: ${channelName}`);
-    return subscriptions[channelName];
-  }
+    centrifuge.on("disconnected", (ctx) => {
+      console.log("Disconnected from Centrifuge:", ctx.reason);
+    });
 
-  // Create a new subscription
-  const subscription = centrifuge.newSubscription(channelName);
+    centrifuge.on("error", (err) => {
+      console.error("Centrifuge error:", err);
+    });
 
-  // Attach provided event handlers to the subscription
-  if (handlers?.onPublication) {
-    subscription.on("publication", handlers.onPublication);
-  }
-
-  if (handlers?.onSubscribed) {
-    subscription.on("subscribed", handlers.onSubscribed);
-  }
-
-  if (handlers?.onError) {
-    subscription.on("error", handlers.onError);
-  }
-
-  // Store the subscription in the map to prevent duplicate subscriptions
-  subscriptions[channelName] = subscription;
-
-  // Activate the subscription
-  subscription.subscribe();
-  console.log(`Subscribed to channel: ${channelName}`);
-  return subscription;
-};
-
-// Function to explicitly connect Centrifuge
-export const connectCentrifuge = () => {
-  const centrifuge = getCentrifugeInstance();
-  if (centrifuge && centrifuge.state !== "connected") {
     centrifuge.connect();
   }
 };
 
-// Function to explicitly disconnect Centrifuge
-export const disconnectCentrifuge = () => {
+// Function to disconnect Centrifuge
+const disconnectCentrifuge = () => {
   if (centrifuge) {
     centrifuge.disconnect();
+    centrifuge = null; // Reset centrifuge instance
   }
 };
 
-export default initCentrifuge;
+// Function to fetch the latest count from the backend
+const fetchLatestCount = async (): Promise<number> => {
+  try {
+    const response = await axios.get(`${RTC_URL}/current-count`); // Adjust the URL to match your API endpoint
+    console.log(response);
+    return response.data.data; // Assuming the API response has a 'count' field
+  } catch (error) {
+    console.error("Error fetching the latest count:", error);
+    return 0; // Default to 0 if there's an error
+  }
+};
+
+// Custom hook to use Centrifuge for the 'occupi-counter' subscription
+export const useCentrifugeCounter = () => {
+  const [counter, setCounter] = useState<number>(0);
+  const subscriptionRef = useRef<Subscription | null>(null);
+
+  useEffect(() => {
+    // Function to subscribe to the counter channel and fetch the latest count
+    const subscribeToCounter = async () => {
+      await initCentrifuge();
+
+      // Fetch the latest count immediately after connecting
+      const latestCount = await fetchLatestCount();
+      setCounter(latestCount);
+
+      // Only subscribe if not already subscribed
+      if (!subscriptionRef.current && centrifuge) {
+        const subscription = centrifuge.newSubscription("occupi-counter");
+
+        subscription.on("publication", (ctx: PublicationContext) => {
+          // Handle counter updates from the publication context
+          const newCounter = ctx.data.counter;
+          setCounter(newCounter);
+        });
+
+        subscription.subscribe();
+        subscriptionRef.current = subscription; // Store the subscription in the ref
+      }
+    };
+
+    subscribeToCounter();
+
+    // Cleanup function to unsubscribe and disconnect Centrifuge on component unmount
+    return () => {
+      console.log("Cleaning up Centrifuge subscription and connection.");
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe(); // Unsubscribe from the channel
+        subscriptionRef.current = null; // Clear the subscription reference
+      }
+      disconnectCentrifuge(); // Disconnect Centrifuge
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount
+
+  return counter;
+};

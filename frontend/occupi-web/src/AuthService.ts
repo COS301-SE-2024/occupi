@@ -330,10 +330,7 @@ const AuthService = {
   },
   getToken: async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8080/rtc/get-token`,
-        {}
-      );
+      const response = await axios.get(`${RTC_URL}/get-token`, {});
       return response.data.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
