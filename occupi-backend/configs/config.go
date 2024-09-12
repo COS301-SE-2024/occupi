@@ -442,11 +442,11 @@ func GetCentrifugoPort() string {
 }
 
 func GetCentrifugoSecret() string {
-	sc := viper.GetString(CentrifugoSC)
-	if sc == "" {
-		sc = "CENTRIFUGO_SECRET"
+	csc := viper.GetString(CentrifugoSC)
+	if csc == "" {
+		csc = "CENTRIFUGO_SECRET"
 	}
-	return sc
+	return csc
 }
 
 // gets the config license as defined in the config.yaml file
