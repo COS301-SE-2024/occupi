@@ -47,7 +47,7 @@ const ViewBookings = () => {
     const isDarkMode = currentTheme === "dark";
     const [layout, setLayout] = useState("row");
     const [roomData, setRoomData] = useState<Booking[]>();
-    // const [selectedSort, setSelectedSort] = useState("newest");
+    const [selectedSort, setSelectedSort] = useState();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
