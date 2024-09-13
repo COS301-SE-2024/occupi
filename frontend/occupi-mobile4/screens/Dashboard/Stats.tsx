@@ -459,7 +459,7 @@ const Stats = () => {
                   <ComparativelineGraph
                     data={graphArrivalData}
                     data2={graphDepartureData}
-                    title='Hours per day Overtime'
+                    title='Arrival and Departure Times'
                     x_axis='Day' />
                 ) : (
                   <WaveIndicator color={accentColour} />

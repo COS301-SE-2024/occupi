@@ -46,7 +46,10 @@ const ComparativelineGraph = ({ data, data2, title, x_axis }) => {
                 maxValue={10}
                 noOfSections={10}
                 hideRules
+                areaChart
                 animateOnDataChange
+                startFillColor1="red"
+                startFillColor2="blue"
                 animationDuration={1000}
                 onDataChangeAnimationDuration={300}
                 focusEnabled
