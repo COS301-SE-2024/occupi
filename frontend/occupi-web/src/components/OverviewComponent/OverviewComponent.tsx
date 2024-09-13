@@ -9,9 +9,10 @@ import {
 } from "@components/index";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
-import { useCentrifugeCounter } from "CentrifugoService";
+// import { useCentrifugeCounter } from "CentrifugoService";
 const OverviewComponent = () => {
-  const counter = useCentrifugeCounter();
+  // const counter = useCentrifugeCounter();
+  const counter = 0;
   return (
     <div className="">
       <Header />
