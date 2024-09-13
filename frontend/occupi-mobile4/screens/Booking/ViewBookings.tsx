@@ -54,7 +54,7 @@ const ViewBookings = () => {
     useEffect(() => {
         const getRoomData = async () => {
             try {
-                const roomData = await fetchUserBookings();
+                const roomData = await fetchUserBookings(selectedSort);
                 if (roomData) {
                     // console.log(roomData);
                     setRoomData(roomData);
@@ -82,7 +82,7 @@ const ViewBookings = () => {
     const onRefresh = React.useCallback(() => {
         const getRoomData = async () => {
             try {
-                const roomData = await fetchUserBookings();
+                const roomData = await fetchUserBookings(selectedSort);
                 if (roomData) {
                     // console.log(roomData);
                     setRoomData(roomData);
@@ -141,10 +141,10 @@ const ViewBookings = () => {
                             <RNPickerSelect
                                 onValueChange={(value) => setSelectedSort(value)}
                                 items={[
+                                    { label: 'Recent', value: 'Recent' },
                                     { label: 'Oldest', value: 'Oldest' },
-                                    { label: 'Newest', value: 'Newest' },
                                 ]}
-                                placeholder={{ label: 'Latest', value: null }}
+                                placeholder={{ label: 'Recent', value: 'Recent' }}
                                 // backgroundColor={cardBackgroundColor}
                                 style={{
                                     inputIOS: {

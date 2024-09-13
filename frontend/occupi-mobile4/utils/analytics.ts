@@ -18,7 +18,7 @@ export const fetchUserTotalHours = async (timeFrom?: string, timeTo?: string) =>
     const total = await getAnalytics(req, 'user-hours');
     // console.log('totals',total.data[0].overallTotal);
     if (total.data === null) {
-        console.log("returning zero")
+        console.log("returning zero");
         return -1;
     }
     return total.data[0].overallTotal;
@@ -99,10 +99,30 @@ export const fetchUserArrivalAndDeparture = async (timeFrom?: string, timeTo?: s
     if (timeTo !== "") {
         req.timeTo = timeTo;
     }
+
     const total = await getAnalytics(req, 'user-arrival-departure-average');
     console.log('arrival', total.data[0].overallavgArrival);
     console.log('departure', total.data[0].overallavgDeparture);
     return [total.data[0].overallavgArrival, total.data[0].overallavgDeparture];
+}
+
+export const fetchUserArrivalAndDepartureArray = async (timeFrom?: string, timeTo?: string) => {
+    const req: Partial<AnalyticsReq> = {};
+    // console.log(timeFrom);
+
+    if (timeFrom !== "") {
+        req.timeFrom = timeFrom;
+    }
+
+    if (timeTo !== "") {
+        req.timeTo = timeTo;
+    }
+
+    req.limit = 50;
+    const total = await getAnalytics(req, 'user-arrival-departure-average');
+    // console.log('arrival', total.data[0].days);
+    // console.log('departure', total.data[0].days);
+    return total.data[0].days;
 }
 
 export const fetchUserInOfficeRate = async (timeFrom?: string, timeTo?: string) => {
@@ -126,6 +146,12 @@ interface InputObject {
     date: string;
     overallTotal: number;
     totalHours: number;
+}
+
+interface InputObjectArrival {
+    avgArrival: string;
+    avgDeparture: string;
+    weekday: string;
 }
 
 interface OutputObject {
@@ -157,3 +183,41 @@ export const convertData = (data: InputObject[]): OutputObject[] => {
         // return output;
     });
 };
+
+export const convertTimeData = (data: InputObject[]): OutputObject[] => {
+    return data.map((item, index) => {
+        return {
+            value: item.totalHours,
+            label: (index + 1) % 2 === 0 ? formatDate(item.date) : "",
+            dataPointText: convertToHoursAndMinutes(item.totalHours)
+        };
+        // return output;
+    });
+};
+
+export const convertAvgArrival = (data: InputObjectArrival[]): OutputObject[] => {
+    return data.map(item => {
+        const value = timeToFloat(item.avgArrival);
+        return {
+            label: item.weekday,
+            dataPointText: item.avgArrival,
+            value: value
+        };
+    });
+}
+
+export const convertAvgDeparture = (data: InputObjectArrival[]): OutputObject[] => {
+    return data.map(item => {
+        const value = timeToFloat(item.avgDeparture);
+        return {
+            label: item.weekday,
+            dataPointText: item.avgDeparture,
+            value: value
+        };
+    });
+}
+
+function timeToFloat(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours + (minutes / 60);
+}

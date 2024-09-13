@@ -170,10 +170,10 @@ export async function getFormattedPredictionWeekData(date : string) {
         return [];
     }
 
-    console.log(data.map((prediction: ExtractedPrediction) => ({
-        value: prediction.Predicted_Class + 1,
-        label: convertNumToDay(prediction.Day_of_week)
-    })));
+    // console.log(data.map((prediction: ExtractedPrediction) => ({
+    //     value: prediction.Predicted_Class + 1,
+    //     label: convertNumToDay(prediction.Day_of_week)
+    // })));
 
     return data.map((prediction: ExtractedPrediction) => ({
         value: prediction.Predicted_Class + 1,

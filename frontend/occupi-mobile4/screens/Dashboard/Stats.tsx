@@ -13,7 +13,7 @@ import { Text, View, Icon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from 'expo-router';
 import { getAnalytics } from '@/services/analyticsservices';
-import { convertData, fetchUserArrivalAndDeparture, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio } from '@/utils/analytics';
+import { convertAvgArrival, convertAvgDeparture, convertData, fetchUserArrivalAndDeparture, fetchUserArrivalAndDepartureArray, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio } from '@/utils/analytics';
 
 const Stats = () => {
   const navigation = useNavigation();
@@ -36,6 +36,10 @@ const Stats = () => {
   const [timeTo, setTimeTo] = useState<string>("");
   const [totalGraph, setTotalGraph] = useState(false);
   const [graphData, setGraphData] = useState(null);
+  const [timeGraph, setTimeGraph] = useState(false);
+  const [activeGraph, setActiveGraph] = useState("");
+  const [graphArrivalData, setGraphArrivalData] = useState(null);
+  const [graphDepartureData, setGraphDepartureData] = useState(null);
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
@@ -53,18 +57,37 @@ const Stats = () => {
   };
 
   const fetchData = async (data: string) => {
-    if (userHours === -1) {
-      return;
-    }
-    else if (totalGraph === true) {
-      setGraphData(null);
-      setTotalGraph(false);
-      // resetTimeFrames();
-    } else {
-      setTotalGraph(true);
-      console.log(timeFrom, timeTo);
-      const total = await fetchUserTotalHoursArray(timeFrom, timeTo);
-      setGraphData(convertData(total));
+    console.log(data);
+    if (data === "hours") {
+      if (userHours === -1) {
+        return;
+      }
+      else if (activeGraph !== "") {
+        setGraphData(null);
+        setActiveGraph("");
+        // resetTimeFrames();
+      } else {
+        setActiveGraph("hours");
+        console.log(timeFrom, timeTo);
+        const total = await fetchUserTotalHoursArray(timeFrom, timeTo);
+        setGraphData(convertData(total));
+      }
+    } else if (data === "times") {
+      if (userHours === -1) {
+        return;
+      }
+      else if (activeGraph !== "") {
+        setGraphData(null);
+        setActiveGraph("");
+        // resetTimeFrames();
+      } else {
+        setActiveGraph("times");
+        // console.log(timeFrom, timeTo);
+        const total = await fetchUserArrivalAndDepartureArray(timeFrom, timeTo);
+        console.log(convertAvgArrival(total))
+        setGraphArrivalData(convertAvgArrival(total));
+        setGraphDepartureData(convertAvgDeparture(total));
+      }
     }
   }
 
@@ -297,7 +320,7 @@ const Stats = () => {
           justifyContent: 'space-between'
         }}
         >
-          <TouchableOpacity onPress={() => fetchData('total')} style={{ flexDirection: 'row', justifyContent: 'space-between' }} justifyContent='space-between'>
+          <TouchableOpacity onPress={() => fetchData('total')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <View>
               <Text style={{
                 fontSize: wp('5%'),
@@ -310,10 +333,35 @@ const Stats = () => {
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
             </View>
+          </TouchableOpacity>
+        </View>
+        <View style={{
+          backgroundColor: '#101010',
+          borderRadius: wp('4%'),
+          padding: wp('4%'),
+          marginBottom: hp('3%'),
+          borderColor: accentColour,
+          borderWidth: 2,
+          justifyContent: 'space-between'
+        }}
+        >
+          <TouchableOpacity onPress={() => fetchData('hours')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>Average Hours Per Day: </Text>
+              {userHours ? (
+                <Text color='white'>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userAverage)}</Text>
+              ) : (
+                <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
+              )}
+            </View>
             {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
           </TouchableOpacity>
           <View>
-            {totalGraph === true &&
+            {activeGraph === 'hours' &&
               <>
                 {graphData !== null ? (
                   <AnalyticsGraph
@@ -327,31 +375,6 @@ const Stats = () => {
               </>
             }
           </View>
-
-        </View>
-        <View style={{
-          backgroundColor: '#101010',
-          borderRadius: wp('4%'),
-          padding: wp('4%'),
-          marginBottom: hp('3%'),
-          borderColor: accentColour,
-          borderWidth: 2,
-          flexDirection: 'row',
-          justifyContent: 'space-between'
-        }}>
-          <View>
-            <Text style={{
-              fontSize: wp('5%'),
-              fontWeight: 'bold',
-              color: 'white',
-            }}>Average Office Hours: </Text>
-            {userAverage ? (
-              <Text color='white'>{convertToHoursAndMinutes(userAverage)}</Text>
-            ) : (
-              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
-            )}
-          </View>
-          <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
         <View style={{
           backgroundColor: '#101010',
@@ -408,25 +431,41 @@ const Stats = () => {
           marginBottom: hp('3%'),
           borderColor: accentColour,
           borderWidth: 2,
-          flexDirection: 'row',
           justifyContent: 'space-between'
         }}>
+          <TouchableOpacity onPress={() => fetchData('times')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>Arrival and Departure: </Text>
+              {arrival ? (
+                <>
+                  <Text color='white'>Arrival: {arrival}</Text>
+                  <Text color='white'>Departure: {departure}</Text>
+                </>
+              ) : (
+                <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
+              )}
+            </View>
+            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
+          </TouchableOpacity>
           <View>
-            <Text style={{
-              fontSize: wp('5%'),
-              fontWeight: 'bold',
-              color: 'white',
-            }}>Arrival and Departure: </Text>
-            {arrival ? (
+            {activeGraph === 'times' &&
               <>
-                <Text color='white'>Arrival: {arrival}</Text>
-                <Text color='white'>Departure: {departure}</Text>
+                {graphData !== null ? (
+                  <AnalyticsGraph
+                    data={graphData}
+                    title='Hours per day Overtime'
+                    x_axis='Day' />
+                ) : (
+                  <WaveIndicator color={accentColour} />
+                )
+                }
               </>
-            ) : (
-              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
-            )}
+            }
           </View>
-          <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
         <View style={{
           backgroundColor: '#101010',
