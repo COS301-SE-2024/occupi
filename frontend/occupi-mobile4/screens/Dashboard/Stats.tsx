@@ -14,6 +14,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { router } from 'expo-router';
 import { getAnalytics } from '@/services/analyticsservices';
 import { convertAvgArrival, convertAvgDeparture, convertData, fetchUserArrivalAndDeparture, fetchUserArrivalAndDepartureArray, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio } from '@/utils/analytics';
+import ComparativelineGraph from '@/components/ComparativeLineGraph';
 
 const Stats = () => {
   const navigation = useNavigation();
@@ -454,9 +455,10 @@ const Stats = () => {
           <View>
             {activeGraph === 'times' &&
               <>
-                {graphData !== null ? (
-                  <AnalyticsGraph
-                    data={graphData}
+                {graphArrivalData !== null ? (
+                  <ComparativelineGraph
+                    data={graphArrivalData}
+                    data2={graphDepartureData}
                     title='Hours per day Overtime'
                     x_axis='Day' />
                 ) : (
