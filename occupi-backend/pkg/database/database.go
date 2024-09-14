@@ -1848,7 +1848,7 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.Re
 	}
 
 	// filter for all users emails which are in the request.Emails array and have this location in the knownLocations array
-	filter := bson.M{"email": bson.M{"$in": request.Emails}, "knownLocations": location}
+	filter := bson.M{"email": bson.M{"$in": request.Emails}, "knownLocations": bson.M{"$eq": location}}
 
 	update := bson.M{"$pull": bson.M{"knownLocations": location}}
 
