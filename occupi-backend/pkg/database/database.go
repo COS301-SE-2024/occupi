@@ -829,13 +829,10 @@ func FilterCollectionWithProjection(ctx *gin.Context, appsession *models.AppSess
 		return nil, 0, err
 	}
 
-	var results []bson.M
-	if err = cursor.All(ctx, &results); err != nil {
-		return nil, 0, err
-	}
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, filter.Filter)
 
-	totalResults, err := collection.CountDocuments(ctx, filter.Filter)
-	if err != nil {
+	if errv != nil {
+		logrus.Error(err)
 		return nil, 0, err
 	}
 
@@ -1725,63 +1722,47 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email 
 		return nil, 0, errors.New("database is nil")
 	}
 
-	// Prepare the filter based on time range and email if email is not == ""
-	mongoFilter := bson.M{}
-	if email != "" {
-		mongoFilter["email"] = email
-	}
-	if filter.Filter["timeFrom"] != "" {
-		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
-	}
-	if filter.Filter["timeTo"] != "" {
-		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
+	// Prepare the aggregate
+	var pipeline bson.A
+	switch calculate {
+	case "hoursbyday":
+		pipeline = analytics.GroupOfficeHoursByDay(email, filter)
+	case "hoursbyweekday":
+		pipeline = analytics.AverageOfficeHoursByWeekday(email, filter)
+	case "ratio":
+		pipeline = analytics.RatioInOutOfficeByWeekday(email, filter)
+	case "peakhours":
+		pipeline = analytics.BusiestHoursByWeekday(email, filter)
+	case "most":
+		pipeline = analytics.LeastMostInOfficeWorker(email, filter, false)
+	case "least":
+		pipeline = analytics.LeastMostInOfficeWorker(email, filter, true)
+	case "arrivaldeparture":
+		pipeline = analytics.AverageArrivalAndDepartureTimesByWeekday(email, filter)
+	case "inofficehours":
+		pipeline = analytics.CalculateInOfficeRate(email, filter)
+	default:
+		return nil, 0, errors.New("invalid calculate value")
 	}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
 
-	findOptions := options.Find()
-	findOptions.SetLimit(filter.Limit)
-	findOptions.SetSkip(filter.Skip)
-
-	cursor, err := collection.Find(ctx, mongoFilter, findOptions)
+	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		logrus.Error(err)
 		return nil, 0, err
 	}
 
-	var hours []models.OfficeHours
-	if err = cursor.All(ctx, &hours); err != nil {
-		logrus.WithError(err).Error("Failed to get hours")
-		return nil, 0, err
+	mongoFilter := MakeEmailAndTimeFilter(email, filter)
+
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, mongoFilter)
+
+	if errv != nil {
+		logrus.Error(errv)
+		return nil, 0, errv
 	}
 
-	// count documents
-	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
-	if err != nil {
-		logrus.WithError(err).Error("Failed to count documents")
-		return nil, 0, err
-	}
-
-	switch calculate {
-	case "hoursbyday":
-		return analytics.GroupOfficeHoursByDay(hours), totalResults, nil
-	case "hoursbyweekday":
-		return analytics.AverageOfficeHoursByWeekday(hours), totalResults, nil
-	case "ratio":
-		return analytics.RatioInOutOfficeByWeekday(hours), totalResults, nil
-	case "peakhours":
-		return analytics.BusiestHoursByWeekday(hours), totalResults, nil
-	case "most":
-		return analytics.MostInOfficeWorker(hours), 0, nil
-	case "least":
-		return analytics.LeastInOfficeWorker(hours), 0, nil
-	case "arrivaldeparture":
-		return analytics.AverageArrivalAndDepartureTimesByWeekday(hours), 0, nil
-	case "inofficehours":
-		return analytics.CalculateInOfficeRate(hours), 0, nil
-	default:
-		return nil, 0, errors.New("invalid calculation")
-	}
+	return results, totalResults, nil
 }
 
 func CreateUser(ctx *gin.Context, appsession *models.AppSession, user models.UserRequest) error {

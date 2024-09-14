@@ -56,7 +56,9 @@ export const fetchCapacityData = async (): Promise<CapacityData[]> => {
 };
 
 // Additional function to get only the data needed for the CapacityComparisonGraph
-export const getCapacityComparisonData = async (): Promise<Pick<CapacityData, 'day' | 'predicted'>[]> => {
+export const getCapacityComparisonData = async (): Promise<
+  Pick<CapacityData, "day" | "predicted">[]
+> => {
   const fullData = await fetchCapacityData();
   return fullData.map(({ day, predicted }) => ({ day, predicted }));
 };
