@@ -952,6 +952,11 @@ func DownloadRoomImage(ctx *gin.Context, appsession *models.AppSession) {
 		request.Quality = constants.MidRes
 	}
 
+	if request.ID == "null" {
+		request.ID = "emproom.jpg"
+		request.Quality = ""
+	}
+
 	// redirect to the image on azure
 	blobURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), request.ID, request.Quality)
 
