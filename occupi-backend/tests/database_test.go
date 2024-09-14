@@ -8839,3 +8839,81 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 		assert.Equal(t, expected, result, "The filter should contain the email and full time range.")
 	})
 }
+
+func TestCreateUserDB(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Define a valid user for testing
+	validUser := models.UserRequest{
+		Email: "testuser@test.com",
+		Role:  "user",
+	}
+
+	// Test case: Nil database
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.CreateUser(ctx, appsession, validUser)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	// Test case: Invalid role
+	mt.Run("Invalid role", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Define a user with an invalid role
+		invalidRoleUser := models.UserRequest{
+			Email: "testuser@test.com",
+			Role:  "invalid",
+		}
+
+		err := database.CreateUser(ctx, appsession, invalidRoleUser)
+		assert.EqualError(t, err, "invalid role", "Expected error for invalid role")
+
+		// Verify that no MongoDB operations were called
+		mt.ClearMockResponses()
+	})
+
+	// Test case: InsertOne failure
+	mt.Run("InsertOne failure", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate an error when trying to insert a user
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000, // Duplicate key error, for example
+			Message: "insert failed",
+		}))
+
+		err := database.CreateUser(ctx, appsession, validUser)
+		assert.NotNil(t, err, "Expected an error on InsertOne failure")
+		assert.EqualError(t, err, "insert failed", "Expected error for failed insert")
+
+		// Verify that MongoDB InsertOne was called
+		mt.ClearMockResponses()
+	})
+
+	// Test case: User created successfully
+	mt.Run("User created successfully", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate a successful InsertOne operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.CreateUser(ctx, appsession, validUser)
+		assert.NoError(t, err, "Expected no error for successful user creation")
+
+		// Verify that MongoDB InsertOne was called
+		mt.ClearMockResponses()
+	})
+}
