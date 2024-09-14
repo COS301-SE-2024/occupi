@@ -8917,3 +8917,113 @@ func TestCreateUserDB(t *testing.T) {
 		mt.ClearMockResponses()
 	})
 }
+
+func TestAddIP(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode to test
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Valid request for testing
+	request := models.RequestIP{
+		IP:     "127.0.0.1",
+		Emails: []string{"user1@test.com", "user2@test.com"},
+	}
+
+	// Test case: Nil database
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.AddIP(ctx, appsession, request)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+		mt.ClearMockResponses()
+	})
+
+	// Test case: UpdateMany failure
+	mt.Run("UpdateMany failure", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate an error during UpdateMany
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000, // Example error code
+			Message: "update failed",
+		}))
+
+		err := database.AddIP(ctx, appsession, request)
+		assert.NotNil(t, err, "Expected an error on UpdateMany failure")
+		assert.EqualError(t, err, "update failed", "Expected error for failed UpdateMany")
+		mt.ClearMockResponses()
+	})
+
+	// Test case: Successfully added IP location
+	mt.Run("Successfully added IP location", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate a successful UpdateMany operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.AddIP(ctx, appsession, request)
+		assert.NoError(t, err, "Expected no error for successful UpdateMany")
+
+		mt.ClearMockResponses()
+	})
+}
+
+func TestRemoveIP(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode to test
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Valid request for testing
+	request := models.RequestIP{
+		IP:     "127.0.0.1",
+		Emails: []string{"user1@test.com", "user2@test.com"},
+	}
+
+	// Test case: Nil database
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.RemoveIP(ctx, appsession, request)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+		mt.ClearMockResponses()
+	})
+
+	// Test case: UpdateMany failure
+	mt.Run("UpdateMany failure", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate an error during UpdateMany
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000, // Example error code
+			Message: "update failed",
+		}))
+
+		err := database.RemoveIP(ctx, appsession, request)
+		assert.NotNil(t, err, "Expected an error on UpdateMany failure")
+		assert.EqualError(t, err, "update failed", "Expected error for failed UpdateMany")
+		mt.ClearMockResponses()
+	})
+
+	// Test case: Successfully removed IP location
+	mt.Run("Successfully removed IP location", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate a successful UpdateMany operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.RemoveIP(ctx, appsession, request)
+		assert.NoError(t, err, "Expected no error for successful UpdateMany")
+
+		mt.ClearMockResponses()
+	})
+}
