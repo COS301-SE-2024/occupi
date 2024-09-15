@@ -9747,3 +9747,41 @@ func TestSetHasImage(t *testing.T) {
 		assert.EqualError(t, err, "update error")
 	})
 }
+
+func TestCheckIfUserShouldResetPassword(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		res, err := database.CheckIfUserShouldResetPassword(ctx, appsession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res, false, "Expected false")
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("Find error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.CheckIfUserShouldResetPassword(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res, false, "Expected false")
+		assert.EqualError(t, err, "find error")
+	})
+}
