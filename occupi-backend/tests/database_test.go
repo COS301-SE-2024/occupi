@@ -9849,4 +9849,61 @@ func TestCheckIfUserShouldResetPassword(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
+	mt.Run("User should reset password but fail to update state", func(mt *mtest.T) {
+		// insert user for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "resetPassword", Value: true},
+		},
+		)
+
+		mt.AddMockResponses(firstBatch)
+
+		// mock the UpdateOne operation to return an error
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.CheckIfUserShouldResetPassword(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res, false, "Expected 'false'")
+		assert.EqualError(t, err, "update error")
+	})
+
+	mt.Run("User should reset password and update state", func(mt *mtest.T) {
+		// insert user for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "resetPassword", Value: true},
+		},
+		)
+
+		mt.AddMockResponses(firstBatch)
+
+		// mock the UpdateOne operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.CheckIfUserShouldResetPassword(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res, true, "Expected 'false'")
+		assert.Nil(t, err, "update error")
+	})
 }
