@@ -9027,3 +9027,167 @@ func TestRemoveIP(t *testing.T) {
 		mt.ClearMockResponses()
 	})
 }
+
+func TestUserHasImage(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		res := database.UserHasImage(ctx, appsession, "test@example.com")
+
+		// Validate the result
+		assert.False(t, res)
+	})
+
+	mt.Run("User has image set true", func(mt *mtest.T) {
+		// insert user for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "details", Value: bson.D{
+				{Key: "hasImage", Value: true},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res := database.UserHasImage(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.True(t, res)
+	})
+
+	mt.Run("User has image set false", func(mt *mtest.T) {
+		// insert user for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "details", Value: bson.D{
+				{Key: "hasImage", Value: false},
+			},
+			},
+		})
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res := database.UserHasImage(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.False(t, res)
+	})
+
+	mt.Run("User has image set true in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				HasImage: true,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1 := database.UserHasImage(ctx, appSession, "test@example.com")
+		assert.True(t, res1)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("User has image set false in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				HasImage: false,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1 := database.UserHasImage(ctx, appSession, "test@example.com")
+		assert.False(t, res1)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Find returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res := database.UserHasImage(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.False(t, res)
+	})
+}
