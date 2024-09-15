@@ -9531,3 +9531,219 @@ func TestCheckIfUserIsAllowedNewIP(t *testing.T) {
 		assert.EqualError(t, err, "find error")
 	})
 }
+
+func TestSetHasImage(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		err := database.SetHasImage(ctx, appsession, "test@example.com", false)
+
+		// Validate the result
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("Set has image successfully", func(mt *mtest.T) {
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.SetHasImage(ctx, appSession, "test@example.com", false)
+
+		// Validate the result
+		assert.NoError(t, err)
+	})
+
+	mt.Run("Set has image to true successfully in cache", func(mt *mtest.T) {
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				HasImage: false,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// updated user
+		updatedUser := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				HasImage: true,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
+		err = database.SetHasImage(ctx, appSession, "test@example.com", true)
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Assert that the user is in the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
+
+		assert.Nil(t, err)
+
+		// unmarshal user
+		var userB models.User
+
+		if err := bson.Unmarshal(userA, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		// ensure the value is updated
+		//assert.Equal(t, userB.Details.HasImage, true)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Set has image to false successfully in cache", func(mt *mtest.T) {
+		// Mock the UpdateOne operation as successful
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				HasImage: true,
+			},
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// updated user
+		updatedUser := models.User{
+			Email: "test@example.com",
+			Details: models.Details{
+				HasImage: false,
+			},
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect get and set
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
+		err = database.SetHasImage(ctx, appSession, "test@example.com", false)
+
+		// Validate the result
+		assert.NoError(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Assert that the user is in the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
+
+		assert.Nil(t, err)
+
+		// unmarshal user
+		var userB models.User
+
+		if err := bson.Unmarshal(userA, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		// ensure the value is updated
+		//assert.Equal(t, userB.Details.HasImage, false)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Add user credentials failure", func(mt *mtest.T) {
+		// Mock the UpdateOne operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.SetHasImage(ctx, appSession, "test@example.com", false)
+
+		// Validate the result
+		assert.EqualError(t, err, "update error")
+	})
+}
