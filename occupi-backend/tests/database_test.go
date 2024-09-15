@@ -9784,4 +9784,69 @@ func TestCheckIfUserShouldResetPassword(t *testing.T) {
 		assert.Equal(t, res, false, "Expected false")
 		assert.EqualError(t, err, "find error")
 	})
+
+	mt.Run("User should not reset password", func(mt *mtest.T) {
+		// insert user for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "resetPassword", Value: false},
+		},
+		)
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.CheckIfUserShouldResetPassword(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res, false, "Expected 'false'")
+		assert.Nil(t, err, "Expected no error")
+	})
+
+	mt.Run("User should not reset password in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email:         "test@example.com",
+			ResetPassword: false,
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1, err := database.CheckIfUserShouldResetPassword(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res1, false, "Expected 'false'")
+		assert.Nil(t, err, "Expected no error")
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
 }
