@@ -9365,3 +9365,169 @@ func TestGetUsersGender(t *testing.T) {
 		assert.EqualError(t, err, "find error")
 	})
 }
+
+func TestCheckIfUserIsAllowedNewIP(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		res, err := database.CheckIfUserIsAllowedNewIP(ctx, appsession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res, false, "Expected false")
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("User is allowed new ip", func(mt *mtest.T) {
+		// insert user for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "blockAnonymousIPAddress", Value: true},
+		},
+		)
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.CheckIfUserIsAllowedNewIP(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res, true, "Expected 'true'")
+		assert.Nil(t, err, "Expected no error")
+	})
+
+	mt.Run("User is not allowed new ip", func(mt *mtest.T) {
+		// insert user for firstbatch
+		firstBatch := mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: "test@example.com"},
+			{Key: "blockAnonymousIPAddress", Value: false},
+		},
+		)
+
+		mt.AddMockResponses(firstBatch)
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res, err := database.CheckIfUserIsAllowedNewIP(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res, false, "Expected 'false'")
+		assert.Nil(t, err, "Expected no error")
+	})
+
+	mt.Run("User is allowed new ip in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email:                   "test@example.com",
+			BlockAnonymousIPAddress: true,
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1, err := database.CheckIfUserIsAllowedNewIP(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res1, true, "Expected 'true'")
+		assert.Nil(t, err, "Expected no error")
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("User is not allowed new ip in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		user := models.User{
+			Email:                   "test@example.com",
+			BlockAnonymousIPAddress: false,
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Call the function under test
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// Call the function under test
+		res1, err := database.CheckIfUserIsAllowedNewIP(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res1, false, "Expected 'false'")
+		assert.Nil(t, err, "Expected no error")
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Find returns an error", func(mt *mtest.T) {
+		// Add a mock response that simulates a find error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		res1, err := database.CheckIfUserIsAllowedNewIP(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, res1, false, "Expected false")
+		assert.EqualError(t, err, "find error")
+	})
+}
