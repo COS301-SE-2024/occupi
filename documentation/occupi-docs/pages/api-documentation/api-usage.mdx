@@ -1135,3 +1135,17 @@ This endpoint is used to create a user in the Occupi system. Only Admins can cre
   "expoPushToken": "ExponentPushToken[000000000000000000000000]", // optional
   "blockAnonymousIPAddress": false // optional, this blocks this account from adding new login locations
 }
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully created user!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
