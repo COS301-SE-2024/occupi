@@ -23,6 +23,7 @@ const Stats = () => {
   const currentTheme = theme === "system" ? colorScheme : theme;
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
+  const [isLoading, setIsLoading] = useState(false);
   const [summary, setSummary] = useState('');
   const [userHours, setUserHours] = useState<number>();
   const [userAverage, setUserAverage] = useState<number>();
@@ -46,11 +47,6 @@ const Stats = () => {
   const textColor = isDarkMode ? 'white' : 'black';
   const cardBackgroundColor = isDarkMode ? '#101010' : '#F3F3F3';
 
-  useEffect(() => {
-    // resetTimeFrames();
-    fetchUserAnalytics();
-  }, []);
-
   const convertToHoursAndMinutes = (totalHours: number): string => {
     const hours = Math.floor(totalHours);
     const minutes = Math.round((totalHours - hours) * 60);
@@ -58,7 +54,7 @@ const Stats = () => {
   };
 
   const fetchData = async (data: string) => {
-    console.log(data);
+    // console.log(data);
     if (data === "hours") {
       if (userHours === -1) {
         return;
@@ -69,7 +65,7 @@ const Stats = () => {
         // resetTimeFrames();
       } else {
         setActiveGraph("hours");
-        console.log(timeFrom, timeTo);
+        // console.log(timeFrom, timeTo);
         const total = await fetchUserTotalHoursArray(timeFrom, timeTo);
         setGraphData(convertData(total));
       }
@@ -85,23 +81,25 @@ const Stats = () => {
         setActiveGraph("times");
         // console.log(timeFrom, timeTo);
         const total = await fetchUserArrivalAndDepartureArray(timeFrom, timeTo);
-        console.log(convertAvgArrival(total))
+        // console.log(convertAvgArrival(total));
         setGraphArrivalData(convertAvgArrival(total));
         setGraphDepartureData(convertAvgDeparture(total));
       }
     }
   }
 
-  const fetchUserAnalytics = async () => {
+  const fetchUserAnalytics = async (timefrom : string, timeto: string) => {
+
     // console.log(timeTo);
+    setIsLoading(true);
     try {
-      const hours = await fetchUserTotalHours(timeFrom, timeTo);
-      console.log('hours', hours);
-      const average = await fetchUserAverageHours(timeFrom, timeTo);
-      const ratio = await fetchWorkRatio(timeFrom, timeTo);
+      const hours = await fetchUserTotalHours(timefrom, timeto);
+      // console.log('hours', hours);
+      const average = await fetchUserAverageHours(timefrom, timeto);
+      const ratio = await fetchWorkRatio(timefrom, timeto);
       // const peak = await fetchUserPeakHours(timeFrom, timeTo);
-      const arrivalDeparture = await fetchUserArrivalAndDeparture(timeFrom, timeTo);
-      const inOffice = await fetchUserInOfficeRate(timeFrom, timeTo);
+      const arrivalDeparture = await fetchUserArrivalAndDeparture(timefrom, timeto);
+      const inOffice = await fetchUserInOfficeRate(timefrom, timeto);
       // console.log('hours', hours);
       // console.log('average', average);
       // console.log('ratio', ratio);
@@ -115,10 +113,17 @@ const Stats = () => {
       setArrival(arrivalDeparture[0]);
       setDeparture(arrivalDeparture[1]);
       setInOfficeRate(inOffice);
+      setIsLoading(false);
     } catch (error) {
+      setIsLoading(false);
       console.error('Error fetching user analytics:', error);
     }
   };
+
+  useEffect(() => {
+    // resetTimeFrames();
+    fetchUserAnalytics("","");
+  }, []);
 
   const hideDatePicker1 = () => {
     setDatePicker1Visibility(false);
@@ -138,22 +143,22 @@ const Stats = () => {
 
   const handleConfirm1 = async (date: Date) => {
     const selectedDate: string = date.toISOString();
-    console.log('selected', selectedDate);
+    // console.log('selected', selectedDate);
     setTimeFrom(selectedDate);
     hideDatePicker1();
     setGraphData(null);
     setTotalGraph(false);
-    await fetchUserAnalytics();
+    await fetchUserAnalytics(selectedDate, timeTo);
   };
 
   const handleConfirm2 = async (date: Date) => {
     const selectedDate: string = date.toISOString();
-    console.log('selected', selectedDate);
+    // console.log('selected', selectedDate);
     setTimeTo(selectedDate);
     hideDatePicker2();
     setGraphData(null);
     setTotalGraph(false);
-    await fetchUserAnalytics();
+    await fetchUserAnalytics(timeFrom, selectedDate);
   };
 
   const resetTimeFrames = () => {
@@ -328,7 +333,7 @@ const Stats = () => {
                 fontWeight: 'bold',
                 color: 'white',
               }}>Total Hours: </Text>
-              {userHours ? (
+              {!isLoading ? (
                 <Text color='white'>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userHours)}</Text>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
@@ -353,7 +358,7 @@ const Stats = () => {
                 fontWeight: 'bold',
                 color: 'white',
               }}>Average Hours Per Day: </Text>
-              {userHours ? (
+              {!isLoading ? (
                 <Text color='white'>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userAverage)}</Text>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
@@ -393,7 +398,7 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>Work Ratio: </Text>
-            {workRatio ? (
+            {!isLoading ? (
               <Text color='white'>{convertToHoursAndMinutes(workRatio)}</Text>
             ) : (
               <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
@@ -417,7 +422,7 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>Peak Hours:</Text>
-            {peakHours ? (
+            {!isLoading ? (
               <Text color='white'>{convertToHoursAndMinutes(peakHours)}</Text>
             ) : (
               <Text color='white'>No peak hours found</Text>
@@ -439,12 +444,12 @@ const Stats = () => {
               <Text style={{
                 fontSize: wp('5%'),
                 fontWeight: 'bold',
-                color: 'white',
+                color: textColor,
               }}>Arrival and Departure: </Text>
-              {arrival ? (
+              {!isLoading ? (
                 <>
-                  <Text color='white'>Arrival: {arrival}</Text>
-                  <Text color='white'>Departure: {departure}</Text>
+                  <Text color={textColor}>Average Arrival Time: <Text bold color={textColor}>{arrival}</Text></Text>
+                  <Text color={textColor}>Average Departure Time: <Text bold color={textColor}>{departure}</Text></Text>
                 </>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
@@ -485,7 +490,7 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>In Office Rate: </Text>
-            {inOfficeRate ? (
+            {!isLoading ? (
               <Text color='white'>{Math.floor(inOfficeRate)}%</Text>
             ) : (
               <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />

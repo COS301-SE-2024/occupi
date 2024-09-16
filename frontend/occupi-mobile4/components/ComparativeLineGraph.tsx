@@ -30,10 +30,10 @@ const ComparativelineGraph = ({ data, data2, title, x_axis }) => {
             <Text underline color={currentTheme === 'dark' ? "$white" : "$black"}>{title}</Text>
             <View w="$1/2" flexDirection='row' justifyContent='space-between' my={6}>
                 <View flexDirection='row' alignItems='center'>
-                    <FontAwesome name="circle" size={12} color="red" /><Text color={currentTheme === 'dark' ? "white" : "black"}>  arrival</Text>
+                    <FontAwesome name="circle" size={12} color={accentColour} /><Text color={currentTheme === 'dark' ? "white" : "black"}>  arrival</Text>
                 </View>
                 <View flexDirection='row' alignItems='center'>
-                    <FontAwesome name="circle" size={12} color="blue" /><Text color={currentTheme === 'dark' ? "white" : "black"}>  arrival</Text>
+                    <FontAwesome name="circle" size={12} color="red" /><Text color={currentTheme === 'dark' ? "white" : "black"}>  departure</Text>
                 </View>
             </View>
             <LineChart
@@ -41,15 +41,15 @@ const ComparativelineGraph = ({ data, data2, title, x_axis }) => {
                 width={wp('85%')}
                 thickness={3}
                 yAxisOffset={7}
-                color={'red'}
-                color2={'blue'}
+                color={accentColour}
+                color2={'red'}
                 maxValue={10}
                 noOfSections={10}
                 hideRules
                 areaChart
                 animateOnDataChange
-                startFillColor1="red"
-                startFillColor2="blue"
+                startFillColor1={accentColour}
+                startFillColor2="red"
                 animationDuration={1000}
                 onDataChangeAnimationDuration={300}
                 focusEnabled
