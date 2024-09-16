@@ -4,7 +4,7 @@ import AuthService from "./AuthService"; // Adjust import paths as necessary
 import axios from "axios"; // Assuming axios is used for API calls
 
 let centrifuge: Centrifuge | null = null; // Singleton instance of Centrifuge
-const CENTRIFUGO_URL = "ws://localhost:8001/connection/websocket"; // Adjust the URL to match your Centrifugo server
+const CENTRIFUGO_URL = "wss://dev.occupi.tech/connection"; // Adjust the URL to match your Centrifugo server
 const RTC_URL = "/rtc";
 // Helper function to get a cookie value by name
 const getCookie = (name: string): string | null => {
@@ -14,16 +14,29 @@ const getCookie = (name: string): string | null => {
 
 // Function to fetch or retrieve a valid RTC token
 const fetchToken = async (): Promise<string> => {
+  // Try to get the token from cookies
   let token = getCookie("rtc-token");
 
+  // If the token is not found in cookies, fetch it from the AuthService
   if (!token) {
-    const response = await AuthService.getToken();
-    token = response; // Assuming the response returns the token directly
-    console.log("Received RTC token:", token);
-  }
+    console.log("No RTC token found in cookies, fetching a new token...");
+    try {
+      const response = await AuthService.getToken();
+      token = response; // Assuming response directly returns the token
 
-  if (!token) {
-    throw new Error("Failed to retrieve a valid RTC token");
+      // Check if the response is indeed a token and not empty
+      if (token) {
+        console.log("Received RTC token");
+      } else {
+        console.error("AuthService.getToken() returned an empty token");
+        throw new Error("Failed to retrieve a valid RTC token");
+      }
+    } catch (error) {
+      console.error("Error fetching RTC token:", error);
+      throw new Error("Failed to retrieve a valid RTC token");
+    }
+  } else {
+    console.log("RTC token found in cookies:", token);
   }
 
   return token;
