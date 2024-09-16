@@ -178,3 +178,8 @@ type RequestIP struct {
 	IP     string   `json:"ip" binding:"omitempty"`
 	Emails []string `json:"emails" binding:"omitempty"`
 }
+
+type AllowAnonymousIPRequest struct {
+	Emails                  []string `json:"emails" binding:"omitempty"`
+	BlockAnonymousIPAddress bool     `json:"blockAnonymousIPAddress" binding:"omitempty"`
+}
