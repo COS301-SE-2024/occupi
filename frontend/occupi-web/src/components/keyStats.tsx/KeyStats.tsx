@@ -1,129 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardBody, CardHeader, Spinner, Input } from "@nextui-org/react";
-
-interface Stats {
-  inOfficeRate: string;
-  peakHours: string;
-  avgHours: string;
-}
-
-interface ApiResponse {
-  response: string;
-  data: { value: string }[];
-  totalResults: number;
-  totalPages: number;
-  currentPage: number;
-  status: number;
-}
-
-const fetchWithRetry = async (
-  url: string,
-  options: RequestInit = {},
-  retries = 3,
-  backoff = 300
-): Promise<ApiResponse> => {
-  try {
-    const response = await fetch(url, options);
-    if (response.status === 429 && retries > 0) {
-      await new Promise(resolve => setTimeout(resolve, backoff));
-      return fetchWithRetry(url, options, retries - 1, backoff * 2);
-    }
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.json();
-  } catch (error) {
-    if (retries > 0) {
-      await new Promise(resolve => setTimeout(resolve, backoff));
-      return fetchWithRetry(url, options, retries - 1, backoff * 2);
-    }
-    throw error;
-  }
-};
-
-const fetchData = async (email: string, endpoint: string, timeFrom: string, timeTo: string): Promise<ApiResponse> => {
-  const params = new URLSearchParams({
-    email,
-    timeFrom,
-    timeTo,
-    limit: '50',
-    page: '1'
-  });
-
-  return fetchWithRetry(`${endpoint}?${params}`);
-};
+import { Card, CardHeader, CardBody, Spinner } from "@nextui-org/react";
+import * as userStatsService from 'userStatsService';
 
 export default function KeyStats({ email }: { email: string }) {
-  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dateFrom, setDateFrom] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-  const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
+  const [stats, setStats] = useState({
+    averageWeeklyHours: 0,
+    mostLikelyOfficeTime: '',
+    occupancyRating: 0
+  });
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
+      const params = {
+        email: 'kamogelomoeketse@gmail.com',
+        timeFrom: '2024-01-01T00:00:00.000Z',
+        timeTo: '2024-09-11T00:00:00.000Z',
+      };
+
       try {
-        setLoading(true);
-        setError(null);
-        const [inOfficeRate, peakHours, avgHours] = await Promise.all([
-          fetchData(email, '/analytics/user-in-office-rate', dateFrom, dateTo),
-          fetchData(email, '/analytics/user-peak-office-hours', dateFrom, dateTo),
-          fetchData(email, '/analytics/user-average-hours', dateFrom, dateTo)
+        const [userAverageHours, userPeakOfficeHours, userInOfficeRate] = await Promise.all([
+          userStatsService.getUserAverageHours(params),
+          userStatsService.getUserPeakOfficeHours(params),
+          userStatsService.getUserInOfficeRate(params)
         ]);
 
         setStats({
-          inOfficeRate: inOfficeRate.data[0]?.value || 'N/A',
-          peakHours: peakHours.data[0]?.value || 'N/A',
-          avgHours: avgHours.data[0]?.value || 'N/A'
+          averageWeeklyHours: userAverageHours.data[0]?.averageHours || 0,
+          mostLikelyOfficeTime: userPeakOfficeHours.data[0]?.peakHour || 'N/A',
+          occupancyRating: userInOfficeRate.data[0]?.rate || 0
         });
+
+        console.log('User Average Hours:', userAverageHours);
+        console.log('User Peak Office Hours:', userPeakOfficeHours);
+        console.log('User In Office Rate:', userInOfficeRate);
       } catch (err) {
-        setError('Failed to fetch stats. Please try again later.');
-        console.error('Error fetching stats:', err);
+        setError('Failed to fetch user statistics');
+        console.error('Error:', err);
       } finally {
         setLoading(false);
       }
     };
 
     if (email) {
-      fetchStats();
+      fetchData();
     }
-  }, [email, dateFrom, dateTo]);
+  }, [email]);
+
+  if (loading) return <Spinner label="Loading..." />;
+  if (error) return <Card><CardBody >Error: {error}</CardBody></Card>;
 
   return (
-    <Card>
+    <Card className="w-full max-w-sm">
       <CardHeader>
         <h3 className="text-lg font-semibold">Key Stats</h3>
       </CardHeader>
       <CardBody>
-        <div className="flex gap-4 mb-4">
-          <Input
-            type="date"
-            label="From"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-          />
-          <Input
-            type="date"
-            label="To"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-          />
+        <div className="space-y-2">
+          <p>Average Weekly Hours: {stats.averageWeeklyHours.toFixed(1)}</p>
+          <p>Most Likely Office Time: {stats.mostLikelyOfficeTime}</p>
+          <p>Occupancy Rating: {(stats.occupancyRating * 100).toFixed(0)}%</p>
         </div>
-        {loading ? (
-          <div className="flex justify-center items-center h-24">
-            <Spinner />
-          </div>
-        ) : error ? (
-          <div className="text-danger text-center">
-            {error}
-          </div>
-        ) : (
-          <div className="mt-4">
-            <p>In Office Rate: {stats?.inOfficeRate}</p>
-            <p>Peak Office Hours: {stats?.peakHours}</p>
-            <p>Average Hours: {stats?.avgHours}</p>
-          </div>
-        )}
       </CardBody>
     </Card>
   );

@@ -3,7 +3,7 @@ import {
   ChevronRight,
   Grid, Home,
   PieChart, OccupiLogo,
-  Report
+  Report,Bar
 } from "@assets/index";
 import { ProfileDropDown, SideNavBarButton } from "@components/index";
 import { motion } from "framer-motion";
@@ -26,7 +26,7 @@ const sidebarcontent = [
     text: "Dashboard",
   },
   {
-    icon: PieChart,
+    icon: Bar,
     text: "Booking",
   },
   {

@@ -41,7 +41,7 @@ import AboutComponent from "./aboutComponent/AboutComponent";
 import Security from "./securityComponent/Security";
 import EditRoomModal from "./editRoomModal/EditRoomModal";
 import AddRoomModal from "./addRoomModal/AddRoomModal";
-
+import BarChartComponent from "@pages/visitations/BarChartComponent";
 
 
 export {
@@ -87,5 +87,6 @@ export {
     AboutComponent,
     Security,
     EditRoomModal,
-    AddRoomModal
+    AddRoomModal,
+    BarChartComponent
 }
