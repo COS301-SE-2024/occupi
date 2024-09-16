@@ -1259,3 +1259,44 @@ This endpoint is used to delete an IP address from the Occupi system. Only Admin
 - **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
 
 ### Toggle Allow anonymous IP
+
+This endpoint is used to toggle the allow anonymous IP status of a user in the Occupi system. That is whether or not they can add new login locations
+
+- **URL**
+
+  `/api/toggle-allow-anonymous-ip`
+
+- **Method**
+    
+    `PUT`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "emails": ["email 1", "email 2"], // required, these are the emails that will have their status toggled
+  "allowAnonymousIPAddress": true // required, can be true or false
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully toggled allow anonymous IP status!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
