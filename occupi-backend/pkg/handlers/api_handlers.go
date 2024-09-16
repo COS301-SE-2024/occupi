@@ -1447,3 +1447,36 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession) {
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully removed IP!", nil))
 }
+
+func ToggleAllowAnonymousIP(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.AllowAnonymousIPRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// valdidate the emails
+	if !utils.ValidateEmails(request.Emails) || len(request.Emails) == 0 {
+		captureError(ctx, errors.New("one or more of the emails are of invalid format"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "One or more of email addresses are of Invalid format", nil))
+		return
+	}
+
+	// Toggle the allow anonymous IP status
+	err := database.ToggleAllowAnonymousIP(ctx, appsession, request)
+
+	if err != nil {
+		captureError(ctx, err)
+		logrus.Error("Failed to toggle allow anonymous IP because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled allow anonymous IP status!", nil))
+}
