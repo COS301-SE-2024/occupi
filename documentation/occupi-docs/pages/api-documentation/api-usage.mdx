@@ -40,6 +40,7 @@ The API also allows you to retrieve information about these resources.
     - [Get IP information](#GetIPInformation)
     - [Add IP Address](#AddIPAddress)
     - [Remove IP Address](#RemoveIPAddress)
+    - [Toggle Allow Anonymous IP](#ToggleAllowAnonymousIP)
 
 ## Base URL
 
@@ -1149,3 +1150,112 @@ This endpoint is used to create a user in the Occupi system. Only Admins can cre
 - **Code:** 500
 
 - **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Get IP Information
+
+This endpoint is used to get the IP information of this IP address(which is currently your real IP address). Only Admins can get IP information.
+
+- **URL**
+
+  `/api/get-ip-info`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  // your ip address is inferred from the request
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched IP information!", "data": {"ip information"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Add IP Address
+
+This endpoint is used to add an IP address to the Occupi system. Only Admins can add IP addresses.
+
+- **URL**
+
+  `/api/add-ip`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "ip": "10.0.0.4", // required
+  "emails": ["email 1", "email 2"] // required, these are the emails that can use this ip address for logging in
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully added IP address!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Delete IP Address
+
+This endpoint is used to delete an IP address from the Occupi system. Only Admins can delete IP addresses.
+
+- **URL**
+
+  `/api/remove-ip`
+
+- **Method**
+    
+    `DELETE`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "ip": "10.0.0.4", // required
+  "emails": ["email 1", "email 2"] // required, these are the emails that will not be able to use this ip for logging in anymore
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully removed IP address!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Toggle Allow anonymous IP
