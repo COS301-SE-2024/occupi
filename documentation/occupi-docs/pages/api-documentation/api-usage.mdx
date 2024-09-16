@@ -36,6 +36,10 @@ The API also allows you to retrieve information about these resources.
     - [Add Room](#AddRoom)
     - [Available slots](#AvailableSlots)
     - [Toggle on site](#ToggleOnSite)
+    - [Create user](#CreateUser)
+    - [Get IP information](#GetIPInformation)
+    - [Add IP Address](#AddIPAddress)
+    - [Remove IP Address](#RemoveIPAddress)
 
 ## Base URL
 
@@ -1091,3 +1095,43 @@ Just some notes about this endpoint:
 - **Code:** 400
 
 - **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+### Create User
+
+This endpoint is used to create a user in the Occupi system. Only Admins can create users.
+
+- **URL**
+
+  `/api/create-user`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "employee_id": "OCCUPI20240000", // required
+  "password": "password", // required
+  "email": "abcd@example.com", // required
+  "role": "admin", // optional or you can set the role to "basic" but defaults to "basic"
+  "details": {
+    "contactNo": "000 000 0000", // optional
+    "name": "John Doe", // optional
+    "dob": "2002-03-08 00:00:00 +0000 UTC", // optional defaults to current
+    "gender": "Male", // optional
+    "pronouns": "he/him" // optional
+  },
+  "notifications": {
+    "invites": "on", // optional
+    "bookingReminder": "on" // optional
+  },
+  "status": "active", // optional
+  "position": "Software Engineer", // optional
+  "departmentNo": 1, // optional
+  "expoPushToken": "ExponentPushToken[000000000000000000000000]", // optional
+  "blockAnonymousIPAddress": false // optional, this blocks this account from adding new login locations
+}
