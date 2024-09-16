@@ -36,6 +36,11 @@ The API also allows you to retrieve information about these resources.
     - [Add Room](#AddRoom)
     - [Available slots](#AvailableSlots)
     - [Toggle on site](#ToggleOnSite)
+    - [Create user](#CreateUser)
+    - [Get IP information](#GetIPInformation)
+    - [Add IP Address](#AddIPAddress)
+    - [Remove IP Address](#RemoveIPAddress)
+    - [Toggle Allow Anonymous IP](#ToggleAllowAnonymousIP)
 
 ## Base URL
 
@@ -872,6 +877,8 @@ or
 ```
 
 **the id is the id of the image which you will get when you get a room and is required for all requests on this endpoint**
+**alternatively, if the id is not known, you pass null and the system will return the default image**
+**eg /api/image/null?quality=mid**
 
 **Success Response**
 
@@ -1089,3 +1096,207 @@ Just some notes about this endpoint:
 - **Code:** 400
 
 - **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+### Create User
+
+This endpoint is used to create a user in the Occupi system. Only Admins can create users.
+
+- **URL**
+
+  `/api/create-user`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "employee_id": "OCCUPI20240000", // required
+  "password": "password", // required
+  "email": "abcd@example.com", // required
+  "role": "admin", // optional or you can set the role to "basic" but defaults to "basic"
+  "details": {
+    "contactNo": "000 000 0000", // optional
+    "name": "John Doe", // optional
+    "dob": "2002-03-08 00:00:00 +0000 UTC", // optional defaults to current
+    "gender": "Male", // optional
+    "pronouns": "he/him" // optional
+  },
+  "notifications": {
+    "invites": "on", // optional
+    "bookingReminder": "on" // optional
+  },
+  "status": "active", // optional
+  "position": "Software Engineer", // optional
+  "departmentNo": 1, // optional
+  "expoPushToken": "ExponentPushToken[000000000000000000000000]", // optional
+  "blockAnonymousIPAddress": false // optional, this blocks this account from adding new login locations
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully created user!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Get IP Information
+
+This endpoint is used to get the IP information of this IP address(which is currently your real IP address). Only Admins can get IP information.
+
+- **URL**
+
+  `/api/get-ip-info`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  // your ip address is inferred from the request
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched IP information!", "data": {"ip information"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Add IP Address
+
+This endpoint is used to add an IP address to the Occupi system. Only Admins can add IP addresses.
+
+- **URL**
+
+  `/api/add-ip`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "ip": "10.0.0.4", // required
+  "emails": ["email 1", "email 2"] // required, these are the emails that can use this ip address for logging in
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully added IP address!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Delete IP Address
+
+This endpoint is used to delete an IP address from the Occupi system. Only Admins can delete IP addresses.
+
+- **URL**
+
+  `/api/remove-ip`
+
+- **Method**
+    
+    `DELETE`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "ip": "10.0.0.4", // required
+  "emails": ["email 1", "email 2"] // required, these are the emails that will not be able to use this ip for logging in anymore
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully removed IP address!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Toggle Allow anonymous IP
+
+This endpoint is used to toggle the allow anonymous IP status of a user in the Occupi system. That is whether or not they can add new login locations
+
+- **URL**
+
+  `/api/toggle-allow-anonymous-ip`
+
+- **Method**
+    
+    `PUT`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "emails": ["email 1", "email 2"], // required, these are the emails that will have their status toggled
+  "allowAnonymousIPAddress": true // required, can be true or false
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully toggled allow anonymous IP status!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+

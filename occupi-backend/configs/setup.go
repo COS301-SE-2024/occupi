@@ -140,9 +140,10 @@ func GetIPInfo(ip string, client *ipinfo.Client) (*ipinfo.Core, error) {
 	// check if run mode is test mode
 	if GetGinRunMode() == "test" {
 		return &ipinfo.Core{
-			City:    "Cape Town",
-			Region:  "Western Cape",
-			Country: "South Africa",
+			City:     "Cape Town",
+			Region:   "Western Cape",
+			Country:  "South Africa",
+			Location: "-33.9258,18.4232",
 		}, nil
 	}
 

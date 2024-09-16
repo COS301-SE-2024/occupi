@@ -793,6 +793,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// remove @ from email
+	email := requestEmail.Email
 	requestEmail.Email = strings.ReplaceAll(requestEmail.Email, "@", "")
 
 	imageIds := []string{requestEmail.Email + constants.ThumbnailRes, requestEmail.Email + constants.LowRes, requestEmail.Email + constants.MidRes, requestEmail.Email + constants.HighRes}
@@ -810,6 +811,13 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 
 	// upload image associated with this email
 	if err := MultiUploadImages(ctx, appsession, configs.GetAzurePFPContainerName(), files); err != nil {
+		return
+	}
+
+	// update has image field in the database
+	if err := database.SetHasImage(ctx, appsession, email, false); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -838,7 +846,30 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 			request.Email = email
 		}
 		request.Quality = quality
+	}
 
+	if hasImage := database.UserHasImage(ctx, appsession, request.Email); !hasImage {
+		gender, err := database.GetUsersGender(ctx, appsession, request.Email)
+
+		if err != nil {
+			captureError(ctx, err)
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return
+		}
+
+		var blobURL string
+
+		switch gender {
+		case "Male":
+			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultMalePFP())
+		case "Female":
+			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultMalePFP())
+		default:
+			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultNBPFP())
+		}
+
+		http.Redirect(ctx.Writer, ctx.Request, blobURL, http.StatusSeeOther)
+		return
 	}
 
 	if request.Quality != "" && request.Quality != constants.ThumbnailRes && request.Quality != constants.LowRes && request.Quality != constants.MidRes && request.Quality != constants.HighRes {
@@ -879,12 +910,20 @@ func DeleteProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// remove @ from email
+	email := request.Email
 	request.Email = strings.ReplaceAll(request.Email, "@", "")
 
 	imageIds := []string{request.Email + constants.ThumbnailRes, request.Email + constants.LowRes, request.Email + constants.MidRes, request.Email + constants.HighRes}
 
 	// del user image if it exists
 	if err := MultiDeleteImages(ctx, appsession, configs.GetAzurePFPContainerName(), imageIds); err != nil {
+		return
+	}
+
+	// update has image field in the database
+	if err := database.SetHasImage(ctx, appsession, email, false); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -912,6 +951,11 @@ func DownloadRoomImage(ctx *gin.Context, appsession *models.AppSession) {
 		request.Quality = constants.MidRes
 	} else if request.Quality == "" {
 		request.Quality = constants.MidRes
+	}
+
+	if request.ID == "null" {
+		request.ID = "emproom.jpg"
+		request.Quality = ""
 	}
 
 	// redirect to the image on azure
@@ -1251,4 +1295,189 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "Successfully fetched user analytics! Note that all analytics are measured in hours.", userHours,
 		gin.H{"totalResults": len(userHours), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
 
+}
+
+func CreateUser(ctx *gin.Context, appsession *models.AppSession) {
+	var user models.UserRequest
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// if employee id is not set, generate a random one
+	if user.EmployeeID == "" {
+		user.EmployeeID = utils.GenerateEmployeeID()
+	}
+
+	// check email does not exist
+	if exists := database.EmailExists(ctx, appsession, user.Email); exists {
+		captureError(ctx, errors.New("email already exists"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Email already exists",
+			constants.InvalidRequestPayloadCode,
+			"Email already exists",
+			nil))
+		return
+	}
+
+	// hash the password
+	hashedPassword, err := utils.Argon2IDHash(user.Password)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	user.Password = hashedPassword
+
+	// Create the user in the database
+	errv := database.CreateUser(ctx, appsession, user)
+	if errv != nil {
+		captureError(ctx, errv)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to create user",
+			constants.InternalServerErrorCode,
+			"Failed to create user",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully created user!", nil))
+}
+
+func GetIPInfo(ctx *gin.Context, appsession *models.AppSession) {
+	ipAddress := ctx.ClientIP()
+	info, err := configs.GetIPInfo(ipAddress, appsession.IPInfo)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched IP information!", info))
+}
+
+func AddIP(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestIP
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// validate the IP
+	if !utils.ValidateIP(request.IP) {
+		captureError(ctx, errors.New("invalid IP address"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid IP address",
+			nil))
+		return
+	}
+
+	// valdidate the emails
+	if !utils.ValidateEmails(request.Emails) || len(request.Emails) == 0 {
+		captureError(ctx, errors.New("one or more of the emails are of invalid format"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "One or more of email addresses are of Invalid format", nil))
+		return
+	}
+
+	// Add the IP to the database
+	err := database.AddIP(ctx, appsession, request)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to add IP",
+			constants.InternalServerErrorCode,
+			"Failed to add IP",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully added IP!", nil))
+}
+
+func RemoveIP(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestIP
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// valdidate the emails
+	if !utils.ValidateEmails(request.Emails) || len(request.Emails) == 0 {
+		captureError(ctx, errors.New("one or more of the emails are of invalid format"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "One or more of email addresses are of Invalid format", nil))
+		return
+	}
+
+	// Remove the IP from the database
+	err := database.RemoveIP(ctx, appsession, request)
+	if err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
+			http.StatusInternalServerError,
+			"Failed to remove IP",
+			constants.InternalServerErrorCode,
+			"Failed to remove IP",
+			nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully removed IP!", nil))
+}
+
+func ToggleAllowAnonymousIP(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.AllowAnonymousIPRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		captureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// valdidate the emails
+	if !utils.ValidateEmails(request.Emails) || len(request.Emails) == 0 {
+		captureError(ctx, errors.New("one or more of the emails are of invalid format"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "One or more of email addresses are of Invalid format", nil))
+		return
+	}
+
+	// Toggle the allow anonymous IP status
+	err := database.ToggleAllowAnonymousIP(ctx, appsession, request)
+
+	if err != nil {
+		captureError(ctx, err)
+		logrus.Error("Failed to toggle allow anonymous IP because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled allow anonymous IP status!", nil))
 }
