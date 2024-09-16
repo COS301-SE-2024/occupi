@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from "react";
 import {
   Modal,
   ModalContent,
@@ -7,17 +7,19 @@ import {
   ModalFooter,
   Button,
   useDisclosure,
+  Accordion,
+  AccordionItem,
 } from "@nextui-org/react";
 import { EyeIcon } from "@assets/index";
-import {
-  WeeklyAttendanceChart,
-  OfficePresent,
-  OccupancyRatingChart,
-  KeyStats,
-  ProfileComponent
-} from "@components/index";
-import UserHoursChart from '@components/userStats/UserHoursChart';
-
+import { ProfileComponent } from "@components/index";
+import UserStatsComponent from "@pages/visitations/Visitations";
+import UserHoursCharts from "@pages/visitations/userHoursCharts";
+import UserWorkRatioChart from "@pages/visitations/UserWorkRatioChart";
+import UserPeakOfficeHoursChart from "@pages/visitations/UserPeakOfficeHoursChart";
+import AvgArrDep from "@pages/visitations/AvgArrDep";
+import { motion } from "framer-motion";
+import * as userStatsService from 'userStatsService';
+import { AI_loader } from "@assets/index";
 interface User {
   id: string;
   name: string;
@@ -29,55 +31,92 @@ interface User {
   avatar: string;
 }
 
-interface Booking {
-  id: string;
-  floor: string;
-  date: string;
-  // Add other relevant fields
-}
-
 interface OccupancyModalProps {
   user: User;
 }
 
 export default function OccupancyModal({ user }: OccupancyModalProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [openItems, setOpenItems] = useState<string[]>([]);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const fetchBookings = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const queryString = `operator=eq&filter[email]=${encodeURIComponent(user.email)}&limit=50&page=1`;
-
-      const response = await fetch(`/api/view-bookings?${queryString}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch bookings');
-      }
-
-      const data = await response.json();
-      setBookings(data.data);
-    } catch (err) {
-      setError('Error fetching bookings. Please try again.');
-      console.error('Error fetching bookings:', err);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleToggle = (key: string) => {
+    setOpenItems((prevOpenItems) =>
+      prevOpenItems.includes(key)
+        ? prevOpenItems.filter((item) => item !== key)
+        : [...prevOpenItems, key]
+    );
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchBookings();
+  const accordionVariants = {
+    hidden: { height: 0, opacity: 0 },
+    visible: { height: "auto", opacity: 1 },
+  };
+
+  const generateReport = async () => {
+    setIsDownloading(true);
+    try {
+      const params = {
+        email: user.email,
+        timeFrom: '2024-01-01T00:00:00.000Z',
+        timeTo: '2024-09-11T00:00:00.000Z',
+      };
+
+      const [userHours, userWorkRatio, userArrivalDepartureAverage, userPeakOfficeHours] = await Promise.all([
+        userStatsService.getUserHours(params),
+        userStatsService.getUserWorkRatio(params),
+        userStatsService.getUserArrivalDepartureAverage(params),
+        userStatsService.getUserPeakOfficeHours(params),
+      ]);
+
+      const reportData = {
+        userName: user.name,
+        userEmail: user.email,
+        dailyHours: userHours.data,
+        workRatio: userWorkRatio.data[0],
+        arrivalDeparture: userArrivalDepartureAverage.data[0],
+        peakHours: userPeakOfficeHours.data[0],
+      };
+
+      const reportContent = `
+User Statistics Report for ${reportData.userName} (${reportData.userEmail})
+
+1. Work Ratio: ${reportData.workRatio.ratio.toFixed(2)}
+
+2. Average Arrival and Departure Times:
+   Overall Average Arrival: ${reportData.arrivalDeparture.overallavgArrival}
+   Overall Average Departure: ${reportData.arrivalDeparture.overallavgDeparture}
+
+3. Daily Hours Summary:
+${reportData.dailyHours.map(day => `   ${day.date}: ${day.totalHours.toFixed(2)} hours`).join('\n')}
+
+4. Peak Office Hours:
+${reportData.peakHours.days.map((day: { weekday: any; hours: any[]; }) => `   ${day.weekday}: ${day.hours.join(', ')}`).join('\n')}
+
+5. Work Ratio by Day:
+${reportData.workRatio.days.map((day: { weekday: any; ratio: number; }) => `   ${day.weekday}: ${day.ratio.toFixed(2)}`).join('\n')}
+
+6. Arrival and Departure Times by Day:
+${reportData.arrivalDeparture.days.map((day: { weekday: any; avgArrival: any; avgDeparture: any; }) => `   ${day.weekday}: Arrival - ${day.avgArrival}, Departure - ${day.avgDeparture}`).join('\n')}
+      `;
+
+      const blob = new Blob([reportContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${user.name}_stats_report.txt`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating report:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsDownloading(false);
     }
-  }, [isOpen]);
+  };
 
   return (
     <>
@@ -99,53 +138,97 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
               </ModalHeader>
               <ModalBody className="text-text_col">
                 <div className="flex flex-col gap-6">
-                  {/* User Profile and Key Stats Section */}
-                  <div className="border flex justify-between items-start bg-secondary p-4 rounded-lg">
-                    <ProfileComponent 
+                  <div className="border flex items-center justify-between bg-secondary px-12 py-4 rounded-lg">
+                    <ProfileComponent
                       profileImage={user.avatar}
                       email={user.email}
                       name={user.name}
                       officeStatus={user.status.toLowerCase() as "onsite" | "offsite" | "booked"}
                     />
-                    <KeyStats email={user.email} />
+                    <UserStatsComponent email={user.email} />
+                  
+
                   </div>
 
-                  {/* Charts Section */}
-                  {/* <div className="grid grid-cols-2 gap-6">
-                    <div className="border bg-secondary p-4 rounded-lg shadow">
-                      <WeeklyAttendanceChart />
-                    </div>
-                    <div className="border bg-secondary p-4 rounded-lg shadow">
-                      <OfficePresent />
-                    </div>
-                    <div className="border bg-secondary p-4 rounded-lg shadow col-span-2">
-                      <OccupancyRatingChart />
-                    </div>
-                  </div> */}
-
-                  {/* Bookings Section */}
-                  <div className="border bg-secondary p-4 rounded-lg shadow">
-                    <h3 className="text-lg font-semibold mb-4">Recent Bookings</h3>
-                    {isLoading ? (
-                      <p>Loading bookings...</p>
-                    ) : error ? (
-                      <p className="text-red-500">{error}</p>
-                    ) : bookings.length > 0 ? (
-                      <ul className="space-y-2">
-                        {bookings.map((booking) => (
-                          <li key={booking.id} className="flex justify-between items-center">
-                            <span>Floor: {booking.floor}</span>
-                            <span>Date: {new Date(booking.date).toLocaleDateString()}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p>No recent bookings found.</p>
-                    )}
-                  </div>
+                  <Accordion>
+                    <AccordionItem
+                      key="1"
+                      aria-label="User Hours Chart"
+                      title="User Hours Chart"
+                      onClick={() => handleToggle("1")}
+                    >
+                      {openItems.includes("1") && (
+                        <motion.div
+                          className="border bg-secondary p-4 rounded-lg"
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                          variants={accordionVariants}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <UserHoursCharts email={user.email} />
+                        </motion.div>
+                      )}
+                    </AccordionItem>
+                    <AccordionItem
+                      key="2"
+                      aria-label="Work Ratio Chart"
+                      title="Work Ratio Chart"
+                      onClick={() => handleToggle("2")}
+                    >
+                      {openItems.includes("2") && (
+                        <motion.div
+                          className="border bg-secondary p-4 rounded-lg"
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                          variants={accordionVariants}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <UserWorkRatioChart email={user.email} />
+                        </motion.div>
+                      )}
+                    </AccordionItem>
+                    <AccordionItem
+                      key="3"
+                      aria-label="Average Arrival and Departure"
+                      title="Average Arrival and Departure"
+                      onClick={() => handleToggle("3")}
+                    >
+                      {openItems.includes("3") && (
+                        <motion.div
+                          className="border bg-secondary p-4 rounded-lg"
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                          variants={accordionVariants}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <AvgArrDep email={user.email} />
+                        </motion.div>
+                      )}
+                    </AccordionItem>
+                    <AccordionItem
+                      key="4"
+                      aria-label="Peak Office Hours Chart"
+                      title="Peak Office Hours Chart"
+                      onClick={() => handleToggle("4")}
+                    >
+                      {openItems.includes("4") && (
+                        <motion.div
+                          className="border bg-secondary p-4 rounded-lg"
+                          initial="hidden"
+                          animate="visible"
+                          exit="hidden"
+                          variants={accordionVariants}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <UserPeakOfficeHoursChart email={user.email} />
+                        </motion.div>
+                      )}
+                    </AccordionItem>
+                  </Accordion>
                 </div>
-
-                <UserHoursChart email={user.email} />
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
@@ -153,9 +236,10 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                 </Button>
                 <Button
                   className="text-text_col_alt bg-secondary_alt"
-                  onPress={onClose}
+                  onPress={generateReport}
+                  isLoading={isDownloading}
                 >
-                  Download Report
+                  {isDownloading ? 'Generating Report...' : 'Download Report'}
                 </Button>
               </ModalFooter>
             </>

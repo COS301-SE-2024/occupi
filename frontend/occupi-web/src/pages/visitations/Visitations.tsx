@@ -1,65 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Box } from '@react-three/drei';
+import { Button, Card, CardBody, CardHeader, Spinner } from '@nextui-org/react';
+import {
+  getHours,
+  getAverageHours,
+  getWorkRatio,
+  getPeakOfficeHours,
+  getArrivalDepartureAverage,
+  getInOfficeRate
+} from 'WorkerStatsService'; // Assuming the previous code is in this file
 
-interface Floor {
-  capacity: number;
-  maxCapacity: number;
-}
+const AnalyticsConsole = () => {
+  const [loading, setLoading] = useState(false);
 
-const Building: React.FC = () => {
-  const [floors, setFloors] = useState<Floor[]>([
-    { capacity: 0, maxCapacity: 50 },
-    { capacity: 0, maxCapacity: 40 },
-    { capacity: 0, maxCapacity: 30 },
-    { capacity: 0, maxCapacity: 20 },
-    { capacity: 0, maxCapacity: 10 },
-  ]);
+  const fetchAllAnalytics = async () => {
+    setLoading(true);
+    const params = {
+      // timeFrom: '2024-01-01',
+      // timeTo: '2024-12-31',
+      // limit: 10,
+      // page: 1
+    };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFloors(prevFloors =>
-        prevFloors.map(floor => ({
-          ...floor,
-          capacity: Math.floor(Math.random() * (floor.maxCapacity + 1))
-        }))
-      );
-    }, 2000);
+    try {
+      const hours = await getHours(params);
+      console.log('Hours:', hours);
 
-    return () => clearInterval(interval);
-  }, []);
+      const averageHours = await getAverageHours(params);
+      console.log('Average Hours:', averageHours);
 
-  const getColor = (capacity: number, maxCapacity: number) => {
-    const ratio = capacity / maxCapacity;
-    if (ratio < 0.3) return 'green';
-    if (ratio < 0.7) return 'yellow';
-    return 'red';
+      const workRatio = await getWorkRatio(params);
+      console.log('Work Ratio:', workRatio);
+
+      const peakOfficeHours = await getPeakOfficeHours(params);
+      console.log('Peak Office Hours:', peakOfficeHours);
+
+      const arrivalDepartureAverage = await getArrivalDepartureAverage(params);
+      console.log('Arrival Departure Average:', arrivalDepartureAverage);
+
+      // const inOfficeRate = await getInOfficeRate(params);
+      // console.log('In Office Rate:', inOfficeRate);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchAllAnalytics();
+  }, []);
+
   return (
-    <Canvas camera={{ position: [10, 10, 10], fov: 60 }}>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
-      <OrbitControls />
-      {floors.map((floor, index) => (
-        <Box
-          key={index}
-          position={[0, index * 1.2, 0]}
-          args={[3, 1, 2]}
+    <Card className="max-w-md mx-auto">
+      <CardHeader className="flex justify-center">
+        <h4 className="text-2xl font-bold">Analytics Console</h4>
+      </CardHeader>
+      <CardBody className="items-center">
+        <p className="mb-4">Check the console for analytics data.</p>
+        <Button 
+          color="primary" 
+          onClick={fetchAllAnalytics} 
+          disabled={loading}
         >
-          <meshStandardMaterial color={getColor(floor.capacity, floor.maxCapacity)} />
-        </Box>
-      ))}
-    </Canvas>
+          {loading ? (
+            <Spinner color="current" size="sm" />
+          ) : (
+            'Refresh Analytics'
+          )}
+        </Button>
+      </CardBody>
+    </Card>
   );
 };
 
-export default function OfficeHeatmap() {
-  return (
-    <div style={{ width: '100%', height: '400px' }}>
-      <Canvas>
-        <Building />
-      </Canvas>
-    </div>
-  );
-}
+export default AnalyticsConsole;
