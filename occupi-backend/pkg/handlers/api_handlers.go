@@ -849,21 +849,22 @@ func DownloadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	if hasImage := database.UserHasImage(ctx, appsession, request.Email); !hasImage {
-		gender, error := database.GetUsersGender(ctx, appsession, request.Email)
+		gender, err := database.GetUsersGender(ctx, appsession, request.Email)
 
-		if error != nil {
-			captureError(ctx, error)
+		if err != nil {
+			captureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return
 		}
 
 		var blobURL string
 
-		if gender == "Male" {
+		switch gender {
+		case "Male":
 			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultMalePFP())
-		} else if gender == "Female" {
+		case "Female":
 			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultMalePFP())
-		} else {
+		default:
 			blobURL = fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", configs.GetAzureAccountName(), configs.GetAzurePFPContainerName(), DefaultNBPFP())
 		}
 

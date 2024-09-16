@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	rd "math/rand"
+	"math/big"
 	"os"
 	"reflect"
 	"regexp"
@@ -650,7 +650,27 @@ func Contains(s []string, e string) bool {
 }
 
 func RandomInt(min, max int) int {
-	return min + rd.Intn(max-min)
+	// if min is greater than max, swap the values
+	if min > max {
+		min, max = max, min
+	}
+
+	// if min is equal to max, return min
+	if min == max {
+		return min
+	}
+
+	// Calculate the range size (max - min + 1)
+	n := max - min + 1
+
+	// Generate a random number in the range [0, n)
+	randNum, err := rand.Int(rand.Reader, big.NewInt(int64(n)))
+	if err != nil {
+		return 0
+	}
+
+	// Add min to shift the number to the correct range [min, max]
+	return int(randNum.Int64()) + min
 }
 
 func ValidateIP(ip string) bool {
