@@ -2015,3 +2015,37 @@ func CheckIfUserShouldResetPassword(ctx *gin.Context, appsession *models.AppSess
 
 	return true, nil
 }
+
+func ToggleAllowAnonymousIP(ctx *gin.Context, appsession *models.AppSession, request models.AllowAnonymousIPRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// filter for all users emails which are in the request.Emails array
+	filter := bson.M{"email": bson.M{"$in": request.Emails}}
+
+	update := bson.M{"$set": bson.M{"blockAnonymousIPAddress": request.BlockAnonymousIPAddress}}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// fetch the emails in cache and update the blockAnonymousIPAddress field
+	for _, email := range request.Emails {
+		userData, cacheErr := cache.GetUser(appsession, email)
+		if cacheErr != nil {
+			continue
+		}
+
+		userData.BlockAnonymousIPAddress = request.BlockAnonymousIPAddress
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
+}
