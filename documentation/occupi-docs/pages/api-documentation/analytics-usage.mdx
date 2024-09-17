@@ -24,6 +24,9 @@ all the users in the office space.
         - [Workers peak office hours](#workers-peak-office-hours)
         - [Workers arrival departure average](#workers-arival-departure-average)
         - [Workers in office rate](#workers-in-office-rate)
+        - [Top Bookings](#top-bookings)
+        - [Bookings historical](#bookings-historical)
+        - [Bookings current](#bookings-current)
 
 ## Base URL
 
@@ -809,3 +812,174 @@ The workers in office rate endpoint is used to get the in office rate of all the
         "status": 500,
     }
     ```
+
+### Top Bookings
+
+The top bookings endpoint is used to get the top 3 bookings in the office space.
+
+- **URL**
+
+  `/analytics/top-bookings`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "creator": "abcd@gmail", // this is optional
+        "attendees": ["abcd@gmail", "efgh@gmail.com"], // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50 bookings to select
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/top-bookings?creator=abcd@gmail&attendees=abcd@gmail,egfh@gmail.com&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched top bookings!",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+    
+        - **Code:** 500
+        - **Content:** 
+        ```json
+        {
+            "error": "Failed to fetch top bookings!",
+            "status": 500,
+        }
+        ```
+
+### Bookings historical
+
+The bookings historical endpoint is used to get the historical bookings in the office space.
+
+- **URL**
+
+  `/analytics/bookings-historical`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "creator": "abcd@gmail", // this is optional
+        "attendees": ["abcd@gmail", "efgh@gmail.com"], // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50 bookings to select
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/bookings-historical?creator=abcd@gmail&attendees=abcd@gmail,egfh@gmail.com&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched historical bookings!",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+    
+        - **Code:** 500
+        - **Content:** 
+        ```json
+        {
+            "error": "Failed to fetch historical bookings!",
+            "status": 500,
+        }
+        ```
+
+### Bookings current
+
+The bookings current endpoint is used to get the current bookings in the office space.
+
+- **URL**
+
+  `/analytics/bookings-current`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "creator": "abcd@gmail", // this is optional
+        "attendees": ["abcd@gmail", "efgh@gmail.com"], // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50 bookings to select
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/bookings-current?creator=abcd@gmail&attendees=abcd@gmail,egfh@gmail.com&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched current bookings!",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+    
+        - **Code:** 500
+        - **Content:** 
+        ```json
+        {
+            "error": "Failed to fetch current bookings!",
+            "status": 500,
+        }
+        ```

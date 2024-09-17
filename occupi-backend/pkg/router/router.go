@@ -84,9 +84,9 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		analytics.GET("/arrival-departure-average", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "arrivaldeparture", true) })
 		analytics.GET("/in-office", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "inofficehours", true) })
 
-		analytics.GET("/top-bookings", func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "top3") })
-		analytics.GET("/bookings-historical", func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "historical") })
-		analytics.GET("/bookings-current", func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "upcoming") })
+		analytics.GET("/top-bookings", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "top3") })
+		analytics.GET("/bookings-historical", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "historical") })
+		analytics.GET("/bookings-current", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "upcoming") })
 	}
 	auth := router.Group("/auth")
 	{
