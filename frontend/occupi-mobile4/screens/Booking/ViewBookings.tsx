@@ -17,11 +17,14 @@ import { Skeleton } from 'moti/skeleton';
 import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
+import bookings from '@/app/bookings';
+
+
 
 const groupDataInPairs = (data) => {
     const pairs = [];
-    for (let i = 0; i < data.length; i += 2) {
-        pairs.push(data.slice(i, i + 2));
+    for (let i = 0; i < 10; i += 2) {
+        pairs.push(data?.slice(i, i + 2));
     }
     return pairs;
 };
@@ -44,25 +47,28 @@ const ViewBookings = () => {
     const isDarkMode = currentTheme === "dark";
     const [layout, setLayout] = useState("row");
     const [roomData, setRoomData] = useState<Booking[]>();
-    const [pastBookings, setPastBookings] = useState<Booking[]>([]);
-    const [currentBookings, setCurrentBookings] = useState<Booking[]>([]);
     const [selectedSort, setSelectedSort] = useState();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('current');
-
+    const [currentBookings, setCurrentBookings] = useState<Booking[]>([]);
+    const [pastBookings, setPastBookings] = useState<Booking[]>([]);
     useEffect(() => {
         const getRoomData = async () => {
             try {
                 const roomData = await fetchUserBookings();
                 if (roomData) {
+                    const now = new Date();
+                    const current = roomData.filter(booking => new Date(booking.date) >= now);
+                    const past = roomData.filter(booking => new Date(booking.date) < now);
+                    setCurrentBookings(current);
+                    setPastBookings(past);
                     setRoomData(roomData);
-                    splitBookings(roomData);
                 } else {
-                    setRoomData([]);
-                    setPastBookings([]);
                     setCurrentBookings([]);
+                    setPastBookings([]);
+                    setRoomData([]);
                 }
             } catch (error) {
                 console.error('Error fetching bookings:', error);
@@ -71,14 +77,6 @@ const ViewBookings = () => {
         };
         getRoomData();
     }, []);
-
-    const splitBookings = (bookings: Booking[]) => {
-        const now = new Date();
-        const past = bookings.filter(booking => new Date(booking.end) < now);
-        const current = bookings.filter(booking => new Date(booking.end) >= now);
-        setPastBookings(past);
-        setCurrentBookings(current);
-    };
 
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
@@ -90,17 +88,16 @@ const ViewBookings = () => {
         getAccentColour();
     }, []);
 
+
     const onRefresh = React.useCallback(() => {
         const getRoomData = async () => {
             try {
                 const roomData = await fetchUserBookings();
                 if (roomData) {
+                    // console.log(roomData);
                     setRoomData(roomData);
-                    splitBookings(roomData);
                 } else {
-                    setRoomData([]);
-                    setPastBookings([]);
-                    setCurrentBookings([]);
+                    setRoomData([]); // Default value if no username is found
                 }
             } catch (error) {
                 console.error('Error fetching bookings:', error);
@@ -122,58 +119,83 @@ const ViewBookings = () => {
     const textColor = isDarkMode ? 'white' : 'black';
     const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
 
+
+
+    const roomPairs = groupDataInPairs(roomData);
+
     const handleRoomClick = async (value: string) => {
         await SecureStore.setItemAsync('CurrentRoom', value);
         router.push('/viewbookingdetails');
+        // console.log(value);
     }
 
-    const renderBookingItem = (room: Booking, idx: number) => (
-        <TouchableOpacity
-            key={idx}
-            onPress={() => handleRoomClick(JSON.stringify(room))}
-            style={{
-                flex: 1,
-                borderWidth: 1,
-                borderColor: cardBackgroundColor,
-                borderRadius: 12,
-                height: 160,
-                backgroundColor: cardBackgroundColor,
-                marginVertical: 4,
-                flexDirection: "row"
-            }}>
-            <Image
-                width={"50%"}
-                h="$full"
-                alt="image"
-                borderRadius={10}
-                source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-            />
-            <View
-                w="$48"
-                style={{
-                    padding: 10,
-                    flexDirection: "column",
-                    justifyContent: "space-between"
-                }}
+    const renderBookings = (bookings: Booking[]) => {
+        const roomPairs = groupDataInPairs(bookings);
+
+        return layout === "grid" ? (
+            <ScrollView
+                style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
             >
-                <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
-                <View flexDirection="row" alignItems="center">
-                    <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} />
-                    <Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails?.length}</Text>
-                </View>
-                <View flexDirection="column">
-                    <Text my="$1" fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}>Your booking time:</Text>
-                    <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
-                        <View>
-                            <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)}</Text>
-                            <Text>{extractTimeFromDate(room.start)}-{extractTimeFromDate(room.end)}</Text>
-                        </View>
-                        <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
+                {roomPairs.map((pair, index) => (
+                    <View
+                        key={index}
+                        style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginBottom: 20,
+                        }}
+                    >
+                        {pair.map((room, idx) => (
+                            <TouchableOpacity
+                                key={idx}
+                                onPress={() => handleRoomClick(JSON.stringify(room))}
+                                style={{
+                                    flex: 1,
+                                    borderWidth: 1,
+                                    borderColor: cardBackgroundColor,
+                                    borderRadius: 12,
+                                    backgroundColor: cardBackgroundColor,
+                                    marginHorizontal: 4,
+                                    width: '45%'
+                                }}>
+                                {/* ... (keep existing room card content) */}
+                            </TouchableOpacity>
+                        ))}
                     </View>
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
+                ))}
+            </ScrollView>
+        ) : (
+            <ScrollView
+                style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
+            >
+                {bookings.map((room, idx) => (
+                    <TouchableOpacity
+                        key={idx}
+                        onPress={() => handleRoomClick(JSON.stringify(room))}
+                        style={{
+                            flex: 1,
+                            borderWidth: 1,
+                            borderColor: cardBackgroundColor,
+                            borderRadius: 12,
+                            height: 160,
+                            backgroundColor: cardBackgroundColor,
+                            marginVertical: 4,
+                            flexDirection: "row"
+                        }}>
+                        {/* ... (keep existing room card content) */}
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+        );
+    };
 
     return (
         <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
@@ -190,28 +212,66 @@ const ViewBookings = () => {
                         color={textColor}
                     />
                 </Input>
-                <View flexDirection="row" justifyContent="space-between" alignItems="center">
+                <View flexDirection="row" justifyContent="space-between" alignItems="center" mb="$4">
+                    <View flexDirection="row">
+                        <TouchableOpacity
+                            onPress={() => setActiveTab('current')}
+                            style={{
+                                backgroundColor: activeTab === 'current' ? accentColour : 'transparent',
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderRadius: 20,
+                                marginRight: 10
+                            }}
+                        >
+                            <Text color={activeTab === 'current' ? 'black' : textColor}>Current</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => setActiveTab('past')}
+                            style={{
+                                backgroundColor: activeTab === 'past' ? accentColour : 'transparent',
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderRadius: 20
+                            }}
+                        >
+                            <Text color={activeTab === 'past' ? 'black' : textColor}>Past</Text>
+                        </TouchableOpacity>
+                    </View>
                     <View flexDirection="row" alignItems="center">
-                        <TouchableOpacity onPress={() => setActiveTab('current')}>
-                            <Text 
-                                fontWeight="$bold" 
-                                fontSize={18} 
-                                mr="$2" 
-                                color={activeTab === 'current' ? accentColour : textColor}
-                            >
-                                Current
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setActiveTab('past')}>
-                            <Text 
-                                fontWeight="$bold" 
-                                fontSize={18} 
-                                mr="$2" 
-                                color={activeTab === 'past' ? accentColour : textColor}
-                            >
-                                Past
-                            </Text>
-                        </TouchableOpacity>
+                        {/* <Text fontWeight="$bold" fontSize={18} mr="$2" color={textColor}>Sort by:</Text> */}
+                        <View backgroundColor={cardBackgroundColor} borderRadius="$lg" px="$2" alignItems="center">
+                            <RNPickerSelect
+                                onValueChange={(value) => setSelectedSort(value)}
+                                items={[
+                                    { label: 'Oldest', value: 'Oldest' },
+                                    { label: 'Newest', value: 'Newest' },
+                                ]}
+                                placeholder={{ label: 'Latest', value: null }}
+                                style={{
+                                    inputIOS: {
+                                        fontSize: 16,
+                                        paddingVertical: 8,
+                                        borderWidth: 1,
+                                        borderRadius: 10,
+                                        borderColor: cardBackgroundColor,
+                                        paddingRight: 30,
+                                        color: textColor
+                                    },
+                                    inputAndroid: {
+                                        alignItems: "center",
+                                        width: 130,
+                                        height: 60,
+                                        fontSize: 10,
+                                        borderWidth: 1,
+                                        borderRadius: 10,
+                                        borderColor: cardBackgroundColor,
+                                        padding: 0,
+                                        color: textColor
+                                    },
+                                }}
+                            />
+                        </View>
                     </View>
                     <TouchableOpacity onPress={toggleLayout}>
                         {layout === "row" ? (
@@ -227,7 +287,7 @@ const ViewBookings = () => {
                 </View>
             </View>
 
-            {loading === true ? (
+            {loading ? (
                 <>
                     <View mt='$4'>
                         <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
@@ -239,24 +299,25 @@ const ViewBookings = () => {
                         <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
                     </View>
                 </>
-            ) : (activeTab === 'current' ? currentBookings : pastBookings).length === 0 ? (
-                <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
-                    <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No {activeTab} bookings found</Text>
-                </View>
+            ) : activeTab === 'current' ? (
+                currentBookings.length === 0 ? (
+                    <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
+                        <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No current bookings found</Text>
+                    </View>
+                ) : (
+                    renderBookings(currentBookings)
+                )
             ) : (
-                <ScrollView
-                    style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
-                    showsVerticalScrollIndicator={false}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                    }
-                >
-                    {(activeTab === 'current' ? currentBookings : pastBookings).map((room, idx) => renderBookingItem(room, idx))}
-                </ScrollView>
+                pastBookings.length === 0 ? (
+                    <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
+                        <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No past bookings found</Text>
+                    </View>
+                ) : (
+                    renderBookings(pastBookings)
+                )
             )}
             <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
         </View>
     );
 };
-
 export default ViewBookings;
