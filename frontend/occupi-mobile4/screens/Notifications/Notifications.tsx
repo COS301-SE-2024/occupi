@@ -6,6 +6,10 @@ import {
     ScrollView,
     Pressable,
     Button,
+    VStack,
+    HStack,
+    Avatar,
+    Divider,
 } from '@gluestack-ui/themed';
 import * as SecureStore from 'expo-secure-store';
 import { useColorScheme, RefreshControl } from 'react-native';
@@ -86,60 +90,73 @@ const Notifications = () => {
 
     const { today, yesterday, older, bookingInvitations } = categorizeNotifications();
 
-    const renderNotification = (notification) => (
-        <Pressable 
-            key={notification.id} 
-            onPress={() => console.log('Notification pressed:', notification.id)}
-            style={({ pressed }) => [
-                {
-                    backgroundColor: pressed 
-                        ? isDarkMode ? '#3A3A3C' : '#E5E5E5'
-                        : isDarkMode ? '#2C2C2E' : '#F3F3F3',
-                    marginVertical: 8,
-                    padding: 16,
-                    borderRadius: 16,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                }
-            ]}
-        >
-            <View style={{ backgroundColor: accentColour, padding: 10, borderRadius: 50, marginRight: 16 }}>
-                <AntDesign 
-                    name={notification.title === "Booking Invitation" ? "addusergroup" : "clockcircleo"} 
-                    size={24} 
-                    color="black" 
+    const renderNotification = (notification, index, notificationList) => (
+        <View key={notification.id}>
+            <Pressable 
+                onPress={() => console.log('Notification pressed:', notification.id)}
+                style={({ pressed }) => [
+                    {
+                        backgroundColor: pressed 
+                            ? isDarkMode ? '#3A3A3C' : '#E5E5E5'
+                            : isDarkMode ? '#2C2C2E' : '#F3F3F3',
+                        marginVertical: 8,
+                        padding: 16,
+                        borderRadius: 16,
+                    }
+                ]}
+            >
+                <HStack space="md" alignItems="center">
+                    <Avatar 
+                        size="md"
+                        backgroundColor={accentColour}
+                    >
+                        <AntDesign 
+                            name={notification.title === "Booking Invitation" ? "addusergroup" : "clockcircleo"} 
+                            size={24} 
+                            color="black" 
+                        />
+                    </Avatar>
+                    <VStack flex={1} space="xs">
+                        <Text bold color={isDarkMode ? 'white' : 'black'}>
+                            {notification.title}
+                        </Text>
+                        <Text color={isDarkMode ? 'white' : 'black'}>
+                            {notification.message}
+                        </Text>
+                        <Text color="gray.500" fontSize="xs">
+                            {formatNotificationDate(notification.send_time)}
+                        </Text>
+                    </VStack>
+                </HStack>
+            </Pressable>
+            {(notification.title === "Booking Invitation" || notification.title === "Booking Starting Soon") && 
+             index < notificationList.length - 1 && (
+                <Divider 
+                    my="$2" 
+                    backgroundColor={isDarkMode ? 'gray.600' : 'gray.200'}
                 />
-            </View>
-            <View style={{ flex: 1 }}>
-                <Text style={{ fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#000000', marginBottom: 4 }}>
-                    {notification.title}
-                </Text>
-                <Text style={{ color: isDarkMode ? '#FFFFFF' : '#000000' }}>
-                    {notification.message}
-                </Text>
-                <Text style={{ color: 'grey', marginTop: 4 }}>
-                    {formatNotificationDate(notification.send_time)}
-                </Text>
-            </View>
-        </Pressable>
+            )}
+        </View>
     );
 
     const renderNotificationSection = (title, notificationList) => (
         notificationList.length > 0 && (
-            <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 8, color: isDarkMode ? '#FFFFFF' : '#000000' }}>
+            <VStack space="sm" mb="$4">
+                <Text bold fontSize="$lg" color={isDarkMode ? 'white' : 'black'}>
                     {title}
                 </Text>
-                {notificationList.map(renderNotification)}
-            </View>
+                {notificationList.map((notification, index) => 
+                    renderNotification(notification, index, notificationList)
+                )}
+            </VStack>
         )
     );
 
     return (
-        <View style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white', paddingTop: 60 }}>
-            <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                    <Text style={{ fontWeight: 'bold', fontSize: 28, color: isDarkMode ? 'white' : 'black' }}>
+        <View style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white' }}>
+            <VStack space="md" p="$4" pt="$16">
+                <HStack justifyContent="space-between" alignItems="center">
+                    <Text bold fontSize="$2xl" color={isDarkMode ? 'white' : 'black'}>
                         Notifications
                     </Text>
                     <Pressable 
@@ -152,32 +169,32 @@ const Notifications = () => {
                     >
                         <Ionicons name="settings-outline" size={26} color="black" />
                     </Pressable>
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                </HStack>
+                <HStack space="sm" justifyContent="space-between">
                     {['All', 'Invitations', 'Updates'].map((tab) => (
                         <Button
                             key={tab}
                             onPress={() => setActiveTab(tab.toLowerCase())}
-                            style={{
-                                backgroundColor: activeTab === tab.toLowerCase() ? accentColour : 'transparent',
-                                borderRadius: 20,
-                                paddingHorizontal: 16,
-                                paddingVertical: 8,
-                            }}
+                            variant={activeTab === tab.toLowerCase() ? "solid" : "outline"}
+                            backgroundColor={activeTab === tab.toLowerCase() ? accentColour : 'transparent'}
+                            borderColor={accentColour}
+                            borderRadius="$full"
+                            px="$4"
+                            py="$2"
                         >
-                            <Text style={{ 
-                                color: activeTab === tab.toLowerCase() ? 'black' : (isDarkMode ? 'white' : 'black'),
-                                fontWeight: 'bold'
-                            }}>
+                            <Text 
+                                color={activeTab === tab.toLowerCase() ? 'black' : (isDarkMode ? 'white' : 'black')}
+                                fontWeight="bold"
+                            >
                                 {tab}
                             </Text>
                         </Button>
                     ))}
-                </View>
-            </View>
+                </HStack>
+            </VStack>
             
             {loading ? (
-                <View style={{ padding: 16 }}>
+                <VStack space="md" p="$4">
                     {Array.from({ length: 5 }, (_, index) => (
                         <Skeleton
                             key={index}
@@ -185,13 +202,11 @@ const Notifications = () => {
                             height={80}
                             width="100%"
                             radius={16}
-                            style={{ marginBottom: 8 }}
                         />
                     ))}
-                </View>
+                </VStack>
             ) : (
                 <ScrollView
-                    style={{ flex: 1 }}
                     contentContainerStyle={{ padding: 16 }}
                     refreshControl={
                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -213,8 +228,8 @@ const Notifications = () => {
                         </>
                     )}
                     {notifications.length === 0 && (
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                            <Text style={{ fontSize: 18, color: isDarkMode ? 'white' : 'black' }}>
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 }}>
+                            <Text fontSize="$lg" color={isDarkMode ? 'white' : 'black'}>
                                 No notifications to display
                             </Text>
                         </View>
