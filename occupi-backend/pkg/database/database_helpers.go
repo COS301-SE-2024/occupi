@@ -282,7 +282,7 @@ func MakeEmailAndTimeFilter(email string, filter models.AnalyticsFilterStruct) b
 	return mongoFilter
 }
 
-func MakeEmailAndEmailsAndTimeFilter(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.M {
+func MakeEmailAndEmailsAndTimeFilter(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct, dateFilter string) bson.M {
 	mongoFilter := bson.M{}
 	if creatorEmail != "" {
 		mongoFilter["creator"] = creatorEmail
@@ -295,11 +295,11 @@ func MakeEmailAndEmailsAndTimeFilter(creatorEmail string, attendeeEmails []strin
 
 	switch {
 	case filter.Filter["timeFrom"] != "" && filter.Filter["timeTo"] != "":
-		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"], "$lte": filter.Filter["timeTo"]}
+		mongoFilter[dateFilter] = bson.M{"$gte": filter.Filter["timeFrom"], "$lte": filter.Filter["timeTo"]}
 	case filter.Filter["timeTo"] != "":
-		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
+		mongoFilter[dateFilter] = bson.M{"$lte": filter.Filter["timeTo"]}
 	case filter.Filter["timeFrom"] != "":
-		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
+		mongoFilter[dateFilter] = bson.M{"$gte": filter.Filter["timeFrom"]}
 	}
 
 	return mongoFilter

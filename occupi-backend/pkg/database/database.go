@@ -2061,19 +2061,23 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cre
 
 	// Prepare the aggregate
 	var pipeline bson.A
+	var dateFilter string
 	switch calculate {
 	case "top3":
-		pipeline = analytics.GetTop3MostBookedRooms(creatorEmail, attendeeEmails, filter)
+		dateFilter = "date"
+		pipeline = analytics.GetTop3MostBookedRooms(creatorEmail, attendeeEmails, filter, dateFilter)
 	case "historical":
 		// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
 		filter.Filter["timeTo"] = time.Now().Format(time.RFC3339)
 		delete(filter.Filter, "timeFrom")
-		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter)
+		dateFilter = "end"
+		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
 	case "upcoming":
 		// add or overwrite "timeFrom" with time.Now and delete "timeTo" if present
 		filter.Filter["timeFrom"] = time.Now().Format(time.RFC3339)
 		delete(filter.Filter, "timeTo")
-		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter)
+		dateFilter = "end"
+		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
 	default:
 		return nil, 0, errors.New("invalid calculate value")
 	}
@@ -2086,7 +2090,7 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cre
 		return nil, 0, err
 	}
 
-	mongoFilter := MakeEmailAndEmailsAndTimeFilter(creatorEmail, attendeeEmails, filter)
+	mongoFilter := MakeEmailAndEmailsAndTimeFilter(creatorEmail, attendeeEmails, filter, dateFilter)
 
 	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, mongoFilter)
 

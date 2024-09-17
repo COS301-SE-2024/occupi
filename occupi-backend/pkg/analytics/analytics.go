@@ -1063,9 +1063,9 @@ func CalculateInOfficeRate(email string, filter models.AnalyticsFilterStruct) bs
 	}
 }
 
-func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.A {
+func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct, dateFilter string) bson.A {
 	// Create the match filter using the reusable function
-	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, "date")
+	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, dateFilter)
 
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
@@ -1090,9 +1090,9 @@ func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter
 	}
 }
 
-func AggregateBookings(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.A {
+func AggregateBookings(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct, dateFilter string) bson.A {
 	// Create the match filter using the reusable function
-	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, "end")
+	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, dateFilter)
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
 		bson.D{{Key: "$match", Value: matchFilter}},

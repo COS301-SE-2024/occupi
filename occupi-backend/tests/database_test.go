@@ -10140,3 +10140,85 @@ func TestToggleAllowAnonymousIP(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
+
+func TestMakeEmailAndEmailsAndTimeFilter(t *testing.T) {
+	tests := []struct {
+		name           string
+		creatorEmail   string
+		attendeeEmails []string
+		filter         models.AnalyticsFilterStruct
+		expectedFilter bson.M
+	}{
+		{
+			name:           "Empty filter",
+			creatorEmail:   "",
+			attendeeEmails: []string{},
+			filter: models.AnalyticsFilterStruct{Filter: bson.M{
+				"timeFrom": "",
+				"timeTo":   "",
+			}},
+			expectedFilter: bson.M{},
+		},
+		{
+			name:           "Filter by creatorEmail",
+			creatorEmail:   "test@example.com",
+			attendeeEmails: []string{},
+			filter: models.AnalyticsFilterStruct{Filter: bson.M{
+				"timeFrom": "",
+				"timeTo":   "",
+			}},
+			expectedFilter: bson.M{"creator": "test@example.com"},
+		},
+		{
+			name:           "Filter by attendeeEmails",
+			creatorEmail:   "",
+			attendeeEmails: []string{"attendee1@example.com", "attendee2@example.com"},
+			filter: models.AnalyticsFilterStruct{Filter: bson.M{
+				"timeFrom": "",
+				"timeTo":   "",
+			}},
+			expectedFilter: bson.M{"emails": bson.M{"$in": []string{"attendee1@example.com", "attendee2@example.com"}}},
+		},
+		{
+			name:           "Filter by timeFrom and timeTo",
+			creatorEmail:   "",
+			attendeeEmails: []string{},
+			filter:         models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "2023-01-01", "timeTo": "2023-01-31"}},
+			expectedFilter: bson.M{"date": bson.M{"$gte": "2023-01-01", "$lte": "2023-01-31"}},
+		},
+		{
+			name:           "Filter by timeTo only",
+			creatorEmail:   "",
+			attendeeEmails: []string{},
+			filter:         models.AnalyticsFilterStruct{Filter: bson.M{"timeTo": "2023-01-31", "timeFrom": ""}},
+			expectedFilter: bson.M{"date": bson.M{"$lte": "2023-01-31"}},
+		},
+		{
+			name:           "Filter by timeFrom only",
+			creatorEmail:   "",
+			attendeeEmails: []string{},
+			filter:         models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "2023-01-01", "timeTo": ""}},
+			expectedFilter: bson.M{"date": bson.M{"$gte": "2023-01-01"}},
+		},
+		{
+			name:           "Filter by creatorEmail, attendeeEmails, and time range",
+			creatorEmail:   "test@example.com",
+			attendeeEmails: []string{"attendee1@example.com"},
+			filter:         models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "2023-01-01", "timeTo": "2023-01-31"}},
+			expectedFilter: bson.M{
+				"creator": "test@example.com",
+				"emails":  bson.M{"$in": []string{"attendee1@example.com"}},
+				"date":    bson.M{"$gte": "2023-01-01", "$lte": "2023-01-31"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.MakeEmailAndEmailsAndTimeFilter(tt.creatorEmail, tt.attendeeEmails, tt.filter, "date")
+			if !reflect.DeepEqual(result, tt.expectedFilter) {
+				t.Errorf("expected %v, got %v", tt.expectedFilter, result)
+			}
+		})
+	}
+}
