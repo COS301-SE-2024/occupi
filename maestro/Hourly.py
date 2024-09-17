@@ -1,224 +1,183 @@
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-import tensorflow as tf
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv1D, MaxPooling1D, LSTM, Dense, Flatten, Dropout, BatchNormalization
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
-from datetime import datetime
-import joblib
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Dropout
+from tensorflow.keras.utils import to_categorical
+import numpy as np
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
+import matplotlib.pyplot as plt
 
-# Load the dataset
-file_path = 'datasets/Attendance_data(1).csv'
-data = pd.read_csv(file_path)
+# Load the Excel file
+file_path = 'datasets/Hourly_Predictions.xlsx'  # Replace with your actual file path
+excel_data = pd.ExcelFile(file_path)
 
-# Convert the Date feature to datetime
-data['Date'] = pd.to_datetime(data['Date'])
+# Combine all sheets into one DataFrame
+sheets_data = {sheet: excel_data.parse(sheet) for sheet in excel_data.sheet_names}
+combined_data = pd.concat(sheets_data.values(), keys=sheets_data.keys(), names=['Day', 'Index']).reset_index(level=1, drop=True).reset_index()
 
-# Create a mapping for days of the week
-day_mapping = {
-    'Monday': 0,
-    'Tuesday': 1,
-    'Wednesday': 2,
-    'Thursday': 3,
-    'Friday': 4,
-    'Saturday': 5,
-    'Sunday': 6
+# Data Preparation
+# Encode 'Day' as a categorical feature
+label_encoder_day = LabelEncoder()
+combined_data['Day_Encoded'] = label_encoder_day.fit_transform(combined_data['Day'].fillna('Unknown'))
+
+# Extract hour directly from 'Time' column, ensuring 'Time' is not null
+combined_data['Hour'] = combined_data['Time'].apply(lambda t: t.hour if pd.notnull(t) else 0)
+
+# Define custom bins and labels for each day
+day_bins = {
+    'Monday': [0, 50, 100, 150, 200, 250, 300, float('inf')],
+    'Tuesday': [0, 300, 600, 900, 1200, 1500, 1800, float('inf')],
+    'Wednesday': [0, 50, 100, 150, 200, 250, 300, float('inf')],
+    'Thursday': [0, 300, 600, 900, 1200, 1500, 1800, float('inf')],
+    'Friday': [0, 50, 100, 150, 200, 250, 300, float('inf')],
+    'Saturday': [0, 25, 50, 75, 100, 125, 150, float('inf')],
+    'Sunday': [0, 10, 20, 30, 40, 50, 60, float('inf')],
+    # ...
 }
 
-# Apply the mapping to the 'Day_of_Week' column
-data['Day_of_Week'] = data['Day_of_Week'].map(day_mapping).astype(int)
+day_labels = {
+    'Monday': list(range(len(day_bins['Monday']) - 1)),  # Labels: 0, 1, 2, ...
+    'Tuesday': list(range(len(day_bins['Tuesday']) - 1)),
+    'Wednesday': list(range(len(day_bins['Wednesday']) - 1)),
+    'Thursday': list(range(len(day_bins['Thursday']) - 1)),
+    'Friday': list(range(len(day_bins['Friday']) - 1)),
+    'Saturday': list(range(len(day_bins['Saturday']) - 1)),
+    'Sunday': list(range(len(day_bins['Sunday']) - 1)),
+}
 
-# Label encode the 'Special_Event' column
-label_encoder = LabelEncoder()
-data['Special_Event'] = label_encoder.fit_transform(data['Special_Event'])
+# Function to apply the appropriate bins for each day
+def apply_bins(row):
+    day = row['Day']
+    bins = day_bins.get(day, [0, float('inf')])  # Default to a single bin if not specified
+    labels = day_labels.get(day, [0])
+    return pd.cut([row['Attendance']], bins=bins, labels=labels, include_lowest=True)[0]
 
-# Define bins for categorizing attendance into increments of 150
-bins = [0, 300, 600, 900, 1200, 1500, 1800, float('inf')]
-labels = list(range(len(bins) - 1))
+# Apply the binning function to the DataFrame
+combined_data['Attendance_Bin'] = combined_data.apply(apply_bins, axis=1)
 
-# Categorize the attendance data
-data['Attendance_Level'] = pd.cut(data['Number_Attended'], bins=bins, labels=labels)
+# Ensure all bins are used by checking unique labels and adjusting if necessary
+combined_data.dropna(subset=['Attendance_Bin'], inplace=True)
+combined_data['Attendance_Bin'] = combined_data['Attendance_Bin'].astype(int)
 
-# Handle missing values (replace with 0)
-data['Attendance_Level'] = data['Attendance_Level'].cat.codes  # Convert categories to codes
-data['Attendance_Level'] = data['Attendance_Level'].replace(-1, np.nan)  # Replace -1 with NaN
-data['Attendance_Level'] = data['Attendance_Level'].fillna(0)  # Fill NaN values with 0
+# Encode the attendance bins as numerical labels
+y = combined_data['Attendance_Bin']
 
-# Convert Attendance_Level to integer type after filling
-data['Attendance_Level'] = data['Attendance_Level'].astype(int)
+# Separate Day_Encoded and Hour to handle them correctly
+day_encoded = combined_data['Day_Encoded'].values.reshape(-1, 1)
+hour = combined_data['Hour'].values.reshape(-1, 1)
 
-
-# Attendance Levels by Day of Week
-plt.figure(figsize=(12, 8))
-sns.boxplot(x='Day_of_Week', y='Attendance_Level', data=data)
-plt.xlabel('Day of Week')
-plt.ylabel('Attendance Level')
-plt.title('Attendance Levels by Day of the Week')
-plt.show()
-
-# Select features and target (using minimal preprocessing)
-features = ['Day_of_Week', 'Month', 'Day_of_month', 'Is_Weekend', 'Special_Event']
-target = 'Attendance_Level'
-
-X = data[features].values
-y = data[target].values
-
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Standardize the features
+# Standardize only the 'Hour' feature
 scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-joblib.dump(scaler, 'attendance_scaler.pkl')
+hour_scaled = scaler.fit_transform(hour)
 
-# Original Distribution of Number Attended
-plt.figure(figsize=(14, 6))
-plt.subplot(1, 2, 1)
-sns.histplot(data['Number_Attended'], kde=True)
-plt.xlabel('Number Attended (Original)')
-plt.ylabel('Count')
-plt.title('Original Number Attended Distribution')
+# Combine back the correctly processed features
+X_scaled = np.hstack([day_encoded, hour_scaled])
 
-# Original Distribution of Attendance Level
-plt.subplot(1, 2, 2)
-sns.histplot(data['Attendance_Level'], kde=True)
-plt.xlabel('Attendance Level (Original)')
-plt.ylabel('Count')
-plt.title('Original Attendance Level Distribution')
+# Reshape X for CNN input: (samples, time steps, features)
+X_scaled = X_scaled.reshape(X_scaled.shape[0], X_scaled.shape[1], 1)
 
-plt.tight_layout()
-plt.show()
+# Convert labels to categorical (one-hot encoding)
+y_categorical = to_categorical(y)
 
-# Reshape the data to 3D for CNN-LSTM
-X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
-X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
+# Ensure the number of classes in the model matches the target labels
+num_classes = y_categorical.shape[1]
 
-print(f'X_train shape: {X_train.shape}')
-print(f'X_test shape: {X_test.shape}')
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_categorical, test_size=0.2, random_state=42)
 
-# Build the improved CNN-LSTM model
-model = Sequential()
-
-#CNN Part
-model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(X_train.shape[1], X_train.shape[2]), padding='same'))
-model.add(BatchNormalization())
-model.add(MaxPooling1D(pool_size=2))
-model.add(Conv1D(filters=128, kernel_size=2, activation='relu'))
-model.add(BatchNormalization())
-model.add(MaxPooling1D(pool_size=1))  # Adjust pool size to 1 to prevent negative dimension
-
-# LSTM Part
-model.add(LSTM(50, return_sequences=True))
-model.add(Dropout(0.25))
-model.add(LSTM(100, return_sequences=False))
-model.add(Dropout(0.25))
-
-#Fully Connected Part
-model.add(Dense(100, activation='relu'))
-model.add(Dropout(0.5))
-model.add(Dense(50, activation='relu'))
-model.add(Dropout(0.5))
-
-# Output layer
-model.add(Dense(len(labels), activation='softmax'))  # Adjust the output layer for 7 classes
+# Define CNN model architecture
+model = Sequential([
+    Conv1D(filters=64, kernel_size=1, activation='relu', input_shape=(X_train.shape[1], 1)),
+    MaxPooling1D(pool_size=1),  # Adjusted pool size to 1
+    Flatten(),
+    Dense(50, activation='relu'),
+    Dropout(0.5),
+    Dense(num_classes, activation='softmax')  # Output layer for number of classes detected
+])
 
 # Compile the model
-model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(learning_rate=0.001), metrics=['accuracy'])
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-print(f"Model's input shape: {model.input_shape}")
+# Train the model
+history = model.fit(X_train, y_train, epochs=20, batch_size=16, validation_split=0.2, verbose=1)
 
-# Define early stopping
-early_stopping = EarlyStopping(monitor='val_loss', patience=25, restore_best_weights=True)
+# Evaluate the model on test data
+test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
+print(f"Test Loss: {test_loss}, Test Accuracy: {test_accuracy}")
 
-# Train the model with callbacks
-history = model.fit(X_train, y_train, epochs=60, batch_size=32, validation_data=(X_test, y_test), callbacks=[early_stopping], verbose=2)
+# Step 6: Predict for a Specific Day - Monday
+# Encode 'Monday' using the label encoder used in training
+monday_encoded = label_encoder_day.transform(['Tuesday'])[0]
 
-# Evaluate the model
-loss, accuracy = model.evaluate(X_test, y_test)
-print(f'Test Accuracy: {accuracy:.4f}')
+# Prepare input features for each hour of Tuesday (0 to 23)
+hours = np.arange(0, 24).reshape(-1, 1)  # Hours of the day
 
-# Make predictions
-predictions = model.predict(X_test)
-predicted_labels = np.argmax(predictions, axis=1)
+# Standardize the 'Hour' feature using the scaler used during training
+hours_scaled = scaler.transform(hours)
 
-# Create a DataFrame to compare actual and predicted values
-results = pd.DataFrame({'Actual': y_test, 'Predicted': predicted_labels})
+# Combine the 'Day_Encoded' and scaled 'Hour' features
+monday_features = np.hstack([np.full((24, 1), monday_encoded), hours_scaled])
 
-# Display the results
-print(results.head())
+# Reshape the data for CNN input: (samples, time steps, features)
+monday_features = monday_features.reshape(monday_features.shape[0], monday_features.shape[1], 1)
 
-# Plot the results
-plt.figure(figsize=(10, 6))
-plt.plot(results['Actual'].values, label='Actual')
-plt.plot(results['Predicted'].values, label='Predicted', alpha=0.7)
-plt.xlabel('Sample Index')
-plt.ylabel('Attendance Level')
-plt.legend()
-plt.title('Actual vs. Predicted Attendance Levels')
-plt.show()
+# Make predictions for Tuesday
+monday_predictions = model.predict(monday_features)
 
-# Define the names of the days of the week
-day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+# Convert predictions from one-hot encoded format to labels (attendance bins)
+monday_pred_labels = np.argmax(monday_predictions, axis=1)
 
-# Function to predict attendance level for a given day
-def predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event):
-    # Create a feature vector based on the input
-    input_features = np.array([[day_of_week, month, day_of_month, is_weekend, special_event]])
-    
-    # Standardize the input features
-    input_features = scaler.transform(input_features)
-    
-    # Reshape the input features to match the model's input shape
-    input_features = input_features.reshape((input_features.shape[0], input_features.shape[1], 1))
-    
-    # Make predictions
-    predictions = model.predict(input_features)
-    predicted_label = np.argmax(predictions, axis=1)
-    
-    return predicted_label[0]
+# Decode the attendance bins into human-readable ranges if needed
+monday_bins_labels = [f'{day_bins["Tuesday"][i]}-{day_bins["Tuesday"][i+1]}' for i in range(len(day_bins["Tuesday"]) - 1)]
+decoded_predictions = [monday_bins_labels[label] for label in monday_pred_labels]
 
-# Function to predict attendance levels for each day of the week in March
-def predict_weekly_attendance(month, start_day):
-    predictions = []
-    for day_of_week in range(7):  # 0=Monday, 1=Tuesday, ..., 6=Sunday
-        day_of_month = start_day + day_of_week
-        is_weekend = 1 if day_of_week in [5, 6] else 0  # 1 if Saturday or Sunday, otherwise 0
-        special_event = 0  # Assuming no special event
-        predicted_attendance_level = predict_attendance(day_of_week, month, day_of_month, is_weekend, special_event)
-        day_name = day_names[day_of_week]  # Get the name of the day from its integer representation
-        predictions.append((day_name, predicted_attendance_level))
-    return predictions
+# Display the predictions for each hour
+predictions_df = pd.DataFrame({
+    'Hour': range(24),
+    'Predicted Attendance Bin': monday_pred_labels,
+    'Decoded Prediction': decoded_predictions
+})
 
-# Example usage
-month = 3
-start_day = 1  # Starting from the 1st of March
+print(predictions_df)
 
-weekly_predictions = predict_weekly_attendance(month, start_day)
+# Function to predict attendance bins for a specific day
+def predict_for_day(day: str, hours: np.ndarray = np.arange(0, 24)):
+    # Encode the specified day using the fitted label encoder
+    day_encoded = label_encoder_day.transform([day])[0]
 
-# Display the predictions
-print("Weekly Attendance Level Predictions:")
-for day, prediction in weekly_predictions:
-    print(f"{day}: {prediction}")
+    # Ensure hours are in the correct shape and scale them
+    hours = hours.reshape(-1, 1)
+    hours_scaled = scaler.transform(hours)
 
-# Plot the predictions
-days, levels = zip(*weekly_predictions)
-plt.figure(figsize=(10, 6))
-plt.plot(days, levels, marker='o')
-plt.xlabel('Day of the Week')
-plt.ylabel('Attendance Level')
-plt.title('Predicted Attendance Levels for the Week')
-plt.show()
+    # Combine the 'Day_Encoded' and scaled 'Hour' features
+    day_features = np.hstack([np.full((hours.shape[0], 1), day_encoded), hours_scaled])
 
-# Save the model in the SavedModel format
-tf.saved_model.save(model, 'attendance_model/1')
-# model.export('C:/Users/retha/Capstone/occupi/models/attendance_model/1')
+    # Reshape the data for CNN input: (samples, time steps, features)
+    day_features = day_features.reshape(day_features.shape[0], day_features.shape[1], 1)
 
-new_model = tf.keras.models.load_model('C:/Users/retha/Capstone/occupi/attendance_model.keras')
-new_model.summary()
-tf.saved_model.save(new_model, 'serving/')  # Save the model in the SavedModel format
+    # Make predictions for the specified day
+    predictions = model.predict(day_features)
+
+    # Convert predictions from one-hot encoded format to labels (attendance bins)
+    pred_labels = np.argmax(predictions, axis=1)
+
+    # Decode the attendance bins into human-readable ranges if needed
+    bins_labels = [f'{day_bins[day][i]}-{day_bins[day][i+1]}' for i in range(len(day_bins[day]) - 1)]
+    decoded_predictions = [bins_labels[label] for label in pred_labels]
+
+    # Create a DataFrame to display the predictions
+    predictions_df = pd.DataFrame({
+        'Hour': hours.flatten(),
+        'Predicted Attendance Bin': pred_labels,
+        'Decoded Prediction': decoded_predictions
+    })
+
+    return predictions_df
+
+monday_predictions = predict_for_day('Monday')
+print(monday_predictions)
+
+# Make predictions for Tuesday from 9 AM to 5 PM (9-17 hours)
+tuesday_predictions = predict_for_day('Tuesday', np.arange(5, 19))
+print(tuesday_predictions)
