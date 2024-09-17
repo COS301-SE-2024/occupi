@@ -2078,7 +2078,7 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cre
 		return nil, 0, errors.New("invalid calculate value")
 	}
 
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
 
 	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
