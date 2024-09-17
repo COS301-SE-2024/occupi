@@ -22,11 +22,12 @@ import { useToast } from '@gluestack-ui/themed';
 import { UserLogout } from '@/utils/auth';
 import { useTheme } from '@/components/ThemeContext';
 import { useNavBar } from '@/components/NavBarProvider';
-
+import * as ImagePicker from 'expo-image-picker';
 
 const Settings = () => {
   const [name, setName] = useState('');
   const [position, setPosition] = useState('');
+  const [profileImage, setProfileImage] = useState('https://www.kamogelomoeketse.online/assets/main-D2LspijS.png');
   const toast = useToast();
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
@@ -37,12 +38,59 @@ const Settings = () => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
       let jsonresult = JSON.parse(result);
-      // console.log(jsonresult)
+      // console.log(jsonresult);
       setName(String(jsonresult.name));
-      // setPosition(String(jsonresult.position));
     };
+     const fetchProfileImage = async () => {
+      const image = await SecureStore.getItemAsync('image');
+      // if (image) {
+      //   const jsonuserdata = JSON.parse(image);
+      //   console.log(jsonuserdata);
+        setProfileImage(image);
+      // }
+    };
+
+    fetchProfileImage();
     getUserDetails();
   }, []);
+
+  const handleImageUpload = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      alert("You've refused to allow this app to access your photos!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+      // const image = await SecureStore.getItemAsync('image');
+      // const userdata = image;
+      // const jsonuserdata = JSON.parse(image);
+      // const updatedimage = jsonuserdata;
+      const newImage = result.assets[0].uri;
+      console.log('New Image', newImage);
+      await SecureStore.setItemAsync('image', newImage);
+
+      toast.show({
+        placement: 'bottom',
+        render: ({ id }) => {
+          return (
+            <Toast nativeID={String(id)} variant="accent" action="success">
+              <ToastTitle>Profile picture updated successfully!</ToastTitle>
+            </Toast>
+          );
+        },
+      });
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -65,7 +113,7 @@ const Settings = () => {
                 setCurrentTab('Home');
                 // Show a success toast
                 toast.show({
-                  placement: 'top',
+                  placement: 'bottom',
                   render: ({ id }) => {
                     return (
                       <Toast nativeID={String(id)} variant="accent" action="success">
@@ -77,7 +125,7 @@ const Settings = () => {
               } else {
                 // Show an error toast
                 toast.show({
-                  placement: 'top',
+                  placement: 'bottom',
                   render: ({ id }) => {
                     return (
                       <Toast nativeID={String(id)} variant="accent" action="error">
@@ -143,18 +191,20 @@ const Settings = () => {
       <ScrollView style={[styles.container, currentTheme === 'dark' ? styles.darkContainer : styles.lightContainer]}>
         <Box style={styles.profileContainer}>
           <Center style={styles.imageContainer}>
+          <Pressable onPress={handleImageUpload} style={styles.cameraIconContainer}>
             <Image
-              source={{ uri: 'https://www.kamogelomoeketse.online/assets/main-D2LspijS.png' }}
+              source={{ uri: profileImage }}
               style={styles.profileImage}
             />
-            <Icon as={MaterialIcons} name="camera-alt" size="md" color={currentTheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
+             </Pressable>
+            
+              <Icon as={MaterialIcons} name="camera-alt" size="md" color={currentTheme === 'dark' ? 'white' : 'black'} style={styles.cameraIcon} />
+           
           </Center>
           <Box style={styles.profileInfo}>
             <HStack space="xs" alignItems="center">
               <Text style={[styles.profileName, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{name}</Text>
-              {/* <Icon as={Feather} name="edit" size="sm" color={currentTheme === 'dark' ? 'white' : '#8F9BB3'} onPress={() => handleNavigate('EditProfileScreen')} /> */}
             </HStack>
-            {/* <Text style={[styles.profileTitle, currentTheme === 'dark' ? styles.darkText : styles.lightText]}>{position}</Text> */}
           </Box>
         </Box>
         <Divider my={2} style={currentTheme === 'dark' ? styles.darkDivider : styles.lightDivider} />
@@ -173,6 +223,7 @@ const Settings = () => {
 };
 
 const styles = StyleSheet.create({
+  
   container: {
     flex: 1,
     paddingTop: 40,
@@ -204,7 +255,7 @@ const styles = StyleSheet.create({
   cameraIcon: {
     position: 'absolute',
     bottom: 0,
-    left: wp('17.5%'),
+    left: wp('20.5%'),
     width: wp('6%'),
     height: wp('6%'),
   },
