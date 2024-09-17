@@ -1715,7 +1715,7 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string
 	return nil
 }
 
-func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email string, filter models.OfficeHoursFilterStruct, calculate string) ([]primitive.M, int64, error) {
+func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email string, filter models.AnalyticsFilterStruct, calculate string) ([]primitive.M, int64, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")

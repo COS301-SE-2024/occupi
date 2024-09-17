@@ -8423,8 +8423,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 		filterPrimitive[k] = v
 	}
 
-	// Define example OfficeHoursFilterStruct
-	filter := models.OfficeHoursFilterStruct{
+	// Define example AnalyticsFilterStruct
+	filter := models.AnalyticsFilterStruct{
 		Filter: filterPrimitive,
 		Limit:  10,
 		Skip:   0,
@@ -8733,7 +8733,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Define a base filter for testing
-	baseFilter := models.OfficeHoursFilterStruct{
+	baseFilter := models.AnalyticsFilterStruct{
 		Filter: bson.M{
 			"timeFrom": "",
 			"timeTo":   "",
@@ -8763,7 +8763,7 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Test case: Email and timeFrom provided
 	t.Run("EmailAndTimeFrom", func(t *testing.T) {
 		email := "test@example.com"
-		filter := models.OfficeHoursFilterStruct{
+		filter := models.AnalyticsFilterStruct{
 			Filter: bson.M{
 				"timeFrom": "2023-09-01T09:00:00",
 				"timeTo":   "",
@@ -8781,7 +8781,7 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Test case: Email and timeTo provided
 	t.Run("EmailAndTimeTo", func(t *testing.T) {
 		email := "test@example.com"
-		filter := models.OfficeHoursFilterStruct{
+		filter := models.AnalyticsFilterStruct{
 			Filter: bson.M{
 				"timeFrom": "",
 				"timeTo":   "2023-09-01T17:00:00",
@@ -8801,7 +8801,7 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Test case: timeFrom and timeTo provided, but no email
 	t.Run("TimeFromAndTimeTo", func(t *testing.T) {
 		email := ""
-		filter := models.OfficeHoursFilterStruct{
+		filter := models.AnalyticsFilterStruct{
 			Filter: bson.M{
 				"timeFrom": "2023-09-01T09:00:00",
 				"timeTo":   "2023-09-01T17:00:00",
@@ -8821,7 +8821,7 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Test case: Email, timeFrom, and timeTo provided
 	t.Run("EmailAndFullTimeRange", func(t *testing.T) {
 		email := "test@example.com"
-		filter := models.OfficeHoursFilterStruct{
+		filter := models.AnalyticsFilterStruct{
 			Filter: bson.M{
 				"timeFrom": "2023-09-01T09:00:00",
 				"timeTo":   "2023-09-01T17:00:00",

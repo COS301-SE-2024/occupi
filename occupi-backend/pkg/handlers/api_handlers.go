@@ -1264,7 +1264,7 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 
 	limit, page, skip := utils.ComputeLimitPageSkip(request.Limit, request.Page)
 
-	filter := models.OfficeHoursFilterStruct{
+	filter := models.AnalyticsFilterStruct{
 		Filter: bson.M{
 			"timeFrom": request.TimeFrom,
 			"timeTo":   request.TimeTo,

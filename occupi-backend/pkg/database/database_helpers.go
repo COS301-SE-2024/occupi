@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
 	"github.com/umahmood/haversine"
@@ -264,7 +264,7 @@ func Month(date time.Time) int {
 	return int(date.Month())
 }
 
-func MakeEmailAndTimeFilter(email string, filter models.OfficeHoursFilterStruct) bson.M {
+func MakeEmailAndTimeFilter(email string, filter models.AnalyticsFilterStruct) bson.M {
 	mongoFilter := bson.M{}
 	if email != "" {
 		mongoFilter["email"] = email

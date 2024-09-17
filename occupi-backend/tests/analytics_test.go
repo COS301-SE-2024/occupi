@@ -13,49 +13,49 @@ func TestCreateMatchFilter(t *testing.T) {
 	tests := []struct {
 		name     string
 		email    string
-		filter   models.OfficeHoursFilterStruct
+		filter   models.AnalyticsFilterStruct
 		expected bson.D
 	}{
 		{
 			name:     "empty filter with no email",
 			email:    "",
-			filter:   models.OfficeHoursFilterStruct{Filter: bson.M{}},
+			filter:   models.AnalyticsFilterStruct{Filter: bson.M{}},
 			expected: bson.D{},
 		},
 		{
 			name:     "empty filter with email",
 			email:    "test@example.com",
-			filter:   models.OfficeHoursFilterStruct{Filter: bson.M{}},
+			filter:   models.AnalyticsFilterStruct{Filter: bson.M{}},
 			expected: bson.D{{Key: "email", Value: bson.D{{Key: "$eq", Value: "test@example.com"}}}},
 		},
 		{
 			name:     "filter with no email",
 			email:    "",
-			filter:   models.OfficeHoursFilterStruct{Filter: bson.M{"timeFrom": "", "timeTo": ""}},
+			filter:   models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "", "timeTo": ""}},
 			expected: bson.D{},
 		},
 		{
 			name:     "filter with no email and timeFrom",
 			email:    "",
-			filter:   models.OfficeHoursFilterStruct{Filter: bson.M{"timeFrom": "09:00", "timeTo": ""}},
+			filter:   models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "09:00", "timeTo": ""}},
 			expected: bson.D{{Key: "entered", Value: bson.D{{Key: "$gte", Value: "09:00"}}}},
 		},
 		{
 			name:     "filter with no email and timeTo",
 			email:    "",
-			filter:   models.OfficeHoursFilterStruct{Filter: bson.M{"timeFrom": "", "timeTo": "17:00"}},
+			filter:   models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "", "timeTo": "17:00"}},
 			expected: bson.D{{Key: "entered", Value: bson.D{{Key: "$lte", Value: "17:00"}}}},
 		},
 		{
 			name:     "filter with no email and timeFrom and timeTo",
 			email:    "",
-			filter:   models.OfficeHoursFilterStruct{Filter: bson.M{"timeFrom": "09:00", "timeTo": "17:00"}},
+			filter:   models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "09:00", "timeTo": "17:00"}},
 			expected: bson.D{{Key: "entered", Value: bson.D{{Key: "$gte", Value: "09:00"}, {Key: "$lte", Value: "17:00"}}}},
 		},
 		{
 			name:   "filter with email and timeFrom and timeTo",
 			email:  "test@example.com",
-			filter: models.OfficeHoursFilterStruct{Filter: bson.M{"timeFrom": "09:00", "timeTo": "17:00"}},
+			filter: models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "09:00", "timeTo": "17:00"}},
 			expected: bson.D{
 				{Key: "email", Value: bson.D{{Key: "$eq", Value: "test@example.com"}}},
 				{Key: "entered", Value: bson.D{{Key: "$gte", Value: "09:00"}, {Key: "$lte", Value: "17:00"}}},
@@ -80,7 +80,7 @@ func equalBsonD(a, b bson.D) bool {
 
 func TestGroupOfficeHoursByDay(t *testing.T) {
 	email := "test@example.com"
-	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+	filter := models.AnalyticsFilterStruct{Filter: bson.M{}}
 
 	res := analytics.GroupOfficeHoursByDay(email, filter)
 
@@ -92,7 +92,7 @@ func TestGroupOfficeHoursByDay(t *testing.T) {
 
 func TestAverageOfficeHoursByWeekday(t *testing.T) {
 	email := "test@example.com"
-	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+	filter := models.AnalyticsFilterStruct{Filter: bson.M{}}
 
 	res := analytics.AverageOfficeHoursByWeekday(email, filter)
 
@@ -104,7 +104,7 @@ func TestAverageOfficeHoursByWeekday(t *testing.T) {
 
 func TestRatioInOutOfficeByWeekday(t *testing.T) {
 	email := "test@example.com"
-	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+	filter := models.AnalyticsFilterStruct{Filter: bson.M{}}
 
 	res := analytics.RatioInOutOfficeByWeekday(email, filter)
 
@@ -116,7 +116,7 @@ func TestRatioInOutOfficeByWeekday(t *testing.T) {
 
 func TestBusiestHoursByWeekday(t *testing.T) {
 	email := "test@example.com"
-	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+	filter := models.AnalyticsFilterStruct{Filter: bson.M{}}
 
 	res := analytics.BusiestHoursByWeekday(email, filter)
 
@@ -128,7 +128,7 @@ func TestBusiestHoursByWeekday(t *testing.T) {
 
 func TestLeastInOfficeWorker(t *testing.T) {
 	email := "test@example.com"
-	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+	filter := models.AnalyticsFilterStruct{Filter: bson.M{}}
 
 	res := analytics.LeastMostInOfficeWorker(email, filter, true)
 
@@ -140,7 +140,7 @@ func TestLeastInOfficeWorker(t *testing.T) {
 
 func TestMostInOfficeWorker(t *testing.T) {
 	email := "test@example.com"
-	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+	filter := models.AnalyticsFilterStruct{Filter: bson.M{}}
 
 	res := analytics.LeastMostInOfficeWorker(email, filter, false)
 
@@ -152,7 +152,7 @@ func TestMostInOfficeWorker(t *testing.T) {
 
 func TestAverageArrivalAndDepartureTimesByWeekday(t *testing.T) {
 	email := "test@example.com"
-	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+	filter := models.AnalyticsFilterStruct{Filter: bson.M{}}
 
 	res := analytics.AverageArrivalAndDepartureTimesByWeekday(email, filter)
 
@@ -164,7 +164,7 @@ func TestAverageArrivalAndDepartureTimesByWeekday(t *testing.T) {
 
 func TestCalculateInOfficeRate(t *testing.T) {
 	email := "test@example.com"
-	filter := models.OfficeHoursFilterStruct{Filter: bson.M{}}
+	filter := models.AnalyticsFilterStruct{Filter: bson.M{}}
 
 	res := analytics.CalculateInOfficeRate(email, filter)
 
