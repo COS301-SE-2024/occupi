@@ -1,6 +1,8 @@
 package analytics
 
 import (
+	"time"
+
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -31,8 +33,35 @@ func CreateOfficeHoursMatchFilter(email string, filter models.AnalyticsFilterStr
 	return matchFilter
 }
 
-func CreateBookingMatchFilter(creatorEmail string, attendeesEmail string, filter models.AnalyticsFilterStruct) bson.D {
+func CreateBookingMatchFilter(creatorEmail string, attendeesEmail []string, filter models.AnalyticsFilterStruct, dateFilter string) bson.D {
+	// Create a match filter
+	matchFilter := bson.D{}
 
+	// Conditionally add the email filter if email is not empty
+	if creatorEmail != "" {
+		matchFilter = append(matchFilter, bson.E{Key: "creator", Value: bson.D{{Key: "$eq", Value: creatorEmail}}})
+	}
+
+	// Conditionally add the attendees filter if emails is not of length 0
+	if len(attendeesEmail) > 0 {
+		matchFilter = append(matchFilter, bson.E{Key: "emails", Value: bson.D{{Key: "$in", Value: attendeesEmail}}})
+	}
+
+	// Conditionally add the time range filter if provided
+	timeRangeFilter := bson.D{}
+	if filter.Filter["timeFrom"] != "" {
+		timeRangeFilter = append(timeRangeFilter, bson.E{Key: "$gte", Value: filter.Filter["timeFrom"]})
+	}
+	if filter.Filter["timeTo"] != "" {
+		timeRangeFilter = append(timeRangeFilter, bson.E{Key: "$lte", Value: filter.Filter["timeTo"]})
+	}
+
+	// If there are time range filters, append them to the match filter
+	if len(timeRangeFilter) > 0 && len(filter.Filter) > 0 {
+		matchFilter = append(matchFilter, bson.E{Key: dateFilter, Value: timeRangeFilter})
+	}
+
+	return matchFilter
 }
 
 // GroupOfficeHoursByDay function with total hours calculation
@@ -1037,5 +1066,80 @@ func CalculateInOfficeRate(email string, filter models.AnalyticsFilterStruct) bs
 }
 
 func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.A {
+	// Create the match filter using the reusable function
+	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, "date")
 
+	return bson.A{
+		// Stage 1: Match filter conditions (email and time range)
+		bson.D{{Key: "$match", Value: matchFilter}},
+		// Stage 2: Apply skip for pagination
+		bson.D{{Key: "$skip", Value: filter.Skip}},
+		// Stage 3: Apply limit for pagination
+		bson.D{{Key: "$limit", Value: filter.Limit}},
+		// Stage 4: Group by the room ID to calculate the total bookings
+		bson.D{
+			{Key: "$group",
+				Value: bson.D{
+					{Key: "_id", Value: "$roomId"},
+					{Key: "roomName", Value: bson.D{{Key: "$first", Value: "$roomName"}}},
+					{Key: "floorNo", Value: bson.D{{Key: "$first", Value: "$floorNo"}}},
+					{Key: "creators", Value: bson.D{{Key: "$push", Value: "$creator"}}},
+					{Key: "emails", Value: bson.D{{Key: "$push", Value: "$emails"}}},
+					{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+				},
+			},
+		},
+		// Stage 5: Sort by count
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "count", Value: -1}}}},
+		// Stage 6: Limit to the top 3 results
+		bson.D{{Key: "$limit", Value: 3}},
+	}
+}
+
+func GetHistoricalBookings(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.A {
+	// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
+	filter.Filter["timeTo"] = time.Now().Format(time.RFC3339)
+	delete(filter.Filter, "timeFrom")
+
+	// Create the match filter using the reusable function
+	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, "end")
+	return bson.A{
+		// Stage 1: Match filter conditions (email and time range)
+		bson.D{{Key: "$match", Value: matchFilter}},
+		// Stage 2: Apply skip for pagination
+		bson.D{{Key: "$skip", Value: filter.Skip}},
+		// Stage 3: Apply limit for pagination
+		bson.D{{Key: "$limit", Value: filter.Limit}},
+		// Stage 4: Group by the date to calculate the total bookings
+		bson.D{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$date"},
+			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}}},
+		// Stage 5: Sort by date
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}}},
+	}
+}
+
+func GetUpcomingBookings(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.A {
+	// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
+	filter.Filter["timeFrom"] = time.Now().Format(time.RFC3339)
+	delete(filter.Filter, "timeFrom")
+
+	// Create the match filter using the reusable function
+	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, "end")
+	return bson.A{
+		// Stage 1: Match filter conditions (email and time range)
+		bson.D{{Key: "$match", Value: matchFilter}},
+		// Stage 2: Apply skip for pagination
+		bson.D{{Key: "$skip", Value: filter.Skip}},
+		// Stage 3: Apply limit for pagination
+		bson.D{{Key: "$limit", Value: filter.Limit}},
+		// Stage 4: Group by the date to calculate the total bookings
+		bson.D{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$date"},
+			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}}},
+		// Stage 5: Sort by date
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}}},
+	}
 }
