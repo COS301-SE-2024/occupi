@@ -42,7 +42,13 @@ import Security from "./securityComponent/Security";
 import EditRoomModal from "./editRoomModal/EditRoomModal";
 import AddRoomModal from "./addRoomModal/AddRoomModal";
 import BarChartComponent from "@pages/visitations/BarChartComponent";
-
+import ActiveEmployeeCard from "./workerStats/ActiveEmployeeCard";
+import AverageHoursChart from "./workerStats/AverageHoursChart";
+import HoursDashboard from "./workerStats/HoursDashboard";
+import LeastActiveEmployeeCard from "./workerStats/LeastActiveEmployeeCard";
+import PeakOfficeHoursChart from "./workerStats/PeakOfficeHoursChart";
+import WorkRatioChart from "./workerStats/WorkRatioChart";
+import MostActiveEmployeeCard from "./workerStats/MostActiveEmployee";
 
 export {
     DrawerComponent,
@@ -88,5 +94,12 @@ export {
     Security,
     EditRoomModal,
     AddRoomModal,
-    BarChartComponent
+    BarChartComponent,
+    ActiveEmployeeCard,
+    AverageHoursChart,
+    HoursDashboard,
+    LeastActiveEmployeeCard,
+    PeakOfficeHoursChart,
+    WorkRatioChart,
+    MostActiveEmployeeCard
 }
