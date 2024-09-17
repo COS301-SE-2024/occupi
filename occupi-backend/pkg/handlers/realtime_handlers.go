@@ -16,7 +16,6 @@ import (
 func generateToken(expirationMinutes int) (string, error) {
 	// Define the secret key used to sign the token
 	var secretKey = []byte(configs.GetCentrifugoSecret())
-	fmt.Println(secretKey)
 
 	// Define the token claims
 	claims := jwt.MapClaims{
