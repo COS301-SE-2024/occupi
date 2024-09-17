@@ -13,7 +13,8 @@ import { Text, View, Icon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from 'expo-router';
 import { getAnalytics } from '@/services/analyticsservices';
-import { convertData, fetchUserArrivalAndDeparture, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio } from '@/utils/analytics';
+import { convertAvgArrival, convertAvgDeparture, convertData, fetchUserArrivalAndDeparture, fetchUserArrivalAndDepartureArray, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio } from '@/utils/analytics';
+import ComparativelineGraph from '@/components/ComparativeLineGraph';
 
 const Stats = () => {
   const navigation = useNavigation();
@@ -22,6 +23,7 @@ const Stats = () => {
   const currentTheme = theme === "system" ? colorScheme : theme;
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const [accentColour, setAccentColour] = useState<string>('greenyellow');
+  const [isLoading, setIsLoading] = useState(false);
   const [summary, setSummary] = useState('');
   const [userHours, setUserHours] = useState<number>();
   const [userAverage, setUserAverage] = useState<number>();
@@ -36,15 +38,14 @@ const Stats = () => {
   const [timeTo, setTimeTo] = useState<string>("");
   const [totalGraph, setTotalGraph] = useState(false);
   const [graphData, setGraphData] = useState(null);
+  const [timeGraph, setTimeGraph] = useState(false);
+  const [activeGraph, setActiveGraph] = useState("");
+  const [graphArrivalData, setGraphArrivalData] = useState(null);
+  const [graphDepartureData, setGraphDepartureData] = useState(null);
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
   const cardBackgroundColor = isDarkMode ? '#101010' : '#F3F3F3';
-
-  useEffect(() => {
-    // resetTimeFrames();
-    fetchUserAnalytics();
-  }, []);
 
   const convertToHoursAndMinutes = (totalHours: number): string => {
     const hours = Math.floor(totalHours);
@@ -53,31 +54,52 @@ const Stats = () => {
   };
 
   const fetchData = async (data: string) => {
-    if (userHours === -1) {
-      return;
-    }
-    else if (totalGraph === true) {
-      setGraphData(null);
-      setTotalGraph(false);
-      // resetTimeFrames();
-    } else {
-      setTotalGraph(true);
-      console.log(timeFrom, timeTo);
-      const total = await fetchUserTotalHoursArray(timeFrom, timeTo);
-      setGraphData(convertData(total));
+    // console.log(data);
+    if (data === "hours") {
+      if (userHours === -1) {
+        return;
+      }
+      else if (activeGraph !== "") {
+        setGraphData(null);
+        setActiveGraph("");
+        // resetTimeFrames();
+      } else {
+        setActiveGraph("hours");
+        // console.log(timeFrom, timeTo);
+        const total = await fetchUserTotalHoursArray(timeFrom, timeTo);
+        setGraphData(convertData(total));
+      }
+    } else if (data === "times") {
+      if (userHours === -1) {
+        return;
+      }
+      else if (activeGraph !== "") {
+        setGraphData(null);
+        setActiveGraph("");
+        // resetTimeFrames();
+      } else {
+        setActiveGraph("times");
+        // console.log(timeFrom, timeTo);
+        const total = await fetchUserArrivalAndDepartureArray(timeFrom, timeTo);
+        // console.log(convertAvgArrival(total));
+        setGraphArrivalData(convertAvgArrival(total));
+        setGraphDepartureData(convertAvgDeparture(total));
+      }
     }
   }
 
-  const fetchUserAnalytics = async () => {
+  const fetchUserAnalytics = async (timefrom : string, timeto: string) => {
+
     // console.log(timeTo);
+    setIsLoading(true);
     try {
-      const hours = await fetchUserTotalHours(timeFrom, timeTo);
-      console.log('hours', hours);
-      // const average = await fetchUserAverageHours(timeFrom, timeTo);
-      // const ratio = await fetchWorkRatio(timeFrom, timeTo);
+      const hours = await fetchUserTotalHours(timefrom, timeto);
+      // console.log('hours', hours);
+      const average = await fetchUserAverageHours(timefrom, timeto);
+      const ratio = await fetchWorkRatio(timefrom, timeto);
       // const peak = await fetchUserPeakHours(timeFrom, timeTo);
-      // const arrivalDeparture = await fetchUserArrivalAndDeparture(timeFrom, timeTo);
-      // const inOffice = await fetchUserInOfficeRate(timeFrom, timeTo);
+      const arrivalDeparture = await fetchUserArrivalAndDeparture(timefrom, timeto);
+      const inOffice = await fetchUserInOfficeRate(timefrom, timeto);
       // console.log('hours', hours);
       // console.log('average', average);
       // console.log('ratio', ratio);
@@ -85,16 +107,23 @@ const Stats = () => {
       // console.log('arrivalDeparture', arrivalDeparture[0]);
       // console.log('inOffice', inOffice);
       setUserHours(hours);
-      // setUserAverage(average);
-      // setWorkRatio(ratio);
+      setUserAverage(average);
+      setWorkRatio(ratio);
       // setPeakHours(peak);
-      // setArrival(arrivalDeparture[0]);
-      // setDeparture(arrivalDeparture[1]);
-      // setInOfficeRate(inOffice);
+      setArrival(arrivalDeparture[0]);
+      setDeparture(arrivalDeparture[1]);
+      setInOfficeRate(inOffice);
+      setIsLoading(false);
     } catch (error) {
+      setIsLoading(false);
       console.error('Error fetching user analytics:', error);
     }
   };
+
+  useEffect(() => {
+    // resetTimeFrames();
+    fetchUserAnalytics("","");
+  }, []);
 
   const hideDatePicker1 = () => {
     setDatePicker1Visibility(false);
@@ -114,22 +143,22 @@ const Stats = () => {
 
   const handleConfirm1 = async (date: Date) => {
     const selectedDate: string = date.toISOString();
-    console.log('selected', selectedDate);
+    // console.log('selected', selectedDate);
     setTimeFrom(selectedDate);
     hideDatePicker1();
     setGraphData(null);
     setTotalGraph(false);
-    await fetchUserAnalytics();
+    await fetchUserAnalytics(selectedDate, timeTo);
   };
 
   const handleConfirm2 = async (date: Date) => {
     const selectedDate: string = date.toISOString();
-    console.log('selected', selectedDate);
+    // console.log('selected', selectedDate);
     setTimeTo(selectedDate);
     hideDatePicker2();
     setGraphData(null);
     setTotalGraph(false);
-    await fetchUserAnalytics();
+    await fetchUserAnalytics(timeFrom, selectedDate);
   };
 
   const resetTimeFrames = () => {
@@ -297,15 +326,40 @@ const Stats = () => {
           justifyContent: 'space-between'
         }}
         >
-          <TouchableOpacity onPress={() => fetchData('total')} style={{ flexDirection: 'row', justifyContent: 'space-between' }} justifyContent='space-between'>
+          <TouchableOpacity onPress={() => fetchData('total')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <View>
               <Text style={{
                 fontSize: wp('5%'),
                 fontWeight: 'bold',
                 color: 'white',
               }}>Total Hours: </Text>
-              {userHours ? (
+              {!isLoading ? (
                 <Text color='white'>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userHours)}</Text>
+              ) : (
+                <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View style={{
+          backgroundColor: '#101010',
+          borderRadius: wp('4%'),
+          padding: wp('4%'),
+          marginBottom: hp('3%'),
+          borderColor: accentColour,
+          borderWidth: 2,
+          justifyContent: 'space-between'
+        }}
+        >
+          <TouchableOpacity onPress={() => fetchData('hours')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: 'white',
+              }}>Average Hours Per Day: </Text>
+              {!isLoading ? (
+                <Text color='white'>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userAverage)}</Text>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
@@ -313,7 +367,7 @@ const Stats = () => {
             {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
           </TouchableOpacity>
           <View>
-            {totalGraph === true &&
+            {activeGraph === 'hours' &&
               <>
                 {graphData !== null ? (
                   <AnalyticsGraph
@@ -327,31 +381,6 @@ const Stats = () => {
               </>
             }
           </View>
-
-        </View>
-        <View style={{
-          backgroundColor: '#101010',
-          borderRadius: wp('4%'),
-          padding: wp('4%'),
-          marginBottom: hp('3%'),
-          borderColor: accentColour,
-          borderWidth: 2,
-          flexDirection: 'row',
-          justifyContent: 'space-between'
-        }}>
-          <View>
-            <Text style={{
-              fontSize: wp('5%'),
-              fontWeight: 'bold',
-              color: 'white',
-            }}>Average Office Hours: </Text>
-            {userAverage ? (
-              <Text color='white'>{convertToHoursAndMinutes(userAverage)}</Text>
-            ) : (
-              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
-            )}
-          </View>
-          <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
         <View style={{
           backgroundColor: '#101010',
@@ -369,7 +398,7 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>Work Ratio: </Text>
-            {workRatio ? (
+            {!isLoading ? (
               <Text color='white'>{convertToHoursAndMinutes(workRatio)}</Text>
             ) : (
               <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
@@ -393,7 +422,7 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>Peak Hours:</Text>
-            {peakHours ? (
+            {!isLoading ? (
               <Text color='white'>{convertToHoursAndMinutes(peakHours)}</Text>
             ) : (
               <Text color='white'>No peak hours found</Text>
@@ -408,25 +437,42 @@ const Stats = () => {
           marginBottom: hp('3%'),
           borderColor: accentColour,
           borderWidth: 2,
-          flexDirection: 'row',
           justifyContent: 'space-between'
         }}>
+          <TouchableOpacity onPress={() => fetchData('times')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: textColor,
+              }}>Arrival and Departure: </Text>
+              {!isLoading ? (
+                <>
+                  <Text color={textColor}>Average Arrival Time: <Text bold color={textColor}>{arrival}</Text></Text>
+                  <Text color={textColor}>Average Departure Time: <Text bold color={textColor}>{departure}</Text></Text>
+                </>
+              ) : (
+                <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
+              )}
+            </View>
+            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
+          </TouchableOpacity>
           <View>
-            <Text style={{
-              fontSize: wp('5%'),
-              fontWeight: 'bold',
-              color: 'white',
-            }}>Arrival and Departure: </Text>
-            {arrival ? (
+            {activeGraph === 'times' &&
               <>
-                <Text color='white'>Arrival: {arrival}</Text>
-                <Text color='white'>Departure: {departure}</Text>
+                {graphArrivalData !== null ? (
+                  <ComparativelineGraph
+                    data={graphArrivalData}
+                    data2={graphDepartureData}
+                    title='Arrival and Departure Times'
+                    x_axis='Day' />
+                ) : (
+                  <WaveIndicator color={accentColour} />
+                )
+                }
               </>
-            ) : (
-              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
-            )}
+            }
           </View>
-          <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
         <View style={{
           backgroundColor: '#101010',
@@ -444,7 +490,7 @@ const Stats = () => {
               fontWeight: 'bold',
               color: 'white',
             }}>In Office Rate: </Text>
-            {inOfficeRate ? (
+            {!isLoading ? (
               <Text color='white'>{Math.floor(inOfficeRate)}%</Text>
             ) : (
               <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />

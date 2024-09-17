@@ -1,5 +1,5 @@
 import { Success, Unsuccessful } from "@/models/response";
-import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq, NotificationsReq, UpdateDetailsReq, ViewRoomsReq } from "@/models/requests";
+import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq, NotificationsReq, UpdateDetailsReq, ViewRoomsReq, ViewBookingsReq } from "@/models/requests";
 // import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import axios, { AxiosError } from 'axios';
@@ -99,7 +99,7 @@ export async function getNotificationSettings(email: string): Promise<Success | 
   }
 }
 
-export const getUserBookings = async (email: string): Promise<Success | Unsuccessful> => {
+export const getUserBookings = async (req: ViewBookingsReq): Promise<Success | Unsuccessful> => {
   try {
     const authToken = await SecureStore.getItemAsync("Token");
     if (!authToken) {
@@ -114,10 +114,11 @@ export const getUserBookings = async (email: string): Promise<Success | Unsucces
         }
       };
     }
-    
+    // console.log(req.filter.email);
     const response = await axios.get(
-      `https://dev.occupi.tech/api/view-bookings?filter={"email":"${email}"}`,
+      `https://dev.occupi.tech/api/view-bookings?filter={"email":"kamogelomoeketse@gmail.com"}`,
       {
+        params: req,
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
@@ -126,7 +127,7 @@ export const getUserBookings = async (email: string): Promise<Success | Unsucces
         withCredentials: true,
       }
     );
-    // console.log(response.data);
+    // console.log("bookings",response.data);
     return response.data;
   } catch (error) {
     console.error("Error in getUserBookings:", error);
