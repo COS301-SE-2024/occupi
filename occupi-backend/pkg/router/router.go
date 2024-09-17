@@ -60,6 +60,11 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.PUT("/add-room", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
 		api.GET("/available-slots", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAvailableSlots(ctx, appsession) })
 		api.PUT("/toggle-onsite", middleware.ProtectedRoute, middleware.BlockWeekendsAndAfterHours(time.Now()), func(ctx *gin.Context) { handlers.ToggleOnsite(ctx, appsession) })
+		api.POST("/create-user", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.CreateUser(ctx, appsession) })
+		api.GET("/get-ip-info", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetIPInfo(ctx, appsession) })
+		api.POST("/add-ip", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddIP(ctx, appsession) })
+		api.DELETE("/remove-ip", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.RemoveIP(ctx, appsession) })
+		api.PUT("/toggle-allow-anonymous-ip", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.ToggleAllowAnonymousIP(ctx, appsession) })
 	}
 	analytics := router.Group("/analytics")
 	{
@@ -114,7 +119,9 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	}
 	rtc := router.Group("/rtc")
 	{
-		rtc.POST("/enter", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, appsession) })
-		rtc.POST("/exit", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, appsession) })
+		rtc.GET("/enter", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, appsession) })
+		rtc.GET("/exit", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, appsession) })
+		rtc.GET("/get-token", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetRTCToken(ctx, appsession) })
+		rtc.GET("/current-count", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetCurrentCount(ctx, appsession) })
 	}
 }

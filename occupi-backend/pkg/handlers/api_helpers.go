@@ -16,6 +16,7 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
+	"github.com/ccoveille/go-safecast"
 	"github.com/gin-gonic/gin"
 	"github.com/nfnt/resize"
 	"github.com/sirupsen/logrus"
@@ -73,7 +74,15 @@ func ResizeImagesAndReturnAsFiles(ctx *gin.Context, appsession *models.AppSessio
 	files := make([]models.File, 0, len(imageWidths)) // Pre-allocate the slice
 
 	for _, width := range imageWidths {
-		widthV := uint(width)
+		// Convert the width to uint
+		widthV, err := safecast.ToUint(width)
+		if err != nil {
+			deleteTempFiles(files)
+			captureError(ctx, err)
+			logrus.WithError(err).Error("Failed to convert width to uint")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return nil, err
+		}
 
 		var newFileName string
 
@@ -190,4 +199,53 @@ func deleteTempFiles(files []models.File) {
 			logrus.WithError(err).Error("Failed to delete temp file")
 		}
 	}
+}
+
+func DefaultMalePFP(race ...string) string {
+	pfps := []string{
+		"default_wm1.jpg",
+		"default_wm2.jpg",
+		"default_wm3.jpg",
+		"default_wm4.jpg",
+		"default_bm1.jpg",
+	}
+
+	if len(race) == 0 {
+		// choose a random pfp
+		return pfps[utils.RandomInt(0, len(pfps))]
+	} else {
+		// choose a random pfp based on the race
+		if race[0] == "white" {
+			return pfps[utils.RandomInt(0, 4)]
+		} else {
+			return pfps[utils.RandomInt(4, len(pfps))]
+		}
+	}
+}
+
+func DefaultFemalePFP(race ...string) string {
+	pfps := []string{
+		"default_ww1.jpg",
+		"default_ww2.jpg",
+		"default_ww3.jpg",
+		"default_ww4.jpg",
+		"default_bw1.jpg",
+		"default_bw1.jpg",
+	}
+
+	if len(race) == 0 {
+		// choose a random pfp
+		return pfps[utils.RandomInt(0, len(pfps))]
+	} else {
+		// choose a random pfp based on the race
+		if race[0] == "white" {
+			return pfps[utils.RandomInt(0, 4)]
+		} else {
+			return pfps[utils.RandomInt(4, len(pfps))]
+		}
+	}
+}
+
+func DefaultNBPFP() string {
+	return "default_nb1.jpg"
 }

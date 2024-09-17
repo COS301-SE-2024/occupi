@@ -2899,3 +2899,94 @@ func TestRemoveImageExtension(t *testing.T) {
 		})
 	}
 }
+
+func TestContains(t *testing.T) {
+	tests := []struct {
+		name     string
+		slice    []string
+		element  string
+		expected bool
+	}{
+		{
+			name:     "element present in slice",
+			slice:    []string{"apple", "banana", "cherry"},
+			element:  "banana",
+			expected: true,
+		},
+		{
+			name:     "element not present in slice",
+			slice:    []string{"apple", "banana", "cherry"},
+			element:  "orange",
+			expected: false,
+		},
+		{
+			name:     "empty slice",
+			slice:    []string{},
+			element:  "banana",
+			expected: false,
+		},
+		{
+			name:     "element present as the only element",
+			slice:    []string{"apple"},
+			element:  "apple",
+			expected: true,
+		},
+		{
+			name:     "element present multiple times",
+			slice:    []string{"apple", "banana", "apple", "cherry"},
+			element:  "apple",
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.Contains(tt.slice, tt.element)
+			if result != tt.expected {
+				t.Errorf("Contains(%v, %v) = %v; want %v", tt.slice, tt.element, result, tt.expected)
+			}
+		})
+	}
+}
+
+// TestRandomInt tests the RandomInt function with various cases
+func TestRandomInt(t *testing.T) {
+	tests := []struct {
+		name string
+		min  int
+		max  int
+	}{
+		{name: "min less than max", min: 1, max: 10},
+		{name: "min greater than max (swapping)", min: 10, max: 1},
+		{name: "min equal to max", min: 5, max: 5},  // Edge case where min == max
+		{name: "negative range", min: -10, max: -1}, // Negative numbers
+		{name: "mixed negative and positive", min: -5, max: 5},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			randomNum := utils.RandomInt(tt.min, tt.max)
+
+			// Assert that the random number is within the specified range [min, max]
+			min := tt.min
+			max := tt.max
+
+			// Since min might be greater than max, ensure min and max are swapped for range checking
+			if min > max {
+				min, max = max, min
+			}
+
+			if randomNum < min || randomNum > max {
+				t.Errorf("Random number %d not in range [%d, %d]", randomNum, min, max)
+			}
+		})
+	}
+}
+
+func TestRandomIntErrorHandling(t *testing.T) {
+	// Ensure it doesn't return 0 when min == max
+	result := utils.RandomInt(10, 10)
+	if result != 10 {
+		t.Errorf("Expected 10, got %d", result)
+	}
+}

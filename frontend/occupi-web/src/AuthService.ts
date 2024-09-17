@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_URL = "/auth"; // This will be proxied to https://dev.occupi.tech
 const API_USER_URL = "/api"; // Adjust this if needed
-
+const RTC_URL = "/rtc"; // Adjust this if needed
 interface PublicKeyCredential {
   id: string;
   rawId: ArrayBuffer;
@@ -283,7 +283,7 @@ const AuthService = {
   sendResetEmail: async (email: string) => {
     try {
       const response = await axios.post(`${API_URL}/forgot-password`, {
-        "email": email
+        email: email,
       });
       if (response.data.status === 200) {
         return response.data;
@@ -299,14 +299,22 @@ const AuthService = {
     }
   },
 
-  resetPassword: async (email: string, otp: string, newPassword: string, newPasswordConfirm: string) => {
+  resetPassword: async (
+    email: string,
+    otp: string,
+    newPassword: string,
+    newPasswordConfirm: string
+  ) => {
     try {
-      const response = await axios.post(`${API_URL}/reset-password-admin-login`, {
-        "email": email,
-        "otp": otp,
-        "newPassword": newPassword,
-        "newPasswordConfirm": newPasswordConfirm
-      });
+      const response = await axios.post(
+        `${API_URL}/reset-password-admin-login`,
+        {
+          email: email,
+          otp: otp,
+          newPassword: newPassword,
+          newPasswordConfirm: newPasswordConfirm,
+        }
+      );
       if (response.data.status === 200) {
         return response.data;
       } else {
@@ -318,6 +326,23 @@ const AuthService = {
         throw error.response.data;
       }
       throw new Error("An unexpected error occurred while sending reset email");
+    }
+  },
+  getToken: async () => {
+    try {
+      console.log("Getting RTC token");
+      const response = await axios.get(`${RTC_URL}/get-token`, {
+        headers: {
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      });
+      return response.data.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
     }
   },
 };

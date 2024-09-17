@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 	"os"
 	"reflect"
 	"regexp"
@@ -637,4 +638,43 @@ func RemoveImageExtension(fileName string) string {
 
 	// Return the original filename if no extension matches
 	return fileName
+}
+
+func Contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func RandomInt(min, max int) int {
+	// if min is greater than max, swap the values
+	if min > max {
+		min, max = max, min
+	}
+
+	// if min is equal to max, return min
+	if min == max {
+		return min
+	}
+
+	// Calculate the range size (max - min + 1)
+	n := max - min + 1
+
+	// Generate a random number in the range [0, n)
+	randNum, err := rand.Int(rand.Reader, big.NewInt(int64(n)))
+	if err != nil {
+		return 0
+	}
+
+	// Add min to shift the number to the correct range [min, max]
+	return int(randNum.Int64()) + min
+}
+
+func ValidateIP(ip string) bool {
+	// Regex pattern for IP validation
+	var ipRegex = regexp.MustCompile(`^(\d{1,3}\.){3}\d{1,3}$`)
+	return ipRegex.MatchString(ip)
 }

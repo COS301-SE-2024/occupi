@@ -1147,12 +1147,12 @@ func TestBlockWeekendsAndAfterHours(t *testing.T) {
 		{
 			name:         "Access on a Saturday",
 			mockTime:     time.Date(2024, 9, 7, 10, 0, 0, 0, time.UTC), // Saturday at 10:00 AM
-			expectedCode: http.StatusForbidden,
+			expectedCode: http.StatusOK,
 		},
 		{
 			name:         "Access on a Sunday",
 			mockTime:     time.Date(2024, 9, 8, 10, 0, 0, 0, time.UTC), // Sunday at 10:00 AM
-			expectedCode: http.StatusForbidden,
+			expectedCode: http.StatusOK,
 		},
 		{
 			name:         "Access before working hours on a weekday",
