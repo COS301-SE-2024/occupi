@@ -1077,18 +1077,14 @@ func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter
 		// Stage 3: Apply limit for pagination
 		bson.D{{Key: "$limit", Value: filter.Limit}},
 		// Stage 4: Group by the room ID to calculate the total bookings
-		bson.D{
-			{Key: "$group",
-				Value: bson.D{
-					{Key: "_id", Value: "$roomId"},
-					{Key: "roomName", Value: bson.D{{Key: "$first", Value: "$roomName"}}},
-					{Key: "floorNo", Value: bson.D{{Key: "$first", Value: "$floorNo"}}},
-					{Key: "creators", Value: bson.D{{Key: "$push", Value: "$creator"}}},
-					{Key: "emails", Value: bson.D{{Key: "$push", Value: "$emails"}}},
-					{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
-				},
-			},
-		},
+		bson.D{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$roomId"},
+			{Key: "roomName", Value: bson.D{{Key: "$first", Value: "$roomName"}}},
+			{Key: "floorNo", Value: bson.D{{Key: "$first", Value: "$floorNo"}}},
+			{Key: "creators", Value: bson.D{{Key: "$push", Value: "$creator"}}},
+			{Key: "emails", Value: bson.D{{Key: "$push", Value: "$emails"}}},
+			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		}}},
 		// Stage 5: Sort by count
 		bson.D{{Key: "$sort", Value: bson.D{{Key: "count", Value: -1}}}},
 		// Stage 6: Limit to the top 3 results
@@ -1110,13 +1106,22 @@ func GetHistoricalBookings(creatorEmail string, attendeeEmails []string, filter 
 		bson.D{{Key: "$skip", Value: filter.Skip}},
 		// Stage 3: Apply limit for pagination
 		bson.D{{Key: "$limit", Value: filter.Limit}},
-		// Stage 4: Group by the date to calculate the total bookings
-		bson.D{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: "$date"},
-			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+		// Stage 4: Get all bookings without grouping
+		bson.D{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 0},
+			{Key: "occupiID", Value: "$occupiId"},
+			{Key: "roomName", Value: "$roomName"},
+			{Key: "roomId", Value: "$roomId"},
+			{Key: "emails", Value: "$emails"},
+			{Key: "checkedIn", Value: "$checkedIn"},
+			{Key: "creators", Value: "$creator"},
+			{Key: "floorNo", Value: "$floorNo"},
+			{Key: "date", Value: "$date"},
+			{Key: "start", Value: "$start"},
+			{Key: "end", Value: "$end"},
 		}}},
 		// Stage 5: Sort by date
-		bson.D{{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "date", Value: 1}}}},
 	}
 }
 
