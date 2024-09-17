@@ -8423,8 +8423,8 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 		filterPrimitive[k] = v
 	}
 
-	// Define example OfficeHoursFilterStruct
-	filter := models.OfficeHoursFilterStruct{
+	// Define example AnalyticsFilterStruct
+	filter := models.AnalyticsFilterStruct{
 		Filter: filterPrimitive,
 		Limit:  10,
 		Skip:   0,
@@ -8733,7 +8733,7 @@ func TestGetAnalyticsOnHours(t *testing.T) {
 
 func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Define a base filter for testing
-	baseFilter := models.OfficeHoursFilterStruct{
+	baseFilter := models.AnalyticsFilterStruct{
 		Filter: bson.M{
 			"timeFrom": "",
 			"timeTo":   "",
@@ -8763,7 +8763,7 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Test case: Email and timeFrom provided
 	t.Run("EmailAndTimeFrom", func(t *testing.T) {
 		email := "test@example.com"
-		filter := models.OfficeHoursFilterStruct{
+		filter := models.AnalyticsFilterStruct{
 			Filter: bson.M{
 				"timeFrom": "2023-09-01T09:00:00",
 				"timeTo":   "",
@@ -8781,7 +8781,7 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Test case: Email and timeTo provided
 	t.Run("EmailAndTimeTo", func(t *testing.T) {
 		email := "test@example.com"
-		filter := models.OfficeHoursFilterStruct{
+		filter := models.AnalyticsFilterStruct{
 			Filter: bson.M{
 				"timeFrom": "",
 				"timeTo":   "2023-09-01T17:00:00",
@@ -8801,7 +8801,7 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Test case: timeFrom and timeTo provided, but no email
 	t.Run("TimeFromAndTimeTo", func(t *testing.T) {
 		email := ""
-		filter := models.OfficeHoursFilterStruct{
+		filter := models.AnalyticsFilterStruct{
 			Filter: bson.M{
 				"timeFrom": "2023-09-01T09:00:00",
 				"timeTo":   "2023-09-01T17:00:00",
@@ -8821,7 +8821,7 @@ func TestMakeEmailAndTimeFilter(t *testing.T) {
 	// Test case: Email, timeFrom, and timeTo provided
 	t.Run("EmailAndFullTimeRange", func(t *testing.T) {
 		email := "test@example.com"
-		filter := models.OfficeHoursFilterStruct{
+		filter := models.AnalyticsFilterStruct{
 			Filter: bson.M{
 				"timeFrom": "2023-09-01T09:00:00",
 				"timeTo":   "2023-09-01T17:00:00",
@@ -10138,5 +10138,349 @@ func TestToggleAllowAnonymousIP(t *testing.T) {
 
 		// Ensure all expectations are met
 		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
+func TestMakeEmailAndEmailsAndTimeFilter(t *testing.T) {
+	tests := []struct {
+		name           string
+		creatorEmail   string
+		attendeeEmails []string
+		filter         models.AnalyticsFilterStruct
+		expectedFilter bson.M
+	}{
+		{
+			name:           "Empty filter",
+			creatorEmail:   "",
+			attendeeEmails: []string{},
+			filter: models.AnalyticsFilterStruct{Filter: bson.M{
+				"timeFrom": "",
+				"timeTo":   "",
+			}},
+			expectedFilter: bson.M{},
+		},
+		{
+			name:           "Filter by creatorEmail",
+			creatorEmail:   "test@example.com",
+			attendeeEmails: []string{},
+			filter: models.AnalyticsFilterStruct{Filter: bson.M{
+				"timeFrom": "",
+				"timeTo":   "",
+			}},
+			expectedFilter: bson.M{"creator": "test@example.com"},
+		},
+		{
+			name:           "Filter by attendeeEmails",
+			creatorEmail:   "",
+			attendeeEmails: []string{"attendee1@example.com", "attendee2@example.com"},
+			filter: models.AnalyticsFilterStruct{Filter: bson.M{
+				"timeFrom": "",
+				"timeTo":   "",
+			}},
+			expectedFilter: bson.M{"emails": bson.M{"$in": []string{"attendee1@example.com", "attendee2@example.com"}}},
+		},
+		{
+			name:           "Filter by timeFrom and timeTo",
+			creatorEmail:   "",
+			attendeeEmails: []string{},
+			filter:         models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "2023-01-01", "timeTo": "2023-01-31"}},
+			expectedFilter: bson.M{"date": bson.M{"$gte": "2023-01-01", "$lte": "2023-01-31"}},
+		},
+		{
+			name:           "Filter by timeTo only",
+			creatorEmail:   "",
+			attendeeEmails: []string{},
+			filter:         models.AnalyticsFilterStruct{Filter: bson.M{"timeTo": "2023-01-31", "timeFrom": ""}},
+			expectedFilter: bson.M{"date": bson.M{"$lte": "2023-01-31"}},
+		},
+		{
+			name:           "Filter by timeFrom only",
+			creatorEmail:   "",
+			attendeeEmails: []string{},
+			filter:         models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "2023-01-01", "timeTo": ""}},
+			expectedFilter: bson.M{"date": bson.M{"$gte": "2023-01-01"}},
+		},
+		{
+			name:           "Filter by creatorEmail, attendeeEmails, and time range",
+			creatorEmail:   "test@example.com",
+			attendeeEmails: []string{"attendee1@example.com"},
+			filter:         models.AnalyticsFilterStruct{Filter: bson.M{"timeFrom": "2023-01-01", "timeTo": "2023-01-31"}},
+			expectedFilter: bson.M{
+				"creator": "test@example.com",
+				"emails":  bson.M{"$in": []string{"attendee1@example.com"}},
+				"date":    bson.M{"$gte": "2023-01-01", "$lte": "2023-01-31"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.MakeEmailAndEmailsAndTimeFilter(tt.creatorEmail, tt.attendeeEmails, tt.filter, "date")
+			if !reflect.DeepEqual(result, tt.expectedFilter) {
+				t.Errorf("expected %v, got %v", tt.expectedFilter, result)
+			}
+		})
+	}
+}
+
+func TestGetAnalyticsOnBookings(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	booking := models.Booking{
+		OccupiID:  "123",
+		RoomID:    "456",
+		RoomName:  "Room 1",
+		Emails:    []string{""},
+		CheckedIn: true,
+		Creator:   "test@example.com",
+		FloorNo:   "1",
+		Date:      time.Now(),
+		Start:     time.Now(),
+		End:       time.Now(),
+	}
+
+	filterMap := map[string]string{
+		// 1970-01-01T00:00:00Z
+		"timeFrom": time.Unix(0, 0).Format(time.RFC3339),
+		// time now
+		"timeTo": time.Now().Format(time.RFC3339),
+	}
+
+	// Convert filterMap to primitive.M
+	filterPrimitive := make(primitive.M)
+	for k, v := range filterMap {
+		filterPrimitive[k] = v
+	}
+
+	// Define example AnalyticsFilterStruct
+	filter := models.AnalyticsFilterStruct{
+		Filter: filterPrimitive,
+		Limit:  10,
+		Skip:   0,
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		results, total, err := database.GetAnalyticsOnBookings(ctx, appsession, "test@example.com", []string{}, filter, "count")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+	})
+
+	mt.Run("Invalid calculation type", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnBookings(ctx, appsession, "test@example.com", []string{}, filter, "invalid")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "invalid calculate value", "Expected error for invalid calculation type")
+	})
+
+	mt.Run("Successful query and top3 calculation", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "occupiId", Value: booking.OccupiID},
+			{Key: "roomId", Value: booking.RoomID},
+			{Key: "roomName", Value: booking.RoomName},
+			{Key: "emails", Value: booking.Emails},
+			{Key: "checkedIn", Value: booking.CheckedIn},
+			{Key: "creator", Value: booking.Creator},
+			{Key: "floorNo", Value: booking.FloorNo},
+			{Key: "date", Value: booking.Date},
+			{Key: "start", Value: booking.Start},
+			{Key: "end", Value: booking.End},
+		}))
+
+		// Mock CountDocuments to return a count of 1
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
+			{Key: "occupiId", Value: booking.OccupiID},
+			{Key: "roomId", Value: booking.RoomID},
+			{Key: "roomName", Value: booking.RoomName},
+			{Key: "emails", Value: booking.Emails},
+			{Key: "checkedIn", Value: booking.CheckedIn},
+			{Key: "creator", Value: booking.Creator},
+			{Key: "floorNo", Value: booking.FloorNo},
+			{Key: "date", Value: booking.Date},
+			{Key: "start", Value: booking.Start},
+			{Key: "end", Value: booking.End},
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnBookings(ctx, appsession, "", []string{}, filter, "top3")
+		assert.NoError(t, err, "Expected no error for successful query")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
+	})
+
+	mt.Run("Successful query and historical calculation", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "occupiId", Value: booking.OccupiID},
+			{Key: "roomId", Value: booking.RoomID},
+			{Key: "roomName", Value: booking.RoomName},
+			{Key: "emails", Value: booking.Emails},
+			{Key: "checkedIn", Value: booking.CheckedIn},
+			{Key: "creator", Value: booking.Creator},
+			{Key: "floorNo", Value: booking.FloorNo},
+			{Key: "date", Value: booking.Date},
+			{Key: "start", Value: booking.Start},
+			{Key: "end", Value: booking.End.Add(-time.Hour)},
+		}))
+
+		// Mock CountDocuments to return a count of 1
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
+			{Key: "occupiId", Value: booking.OccupiID},
+			{Key: "roomId", Value: booking.RoomID},
+			{Key: "roomName", Value: booking.RoomName},
+			{Key: "emails", Value: booking.Emails},
+			{Key: "checkedIn", Value: booking.CheckedIn},
+			{Key: "creator", Value: booking.Creator},
+			{Key: "floorNo", Value: booking.FloorNo},
+			{Key: "date", Value: booking.Date},
+			{Key: "start", Value: booking.Start},
+			{Key: "end", Value: booking.End.Add(-time.Hour)},
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnBookings(ctx, appsession, "", []string{}, filter, "historical")
+		assert.NoError(t, err, "Expected no error for successful query")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
+	})
+
+	mt.Run("Successful query and upcoming calculation", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "occupiId", Value: booking.OccupiID},
+			{Key: "roomId", Value: booking.RoomID},
+			{Key: "roomName", Value: booking.RoomName},
+			{Key: "emails", Value: booking.Emails},
+			{Key: "checkedIn", Value: booking.CheckedIn},
+			{Key: "creator", Value: booking.Creator},
+			{Key: "floorNo", Value: booking.FloorNo},
+			{Key: "date", Value: booking.Date},
+			{Key: "start", Value: booking.Start},
+			{Key: "end", Value: booking.End.Add(time.Hour)},
+		}))
+
+		// Mock CountDocuments to return a count of 1
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
+			{Key: "occupiId", Value: booking.OccupiID},
+			{Key: "roomId", Value: booking.RoomID},
+			{Key: "roomName", Value: booking.RoomName},
+			{Key: "emails", Value: booking.Emails},
+			{Key: "checkedIn", Value: booking.CheckedIn},
+			{Key: "creator", Value: booking.Creator},
+			{Key: "floorNo", Value: booking.FloorNo},
+			{Key: "date", Value: booking.Date},
+			{Key: "start", Value: booking.Start},
+			{Key: "end", Value: booking.End.Add(time.Hour)},
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnBookings(ctx, appsession, "", []string{}, filter, "upcoming")
+		assert.NoError(t, err, "Expected no error for successful query")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
+	})
+
+	mt.Run("Failed aggregate query", func(mt *mtest.T) {
+		// Mock Find to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "query failed",
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnBookings(ctx, appsession, "", []string{}, filter, "top3")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "query failed", "Expected error for failed query")
+	})
+
+	mt.Run("Failed cursor", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "occupiId", Value: booking.OccupiID},
+			{Key: "roomId", Value: booking.RoomID},
+			{Key: "roomName", Value: booking.RoomName},
+			{Key: "emails", Value: booking.Emails},
+			{Key: "checkedIn", Value: booking.CheckedIn},
+			{Key: "creator", Value: booking.Creator},
+			{Key: "floorNo", Value: booking.FloorNo},
+			{Key: "date", Value: booking.Date},
+			{Key: "start", Value: booking.Start},
+			{Key: "end", Value: booking.End},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnBookings(ctx, appsession, "", []string{}, filter, "top3")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "cursor.id should be an int64 but is a BSON invalid", "Expected error for failed count documents")
+	})
+
+	mt.Run("Failed count", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".OfficeHoursArchive", mtest.FirstBatch, bson.D{
+			{Key: "occupiId", Value: booking.OccupiID},
+			{Key: "roomId", Value: booking.RoomID},
+			{Key: "roomName", Value: booking.RoomName},
+			{Key: "emails", Value: booking.Emails},
+			{Key: "checkedIn", Value: booking.CheckedIn},
+			{Key: "creator", Value: booking.Creator},
+			{Key: "floorNo", Value: booking.FloorNo},
+			{Key: "date", Value: booking.Date},
+			{Key: "start", Value: booking.Start},
+			{Key: "end", Value: booking.End},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetAnalyticsOnBookings(ctx, appsession, "", []string{}, filter, "top3")
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "database response does not contain a cursor", "Expected error for failed count documents")
 	})
 }

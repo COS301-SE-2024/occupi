@@ -1,12 +1,13 @@
 package database
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
 	"github.com/umahmood/haversine"
@@ -264,7 +265,7 @@ func Month(date time.Time) int {
 	return int(date.Month())
 }
 
-func MakeEmailAndTimeFilter(email string, filter models.OfficeHoursFilterStruct) bson.M {
+func MakeEmailAndTimeFilter(email string, filter models.AnalyticsFilterStruct) bson.M {
 	mongoFilter := bson.M{}
 	if email != "" {
 		mongoFilter["email"] = email
@@ -277,6 +278,31 @@ func MakeEmailAndTimeFilter(email string, filter models.OfficeHoursFilterStruct)
 		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
 	case filter.Filter["timeFrom"] != "":
 		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
+	}
+
+	return mongoFilter
+}
+
+func MakeEmailAndEmailsAndTimeFilter(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct, dateFilter string) bson.M {
+	mongoFilter := bson.M{}
+	if creatorEmail != "" {
+		mongoFilter["creator"] = creatorEmail
+	}
+
+	// filter attendeeEmails in emails array
+	if len(attendeeEmails) > 0 {
+		fmt.Println(attendeeEmails)
+		fmt.Println(len(attendeeEmails))
+		mongoFilter["emails"] = bson.M{"$in": attendeeEmails}
+	}
+
+	switch {
+	case filter.Filter["timeFrom"] != "" && filter.Filter["timeTo"] != "":
+		mongoFilter[dateFilter] = bson.M{"$gte": filter.Filter["timeFrom"], "$lte": filter.Filter["timeTo"]}
+	case filter.Filter["timeTo"] != "":
+		mongoFilter[dateFilter] = bson.M{"$lte": filter.Filter["timeTo"]}
+	case filter.Filter["timeFrom"] != "":
+		mongoFilter[dateFilter] = bson.M{"$gte": filter.Filter["timeFrom"]}
 	}
 
 	return mongoFilter
