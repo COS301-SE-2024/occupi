@@ -2049,3 +2049,52 @@ func ToggleAllowAnonymousIP(ctx *gin.Context, appsession *models.AppSession, req
 
 	return nil
 }
+
+func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, creatorEmail string,
+	attendeeEmails []string, filter models.AnalyticsFilterStruct, calculate string) ([]primitive.M, int64, error) {
+
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	// Prepare the aggregate
+	var pipeline bson.A
+	switch calculate {
+	case "top3":
+		pipeline = analytics.GetTop3MostBookedRooms(creatorEmail, attendeeEmails, filter)
+	case "historical":
+		// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
+		filter.Filter["timeTo"] = time.Now().Format(time.RFC3339)
+		delete(filter.Filter, "timeFrom")
+		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter)
+	case "upcoming":
+		// add or overwrite "timeFrom" with time.Now and delete "timeTo" if present
+		filter.Filter["timeFrom"] = time.Now().Format(time.RFC3339)
+		delete(filter.Filter, "timeTo")
+		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter)
+	default:
+		return nil, 0, errors.New("invalid calculate value")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	mongoFilter := MakeEmailAndEmailsAndTimeFilter(creatorEmail, attendeeEmails, filter)
+
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, mongoFilter)
+
+	if errv != nil {
+		logrus.Error(errv)
+		return nil, 0, errv
+	}
+
+	return results, totalResults, nil
+
+}

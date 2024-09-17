@@ -1,8 +1,6 @@
 package analytics
 
 import (
-	"time"
-
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -1092,11 +1090,7 @@ func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter
 	}
 }
 
-func GetHistoricalBookings(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.A {
-	// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
-	filter.Filter["timeTo"] = time.Now().Format(time.RFC3339)
-	delete(filter.Filter, "timeFrom")
-
+func AggregateBookings(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.A {
 	// Create the match filter using the reusable function
 	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, "end")
 	return bson.A{
@@ -1122,29 +1116,5 @@ func GetHistoricalBookings(creatorEmail string, attendeeEmails []string, filter 
 		}}},
 		// Stage 5: Sort by date
 		bson.D{{Key: "$sort", Value: bson.D{{Key: "date", Value: 1}}}},
-	}
-}
-
-func GetUpcomingBookings(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.A {
-	// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
-	filter.Filter["timeFrom"] = time.Now().Format(time.RFC3339)
-	delete(filter.Filter, "timeFrom")
-
-	// Create the match filter using the reusable function
-	matchFilter := CreateBookingMatchFilter(creatorEmail, attendeeEmails, filter, "end")
-	return bson.A{
-		// Stage 1: Match filter conditions (email and time range)
-		bson.D{{Key: "$match", Value: matchFilter}},
-		// Stage 2: Apply skip for pagination
-		bson.D{{Key: "$skip", Value: filter.Skip}},
-		// Stage 3: Apply limit for pagination
-		bson.D{{Key: "$limit", Value: filter.Limit}},
-		// Stage 4: Group by the date to calculate the total bookings
-		bson.D{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: "$date"},
-			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
-		}}},
-		// Stage 5: Sort by date
-		bson.D{{Key: "$sort", Value: bson.D{{Key: "_id", Value: 1}}}},
 	}
 }

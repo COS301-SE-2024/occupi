@@ -282,6 +282,29 @@ func MakeEmailAndTimeFilter(email string, filter models.AnalyticsFilterStruct) b
 	return mongoFilter
 }
 
+func MakeEmailAndEmailsAndTimeFilter(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct) bson.M {
+	mongoFilter := bson.M{}
+	if creatorEmail != "" {
+		mongoFilter["creator"] = creatorEmail
+	}
+
+	// filter attendeeEmails in emails array
+	if len(attendeeEmails) > 0 {
+		mongoFilter["emails"] = bson.M{"$in": attendeeEmails}
+	}
+
+	switch {
+	case filter.Filter["timeFrom"] != "" && filter.Filter["timeTo"] != "":
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"], "$lte": filter.Filter["timeTo"]}
+	case filter.Filter["timeTo"] != "":
+		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
+	case filter.Filter["timeFrom"] != "":
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
+	}
+
+	return mongoFilter
+}
+
 func GetResultsAndCount(ctx *gin.Context, collection *mongo.Collection, cursor *mongo.Cursor, mongoFilter primitive.M) ([]bson.M, int64, error) {
 	var results []bson.M
 	if err := cursor.All(ctx, &results); err != nil {
