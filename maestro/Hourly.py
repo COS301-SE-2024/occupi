@@ -1,4 +1,5 @@
 import pandas as pd
+import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from tensorflow.keras.models import Sequential
@@ -141,6 +142,11 @@ predictions_df = pd.DataFrame({
 
 print(predictions_df)
 
+tf.saved_model.save(model, 'models/hourly_predictions/1')
+
+new_model = tf.saved_model.load('hourly_predictions/1')
+new_model.summary()
+tf.saved_model.save(new_model, 'serving/')
 # Function to predict attendance bins for a specific day
 def predict_for_day(day: str, hours: np.ndarray = np.arange(0, 24)):
     # Encode the specified day using the fitted label encoder
