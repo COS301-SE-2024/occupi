@@ -65,9 +65,9 @@ func TestCreateMatchFilter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := analytics.CreateMatchFilter(tt.email, tt.filter)
+			result := analytics.CreateOfficeHoursMatchFilter(tt.email, tt.filter)
 			if !equalBsonD(result, tt.expected) {
-				t.Errorf("%s for CreateMatchFilter() = %v, want %v", tt.name, result, tt.expected)
+				t.Errorf("%s for CreateOfficeHoursMatchFilter() = %v, want %v", tt.name, result, tt.expected)
 			}
 		})
 	}

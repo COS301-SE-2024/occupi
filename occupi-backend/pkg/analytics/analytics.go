@@ -5,7 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func CreateMatchFilter(email string, filter models.AnalyticsFilterStruct) bson.D {
+func CreateOfficeHoursMatchFilter(email string, filter models.AnalyticsFilterStruct) bson.D {
 	// Create a match filter
 	matchFilter := bson.D{}
 
@@ -37,7 +37,7 @@ func CreateBookingMatchFilter(creatorEmail string, attendeesEmail string, filter
 
 // GroupOfficeHoursByDay function with total hours calculation
 func GroupOfficeHoursByDay(email string, filter models.AnalyticsFilterStruct) bson.A {
-	matchFilter := CreateMatchFilter(email, filter)
+	matchFilter := CreateOfficeHoursMatchFilter(email, filter)
 
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
@@ -97,7 +97,7 @@ func GroupOfficeHoursByDay(email string, filter models.AnalyticsFilterStruct) bs
 
 func AverageOfficeHoursByWeekday(email string, filter models.AnalyticsFilterStruct) bson.A {
 	// Create the match filter using the reusable function
-	matchFilter := CreateMatchFilter(email, filter)
+	matchFilter := CreateOfficeHoursMatchFilter(email, filter)
 
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
@@ -178,7 +178,7 @@ func AverageOfficeHoursByWeekday(email string, filter models.AnalyticsFilterStru
 
 func RatioInOutOfficeByWeekday(email string, filter models.AnalyticsFilterStruct) bson.A {
 	// Create the match filter using the reusable function
-	matchFilter := CreateMatchFilter(email, filter)
+	matchFilter := CreateOfficeHoursMatchFilter(email, filter)
 
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
@@ -268,7 +268,7 @@ func RatioInOutOfficeByWeekday(email string, filter models.AnalyticsFilterStruct
 // BusiestHoursByWeekday function to return the 3 busiest hours per weekday
 func BusiestHoursByWeekday(email string, filter models.AnalyticsFilterStruct) bson.A {
 	// Create the match filter using the reusable function
-	matchFilter := CreateMatchFilter(email, filter)
+	matchFilter := CreateOfficeHoursMatchFilter(email, filter)
 
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
@@ -379,7 +379,7 @@ func BusiestHoursByWeekday(email string, filter models.AnalyticsFilterStruct) bs
 // LeastMostInOfficeWorker function to calculate the least or most "in office" worker
 func LeastMostInOfficeWorker(email string, filter models.AnalyticsFilterStruct, sort bool) bson.A {
 	// Create the match filter using the reusable function
-	matchFilter := CreateMatchFilter(email, filter)
+	matchFilter := CreateOfficeHoursMatchFilter(email, filter)
 
 	var sortV int
 	if sort {
@@ -512,7 +512,7 @@ func LeastMostInOfficeWorker(email string, filter models.AnalyticsFilterStruct, 
 // AverageArrivalAndDepartureTimesByWeekday function to calculate the average arrival and departure times for each weekday
 func AverageArrivalAndDepartureTimesByWeekday(email string, filter models.AnalyticsFilterStruct) bson.A {
 	// Create the match filter using the reusable function
-	matchFilter := CreateMatchFilter(email, filter)
+	matchFilter := CreateOfficeHoursMatchFilter(email, filter)
 
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
@@ -766,7 +766,7 @@ func AverageArrivalAndDepartureTimesByWeekday(email string, filter models.Analyt
 // CalculateInOfficeRate function to calculate absenteeism rates
 func CalculateInOfficeRate(email string, filter models.AnalyticsFilterStruct) bson.A {
 	// Create the match filter using the reusable function
-	matchFilter := CreateMatchFilter(email, filter)
+	matchFilter := CreateOfficeHoursMatchFilter(email, filter)
 
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
