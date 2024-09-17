@@ -1486,7 +1486,11 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cal
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		request.Creator = ctx.DefaultQuery("creator", "")
 		attendees := ctx.DefaultQuery("attendeeEmails", "")
-		request.Attendees = strings.Split(attendees, ",")
+		if attendees == "" {
+			request.Attendees = []string{}
+		} else {
+			request.Attendees = strings.Split(attendees, ",")
+		}
 
 		// default time is since 1970
 		timeFromStr := ctx.DefaultQuery("timeFrom", "1970-01-01T00:00:00Z")

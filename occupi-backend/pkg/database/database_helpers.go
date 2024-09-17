@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -290,6 +291,8 @@ func MakeEmailAndEmailsAndTimeFilter(creatorEmail string, attendeeEmails []strin
 
 	// filter attendeeEmails in emails array
 	if len(attendeeEmails) > 0 {
+		fmt.Println(attendeeEmails)
+		fmt.Println(len(attendeeEmails))
 		mongoFilter["emails"] = bson.M{"$in": attendeeEmails}
 	}
 

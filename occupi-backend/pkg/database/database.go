@@ -2065,17 +2065,18 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cre
 	switch calculate {
 	case "top3":
 		dateFilter = "date"
+		filter.Filter["timeTo"] = ""
 		pipeline = analytics.GetTop3MostBookedRooms(creatorEmail, attendeeEmails, filter, dateFilter)
 	case "historical":
 		// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
-		filter.Filter["timeTo"] = time.Now().Format(time.RFC3339)
-		delete(filter.Filter, "timeFrom")
+		filter.Filter["timeTo"] = time.Now()
+		filter.Filter["timeFrom"] = ""
 		dateFilter = "end"
 		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
 	case "upcoming":
 		// add or overwrite "timeFrom" with time.Now and delete "timeTo" if present
-		filter.Filter["timeFrom"] = time.Now().Format(time.RFC3339)
-		delete(filter.Filter, "timeTo")
+		filter.Filter["timeFrom"] = time.Now()
+		filter.Filter["timeTo"] = ""
 		dateFilter = "end"
 		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
 	default:

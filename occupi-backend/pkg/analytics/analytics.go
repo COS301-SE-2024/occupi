@@ -1,6 +1,8 @@
 package analytics
 
 import (
+	"fmt"
+
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -42,6 +44,9 @@ func CreateBookingMatchFilter(creatorEmail string, attendeesEmail []string, filt
 
 	// Conditionally add the attendees filter if emails is not of length 0
 	if len(attendeesEmail) > 0 {
+		fmt.Println(attendeesEmail)
+		// print len of attendeesEmail
+		fmt.Println(len(attendeesEmail))
 		matchFilter = append(matchFilter, bson.E{Key: "emails", Value: bson.D{{Key: "$in", Value: attendeesEmail}}})
 	}
 
