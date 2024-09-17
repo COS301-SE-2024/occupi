@@ -8,6 +8,7 @@ from tensorflow.keras.utils import to_categorical
 import numpy as np
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 import matplotlib.pyplot as plt
+import joblib
 
 # Load the Excel file
 file_path = 'datasets/Hourly_Predictions.xlsx'  # Replace with your actual file path
@@ -71,6 +72,7 @@ hour = combined_data['Hour'].values.reshape(-1, 1)
 # Standardize only the 'Hour' feature
 scaler = StandardScaler()
 hour_scaled = scaler.fit_transform(hour)
+joblib.dump(scaler, 'python-code/hourly_scaler.pkl')
 
 # Combine back the correctly processed features
 X_scaled = np.hstack([day_encoded, hour_scaled])
@@ -101,7 +103,7 @@ model = Sequential([
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Train the model
-history = model.fit(X_train, y_train, epochs=20, batch_size=16, validation_split=0.2, verbose=1)
+history = model.fit(X_train, y_train, epochs=30, batch_size=16, validation_split=0.2, verbose=1)
 
 # Evaluate the model on test data
 test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
@@ -144,8 +146,7 @@ print(predictions_df)
 
 tf.saved_model.save(model, 'models/hourly_predictions/1')
 
-new_model = tf.saved_model.load('hourly_predictions/1')
-new_model.summary()
+new_model = tf.saved_model.load('models/hourly_predictions/1')
 tf.saved_model.save(new_model, 'serving/')
 # Function to predict attendance bins for a specific day
 def predict_for_day(day: str, hours: np.ndarray = np.arange(0, 24)):

@@ -8,10 +8,11 @@ import joblib
 # Initialize the Flask application
 app = Flask(__name__)
 
-CORS(app, resources={r"/*": {"origins": ["https://dev.occupi.tech", "https://app.occupi.tech"]}})
+CORS(app, resources={r"/*": {"origins": ["https://dev.occupi.tech", "https://app.occupi.tech","https://occupi.tech"]}})
 
 # Load the scaler
 scaler = joblib.load('attendance_scaler.pkl')
+hourly_scaler = joblib.load('hourly_scaler.pkl')
 
 # Function to determine if a given date is a weekend
 def is_weekend(date):
