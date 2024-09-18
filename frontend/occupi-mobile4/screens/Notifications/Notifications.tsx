@@ -17,6 +17,7 @@ import { AntDesign, Entypo, Ionicons } from '@expo/vector-icons';
 import { Skeleton } from 'moti/skeleton';
 import { useTheme } from '@/components/ThemeContext';
 import { getUserNotifications } from '@/utils/notifications';
+import Tooltip from '@/components/Tooltip';
 
 const Notifications = () => {
     const colorscheme = useColorScheme();
@@ -155,20 +156,26 @@ const Notifications = () => {
     return (
         <View style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white' }}>
             <VStack space="md" p="$4" pt="$16">
-                <HStack justifyContent="space-between" alignItems="center">
-                    <Text bold fontSize="$2xl" color={isDarkMode ? 'white' : 'black'}>
-                        Notifications
-                    </Text>
-                    <Pressable 
-                        onPress={() => console.log('Settings pressed')}
-                        style={({ pressed }) => ({
-                            backgroundColor: pressed ? `${accentColour}80` : accentColour,
-                            padding: 8,
-                            borderRadius: 12,
-                        })}
-                    >
-                        <Ionicons name="settings-outline" size={26} color="black" />
-                    </Pressable>
+  <HStack justifyContent="space-between" alignItems="center">
+    <HStack space="sm" alignItems="center">
+      <Text bold fontSize="$2xl" color={isDarkMode ? 'white' : 'black'}>
+        Notifications
+      </Text>
+      <Tooltip 
+        content="View and manage your notifications here. Tap on a notification for more details."
+        placement="bottom"
+      />
+    </HStack>
+    <Pressable 
+      onPress={() => console.log('Settings pressed')}
+      style={({ pressed }) => ({
+        backgroundColor: pressed ? `${accentColour}80` : accentColour,
+        padding: 8,
+        borderRadius: 12,
+      })}
+    >
+      <Ionicons name="settings-outline" size={26} color={isDarkMode ? 'white' : 'black'} />
+    </Pressable>
                 </HStack>
                 <HStack space="sm" justifyContent="space-between">
                     {['All', 'Invitations', 'Updates'].map((tab) => (
