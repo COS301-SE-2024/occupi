@@ -18,7 +18,7 @@ import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import bookings from '@/app/bookings';
-
+import Tooltip from '@/components/Tooltip';
 
 
 const groupDataInPairs = (data) => {
@@ -162,7 +162,6 @@ const ViewBookings = () => {
                                     marginHorizontal: 4,
                                     width: '45%'
                                 }}>
-                                {/* ... (keep existing room card content) */}
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -190,7 +189,6 @@ const ViewBookings = () => {
                             marginVertical: 4,
                             flexDirection: "row"
                         }}>
-                        {/* ... (keep existing room card content) */}
                     </TouchableOpacity>
                 ))}
             </ScrollView>
@@ -214,6 +212,10 @@ const ViewBookings = () => {
                 </Input>
                 <View flexDirection="row" justifyContent="space-between" alignItems="center" mb="$4">
                     <View flexDirection="row">
+                        <Tooltip 
+                                content="Check your current and historical bookings!"
+                                placement="bottom"
+                            />
                         <TouchableOpacity
                             onPress={() => setActiveTab('current')}
                             style={{
@@ -224,7 +226,10 @@ const ViewBookings = () => {
                                 marginRight: 10
                             }}
                         >
-                            <Text color={activeTab === 'current' ? 'black' : textColor}>Current</Text>
+                            <Text color={activeTab === 'current' ? 'black' : textColor}>Current
+                            
+                            </Text>
+                            
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setActiveTab('past')}
