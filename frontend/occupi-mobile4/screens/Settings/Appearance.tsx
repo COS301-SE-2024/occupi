@@ -24,6 +24,7 @@ import * as SecureStore from 'expo-secure-store';
 import { storeTheme, storeAccentColour } from '@/services/securestore';
 import { useTheme } from '@/components/ThemeContext';
 import ColorPicker, { Panel1, Swatches, Preview, OpacitySlider, HueSlider } from 'reanimated-color-picker';
+import Tooltip from '@/components/Tooltip';
 
 const FONTS = {
     h3: { fontSize: 20, fontWeight: 'bold' },
@@ -149,7 +150,12 @@ const Appearance = () => {
 
 
                 </View>
-                <Text mt="$2" color={currentTheme === 'dark' ? 'white' : 'black'}>Accent colour</Text>
+                <Text mt="$2" color={currentTheme === 'dark' ? 'white' : 'black'}>Accent colour
+                <Tooltip 
+                content="Choose a theme and enjoy a playful experience with Occupi."
+                placement="bottom"
+                />
+                </Text>
                 <View p="$5" borderRadius={18} justifyContent='space-between' my="$2" height={hp('18%')} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
                     <View flexDirection="row" justifyContent='space-between'>
                         <TouchableOpacity onPress={() => setAccentColour("lightgrey")}>
@@ -206,7 +212,12 @@ const Appearance = () => {
                         </TouchableOpacity>
                     </View >
                 </View >
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Custom colour</Text>
+                <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Custom colour
+                <Tooltip 
+                content="Not satisfied with the appearance? Customize your Occupi experience with our colour picker."
+                placement="bottom"
+                />
+                </Text>
                 <View mt="$2" flexDirection="row" alignItems="$center" justifyContent="center">
                     
                     <ColorPicker
