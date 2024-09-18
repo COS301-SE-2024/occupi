@@ -21,6 +21,7 @@ import { updateSecurity } from '@/utils/user';
 import { useTheme } from '@/components/ThemeContext';
 import { DeviceMotion } from 'expo-sensors';
 import * as Haptics from 'expo-haptics';
+import Tooltip from '@/components/Tooltip';
 
 const FONTS = {
   h3: { fontSize: 20, fontWeight: 'bold' },
@@ -232,7 +233,12 @@ const Security = () => {
             />
           </View>
           <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-            <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Back Tap</Text>
+            <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Flip Phone
+            <Tooltip 
+            content="Place your phone face down, then flip it face up to activate OccuBot."
+            placement="bottom"
+          />
+            </Text>
             <Switch
               trackColor={{ false: 'lightgray', true: 'lightgray' }}
               thumbColor={isBackTapEnabled ? `${accentColour}` : 'white'}
