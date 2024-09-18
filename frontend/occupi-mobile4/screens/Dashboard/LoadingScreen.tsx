@@ -4,6 +4,7 @@ import { Text, Heading } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Svg, { Path } from 'react-native-svg'; 
 import { router } from 'expo-router';
+import Tooltip from '@/components/Tooltip';
 const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats }) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
@@ -86,6 +87,11 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
           }}
         >
           OccuBot
+         
+                <Tooltip 
+        content="OccuBot uses AI-powered technology to fetch yourlatest and personalized office experience. "
+        placement="bottom"
+      />
         </Text>
       </View>
 
