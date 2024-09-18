@@ -61,23 +61,23 @@ const Info = () => {
                 <Text color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight="$100" fontSize={23} mt="$3">
                     Predict. Plan. Perfect.
                 </Text>
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight='$light' fontSize={20} mt="$6">
+                <Text color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight='$light' fontSize={15} mt="$6">
                     version: 1.0.2
                 </Text>
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight='$light' fontSize={20} mt="$1">
+                <Text color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight='$light' fontSize={15} mt="$1">
                     {Device.deviceName}
                 </Text>
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight='$light' fontSize={20} mt="$1">
+                <Text color={currentTheme === 'dark' ? 'white' : 'black'} fontWeight='$light' fontSize={15} mt="$1">
                     {Device.osName} {Device.osVersion}
                 </Text>
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'} underline fontWeight='$light' fontSize={20} mt="$1" onPress={handlePressPrivacy}>
-                    privacy policy
+                <Text color={currentTheme === 'dark' ? 'white' : 'black'} underline fontWeight='$light' fontSize={15} mt="$3" onPress={handlePressPrivacy}>
+                    Privacy policy
                 </Text>
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'} underline fontWeight='$light' fontSize={20} mt="$1">
-                    terms of service
+                <Text color={currentTheme === 'dark' ? 'white' : 'black'} underline fontWeight='$light' fontSize={15} mt="$3">
+                    Terms of service
                 </Text>
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'} underline fontWeight='$light' fontSize={20} mt="$1">
-                    user manual
+                <Text color={currentTheme === 'dark' ? 'white' : 'black'} underline fontWeight='$light' fontSize={15} mt="$3">
+                    User manual
                 </Text>
             </View>
         </View>
