@@ -14,6 +14,7 @@ import Tooltip from '@/components/Tooltip';
 import { useTheme } from '@/components/ThemeContext';
 import { getUserNotifications, markNotificationAsRead, deleteNotification } from '@/utils/notifications';
 import { MotiView } from 'moti';
+import Navbar from '../../components/NavBar';
 
 const formatNotificationDate = (sendTime) => {
   const now = new Date();
@@ -198,15 +199,7 @@ const Notifications = () => {
         <View px="$4" style={{ flex: 1, backgroundColor: isDarkMode ? '#000' : '#FFF'}}>
           <View style={{ flexDirection: 'column' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Pressable onPress={() => router.back()}>
-              <Icon
-                as={Feather}
-                name="chevron-left"
-                size="xl"
-                color={currentTheme === 'dark' ? 'white' : 'black'}
-                testID="back-button"
-              />
-            </Pressable>
+           
               <Text fontWeight="$bold" fontSize={24} color={isDarkMode ? 'white' : 'black'}>Notifications</Text>
               <Tooltip
                 content={<Text>View and manage your notifications here. Swipe left for actions.</Text>}
@@ -304,6 +297,7 @@ const Notifications = () => {
             />
           )}
         </View>
+        <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
       </SafeAreaView>
     </GestureHandlerRootView>
   );
