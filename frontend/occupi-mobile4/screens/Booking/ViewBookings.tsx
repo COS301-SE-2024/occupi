@@ -19,6 +19,7 @@ import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import bookings from '@/app/bookings';
 import Tooltip from '@/components/Tooltip';
+import {getHistoricalBookings,getCurrentBookings} from '@/utils/analytics';
 
 
 const groupDataInPairs = (data) => {
@@ -54,6 +55,53 @@ const ViewBookings = () => {
     const [activeTab, setActiveTab] = useState('current');
     const [currentBookings, setCurrentBookings] = useState<Booking[]>([]);
     const [pastBookings, setPastBookings] = useState<Booking[]>([]);
+
+    useEffect(() => {
+        const fetchBookings = async () => {
+            try {
+                setLoading(true);
+                const currentData = await getCurrentBookings();
+                const historicalData = await getHistoricalBookings();
+
+                if (currentData && currentData.data) {
+                    setCurrentBookings(currentData.data);
+                }
+                if (historicalData && historicalData.data) {
+                    setPastBookings(historicalData.data);
+                }
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBookings();
+    }, []);
+
+    const onRefreshCalling = useCallback(() => {
+        setRefreshing(true);
+        const fetchBookings = async () => {
+            try {
+                const currentData = await getCurrentBookings();
+                const historicalData = await getHistoricalBookings();
+
+                if (currentData && currentData.data) {
+                    setCurrentBookings(currentData.data);
+                }
+                if (historicalData && historicalData.data) {
+                    setPastBookings(historicalData.data);
+                }
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+            } finally {
+                setRefreshing(false);
+            }
+        };
+
+        fetchBookings();
+    }, []);
+
     useEffect(() => {
         const getRoomData = async () => {
             try {
@@ -194,6 +242,7 @@ const ViewBookings = () => {
             </ScrollView>
         );
     };
+
 
     return (
         <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
