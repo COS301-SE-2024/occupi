@@ -4,7 +4,6 @@ import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBooking
 import * as SecureStore from 'expo-secure-store';
 import axios, { AxiosError } from 'axios';
 import { storeUserData } from "./securestore";
-
 export const getUserDetails = async (email: string, authToken: string): Promise<Success | Unsuccessful> => {
   try {
     const response = await axios.get("https://dev.occupi.tech/api/user-details", {
@@ -440,3 +439,22 @@ export async function updateNotificationSettings(req: NotificationSettingsReq): 
   }
 }
 
+export const markNotificationRead = async (notificationId: string, email: string) => {
+  try {
+    const response = await axios.put(`https://dev.occupi.tech/api/notifications/${notificationId}/read`, { email });
+    return response;
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    throw error;
+  }
+};
+
+export const removeNotification = async (notificationId: string, email: string) => {
+  try {
+    const response = await axios.delete(`https://dev.occupi.tech/api/notifications/${notificationId}`, { data: { email } });
+    return response;
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    throw error;
+  }
+};
