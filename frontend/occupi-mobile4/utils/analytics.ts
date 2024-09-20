@@ -141,6 +141,38 @@ export const fetchUserInOfficeRate = async (timeFrom?: string, timeTo?: string) 
     return total.data[0].overallRate;
 }
 
+export const getHistoricalBookings = async (timeFrom?: string, timeTo?: string) => {
+    const req: Partial<AnalyticsReq> = {};
+    // console.log(timeFrom);
+
+    if (timeFrom !== "") {
+        req.timeFrom = timeFrom;
+    }
+
+    if (timeTo !== "") {
+        req.timeTo = timeTo;
+    }
+    const total = await getAnalytics(req, 'bookings-historical');
+    // console.log('totals2', total.data);
+    return total.data;
+};
+
+export const getCurrentBookings = async (timeFrom?: string, timeTo?: string) => {
+    const req: Partial<AnalyticsReq> = {};
+    // console.log(timeFrom);
+
+    if (timeFrom !== "") {
+        req.timeFrom = timeFrom;
+    }
+
+    if (timeTo !== "") {
+        req.timeTo = timeTo;
+    }
+    const total = await getAnalytics(req, 'bookings-current');
+    // console.log('totals2', total.data);
+    return total.data;
+}
+
 interface InputObject {
     _id: any;
     date: string;

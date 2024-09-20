@@ -4,7 +4,8 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { NotificationsReq } from '@/models/requests';
-import { getNotifications } from '@/services/apiservices';
+import { getNotifications, markNotificationRead, removeNotification } from '@/services/apiservices';
+
 
 export function setupNotificationHandler() {
   Notifications.setNotificationHandler({
@@ -125,3 +126,38 @@ export async function getUserNotifications() {
       console.error('Error:', error);
   }
 } 
+export async function markNotificationAsRead(notificationId: string) {
+  let email = await SecureStore.getItemAsync('Email');
+  
+  try {
+    const response = await markNotificationRead(notificationId, email);
+    if (response.status === 200) {
+      console.log('Notification marked as read:', notificationId);
+      return true;
+    } else {
+      console.log('Failed to mark notification as read:', response);
+      return false;
+    }
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    return false;
+  }
+}
+
+export async function deleteNotification(notificationId: string) {
+  let email = await SecureStore.getItemAsync('Email');
+  
+  try {
+    const response = await removeNotification(notificationId, email);
+    if (response.status === 200) {
+      console.log('Notification deleted:', notificationId);
+      return true;
+    } else {
+      console.log('Failed to delete notification:', response);
+      return false;
+    }
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    return false;
+  }
+}

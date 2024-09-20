@@ -36,6 +36,7 @@ import { extractDateFromTimestamp } from '@/utils/utils';
 import PagerView from 'react-native-pager-view';
 import SetDetails from '../Login/SetDetails';
 import { router } from 'expo-router';
+import Tooltip from '@/components/Tooltip';
 
 // import { number } from 'zod';
 
@@ -495,6 +496,10 @@ const Dashboard: React.FC = () => {
             >
               <Text color={activeTab === 1 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 1 ? 'bold' : 'normal'}>
                 Live
+                <Tooltip 
+        content="Know what's happening in the office, live!"
+        placement="bottom"
+      />
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -591,13 +596,23 @@ const Dashboard: React.FC = () => {
         >
 
           <View flexDirection="row" alignItems="center" justifyContent='space-between'>
-            <Text color={textColor} fontWeight="$bold" fontSize={18}>My Stats</Text>
+            <Text color="white" fontWeight="$bold" fontSize={18}>My Stats
+            <Tooltip 
+        content="Get your personalized office information with OccuBot."
+        placement="bottom"
+      />
+            </Text>
             <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
           </View>
 
         </TouchableOpacity>
-        <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={}>
-          <Text fontSize={18} color={textColor}>Favourite Days</Text>
+        <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
+          <Text fontSize={18} color='white'>Favourite Days
+          <Tooltip 
+        content="Learn more about your Favourite office days below."
+        placement="bottom"
+      />
+          </Text>
           <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor="#1c1c1c" h={hp('6%')}>
             <Text color={textColor} fontWeight="$bold" fontSize={18}>1       Monday</Text><Text color={textColor}>Avr: 1756</Text>
           </View>
@@ -658,7 +673,7 @@ const Dashboard: React.FC = () => {
           </TouchableOpacity>
         </View>
       </ScrollView >
-      <Navbar />
+      <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
     </>
   );
 };

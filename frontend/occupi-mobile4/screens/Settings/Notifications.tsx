@@ -1,95 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  Alert,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
-import {
-  Icon,
-  View,
-  Text
-} from '@gluestack-ui/themed';
+import { SafeAreaView, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { router } from 'expo-router';
-import { useColorScheme, Switch } from 'react-native';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import GradientButton from '@/components/GradientButton';
-import * as SecureStore from 'expo-secure-store';
-import axios from 'axios';
-import { Toast, ToastTitle, useToast } from '@gluestack-ui/themed';
-import { updateNotifications } from '@/utils/user';
+import { View, Text, Icon, Toast, useToast, ToastTitle } from '@gluestack-ui/themed';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/components/ThemeContext';
-
-
-const COLORS = {
-  white: '#FFFFFF',
-  black: '#000000',
-  gray: '#BEBEBE',
-  primary: '#3366FF',
-};
-
-const FONTS = {
-  h3: { fontSize: 20, fontWeight: 'bold' },
-  body3: { fontSize: 16 },
-};
-
-const SIZES = {
-  padding: 16,
-  base: 8,
-  radius: 8,
-};
+import { LinearGradient } from 'expo-linear-gradient';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import * as SecureStore from 'expo-secure-store';
+import GradientButton from '@/components/GradientButton';
+import { updateNotifications } from '@/utils/user';
 
 const Notifications = () => {
-  const colorscheme = useColorScheme();
+  const colorScheme = useColorScheme();
   const { theme } = useTheme();
-  const currentTheme = theme === "system" ? colorscheme : theme;
+  const currentTheme = theme === "system" ? colorScheme : theme;
   const toast = useToast();
-  //retrieve user settings ad assign variables accordingly
+  const [accentColour, setAccentColour] = useState('');
   const [oldInviteVal, setOldInviteVal] = useState(false);
   const [newInviteVal, setNewInviteVal] = useState(false);
   const [oldNotifyVal, setOldNotifyVal] = useState(false);
   const [newNotifyVal, setNewNotifyVal] = useState(false);
 
   useEffect(() => {
-    const getNotificationDetails = async () => {
-      let settings = await SecureStore.getItemAsync('Notifications');
-      const settingsObject = JSON.parse(settings);
-      if (settingsObject.invites === "on") {
-        setOldInviteVal(true);
-        setNewInviteVal(true);
-      } else {
-        setOldInviteVal(false);
-        setNewInviteVal(false);
-      }
-
-      if (settingsObject.bookingReminder === "on") {
-        setOldNotifyVal(true);
-        setNewNotifyVal(true);
-      } else {
-        setOldNotifyVal(false);
-        setNewNotifyVal(false);
-      }
-      // console.log(settings);
-    }
-    getNotificationDetails();
-  }, [])
-
-  const [accentColour, setAccentColour] = useState<string>('greenyellow');
-
-  useEffect(() => {
     const getAccentColour = async () => {
       let accentcolour = await SecureStore.getItemAsync('accentColour');
-      console.log(accentcolour);
       setAccentColour(accentcolour);
     };
     getAccentColour();
+    
+    const getNotificationDetails = async () => {
+      let settings = await SecureStore.getItemAsync('Notifications');
+      const settingsObject = JSON.parse(settings);
+      setOldInviteVal(settingsObject.invites === "on");
+      setNewInviteVal(settingsObject.invites === "on");
+      setOldNotifyVal(settingsObject.bookingReminder === "on");
+      setNewNotifyVal(settingsObject.bookingReminder === "on");
+    }
+    getNotificationDetails();
   }, []);
-  const toggleSwitch1 = () => {
-    setNewInviteVal(previousState => !previousState)
-  };
-  const toggleSwitch2 = () => {
-    setNewNotifyVal(previousState => !previousState)
-  };
+
+  const toggleSwitch = (setter) => () => setter(prev => !prev);
 
   const onSave = async () => {
     const settings = {
@@ -99,13 +50,11 @@ const Notifications = () => {
     const response = await updateNotifications(settings)
     toast.show({
       placement: 'top',
-      render: ({ id }) => {
-        return (
-          <Toast nativeID={String(id)} variant="accent" action={response === "Settings updated successfully" ? 'success' : 'error'}>
-            <ToastTitle>{response}</ToastTitle>
-          </Toast>
-        );
-      },
+      render: ({ id }) => (
+        <Toast nativeID={String(id)} variant="accent" action={response === "Settings updated successfully" ? 'success' : 'error'}>
+          <ToastTitle>{response}</ToastTitle>
+        </Toast>
+      ),
     });
   };
 
@@ -130,74 +79,98 @@ const Notifications = () => {
     }
   }
 
-  return (
-    <View flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
-      <View style={styles.header}>
-        <Icon
-          as={Feather}
-          name="chevron-left"
-          size="xl"
-          color={currentTheme === 'dark' ? 'white' : 'black'}
-          onPress={handleBack}
-          testID="back-button"
-        />
-        <Text style={styles.headerTitle} color={currentTheme === 'dark' ? 'white' : 'black'}>
-          Notifications
-        </Text>
-        <Ionicons
-          name="notifications-outline"
-          size={24}
-          color={currentTheme === 'dark' ? 'white' : 'black'}
-          style={styles.icon}
-        />
-      </View>
-
-      <View flexDirection="column">
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-          <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Notify when someone invites me</Text>
-          <Switch
-            trackColor={{ false: 'lightgray', true: 'lightgray' }}
-            thumbColor={newInviteVal ? `${accentColour}` : 'white'}
-            ios_backgroundColor="lightgray"
-            onValueChange={toggleSwitch1}
-            value={newInviteVal}
-          />
-        </View>
-        <View my="$2" h="$12" justifyContent="space-between" alignItems="center" flexDirection="row" px="$3" borderRadius={14} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-          <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Notify 15 minutes before booking time</Text>
-          <Switch
-            trackColor={{ false: 'lightgray', true: 'lightgray' }}
-            thumbColor={newNotifyVal ? `${accentColour}` : 'white'}
-            ios_backgroundColor="lightgray"
-            onValueChange={toggleSwitch2}
-            value={newNotifyVal}
-          />
-        </View>
-      </View>
-      <View position="absolute" left={0} right={0} bottom={36}>
-        <GradientButton
-          onPress={onSave}
-          text="Save"
-        />
-      </View>
+  const SettingItem = ({ title, value, onValueChange }) => (
+    <View style={{
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      backgroundColor: currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3',
+      borderRadius: 14,
+      padding: wp('4%'),
+      marginBottom: hp('2%'),
+    }}>
+      <Text style={{
+        color: currentTheme === 'dark' ? 'white' : 'black',
+        fontSize: wp('4%'),
+      }}>
+        {title}
+      </Text>
+      <Switch
+        trackColor={{ false: 'lightgray', true: 'lightgray' }}
+        thumbColor={value ? accentColour : 'white'}
+        ios_backgroundColor="lightgray"
+        onValueChange={onValueChange}
+        value={value}
+      />
     </View>
   );
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <LinearGradient
+          colors={currentTheme === 'dark' ? ['#1A1A1A', '#000'] : ['#F0F0F0', '#FFF']}
+          style={{
+            paddingTop: hp('3%'),
+            paddingHorizontal: wp('4%'),
+            paddingBottom: hp('1%'),
+            borderBottomLeftRadius: 30,
+            borderBottomRightRadius: 30,
+          }}
+        >
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: hp('2%'),
+          }}>
+            <TouchableOpacity onPress={handleBack} style={{ padding: 10 }}>
+              <Icon
+                as={Feather}
+                name="chevron-left"
+                size="xl"
+                color={currentTheme === 'dark' ? 'white' : 'black'}
+                testID="back-button"
+              />
+            </TouchableOpacity>
+            <Text style={{
+              fontSize: wp('5%'),
+              fontWeight: 'bold',
+              color: currentTheme === 'dark' ? 'white' : 'black',
+            }}>
+              Notifications
+            </Text>
+            <Ionicons
+              name="notifications-outline"
+              size={wp('6%')}
+              color={currentTheme === 'dark' ? 'white' : 'black'}
+            />
+          </View>
+        </LinearGradient>
+
+        <View style={{ padding: wp('4%') }}>
+          <SettingItem
+            title="Notify when someone invites me"
+            value={newInviteVal}
+            onValueChange={toggleSwitch(setNewInviteVal)}
+          />
+          <SettingItem
+            title="Notify 15 minutes before booking time"
+            value={newNotifyVal}
+            onValueChange={toggleSwitch(setNewNotifyVal)}
+          />
+        </View>
+      </ScrollView>
+      <View style={{
+        position: 'absolute',
+        left: wp('4%'),
+        right: wp('4%'),
+        bottom: hp('4%'),
+      }}>
+        <GradientButton onPress={onSave} text="Save" />
+      </View>
+    </SafeAreaView>
+  );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SIZES.padding,
-  },
-  icon: {
-    marginRight: SIZES.base,
-  },
-  headerTitle: {
-    ...FONTS.h3,
-  },
-
-});
 
 export default Notifications;

@@ -18,8 +18,8 @@ import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import bookings from '@/app/bookings';
-
-
+import Tooltip from '@/components/Tooltip';
+import {getHistoricalBookings,getCurrentBookings} from '@/utils/analytics';
 
 const groupDataInPairs = (data) => {
     const pairs = [];
@@ -28,6 +28,7 @@ const groupDataInPairs = (data) => {
     }
     return pairs;
 };
+
 
 function extractTimeFromDate(dateString: string): string {
     const date = new Date(dateString);
@@ -51,14 +52,70 @@ const ViewBookings = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [activeTab, setActiveTab] = useState('current');
+    const [currentBookings, setCurrentBookings] = useState<Booking[]>([]);
+    const [pastBookings, setPastBookings] = useState<Booking[]>([]);
+
+    useEffect(() => {
+        const fetchBookings = async () => {
+            try {
+                setLoading(true);
+                const currentData = await getCurrentBookings();
+                const historicalData = await getHistoricalBookings();
+
+                if (currentData && currentData.data) {
+                    setCurrentBookings(currentData.data);
+                }
+                if (historicalData && historicalData.data) {
+                    setPastBookings(historicalData.data);
+                }
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBookings();
+    }, []);
+
+    const onRefreshCalling = useCallback(() => {
+        setRefreshing(true);
+        const fetchBookings = async () => {
+            try {
+                const currentData = await getCurrentBookings();
+                const historicalData = await getHistoricalBookings();
+
+                if (currentData && currentData.data) {
+                    setCurrentBookings(currentData.data);
+                }
+                if (historicalData && historicalData.data) {
+                    setPastBookings(historicalData.data);
+                }
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+            } finally {
+                setRefreshing(false);
+            }
+        };
+
+        fetchBookings();
+    }, []);
+
     useEffect(() => {
         const getRoomData = async () => {
             try {
                 const roomData = await fetchUserBookings(selectedSort);
                 if (roomData) {
-                    // console.log(roomData);
+                    const now = new Date();
+                    const current = roomData.filter(booking => new Date(booking.date) >= now);
+                    const past = roomData.filter(booking => new Date(booking.date) < now);
+                    setCurrentBookings(current);
+                    setPastBookings(past);
                     setRoomData(roomData);
                 } else {
+                    setCurrentBookings([]);
+                    setPastBookings([]);
                     setRoomData([]);
                 }
             } catch (error) {
@@ -68,6 +125,7 @@ const ViewBookings = () => {
         };
         getRoomData();
     }, []);
+
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
     useEffect(() => {
@@ -119,11 +177,177 @@ const ViewBookings = () => {
         // console.log(value);
     }
 
+    const renderBookings = (bookings: Booking[]) => {
+        if (loading) {
+            return (
+                <>
+                    <View mt='$4'>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                    <View mt='$2'>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                    <View mt='$2'>
+                        <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
+                    </View>
+                </>
+            );
+        }
+
+        if (bookings.length === 0) {
+            return (
+                <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
+                    <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No {activeTab} bookings found</Text>
+                </View>
+            );
+        }
+
+        const roomPairs = groupDataInPairs(bookings);
+
+        return layout === "grid" ? (
+            <ScrollView
+                style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
+            >
+                {roomPairs.map((pair, index) => (
+                    <View
+                        key={index}
+                        style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            marginBottom: 20,
+                        }}
+                    >
+                        {pair.map((room, idx) => (
+                            <TouchableOpacity
+                            key={idx}
+                            onPress={() => handleRoomClick(JSON.stringify(room))}
+                            style={{
+                                flex: 1,
+                                borderWidth: 1,
+                                borderColor: cardBackgroundColor,
+                                borderRadius: 12,
+                                height: 160,
+                                backgroundColor: cardBackgroundColor,
+                                marginVertical: 4,
+                                flexDirection: "row",
+                                padding: 10,
+                            }}
+                        >
+                            <Image
+                                width={"45%"}
+                                h="$full"
+                                alt="image"
+                                borderRadius={10}
+                                source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
+                                />
+                               <View
+                  // key={room.title}
+                  w="$48"
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 18,
+                    flexDirection: "column",
+                    justifyContent: "space-between"
+                  }}
+                >
+                  <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
+                  <View flexDirection="column">
+                    <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
+                      <View>
+                        <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>
+                          {extractDateFromDate(room.date)}
+                        </Text>
+                        <Text>
+                          {extractTimeFromDate(room.start)}
+                          {extractTimeFromDate(room.start) && extractTimeFromDate(room.end) ? '-' : ''}
+                          {extractTimeFromDate(room.end)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+                        </TouchableOpacity>
+                    ))}
+                    </View>
+                ))}
+            </ScrollView>
+        ) : (
+            <ScrollView
+                style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
+            >
+                {bookings.map((room, idx) => (
+                    <TouchableOpacity
+                        key={idx}
+                        onPress={() => handleRoomClick(JSON.stringify(room))}
+                        style={{
+                            flex: 1,
+                            borderWidth: 1,
+                            borderColor: cardBackgroundColor,
+                            borderRadius: 12,
+                            height: 160,
+                            backgroundColor: cardBackgroundColor,
+                            marginVertical: 4,
+                            flexDirection: "row",
+                            padding: 10,
+                        }}
+                    >
+                        <Image
+                            width={"45%"}
+                            h="$full"
+                            alt="image"
+                            borderRadius={10}
+                            source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
+                            />
+                           <View
+              // key={room.title}
+              w="$48"
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 18,
+                flexDirection: "column",
+                justifyContent: "space-between"
+              }}
+            >
+              <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
+              <View flexDirection="column">
+                <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
+                  <View>
+                    <Text my="$1" fontSize={15} fontWeight="$light" color={textColor}>
+                      {extractDateFromDate(room.date)}
+                    </Text>
+                    <Text>
+                      {extractTimeFromDate(room.start)}
+                      {extractTimeFromDate(room.start) && extractTimeFromDate(room.end) ? '-' : ''}
+                      {extractTimeFromDate(room.end)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+        );
+    };
+
+
     return (
         <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
             <View style={{ flexDirection: 'column', backgroundColor }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text fontWeight="$bold" fontSize={24} color={textColor}>My bookings</Text>
+                    <Text fontWeight="$bold" fontSize={24} color={textColor}>My Bookings</Text>
+                    <Tooltip 
+                                content="Check your current and historical bookings!"
+                                placement="bottom"
+                            />
                 </View>
                 <Input my="$6" w="$full" backgroundColor={cardBackgroundColor} borderRadius="$xl" borderColor={cardBackgroundColor} h={hp('5%')}>
                     <InputField
@@ -134,9 +358,38 @@ const ViewBookings = () => {
                         color={textColor}
                     />
                 </Input>
-                <View flexDirection="row" justifyContent="space-between" alignItems="center">
+                <View flexDirection="row" justifyContent="space-between" alignItems="center" mb="$4">
+                    <View flexDirection="row">
+                        
+                        <TouchableOpacity
+                            onPress={() => setActiveTab('current')}
+                            style={{
+                                backgroundColor: activeTab === 'current' ? accentColour : 'transparent',
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderRadius: 20,
+                                marginRight: 10
+                            }}
+                        >
+                            <Text color={activeTab === 'current' ? 'black' : textColor}>Current
+                            
+                            </Text>
+                            
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => setActiveTab('past')}
+                            style={{
+                                backgroundColor: activeTab === 'past' ? accentColour : 'transparent',
+                                paddingHorizontal: 16,
+                                paddingVertical: 8,
+                                borderRadius: 20
+                            }}
+                        >
+                            <Text color={activeTab === 'past' ? 'black' : textColor}>Past</Text>
+                        </TouchableOpacity>
+                    </View>
                     <View flexDirection="row" alignItems="center">
-                        <Text fontWeight="$bold" fontSize={18} mr="$2" color={textColor}>Sort by:</Text>
+                        {/* <Text fontWeight="$bold" fontSize={18} mr="$2" color={textColor}>Sort by:</Text> */}
                         <View backgroundColor={cardBackgroundColor} borderRadius="$lg" px="$2" alignItems="center">
                             <RNPickerSelect
                                 onValueChange={(value) => setSelectedSort(value)}
@@ -153,7 +406,7 @@ const ViewBookings = () => {
                                         borderWidth: 1,
                                         borderRadius: 10,
                                         borderColor: cardBackgroundColor,
-                                        paddingRight: 30, // to ensure the text is never behind the icon
+                                        paddingRight: 30,
                                         color: textColor
                                     },
                                     inputAndroid: {
@@ -161,15 +414,13 @@ const ViewBookings = () => {
                                         width: 130,
                                         height: 60,
                                         fontSize: 10,
-                                        // paddingVertical: 4,
                                         borderWidth: 1,
                                         borderRadius: 10,
                                         borderColor: cardBackgroundColor,
-                                        padding: 0, // to ensure the text is never behind the icon
+                                        padding: 0,
                                         color: textColor
                                     },
                                 }}
-
                             />
                         </View>
                     </View>
@@ -187,7 +438,7 @@ const ViewBookings = () => {
                 </View>
             </View>
 
-            {loading === true ? (
+            {loading ? (
                 <>
                     <View mt='$4'>
                         <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
@@ -199,136 +450,25 @@ const ViewBookings = () => {
                         <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
                     </View>
                 </>
-            ) : roomData?.length === 0 ? (
-                <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
-                    <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No bookings found</Text>
-                </View>
-            ) :
-                layout === "grid" ? (
-                    <ScrollView
-                        style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
-                        showsVerticalScrollIndicator={false}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                        }
-                    >
-                        {roomPairs.map((pair, index) => (
-                            <View
-                                key={index}
-                                style={{
-                                    flexDirection: 'row',
-                                    justifyContent: 'space-between',
-                                    marginBottom: 20,
-                                }}
-                            >
-                                {pair.map((room, idx) => (
-                                    <TouchableOpacity
-                                        key={idx}
-                                        onPress={() => handleRoomClick(JSON.stringify(room))}
-                                        style={{
-                                            flex: 1,
-                                            borderWidth: 1,
-                                            borderColor: cardBackgroundColor,
-                                            borderRadius: 12,
-                                            backgroundColor: cardBackgroundColor,
-                                            marginHorizontal: 4,
-                                            width: '45%'
-                                        }}>
-                                        <Image
-                                            w="$full"
-                                            h="$24"
-                                            alt="image"
-                                            borderRadius={10}
-                                            source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-                                        />
-                                        <View
-                                            // key={room.title}
-                                            style={{
-                                                padding: 10,
-                                            }}
-                                        >
-                                            <View>
-                                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
-                                                <View flexDirection="row" alignItems="center">
-                                                    <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails?.length}</Text>
-                                                </View>
-                                                <Text color={isDarkMode ? '#fff' : '#000'} fontWeight="$light" my="$1">Your booking time:</Text>
-                                            </View>
-                                            <View flexDirection="row" alignItems="center" justifyContent="space-between">
-                                                <View>
-                                                    <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)} </Text>
-                                                    <Text>{extractTimeFromDate(room.start)}-{extractTimeFromDate(room.end)}</Text>
-                                                </View>
-                                                <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
-                                            </View>
-                                        </View>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        ))}
-                    </ScrollView>
+            ) : activeTab === 'current' ? (
+                currentBookings.length === 0 ? (
+                    <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
+                        <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No current bookings found</Text>
+                    </View>
                 ) : (
-                    <ScrollView
-                        style={{ flex: 1, marginTop: 10, marginBottom: 84 }}
-                        showsVerticalScrollIndicator={false}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                        }
-                    >
-                        {roomData?.map((room, idx) => (
-                            <TouchableOpacity
-                                key={idx}
-                                onPress={() => handleRoomClick(JSON.stringify(room))}
-                                style={{
-                                    flex: 1,
-                                    borderWidth: 1,
-                                    borderColor: cardBackgroundColor,
-                                    borderRadius: 12,
-                                    height: 160,
-                                    backgroundColor: cardBackgroundColor,
-                                    marginVertical: 4,
-                                    flexDirection: "row"
-
-                                }}>
-                                <Image
-                                    width={"50%"}
-                                    h="$full"
-                                    alt="image"
-                                    borderRadius={10}
-                                    source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-                                />
-                                <View
-                                    // key={room.title}
-                                    w="$48"
-                                    style={{
-                                        padding: 10,
-                                        flexDirection: "column",
-                                        justifyContent: "space-between"
-                                    }}
-                                >
-                                    <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
-                                    <View flexDirection="row" alignItems="center">
-                                        <Octicons name="people" size={22} color={isDarkMode ? '#fff' : '#000'} /><Text style={{ color: textColor }} fontSize={15}> Attendees: {room.emails?.length}</Text>
-                                    </View>
-                                    <View flexDirection="column">
-                                        <Text my="$1" fontWeight="$light" color={isDarkMode ? '#fff' : '#000'}>Your booking time:</Text>
-                                        <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
-                                            <View>
-                                                <Text my="$1" fontSize={14} fontWeight="$light" color={textColor}>{extractDateFromDate(room.date)}</Text>
-                                                <Text>{extractTimeFromDate(room.start)}-{extractTimeFromDate(room.end)}</Text>
-                                            </View>
-                                            <SimpleLineIcons name="options" size={24} color={isDarkMode ? "white" : "black"} />
-                                        </View>
-                                    </View>
-
-                                </View>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                )}
+                    renderBookings(currentBookings)
+                )
+            ) : (
+                pastBookings.length === 0 ? (
+                    <View alignItems='center' justifyContent='center' flexDirection='column' height={'60%'}>
+                        <Text fontSize={25} fontWeight={'$bold'} color={textColor}>No past bookings found</Text>
+                    </View>
+                ) : (
+                    renderBookings(pastBookings)
+                )
+            )}
             <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
         </View>
     );
 };
-
 export default ViewBookings;

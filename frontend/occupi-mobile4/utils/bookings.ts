@@ -20,6 +20,7 @@ import { sendPushNotification } from "./notifications";
     try {
       const response = await getUserBookings(req);
       if (response.status === 200) {
+        console.log("bookings",response)
         return response.data;
       } else {
         console.log(response);

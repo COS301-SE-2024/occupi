@@ -1,256 +1,204 @@
 import React, { useState, useEffect } from 'react';
-import {
-    StyleSheet,
-    Alert,
-    TextInput,
-    TouchableOpacity,
-    useColorScheme,
-   
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
-import {
-    Icon,
-    View,
-    ScrollView,
-    Text,
-    Image,
-    Box
-} from '@gluestack-ui/themed';
+import { Pressable, SafeAreaView, ScrollView, View, Text, TouchableOpacity, Image, Dimensions, useColorScheme } from 'react-native';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import GradientButton from '@/components/GradientButton';
 import * as SecureStore from 'expo-secure-store';
-import { storeTheme, storeAccentColour } from '@/services/securestore';
 import { useTheme } from '@/components/ThemeContext';
-import ColorPicker, { Panel1, Swatches, Preview, OpacitySlider, HueSlider } from 'reanimated-color-picker';
+import Tooltip from '@/components/Tooltip';
+import ColorPicker, { Preview, HueSlider, Panel1 } from 'reanimated-color-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const FONTS = {
-    h3: { fontSize: 20, fontWeight: 'bold' },
-    body3: { fontSize: 16 },
-};
-
-const SIZES = {
-    padding: 16,
-    base: 8,
-    radius: 8,
-};
+const { width } = Dimensions.get('window');
 
 const Appearance = () => {
-    const [accentColour, setAccentColour] = useState<string>('greenyellow');
-    const [customColor, setCustomColor] = useState<string>('#FFFFFF');
-    const { theme, setTheme } = useTheme();
-    const colorscheme = useColorScheme();
-    const currentTheme = theme === "system" ? colorscheme : theme;
+  const [accentColour, setAccentColour] = useState('greenyellow');
+  const [customColor, setCustomColor] = useState('#FFFFFF');
+  const { theme, setTheme } = useTheme();
+  const colorScheme = useColorScheme();
+  const currentTheme = theme === "system" ? colorScheme : theme;
 
-    const onSave = () => {
-        storeAccentColour(accentColour);
-        storeTheme(theme);
-        router.replace('/settings');
-    }
+  const onSave = () => {
+    SecureStore.setItemAsync('accentColour', accentColour);
+    SecureStore.setItemAsync('theme', theme);
+    router.replace('/settings');
+  };
 
-    useEffect(() => {
-        const getSettings = async () => {
-            let accentcolour = await SecureStore.getItemAsync('accentColour');
-            setAccentColour(accentcolour);
-        };
-        getSettings();
-    }, []);
+  useEffect(() => {
+    const getSettings = async () => {
+      let savedAccentColour = await SecureStore.getItemAsync('accentColour');
+      if (savedAccentColour) setAccentColour(savedAccentColour);
+    };
+    getSettings();
+  }, []);
 
-    const handleBack = () => {
-        // if (isSaved === false) {
-        //     Alert.alert(
-        //         'Save Changes',
-        //         'You have unsaved changes. Would you like to save them?',
-        //         [
-        //             {
-        //                 text: 'Leave without saving',
-        //                 onPress: () => router.back(),
-        //                 style: 'cancel',
-        //             },
-        //             { text: 'Save', onPress: () => onSave() },
-        //         ],
-        //         { cancelable: false }
-        //     );
-        // }
-        // else {
-        router.back();
-        // }
-    }
-    // console.log(theme);
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <LinearGradient
+          colors={currentTheme === 'dark' ? ['#1A1A1A', '#000'] : ['#F0F0F0', '#FFF']}
+          style={{
+            paddingTop: hp('3%'),
+            paddingHorizontal: wp('4%'),
+            paddingBottom: hp('1%'),
+            borderBottomLeftRadius: 30,
+            borderBottomRightRadius: 30,
+          }}
+        >
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: hp('2%'),
+          }}>
+            <Pressable onPress={() => router.back()} >
+              <Feather name="chevron-left" size={30} color={currentTheme === 'dark' ? 'white' : 'black'} />
+            </Pressable>
+            <Text style={{
+              fontSize: wp('5%'),
+              fontWeight: 'bold',
+              color: currentTheme === 'dark' ? 'white' : 'black',
+            }}>
+              Appearance
+            </Text>
+            <MaterialCommunityIcons name="palette-outline" size={30} color={currentTheme === 'dark' ? 'white' : 'black'} />
+          </View>
+        </LinearGradient>
 
-    return (
-        <ScrollView flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'} px="$4" pt="$16">
-            <View style={styles.header}>
-                <Icon
-                 testID="back-button"
-                    as={Feather}
-                    name="chevron-left"
-                    size="xl"
-                    color={currentTheme === 'dark' ? 'white' : 'black'}
-                    onPress={handleBack}
+        <View style={{ padding: wp('4%'), alignItems: 'center' }}>
+          <Text style={{
+            fontSize: wp('5%'),
+            fontWeight: 'bold',
+            marginBottom: hp('1%'),
+            color: currentTheme === 'dark' ? '#FFF' : '#000',
+          }}>Theme</Text>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+            <TouchableOpacity onPress={() => setTheme("light")} style={{ width: wp('28%') }}>
+              <View style={{ alignItems: 'center' }}>
+                <Image
+                  style={{
+                    height: hp('18%'),
+                    width: '100%',
+                    resizeMode: 'stretch',
+                    borderRadius: 15,
+                    borderWidth: 3,
+                    borderColor: theme === 'light' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3',
+                  }}
+                  source={require('./assets/white.png')}
                 />
-                <Text style={styles.headerTitle} color={currentTheme === 'dark' ? 'white' : 'black'}>
-                    Appearance
-                </Text>
-                <MaterialCommunityIcons
-                    name="palette-outline"
-                    size={24}
-                    color={currentTheme === 'dark' ? 'white' : 'black'}
-                    style={styles.icon}
+                <Text style={{ marginTop: 8, fontWeight: '400', color: currentTheme === 'dark' ? 'white' : 'black' }}>Light</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setTheme("dark")} style={{ width: wp('28%') }}>
+              <View style={{ alignItems: 'center' }}>
+                <Image
+                  style={{
+                    height: hp('18%'),
+                    width: '100%',
+                    resizeMode: 'stretch',
+                    borderRadius: 15,
+                    borderWidth: 3,
+                    borderColor: theme === 'dark' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3',
+                  }}
+                  source={require('./assets/black.png')}
                 />
-            </View>
-
-            <View mt="$4" flexDirection="column" >
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Mode</Text>
-                <View p="$8" justifyContent='space-between' flexDirection='row' borderRadius={18} my="$2" height={hp('28%')} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-                    <TouchableOpacity  onPress={() => setTheme("light")} style={{ width: wp('25%') }}>
-                        <View alignItems='center'>
-                            <Image
-                                h={hp('18%')}
-                                resizeMode='stretch'
-                                borderRadius={15}
-                                borderColor={theme === 'light' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
-                                borderWidth={3}
-                                alt="white"
-                                source={require('./assets/white.png')}
-                            />
-                            <Text mt={8} fontWeight={'$light'} color={currentTheme === 'dark' ? 'white' : 'black'}>Light</Text>
-                        </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setTheme("dark")} style={{ width: wp('25%') }}>
-                        <View alignItems='center'>
-                            <Image
-                                h={hp('18%')}
-                                resizeMode='stretch'
-                                borderColor={theme === 'dark' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
-                                borderRadius={15}
-                                borderWidth={3}
-                                alt="white"
-                                source={require('./assets/black.png')}
-                            />
-                            <Text mt={8} fontWeight={'$light'} color={currentTheme === 'dark' ? 'white' : 'black'}>Dark</Text>
-                        </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => setTheme("system")} style={{ width: wp('25%') }}>
-                        <View alignItems='center'>
-                            <Image
-                                h={hp('18%')}
-                                resizeMode='stretch'
-                                borderColor={theme === 'system' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}
-                                borderRadius={15}
-                                borderWidth={3}
-                                alt="white"
-                                source={require('./assets/system.png')}
-                            />
-                            <Text mt={8} fontWeight={'$light'} color={currentTheme === 'dark' ? 'white' : 'black'}>System</Text>
-                        </View>
-                    </TouchableOpacity>
-
-
-                </View>
-                <Text mt="$2" color={currentTheme === 'dark' ? 'white' : 'black'}>Accent colour</Text>
-                <View p="$5" borderRadius={18} justifyContent='space-between' my="$2" height={hp('18%')} backgroundColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'}>
-                    <View flexDirection="row" justifyContent='space-between'>
-                        <TouchableOpacity onPress={() => setAccentColour("lightgrey")}>
-                            <View borderColor='lightgrey' borderRadius="$full" borderWidth={accentColour === 'lightgrey' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="lightgrey" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#FF4343")}>
-                            <View borderColor='#FF4343' borderRadius="$full" borderWidth={accentColour === '#FF4343' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FF4343" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#FFB443")}>
-                            <View borderColor='#FFB443' borderRadius="$full" borderWidth={accentColour === '#FFB443' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FFB443" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("greenyellow")}>
-                            <View borderColor='greenyellow' borderRadius="$full" borderWidth={accentColour === 'greenyellow' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="greenyellow" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#43FF61")}>
-                            <View borderColor='#43FF61' borderRadius="$full" borderWidth={accentColour === '#43FF61' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#43FF61" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                    <View flexDirection="row" justifyContent='space-between'>
-                        <TouchableOpacity onPress={() => setAccentColour("#43F4FF")}>
-                            <View borderColor='#43F4FF' borderRadius="$full" borderWidth={accentColour === '#43F4FF' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#43F4FF" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#4383FF")}>
-                            <View borderColor='#4383FF' borderRadius="$full" borderWidth={accentColour === '#4383FF' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#4383FF" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#AC43FF")}>
-                            <View borderColor='#AC43FF' borderRadius="$full" borderWidth={accentColour === '#AC43FF' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#AC43FF" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("#FF43F7")}>
-                            <View borderColor='#FF43F7' borderRadius="$full" borderWidth={accentColour === '#FF43F7' ? 2 : 0}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="#FF43F7" />
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setAccentColour("purple")}>
-                            <View borderColor='purple' borderRadius="$full" borderWidth={accentColour === 'purple' ? 2 : 0} onPress={() => setAccentColour("#FF4343")}>
-                                <View w="$12" h="$12" paddingHorizontal={3} borderColor={currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3'} borderRadius="$full" borderWidth={2.5} name="circle" backgroundColor="purple" />
-                            </View>
-                        </TouchableOpacity>
-                    </View >
-                </View >
-                <Text color={currentTheme === 'dark' ? 'white' : 'black'}>Custom colour</Text>
-                <View mt="$2" flexDirection="row" alignItems="$center" justifyContent="center">
-                    
-                    <ColorPicker
-                        style={{
-                            width: wp('45%'),
-                            height: hp('25%'),
-                            backgroundColor: currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3',
-                            borderRadius: 2,
-                            marginBottom: 40
-                        }}
-                        value={customColor}
-                        onComplete={(color) => setAccentColour(color.hex)}
-                    >
-                        <HueSlider />
-                        <Preview />
-                        <Panel1 />
-                        
-                    </ColorPicker>
-                </View>
-            </View >
-            <View position="relative" mb="$10" left={0} right={0} bottom={36}>
-                <GradientButton
-                    onPress={onSave}
-                    text="Save"
+                <Text style={{ marginTop: 8, fontWeight: '400', color: currentTheme === 'dark' ? 'white' : 'black' }}>Dark</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setTheme("system")} style={{ width: wp('28%') }}>
+              <View style={{ alignItems: 'center' }}>
+                <Image
+                  style={{
+                    height: hp('18%'),
+                    width: '100%',
+                    resizeMode: 'stretch',
+                    borderRadius: 15,
+                    borderWidth: 3,
+                    borderColor: theme === 'system' ? accentColour : currentTheme === 'dark' ? '#2C2C2E' : '#F3F3F3',
+                  }}
+                  source={require('./assets/system.png')}
                 />
-            </View>
-        </ScrollView >
-    );
+                <Text style={{ marginTop: 8, fontWeight: '400', color: currentTheme === 'dark' ? 'white' : 'black' }}>System</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={{
+            fontSize: wp('5%'),
+            fontWeight: 'bold',
+            marginTop: hp('2%'),
+            marginBottom: hp('1%'),
+            color: currentTheme === 'dark' ? '#FFF' : '#000',
+          }}>Accent Color
+          <Tooltip content="Choose a theme color for a personalized experience." placement="bottom" /></Text>
+
+          
+
+          <View style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            marginVertical: hp('2%'),
+            padding: wp('4%'),
+            backgroundColor: currentTheme === 'dark' ? '#1A1A1A' : '#F0F0F0',
+            borderRadius: 15,
+          }}>
+            {['lightgrey', '#FF4343', '#FFB443', 'greenyellow', '#43FF61', '#43F4FF', '#4383FF', '#AC43FF', '#FF43F7', 'purple'].map(color => (
+              <Pressable key={color} onPress={() => setAccentColour(color)} style={{
+                width: wp('12%'),
+                height: wp('12%'),
+                backgroundColor: color,
+                borderRadius: wp('6%'),
+                borderWidth: accentColour === color ? 3 : 0,
+                borderColor: accentColour,
+                marginBottom: hp('2%'),
+              }} />
+            ))}
+          </View>
+
+          <Text style={{
+            fontSize: wp('5%'),
+            fontWeight: 'bold',
+            marginTop: hp('2%'),
+            marginBottom: hp('1%'),
+            color: currentTheme === 'dark' ? '#FFF' : '#000',
+          }}>Custom Color
+          <Tooltip content="Create your unique color with our advanced color picker." placement="bottom" /></Text>
+
+          
+
+          <View style={{
+            marginVertical: 20,
+            backgroundColor: currentTheme === 'dark' ? '#1A1A1A' : '#F0F0F0',
+            borderRadius: 15,
+            padding: 10,
+            width: wp('90%'),
+          }}>
+            <ColorPicker
+              style={{ width: '100%', height: hp('25%') }}
+              value={customColor}
+              onComplete={(color) => setAccentColour(color.hex)}
+            >
+              <Preview />
+              <HueSlider />
+              <Panel1 />
+            </ColorPicker>
+          </View>
+        </View>
+
+        <Pressable onPress={onSave} style={{
+          marginHorizontal: wp('4%'),
+          marginTop: hp('4%'),
+          paddingVertical: hp('2%'),
+          borderRadius: 30,
+          alignItems: 'center',
+          backgroundColor: accentColour,
+        }}>
+          <Text style={{ fontSize: wp('4.5%'), fontWeight: 'bold', color: '#FFF' }}>Save Changes</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+  );
 };
-
-const styles = StyleSheet.create({
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: SIZES.padding,
-    },
-    icon: {
-        marginRight: SIZES.base,
-    },
-    headerTitle: {
-        ...FONTS.h3,
-    },
-
-});
 
 export default Appearance;
