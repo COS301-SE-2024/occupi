@@ -176,6 +176,7 @@ const Stats = () => {
       let accentcolour = await SecureStore.getItemAsync('accentColour');
       setAccentColour(accentcolour);
     };
+    setIsDarkMode(currentTheme === 'dark');
     getAccentColour();
   }, []);
 
@@ -273,7 +274,7 @@ const Stats = () => {
               paddingVertical: 7,
               paddingHorizontal: 14,
               borderRadius: 8,
-              backgroundColor: '#242424',
+              backgroundColor: cardBackgroundColor,
               marginTop: 8,
               marginBottom: 8,
               alignItems: 'center'
@@ -288,7 +289,7 @@ const Stats = () => {
               paddingVertical: 7,
               paddingHorizontal: 14,
               borderRadius: 8,
-              backgroundColor: '#242424',
+              backgroundColor: cardBackgroundColor,
               marginTop: 8,
               marginBottom: 8,
               alignItems: 'center'
@@ -317,7 +318,7 @@ const Stats = () => {
 
 
         <View style={{
-          backgroundColor: '#101010',
+          backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
@@ -331,10 +332,10 @@ const Stats = () => {
               <Text style={{
                 fontSize: wp('5%'),
                 fontWeight: 'bold',
-                color: 'white',
+                color: textColor,
               }}>Total Hours: </Text>
               {!isLoading ? (
-                <Text color='white'>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userHours)}</Text>
+                <Text color={textColor}>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userHours)}</Text>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
@@ -342,7 +343,7 @@ const Stats = () => {
           </TouchableOpacity>
         </View>
         <View style={{
-          backgroundColor: '#101010',
+          backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
@@ -356,10 +357,10 @@ const Stats = () => {
               <Text style={{
                 fontSize: wp('5%'),
                 fontWeight: 'bold',
-                color: 'white',
+                color: textColor,
               }}>Average Hours Per Day: </Text>
               {!isLoading ? (
-                <Text color='white'>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userAverage)}</Text>
+                <Text color={textColor}>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userAverage)}</Text>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
@@ -383,7 +384,7 @@ const Stats = () => {
           </View>
         </View>
         <View style={{
-          backgroundColor: '#101010',
+          backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
@@ -396,10 +397,10 @@ const Stats = () => {
             <Text style={{
               fontSize: wp('5%'),
               fontWeight: 'bold',
-              color: 'white',
+              color: textColor,
             }}>Work Ratio: </Text>
             {!isLoading ? (
-              <Text color='white'>{convertToHoursAndMinutes(workRatio)}</Text>
+              <Text color={textColor}>{convertToHoursAndMinutes(workRatio)}</Text>
             ) : (
               <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
             )}
@@ -407,7 +408,7 @@ const Stats = () => {
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
         <View style={{
-          backgroundColor: '#101010',
+          backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
@@ -420,18 +421,18 @@ const Stats = () => {
             <Text style={{
               fontSize: wp('5%'),
               fontWeight: 'bold',
-              color: 'white',
+              color: textColor,
             }}>Peak Hours:</Text>
             {!isLoading ? (
-              <Text color='white'>{convertToHoursAndMinutes(peakHours)}</Text>
+              <Text color={textColor}>{convertToHoursAndMinutes(peakHours)}</Text>
             ) : (
-              <Text color='white'>No peak hours found</Text>
+              <Text color={textColor}>No peak hours found</Text>
             )}
           </View>
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
         <View style={{
-          backgroundColor: '#101010',
+          backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
@@ -475,7 +476,7 @@ const Stats = () => {
           </View>
         </View>
         <View style={{
-          backgroundColor: '#101010',
+          backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
           padding: wp('4%'),
           marginBottom: hp('3%'),
@@ -488,10 +489,10 @@ const Stats = () => {
             <Text style={{
               fontSize: wp('5%'),
               fontWeight: 'bold',
-              color: 'white',
+              color: textColor,
             }}>In Office Rate: </Text>
             {!isLoading ? (
-              <Text color='white'>{Math.floor(inOfficeRate)}%</Text>
+              <Text color={textColor}>{Math.floor(inOfficeRate)}%</Text>
             ) : (
               <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
             )}

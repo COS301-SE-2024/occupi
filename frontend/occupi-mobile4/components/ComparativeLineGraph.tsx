@@ -15,7 +15,7 @@ const ComparativelineGraph = ({ data, data2, title, x_axis }) => {
     const { theme } = useTheme();
     const currentTheme = theme === "system" ? colorscheme : theme;
     // console.log(data);
-    const labels = currentTheme === 'dark' ? "lightgray" : "darkgrey";
+    const labels = currentTheme === 'dark' ? "lightgray" : "#242424";
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
     useEffect(() => {
         const getAccentColour = async () => {
@@ -72,7 +72,7 @@ const ComparativelineGraph = ({ data, data2, title, x_axis }) => {
                 endOpacity={0.1}
                 spacing={data.length > 30 ? 30 : data.length * 7}
                 // rotateLabel
-                backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
+                backgroundColor="transparent+3"
                 // showVerticalLines
                 // verticalLinesColor="rgba(14,164,164,0.5)"
                 // rulesColor="gray"
