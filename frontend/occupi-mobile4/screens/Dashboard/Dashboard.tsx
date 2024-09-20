@@ -493,7 +493,7 @@ const Dashboard: React.FC = () => {
               }}
               onPress={showLive}
             >
-              <Text color={activeTab === 1 ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 1 ? 'bold' : 'normal'}>
+              <Text color={activeTab === 1 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 1 ? 'bold' : 'normal'}>
                 Live
               </Text>
             </TouchableOpacity>
@@ -506,7 +506,7 @@ const Dashboard: React.FC = () => {
               }}
               onPress={showHourly}
             >
-              <Text color={activeTab === 2 ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 2 ? 'bold' : 'normal'}>
+              <Text color={activeTab === 2 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 2 ? 'bold' : 'normal'}>
                 1D
               </Text>
             </TouchableOpacity>
@@ -532,7 +532,7 @@ const Dashboard: React.FC = () => {
               }}
               onPress={showMonth}
             >
-              <Text color={activeTab === 4 ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 4 ? 'bold' : 'normal'}>
+              <Text color={activeTab === 4 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 4 ? 'bold' : 'normal'}>
                 1M
               </Text>
             </TouchableOpacity>
@@ -591,13 +591,13 @@ const Dashboard: React.FC = () => {
         >
 
           <View flexDirection="row" alignItems="center" justifyContent='space-between'>
-            <Text color="white" fontWeight="$bold" fontSize={18}>My Stats</Text>
+            <Text color={textColor} fontWeight="$bold" fontSize={18}>My Stats</Text>
             <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
           </View>
 
         </TouchableOpacity>
-        <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
-          <Text fontSize={18} color='white'>Favourite Days</Text>
+        <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={}>
+          <Text fontSize={18} color={textColor}>Favourite Days</Text>
           <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor="#1c1c1c" h={hp('6%')}>
             <Text color={textColor} fontWeight="$bold" fontSize={18}>1       Monday</Text><Text color={textColor}>Avr: 1756</Text>
           </View>
