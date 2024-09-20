@@ -4,16 +4,21 @@ import { MotiView } from 'moti';
 import { useTheme } from '@/components/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { Dimensions, StyleSheet, Modal, TouchableWithoutFeedback } from 'react-native';
+import { Dimensions, StyleSheet, Modal, TouchableWithoutFeedback, useColorScheme } from 'react-native';
 
 const Tooltip = ({ content, placement = 'bottom' }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const colorScheme = useColorScheme();
   const { theme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const currentTheme = theme === "system" ? colorScheme : theme;
+  const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const iconRef = useRef(null);
 
+  console.log('darkmode? ', isDarkMode);
+
   useEffect(() => {
+    setIsDarkMode(currentTheme === 'dark');
     if (isVisible && iconRef.current) {
       iconRef.current.measure((x, y, width, height, pageX, pageY) => {
         const windowWidth = Dimensions.get('window').width;
@@ -55,8 +60,8 @@ const Tooltip = ({ content, placement = 'bottom' }) => {
 
   return (
     <View>
-      <Pressable onPress={() => setIsVisible(true)} ref={iconRef}>
-        <Icon as={Ionicons} name="help-circle-outline" size={wp('6%')} color={isDarkMode ? 'white' : 'black'} />
+      <Pressable  onPress={() => setIsVisible(true)} ref={iconRef}>
+        <Icon as={Ionicons} name="help-circle-outline" size={wp('4.5%')} color={isDarkMode ? 'white' : 'black'} />
       </Pressable>
       <Modal
         transparent={true}

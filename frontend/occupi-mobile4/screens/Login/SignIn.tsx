@@ -175,8 +175,8 @@ const SignInForm = () => {
       <View style={{ alignItems: 'center', marginBottom: hp('2%') }}>
         {biometricAvailable && (
           <TouchableOpacity onPress={handleBiometricSignIn}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: hp('2%') }}>
-              <Image src="./assets/images/Occupi/face-id-seeklogo.svg" size={wp('6%')} color="black" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: hp('1%') }}>
+              <Image alt="faceid" source="./assets/images/Occupi/face-id-seeklogo.svg" style={{ width: wp('2%') }} color="black" />
             </View>
           </TouchableOpacity>
         )}

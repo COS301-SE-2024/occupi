@@ -64,6 +64,9 @@ const Dashboard: React.FC = () => {
   // console.log(currentTheme);
   // console.log(isDarkMode);
 
+  // console.log('darkmode? ', isDarkMode);
+
+
   const mockhourly = [
     { "label": "7am", "value": 2 },
     { "label": "9am", "value": 4 },
@@ -484,22 +487,26 @@ const Dashboard: React.FC = () => {
               </View>
             </PagerView>
           </View >
-          <View flexDirection='row' justifyContent='space-around' h="$12" paddingVertical={5}>
+          <View flexDirection='row' alignItems='center' justifyContent='space-around' h="$12" paddingVertical={5}>
             <TouchableOpacity
               style={{
                 paddingVertical: 7,
                 paddingHorizontal: 14,
+                alignItems: 'center',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
                 borderRadius: 8,
-                backgroundColor: activeTab === 1 ? '#242424' : 'transparent',
+                backgroundColor: activeTab !== 1 ? 'transparent' : isDarkMode === true ? '#242424' : 'lightgrey',
               }}
               onPress={showLive}
             >
               <Text color={activeTab === 1 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 1 ? 'bold' : 'normal'}>
                 Live
-                <Tooltip 
-        content="Know what's happening in the office, live!"
-        placement="bottom"
-      />
+                {/* <Tooltip
+                  content="Know what's happening in the office, live!"
+                  placement="bottom"
+                /> */}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -507,7 +514,7 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 2 ? '#242424' : 'transparent',
+                backgroundColor: activeTab !== 2 ? 'transparent' : isDarkMode === true ? '#242424' : 'lightgrey',
               }}
               onPress={showHourly}
             >
@@ -520,11 +527,11 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 3 ? '#242424' : 'transparent',
+                backgroundColor: activeTab !== 3 ? 'transparent' : isDarkMode === true ? '#242424' : 'lightgrey',
               }}
               onPress={showWeek}
             >
-              <Text color={activeTab === 3 ? 'white' : 'gray'} fontSize={16} fontWeight={activeTab === 3 ? 'bold' : 'normal'}>
+              <Text color={activeTab === 3 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 3 ? 'bold' : 'normal'}>
                 1W
               </Text>
             </TouchableOpacity>
@@ -533,7 +540,9 @@ const Dashboard: React.FC = () => {
                 paddingVertical: 7,
                 paddingHorizontal: 14,
                 borderRadius: 8,
-                backgroundColor: activeTab === 4 ? '#242424' : 'transparent',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: activeTab !== 4 ? 'transparent' : isDarkMode === true ? '#242424' : 'lightgrey',
               }}
               onPress={showMonth}
             >
@@ -549,7 +558,7 @@ const Dashboard: React.FC = () => {
                   paddingVertical: 7,
                   paddingHorizontal: 14,
                   borderRadius: 8,
-                  backgroundColor: '#242424',
+                  backgroundColor: isDarkMode === true ? '#242424' : 'lightgrey',
                   marginHorizontal: 48,
                   marginTop: 8,
                   marginBottom: 8,
@@ -596,30 +605,32 @@ const Dashboard: React.FC = () => {
         >
 
           <View flexDirection="row" alignItems="center" justifyContent='space-between'>
-            <Text color="white" fontWeight="$bold" fontSize={18}>My Stats
-            <Tooltip 
-        content="Get your personalized office information with OccuBot."
-        placement="bottom"
-      />
-            </Text>
+            <View flexDirection='row' alignItems='center'>
+              <Text color={textColor} fontWeight="$bold" fontSize={18}>My Stats </Text>
+              <Tooltip
+                content="Get your personalized office information with OccuBot."
+                placement="bottom"
+              />
+            </View>
             <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
           </View>
 
         </TouchableOpacity>
         <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
-          <Text fontSize={18} color='white'>Favourite Days
-          <Tooltip 
-        content="Learn more about your Favourite office days below."
-        placement="bottom"
-      />
-          </Text>
-          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor="#1c1c1c" h={hp('6%')}>
+          <View flexDirection='row' alignItems='center'>
+            <Text fontSize={18} color={textColor}>Favourite Days </Text>
+            <Tooltip
+              content="Learn more about your Favourite office days below."
+              placement="bottom"
+            />
+          </View>
+          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('6%')}>
             <Text color={textColor} fontWeight="$bold" fontSize={18}>1       Monday</Text><Text color={textColor}>Avr: 1756</Text>
           </View>
-          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor="#1c1c1c" h={hp('6%')}>
+          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('6%')}>
             <Text color={textColor} fontWeight="$bold" fontSize={18}>2       Wednesday</Text><Text color={textColor}>Avr: 1469</Text>
           </View>
-          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor="#1c1c1c" h={hp('6%')}>
+          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('6%')}>
             <Text color={textColor} fontWeight="$bold" fontSize={18}>3       Thursday</Text><Text color={textColor}>Avr: 1238</Text>
           </View>
         </View>

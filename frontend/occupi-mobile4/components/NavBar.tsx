@@ -48,7 +48,7 @@ const NavBar = () => {
   const renderTabButton = (tabName, iconName, route, isHomeButton = false) => {
     const isActive = currentTab === tabName;
     const buttonColor = isActive ? accentColour : 'gray';
-    const backgroundColor = isActive ? (isDarkMode ? 'lightgrey' : 'black') : 'transparent';
+    const backgroundColor = isActive ? (isDarkMode ? '#242424' : 'darkgrey') : 'transparent';
 
     return (
       <TouchableOpacity
