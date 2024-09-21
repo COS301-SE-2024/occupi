@@ -24,7 +24,11 @@ def is_special_event(date):
 
 @app.route('/', methods=['GET'])
 def ping():
-    return jsonify({'response': 'Prediction API is up and running'}), 200
+    try:
+        return jsonify({'response': 'Prediction API is up and running'}), 200
+    except Exception as e:
+        logging.error(f"Error in ping endpoint: {str(e)}")
+        return jsonify({"error": "Models unavailable"}), 500
 
 @app.route('/predict', methods=['GET'])
 def predict():
@@ -52,7 +56,7 @@ def predict():
         })
     except Exception as e:
         logging.error(f"Error in predict endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occured"}), 500
 
 @app.route('/predict_week', methods=['GET'])
 def predict_week():
@@ -93,7 +97,7 @@ def predict_week():
         return jsonify(predictions)
     except Exception as e:
         logging.error(f"Error in predict_week endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occured"}), 500
 
 @app.route('/predict_date', methods=['GET'])
 def predict_date():
@@ -128,7 +132,7 @@ def predict_date():
         })
     except Exception as e:
         logging.error(f"Error in predict_date endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error":"An error occured"}), 500
     
 @app.route('/predict_week_from_date', methods=['GET'])
 def predict_week_from_date():
@@ -171,7 +175,68 @@ def predict_week_from_date():
         return jsonify(predictions)
     except Exception as e:
         logging.error(f"Error in predict_week_from_date endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-    
+        return jsonify({"error":"An error occured"}), 500
+
+@app.route('/recommend', methods=['GET'])
+def recommend():
+    try:
+        # Get the current date
+        current_date = datetime.now()
+        
+        # Initialize the list to hold predictions
+        predictions = []
+        
+        # Loop through the next 7 days including today
+        for i in range(7):
+            # Calculate the date for each day
+            date = current_date + timedelta(days=i)
+            
+            # Extract day of the week, month, and day of the month
+            day_of_week = date.weekday()
+            month = date.month
+            day_of_month = date.day
+            weekend = is_weekend(date)
+            special_event = is_special_event(date)
+            
+            # Get prediction
+            predicted_class, predicted_attendance_level = get_prediction(day_of_week, month, day_of_month, weekend, special_event, scaler)
+            
+            # Append the results only if it's not a weekend
+            if not weekend:
+                predictions.append({
+                    'Date': date.strftime('%Y-%m-%d'),
+                    'Day_of_Week': day_of_week,
+                    'Month': month,
+                    'Day_of_month': day_of_month,
+                    'Is_Weekend': weekend,
+                    'Special_Event': special_event,
+                    'Predicted_Class': predicted_class,
+                    'Predicted_Attendance_Level': predicted_attendance_level
+                })
+        
+        # Check if there are any non-weekend days to recommend
+        if not predictions:
+            return jsonify({
+                'Recommendation': 'No suitable weekdays available for recommendation.',
+                'Message': 'All days within the next week are weekends.'
+            }), 200
+
+        # Find the minimum predicted class value
+        min_predicted_class = min(predictions, key=lambda x: x['Predicted_Class'])['Predicted_Class']
+        
+        # Filter the days with the minimum predicted class value
+        recommended_days = [prediction for prediction in predictions if prediction['Predicted_Class'] == min_predicted_class]
+        
+        # Sort the recommendations by date for better readability
+        recommended_days = sorted(recommended_days, key=lambda x: x['Date'])
+        
+        return jsonify({
+            'Recommendation': 'Best day(s) to go to the office based on predicted attendance levels for the next seven days, excluding weekends.',
+            'Recommended_Days': recommended_days
+        })
+    except Exception as e:
+        logging.error(f"Error in recommend endpoint: {str(e)}")
+        return jsonify({"error": "An error occurred"}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=9000)

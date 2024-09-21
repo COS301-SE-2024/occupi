@@ -40,6 +40,7 @@ import GuestLayout from '../../layouts/GuestLayout';
 import { router } from 'expo-router';
 import { styled } from '@gluestack-style/react';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
+import { userResetPassword } from '@/utils/auth';
 
 const StyledImage = styled(Image, {
   props: {
@@ -86,26 +87,22 @@ export default function CreatePassword() {
 
   const toast = useToast();
 
-  const onSubmit = (data: CreatePasswordSchemaType) => {
+  const onSubmit = async (data: CreatePasswordSchemaType) => {
     if (data.password === data.confirmpassword) {
+      const response = await userResetPassword(data.password, data.confirmpassword);
       toast.show({
-        placement: 'bottom right',
+        placement: 'top',
         render: ({ id }) => {
           return (
             <Toast nativeID={id} variant="accent" action="success">
-              <ToastTitle>Password updated successfully</ToastTitle>
+              <ToastTitle>{response === "Successful login!" ? "Password updated successfully!" : response}</ToastTitle>
             </Toast>
           );
         },
       });
-
-      // Navigate screen to appropriate location
-      router.replace('/');
-
-      reset();
     } else {
       toast.show({
-        placement: 'bottom right',
+        placement: 'top',
         render: ({ id }) => {
           return (
             <Toast nativeID={id} variant="accent" action="error">
@@ -288,7 +285,7 @@ export default function CreatePassword() {
                     },
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
-                    <Input   borderRadius="$full" backgroundColor="#f2f2f2">
+                    <Input backgroundColor="#F3F3F3" borderColor="#F3F3F3" borderRadius="$xl" h={hp('6%')}>
                       <InputField
                         fontSize={wp('4%')}
                         placeholder="Password"
@@ -348,7 +345,7 @@ export default function CreatePassword() {
                     },
                   }}
                   render={({ field: { onChange, onBlur, value } }) => (
-                    <Input   borderRadius="$full" backgroundColor="#f2f2f2">
+                    <Input backgroundColor="#F3F3F3" borderColor="#F3F3F3" borderRadius="$xl" h={hp('6%')}>
                       <InputField
                         fontSize={wp('4%')}
                         placeholder="Confirm Password"

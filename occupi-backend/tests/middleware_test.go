@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -27,8 +28,7 @@ import (
 func TestProtectedRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -62,8 +62,7 @@ func TestProtectedRoute(t *testing.T) {
 func TestProtectedRouteAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -98,8 +97,7 @@ func TestProtectedRouteAuthHeader(t *testing.T) {
 func TestProtectedRouteInvalidToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -127,8 +125,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -156,8 +153,7 @@ func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -206,8 +202,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -258,8 +253,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 func TestAdminRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -293,8 +287,7 @@ func TestAdminRoute(t *testing.T) {
 func TestAdminRouteAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -329,8 +322,7 @@ func TestAdminRouteAuthHeader(t *testing.T) {
 func TestUnauthorizedAccess(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -357,8 +349,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 func TestUnauthorizedAdminAccess(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -388,8 +379,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -420,8 +410,7 @@ func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 func TestAccessUnprotectedRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -452,8 +441,7 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -483,8 +471,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -515,8 +502,7 @@ func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -563,8 +549,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -654,8 +639,7 @@ func TestAccessUnprotectedRouteWithSessionForContext(t *testing.T) {
 func TestRateLimit(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -711,8 +695,7 @@ func TestRateLimit(t *testing.T) {
 func TestRateLimitWithMultipleIPs(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -863,8 +846,6 @@ func TestAttachOTPRateLimitMiddleware(t *testing.T) {
 			appsession := &models.AppSession{
 				DB:          nil,
 				Cache:       nil,
-				EmailsSent:  0,
-				CurrentDate: time.Now(),
 				OtpReqCache: configs.CreateOTPRateLimitCache(),
 			}
 
@@ -919,6 +900,7 @@ func TestTimezoneMiddleware(t *testing.T) {
 		timezone   string
 		statusCode int
 	}{
+		{"X-Timezone", "", 200},
 		{"X-Timezone", "America/New_York", 200},
 		{"X-Timezone", "Asia/Kolkata", 200},
 		{"X-Timezone", "Invalid/Timezone", 400},
@@ -1029,4 +1011,176 @@ func TestRealIPMiddleware_RemoteAddr(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	assert.JSONEq(t, `{"client_ip":"203.0.113.198"}`, w.Body.String())
+}
+
+func TestLimitRequestBodySize(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("Request body within limit with known Content-Length", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                     // 1 KB
+		body := bytes.NewReader(make([]byte, 512)) // 512 bytes
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = 512
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, `{"message":"ok"}`, w.Body.String())
+	})
+
+	t.Run("Request body exceeds limit with known Content-Length", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                      // 1 KB
+		body := bytes.NewReader(make([]byte, 2048)) // 2 KB
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = 2048
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+		assert.Contains(t, w.Body.String(), "{\"error\":{\"code\":\"REQUEST_ENTITY_TOO_LARGE\",\"details\":null,\"message\":\"Request body too large by 1024 bytes, max 1024 bytes\"},\"message\":\"Request Entity Too Large\",\"status\":413}")
+	})
+
+	t.Run("Request body within limit with unknown Content-Length", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                     // 1 KB
+		body := bytes.NewReader(make([]byte, 512)) // 512 bytes
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = -1
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, `{"message":"ok"}`, w.Body.String())
+	})
+
+	t.Run("Multipart form within limit", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024 * 1024) // 1 MB
+		body := strings.NewReader("--boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"test.txt\"\r\nContent-Type: text/plain\r\n\r\nHello, World!\r\n--boundary--\r\n")
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "multipart/form-data; boundary=boundary")
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, `{"message":"ok"}`, w.Body.String())
+	})
+
+	t.Run("Multipart form exceeds limit", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                      // 1 KB
+		body := bytes.NewBuffer(make([]byte, 2048)) // 2 KB
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "multipart/form-data; boundary=boundary")
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+		assert.Contains(t, w.Body.String(), "{\"error\":{\"code\":\"REQUEST_ENTITY_TOO_LARGE\",\"details\":null,\"message\":\"Request body too large by 1024 bytes, max 1024 bytes\"},\"message\":\"Request Entity Too Large\",\"status\":413}")
+	})
+}
+
+func TestBlockWeekendsAndAfterHours(t *testing.T) {
+	// Helper function to create a gin context with a specific time
+	createTestContext := func() (*gin.Context, *httptest.ResponseRecorder) {
+		gin.SetMode(gin.TestMode)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+		return ctx, w
+	}
+
+	tests := []struct {
+		name         string
+		mockTime     time.Time
+		expectedCode int
+	}{
+		{
+			name:         "Access on a Saturday",
+			mockTime:     time.Date(2024, 9, 7, 10, 0, 0, 0, time.UTC), // Saturday at 10:00 AM
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "Access on a Sunday",
+			mockTime:     time.Date(2024, 9, 8, 10, 0, 0, 0, time.UTC), // Sunday at 10:00 AM
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "Access before working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 6, 30, 0, 0, time.UTC), // Monday at 6:30 AM
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Access after working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 18, 0, 0, 0, time.UTC), // Monday at 6:00 PM
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Access during working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 10, 0, 0, 0, time.UTC), // Monday at 10:00 AM
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, w := createTestContext()
+
+			// Call the middleware with the test context and mock time
+			handler := middleware.BlockWeekendsAndAfterHours(tt.mockTime)
+			handler(ctx)
+
+			// Assert the expected status code
+			assert.Equal(t, tt.expectedCode, w.Code)
+		})
+	}
 }

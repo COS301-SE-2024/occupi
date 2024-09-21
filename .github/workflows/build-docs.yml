@@ -1,4 +1,4 @@
-name: Build Python App 🏗️
+name: Build Documentation 📋🏗️
 
 on:
     pull_request:

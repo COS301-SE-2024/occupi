@@ -56,6 +56,18 @@ func (app *Application) SetupLogger() *Application {
 	return app
 }
 
+func (app *Application) SetUpTimeZone() *Application {
+	timeZone := configs.GetTimeZone()
+
+	if err := os.Setenv("TZ", timeZone); err != nil {
+		logrus.Fatal("Failed to set timezone: ", err)
+	}
+
+	time.Local, _ = time.LoadLocation(timeZone)
+
+	return app
+}
+
 func (app *Application) CreateAppSession() *Application {
 	app.appsession = models.New(configs.ConnectToDatabase(constants.AdminDBAccessOption), configs.CreateCache())
 	return app

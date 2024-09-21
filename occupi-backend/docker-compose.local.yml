@@ -22,6 +22,19 @@ services:
         soft: 262144
         hard: 262144
 
+  go-redis-dev-local-local:
+    image: redis:latest
+    container_name: go-redis-dev-local-local
+    ports:
+      - "11001:6379"
+    restart: on-failure:5
+    environment:
+      REDIS_USERNAME: 
+      REDIS_PASSWORD: 
+    volumes:
+      - redis-dev-local-local:/data
+
 volumes:
   rabbitmq-dev-local-local:
   centrifugo-dev-local-local:
+  redis-dev-local-local:

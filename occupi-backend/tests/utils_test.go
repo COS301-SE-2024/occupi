@@ -2,18 +2,11 @@ package tests
 
 import (
 	// "encoding/json"
-	"bytes"
+
 	"fmt"
-	"image"
-	"image/color"
-	"image/jpeg"
-	"image/png"
-	"mime/multipart"
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -27,7 +20,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -1717,6 +1709,73 @@ func TestGetLimitPageSkip(t *testing.T) {
 	}
 }
 
+func TestComputeLimitPageSkip(t *testing.T) {
+	tests := []struct {
+		name      string
+		Limit     int64
+		Page      int64
+		wantLimit int64
+		wantPage  int64
+		wantSkip  int64
+	}{
+		{
+			name:      "Valid limit and page",
+			Limit:     10,
+			Page:      2,
+			wantLimit: 10,
+			wantPage:  2,
+			wantSkip:  10,
+		},
+		{
+			name:      "Valid limit again",
+			Limit:     100,
+			Page:      1,
+			wantLimit: 100,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Negative limit",
+			Limit:     -1,
+			Page:      1,
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Zero page",
+			Limit:     10,
+			Page:      0,
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Negative page",
+			Limit:     10,
+			Page:      -1,
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotLimit, gotPage, gotSkip := utils.ComputeLimitPageSkip(tt.Limit, tt.Page)
+			if gotLimit != tt.wantLimit {
+				t.Errorf("ComputeLimitPageSkip() gotLimit = %v, want %v", gotLimit, tt.wantLimit)
+			}
+			if gotPage != tt.wantPage {
+				t.Errorf("ComputeLimitPageSkip() gotPage = %v, want %v", gotPage, tt.wantPage)
+			}
+			if gotSkip != tt.wantSkip {
+				t.Errorf("ComputeLimitPageSkip() gotSkip = %v, want %v", gotSkip, tt.wantSkip)
+			}
+		})
+	}
+}
+
 func TestFormatIPAddressConfirmationEmailBody(t *testing.T) {
 	tests := []struct {
 		otp      string
@@ -2715,131 +2774,219 @@ func TestRemoveNumbersFromExtension(t *testing.T) {
 	}
 }
 
-// fileWrapper wraps *os.File to satisfy multipart.File interface
-type fileWrapper struct {
-	*os.File
+func TestConvertTokensToStringArray(t *testing.T) {
+	t.Run("Successful conversion", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{
+			{"token": "abc"},
+			{"token": "def"},
+			{"token": "ghi"},
+		}
+		expected := []string{"abc", "def", "ghi"}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Missing key in one of the tokens", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{
+			{"token": "abc"},
+			{"missing_key": "def"},
+			{"token": "ghi"},
+		}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "key token does not exist")
+	})
+
+	t.Run("Non-string value for a key", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{
+			{"token": "abc"},
+			{"token": 123},
+			{"token": "ghi"},
+		}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "value for key token is not a string")
+	})
+
+	t.Run("Empty token array", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{}
+		expected := []string{}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Key exists but value is empty string", func(t *testing.T) {
+		// Arrange
+		tokens := []primitive.M{
+			{"token": ""},
+			{"token": "abc"},
+		}
+		expected := []string{"", "abc"}
+
+		// Act
+		result, err := utils.ConvertTokensToStringArray(tokens, "token")
+
+		// Assert
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
 }
 
-func (fw *fileWrapper) Open() (multipart.File, error) {
-	return fw, nil
-}
-
-func TestConvertImageToBytes(t *testing.T) {
-	// Helper function to create a test image file
-	createTestImageFile := func(format string) (*os.File, error) {
-		// Create a simple test image
-		img := image.NewRGBA(image.Rect(0, 0, 100, 100))
-		// Fill with a color
-		for y := 0; y < 100; y++ {
-			for x := 0; x < 100; x++ {
-				img.Set(x, y, color.RGBA{255, 0, 0, 255}) // Red color
-			}
+func TestGenerateUUID(t *testing.T) {
+	var emptyUUIDGenerated bool
+	var validUUIDGenerated bool
+	// Generate 1000 UUIDs
+	for i := 0; i < 1000; i++ {
+		uuid := utils.GenerateUUID()
+		if uuid == "" {
+			emptyUUIDGenerated = true
+		} else {
+			validUUIDGenerated = true
 		}
-
-		// Create a temporary file
-		tmpfile, err := os.CreateTemp("", "test.*."+format)
-		if err != nil {
-			return nil, err
-		}
-
-		// Encode and save the image
-		switch format {
-		case "jpg", "jpeg":
-			err = jpeg.Encode(tmpfile, img, nil)
-		case "png":
-			err = png.Encode(tmpfile, img)
-		}
-		if err != nil {
-			tmpfile.Close()
-			os.Remove(tmpfile.Name())
-			return nil, err
-		}
-
-		// Seek to the beginning of the file
-		_, err = tmpfile.Seek(0, 0)
-		if err != nil {
-			tmpfile.Close()
-			os.Remove(tmpfile.Name())
-			return nil, err
-		}
-
-		return tmpfile, nil
 	}
 
+	assert.False(t, emptyUUIDGenerated)
+	assert.True(t, validUUIDGenerated)
+}
+
+func TestRemoveImageExtension(t *testing.T) {
 	tests := []struct {
-		name      string
-		format    string
-		width     uint
-		thumbnail bool
-		wantErr   bool
+		name     string
+		input    string
+		expected string
 	}{
-		{"JPG normal", "jpg", 50, false, false},
-		{"PNG normal", "png", 50, false, false},
-		{"JPEG normal", "jpeg", 50, false, false},
-		{"JPG thumbnail", "jpg", 0, true, false},
-		{"PNG thumbnail", "png", 0, true, false},
-		{"JEPG thumbnail", "jpeg", 0, true, false},
-		{"Unsupported format", "gif", 50, false, true},
+		{"Remove .jpg extension", "image1.jpg", "image1"},
+		{"Remove .jpeg extension", "image2.jpeg", "image2"},
+		{"Remove .png extension", "image3.png", "image3"},
+		{"Case-insensitive .JPG", "image4.JPG", "image4.JPG"},
+		{"Case-insensitive .JPEG", "image5.JPEG", "image5.JPEG"},
+		{"Case-insensitive .PNG", "image6.PNG", "image6.PNG"},
+		{"No extension", "image7", "image7"},
+		{"Different extension", "image8.bmp", "image8.bmp"},
+		{"Dot in name but no extension", "image9.name", "image9.name"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var file *os.File
-			var err error
-
-			if !tt.wantErr {
-				file, err = createTestImageFile(tt.format)
-				require.NoError(t, err)
-				defer func() {
-					file.Close()
-					os.Remove(file.Name())
-				}()
-			} else {
-				// For unsupported format, create an empty file
-				file, err = os.CreateTemp("", "test.*."+tt.format)
-				require.NoError(t, err)
-				defer func() {
-					file.Close()
-					os.Remove(file.Name())
-				}()
-			}
-
-			// Create a multipart.FileHeader
-			fileHeader := &multipart.FileHeader{
-				Filename: filepath.Base(file.Name()),
-				Size:     100 * 100 * 4, // Approximate size for a 100x100 RGBA image
-			}
-
-			// Create a wrapper that satisfies multipart.File interface
-			fileWrapper := &fileWrapper{file}
-
-			// Mock the Open method
-			openFunc := func() (multipart.File, error) {
-				return fileWrapper, nil
-			}
-
-			got, err := utils.ConvertImageToBytes(fileHeader, tt.width, tt.thumbnail, openFunc)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			assert.NoError(t, err)
-			assert.NotNil(t, got)
-			assert.Greater(t, len(got), 0)
-
-			// Decode the result to check dimensions
-			resultImg, _, err := image.Decode(bytes.NewReader(got))
-			assert.NoError(t, err)
-
-			bounds := resultImg.Bounds()
-			if tt.thumbnail {
-				assert.LessOrEqual(t, bounds.Dx(), 200)
-				assert.LessOrEqual(t, bounds.Dy(), 200)
-			} else {
-				assert.Equal(t, int(tt.width), bounds.Dx())
+			result := utils.RemoveImageExtension(tt.input)
+			if result != tt.expected {
+				t.Errorf("RemoveImageExtension(%s) = %s; expected %s", tt.input, result, tt.expected)
 			}
 		})
+	}
+}
+
+func TestContains(t *testing.T) {
+	tests := []struct {
+		name     string
+		slice    []string
+		element  string
+		expected bool
+	}{
+		{
+			name:     "element present in slice",
+			slice:    []string{"apple", "banana", "cherry"},
+			element:  "banana",
+			expected: true,
+		},
+		{
+			name:     "element not present in slice",
+			slice:    []string{"apple", "banana", "cherry"},
+			element:  "orange",
+			expected: false,
+		},
+		{
+			name:     "empty slice",
+			slice:    []string{},
+			element:  "banana",
+			expected: false,
+		},
+		{
+			name:     "element present as the only element",
+			slice:    []string{"apple"},
+			element:  "apple",
+			expected: true,
+		},
+		{
+			name:     "element present multiple times",
+			slice:    []string{"apple", "banana", "apple", "cherry"},
+			element:  "apple",
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.Contains(tt.slice, tt.element)
+			if result != tt.expected {
+				t.Errorf("Contains(%v, %v) = %v; want %v", tt.slice, tt.element, result, tt.expected)
+			}
+		})
+	}
+}
+
+// TestRandomInt tests the RandomInt function with various cases
+func TestRandomInt(t *testing.T) {
+	tests := []struct {
+		name string
+		min  int
+		max  int
+	}{
+		{name: "min less than max", min: 1, max: 10},
+		{name: "min greater than max (swapping)", min: 10, max: 1},
+		{name: "min equal to max", min: 5, max: 5},  // Edge case where min == max
+		{name: "negative range", min: -10, max: -1}, // Negative numbers
+		{name: "mixed negative and positive", min: -5, max: 5},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			randomNum := utils.RandomInt(tt.min, tt.max)
+
+			// Assert that the random number is within the specified range [min, max]
+			min := tt.min
+			max := tt.max
+
+			// Since min might be greater than max, ensure min and max are swapped for range checking
+			if min > max {
+				min, max = max, min
+			}
+
+			if randomNum < min || randomNum > max {
+				t.Errorf("Random number %d not in range [%d, %d]", randomNum, min, max)
+			}
+		})
+	}
+}
+
+func TestRandomIntErrorHandling(t *testing.T) {
+	// Ensure it doesn't return 0 when min == max
+	result := utils.RandomInt(10, 10)
+	if result != 10 {
+		t.Errorf("Expected 10, got %d", result)
 	}
 }

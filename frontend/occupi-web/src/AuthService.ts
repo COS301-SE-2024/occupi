@@ -1,13 +1,8 @@
 import axios from "axios";
-import { wrapper } from "axios-cookiejar-support";
-import { CookieJar } from "tough-cookie";
-
-const jar = new CookieJar();
-const client = wrapper(axios.create({ jar }));
 
 const API_URL = "/auth"; // This will be proxied to https://dev.occupi.tech
 const API_USER_URL = "/api"; // Adjust this if needed
-
+const RTC_URL = "/rtc"; // Adjust this if needed
 interface PublicKeyCredential {
   id: string;
   rawId: ArrayBuffer;
@@ -188,7 +183,7 @@ const AuthService = {
   logout: async () => {
     try {
       // Perform the logout request
-      const response = await client.post(`${API_URL}/logout`, {
+      const response = await axios.post(`${API_URL}/logout`, {
         withCredentials: true,
       });
       console.log(response.data);
@@ -282,6 +277,72 @@ const AuthService = {
         throw error.response.data;
       }
       throw new Error("An unexpected error occurred during OTP verification");
+    }
+  },
+
+  sendResetEmail: async (email: string) => {
+    try {
+      const response = await axios.post(`${API_URL}/forgot-password`, {
+        email: email,
+      });
+      if (response.data.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(response.data.message || "Failed to send reset email");
+      }
+    } catch (error) {
+      console.error("Error in sendResetEmail:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred while sending reset email");
+    }
+  },
+
+  resetPassword: async (
+    email: string,
+    otp: string,
+    newPassword: string,
+    newPasswordConfirm: string
+  ) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/reset-password-admin-login`,
+        {
+          email: email,
+          otp: otp,
+          newPassword: newPassword,
+          newPasswordConfirm: newPasswordConfirm,
+        }
+      );
+      if (response.data.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(response.data.message || "Failed to send reset email");
+      }
+    } catch (error) {
+      console.error("Error in sendResetEmail:", error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred while sending reset email");
+    }
+  },
+  getToken: async () => {
+    try {
+      console.log("Getting RTC token");
+      const response = await axios.get(`${RTC_URL}/get-token`, {
+        headers: {
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      });
+      return response.data.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
     }
   },
 };
