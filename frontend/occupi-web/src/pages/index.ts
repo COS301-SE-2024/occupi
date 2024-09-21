@@ -39,7 +39,7 @@ export {
   AboutPage,
   SecurityPage,
   ForgotPassword,
-  ResetPassword
+  ResetPassword,
   OccupancyRecommendationEngine,
   BuildingTower,
   BookingLevelCalendar,
