@@ -21,29 +21,50 @@ import {
   ProfileView,
 } from "@components/index";
 import { Layout } from "@layouts/index";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { NotificationsSettings } from "@pages/notificationsSettings/NotificationsSettings";
+import { FaroRoutes } from "@grafana/faro-react";
+import ProtectedRoutes from "@components/protectedRoutes/ProtectedRoutes";
+import { Navigate } from "react-router";
 
 function App() {
   // Initialize the theme state with system preference
-  const [theme, ] = useState(() => {
-    const savedTheme = localStorage.getItem('theme') || 'system';
+  const [theme] = useState(() => {
+    const savedTheme = localStorage.getItem("theme") || "system";
     return savedTheme;
   });
+  const [isAuthenticated] = useState(() => {
+    // Retrieve user storage from localStorage
+    const userStorage = localStorage.getItem("user-storage");
 
+    // Parse the userStorage if it exists
+    if (userStorage) {
+      const parsedUserStorage = JSON.parse(userStorage);
+      // Check if the email in userDetails is null or empty
+      return parsedUserStorage?.state?.userDetails?.email ? true : false;
+    }
+
+    return false;
+  });
   useEffect(() => {
-    const applyTheme = (theme: string ) => {
-      if (theme === 'system') {
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+    const applyTheme = (theme: string) => {
+      if (theme === "system") {
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+          .matches
+          ? "dark"
+          : "light";
+        document.documentElement.classList.toggle(
+          "dark",
+          systemTheme === "dark"
+        );
       } else {
-        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.documentElement.classList.toggle("dark", theme === "dark");
       }
     };
 
     applyTheme(theme);
-    localStorage.setItem('theme', theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
   return (
     <Router>
@@ -130,7 +151,7 @@ function App() {
           }></Route>
       </FaroRoutes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;
