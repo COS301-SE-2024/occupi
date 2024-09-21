@@ -74,8 +74,6 @@ const SignInForm = () => {
 
   const toast = useToast();
 
-
-
   useEffect(() => {
     checkBiometricAvailability();
    

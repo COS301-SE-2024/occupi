@@ -37,6 +37,10 @@ export async function storeCheckInValue(value: boolean) {
   await SecureStore.setItemAsync('CheckedIn', value.toString());
 }
 
+export async function storeOtp(value: string) {
+  await SecureStore.setItemAsync('Otp',value);
+}
+
 export async function getUserData() {
   let result: string | null = await SecureStore.getItemAsync('UserData');
   return result ? JSON.parse(result) : null;

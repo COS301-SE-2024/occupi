@@ -1,0 +1,159 @@
+# AI endpoint Usage
+
+This page provides a detailed explanation of how to use the Occupi AI models.
+The Occupi AI models endpoint is a RESTful API that allows you to interact with the Occupi models programmatically.
+The Occupi AI models endpoint provides endpoints for receiving Occupancy predictions.
+
+
+- [AI endpoint Usage](#auth-usage)
+- [Table of Contents](#table-of-contents)
+  - [Base URL](#base-url)
+  - [AI](#ai)
+    - [Predict](#predict)
+    - [Predict Week](#predict-week)
+    - [Predict Date](#predict-date)
+    - [Predict Week from Date](#predict-week-from-date)
+
+## AI
+
+The AI model endpoints are used to make predictions on the occupancy of the office space.
+
+### Base URL
+
+The base URL for the AI model endpoint is:
+
+- **URL**
+
+  `/ai.occupi.tech/`
+
+- **Method**
+
+  `GET`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{  "response": "Prediction API is up and running" }`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "models unavailable" }`
+
+**_Example json to send:_**
+
+```json copy
+{}
+```
+
+### Predict
+
+The predict endpoint is used to make a prediction on the occupancy for the office space for the current date.
+
+- **URL**
+
+  `/predict`
+
+- **Method**
+
+  `GET`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{"Day_of_Week": #,"Day_of_month": #,"Is_Weekend": false,"Month": #,"Predicted_Attendance_Level": "###-###","Predicted_Class": #,"Special_Event": #}`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "message": "An error occured" }`
+
+**_Example json to send:_**
+
+```json copy
+{}
+```
+
+### Predict Week
+
+The predict week endpoint is used to make a prediction on the occupancy for the office space for the current week.
+
+- **URL**
+
+  `/predict_week`
+
+- **Method**
+    
+  `GET`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{"Day_of_Week": #,"Day_of_month": #,"Is_Weekend": false,"Month": #,"Predicted_Attendance_Level": "###-###","Predicted_Class": #,"Special_Event": #},{"Day_of_Week": #,"Day_of_month": #,"Is_Weekend": false,"Month": #,"Predicted_Attendance_Level": "###-###","Predicted_Class": #,"Special_Event": #},...`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "message": "An error occured" }`
+
+**_Example json to send:_**
+
+```json copy
+{}
+```
+
+### Predict Date
+
+The predict date endpoint is used to make a prediction on the occupancy for the office space for a specific date.
+
+- **URL**
+
+  `/predict_date?date=yyyy-mm-dd`
+
+- **Method**
+    
+  `GET`
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** `{"Day_of_Week": #,"Day_of_month": #,"Is_Weekend": false,"Month": #,"Predicted_Attendance_Level": "###-###","Predicted_Class": #,"Special_Event": #}`
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** `{ "message": "An error occured" }`
+
+**_Example json to send:_**
+
+```json copy
+{}
+```
+
+### Predict Week from Date
+
+The predict week from date endpoint is used to make a prediction on the occupancy for the office space for the week starting from a specific date.
+
+- **URL**
+
+  `/predict_week_from_date?date=yyyy-mm-dd`
+
+- **Method**
+     
+      `GET`
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** `{"Day_of_Week": #,"Day_of_month": #,"Is_Weekend": false,"Month": #,"Predicted_Attendance_Level": "###-###","Predicted_Class": #,"Special_Event": #},{"Day_of_Week": #,"Day_of_month": #,"Is_Weekend": false,"Month": #,"Predicted_Attendance_Level": "###-###","Predicted_Class": #,"Special_Event": #},...`
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** `{ "message": "An error occured" }`
+
+**_Example json to send:_**
+
+```json copy
+{}
+```
+
+
+    

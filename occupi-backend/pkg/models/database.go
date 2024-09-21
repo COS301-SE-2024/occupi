@@ -1,6 +1,7 @@
 package models
 
 import (
+	"os"
 	"time"
 
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -10,40 +11,25 @@ import (
 
 // structure of user
 type User struct {
-	ID                   string        `json:"_id" bson:"_id,omitempty"`
-	OccupiID             string        `json:"occupiId" bson:"occupiId"`
-	Password             string        `json:"password" bson:"password"`
-	Email                string        `json:"email" bson:"email"`
-	Role                 string        `json:"role" bson:"role"`
-	OnSite               bool          `json:"onSite" bson:"onSite"`
-	IsVerified           bool          `json:"isVerified" bson:"isVerified"`
-	NextVerificationDate time.Time     `json:"nextVerificationDate" bson:"nextVerificationDate"`
-	TwoFAEnabled         bool          `json:"twoFAEnabled" bson:"twoFAEnabled"`
-	KnownLocations       []Location    `json:"knownLocations" bson:"knownLocations"`
-	Details              Details       `json:"details" bson:"details, omitempty"`
-	Notifications        Notifications `json:"notifications" bson:"notifications, omitempty"`
-	Security             Security      `json:"security" bson:"security, omitempty"`
-	Status               string        `json:"status" bson:"status, omitempty"`
-	Position             string        `json:"position" bson:"position, omitempty"`
-	DepartmentNo         string        `json:"departmentNo" bson:"departmentNo, omitempty"`
-	ExpoPushToken        string        `json:"expoPushToken" bson:"expoPushToken"`
-}
-
-type UserDetails struct {
-	ID                   string         `json:"_id" bson:"_id,omitempty"`
-	OccupiID             string         `json:"occupiId" bson:"occupiId"`
-	Password             string         `json:"password" bson:"password"`
-	Email                string         `json:"email" bson:"email"`
-	Role                 string         `json:"role" bson:"role"`
-	OnSite               bool           `json:"onSite" bson:"onSite"`
-	IsVerified           bool           `json:"isVerified" bson:"isVerified"`
-	NextVerificationDate time.Time      `json:"nextVerificationDate" bson:"nextVerificationDate"`
-	Details              *Details       `json:"details" bson:"details"`
-	Notifications        *Notifications `json:"notifications" bson:"notifications"`
-	Security             *Security      `json:"security" bson:"security"`
-	Status               string         `json:"status" bson:"status"`
-	Position             string         `json:"position" bson:"position"`
-	DepartmentNo         string         `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ID                      string        `json:"_id" bson:"_id,omitempty"`
+	OccupiID                string        `json:"occupiId" bson:"occupiId"`
+	Password                string        `json:"password" bson:"password"`
+	Email                   string        `json:"email" bson:"email"`
+	Role                    string        `json:"role" bson:"role"`
+	OnSite                  bool          `json:"onSite" bson:"onSite"`
+	IsVerified              bool          `json:"isVerified" bson:"isVerified"`
+	NextVerificationDate    time.Time     `json:"nextVerificationDate" bson:"nextVerificationDate"`
+	TwoFAEnabled            bool          `json:"twoFAEnabled" bson:"twoFAEnabled"`
+	KnownLocations          []Location    `json:"knownLocations" bson:"knownLocations"`
+	Details                 Details       `json:"details" bson:"details, omitempty"`
+	Notifications           Notifications `json:"notifications" bson:"notifications, omitempty"`
+	Security                Security      `json:"security" bson:"security, omitempty"`
+	Status                  string        `json:"status" bson:"status, omitempty"`
+	Position                string        `json:"position" bson:"position, omitempty"`
+	DepartmentNo            string        `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ExpoPushToken           string        `json:"expoPushToken" bson:"expoPushToken"`
+	ResetPassword           bool          `json:"resetPassword" bson:"resetPassword"`
+	BlockAnonymousIPAddress bool          `json:"blockAnonymousIPAddress" bson:"blockAnonymousIPAddress"`
 }
 
 type FilterUsers struct {
@@ -53,7 +39,7 @@ type FilterUsers struct {
 }
 
 type Details struct {
-	ImageID   string    `json:"imageid" bson:"imageid"` // image id in image collection
+	HasImage  bool      `json:"hasImage" bson:"hasImage"`
 	ContactNo string    `json:"contactNo" bson:"contactNo"`
 	Name      string    `json:"name" bson:"name"`
 	DOB       time.Time `json:"dob" bson:"dob"`
@@ -74,9 +60,10 @@ type Security struct {
 }
 
 type Location struct {
-	City    string `json:"city" bson:"city"`
-	Region  string `json:"region" bson:"region"`
-	Country string `json:"country" bson:"country"`
+	City     string `json:"city" bson:"city"`
+	Region   string `json:"region" bson:"region"`
+	Country  string `json:"country" bson:"country"`
+	Location string `json:"location" bson:"location"`
 }
 
 // structure of booking
@@ -161,11 +148,31 @@ type FilterStruct struct {
 	Sort       primitive.M
 }
 
-type Image struct {
-	ID           string `json:"_id" bson:"_id,omitempty"`
-	Thumbnail    []byte `json:"image_thumbnail_res" bson:"image_thumbnail_res"`
-	ImageLowRes  []byte `json:"image_low_res" bson:"image_low_res"`
-	ImageMidRes  []byte `json:"image_mid_res" bson:"image_mid_res"`
-	ImageHighRes []byte `json:"image_high_res" bson:"image_high_res"`
-	FileName     string `json:"fileName" bson:"fileName"`
+type File struct {
+	FileName string   `json:"fileName" bson:"fileName"`
+	File     *os.File `json:"file" bson:"file"`
+}
+
+type OfficeHours struct {
+	Email   string    `json:"email" bson:"email"`
+	Entered time.Time `json:"entered" bson:"entered"`
+	Exited  time.Time `json:"exited" bson:"exited"`
+}
+
+type AnalyticsFilterStruct struct {
+	Filter primitive.M
+	Limit  int64
+	Skip   int64
+}
+
+type Attendance struct {
+	Date           time.Time `json:"Date" bson:"Date"`
+	IsWeekend      bool      `json:"Is_Weekend" bson:"Is_Weekend"`
+	WeekOfTheYear  int       `json:"Week_of_the_year" bson:"Week_of_the_year"`
+	DayOfWeek      string    `json:"Day_of_week" bson:"Day_of_week"`
+	DayOfMonth     int       `json:"Day_of_month" bson:"Day_of_month"`
+	Month          int       `json:"Month" bson:"Month"`
+	SpecialEvent   bool      `json:"Special_Event" bson:"Special_Event"`
+	NumberAttended int       `json:"Number_Attended" bson:"Number_Attended"`
+	AttendeesEmail []string  `json:"Attendees_Email" bson:"Attendees_Email"`
 }

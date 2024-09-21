@@ -43,9 +43,9 @@ const OtpComponent = (props: OtpComponentProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="w-full flex flex-col items-center">
       {err !== "" && <h5 className="text-text_col_red_salmon font-normal text-base mt-3 mb-1">{err}</h5>}
-      <div className="flex space-x-2 md:space-x-4">
+      <div className="w-full flex justify-between">
         {otp.map((data, index) => (
           <input
             key={index}

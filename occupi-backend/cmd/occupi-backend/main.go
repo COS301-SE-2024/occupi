@@ -40,6 +40,7 @@ func main() {
 		SetEnvironment(*env).
 		InitializeConfig().
 		SetupLogger().
+		SetUpTimeZone().
 		CreateAppSession().
 		StartConsumer().
 		SetupRouter().
@@ -50,7 +51,7 @@ func main() {
 		AttachTimeZoneMiddleware().
 		AttachRealIPMiddleware().
 		AttachMoniteringMiddleware().
-		//AttachObservabilityMiddleware().
+		// AttachObservabilityMiddleware().
 		RegisterRoutes().
 		SetEnvVariables()
 

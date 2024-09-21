@@ -22,6 +22,8 @@ services:
           condition: service_healthy
         centrifugo-dev:
           condition: service_started
+        go-redis-dev:
+          condition: service_healthy
       
   rabbitmq-dev:
     image: rabbitmq:latest
@@ -56,9 +58,29 @@ services:
         soft: 262144
         hard: 262144
 
+  go-redis-dev:
+    image: redis:latest
+    container_name: go-redis-dev
+    ports:
+      - "11001:6379"
+    restart: on-failure:5
+    environment:
+      REDIS_USERNAME: $REDIS_USERNAME
+      REDIS_PASSWORD: $REDIS_PASSWORD
+    volumes:
+      - redis-dev:/data
+    networks:
+      - webnet
+    healthcheck:
+      test: redis-cli ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
 volumes:
   rabbitmq-dev:
   centrifugo-dev:
+  redis-dev:
 
 networks:
   webnet:

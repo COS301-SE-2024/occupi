@@ -1,0 +1,985 @@
+# Analytics usage
+
+The analytics endpoint is used to get the analytics of the office space. You can get analytics
+for a specific user or for all users. By all users we mean that you cna analyze the data for
+all the users in the office space.
+
+# Table of Contents
+
+- [Analytics Usage](#analytics-usage)
+- [Table of Contents](#table-of-contents)
+    - [Base URL](#base-url)
+    - [Analytics](#analytics)
+        - [User hours](#user-hours)
+        - [User average hours](#user-average-hours)
+        - [User work ratio](#user-work-ratio)
+        - [User peak office hours](#user-peak-office-hours)
+        - [User arrival departure average](#user-arival-departure-average)
+        - [User in office rate](#user-in-office-rate)
+        - [Most active employee](#most-active-employee)
+        - [Least active employee](#least-active-employee)
+        - [Workers hours](#workers-hours)
+        - [Workers average hours](#workers-average-hours)
+        - [Workers work ratio](#workers-work-ratio)
+        - [Workers peak office hours](#workers-peak-office-hours)
+        - [Workers arrival departure average](#workers-arival-departure-average)
+        - [Workers in office rate](#workers-in-office-rate)
+        - [Top Bookings](#top-bookings)
+        - [Bookings historical](#bookings-historical)
+        - [Bookings current](#bookings-current)
+
+## Base URL
+
+The base URL for the Occupi API is `https://occupi.tech`, `https://dev.occupi.tech` or `http://localhost:8080` if you are in develop mode.
+
+## Analytics
+
+The analytics endpoint is used to get the analytics of the office space.
+
+### User hours
+
+The user hours endpoint is used to get the hours of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-hours`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-hours?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### User average hours
+
+The user average hours endpoint is used to get the average hours of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-average-hours`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-average-hours?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### User work ratio
+
+The user work ratio endpoint is used to get the work ratio of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-work-ratio`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-work-ratio?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### User peak office hours
+
+The user peak office hours endpoint is used to get the peak office hours of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-peak-office-hours`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-peak-office-hours?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### User arrival departure average
+
+The user arrival departure average endpoint is used to get the arrival departure average of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-arrival-departure-average`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-arrival-departure-average?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### User in office rate
+
+The user in office rate endpoint is used to get the in office rate of a specific user in the office space.
+
+- **URL**
+
+  `/analytics/user-in-office-rate`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "email": "abcd@gmail", // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/user-in-office-rate?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Most active employee
+
+The most active employee endpoint is used to get the most active employee in the office space.
+
+- **URL**
+
+  `/analytics/most-active-employee`
+
+  
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/most-active-employee?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "email": "abcd@gmail",
+        "totalHours": 1,
+        "averageHours": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Least active employee
+
+The least active employee endpoint is used to get the least active employee in the office space.
+
+- **URL**
+
+  `/analytics/least-active-employee`
+
+  
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/least-active-employee?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "email": "abcd@gmail",
+        "totalHours": 1,
+        "averageHours": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Workers hours
+
+The workers hours endpoint is used to get the hours of all the workers in the office space.
+
+- **URL**
+
+  `/analytics/hours`
+
+  
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/hours?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Workers average hours
+
+The workers average hours endpoint is used to get the average hours of all the workers in the office space.
+
+- **URL**
+
+  `/analytics/average-hours`
+
+  
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/average-hours?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Workers work ratio
+
+The workers work ratio endpoint is used to get the work ratio of all the workers in the office space.
+
+- **URL**
+
+  `/analytics/work-ratio`
+
+  
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/work-ratio?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Workers peak office hours
+
+The workers peak office hours endpoint is used to get the peak office hours of all the workers in the office space.
+
+- **URL**
+
+  `/analytics/peak-office-hours`
+  
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/peak-office-hours?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Workers arrival departure average
+
+The workers arrival departure average endpoint is used to get the arrival departure average of all the workers in the office space.
+
+- **URL**
+
+  `/analytics/arrival-departure-average`
+  
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/arrival-departure-average?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Workers in office rate
+
+The workers in office rate endpoint is used to get the in office rate of all the workers in the office space.
+
+- **URL**
+
+  `/analytics/in-office-rate`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/in-office-rate?email=abcd@gmail&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched user analytics! Note that all analytics are measured in hours.",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+
+    - **Code:** 500
+    - **Content:** 
+    ```json
+    {
+        "error": "Failed to fetch user analytics!",
+        "status": 500,
+    }
+    ```
+
+### Top Bookings
+
+The top bookings endpoint is used to get the top 3 bookings in the office space.
+
+- **URL**
+
+  `/analytics/top-bookings`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "creator": "abcd@gmail", // this is optional
+        "attendees": ["abcd@gmail", "efgh@gmail.com"], // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50 bookings to select
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/top-bookings?creator=abcd@gmail&attendees=abcd@gmail,egfh@gmail.com&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched top bookings!",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+    
+        - **Code:** 500
+        - **Content:** 
+        ```json
+        {
+            "error": "Failed to fetch top bookings!",
+            "status": 500,
+        }
+        ```
+
+### Bookings historical
+
+The bookings historical endpoint is used to get the historical bookings in the office space.
+
+- **URL**
+
+  `/analytics/bookings-historical`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "creator": "abcd@gmail", // this is optional
+        "attendees": ["abcd@gmail", "efgh@gmail.com"], // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50 bookings to select
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/bookings-historical?creator=abcd@gmail&attendees=abcd@gmail,egfh@gmail.com&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched historical bookings!",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+    
+        - **Code:** 500
+        - **Content:** 
+        ```json
+        {
+            "error": "Failed to fetch historical bookings!",
+            "status": 500,
+        }
+        ```
+
+### Bookings current
+
+The bookings current endpoint is used to get the current bookings in the office space.
+
+- **URL**
+
+  `/analytics/bookings-current`
+
+- **Method**
+
+    `GET`
+
+- **Request Body**
+
+    ```json
+    {
+        "creator": "abcd@gmail", // this is optional
+        "attendees": ["abcd@gmail", "efgh@gmail.com"], // this is optional
+        "timeFrom": "2021-01-01T00:00:00.000Z", // this is optional and will default to 1970-01-01T00:00:00.000Z
+        "timeTo": "2021-01-01T00:00:00.000Z", // this is optional and will default to current date
+        "limit": 50, // this is optional and will default to 50 bookings to select
+        "page": 1 // this is optional and will default to 1
+    }
+    ```
+
+- **URL Params**
+
+```
+/analytics/bookings-current?creator=abcd@gmail&attendees=abcd@gmail,egfh@gmail.com&timeFrom=2021-01-01T00:00:00.000Z&timeTo=2021-01-01T00:00:00.000Z&limit=50&page=1
+```
+
+- **Success Response**
+
+    - **Code:** 200
+    - **Content:** 
+    ```json
+    {
+        "response": "Successfully fetched current bookings!",
+        "data": [data],
+        "totalResults": 1,
+        "totalPages": 1,
+        "currentPage": 1,
+        "status": 200,
+    }
+    ```
+
+- **Error Response**
+    
+        - **Code:** 500
+        - **Content:** 
+        ```json
+        {
+            "error": "Failed to fetch current bookings!",
+            "status": 500,
+        }
+        ```

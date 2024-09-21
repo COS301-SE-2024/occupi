@@ -1,6 +1,10 @@
 package models
 
-import "github.com/go-webauthn/webauthn/webauthn"
+import (
+	"time"
+
+	"github.com/go-webauthn/webauthn/webauthn"
+)
 
 type RegisterUser struct {
 	Email         string `json:"email" binding:"required,email"`
@@ -93,6 +97,7 @@ type ProfileImageRequest struct {
 
 type ImageRequest struct {
 	ID      string `json:"id" binding:"required"`
+	RoomID  string `json:"roomId" binding:"omitempty,startswith=RM"`
 	Quality string `json:"quality"`
 }
 
@@ -112,4 +117,78 @@ type WebAuthnSession struct {
 	Email       string                `json:"email"`
 	Cred        webauthn.Credential   `json:"cred"`
 	SessionData *webauthn.SessionData `json:"sessionData"`
+}
+
+type RequestAvailableSlots struct {
+	RoomID string    `json:"roomId" binding:"required,startswith=RM"`
+	Date   time.Time `json:"date" binding:"required"`
+}
+
+type Slot struct {
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+}
+
+type RequestOnsite struct {
+	Email  string `json:"email" binding:"omitempty,email"`
+	OnSite string `json:"onSite" binding:"required"`
+}
+
+type RequestHours struct {
+	Email    string    `json:"email" binding:"omitempty,email"`
+	TimeFrom time.Time `json:"timeFrom" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	TimeTo   time.Time `json:"timeTo" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	Limit    int64     `json:"limit"`
+	Page     int64     `json:"page"`
+}
+
+type RequestBooking struct {
+	Creator   string    `json:"creator" binding:"omitempty,email"`
+	Attendees []string  `json:"attendees" binding:"omitempty,email"`
+	TimeFrom  time.Time `json:"timeFrom" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	TimeTo    time.Time `json:"timeTo" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	Limit     int64     `json:"limit"`
+	Page      int64     `json:"page"`
+}
+
+type RequestSpecialEvent struct {
+	Date           time.Time `json:"date" binding:"required"`
+	IsSpecialEvent string    `json:"isSpecialEvent" binding:"required"`
+}
+
+type UserRequest struct {
+	EmployeeID              string              `json:"employee_id" binding:"omitempty,startswith=OCCUPI"`
+	Password                string              `json:"password" binding:"required,min=8"`
+	Email                   string              `json:"email" binding:"required,email"`
+	Role                    string              `json:"role" binding:"omitempty"`
+	Details                 DetailsRequest      `json:"details" binding:"omitempty"`
+	Notifications           NotificationRequest `json:"notifications" binding:"omitempty"`
+	Status                  string              `json:"status" bson:"status, omitempty"`
+	Position                string              `json:"position" bson:"position, omitempty"`
+	DepartmentNo            string              `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ExpoPushToken           string              `json:"expoPushToken" binding:"omitempty"`
+	BlockAnonymousIPAddress bool                `json:"blockAnonymousIPAddress" binding:"omitempty"`
+}
+
+type DetailsRequest struct {
+	ContactNo string    `json:"contactNo" binding:"omitempty"`
+	Name      string    `json:"name" binding:"omitempty"`
+	DOB       time.Time `json:"dob" binding:"omitempty"`
+	Gender    string    `json:"gender" binding:"omitempty"`
+	Pronouns  string    `json:"pronouns" binding:"omitempty"`
+}
+
+type NotificationRequest struct {
+	Invites         bool `json:"invites" binding:"omitempty"`
+	BookingReminder bool `json:"bookingReminder" binding:"omitempty"`
+}
+
+type RequestIP struct {
+	IP     string   `json:"ip" binding:"omitempty"`
+	Emails []string `json:"emails" binding:"omitempty"`
+}
+
+type AllowAnonymousIPRequest struct {
+	Emails                  []string `json:"emails" binding:"omitempty"`
+	BlockAnonymousIPAddress bool     `json:"blockAnonymousIPAddress" binding:"omitempty"`
 }

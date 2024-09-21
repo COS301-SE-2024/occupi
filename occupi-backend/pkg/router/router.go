@@ -1,6 +1,8 @@
 package router
 
 import (
+	"time"
+
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
@@ -51,10 +53,40 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		// limit request body size to 16MB when uploading profile image due to mongoDB document size limit
 		api.POST("/upload-profile-image", middleware.ProtectedRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadProfileImage(ctx, appsession) })
 		api.GET("/download-profile-image", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadProfileImage(ctx, appsession) })
-		api.GET("/image/:id", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadImage(ctx, appsession) })
-		api.POST("/upload-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadImage(ctx, appsession, false) })
-		api.POST("/upload-room-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadImage(ctx, appsession, true) })
+		api.DELETE("/delete-profile-image", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DeleteProfileImage(ctx, appsession) })
+		api.GET("/image/:id", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.DownloadRoomImage(ctx, appsession) })
+		api.POST("/upload-room-image", middleware.ProtectedRoute, middleware.AdminRoute, middleware.LimitRequestBodySize(16<<20), func(ctx *gin.Context) { handlers.UploadRoomImage(ctx, appsession) })
+		api.DELETE("/delete-room-image", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.DeleteRoomImage(ctx, appsession) })
 		api.PUT("/add-room", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
+		api.GET("/available-slots", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAvailableSlots(ctx, appsession) })
+		api.PUT("/toggle-onsite", middleware.ProtectedRoute, middleware.BlockWeekendsAndAfterHours(time.Now()), func(ctx *gin.Context) { handlers.ToggleOnsite(ctx, appsession) })
+		api.POST("/create-user", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.CreateUser(ctx, appsession) })
+		api.GET("/get-ip-info", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetIPInfo(ctx, appsession) })
+		api.POST("/add-ip", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddIP(ctx, appsession) })
+		api.DELETE("/remove-ip", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.RemoveIP(ctx, appsession) })
+		api.PUT("/toggle-allow-anonymous-ip", middleware.ProtectedRoute, middleware.AdminRoute, func(ctx *gin.Context) { handlers.ToggleAllowAnonymousIP(ctx, appsession) })
+	}
+	analytics := router.Group("/analytics")
+	{
+		analytics.GET("/user-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "hoursbyday", false) })
+		analytics.GET("/user-average-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "hoursbyweekday", false) })
+		analytics.GET("/user-work-ratio", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "ratio", false) })
+		analytics.GET("/user-peak-office-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "peakhours", false) })
+		analytics.GET("/user-arrival-departure-average", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "arrivaldeparture", false) })
+		analytics.GET("/user-in-office", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "inofficehours", false) })
+
+		analytics.GET("/most-active-employee", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "most", true) })
+		analytics.GET("/least-active-employee", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "least", true) })
+		analytics.GET("/hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "hoursbyday", true) })
+		analytics.GET("/average-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "hoursbyweekday", true) })
+		analytics.GET("/work-ratio", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "ratio", true) })
+		analytics.GET("/peak-office-hours", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "peakhours", true) })
+		analytics.GET("/arrival-departure-average", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "arrivaldeparture", true) })
+		analytics.GET("/in-office", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnHours(ctx, appsession, "inofficehours", true) })
+
+		analytics.GET("/top-bookings", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "top3") })
+		analytics.GET("/bookings-historical", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "historical") })
+		analytics.GET("/bookings-current", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetAnalyticsOnBookings(ctx, appsession, "upcoming") })
 	}
 	auth := router.Group("/auth")
 	{
@@ -90,7 +122,9 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 	}
 	rtc := router.Group("/rtc")
 	{
-		rtc.POST("/enter", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, appsession) })
-		rtc.POST("/exit", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, appsession) })
+		rtc.GET("/enter", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Enter(ctx, appsession) })
+		rtc.GET("/exit", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.Exit(ctx, appsession) })
+		rtc.GET("/get-token", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetRTCToken(ctx, appsession) })
+		rtc.GET("/current-count", middleware.ProtectedRoute, func(ctx *gin.Context) { handlers.GetCurrentCount(ctx, appsession) })
 	}
 }

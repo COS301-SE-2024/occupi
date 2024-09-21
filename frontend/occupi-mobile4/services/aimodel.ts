@@ -41,4 +41,6 @@ export async function getDayPredictions(): Promise<Prediction | undefined> {
     return undefined;
 }
 
+
+export { Prediction };
 // getPredictions();
