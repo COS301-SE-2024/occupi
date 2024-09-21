@@ -4,11 +4,11 @@ import { Checkbox } from "./ui/checkbox";
 import InputBox from "./InputBox/InputBox";
 import OtpComponent from "./OtpComponent/OtpComponent";
 import SideNavBarButton from "./SideNavBarButton/SideNavBarButton";
-import TopNav from './topNav/TopNav';
+import TopNav from "./topNav/TopNav";
 import GraphContainer from "./graphContainer/GraphContainer";
 import TabComponent from "./tabComponent/TabComponent";
 import Appearance from "./appearance/Appearance";
-import MenuItem from './drawerComponent/menuItem/MenuItem';
+import MenuItem from "./drawerComponent/menuItem/MenuItem";
 // import Bookings from "./bookings/Bookings";
 import OverView from "./overView/OverView";
 import OverviewComponent from "./OverviewComponent/OverviewComponent";
@@ -41,7 +41,6 @@ import AboutComponent from "./aboutComponent/AboutComponent";
 import Security from "./securityComponent/Security";
 import EditRoomModal from "./editRoomModal/EditRoomModal";
 import AddRoomModal from "./addRoomModal/AddRoomModal";
-import BarChartComponent from "@pages/visitations/BarChartComponent";
 import ActiveEmployeeCard from "./workerStats/ActiveEmployeeCard";
 import AverageHoursChart from "./workerStats/AverageHoursChart";
 import HoursDashboard from "./workerStats/HoursDashboard";
@@ -49,57 +48,77 @@ import LeastActiveEmployeeCard from "./workerStats/LeastActiveEmployeeCard";
 import PeakOfficeHoursChart from "./workerStats/PeakOfficeHoursChart";
 import WorkRatioChart from "./workerStats/WorkRatioChart";
 import MostActiveEmployeeCard from "./workerStats/MostActiveEmployee";
+import UserStatsComponent from "./userStats/UserStatsComponent";
+import BarChartComponent from "./modal/BarChartComponent";
+import PieChartComponent from "./modal/PieChartComponent";
+import PieChartPeakHoursComponent from "./modal/PieChartPeakHoursComponent";
+import UserHoursCharts from "./modal/userHoursCharts";
+import UserPeakOfficeHoursChart from "./modal/UserPeakOfficeHoursChart";
+import UserWorkRatioChart from "./modal/UserWorkRatioChart";
+import AvgArrDep from "./modal/AvgArrDep";
+import UserStatsReport from "./modal/UserStatsReport";
+
+
 
 export {
-    DrawerComponent,
-    GradientButton,
-    Checkbox,
-    InputBox,
-    OtpComponent,
-    SideNavBarButton,
-    TopNav,
-    GraphContainer,
-    TabComponent,
-    Appearance,
-    MenuItem,
-    // Bookings,
-    OverView,
-    OverviewComponent,
-    ProfileComponent,
-    SearchBarComponent,
-    SideNav,
-    Line_Chart,
-    BarGraph,
-    BookingComponent,
-    PDFReport,
-    OccupancyModal,
-    WeeklyAttendanceChart,
-    KeyStats,
-    OccupancyRatingChart,
-    OfficePresent,
-    StatCard,
-    Header,
-    OccupiLoader,
-    ProfileDropDown,
-    AiDashCard,
-    RoomsComponent,
-    FeedBackModal,
-    PredictedCapacityGraph,
-    CapacityComparisonGraph,
-    DashboardWizard,
-    ProfileView,
-    NotificationModal,
-    RadioBox,
-    AboutComponent,
-    Security,
-    EditRoomModal,
-    AddRoomModal,
+  DrawerComponent,
+  GradientButton,
+  Checkbox,
+  InputBox,
+  OtpComponent,
+  SideNavBarButton,
+  TopNav,
+  GraphContainer,
+  TabComponent,
+  Appearance,
+  MenuItem,
+  // Bookings,
+  OverView,
+  OverviewComponent,
+  ProfileComponent,
+  SearchBarComponent,
+  SideNav,
+  Line_Chart,
+  BarGraph,
+  BookingComponent,
+  PDFReport,
+  OccupancyModal,
+  WeeklyAttendanceChart,
+  KeyStats,
+  OccupancyRatingChart,
+  OfficePresent,
+  StatCard,
+  Header,
+  OccupiLoader,
+  ProfileDropDown,
+  AiDashCard,
+  RoomsComponent,
+  FeedBackModal,
+  PredictedCapacityGraph,
+  CapacityComparisonGraph,
+  DashboardWizard,
+  ProfileView,
+  NotificationModal,
+  RadioBox,
+  AboutComponent,
+  Security,
+  EditRoomModal,
+  AddRoomModal,
+  ActiveEmployeeCard,
+  AverageHoursChart,
+  HoursDashboard,
+  LeastActiveEmployeeCard,
+  PeakOfficeHoursChart,
+  WorkRatioChart,
+  MostActiveEmployeeCard,
+  UserStatsComponent,
     BarChartComponent,
-    ActiveEmployeeCard,
-    AverageHoursChart,
-    HoursDashboard,
-    LeastActiveEmployeeCard,
-    PeakOfficeHoursChart,
-    WorkRatioChart,
-    MostActiveEmployeeCard
-}
+    PieChartComponent,
+    PieChartPeakHoursComponent,
+    UserHoursCharts,
+    UserPeakOfficeHoursChart,
+    UserWorkRatioChart,
+    AvgArrDep,
+    UserStatsReport
+
+};
