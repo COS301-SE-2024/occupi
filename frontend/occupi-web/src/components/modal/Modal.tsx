@@ -11,15 +11,10 @@ import {
   AccordionItem,
 } from "@nextui-org/react";
 import { EyeIcon } from "@assets/index";
-import { ProfileComponent } from "@components/index";
-import UserStatsComponent from "@pages/visitations/Visitations";
-import UserHoursCharts from "@pages/visitations/userHoursCharts";
-import UserWorkRatioChart from "@pages/visitations/UserWorkRatioChart";
-import UserPeakOfficeHoursChart from "@pages/visitations/UserPeakOfficeHoursChart";
-import AvgArrDep from "@pages/visitations/AvgArrDep";
+import { ProfileComponent ,UserStatsComponent,UserHoursCharts,UserWorkRatioChart,UserPeakOfficeHoursChart,AvgArrDep} from "@components/index";
+
 import { motion } from "framer-motion";
 import * as userStatsService from 'userStatsService';
-import { AI_loader } from "@assets/index";
 interface User {
   id: string;
   name: string;
@@ -147,7 +142,6 @@ ${reportData.arrivalDeparture.days.map((day: { weekday: any; avgArrival: any; av
                     />
                     <UserStatsComponent email={user.email} />
                   
-
                   </div>
 
                   <Accordion>
