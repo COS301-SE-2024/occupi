@@ -29,6 +29,7 @@
     "@react-pdf/renderer": "^3.4.4",
     "@react-three/drei": "^9.111.5",
     "@react-three/fiber": "^8.17.6",
+    "@react-three/postprocessing": "^2.16.2",
     "@remixicon/react": "^4.2.0",
     "@testing-library/jest-dom": "^6.4.6",
     "@testing-library/react": "^16.0.0",
