@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import GlobalSearch from '@components/globalSearch/GlobalSearch';
 
 type TopNavProps = {
   mainComponent?: JSX.Element;
@@ -23,13 +24,7 @@ const TopNav = (props: TopNavProps) => {
       </div>
 
       <div className="hidden md:block relative">
-        <input
-          type="text"
-          placeholder="ctrl/cmd-k to search"
-          className="w-[30vw] h-[45px] rounded-[15px] bg-secondary p-[8px]"
-          value={props.searchQuery}
-          onChange={props.onChange}
-        />
+        <GlobalSearch />
       </div>
 
       <AnimatePresence>
