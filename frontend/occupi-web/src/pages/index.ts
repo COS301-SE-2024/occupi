@@ -14,6 +14,11 @@ import Rooms from "./rooms/Rooms";
 import { NotificationsSettings } from "./notificationsSettings/NotificationsSettings";
 import AboutPage from "./about/AboutPage";
 import SecurityPage from "./securityPage/SecurityPage";
+import OccupancyRecommendationEngine from "./visitations/Visitations";
+import BuildingTower from "@components/aiDashboard/aiDashGraphs/BuildingTower";
+import BookingLevelCalendar from "@components/aiDashboard/aiDashGraphs/BookingLevelCalendar";
+
+
 export {
   LoginForm,
   OtpPage,
@@ -31,4 +36,9 @@ export {
   NotificationsSettings,
   AboutPage,
   SecurityPage,
+  OccupancyRecommendationEngine,
+  BuildingTower,
+  BookingLevelCalendar,
+
+
 };
