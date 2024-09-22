@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -59,6 +60,47 @@ func ProtectedRoute(ctx *gin.Context) {
 	}
 
 	ctx.Next()
+}
+
+func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
+	claims, err := utils.GetClaimsFromCTX(ctx)
+
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User not authorized or Invalid auth token or You may have forgotten to include the Authorization header",
+				nil))
+		ctx.Abort()
+		return
+	}
+
+	if utils.IsMobileDevice(ctx) {
+		user, errv := cache.GetMobileUser(appsession, claims.Email)
+		if errv != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			logrus.Error(errv)
+			ctx.Abort()
+			return
+		}
+
+		headertokenStr := ctx.GetHeader("Authorization")
+
+		// check if the jwt tokens match
+		if user.JWT != headertokenStr {
+			ctx.JSON(http.StatusUnauthorized,
+				utils.ErrorResponse(
+					http.StatusUnauthorized,
+					"Bad Request",
+					constants.InvalidAuthCode,
+					"This token is no longer valid as another device has logged into this account",
+					nil))
+			ctx.Abort()
+			return
+		}
+	}
 }
 
 // ProtectedRoute is a middleware that checks if

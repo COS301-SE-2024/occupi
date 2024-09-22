@@ -23,3 +23,7 @@ func SessionKey(email string) string {
 func LoginKey(email string) string {
 	return "Login:" + email
 }
+
+func MobileUserKey(email string) string {
+	return "MobileUsers:" + email
+}

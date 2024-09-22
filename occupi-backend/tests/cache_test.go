@@ -23,6 +23,15 @@ func TestUserKey(t *testing.T) {
 	}
 }
 
+func TestMobileUserKey(t *testing.T) {
+	email := "test@example.com"
+	expected := "MobileUsers:test@example.com"
+	result := cache.MobileUserKey(email)
+	if result != expected {
+		t.Errorf("cache.MobileUserKey(%s) = %s; want %s", email, result, expected)
+	}
+}
+
 func TestOTPKey(t *testing.T) {
 	email := "test@example.com"
 	otp := "123456"
@@ -1035,5 +1044,231 @@ func TestCanMakeLogin(t *testing.T) {
 		// Ensure all expectations were met
 		err = mock.ExpectationsWereMet()
 		assert.NoError(t, err)
+	})
+}
+
+func TestGetMobileUser(t *testing.T) {
+	// Test case: cache is nil
+	t.Run("cache is nil", func(t *testing.T) {
+		appsession := &models.AppSession{MobileCache: nil}
+		_, err := cache.GetMobileUser(appsession, "test@example.com")
+		if err == nil || err.Error() != "cache not found" {
+			t.Errorf("expected error 'cache not found', got: %v", err)
+		}
+	})
+
+	// Test case: key does not exist in cache
+	t.Run("key does not exist", func(t *testing.T) {
+		// Mock the Redis client
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+
+		// Expect the Get command to return a key not found error
+		mock.ExpectGet(cache.MobileUserKey("test@example.com")).RedisNil()
+
+		_, err := cache.GetMobileUser(appsession, "test@example.com")
+		if err == nil {
+			t.Errorf("expected redis.Nil error, got: %v", err)
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test case: res.Bytes() fails
+	t.Run("res.Bytes() fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+
+		// Expect the Get command to succeed, but Bytes() to fail
+		mock.ExpectGet(cache.MobileUserKey("test@example.com")).SetErr(errors.New("failed to get bytes"))
+
+		_, err := cache.GetMobileUser(appsession, "test@example.com")
+		if err == nil {
+			t.Errorf("expected an error, got nil")
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test case: bson.Unmarshal fails
+	t.Run("bson.Unmarshal fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+
+		// Mock some invalid BSON data
+		invalidBson := []byte{0x01, 0x02, 0x03}
+
+		// Expect the Get command to return this invalid BSON data
+		mock.ExpectGet(cache.MobileUserKey("test@example.com")).SetVal(string(invalidBson))
+
+		_, err := cache.GetMobileUser(appsession, "test@example.com")
+		if err == nil {
+			t.Errorf("expected an unmarshalling error, got nil")
+		}
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test case: success
+	t.Run("success", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+
+		// Create a sample user and marshal it into BSON
+		expectedUser := models.MobileUser{Email: "test@example.com"}
+
+		userBson, err := bson.Marshal(expectedUser)
+		if err != nil {
+			t.Fatalf("failed to marshal user: %v", err)
+		}
+
+		// Expect the Get command to return the valid BSON
+		mock.ExpectGet(cache.MobileUserKey("test@example.com")).SetVal(string(userBson))
+
+		user, err := cache.GetMobileUser(appsession, "test@example.com")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		// Assert that the user matches the expected user
+		assert.Equal(t, expectedUser.Email, user.Email)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+}
+
+func TestSetMobileUser(t *testing.T) {
+	// Test case 1: Cache is nil
+	t.Run("cache is nil", func(t *testing.T) {
+		appsession := &models.AppSession{MobileCache: nil}
+		user := models.MobileUser{Email: "test@example.com"}
+
+		// Call SetUser
+		cache.SetMobileUser(appsession, user)
+		// No assertions needed; we're ensuring it returns without crashing.
+	})
+
+	// Test case 2: Marshalling the user fails
+	t.Run("marshal fails", func(t *testing.T) {
+		db, _ := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+
+		invalidUser := models.MobileUser{Email: ""}
+
+		// Call SetUser, expecting it to log the error and return early
+		cache.SetMobileUser(appsession, invalidUser)
+		// No assertions needed; the function logs the error and returns.
+	})
+
+	// Test case 3: Successfully setting a user in the cache
+	t.Run("success", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+
+		// Create a valid user
+		user := models.MobileUser{Email: "test@example.com"}
+
+		// Marshal the user to BSON
+		userBson, err := bson.Marshal(user)
+		if err != nil {
+			t.Fatalf("failed to marshal user: %v", err)
+		}
+
+		// Expect the Set command to be called with correct parameters
+		mock.ExpectSet(cache.MobileUserKey(user.Email), userBson, 0).SetVal(string(userBson))
+
+		// Call SetUser
+		cache.SetMobileUser(appsession, user)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test case 4: Setting the user in the cache fails
+	t.Run("set fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+
+		// Create a valid user
+		user := models.MobileUser{Email: "test@example.com"}
+
+		// Marshal the user to BSON
+		userBson, err := bson.Marshal(user)
+		if err != nil {
+			t.Fatalf("failed to marshal user: %v", err.Error())
+		}
+
+		// Expect the Set command to fail with an error
+		mock.ExpectSet(cache.MobileUserKey(user.Email), userBson, 0).SetErr(errors.New("failed to set user"))
+
+		// Call SetUser
+		cache.SetMobileUser(appsession, user)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+}
+
+func TestDeleteMobileUser(t *testing.T) {
+	// Test case 1: Cache is nil
+	t.Run("cache is nil", func(t *testing.T) {
+		appsession := &models.AppSession{MobileCache: nil}
+		email := "test@example.com"
+
+		// Call DeleteUser
+		cache.DeleteMobileUser(appsession, email)
+		// No assertions needed; we're ensuring it returns without crashing.
+	})
+
+	// Test case 2: Successfully deleting a user from the cache
+	t.Run("success", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+		email := "test@example.com"
+
+		// Expect the Del command to be called with the correct key
+		mock.ExpectDel(cache.MobileUserKey(email)).SetVal(1) // Assuming 1 means successful deletion
+
+		// Call DeleteUser
+		cache.DeleteMobileUser(appsession, email)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
+	})
+
+	// Test case 3: Deletion fails
+	t.Run("delete fails", func(t *testing.T) {
+		db, mock := redismock.NewClientMock()
+		appsession := &models.AppSession{MobileCache: db}
+		email := "test@example.com"
+
+		// Expect the Del command to fail with an error
+		mock.ExpectDel(cache.MobileUserKey(email)).SetErr(errors.New("failed to delete user"))
+
+		// Call DeleteUser
+		cache.DeleteMobileUser(appsession, email)
+
+		// Ensure all expectations were met
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unmet expectations: %v", err)
+		}
 	})
 }
