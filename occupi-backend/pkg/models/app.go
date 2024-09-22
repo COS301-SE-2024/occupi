@@ -35,6 +35,7 @@ type AppSession struct {
 	Counter      *Counter
 	MailConn     *gomail.Dialer
 	AzureClient  *azblob.Client
+	MobileCache  *redis.Client
 }
 
 // constructor for app session
@@ -57,6 +58,7 @@ func New(db *mongo.Client, cache *redis.Client) *AppSession {
 		MailConn:     configs.CreateMailServerConnection(),
 		AzureClient:  configs.CreateAzureBlobClient(),
 		Counter:      CreateCounter(centrifugo),
+		MobileCache:  configs.CreateMobileCache(),
 	}
 }
 
