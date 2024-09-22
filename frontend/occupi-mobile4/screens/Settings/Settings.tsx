@@ -216,7 +216,7 @@ const Settings = () => {
         <Button
           onPress={handleLogout}
           style={{
-            backgroundColor: currentTheme === 'dark' ? '#FF3B30' : '#007AFF',
+            backgroundColor: currentTheme === 'dark' ? '#FF3B30' : '#a22929',
             paddingVertical: 5,
             marginHorizontal: 20,
             shadowColor: "#000",
