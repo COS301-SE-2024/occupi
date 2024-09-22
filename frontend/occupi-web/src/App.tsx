@@ -1,4 +1,4 @@
-import { LoginForm, OtpPage, Settings, Dashboard, Analysis, Visitation, Faq, AiDashboard, Rooms, AboutPage, SecurityPage } from "@pages/index";
+import { LoginForm, OtpPage, Settings, Dashboard, Analysis, Visitation, Faq, AiDashboard, Rooms, AboutPage, SecurityPage,BookingStats ,WorkerStatsDashboard} from "@pages/index";
 import { Appearance, OverviewComponent, BookingComponent, PDFReport, ProfileView } from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -46,7 +46,8 @@ function App() {
             <Route path="ai-dashboard" element={<AiDashboard />} />{/**consider making ths its own page */}
            <Route path="rooms" element={<Rooms />} />{/**attach appropriate component */}
            {/* <Route path="notifications" element={<Notifications />} />*attach appropriate component */}
-
+            <Route path="bookingStats" element={<BookingStats />} />{/**attach appropriate component */}
+            <Route path="worker-dashboard" element={<WorkerStatsDashboard />} />{/**attach appropriate component */}
 
 
            
