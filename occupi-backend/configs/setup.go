@@ -99,6 +99,27 @@ func CreateCache() *redis.Client {
 	return client
 }
 
+// Create mobile link cache
+func CreateMobileCache() *redis.Client {
+	redisUsername := GetRedisUsername()
+	redisPassword := GetRedisPassword()
+	redisHost := GetRedisHost()
+	redisPort := GetRedisPort()
+
+	url := fmt.Sprintf("redis://%s:%s@%s:%s/0?protocol=3", redisUsername, redisPassword, redisHost, redisPort)
+	opts, err := redis.ParseURL(url)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	client := redis.NewClient(opts)
+
+	fmt.Println("Cache created!")
+	logrus.Info("Cache created!")
+
+	return client
+}
+
 // Create cache for sessions
 func CreateSessionCache() *bigcache.BigCache {
 	config := bigcache.DefaultConfig(time.Duration(GetCacheEviction()) * time.Second) // Set the eviction time to x seconds
