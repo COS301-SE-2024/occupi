@@ -37,6 +37,7 @@ import PagerView from 'react-native-pager-view';
 import SetDetails from '../Login/SetDetails';
 import { router } from 'expo-router';
 import Tooltip from '@/components/Tooltip';
+import { getCurrentBookings } from '@/utils/analytics';
 
 // import { number } from 'zod';
 
@@ -228,6 +229,16 @@ const Dashboard: React.FC = () => {
     }
   }
 
+  const handleRoomClick = async (value: string) => {
+    if (JSON.parse(value).roomName === 'No bookings found') {
+      router.push('/bookings');
+      return;
+    }
+    await SecureStore.setItemAsync('CurrentRoom', value);
+    router.push('/viewbookingdetails');
+    console.log(value);
+  }
+
   useEffect(() => {
     const getUsername = async () => {
       try {
@@ -250,7 +261,7 @@ const Dashboard: React.FC = () => {
 
     const getRoomData = async () => {
       try {
-        const roomData = await fetchUserBookings();
+        const roomData = await getCurrentBookings();
         if (roomData && roomData.length > 0) {
           setRoomData(roomData[0]);
         } else {
@@ -645,7 +656,7 @@ const Dashboard: React.FC = () => {
             <Text color={textColor}>{topBookings[0]?.count} bookings</Text>
           </View>
           <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('6%')}>
-          <Text color={textColor} fontWeight="$bold" fontSize={16}>2 </Text>
+            <Text color={textColor} fontWeight="$bold" fontSize={16}>2 </Text>
             <View>
               <Text color={textColor} fontWeight="$bold" fontSize={16}>{topBookings[1]?.roomName}</Text>
               <Text color={textColor} fontWeight="$bold" fontSize={16}>Floor: {topBookings[1]?.floorNo === '0' ? 'G' : topBookings[1]?.floorNo}</Text>
@@ -653,7 +664,7 @@ const Dashboard: React.FC = () => {
             <Text color={textColor}>{topBookings[1]?.count} bookings</Text>
           </View>
           <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('6%')}>
-          <Text color={textColor} fontWeight="$bold" fontSize={16}>3 </Text>
+            <Text color={textColor} fontWeight="$bold" fontSize={16}>3 </Text>
             <View>
               <Text color={textColor} fontWeight="$bold" fontSize={16}>{topBookings[2]?.roomName}</Text>
               <Text color={textColor} fontWeight="$bold" fontSize={16}>Floor: {topBookings[2]?.floorNo === '0' ? 'G' : topBookings[2]?.floorNo}</Text>
@@ -666,6 +677,7 @@ const Dashboard: React.FC = () => {
             Next booking:
           </Text>
           <TouchableOpacity
+            onPress={() => handleRoomClick(JSON.stringify(roomData))}
             style={{
               flex: 1,
               borderWidth: 1,
