@@ -1,8 +1,8 @@
 import { Booking, Room } from "@/models/data";
-import { bookRoom, cancelBooking, checkin, getExpoPushTokens, getRooms, getUserBookings } from "../services/apiservices";
+import { bookRoom, cancelBooking, checkin, getExpoPushTokens, getRooms, getTopBookings, getUserBookings } from "../services/apiservices";
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
-import { BookRoomReq, CancelBookingReq, ViewBookingsReq, ViewRoomsReq } from "@/models/requests";
+import { AnalyticsReq, BookRoomReq, CancelBookingReq, ViewBookingsReq, ViewRoomsReq } from "@/models/requests";
 import { sendPushNotification } from "./notifications";
 
   export async function fetchUserBookings(selectedSort?: string)  {
@@ -25,6 +25,39 @@ import { sendPushNotification } from "./notifications";
       } else {
         console.log(response);
         return response.data as Booking[];
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+
+  interface RoomData {
+    _id: string;
+    count: number;
+    creators: string[];
+    emails: any[][];
+    floorNo: string;
+    roomName: string;
+  }
+  
+  interface RoomInfo {
+    roomName: string;
+    floorNo: string;
+    count: number;
+  }
+  
+  function extractRoomInfo(data: RoomData[]): RoomInfo[] {
+    return data.map(({ roomName, count, floorNo }) => ({ roomName, count, floorNo }));
+  }
+
+  export async function fetchTopBookings()  {
+    try {
+      const response = await getTopBookings({});
+      if (response.status === 200) {
+        const roomdata = extractRoomInfo(response.data);
+        // console.log("bookings", roomdata);
+        return roomdata;
       }
     } catch (error) {
       console.error('Error:', error);

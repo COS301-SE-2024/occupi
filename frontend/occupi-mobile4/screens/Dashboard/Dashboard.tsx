@@ -24,7 +24,7 @@ import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { fetchUsername } from '@/utils/user';
 import { Booking } from '@/models/data';
-import { fetchUserBookings } from '@/utils/bookings';
+import { fetchTopBookings, fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
 import BarGraph from '@/components/BarGraph';
@@ -51,6 +51,7 @@ const Dashboard: React.FC = () => {
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const [checkedIn, setCheckedIn] = useState<boolean>();
+  const [topBookings, setTopBookings] = useState([]);
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
   const [date, setDate] = useState('');
@@ -186,6 +187,16 @@ const Dashboard: React.FC = () => {
       setAccentColour(accentcolour);
     };
 
+    const getTopBookings = async () => {
+      try {
+        const topBookings = await fetchTopBookings();
+        console.log(topBookings);
+        setTopBookings(topBookings);
+      } catch (error) {
+        console.error('Error fetching predictions:', error);
+      }
+    }
+
     const getWeeklyPrediction = async () => {
       try {
         const prediction = await getFormattedPredictionData();
@@ -201,6 +212,7 @@ const Dashboard: React.FC = () => {
 
     getWeeklyPrediction();
     getAccentColour();
+    getTopBookings();
   }, []);
 
   const getPredictionsFromWeek = async (date: string) => {
@@ -618,20 +630,35 @@ const Dashboard: React.FC = () => {
         </TouchableOpacity>
         <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <View flexDirection='row' alignItems='center'>
-            <Text fontSize={18} color={textColor}>Favourite Days </Text>
+            <Text fontSize={18} color={textColor}>Top Bookings </Text>
             <Tooltip
               content="Learn more about your Favourite office days below."
               placement="bottom"
             />
           </View>
-          <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('6%')}>
-            <Text color={textColor} fontWeight="$bold" fontSize={18}>1       Monday</Text><Text color={textColor}>Avr: 1756</Text>
+          <View flexDirection='row' alignItems='center' py="$4" my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('8%')}>
+            <Text color={textColor} fontWeight="$bold" fontSize={16}>1 </Text>
+            <View>
+              <Text color={textColor} fontWeight="$bold" fontSize={16}>{topBookings[0]?.roomName}</Text>
+              <Text color={textColor} fontWeight="$bold" fontSize={16}>Floor: {topBookings[0]?.floorNo === '0' ? 'G' : topBookings[0]?.floorNo}</Text>
+            </View>
+            <Text color={textColor}>{topBookings[0]?.count} bookings</Text>
           </View>
           <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('6%')}>
-            <Text color={textColor} fontWeight="$bold" fontSize={18}>2       Wednesday</Text><Text color={textColor}>Avr: 1469</Text>
+          <Text color={textColor} fontWeight="$bold" fontSize={16}>2 </Text>
+            <View>
+              <Text color={textColor} fontWeight="$bold" fontSize={16}>{topBookings[1]?.roomName}</Text>
+              <Text color={textColor} fontWeight="$bold" fontSize={16}>Floor: {topBookings[1]?.floorNo === '0' ? 'G' : topBookings[1]?.floorNo}</Text>
+            </View>
+            <Text color={textColor}>{topBookings[1]?.count} bookings</Text>
           </View>
           <View flexDirection='row' alignItems='center' my="$2" px="$4" justifyContent='space-between' borderRadius={15} backgroundColor={isDarkMode === true ? '#242424' : 'lightgrey'} h={hp('6%')}>
-            <Text color={textColor} fontWeight="$bold" fontSize={18}>3       Thursday</Text><Text color={textColor}>Avr: 1238</Text>
+          <Text color={textColor} fontWeight="$bold" fontSize={16}>3 </Text>
+            <View>
+              <Text color={textColor} fontWeight="$bold" fontSize={16}>{topBookings[2]?.roomName}</Text>
+              <Text color={textColor} fontWeight="$bold" fontSize={16}>Floor: {topBookings[2]?.floorNo === '0' ? 'G' : topBookings[2]?.floorNo}</Text>
+            </View>
+            <Text color={textColor}>{topBookings[2]?.count} bookings</Text>
           </View>
         </View>
         <View mb="$48" px="$4" mt="$4" pb="$3" pt="$2" borderRadius={7} backgroundColor={cardBackgroundColor}>

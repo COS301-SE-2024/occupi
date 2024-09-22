@@ -367,14 +367,11 @@ const ViewBookings = () => {
                                 backgroundColor: activeTab === 'current' ? accentColour : 'transparent',
                                 paddingHorizontal: 16,
                                 paddingVertical: 8,
-                                borderRadius: 20,
+                                borderRadius: 15,
                                 marginRight: 10
                             }}
                         >
-                            <Text color={activeTab === 'current' ? 'black' : textColor}>Current
-
-                            </Text>
-
+                            <Text color={activeTab === 'current' ? 'black' : textColor}>Current</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setActiveTab('past')}
