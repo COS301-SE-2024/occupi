@@ -689,13 +689,19 @@ func IsMobileDevice(ctx *gin.Context) bool {
 }
 
 func DetectDeviceType(userAgent string) string {
-	if strings.Contains(userAgent, "CFNetwork") ||
-		strings.Contains(userAgent, "iPhone") || strings.Contains(userAgent, "iPad") {
+	switch {
+	case strings.Contains(userAgent, "CFNetwork"),
+		strings.Contains(userAgent, "iPhone"),
+		strings.Contains(userAgent, "iPad"):
 		return "iOS"
-	} else if strings.Contains(userAgent, "Macintosh") {
+
+	case strings.Contains(userAgent, "Macintosh"):
 		return "macOS"
-	} else if strings.Contains(userAgent, "Android") {
+
+	case strings.Contains(userAgent, "Android"):
 		return "Android"
+
+	default:
+		return "Unknown"
 	}
-	return "Unknown"
 }
