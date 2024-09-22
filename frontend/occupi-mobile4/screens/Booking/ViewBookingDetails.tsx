@@ -44,7 +44,7 @@ const ViewBookingDetails = () => {
     useEffect(() => {
         const getCurrentRoom = async () => {
             let result: string = await SecureStore.getItemAsync('CurrentRoom');
-            //   console.log("CurrentRoom:",result);
+              console.log("CurrentRoom:",result);
             // setUserDetails(JSON.parse(result).data);
             let jsonresult = JSON.parse(result);
             // console.log(jsonresult);
