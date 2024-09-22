@@ -95,6 +95,8 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 		return
 	}
 
+	AddMobileUser(ctx, appsession, requestUser.Email, token)
+
 	// Use AllocateAuthTokens to handle the response
 	AllocateAuthTokens(ctx, token, expirationTime, cookies)
 }
@@ -573,6 +575,8 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 		return
 	}
 
+	AddMobileUser(ctx, appsession, userotp.Email, token)
+
 	// Use AllocateAuthTokens to handle the response
 	AllocateAuthTokens(ctx, token, expirationTime, cookies)
 }
@@ -757,12 +761,31 @@ func ResetPassword(ctx *gin.Context, appsession *models.AppSession, role string,
 		return
 	}
 
+	AddMobileUser(ctx, appsession, resetRequest.Email, token)
+
 	// Use AllocateAuthTokens to handle the response
 	AllocateAuthTokens(ctx, token, exp, cookies)
 }
 
 // handler for logging out a request
-func Logout(ctx *gin.Context) {
+func Logout(ctx *gin.Context, appsession *models.AppSession) {
+	claims, err := utils.GetClaimsFromCTX(ctx)
+
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User not authorized or Invalid auth token",
+				nil))
+		ctx.Abort()
+		return
+	}
+
+	// clear token from cache
+	cache.DeleteMobileUser(appsession, claims.Email)
+
 	_ = utils.ClearSession(ctx)
 
 	// Clear the Authorization header
