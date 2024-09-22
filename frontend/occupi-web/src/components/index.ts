@@ -57,6 +57,9 @@ import UserPeakOfficeHoursChart from "./modal/UserPeakOfficeHoursChart";
 import UserWorkRatioChart from "./modal/UserWorkRatioChart";
 import AvgArrDep from "./modal/AvgArrDep";
 import UserStatsReport from "./modal/UserStatsReport";
+import  BookingLevelCalendar  from "./aiDashboard/aiDashGraphs/BookingLevelCalendar";
+import BuildingTower from "./aiDashboard/aiDashGraphs/BuildingTower";
+import OccupancyRecommendationEngine from "./occupancyRecommendationEngine/OccupancyRecommendationEngine";
 
 
 
@@ -119,6 +122,9 @@ export {
     UserPeakOfficeHoursChart,
     UserWorkRatioChart,
     AvgArrDep,
-    UserStatsReport
+    UserStatsReport,
+    BookingLevelCalendar,
+    BuildingTower,
+    OccupancyRecommendationEngine
 
 };
