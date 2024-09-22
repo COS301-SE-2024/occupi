@@ -5716,7 +5716,8 @@ func TestIsLocationInRange(t *testing.T) {
 		{
 			name: "Empty Location String",
 			locations: []models.Location{
-				{City: "CityF", Region: "RegionF", Country: "CountryF", Location: ""}, // Empty location
+				{City: "CityG", Region: "RegionG", Country: "CountryG", Location: "40.7128,-74.0060"}, // New York
+				{City: "CityF", Region: "RegionF", Country: "CountryF", Location: ""},                 // Empty location
 			},
 			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
 			expected:           false,                                       // Should skip and return false since there's no valid location within range
@@ -5752,6 +5753,14 @@ func TestIsLocationInRange(t *testing.T) {
 			},
 			unrecognizedLogger: &ipinfo.Core{Location: "abc,-118"}, // Non-numeric latitude
 			expected:           false,                              // Should skip and return false since the location format is invalid
+		},
+		{
+			name: "All current locations are empty strings",
+			locations: []models.Location{
+				{City: "", Region: "", Country: "", Location: ""}, // Empty location
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           true,                                        // Should skip and return true since there's no valid location within range
 		},
 	}
 
