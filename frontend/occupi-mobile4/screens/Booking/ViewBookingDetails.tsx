@@ -37,25 +37,24 @@ const ViewBookingDetails = () => {
     const router = useRouter();
     const [checkedIn, setCheckedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isBookingActive, setIsBookingActive] = useState(true);
     const toast = useToast();
-
-    // console.log("HERE:" + room);
 
     useEffect(() => {
         const getCurrentRoom = async () => {
             let result: string = await SecureStore.getItemAsync('CurrentRoom');
-              console.log("CurrentRoom:",result);
-            // setUserDetails(JSON.parse(result).data);
+            console.log("CurrentRoom:", result);
             let jsonresult = JSON.parse(result);
-            // console.log(jsonresult);
             setRoom(jsonresult);
             setCheckedIn(jsonresult.checkedIn);
+
+            // Check if the current time is past the start time
+            const now = new Date();
+            const startTime = new Date(jsonresult.start);
+            setIsBookingActive(now < startTime);
         };
         getCurrentRoom();
     }, []);
-
-    //   console.log("Room",room?._id);
-
 
     const checkin = async () => {
         setIsLoading(true);
@@ -122,59 +121,59 @@ const ViewBookingDetails = () => {
                     <View flexDirection="$row" alignItems="$center">
                         <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} />
                         <Text color={isDarkMode ? '#fff' : '#000'} fontSize="$20"> Attendees: {room?.emails?.length}</Text>
-
                     </View>
                     {room?.emails?.map((email, idx) => (
-                        <Text color={isDarkMode ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
+                        <Text key={idx} color={isDarkMode ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                     ))}
                     <Text mt="$4" mb="$1" fontSize="$16" fontWeight="$bold" color={currentTheme === 'dark' ? 'white' : 'black'}>Description</Text>
                     <Text fontSize="$14" color={currentTheme === 'dark' ? 'white' : 'black'}>The {room?.roomName} is a state-of-the-art conference space designed for modern digital connectivity, seating 3-6 comfortably. Equipped with multiple HDMI ports, a high-definition projector or large LED screen, surround sound, and wireless display options, it ensures seamless presentations and video conferencing. The room features an intuitive control panel, high-speed Wi-Fi, and ample power outlets. Additional amenities include whiteboards, flip charts, adjustable lighting, and climate control, all within a professional and comfortable interior designed for productivity.</Text>
                 </View>
-                <TouchableOpacity style={{ paddingHorizontal: 15 }}>
-                    <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                        <Ionicons name="receipt-outline" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$bold" color={isDarkMode ? '#fff' : '#000'}> ViewBooking</Text>
+                
+                {isBookingActive ? (
+                    <>
+                        <TouchableOpacity style={{ paddingHorizontal: 15 }}>
+                            <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                <Ionicons name="receipt-outline" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$bold" color={isDarkMode ? '#fff' : '#000'}> ViewBooking</Text>
+                            </View>
+                        </TouchableOpacity>
+                        
+                        {isLoading ? (
+                            <TouchableOpacity style={{ paddingHorizontal: 15 }} >
+                                <View flexDirection="row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                    <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
+                                </View>
+                            </TouchableOpacity>
+                        ) : (
+                            !checkedIn ? (
+                                <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
+                                    <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                        <Feather name="check-square" size={24} color={isDarkMode ? '#fff' : '#000'} />
+                                        <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check in</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
+                                    <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                        <MaterialIcons name="logout" size={24} color={isDarkMode ? '#fff' : '#000'} />
+                                        <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check out</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            )
+                        )}
+
+                        {!isLoading && (
+                            <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
+                                <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                    <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="red">Cancel Booking</Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                    </>
+                ) : (
+                    <View style={{ paddingHorizontal: 15, borderWidth: 1, borderColor: 'red', borderRadius:10,marginTop: 3}}>
+                        <Text color={isDarkMode ? '#fff' : '#000'} textAlign="center">This booking has already started or passed.</Text>
                     </View>
-                </TouchableOpacity>
-                {isLoading ? (
-                    <TouchableOpacity style={{ paddingHorizontal: 15 }} >
-                        <View flexDirection="row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                            <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
-                        </View>
-                    </TouchableOpacity>
-                ) : (
-                    !checkedIn ? (
-                        <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
-                            <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                                <Feather name="check-square" size={24} color={isDarkMode ? '#fff' : '#000'} />
-                                <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check in</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ) : (
-                        <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
-                            <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                                <MaterialIcons name="logout" size={24} color={isDarkMode ? '#fff' : '#000'} />
-                                <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check out</Text>
-                            </View>
-                        </TouchableOpacity>
-                    )
                 )}
-
-
-                {!isLoading ? (
-                    <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
-                        <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                            <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="maroon">Cancel Booking</Text>
-                        </View>
-                    </TouchableOpacity>
-                ) : (
-                    <TouchableOpacity style={{ paddingHorizontal: 15 }} >
-                        <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                            <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
-                        </View>
-                    </TouchableOpacity>
-                )}
-
-
             </ScrollView>
         </View>
     )
@@ -190,4 +189,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ViewBookingDetails;
+export default ViewBookingDetails
