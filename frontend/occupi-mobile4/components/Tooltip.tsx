@@ -15,7 +15,7 @@ const Tooltip = ({ content, placement = 'bottom' }) => {
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const iconRef = useRef(null);
 
-  console.log('darkmode? ', isDarkMode);
+  // console.log('darkmode? ', isDarkMode);
 
   useEffect(() => {
     setIsDarkMode(currentTheme === 'dark');

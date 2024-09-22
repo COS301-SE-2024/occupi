@@ -269,14 +269,14 @@ const Dashboard: React.FC = () => {
 
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setNumbers(prevNumbers => {
-        const newNumbers = [getRandomNumber(), ...prevNumbers.slice(0, 14)];
-        return newNumbers;
-      });
-    }, 3000);
+    // const intervalId = setInterval(() => {
+    //   setNumbers(prevNumbers => {
+    //     const newNumbers = [getRandomNumber(), ...prevNumbers.slice(0, 14)];
+    //     return newNumbers;
+    //   });
+    // }, 3000);
     setIsDarkMode(currentTheme === 'dark');
-    return () => clearInterval(intervalId);
+    // return () => clearInterval(intervalId);
   }, [currentTheme]);
 
   const checkIn = () => {

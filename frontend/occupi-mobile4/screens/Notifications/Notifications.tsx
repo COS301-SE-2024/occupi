@@ -51,6 +51,7 @@ const NotificationItem = ({ notification, accentColour, isDarkMode, onSwipeLeft 
             borderRadius: 20,
             height: 80,
             marginRight: 5,
+            marginLeft: 5,
             marginTop: 50,
           }}
         >

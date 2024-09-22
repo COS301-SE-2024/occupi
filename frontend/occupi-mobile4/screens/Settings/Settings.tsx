@@ -156,7 +156,7 @@ const Settings = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+      <ScrollView style={{ backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }} contentContainerStyle={{ paddingBottom: 80, paddingTop: 40 }}>
         <LinearGradient
           colors={currentTheme === 'dark' ? ['#1A1A1A', '#000'] : ['#F0F0F0', '#FFF']}
           style={{

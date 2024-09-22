@@ -115,7 +115,7 @@ const ViewBookingDetails = () => {
                         <Ionicons name="wifi" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> Fast   </Text>
                         <MaterialCommunityIcons name="television" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> OLED   </Text>
                         <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> 3 - 5   </Text>
-                        <Feather name="layers" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> Floor: {room?.floorNo === 0 ? 'G' : room?.floorNo}</Text>
+                        <Feather name="layers" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> Floor: {room?.floorNo === '0' ? 'G' : room?.floorNo}</Text>
                     </View>
                 </View>
                 <View px="$4">
@@ -144,14 +144,14 @@ const ViewBookingDetails = () => {
                 ) : (
                     !checkedIn ? (
                         <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
-                            <View flexDirection="row" my="$2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                            <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                 <Feather name="check-square" size={24} color={isDarkMode ? '#fff' : '#000'} />
                                 <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check in</Text>
                             </View>
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
-                            <View flexDirection="row" my="$2" borderRadius="10" alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                            <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                 <MaterialIcons name="logout" size={24} color={isDarkMode ? '#fff' : '#000'} />
                                 <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check out</Text>
                             </View>
