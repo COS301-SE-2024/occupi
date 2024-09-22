@@ -439,16 +439,6 @@ export async function updateNotificationSettings(req: NotificationSettingsReq): 
   }
 }
 
-export const markNotificationRead = async (notificationId: string, email: string) => {
-  try {
-    const response = await axios.put(`https://dev.occupi.tech/api/notifications/${notificationId}/read`, { email });
-    return response;
-  } catch (error) {
-    console.error('Error marking notification as read:', error);
-    throw error;
-  }
-};
-
 export const removeNotification = async (notificationId: string, email: string) => {
   try {
     const response = await axios.delete(`https://dev.occupi.tech/api/notifications/${notificationId}`, { data: { email } });
