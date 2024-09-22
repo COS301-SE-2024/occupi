@@ -82,7 +82,7 @@ function Building({ floors }: BuildingProps) {
 
   useFrame(() => {
     if (groupRef.current) {
-      groupRef.current.rotation.y += 0.002 // Adjust this value to change rotation speed
+      groupRef.current.rotation.y += 0.002
     }
   })
 
@@ -110,9 +110,8 @@ export default function BuildingTower() {
   const occupancyData = [5, 4, 3, 3, 2, 2, 1]
 
   return (
-    <div style={{ width: '100vw', height: '100vh', background: '#f0f0f0' }}>
+    <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
       <Canvas camera={{ position: [10, 10, 10], fov: 50 }}>
-        <color attach="background" args={['#87CEEB']} />
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 5, 5]} intensity={0.5} />
         <Building floors={occupancyData} />
