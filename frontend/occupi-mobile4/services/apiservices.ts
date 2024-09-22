@@ -471,22 +471,34 @@ export async function updateNotificationSettings(req: NotificationSettingsReq): 
   }
 }
 
-export const markNotificationRead = async (notificationId: string, email: string) => {
+export const removeNotification = async (notificationId: string, email: string): Promise<Success | Unsuccessful> => {
+  let authToken = await SecureStore.getItemAsync('Token');
   try {
-    const response = await axios.put(`https://dev.occupi.tech/api/notifications/${notificationId}/read`, { email });
-    return response;
-  } catch (error) {
-    console.error('Error marking notification as read:', error);
-    throw error;
-  }
-};
-
-export const removeNotification = async (notificationId: string, email: string) => {
-  try {
-    const response = await axios.delete(`https://dev.occupi.tech/api/notifications/${notificationId}`, { data: { email } });
-    return response;
+    const response = await axios.delete(`https://dev.occupi.tech/api/notifications/${notificationId}`, {
+      data: { email },
+      params: { email },
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `${authToken}`
+      },
+      withCredentials: true
+    });
+    return response.data as Success;
   } catch (error) {
     console.error('Error deleting notification:', error);
-    throw error;
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
   }
 };

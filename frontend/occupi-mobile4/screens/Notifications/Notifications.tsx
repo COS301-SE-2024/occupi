@@ -40,23 +40,7 @@ const NotificationItem = ({ notification, accentColour, isDarkMode, onSwipeLeft 
     });
 
     return (
-      <View style={{ flexDirection: 'row', width: 160 }}>
-        <TouchableOpacity
-          onPress={() => onSwipeLeft('read', notification.id)}
-          style={{
-            flex: 1,
-            backgroundColor: '#455b55',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 20,
-            height: 80,
-            marginRight: 5,
-            marginLeft: 5,
-            marginTop: 50,
-          }}
-        >
-          <MaterialIcons name="done" size={24} color="white" />
-        </TouchableOpacity>
+      <View style={{ flexDirection: 'row', width: 60 }}>
         <TouchableOpacity
           onPress={() => onSwipeLeft('delete', notification.id)}
           style={{
@@ -170,21 +154,12 @@ const Notifications = () => {
   };
 
   const handleSwipeLeft = async (action, notificationId) => {
-    if (action === 'read') {
-      await markNotificationAsRead(notificationId);
-    } else if (action === 'delete') {
+    if (action === 'delete') {
       await deleteNotification(notificationId);
     }
     fetchNotifications();
-  };
-
-  const handleNotificationPress = useCallback((notification) => {
-    console.log('Notification pressed:', notification.id);
-    // Add your logic here for what should happen when a notification is pressed
-    // For example, you might want to navigate to a details screen:
-    // router.push(`/notification/${notification.id}`);
-  }, []);
-
+  }
+  
   const renderNotificationItem = ({ item }) => (
     <NotificationItem
       notification={item}
@@ -274,7 +249,6 @@ const Notifications = () => {
                   accentColour={accentColour}
                   isDarkMode={isDarkMode}
                   onSwipeLeft={handleSwipeLeft}
-                  onPress={handleNotificationPress}
                 />
               )}
               keyExtractor={(item) => item.id}

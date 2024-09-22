@@ -422,20 +422,20 @@ const ViewBookings = () => {
                         </View>
                     </View>
                     <TouchableOpacity onPress={toggleLayout}>
-                        {layout === "row" ? (
-                            <Box backgroundColor={`${accentColour}`} alignSelf="center" p="$2" borderRadius="$lg">
-                                <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
-                            </Box>
-                        ) : (
-                            <Box backgroundColor={`${accentColour}`} alignSelf="center" p="$2" borderRadius="$lg">
-                                <Octicons name="rows" size={22} color="#2C2C2E" />
-                            </Box>
-                        )}
+                    {layout === "row" ? (
+                        <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
+                        <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
+                        </View>
+                    ) : (
+                        <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
+                        <Octicons name="rows" size={22} color="#2C2C2E" />
+                        </View>
+                    )}
                     </TouchableOpacity>
                 </View>
             </View>
 
-            {loading ? (
+            {loading === true ? (
                 <>
                     <View mt='$4'>
                         <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={160} width={"100%"} />
