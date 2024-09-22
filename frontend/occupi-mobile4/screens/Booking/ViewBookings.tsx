@@ -213,47 +213,11 @@ const ViewBookings = () => {
                 }
             >
                 {roomPairs.map((pair, index) => (
-                    <View
-                        key={index}
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginBottom: 20,
-                        }}
-                    >
+                    <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                         {pair.map((room, idx) => (
-                            <TouchableOpacity
-                                key={idx}
-                                onPress={() => handleRoomClick(JSON.stringify(room))}
-                                style={{
-                                    flex: 1,
-                                    borderWidth: 1,
-                                    borderColor: cardBackgroundColor,
-                                    borderRadius: 12,
-                                    height: 160,
-                                    backgroundColor: cardBackgroundColor,
-                                    marginVertical: 4,
-                                    flexDirection: "row",
-                                    padding: 10,
-                                }}
-                            >
-                                <Image
-                                    width={"45%"}
-                                    h="$full"
-                                    alt="image"
-                                    borderRadius={10}
-                                    source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
-                                />
-                                <View
-                                    // key={room.title}
-                                    w="$48"
-                                    style={{
-                                        paddingHorizontal: 14,
-                                        paddingVertical: 18,
-                                        flexDirection: "column",
-                                        justifyContent: "space-between"
-                                    }}
-                                >
+                            <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => handleRoomSelect(room)}>
+                                <Image alt="room" style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                                <View style={{ padding: 10 }}>
                                     <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
                                     <View flexDirection="column">
                                         <View flexDirection="row" alignItems="center" justifyContent="space-between" pr="$4">
@@ -422,15 +386,15 @@ const ViewBookings = () => {
                         </View>
                     </View>
                     <TouchableOpacity onPress={toggleLayout}>
-                    {layout === "row" ? (
-                        <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
-                        <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
-                        </View>
-                    ) : (
-                        <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
-                        <Octicons name="rows" size={22} color="#2C2C2E" />
-                        </View>
-                    )}
+                        {layout === "row" ? (
+                            <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
+                                <Ionicons name="grid-outline" size={22} color="#2C2C2E" />
+                            </View>
+                        ) : (
+                            <View style={{ backgroundColor: `${accentColour}`, alignSelf: 'center', padding: 8, borderRadius: 12 }}>
+                                <Octicons name="rows" size={22} color="#2C2C2E" />
+                            </View>
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>
