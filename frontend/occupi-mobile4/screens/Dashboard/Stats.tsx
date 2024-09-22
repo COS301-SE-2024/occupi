@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { getAnalytics } from '@/services/analyticsservices';
 import { convertAvgArrival, convertAvgDeparture, convertData, fetchUserArrivalAndDeparture, fetchUserArrivalAndDepartureArray, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio } from '@/utils/analytics';
 import ComparativelineGraph from '@/components/ComparativeLineGraph';
+import PieGraph from '@/components/PieGraph';
 
 const Stats = () => {
   const navigation = useNavigation();
@@ -84,6 +85,19 @@ const Stats = () => {
         // console.log(convertAvgArrival(total));
         setGraphArrivalData(convertAvgArrival(total));
         setGraphDepartureData(convertAvgDeparture(total));
+      }
+    } else if (data === "rate") {
+      if (userHours === -1) {
+        return;
+      }
+      else if (activeGraph !== "") {
+        setGraphData(null);
+        setActiveGraph("");
+        // resetTimeFrames();
+      } else {
+        setGraphData(inOfficeRate);
+        setActiveGraph("rate");
+        // console.log(timeFrom, timeTo);
       }
     }
   }
@@ -315,8 +329,6 @@ const Stats = () => {
             onCancel={hideDatePicker2}
           />
         </View>
-
-
         <View style={{
           backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
@@ -482,22 +494,39 @@ const Stats = () => {
           marginBottom: hp('3%'),
           borderColor: accentColour,
           borderWidth: 2,
-          flexDirection: 'row',
           justifyContent: 'space-between'
-        }}>
+        }}
+        >
+          <TouchableOpacity onPress={() => fetchData('rate')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: textColor,
+              }}>In office Rate: </Text>
+              {!isLoading ? (
+                <Text color={textColor}>{userHours === -1 ? "No data for selected period" : Math.floor(inOfficeRate)}%</Text>
+              ) : (
+                <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
+              )}
+            </View>
+            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
+          </TouchableOpacity>
           <View>
-            <Text style={{
-              fontSize: wp('5%'),
-              fontWeight: 'bold',
-              color: textColor,
-            }}>In Office Rate: </Text>
-            {!isLoading ? (
-              <Text color={textColor}>{Math.floor(inOfficeRate)}%</Text>
-            ) : (
-              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
-            )}
+            {activeGraph === 'rate' &&
+              <>
+                {graphData !== null ? (
+                  <PieGraph
+                    data={inOfficeRate}
+                    title='In Office Rate'
+                    />
+                ) : (
+                  <WaveIndicator color={accentColour} />
+                )
+                }
+              </>
+            }
           </View>
-          <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
 
         {/* <Text style={{
