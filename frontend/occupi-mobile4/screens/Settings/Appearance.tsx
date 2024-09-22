@@ -133,28 +133,40 @@ const Appearance = () => {
           }}>Accent Color
           <Tooltip content="Choose a theme color for a personalized experience." placement="bottom" /></Text>
 
-          
-
           <View style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            marginVertical: hp('2%'),
-            padding: wp('4%'),
-            backgroundColor: currentTheme === 'dark' ? '#1A1A1A' : '#F0F0F0',
-            borderRadius: 15,
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          marginVertical: hp('2%'),
+          padding: wp('4%'),
+          backgroundColor: currentTheme === 'dark' ? '#1A1A1A' : '#F0F0F0',
+          borderRadius: 15,
+            
           }}>
             {['lightgrey', '#FF4343', '#FFB443', 'greenyellow', '#43FF61', '#43F4FF', '#4383FF', '#AC43FF', '#FF43F7', 'purple'].map(color => (
-              <Pressable key={color} onPress={() => setAccentColour(color)} style={{
+            <Pressable 
+              key={color} 
+              onPress={() => setAccentColour(color)} 
+              style={{
                 width: wp('12%'),
                 height: wp('12%'),
+                borderRadius: wp('6%'),
+                marginLeft: wp('3%'),
+                marginBottom: hp('2%'),
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <View style={{
+                width: '100%',
+                height: '100%',
                 backgroundColor: color,
                 borderRadius: wp('6%'),
                 borderWidth: accentColour === color ? 3 : 0,
-                borderColor: accentColour,
-                marginBottom: hp('2%'),
+                borderColor: currentTheme === 'dark' ? '#FFF' : '#000',
               }} />
-            ))}
-          </View>
+            </Pressable>
+          ))}
+        </View>
 
           <Text style={{
             fontSize: wp('5%'),
