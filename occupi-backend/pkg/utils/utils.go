@@ -678,3 +678,24 @@ func ValidateIP(ip string) bool {
 	var ipRegex = regexp.MustCompile(`^(\d{1,3}\.){3}\d{1,3}$`)
 	return ipRegex.MatchString(ip)
 }
+
+func IsMobileDevice(ctx *gin.Context) bool {
+	userAgent := ctx.GetHeader("User-Agent")
+	deviceType := DetectDeviceType(userAgent)
+	if deviceType == "iOS" || deviceType == "Android" {
+		return true
+	}
+	return false
+}
+
+func DetectDeviceType(userAgent string) string {
+	if strings.Contains(userAgent, "CFNetwork") ||
+		strings.Contains(userAgent, "iPhone") || strings.Contains(userAgent, "iPad") {
+		return "iOS"
+	} else if strings.Contains(userAgent, "Macintosh") {
+		return "macOS"
+	} else if strings.Contains(userAgent, "Android") {
+		return "Android"
+	}
+	return "Unknown"
+}
