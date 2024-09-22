@@ -46,7 +46,7 @@ import Bar from "./icons/Bar";
 import AI_loader from "./images/AI_loader.gif";
 import LCPW from "./images/LCPW.gif";
 import ailoader from "./images/ailoader.gif";
-
+import Worker from "./icons/Worker";
 
 export {
     loginpng, OccupiLogo, login_image, CheckSquareContained, CloseDrawer, OpenDrawer,
@@ -54,5 +54,5 @@ export {
     Loading,SettingsImg, Macbook1, Macbook2, Macbook3,
     Userprofile, Pallete, Privacy, AlertIcon, HelpIcon, GraphCol, Cal,
     ChevronDown, ChevronLeft, ChevronRight, Bf, Uptrend, DownTrend, SearchIcon,ChevronDownIcon,PlusIcon,VerticalDotsIcon,EditIcon,EyeIcon,DeleteIcon,occupiLogo,Report,Faq
-    ,UploadButton,Upload,Bar,AI_loader,LCPW,ailoader
+    ,UploadButton,Upload,Bar,AI_loader,LCPW,ailoader,Worker
 }
