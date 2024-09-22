@@ -59,7 +59,7 @@ const initCentrifuge = async () => {
       console.log("Disconnected from Centrifuge:", ctx);
     });
 
-    centrifuge.on("error", (err) => {
+    centrifuge.on("error", (err: any) => {
       console.error("Centrifuge error:", err);
     });
 
