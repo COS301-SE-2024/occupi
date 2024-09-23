@@ -88,10 +88,18 @@ func CreateCache() *redis.Client {
 	url := fmt.Sprintf("redis://%s:%s@%s:%s/0?protocol=3", redisUsername, redisPassword, redisHost, redisPort)
 	opts, err := redis.ParseURL(url)
 	if err != nil {
+		fmt.Println(err)
 		logrus.Fatal(err)
 	}
 
 	client := redis.NewClient(opts)
+
+	// Test connection
+	err = client.Ping(context.Background()).Err()
+	if err != nil {
+		fmt.Println("could not connect to Redis: ", err)
+		logrus.Fatalf("could not connect to Redis: %v", err)
+	}
 
 	fmt.Println("Cache created!")
 	logrus.Info("Cache created!")
@@ -109,13 +117,21 @@ func CreateMobileCache() *redis.Client {
 	url := fmt.Sprintf("redis://%s:%s@%s:%s/0?protocol=3", redisUsername, redisPassword, redisHost, redisPort)
 	opts, err := redis.ParseURL(url)
 	if err != nil {
+		fmt.Println(err)
 		logrus.Fatal(err)
 	}
 
 	client := redis.NewClient(opts)
 
-	fmt.Println("Cache created!")
-	logrus.Info("Cache created!")
+	// Test connection
+	err = client.Ping(context.Background()).Err()
+	if err != nil {
+		fmt.Println("could not connect to mobile Redis: ", err)
+		logrus.Fatalf("could not connect to mobile Redis: %v", err)
+	}
+
+	fmt.Println("Mobile Cache created!")
+	logrus.Info("Mobile Cache created!")
 
 	return client
 }
