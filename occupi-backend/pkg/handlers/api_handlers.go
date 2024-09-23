@@ -120,6 +120,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	scheduledNotification := models.ScheduledNotification{
+		NotiID:               utils.GenerateUUID(),
 		Title:                "Booking Starting Soon",
 		Message:              utils.ConstructBookingStartingInScheduledString(booking.Emails, "3 mins"),
 		Sent:                 false,
@@ -144,6 +145,7 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	notification := models.ScheduledNotification{
+		NotiID:               utils.GenerateUUID(),
 		Title:                "Booking Invitation",
 		Message:              utils.ConstructBookingScheduledString(booking.Emails),
 		Sent:                 true,
@@ -464,6 +466,38 @@ func FilterCollection(ctx *gin.Context, appsession *models.AppSession, collectio
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "success", res, gin.H{
 		"totalResults": len(res), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
+}
+
+func DeleteNotification(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.DeleteNotiRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid JSON payload", nil))
+		return
+	}
+
+	// check if email is set otherwise attempt to get it from the appsession
+	if request.Email == "" {
+		email, err := AttemptToGetEmail(ctx, appsession)
+		if err != nil {
+			configs.CaptureError(ctx, err)
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Email must be provided", nil))
+			return
+		}
+		request.Email = email
+	}
+
+	// delete the notification
+	err := database.DeleteNotificationForUser(ctx, appsession, request)
+
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to delete notification because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to delete notification", constants.InternalServerErrorCode, "Failed to delete notification", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully deleted notification!", nil))
 }
 
 func GetPushTokens(ctx *gin.Context, appsession *models.AppSession) {
