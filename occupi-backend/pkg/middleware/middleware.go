@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -39,6 +40,7 @@ func ProtectedRoute(ctx *gin.Context) {
 	if !utils.IsSessionSet(ctx) {
 		err := utils.SetSession(ctx, claims)
 		if err != nil {
+			configs.CaptureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -80,6 +82,7 @@ func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
 	if utils.IsMobileDevice(ctx) {
 		user, errv := cache.GetMobileUser(appsession, claims.Email)
 		if errv != nil {
+			configs.CaptureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(errv)
 			ctx.Abort()
@@ -123,6 +126,7 @@ func UnProtectedRoute(ctx *gin.Context) {
 	if utils.IsSessionSet(ctx) {
 		err := utils.ClearSession(ctx)
 		if err != nil {
+			configs.CaptureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -172,6 +176,7 @@ func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSessio
 	// Add the user's IP address to the cache
 	err = appsession.OtpReqCache.Set(utils.GetClientIP(ctx), []byte("sent"))
 	if err != nil {
+		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		ctx.Abort()
@@ -282,7 +287,7 @@ func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
 }
 
 // block endpoint on weekends and after hours that is only allow access between Mon - Fri 08:00 - 17:00
-func BlockWeekendsAndAfterHours(now time.Time) gin.HandlerFunc {
+func BlockAfterHours(now time.Time) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Check if the current time is outside working hours
 		if now.Hour() < 7 || now.Hour() >= 17 {

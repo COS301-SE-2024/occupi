@@ -1179,7 +1179,7 @@ func TestBlockWeekendsAndAfterHours(t *testing.T) {
 			ctx, w := createTestContext()
 
 			// Call the middleware with the test context and mock time
-			handler := middleware.BlockWeekendsAndAfterHours(tt.mockTime)
+			handler := middleware.BlockAfterHours(tt.mockTime)
 			handler(ctx)
 
 			// Assert the expected status code

@@ -42,7 +42,7 @@ func GetRTCToken(ctx *gin.Context, app *models.AppSession) {
 	// Generate a token with an expiration time of 60 minutes
 	token, err := generateToken(1440)
 	if err != nil {
-		captureError(ctx, err)
+		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Token generation failed", constants.InternalServerErrorCode, "Failed to generate token", nil))
 		return
 	}
@@ -62,7 +62,7 @@ func GetRTCToken(ctx *gin.Context, app *models.AppSession) {
 // IncrementHandler is a Gin handler to increment the counter
 func Enter(ctx *gin.Context, app *models.AppSession) {
 	if err := app.Counter.Increment(ctx); err != nil {
-		captureError(ctx, err)
+		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Increment failed", constants.InternalServerErrorCode, "Failed to increment", nil))
 		return
 	}
@@ -72,7 +72,7 @@ func Enter(ctx *gin.Context, app *models.AppSession) {
 // DecrementHandler is a Gin handler to decrement the counter
 func Exit(ctx *gin.Context, app *models.AppSession) {
 	if err := app.Counter.Decrement(ctx); err != nil {
-		captureError(ctx, err)
+		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Decrement failed", constants.InternalServerErrorCode, "Failed to decrement", nil))
 		return
 	}

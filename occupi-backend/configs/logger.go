@@ -1,11 +1,16 @@
-package handlers
+package configs
 
 import (
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 )
 
-func captureError(ctx *gin.Context, err error) {
+func CaptureError(ctx *gin.Context, err error) {
+	// if gin run mode is test randomly return error
+	if GetGinRunMode() == "test" {
+		return
+	}
+
 	hub := sentrygin.GetHubFromContext(ctx)
 	if hub == nil {
 		return
@@ -14,7 +19,12 @@ func captureError(ctx *gin.Context, err error) {
 	}
 }
 
-func captureMessage(ctx *gin.Context, message string) {
+func CaptureMessage(ctx *gin.Context, message string) {
+	// if gin run mode is test randomly return error
+	if GetGinRunMode() == "test" {
+		return
+	}
+
 	hub := sentrygin.GetHubFromContext(ctx)
 	if hub == nil {
 		return
