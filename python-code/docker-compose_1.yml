@@ -15,6 +15,7 @@ services:
     restart: on-failure:5
     depends_on:
       - model
+      - hourly-model
 
   model:
     image: tensorflow/serving:latest
@@ -22,11 +23,26 @@ services:
     environment:
       MODEL_NAME: attendance_model
     volumes:
-      - /models/attendance_model:/models/attendance_model  # Ensure this path is correct
+      - ./models/attendance_model:/models/attendance_model  # Mounts the whole attendance_model directory
     ports:
       - "8501:8501"
     command: >
       sh -c 'tensorflow_model_server --port=8501 --model_name=attendance_model --model_base_path=/models/attendance_model'
+    networks:
+      - webnet
+    restart: on-failure:5
+
+  hourly-model:
+    image: tensorflow/serving:latest
+    container_name: hourly-model
+    environment:
+      MODEL_NAME: hourly_attendance_model
+    volumes:
+      - ./models/hourly_predictions:/models/hourly_attendance_model  # Mounts the whole hourly_predictions directory
+    ports:
+      - "8502:8501"
+    command: >
+      sh -c 'tensorflow_model_server --port=8501 --model_name=hourly_attendance_model --model_base_path=/models/hourly_attendance_model'
     networks:
       - webnet
     restart: on-failure:5

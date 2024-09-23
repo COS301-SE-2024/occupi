@@ -13,18 +13,21 @@
     "lint": "expo lint"
   },
   "jest": {
-  "preset": "jest-expo",
-  "transformIgnorePatterns": [
-    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui/themed|expo-device)"
-  ],
-  "collectCoverage": true,
-  "coverageReporters": ["lcov", "text"],
-  "coverageDirectory": "coverage",
-  "setupFiles": [
-    "./node_modules/react-native-gesture-handler/jestSetup.js",
-    "./jest.setup.js"
-  ]
-},
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gluestack-ui/themed|expo-device)"
+    ],
+    "collectCoverage": true,
+    "coverageReporters": [
+      "lcov",
+      "text"
+    ],
+    "coverageDirectory": "coverage",
+    "setupFiles": [
+      "./node_modules/react-native-gesture-handler/jestSetup.js",
+      "./jest.setup.js"
+    ]
+  },
   "dependencies": {
     "@eva-design/eva": "^2.2.0",
     "@expo/vector-icons": "^14.0.0",
@@ -45,19 +48,23 @@
     "@ui-kitten/components": "^5.3.1",
     "axios": "^1.7.2",
     "date-fns": "^3.6.0",
-    "expo": "~51.0.14",
+    "expo": "^51.0.32",
     "expo-blur": "^13.0.2",
+    "expo-checkbox": "~3.0.0",
     "expo-constants": "~16.0.2",
     "expo-device": "~6.0.2",
     "expo-file-system": "^17.0.1",
     "expo-font": "~12.0.7",
+    "expo-haptics": "~13.0.1",
     "expo-linear-gradient": "~13.0.2",
     "expo-linking": "~6.3.1",
     "expo-local-authentication": "^14.0.1",
+    "expo-location": "~17.0.1",
     "expo-notifications": "~0.28.9",
     "expo-print": "~13.0.1",
     "expo-router": "~3.5.16",
     "expo-secure-store": "~13.0.2",
+    "expo-sensors": "~13.0.9",
     "expo-sharing": "~12.0.1",
     "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
@@ -89,11 +96,7 @@
     "react-native-web": "~0.19.10",
     "reanimated-color-picker": "^3.0.4",
     "tinycolor2": "^1.6.0",
-    "zod": "^3.23.8",
-    "expo-location": "~17.0.1",
-    "expo-sensors": "~13.0.9",
-    "expo-haptics": "~13.0.1",
-    "expo-checkbox": "~3.0.0"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
