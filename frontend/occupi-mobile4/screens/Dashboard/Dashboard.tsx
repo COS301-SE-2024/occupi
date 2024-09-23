@@ -191,8 +191,8 @@ const Dashboard: React.FC = () => {
 
     const getTopBookings = async () => {
       try {
-        const topBookings = await fetchTopBookings();
-        console.log(topBookings);
+        const topBookings = await fetchTopBookings(); 
+        // console.log('yurppp',topBookings);
         setTopBookings(topBookings);
       } catch (error) {
         console.error('Error fetching top bookings', error);

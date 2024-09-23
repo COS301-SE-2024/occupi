@@ -180,7 +180,7 @@ export async function getNotifications(req: NotificationsReq): Promise<Success |
 
 export async function getTopBookings(): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  console.log(authToken);
+  // console.log(authToken);
   try {
     const response = await axios.get("https://dev.occupi.tech/analytics/top-bookings", {
       headers: {
