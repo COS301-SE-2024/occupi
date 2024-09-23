@@ -5,9 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const test = "test"
+
 func CaptureError(ctx *gin.Context, err error) {
 	// if gin run mode is test randomly return error
-	if GetGinRunMode() == "test" {
+	if GetGinRunMode() == test {
 		return
 	}
 
@@ -21,7 +23,7 @@ func CaptureError(ctx *gin.Context, err error) {
 
 func CaptureMessage(ctx *gin.Context, message string) {
 	// if gin run mode is test randomly return error
-	if GetGinRunMode() == "test" {
+	if GetGinRunMode() == test {
 		return
 	}
 
