@@ -117,7 +117,7 @@ function App() {
                 <Routes>
                   <Route path="dashboard/*" element={<Dashboard />}>
                     <Route path="overview" element={<OverviewComponent />} />
-                    <Route path="bookings" element={<BookingComponent />} />
+                    <Route path="employees" element={<BookingComponent />} />
                     <Route path="visitations" element={<Visitation />} />
                     <Route path="analysis" element={<Analysis />} />
                   </Route>

@@ -18,7 +18,10 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    handleClick("/overview");
+    const path = window.location.pathname;
+    if (path === "/dashboard") {
+      handleClick("/overview");
+    }
   },[]);
 
   return (

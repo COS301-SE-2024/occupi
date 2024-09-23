@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import FlexSearch from "flexsearch";
-import { content } from "./SearchContent";
+import { pages } from "./SearchContent";
 import {Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, Input} from "@nextui-org/react";
 
 const GlobalSearch = () => {
@@ -33,8 +33,8 @@ const GlobalSearch = () => {
 
     // Index data
     useEffect(() => {
-        content.forEach((page) => {
-        index.add(page.id, page.title + " " + page.content);
+        pages.forEach((page) => {
+        index.add(page.id, page.title + " " + page.description);
         });
     }, [index]);
 
@@ -61,9 +61,9 @@ const GlobalSearch = () => {
                     onOpen();
                 }}
             />
-            <Modal backdrop={"blur"} isOpen={isOpen} onClose={onClose} scrollBehavior={"inside"} size="4xl" hideCloseButton={true}>
+            <Modal backdrop={"blur"} isOpen={isOpen} onClose={() => {setSearchQuery(""); setResults([]); onClose();}} scrollBehavior={"inside"} size="4xl" hideCloseButton={true}>
                 <ModalContent>
-                    <ModalHeader className="flex flex-col gap-1">
+                    <ModalHeader className="flex flex-col gap-1 mt-3">
                         <Input 
                             value={searchQuery}
                             type="text" 
@@ -72,15 +72,19 @@ const GlobalSearch = () => {
                     </ModalHeader>
                     <ModalBody className="flex flex-col items-center">
                         {results.map((resultId) => {
-                            const page = content.find((item) => item.id === resultId);
+                            const page = pages.find((item) => item.id === resultId);
                             return page ? (
-                            <li className="w-full rounded-[15px] bg-secondary p-[8px]" key={page.id} onClick={() => alert(page.path)}>
-                                {page.title}
-                            </li>
+                            <div className="w-full rounded-[15px] bg-secondary p-[8px] cursor-pointer" key={page.id} onClick={() => {
+                                onClose();
+                                navigate(page.path);
+                            }}>
+                                <h4>{page.title}</h4>
+                                <p className="text-text_col">{page.description}</p>
+                            </div>
                             ) : null;
                         })}
                     </ModalBody>
-                    <div className="h-[20px]"/>
+                    <div className="mb-4"/>
                 </ModalContent>
             </Modal>
         </div>
