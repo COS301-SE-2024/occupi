@@ -1307,8 +1307,20 @@ This endpoint is used to delete notifications for a user in the Occupi system.
 
 - **URL**
 
-  `/api/toggle-allow-anonymous-ip`
+  `/api/delete-notification`
 
 - **Method**
     
     `DELETE`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // optional, if not provided, the email is inferred from the token
+  "notificationId": "000000000000000000000" // required
+}
+
+```
