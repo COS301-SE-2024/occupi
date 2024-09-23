@@ -1330,3 +1330,9 @@ This endpoint is used to delete notifications for a user in the Occupi system.
 - **Code:** 200
 
 - **Content:** `{ "status":  200, "message": "Successfully deleted notification!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
