@@ -159,7 +159,7 @@ type OfficeHours struct {
 	Exited  time.Time `json:"exited" bson:"exited"`
 }
 
-type OfficeHoursFilterStruct struct {
+type AnalyticsFilterStruct struct {
 	Filter primitive.M
 	Limit  int64
 	Skip   int64

@@ -142,6 +142,15 @@ type RequestHours struct {
 	Page     int64     `json:"page"`
 }
 
+type RequestBooking struct {
+	Creator   string    `json:"creator" binding:"omitempty,email"`
+	Attendees []string  `json:"attendees" binding:"omitempty,email"`
+	TimeFrom  time.Time `json:"timeFrom" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	TimeTo    time.Time `json:"timeTo" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	Limit     int64     `json:"limit"`
+	Page      int64     `json:"page"`
+}
+
 type RequestSpecialEvent struct {
 	Date           time.Time `json:"date" binding:"required"`
 	IsSpecialEvent string    `json:"isSpecialEvent" binding:"required"`

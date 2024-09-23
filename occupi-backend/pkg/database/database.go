@@ -1715,7 +1715,7 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string
 	return nil
 }
 
-func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email string, filter models.OfficeHoursFilterStruct, calculate string) ([]primitive.M, int64, error) {
+func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email string, filter models.AnalyticsFilterStruct, calculate string) ([]primitive.M, int64, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -2048,4 +2048,58 @@ func ToggleAllowAnonymousIP(ctx *gin.Context, appsession *models.AppSession, req
 	}
 
 	return nil
+}
+
+func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, creatorEmail string,
+	attendeeEmails []string, filter models.AnalyticsFilterStruct, calculate string) ([]primitive.M, int64, error) {
+
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	// Prepare the aggregate
+	var pipeline bson.A
+	var dateFilter string
+	switch calculate {
+	case "top3":
+		dateFilter = "date"
+		filter.Filter["timeTo"] = ""
+		pipeline = analytics.GetTop3MostBookedRooms(creatorEmail, attendeeEmails, filter, dateFilter)
+	case "historical":
+		// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
+		filter.Filter["timeTo"] = time.Now()
+		filter.Filter["timeFrom"] = ""
+		dateFilter = "end"
+		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
+	case "upcoming":
+		// add or overwrite "timeFrom" with time.Now and delete "timeTo" if present
+		filter.Filter["timeFrom"] = time.Now()
+		filter.Filter["timeTo"] = ""
+		dateFilter = "end"
+		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
+	default:
+		return nil, 0, errors.New("invalid calculate value")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	mongoFilter := MakeEmailAndEmailsAndTimeFilter(creatorEmail, attendeeEmails, filter, dateFilter)
+
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, mongoFilter)
+
+	if errv != nil {
+		logrus.Error(errv)
+		return nil, 0, errv
+	}
+
+	return results, totalResults, nil
+
 }
