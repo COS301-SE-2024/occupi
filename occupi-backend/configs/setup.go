@@ -80,12 +80,11 @@ func CreateCache() *redis.Client {
 		return nil
 	}
 
-	redisUsername := GetRedisUsername()
 	redisPassword := GetRedisPassword()
 	redisHost := GetRedisHost()
 	redisPort := GetRedisPort()
 
-	url := fmt.Sprintf("redis://%s:%s@%s:%s/0?protocol=3", redisUsername, redisPassword, redisHost, redisPort)
+	url := fmt.Sprintf("redis://:%s@%s:%s/0?protocol=3", redisPassword, redisHost, redisPort)
 	opts, err := redis.ParseURL(url)
 	if err != nil {
 		fmt.Println(err)
@@ -109,12 +108,11 @@ func CreateCache() *redis.Client {
 
 // Create mobile link cache
 func CreateMobileCache() *redis.Client {
-	redisUsername := GetRedisUsername()
 	redisPassword := GetRedisPassword()
 	redisHost := GetRedisHost()
 	redisPort := GetRedisPort()
 
-	url := fmt.Sprintf("redis://%s:%s@%s:%s/0?protocol=3", redisUsername, redisPassword, redisHost, redisPort)
+	url := fmt.Sprintf("redis://:%s@%s:%s/0?protocol=3", redisPassword, redisHost, redisPort)
 	opts, err := redis.ParseURL(url)
 	if err != nil {
 		fmt.Println(err)
