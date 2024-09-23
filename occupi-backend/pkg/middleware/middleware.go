@@ -82,9 +82,13 @@ func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
 	if utils.IsMobileDevice(ctx) {
 		user, errv := cache.GetMobileUser(appsession, claims.Email)
 		if errv != nil {
-			configs.CaptureError(ctx, err)
-			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-			logrus.Error(errv)
+			ctx.JSON(http.StatusBadRequest,
+				utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Bad Request",
+					constants.BadRequestCode,
+					"This account does not have a valid session. Attempt to login first.",
+					nil))
 			ctx.Abort()
 			return
 		}

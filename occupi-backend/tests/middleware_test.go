@@ -1225,7 +1225,7 @@ func TestVerifyMobileUser(t *testing.T) {
 		{
 			name:            "Valid ctx with Authorization header set and a mobile device but user not in cache",
 			email:           email,
-			expectedCode:    http.StatusInternalServerError,
+			expectedCode:    http.StatusBadRequest,
 			tokenToValidate: mockJWT,
 			isMobileDevice:  true,
 			cacheAction:     true,
