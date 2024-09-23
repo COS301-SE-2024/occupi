@@ -48,7 +48,7 @@ const ViewBookings = () => {
     const isDarkMode = currentTheme === "dark";
     const [layout, setLayout] = useState("row");
     const [roomData, setRoomData] = useState<Booking[]>();
-    const [selectedSort, setSelectedSort] = useState();
+    const [selectedSort, setSelectedSort] = useState("newest");
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -166,10 +166,6 @@ const ViewBookings = () => {
     const backgroundColor = isDarkMode ? 'black' : 'white';
     const textColor = isDarkMode ? 'white' : 'black';
     const cardBackgroundColor = isDarkMode ? '#2C2C2E' : '#F3F3F3';
-
-
-
-    const roomPairs = groupDataInPairs(roomData);
 
     const handleRoomClick = async (value: string) => {
         await SecureStore.setItemAsync('CurrentRoom', value);

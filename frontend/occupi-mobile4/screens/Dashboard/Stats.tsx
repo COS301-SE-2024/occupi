@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, TouchableOpacity, Dimensions, useColorScheme } from 'react-native';
+import { ScrollView, TouchableOpacity, Dimensions, useColorScheme, Alert } from 'react-native';
 import { useTheme } from '@/components/ThemeContext';
 import * as SecureStore from 'expo-secure-store';
 import { WaveIndicator } from 'react-native-indicators';
@@ -16,6 +16,8 @@ import { getAnalytics } from '@/services/analyticsservices';
 import { convertAvgArrival, convertAvgDeparture, convertData, fetchUserArrivalAndDeparture, fetchUserArrivalAndDepartureArray, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio } from '@/utils/analytics';
 import ComparativelineGraph from '@/components/ComparativeLineGraph';
 import PieGraph from '@/components/PieGraph';
+import * as Print from 'expo-print';
+import { shareAsync } from 'expo-sharing';
 
 const Stats = () => {
   const navigation = useNavigation();
@@ -102,7 +104,128 @@ const Stats = () => {
     }
   }
 
-  const fetchUserAnalytics = async (timefrom : string, timeto: string) => {
+  const printToFile = async () => {
+    if (userHours === -1) {
+      Alert.alert("No data for the selected time frame.");
+      return;
+    }
+    const html = `
+        <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+              <title>User Office Metrics Report</title>
+              <style>
+                  body {
+                      font-family: Arial, sans-serif;
+                      line-height: 1.6;
+                      color: #333;
+                      max-width: 800px;
+                      margin: 0 auto;
+                      padding: 20px;
+                  }
+                  img {
+                      display: block;
+                      margin: 0 auto;
+                  }
+                  h1 {
+                      color: #2c3e50;
+                      text-align: center;
+                      border-bottom: 2px solid #3498db;
+                      padding-bottom: 10px;
+                  }
+                  span {
+                    font-weight: bold;
+                  }
+                  .report-period {
+                      text-align: center;
+                      font-style: italic;
+                      margin-bottom: 20px;
+                  }
+                  .metrics-grid {
+                      display: grid;
+                      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                      gap: 20px;
+                      margin-top: 30px;
+                  }
+                  .metric-card {
+                      background-color: #f9f9f9;
+                      border-radius: 8px;
+                      padding: 15px;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                  }
+                  .metric-title {
+                      font-weight: bold;
+                      color: #2980b9;
+                      margin-bottom: 10px;
+                  }
+                  .metric-value {
+                      font-size: 1.2em;
+                      color: #27ae60;
+                  }
+                  @media print {
+                      body {
+                          print-color-adjust: exact;
+                          -webkit-print-color-adjust: exact;
+                      }
+                  }
+              </style>
+          </head>
+          <body>
+              <img
+              src="https://raw.githubusercontent.com/COS301-SE-2024/occupi/5614db6d7821bb21b94125c83bc5a46126c5acac/frontend/occupi-web/public/occupi.svg"
+              style="width: 30vw; padding: 2vw;" />
+              <h1>User Office Metrics Report</h1>
+              <div class="report-period">
+                  Report Period: <span id="startDate">${timeFrom === "" ? "Start of Work Period" : extractDateFromDate(timeFrom)}</span> to <span id="endDate">${timeTo === "" ? "Today" : extractDateFromDate(timeTo)}</span>
+              </div>
+              <div class="metrics-grid">
+                  <div class="metric-card">
+                      <div class="metric-title">Total Hours in Office</div>
+                      <div class="metric-value" id="totalHours">${convertToHoursAndMinutes(userHours)}</div>
+                  </div>
+                  <div class="metric-card">
+                      <div class="metric-title">Average Hours per Day</div>
+                      <div class="metric-value" id="avgHoursPerDay">${convertToHoursAndMinutes(userAverage)}</div>
+                  </div>
+                  <div class="metric-card">
+                      <div class="metric-title">Work Ratio</div>
+                      <div class="metric-value" id="workRatio">${Math.floor(workRatio)}</div>
+                  </div>
+                  <div class="metric-card">
+                      <div class="metric-title">Peak Hours</div>
+                      <div class="metric-value" id="peakHours">N/A</div>
+                  </div>
+                  <div class="metric-card">
+                      <div class="metric-title">Average Arrival Time</div>
+                      <div class="metric-value" id="avgArrivalTime">${arrival}</div>
+                  </div>
+                  <div class="metric-card">
+                      <div class="metric-title">Average Departure Time</div>
+                      <div class="metric-value" id="avgDepartureTime">${departure}</div>
+                  </div>
+                  <div class="metric-card">
+                      <div class="metric-title">In-Office Rate</div>
+                      <div class="metric-value" id="inOfficeRate">${Math.floor(inOfficeRate)}%</div>
+                  </div>
+              </div>
+              <script>
+                  // You can use JavaScript to populate the values dynamically
+                  // For example:
+                  // document.getElementById('totalHours').textContent = userMetrics.totalHours;
+                  // Repeat for other metrics and date range
+              </script>
+          </body>
+          </html>
+        `;
+    // On iOS/android prints the given html. On web prints the HTML from the current page.
+    const { uri } = await Print.printToFileAsync({ html });
+    console.log('File has been saved to:', uri);
+    await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+  };
+
+  const fetchUserAnalytics = async (timefrom: string, timeto: string) => {
 
     // console.log(timeTo);
     setIsLoading(true);
@@ -136,7 +259,7 @@ const Stats = () => {
 
   useEffect(() => {
     // resetTimeFrames();
-    fetchUserAnalytics("","");
+    fetchUserAnalytics("", "");
   }, []);
 
   const hideDatePicker1 = () => {
@@ -194,24 +317,6 @@ const Stats = () => {
     getAccentColour();
   }, []);
 
-  const scrollCards = [
-    { title: 'Daily Progress', color: '#E0FA88', border: '#C6F432' },
-    { title: 'Average Hours', color: '#C09FF8', border: '#843BFF' },
-    { title: 'Work Ratio', color: '#FEC4DD', border: '#FF99C5' },
-    { title: 'In-Office Rate', color: '#FF896E', border: '#F45632' },
-    { title: 'Task Completion', color: '#90EE90', border: '#32CD32' },
-    { title: 'Collaboration Score', color: '#FFD700', border: '#FFA500' },
-  ];
-
-  const analyticsCards = [
-    { title: `Total Hours: `, value: convertToHoursAndMinutes(userHours), color: '#101010', border: accentColour },
-    { title: 'Office Hours', value: convertToHoursAndMinutes(userAverage), color: '#101010', border: accentColour },
-    { title: 'Work Ratio', value: convertToHoursAndMinutes(workRatio), color: '#101010', border: accentColour },
-    { title: 'Peak Office Hours', value: convertToHoursAndMinutes(peakHours), color: '#101010', border: accentColour },
-    { title: 'Arrival and Departure', value: convertToHoursAndMinutes(userHours), color: '#101010', border: accentColour },
-    { title: 'In Office Rate', value: convertToHoursAndMinutes(inOfficeRate), color: '#101010', border: accentColour },
-  ];
-
   return (
     <View style={{
       flex: 1,
@@ -257,25 +362,25 @@ const Stats = () => {
       }}>Comprehensive Office Analytics</Text>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{
-          backgroundColor: isDarkMode ? '#333' : '#E1E1E1',
-          borderRadius: wp('4%'),
-          padding: wp('4%'),
-          marginBottom: hp('3%'),
-          borderColor: isDarkMode ? '#555' : '#979595',
-          borderWidth: 2,
-        }}>
+        <TouchableOpacity
+          onPress={printToFile}
+          style={{
+            backgroundColor: isDarkMode ? '#333' : '#E1E1E1',
+            borderRadius: wp('4%'),
+            padding: wp('4%'),
+            marginBottom: hp('3%'),
+            borderColor: isDarkMode ? '#555' : '#979595',
+            borderWidth: 2,
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
           <Text style={{
             fontSize: wp('4.5%'),
             fontWeight: 'bold',
             color: isDarkMode ? 'white' : 'black',
-            marginBottom: hp('1%'),
-          }}>Your Performance Summary</Text>
-          <Text style={{
-            color: isDarkMode ? '#CCC' : '#333',
-            fontSize: wp('3.5%'),
-          }}>{summary}</Text>
-        </View>
+            // marginBottom: hp('1%'),
+          }}>Download Performance Summary</Text>
+        </TouchableOpacity>
 
         <Text style={{
           fontSize: wp('4%'),
@@ -412,7 +517,7 @@ const Stats = () => {
               color: textColor,
             }}>Work Ratio: </Text>
             {!isLoading ? (
-              <Text color={textColor}>{convertToHoursAndMinutes(workRatio)}</Text>
+              <Text color={textColor}>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(workRatio)}</Text>
             ) : (
               <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
             )}
@@ -436,7 +541,7 @@ const Stats = () => {
               color: textColor,
             }}>Peak Hours:</Text>
             {!isLoading ? (
-              <Text color={textColor}>{convertToHoursAndMinutes(peakHours)}</Text>
+              <Text color={textColor}>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(peakHours)}</Text>
             ) : (
               <Text color={textColor}>No peak hours found</Text>
             )}
@@ -461,8 +566,8 @@ const Stats = () => {
               }}>Arrival and Departure: </Text>
               {!isLoading ? (
                 <>
-                  <Text color={textColor}>Average Arrival Time: <Text bold color={textColor}>{arrival}</Text></Text>
-                  <Text color={textColor}>Average Departure Time: <Text bold color={textColor}>{departure}</Text></Text>
+                  <Text color={textColor}>Average Arrival Time: <Text bold color={textColor}>{userHours === -1 ? "No data for selected period" : arrival}</Text></Text>
+                  <Text color={textColor}>Average Departure Time: <Text bold color={textColor}>{userHours === -1 ? "No data for selected period" : departure}</Text></Text>
                 </>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
@@ -519,7 +624,7 @@ const Stats = () => {
                   <PieGraph
                     data={inOfficeRate}
                     title='In Office Rate'
-                    />
+                  />
                 ) : (
                   <WaveIndicator color={accentColour} />
                 )

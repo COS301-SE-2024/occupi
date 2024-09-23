@@ -18,7 +18,7 @@ export const fetchUserTotalHours = async (timeFrom?: string, timeTo?: string) =>
     const total = await getAnalytics(req, 'user-hours');
     // console.log('totals',total.data[0].overallTotal);
     if (total.data === null) {
-        console.log("returning zero");
+        console.log("returning -1");
         return -1;
     }
     return total.data[0].overallTotal;
@@ -37,6 +37,10 @@ export const fetchUserTotalHoursArray = async (timeFrom?: string, timeTo?: strin
     }
     const total = await getAnalytics(req, 'user-hours');
     // console.log('totalsss',total.data);
+    if (total.data === null) {
+        console.log("returning -1");
+        return -1;
+    }
     return total.data;
 }
 
@@ -53,6 +57,10 @@ export const fetchUserAverageHours = async (timeFrom?: string, timeTo?: string) 
     }
     const total = await getAnalytics(req, 'user-average-hours');
     // console.log('averages', total.data[0].overallAverage);
+    if (total.data === null) {
+        console.log("returning -1");
+        return -1;
+    }
     return total.data[0].overallAverage;
 }
 
@@ -69,6 +77,10 @@ export const fetchWorkRatio = async (timeFrom?: string, timeTo?: string) => {
     }
     const total = await getAnalytics(req, 'user-work-ratio');
     // console.log('work ratio', total.data[0].ratio);
+    if (total.data === null) {
+        console.log("returning -1");
+        return -1;
+    }
     return total.data[0].ratio;
 }
 
@@ -85,6 +97,10 @@ export const fetchUserPeakHours = async (timeFrom?: string, timeTo?: string) => 
     }
     const total = await getAnalytics(req, 'user-peak-office-hours');
     // console.log('peak', total.data[0].overallWeekdayCount)
+    if (total.data === null) {
+        console.log("returning -1");
+        return -1;
+    }
     return total.data.days;
 }
 
@@ -103,6 +119,10 @@ export const fetchUserArrivalAndDeparture = async (timeFrom?: string, timeTo?: s
     const total = await getAnalytics(req, 'user-arrival-departure-average');
     // console.log('arrival', total.data[0].overallavgArrival);
     // console.log('departure', total.data[0].overallavgDeparture);
+    if (total.data === null) {
+        console.log("returning -1");
+        return -1;
+    }
     return [total.data[0].overallavgArrival, total.data[0].overallavgDeparture];
 }
 
@@ -138,6 +158,10 @@ export const fetchUserInOfficeRate = async (timeFrom?: string, timeTo?: string) 
     }
     const total = await getAnalytics(req, 'user-in-office');
     // console.log('totals2', total.data[0].overallRate);
+    if (total.data === null) {
+        console.log("returning -1");
+        return -1;
+    }
     return total.data[0].overallRate;
 }
 

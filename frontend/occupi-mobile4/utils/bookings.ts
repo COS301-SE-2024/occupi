@@ -125,7 +125,7 @@ export async function userBookRoom(attendees: string[], startTime: string, endTi
     console.log(body);
     try {
       const response = await bookRoom(body);
-      if (response.status === 'success') {
+      if (response.status === 200) {
         console.log('attendees', attendees);
         const response = await getExpoPushTokens(attendees);
         const pushTokens: string[] = response?.data || [];
