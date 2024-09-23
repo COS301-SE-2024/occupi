@@ -4742,6 +4742,58 @@ func TestReadNotifications(t *testing.T) {
 	})
 }
 
+func TestDeleteNotificationForUser(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Test case: database is nil
+	t.Run("Database is nil", func(t *testing.T) {
+		appsession := &models.AppSession{DB: nil}
+		request := models.DeleteNotiRequest{NotiID: "noti-id", Email: "test@example.com"}
+
+		err := database.DeleteNotificationForUser(ctx, appsession, request)
+
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	// Test case: successful update
+	mt.Run("successful update", func(mt *mtest.T) {
+		appsession := &models.AppSession{DB: mt.Client}
+		request := models.DeleteNotiRequest{NotiID: "noti-id", Email: "test@example.com"}
+
+		// Mock successful update
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.DeleteNotificationForUser(ctx, appsession, request)
+		assert.NoError(t, err)
+
+		// Assert the expected filter and update used in UpdateOne
+		mt.DB.Collection("Notifications").FindOne(ctx, bson.M{"notiId": request.NotiID})
+	})
+
+	// Test case: failed update
+	mt.Run("failed update", func(mt *mtest.T) {
+		appsession := &models.AppSession{DB: mt.Client}
+		request := models.DeleteNotiRequest{NotiID: "noti-id", Email: "test@example.com"}
+
+		// Mock an error response from MongoDB
+		mt.AddMockResponses(mtest.CreateWriteErrorsResponse(mtest.WriteError{
+			Index:   0,
+			Code:    11000,
+			Message: "duplicate key error",
+		}))
+
+		err := database.DeleteNotificationForUser(ctx, appsession, request)
+		assert.Error(t, err)
+
+		// Optionally assert the error message
+		assert.Contains(t, err.Error(), "duplicate key error")
+	})
+}
+
 func TestGetSecuritySettings(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
