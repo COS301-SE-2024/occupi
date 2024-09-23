@@ -6,7 +6,7 @@ import logging
 
 # Define the URL for the TensorFlow Serving API for both daily and hourly models
 daily_model_url = 'http://model:8501/v1/models/attendance_model:predict'
-hourly_model_url = 'http://model:8502/v1/models/hourly_attendance_model:predict'  # Adjust the URL as needed
+hourly_model_url = 'http://hourly-model:8501/v1/models/hourly_attendance_model:predict'  # Adjust the URL as needed
 
 # Define the attendance levels based on the bin ranges
 attendance_levels = ["0-300", "300-600", "600-900", "900-1200", "1200-1500", "1500-1800", "1800+"]
@@ -34,14 +34,22 @@ def interpret_predictions(predictions):
 
 # Function to interpret hourly predictions based on the day of the week
 def hourly_interpret_predictions(predictions, day_name):
-    # Get the predicted class index (the one with the highest probability)
-    predicted_class = int(np.argmax(predictions[0]))  # Convert to native Python int
+    try:
+        # Get the predicted class index (the one with the highest probability)
+        predicted_class = int(np.argmax(predictions[0]))  # Convert to native Python int
 
-    # Map the predicted class index to the attendance level for the specific day
-    attendance_levels = attendance_levels_by_day.get(day_name, attendance_levels_by_day["Monday"])  # Default to Monday if day not found
-    predicted_attendance_level = attendance_levels[predicted_class]
+        # Map the predicted class index to the attendance level for the specific day
+        attendance_levels = attendance_levels_by_day.get(day_name, attendance_levels_by_day["Monday"])  # Default to Monday if day not found
+        
+        # Ensure that we are handling string ranges, not trying to cast them to integers
+        predicted_attendance_level = attendance_levels[predicted_class]  # This is a string like '150-200'
+
+        return predicted_class, predicted_attendance_level
     
-    return predicted_class, predicted_attendance_level
+    except Exception as e:
+        logging.error(f"Error in hourly_interpret_predictions: {str(e)}")
+        raise e
+
 
 # Function to send a daily prediction request
 def get_prediction(day_of_week, month, day_of_month, is_weekend, special_event, scaler, factor=1.0):
@@ -88,17 +96,17 @@ def get_prediction(day_of_week, month, day_of_month, is_weekend, special_event, 
         logging.error(f"Error in get_prediction: {str(e)}")
         raise e
 
-# Function to send an hourly prediction request
-def get_hourly_prediction(day_of_week, month, day_of_month, is_weekend, special_event, hour, scaler, day_name, factor=1.0):
+def get_hourly_predictions(day_of_week, hour, scaler, day_name):
     try:
-        # Create sample input data including the hour of the day
-        sample_input = np.array([[day_of_week, month, day_of_month, is_weekend, special_event, hour]])  # Example input
+        # Prepare input data: [day_of_week, hour]
+        sample_input = np.array([[day_of_week, hour]])  # Example input
         
-        # Normalize the input data using the hourly scaler
-        sample_input = scaler.transform(sample_input)
+        # Scale the hour feature using the provided scaler
+        hour_scaled = scaler.transform(sample_input[:, -1].reshape(-1, 1))  # Scale the hour feature
+        sample_input[:, -1] = hour_scaled.flatten()  # Replace the hour with the scaled version
         
-        # Reshape the input data to match the model's expected input shape
-        sample_input = sample_input.reshape((1, sample_input.shape[1], 1))
+        # Reshape the input data to match the model's expected input shape (batch_size, timesteps, features)
+        sample_input = sample_input.reshape((1, sample_input.shape[1], 1))  # 1 sample, 2 features, 1 channel
         
         # Convert the numpy array to a JSON-serializable list
         input_data = sample_input.tolist()
@@ -109,26 +117,25 @@ def get_hourly_prediction(day_of_week, month, day_of_month, is_weekend, special_
             "instances": input_data
         })
         
-        # Send the POST request to the TensorFlow Serving API for hourly predictions
+        # Send the POST request to the TensorFlow Serving API
         headers = {"content-type": "application/json"}
         response = requests.post(hourly_model_url, data=data, headers=headers)
         
+        print(response)
         # Check if the response status code is not 200
         if response.status_code != 200:
             raise ValueError(f"Received response code {response.status_code}: {response.text}")
         
-        # Parse the JSON response
+        # Parse the JSON response to get predictions
         predictions = json.loads(response.text)['predictions']
         
-        # Interpret the predictions based on the day of the week
+        # Interpret the predictions using hourly_interpret_predictions
         predicted_class, predicted_attendance_level = hourly_interpret_predictions(predictions, day_name)
-
-        # Apply factor if it's a special event
-        if special_event:
-            factor_index = min(int(predicted_class * factor), len(attendance_levels_by_day[day_name]) - 1)
-            predicted_attendance_level = attendance_levels_by_day[day_name][factor_index]
         
+        # Return both the predicted class and attendance level
         return predicted_class, predicted_attendance_level
+    
     except Exception as e:
-        logging.error(f"Error in get_hourly_prediction: {str(e)}")
-        raise e
+        logging.error(f"Error in get_hourly_predictions: {str(e)}")
+        return None
+
