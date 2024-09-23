@@ -53,11 +53,11 @@ import { sendPushNotification } from "./notifications";
 
   export async function fetchTopBookings()  {
     try {
-      const response = await getTopBookings({});
-      if (response.status === 200) {
-        const roomdata = extractRoomInfo(response.data);
-        // console.log("bookings", roomdata);
-        return roomdata;
+      const response = await getTopBookings();
+      if (response.status !== 200) {
+        // const roomdata = extractRoomInfo(response.data);
+        console.log("Top bookings", response);
+        return {};
       }
     } catch (error) {
       console.error('Error:', error);

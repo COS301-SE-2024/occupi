@@ -22,6 +22,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { Centrifuge } from 'centrifuge';
 import { fetchUsername } from '@/utils/user';
 import { Booking } from '@/models/data';
 import { fetchTopBookings, fetchUserBookings } from '@/utils/bookings';
@@ -194,7 +195,7 @@ const Dashboard: React.FC = () => {
         console.log(topBookings);
         setTopBookings(topBookings);
       } catch (error) {
-        console.error('Error fetching predictions:', error);
+        console.error('Error fetching top bookings', error);
       }
     }
 
