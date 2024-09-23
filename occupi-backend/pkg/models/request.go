@@ -192,3 +192,8 @@ type AllowAnonymousIPRequest struct {
 	Emails                  []string `json:"emails" binding:"omitempty"`
 	BlockAnonymousIPAddress bool     `json:"blockAnonymousIPAddress" binding:"omitempty"`
 }
+
+type DeleteNotiRequest struct {
+	Email  string `json:"email" binding:"omitempty,email"`
+	NotiID string `json:"notiId" binding:"required"`
+}
