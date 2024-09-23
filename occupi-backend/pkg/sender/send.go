@@ -22,8 +22,9 @@ func PublishMessage(appsession *models.AppSession, notification models.Scheduled
 	defer cancel()
 
 	body := fmt.Sprintf(
-		"%s|%s|%s|%s|%s|%s|%s",
+		"%s|%s|%s|%s|%s|%s|%s|%s",
 		notification.ID,
+		notification.NotiID,
 		notification.Title,
 		notification.Message,
 		notification.SendTime.Format(time.RFC3339),
