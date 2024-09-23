@@ -136,6 +136,18 @@ func IsLocationInRange(locations []models.Location, unrecognizedLogger *ipinfo.C
 		return true
 	}
 
+	// check if each loc.Location is == "" and return true if all are
+	allEmpty := true
+	for _, loc := range locations {
+		if loc.Location != "" {
+			allEmpty = false
+			break
+		}
+	}
+	if allEmpty {
+		return true
+	}
+
 	for _, loc := range locations {
 		// Skip if loc.Location is empty
 		if loc.Location == "" {

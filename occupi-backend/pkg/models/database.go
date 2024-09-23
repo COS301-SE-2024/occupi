@@ -176,3 +176,8 @@ type Attendance struct {
 	NumberAttended int       `json:"Number_Attended" bson:"Number_Attended"`
 	AttendeesEmail []string  `json:"Attendees_Email" bson:"Attendees_Email"`
 }
+
+type MobileUser struct {
+	Email string `json:"email" bson:"email"`
+	JWT   string `json:"jwt" bson:"jwt"`
+}
