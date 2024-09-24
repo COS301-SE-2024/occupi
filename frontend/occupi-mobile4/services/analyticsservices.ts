@@ -18,11 +18,12 @@ export async function getAnalytics(req: AnalyticsReq, endpoint: string): Promise
       },
       withCredentials: true
     });
-    // console.log(response.data);
+    console.log('check',response.data);
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    console.error(`Error1 in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
+      console.log(error.response)
       return error.response.data as Unsuccessful;
     }
     return {

@@ -79,11 +79,11 @@ const disconnectCentrifuge = () => {
 // Function to fetch the latest count from the backend
 const fetchLatestCount = async (): Promise<number> => {
   try {
-    const response = await axios.get(`${RTC_URL}/current-count`); // Adjust the URL to match your API endpoint
-    console.log(response);
+    const response = await axios.get(`https://dev.occupi.tech/rtc/current-count`); // Adjust the URL to match your API endpoint
+    // console.log('current-countt:',`${CENTRIFUGO_URL}${RTC_URL}/current-count`);
     return response.data.data; // Assuming the API response has a 'count' field
   } catch (error) {
-    // console.error("Error fetching the latest count:", error);
+    console.error("Error fetching the latest count:", error);
     return 0; // Default to 0 if there's an error
   }
 };
@@ -100,6 +100,7 @@ export const useCentrifugeCounter = () => {
 
       // Fetch the latest count immediately after connecting
       const latestCount = await fetchLatestCount();
+      console.log('latest count: ', latestCount);
       setCounter(latestCount);
 
       // Only subscribe if not already subscribed
@@ -147,7 +148,7 @@ export async function enter(): Promise<Success | Unsuccessful> {
       console.log('entered?',response.data);
       return response.data as Success;
     } catch (error) {
-      console.error(`Error in ${Function}:`, error);
+      console.error(`Errorrr in ${Function}:`, error);
       if (axios.isAxiosError(error) && error.response?.data) {
         return error.response.data as Unsuccessful;
       }

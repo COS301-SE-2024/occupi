@@ -194,7 +194,7 @@ const Dashboard: React.FC = () => {
     const getTopBookings = async () => {
       try {
         const topBookings = await fetchTopBookings();
-        // console.log('yurppp',topBookings);
+        console.log('yurppp', topBookings);
         setTopBookings(topBookings);
       } catch (error) {
         console.error('Error fetching top bookings', error);
@@ -644,40 +644,41 @@ const Dashboard: React.FC = () => {
             </>
           }
         </View>
-        <TouchableOpacity
-          style={{
-            paddingVertical: 7,
-            paddingHorizontal: 20,
-            borderRadius: 8,
-            marginTop: 18,
-            height: 60,
-            backgroundColor: cardBackgroundColor,
-            justifyContent: 'center'
-          }}
-          onPress={() => router.replace('/stats')}
-        >
-
-          <View flexDirection="row" alignItems="center" justifyContent='space-between'>
-            {checkedIn ? (
-              <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkOut}>
-                <ButtonText color="black">Check out</ButtonText>
-              </Button>
-            ) : (
-              <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
-                <ButtonText color="black">Check in</ButtonText>
-              </Button>
-            )}
-            <View flexDirection='row' alignItems='center'>
-              <Text color={textColor} fontWeight="$bold" fontSize={18}>My Stats </Text>
-              <Tooltip
-                content="Get your personalized office information with OccuBot."
-                placement="bottom"
-              />
+        <View mt="$4" alignItems='center' flexDirection='row' justifyContent='space-between'>
+          {checkedIn ? (
+            <Button w={wp('45%')} borderRadius={10} backgroundColor="lightblue" onPress={checkOut}>
+              <ButtonText color="black">Check out</ButtonText>
+            </Button>
+          ) : (
+            <Button w={wp('45%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
+              <ButtonText color="black">Check in</ButtonText>
+            </Button>
+          )}
+          <TouchableOpacity
+            style={{
+              paddingVertical: 7,
+              paddingHorizontal: 20,
+              borderRadius: 8,
+              // marginTop: 18,
+              height: 60,
+              backgroundColor: cardBackgroundColor,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+            onPress={() => router.replace('/loadingscreen')}
+          >
+            <View flexDirection="row" alignItems="center" justifyContent='space-between'>
+              <View flexDirection='row' alignItems='center'>
+                <Text color={textColor} fontWeight="$bold" fontSize={18}>My Stats </Text>
+                <Tooltip
+                  content="Get your personalized office information with OccuBot."
+                  placement="bottom"
+                />
+              </View>
+              <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
             </View>
-            <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
-          </View>
-
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
         <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <View flexDirection='row' alignItems='center'>
             <Text fontSize={18} color={textColor}>Top Bookings </Text>
