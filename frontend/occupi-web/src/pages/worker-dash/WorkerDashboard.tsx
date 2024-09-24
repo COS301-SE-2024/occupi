@@ -242,7 +242,7 @@ const WorkerStatsDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="w-full overflow-auto p-4">
+    <div className="w-full overflow-auto">
       <TopNav searchQuery={""} onChange={function (e: React.ChangeEvent<HTMLInputElement>): void {
         throw new Error("Function not implemented.");
       } }></TopNav>
@@ -323,15 +323,17 @@ const WorkerStatsDashboard: React.FC = () => {
           <LeastActiveEmployeeCard></LeastActiveEmployeeCard>
         </div>
 
-        <div className="flex gap-6 ml-6">
+        <div className="flex gap-6 ">
           <PeakOfficeHoursChart></PeakOfficeHoursChart>
           <HoursDashboard></HoursDashboard>
           <AverageHoursChart></AverageHoursChart>
+          <WorkRatioChart></WorkRatioChart>
+
         </div>
       </div>
-      <div className="mb-3 ml-5 flex gap-5 ">
+      {/* <div className="mb-3 ml-5 flex gap-5 ">
         <WorkRatioChart></WorkRatioChart>
-      </div>
+      </div> */}
     </div>
   );
 };

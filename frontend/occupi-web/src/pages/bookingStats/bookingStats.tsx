@@ -71,7 +71,7 @@ const BookingStats: React.FC = () => {
 
   return (
     <motion.div
-      className="p-6 bg-gradient-to-br"
+      className="w-full overflow-auto bg-gradient-to-br"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -79,10 +79,11 @@ const BookingStats: React.FC = () => {
       <TopNav
         mainComponent={
           <div className="text-text_col font-semibold text-2xl ml-5">
-Booking Statistics            <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
-Use the Recomendations and view Predicted occupancy at a glance.       </span>
-        </div>
-        
+            Booking Statistics{" "}
+            <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
+              Use the Recomendations and view Predicted occupancy at a glance.{" "}
+            </span>
+          </div>
         }
         searchQuery={searchQuery}
         onChange={handleInputChange}
