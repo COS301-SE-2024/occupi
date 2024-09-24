@@ -243,7 +243,7 @@ const WorkerStatsDashboard: React.FC = () => {
 
   return (
     <div className="w-full overflow-auto">
-      <TopNav searchQuery={""} onChange={function (e: React.ChangeEvent<HTMLInputElement>): void {
+      <TopNav searchQuery={""} onChange={function (): void {
         throw new Error("Function not implemented.");
       } }></TopNav>
       <div className="flex justify-between mb-4">

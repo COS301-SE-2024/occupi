@@ -158,7 +158,6 @@
 
 // export default BookingsCard;
 
-import React from 'react'
 
 const Visitations = () => {
   return (
