@@ -19,9 +19,11 @@ import {
 // } from "react-native-chart-kit";
 import * as SecureStore from 'expo-secure-store';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { enter, exit, useCentrifugeCounter } from '@/utils/rtc';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { Centrifuge } from 'centrifuge';
 import { fetchUsername } from '@/utils/user';
 import { Booking } from '@/models/data';
 import { fetchTopBookings, fetchUserBookings } from '@/utils/bookings';
@@ -63,7 +65,8 @@ const Dashboard: React.FC = () => {
   const pagerRef = useRef<PagerView>(null);
   const [activeTab, setActiveTab] = useState(1);
   const [weeklyData, setWeeklyData] = useState();
-  // console.log(currentTheme);
+  const counter = useCentrifugeCounter();
+  console.log('counter:', counter);
   // console.log(isDarkMode);
 
   // console.log('darkmode? ', isDarkMode);
@@ -191,10 +194,10 @@ const Dashboard: React.FC = () => {
     const getTopBookings = async () => {
       try {
         const topBookings = await fetchTopBookings();
-        console.log(topBookings);
+        // console.log('yurppp',topBookings);
         setTopBookings(topBookings);
       } catch (error) {
-        console.error('Error fetching predictions:', error);
+        console.error('Error fetching top bookings', error);
       }
     }
 
@@ -302,31 +305,58 @@ const Dashboard: React.FC = () => {
     // return () => clearInterval(intervalId);
   }, [currentTheme]);
 
-  const checkIn = () => {
-    setCheckedIn(true);
-    storeCheckInValue(true);
-    // setCurrentData(hourlyData);
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => (
-        <Toast nativeID={String(id)} variant="accent" action="info">
-          <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
-        </Toast>
-      ),
-    });
+  const checkIn = async () => {
+    const entered = await enter();
+    console.log(entered);
+    if (entered.status === 200) {
+      setCheckedIn(true);
+      storeCheckInValue(true);
+
+      // setCurrentData(hourlyData);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <Toast nativeID={String(id)} variant="accent" action="info">
+            <ToastTitle>Check in successful. Have a productive day!</ToastTitle>
+          </Toast>
+        ),
+      });
+    } else {
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <Toast nativeID={String(id)} variant="accent" action="info">
+            <ToastTitle>Failed to Check In. Check connection.</ToastTitle>
+          </Toast>
+        ),
+      });
+    }
   };
 
-  const checkOut = () => {
-    setCheckedIn(false);
-    storeCheckInValue(false);
-    toast.show({
-      placement: 'top',
-      render: ({ id }) => (
-        <Toast nativeID={String(id)} variant="accent" action="info">
-          <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
-        </Toast>
-      ),
-    });
+  const checkOut = async () => {
+    const exited = await exit();
+    console.log(exited);
+    if (exited.status === 200) {
+      setCheckedIn(false);
+      storeCheckInValue(false);
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <Toast nativeID={String(id)} variant="accent" action="info">
+            <ToastTitle>Travel safe. Have a lovely day further!</ToastTitle>
+          </Toast>
+        ),
+      });
+    } else {
+      toast.show({
+        placement: 'top',
+        render: ({ id }) => (
+          <Toast nativeID={String(id)} variant="accent" action="info">
+            <ToastTitle>Failed to Check Out. Check connection.</ToastTitle>
+          </Toast>
+        ),
+      });
+    }
   }
 
   function extractTimeFromDate(dateString: string): string {
@@ -450,7 +480,7 @@ const Dashboard: React.FC = () => {
         <View pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <View alignItems='center'>
             <Text fontWeight="bold" flexDirection='row' fontSize={wp('7%')} color={textColor}>
-              333
+              {counter}
             </Text>
             <View py="$2" flexDirection='row' alignItems='center'><Entypo name="triangle-up" size={20} color="green" /><Text fontSize={wp('4%')} color="green">1.35%</Text><Text fontSize={wp('4%')}> Today</Text></View>
           </View>
@@ -628,6 +658,15 @@ const Dashboard: React.FC = () => {
         >
 
           <View flexDirection="row" alignItems="center" justifyContent='space-between'>
+            {checkedIn ? (
+              <Button w={wp('36%')} borderRadius={10} backgroundColor="lightblue" onPress={checkOut}>
+                <ButtonText color="black">Check out</ButtonText>
+              </Button>
+            ) : (
+              <Button w={wp('36%')} borderRadius={10} backgroundColor={accentColour} onPress={checkIn}>
+                <ButtonText color="black">Check in</ButtonText>
+              </Button>
+            )}
             <View flexDirection='row' alignItems='center'>
               <Text color={textColor} fontWeight="$bold" fontSize={18}>My Stats </Text>
               <Tooltip
