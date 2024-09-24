@@ -50,7 +50,7 @@ export async function getDatePredictions(date: string): Promise<Prediction | und
                 'Content-Type': 'application/json',
             },
         });
-        console.log('here buddy',response.data);
+        // console.log('here buddy',response.data);
         return response.data as Prediction;
     } catch (error) {
         console.error(`Error in ${Function}:`, error);

@@ -159,7 +159,29 @@ export async function resetPassword(req: any): Promise<LoginSuccess | Unsuccessf
     }
 }
 
-
+export async function getRTCToken(): Promise<Success | Unsuccessful> {
+    let authToken = await SecureStore.getItemAsync('Token');
+    // console.log('token',authToken);
+    try {
+        const response = await axios.get("https://dev.occupi.tech/rtc/get-token", {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `${authToken}`
+            },
+            withCredentials: true
+        });
+        // console.log(response.data);
+        return response.data as Success;
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            // console.log(error.response.data);
+            return error.response.data as Unsuccessful;
+        } else {
+            throw error;
+        }
+    }
+}
 
 export async function logout(): Promise<Success | Unsuccessful> {
     let authToken = await SecureStore.getItemAsync('Token');
