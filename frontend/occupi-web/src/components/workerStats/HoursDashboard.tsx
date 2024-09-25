@@ -3,8 +3,13 @@ import { Card, CardHeader, CardBody, Spinner } from "@nextui-org/react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getHours } from 'WorkerStatsService';
 
+interface HourData {
+  date: string;
+  totalHours: number;
+}
+
 const HoursDashboard = () => {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<HourData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -12,7 +17,7 @@ const HoursDashboard = () => {
     const fetchData = async () => {
       try {
         const response = await getHours({});
-        setData(response.data);
+        setData(response.data as HourData[]);
         setLoading(false);
       } catch (err) {
         setError('Failed to fetch data');

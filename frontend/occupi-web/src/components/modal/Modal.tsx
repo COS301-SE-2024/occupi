@@ -98,8 +98,21 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
         userName: user.name,
         userEmail: user.email,
         dailyHours: userHours.data,
-        workRatio: userWorkRatio.data[0],
-        arrivalDeparture: userArrivalDepartureAverage.data[0],
+        workRatio: {
+          ...userWorkRatio.data[0],
+          days: userWorkRatio.data[0].days.map(day => ({
+            ...day,
+            avgArrival: '', // Provide appropriate default or fetched value
+            avgDeparture: '' // Provide appropriate default or fetched value
+          }))
+        },
+        arrivalDeparture: {
+          ...userArrivalDepartureAverage.data[0],
+          days: userArrivalDepartureAverage.data[0].days.map(day => ({
+            ...day,
+            ratio: 0 // Provide an appropriate default or fetched value for ratio
+          }))
+        },
         peakHours: userPeakOfficeHours.data[0],
       };
 

@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import * as userStatsService from "userStatsService";
-import { ChartDataItem, PeakHours } from './UserStatsTypes';
+import { ChartDataItem } from './UserStatsTypes';
 
 const UserPeakOfficeHoursChart = ({ email }: { email: string }) => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,13 +30,13 @@ const UserPeakOfficeHoursChart = ({ email }: { email: string }) => {
       try {
         const userPeakOfficeHours = await userStatsService.getUserPeakOfficeHours(params);
         if (userPeakOfficeHours.data && userPeakOfficeHours.data.length > 0) {
-          const peakHours: PeakHours = userPeakOfficeHours.data[0];
-          if (peakHours.days) {
-            const formattedData: ChartDataItem[] = peakHours.days.map((day) => ({
+          const userPeakHours = userPeakOfficeHours.data[0];
+          if (userPeakHours.days) {
+            const formattedData: ChartDataItem[] = userPeakHours.days.map((day) => ({
               weekday: day.weekday,
-              peak1: day.hours[0] || 0,
-              peak2: day.hours[1] || 0,
-              peak3: day.hours[2] || 0,
+              peak1: parseInt(day.hours[0]) || 0,
+              peak2: parseInt(day.hours[1]) || 0,
+              peak3: parseInt(day.hours[2]) || 0,
             }));
             setChartData(formattedData);
           } else {

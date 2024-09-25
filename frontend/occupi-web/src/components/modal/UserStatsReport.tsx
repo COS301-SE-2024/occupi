@@ -29,9 +29,32 @@ const UserStatsReport = ({ email }: { email: string }) => {
 
         setStats({
           dailyHours: userHours.data,
-          workRatio: userWorkRatio.data[0],
-          arrivalDeparture: userArrivalDepartureAverage.data[0],
-          peakHours: userPeakOfficeHours.data[0],
+          workRatio: {
+            ...userWorkRatio.data[0],
+            days: userWorkRatio.data[0].days.map((day: any) => ({
+              ...day,
+              avgArrival: day.avgArrival || '',
+              avgDeparture: day.avgDeparture || '',
+              hours: day.hours || []
+            }))
+          },
+          arrivalDeparture: {
+            ...userArrivalDepartureAverage.data[0],
+            days: userArrivalDepartureAverage.data[0].days.map((day: any) => ({
+              ...day,
+              ratio: day.ratio || 0,
+              hours: day.hours || []
+            }))
+          },
+          peakHours: {
+            ...userPeakOfficeHours.data[0],
+            days: userPeakOfficeHours.data[0].days.map((day: any) => ({
+              ...day,
+              ratio: day.ratio || 0,
+              avgArrival: day.avgArrival || '',
+              avgDeparture: day.avgDeparture || ''
+            }))
+          },
         });
       } catch (err) {
         setError('Failed to fetch user statistics');

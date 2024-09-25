@@ -3,10 +3,17 @@ import { useEffect, useState } from "react";
 import * as userStatsService from "userStatsService";
 // import WorkerStatsComponent from "WorkerStatsService";
 
+interface UserStats {
+  averageHours: number;
+  workRatio: number;
+  averageArrival: string;
+  averageDeparture: string;
+}
+
 const UserStatsComponent = ({ email }: { email: string }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +78,6 @@ const UserStatsComponent = ({ email }: { email: string }) => {
             <strong>Average Departure Time:</strong> {stats.averageDeparture}
           </p>
           {/* <WorkerService /> */}
-
         </div>
       )}
     </div>

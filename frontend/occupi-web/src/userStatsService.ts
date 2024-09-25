@@ -1,5 +1,4 @@
-// userStatsService.ts
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 
 const BASE_URL = '/analytics';
 
@@ -11,54 +10,77 @@ interface AnalyticsParams {
   page?: number;
 }
 
-interface AnalyticsResponse {
+interface AnalyticsResponse<T> {
   response: string;
-  data: any[];
+  data: T[];
   totalResults: number;
   totalPages: number;
   currentPage: number;
   status: number;
 }
 
-// Helper function to add retry logic with exponential backoff
-const fetchWithRetry = async (
+interface UserHours {
+  overallTotal: number;
+  date: string;
+  totalHours: number;
+}
+
+interface UserWorkRatio {
+  ratio: number;
+  days: { weekday: string; ratio: number }[];
+}
+
+interface UserArrivalDeparture {
+  overallavgArrival: string;
+  overallavgDeparture: string;
+  days: { weekday: string; avgArrival: string; avgDeparture: string }[];
+}
+
+interface UserPeakOfficeHours {
+  days: { weekday: string; hours: string[] }[];
+}
+
+interface UserInOfficeRate {
+  rate: number;
+}
+
+const fetchWithRetry = async <T>(
   url: string,
   params: AnalyticsParams,
   retries = 3,
   delay = 1000
-): Promise<AnalyticsResponse> => {
+): Promise<AnalyticsResponse<T>> => {
   try {
-    const response = await axios.get<AnalyticsResponse>(url, { params });
+    const response = await axios.get<AnalyticsResponse<T>>(url, { params });
     return response.data;
-  } catch (error: AxiosError | any) {
+  } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 429 && retries > 0) {
       console.warn(`Rate limit hit, retrying in ${delay}ms...`);
       await new Promise((resolve) => setTimeout(resolve, delay));
-      return fetchWithRetry(url, params, retries - 1, delay * 2); // Exponential backoff
+      return fetchWithRetry<T>(url, params, retries - 1, delay * 2);
     }
     console.error(`Error fetching data from ${url}:`, error);
     throw error;
   }
 };
 
-// Updated fetchAnalytics to use fetchWithRetry
-const fetchAnalytics = (endpoint: string, params: AnalyticsParams): Promise<AnalyticsResponse> =>
-  fetchWithRetry(`${BASE_URL}${endpoint}`, params);
+const fetchAnalytics = <T>(endpoint: string, params: AnalyticsParams): Promise<AnalyticsResponse<T>> =>
+  fetchWithRetry<T>(`${BASE_URL}${endpoint}`, params);
 
 export const getUserHours = (params: AnalyticsParams) =>
-  fetchAnalytics('/user-hours', params);
+  fetchAnalytics<UserHours>('/user-hours', params);
 
 export const getUserAverageHours = (params: AnalyticsParams) =>
-  fetchAnalytics('/user-average-hours', params);
+  fetchAnalytics<UserHours>('/user-average-hours', params);
 
 export const getUserWorkRatio = (params: AnalyticsParams) =>
-  fetchAnalytics('/user-work-ratio', params);
+  fetchAnalytics<UserWorkRatio>('/user-work-ratio', params);
 
 export const getUserPeakOfficeHours = (params: AnalyticsParams) =>
-  fetchAnalytics('/user-peak-office-hours', params);
+  fetchAnalytics<UserPeakOfficeHours>('/user-peak-office-hours', params);
 
 export const getUserArrivalDepartureAverage = (params: AnalyticsParams) =>
-  fetchAnalytics('/user-arrival-departure-average', params);
+  fetchAnalytics<UserArrivalDeparture>('/user-arrival-departure-average', params);
 
 export const getUserInOfficeRate = (params: AnalyticsParams) =>
-  fetchAnalytics('/user-in-office-rate', params);
+  fetchAnalytics<UserInOfficeRate>('/user-in-office-rate', params);
