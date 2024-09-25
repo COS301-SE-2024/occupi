@@ -24,8 +24,15 @@ const convertRangeToNumber = (range: string): number => {
   return Math.round((min + max) / 2);
 };
 
+interface ChartData {
+  name: string;
+  Today: number;
+  LastWeek: number;
+}
+
+
 const CapacityComparisonBarChart = () => {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const chartRef = useRef<HTMLDivElement | null>(null);
@@ -39,7 +46,7 @@ const CapacityComparisonBarChart = () => {
         const combinedData = thisWeekData.map((item, index) => ({
           name: item.day,
           Today: item.predicted,
-          LastWeek: lastWeekData[index % 7].predicted, // Use modulo to ensure we don't go out of bounds
+          LastWeek: lastWeekData[index % 7].predicted,
         }));
 
         setData(combinedData);
@@ -62,7 +69,15 @@ const CapacityComparisonBarChart = () => {
       const formattedDate = previousDay.toISOString().split('T')[0];
 
       try {
-        const response = await axios.get(`https://ai.occupi.tech/predict_date?date=${formattedDate}`);
+        const response = await axios.get<{
+          Day_of_Week: number;
+          Predicted_Attendance_Level: string;
+          Day_of_month: number;
+          Is_Weekend: boolean;
+          Month: number;
+          Predicted_Class: number;
+          Special_Event: number;
+        }>(`https://ai.occupi.tech/predict_date?date=${formattedDate}`);
         const item = response.data;
         previousWeekData.push({
           day: getDayName(item.Day_of_Week),

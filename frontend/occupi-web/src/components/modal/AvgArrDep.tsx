@@ -1,11 +1,27 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import * as userStatsService from "userStatsService";
 
-const AvgArrDep = ({ email }: { email: string }) => {
+interface DayData {
+  weekday: string;
+  avgArrival: string;
+  avgDeparture: string;
+}
+
+interface ChartData {
+  weekday: string;
+  arrival: number;
+  departure: number;
+}
+
+interface AvgArrDepProps {
+  email: string;
+}
+
+const AvgArrDep: React.FC<AvgArrDepProps> = ({ email }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [chartData, setChartData] = useState([]);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,7 +37,7 @@ const AvgArrDep = ({ email }: { email: string }) => {
       try {
         const response = await userStatsService.getUserArrivalDepartureAverage(params);
         if (response.data && response.data.length > 0 && response.data[0].days) {
-          const formattedData = response.data[0].days.map((day: { weekday: any; avgArrival: any; avgDeparture: any; }) => ({
+          const formattedData: ChartData[] = response.data[0].days.map((day: DayData) => ({
             weekday: day.weekday,
             arrival: convertTimeToDecimal(day.avgArrival),
             departure: convertTimeToDecimal(day.avgDeparture)
@@ -41,7 +57,7 @@ const AvgArrDep = ({ email }: { email: string }) => {
     fetchData();
   }, [email]);
 
-  const convertTimeToDecimal = (time: { split: (arg0: string) => { (): any; new(): any; map: { (arg0: NumberConstructor): [any, any]; new(): any; }; }; }) => {
+  const convertTimeToDecimal = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number);
     return hours + minutes / 60;
   };
@@ -50,39 +66,27 @@ const AvgArrDep = ({ email }: { email: string }) => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="w-full h-96">
-      <h2 className="text-xl font-bold mb-4">Average Arrival and Departure Times</h2>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={chartData}
-          margin={{
-            top: 20,
-            right: 30,
-            left: 20,
-            bottom: 5,
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="weekday" />
+        <YAxis
+          tickFormatter={(value: number) => 
+            `${Math.floor(value)}:${(value % 1 * 60).toFixed(0).padStart(2, '0')}`
+          }
+        />
+        <Tooltip
+          formatter={(value: number) => {
+            const hours = Math.floor(value);
+            const minutes = Math.round((value - hours) * 60);
+            return `${hours}:${minutes.toString().padStart(2, '0')}`;
           }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="weekday" />
-          <YAxis
-            label={{ value: 'Time (24-hour format)', angle: -90, position: 'insideLeft' }}
-            domain={[6, 18]}
-            ticks={[6, 9, 12, 15, 18]}
-            tickFormatter={(value) => `${Math.floor(value)}:${(value % 1 * 60).toFixed(0).padStart(2, '0')}`}
-          />
-          <Tooltip
-            formatter={(value) => {
-              const hours = Math.floor(Number(value));
-              const minutes = Math.round((Number(value) - hours) * 60);
-              return `${hours}:${minutes.toString().padStart(2, '0')}`;
-            }}
-          />
-          <Legend />
-          <Bar dataKey="arrival" fill="#8884d8" name="Arrival" />
-          <Bar dataKey="departure" fill="#82ca9d" name="Departure" />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+        />
+        <Legend />
+        <Bar dataKey="arrival" fill="#8884d8" name="Arrival" />
+        <Bar dataKey="departure" fill="#82ca9d" name="Departure" />
+      </BarChart>
+    </ResponsiveContainer>
   );
 };
 

@@ -2,10 +2,20 @@ import { useState, useEffect } from 'react';
 import { Card, CardBody, CardHeader, Tooltip } from "@nextui-org/react";
 import { Calendar } from 'lucide-react';
 
+interface BookingData {
+  Predicted_Class: number;
+  Predicted_Attendance_Level: string;
+  Special_Event: boolean;
+}
+
+interface HolidayData {
+  [key: string]: string;
+}
+
 const BookingLevelCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [bookingData, setBookingData] = useState<{ [key: string]: any }>({});
-  const [holidayData, setHolidayData] = useState<{ [key: string]: string }>({});
+  const [bookingData, setBookingData] = useState<{ [key: string]: BookingData }>({});
+  const [holidayData, setHolidayData] = useState<HolidayData>({});
 
   useEffect(() => {
     const fetchBookingDataForMonth = async () => {
@@ -42,7 +52,7 @@ const BookingLevelCalendar = () => {
       try {
         const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/ZA`);
         const holidays = await response.json();
-        const holidayMap = holidays.reduce((acc: { [x: string]: any; }, holiday: { date: string | number; name: any; }) => {
+        const holidayMap = holidays.reduce((acc: HolidayData, holiday: { date: string; name: string }) => {
           acc[holiday.date] = holiday.name;
           return acc;
         }, {});
