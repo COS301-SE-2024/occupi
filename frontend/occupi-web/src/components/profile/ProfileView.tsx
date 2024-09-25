@@ -129,14 +129,13 @@ const ProfileView = () => {
           {/**make button unclickable during uploads */}
         <UploadButton
           accept="image/jpeg, image/png, image/jpg"
-          startContent={<Upload />}
-          endContent={isUploading ? <div className='flex'>Uploading {<LoadingSM/>}</div> : <div>Upload profile picture</div>}
+          startContent={isUploading ? <LoadingSM/> : <Upload />}
+          endContent={isUploading ? <div>Uploading</div> : <div>Upload profile picture</div>}
           onUpload={handleFile}
           classNames={isUploading ? { button: 'cursor-not-allowed' } : {}}
         />
       </div>
       {uploadStatus !== '' && <p className='w-full h-9 text-text_col text-sm leading-none mt-4'>{uploadStatus}</p>}
-      <div className="w-full h-9 text-text_col text-base font-semibold leading-none">Full name Test</div>
 
       <div className="border-b-secondary border-b-[2px] rounded-2xl my-4" />
 
