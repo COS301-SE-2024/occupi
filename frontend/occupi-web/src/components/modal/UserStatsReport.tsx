@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import * as userStatsService from 'userStatsService';
+import { UserStats, DayStats } from './UserStatsTypes';
 
 const UserStatsReport = ({ email }: { email: string }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +46,7 @@ const UserStatsReport = ({ email }: { email: string }) => {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
+  if (!stats) return <div>No data available</div>;
 
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(':');
@@ -60,7 +62,7 @@ const UserStatsReport = ({ email }: { email: string }) => {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-blue-100 p-4 rounded">
             <p className="text-lg font-medium">Average Daily Hours</p>
-            <p className="text-2xl font-bold">{(stats.workRatio.ratio).toFixed(2)} hours</p>
+            <p className="text-2xl font-bold">{stats.workRatio.ratio.toFixed(2)} hours</p>
           </div>
           <div className="bg-green-100 p-4 rounded">
             <p className="text-lg font-medium">Work Ratio</p>
@@ -96,7 +98,7 @@ const UserStatsReport = ({ email }: { email: string }) => {
           <div>
             <h3 className="text-xl font-medium mb-2">Work Ratio by Day</h3>
             <ul className="list-disc list-inside">
-              {stats.workRatio.days.map((day: any) => (
+              {stats.workRatio.days.map((day: DayStats) => (
                 <li key={day.weekday}>{day.weekday}: {day.ratio.toFixed(2)}</li>
               ))}
             </ul>
@@ -104,7 +106,7 @@ const UserStatsReport = ({ email }: { email: string }) => {
           <div>
             <h3 className="text-xl font-medium mb-2">Peak Office Hours</h3>
             <ul className="list-disc list-inside">
-              {stats.peakHours.days.map((day: any) => (
+              {stats.peakHours.days.map((day: DayStats) => (
                 <li key={day.weekday}>{day.weekday}: {day.hours.join(', ')}</li>
               ))}
             </ul>
@@ -123,7 +125,7 @@ const UserStatsReport = ({ email }: { email: string }) => {
             </tr>
           </thead>
           <tbody>
-            {stats.arrivalDeparture.days.map((day: any) => (
+            {stats.arrivalDeparture.days.map((day: DayStats) => (
               <tr key={day.weekday}>
                 <td className="border p-2">{day.weekday}</td>
                 <td className="border p-2">{formatTime(day.avgArrival)}</td>

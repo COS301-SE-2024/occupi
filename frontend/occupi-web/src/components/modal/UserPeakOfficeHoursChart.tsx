@@ -11,11 +11,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import * as userStatsService from "userStatsService";
+import { ChartDataItem, PeakHours } from './UserStatsTypes';
 
 const UserPeakOfficeHoursChart = ({ email }: { email: string }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<ChartDataItem[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,27 +25,23 @@ const UserPeakOfficeHoursChart = ({ email }: { email: string }) => {
 
       const params = {
         email: email,
-        // timeFrom: '2024-01-01T00:00:00.000Z',
-        // timeTo: '2024-09-11T00:00:00.000Z',
       };
 
       try {
-        const userPeakOfficeHours =
-          await userStatsService.getUserPeakOfficeHours(params);
-        if (
-          userPeakOfficeHours.data &&
-          userPeakOfficeHours.data.length > 0 &&
-          userPeakOfficeHours.data[0].days
-        ) {
-          const formattedData = userPeakOfficeHours.data[0].days.map(
-            (day: any) => ({
+        const userPeakOfficeHours = await userStatsService.getUserPeakOfficeHours(params);
+        if (userPeakOfficeHours.data && userPeakOfficeHours.data.length > 0) {
+          const peakHours: PeakHours = userPeakOfficeHours.data[0];
+          if (peakHours.days) {
+            const formattedData: ChartDataItem[] = peakHours.days.map((day) => ({
               weekday: day.weekday,
-              peak1: day.hours[0],
-              peak2: day.hours[1],
-              peak3: day.hours[2],
-            })
-          );
-          setChartData(formattedData);
+              peak1: day.hours[0] || 0,
+              peak2: day.hours[1] || 0,
+              peak3: day.hours[2] || 0,
+            }));
+            setChartData(formattedData);
+          } else {
+            setError("No peak hours data available");
+          }
         } else {
           setError("No data available");
         }
