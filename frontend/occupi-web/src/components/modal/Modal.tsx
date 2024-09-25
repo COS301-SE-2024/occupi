@@ -30,6 +30,36 @@ interface OccupancyModalProps {
   user: User;
 }
 
+interface DayData {
+  weekday: string;
+  ratio: number;
+  avgArrival: string;
+  avgDeparture: string;
+}
+
+interface PeakHoursDay {
+  weekday: string;
+  hours: string[];
+}
+
+interface ReportData {
+  userName: string;
+  userEmail: string;
+  dailyHours: Array<{ date: string; totalHours: number }>;
+  workRatio: {
+    ratio: number;
+    days: DayData[];
+  };
+  arrivalDeparture: {
+    overallavgArrival: string;
+    overallavgDeparture: string;
+    days: DayData[];
+  };
+  peakHours: {
+    days: PeakHoursDay[];
+  };
+}
+
 export default function OccupancyModal({ user }: OccupancyModalProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [openItems, setOpenItems] = useState<string[]>([]);
@@ -64,7 +94,7 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
         userStatsService.getUserPeakOfficeHours(params),
       ]);
 
-      const reportData = {
+      const reportData: ReportData = {
         userName: user.name,
         userEmail: user.email,
         dailyHours: userHours.data,
@@ -86,13 +116,13 @@ User Statistics Report for ${reportData.userName} (${reportData.userEmail})
 ${reportData.dailyHours.map(day => `   ${day.date}: ${day.totalHours.toFixed(2)} hours`).join('\n')}
 
 4. Peak Office Hours:
-${reportData.peakHours.days.map((day: { weekday: any; hours: any[]; }) => `   ${day.weekday}: ${day.hours.join(', ')}`).join('\n')}
+${reportData.peakHours.days.map((day) => `   ${day.weekday}: ${day.hours.join(', ')}`).join('\n')}
 
 5. Work Ratio by Day:
-${reportData.workRatio.days.map((day: { weekday: any; ratio: number; }) => `   ${day.weekday}: ${day.ratio.toFixed(2)}`).join('\n')}
+${reportData.workRatio.days.map((day) => `   ${day.weekday}: ${day.ratio.toFixed(2)}`).join('\n')}
 
 6. Arrival and Departure Times by Day:
-${reportData.arrivalDeparture.days.map((day: { weekday: any; avgArrival: any; avgDeparture: any; }) => `   ${day.weekday}: Arrival - ${day.avgArrival}, Departure - ${day.avgDeparture}`).join('\n')}
+${reportData.arrivalDeparture.days.map((day) => `   ${day.weekday}: Arrival - ${day.avgArrival}, Departure - ${day.avgDeparture}`).join('\n')}
       `;
 
       const blob = new Blob([reportContent], { type: 'text/plain' });

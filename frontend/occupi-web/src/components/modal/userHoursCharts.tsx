@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import * as userStatsService from "userStatsService";
-import {BarChartComponent} from "@components/index";
+import { BarChartComponent } from "@components/index";
+import { UserHoursData, UserHoursEntry } from './UserStatsTypes';
 
 interface UserHoursChartProps {
   email: string;
@@ -9,7 +10,7 @@ interface UserHoursChartProps {
 const UserHoursCharts = ({ email }: UserHoursChartProps) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [userHoursData, setUserHoursData] = useState<any | null>(null);
+  const [userHoursData, setUserHoursData] = useState<UserHoursData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,7 +34,7 @@ const UserHoursCharts = ({ email }: UserHoursChartProps) => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  const chartData = userHoursData?.data.map((entry: any, index: number) => ({
+  const chartData = userHoursData?.data.map((entry: UserHoursEntry, index: number) => ({
     name: `Day ${index + 1}`,
     hours: entry.totalHours,
   }));
