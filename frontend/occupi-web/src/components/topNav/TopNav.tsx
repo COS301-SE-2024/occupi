@@ -7,22 +7,20 @@ type TopNavProps = {
   mainComponent?: JSX.Element;
   searchQuery: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
+};
 
 const TopNav = (props: TopNavProps) => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   return (
+    <div
+      data-testid="topnav"
+      className="sticky top-0 z-50 overflow-visible border-b-[2px] border-b-secondary flex items-center justify-between h-[70px] md:h-[110px] backdrop-blur-[20px] bg-primary_40 px-4 md:px-8"
+    >
+      {/* Main component section */}
+      <div className="hidden md:block">{props.mainComponent}</div>
 
-    <div data-testid='topnav' className="sticky top-0 z-50 overflow-visible border-b-[2px] border-b-secondary flex items-center justify-between h-[70px] md:h-[110px] backdrop-blur-[20px] bg-primary_40 px-4 md:px-8">
-      <div className="hidden md:block">
-
-        {props.mainComponent}
-
-      {/* <div className="md:hidden">
-        <FaBars size={24} className="text-text_col" />
-      </div> */}
-
+      {/* Search input (visible only on large screens) */}
       <div className="hidden md:block relative">
         <input
           type="text"
@@ -33,6 +31,7 @@ const TopNav = (props: TopNavProps) => {
         />
       </div>
 
+      {/* Mobile search visibility and animated search box */}
       <AnimatePresence>
         {isSearchVisible && (
           <motion.div
@@ -63,6 +62,7 @@ const TopNav = (props: TopNavProps) => {
         )}
       </AnimatePresence>
 
+      {/* Action icons */}
       <div className="flex items-center gap-4">
         <motion.button
           whileHover={{ scale: 1.1 }}
@@ -72,10 +72,10 @@ const TopNav = (props: TopNavProps) => {
         >
           <FaSearch size={24} className="text-text_col" />
         </motion.button>
-        {/* <ProfileDropDown /> */}
+        {/* Future ProfileDropDown component can go here */}
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default TopNav;

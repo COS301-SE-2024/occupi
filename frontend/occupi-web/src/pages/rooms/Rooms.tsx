@@ -28,7 +28,7 @@ import {
   FaUpload,
 } from "react-icons/fa";
 import { AddRoomModal, FeedBackModal, TopNav } from "@components/index";
-import { uploadRoomImage, getImageUrl } from 'Api';
+import { uploadRoomImage } from 'Api';
 import axios from "axios";
 
 interface Room {
