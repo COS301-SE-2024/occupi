@@ -31,28 +31,32 @@ const UserStatsReport = ({ email }: { email: string }) => {
           dailyHours: userHours.data,
           workRatio: {
             ...userWorkRatio.data[0],
-            days: userWorkRatio.data[0].days.map((day: any) => ({
+            days: userWorkRatio.data[0].days.map((day: { weekday: string; avgArrival?: string; avgDeparture?: string; hours?: number[]; ratio: number }) => ({
               ...day,
-              avgArrival: day.avgArrival || '',
-              avgDeparture: day.avgDeparture || '',
-              hours: day.hours || []
+              avgArrival: day.avgArrival ?? '',
+              avgDeparture: day.avgDeparture ?? '',
+              hours: day.hours ?? [],
+              ratio: day.ratio ?? 0
             }))
           },
           arrivalDeparture: {
             ...userArrivalDepartureAverage.data[0],
-            days: userArrivalDepartureAverage.data[0].days.map((day: any) => ({
+            days: userArrivalDepartureAverage.data[0].days.map((day: { weekday: string; avgArrival: string; avgDeparture: string }) => ({
               ...day,
-              ratio: day.ratio || 0,
-              hours: day.hours || []
+              ratio: 0,
+              hours: []
             }))
           },
           peakHours: {
             ...userPeakOfficeHours.data[0],
-            days: userPeakOfficeHours.data[0].days.map((day: any) => ({
+            days: userPeakOfficeHours.data[0].days.map((day: {
+              weekday: string; hours: string[]; ratio?: number; avgArrival?: string; avgDeparture?: string 
+            }) => ({
               ...day,
-              ratio: day.ratio || 0,
-              avgArrival: day.avgArrival || '',
-              avgDeparture: day.avgDeparture || ''
+              hours: day.hours.map(hour => parseFloat(hour)),
+              ratio: day.ratio ?? 0,
+              avgArrival: day.avgArrival ?? '',
+              avgDeparture: day.avgDeparture ?? ''
             }))
           },
         });

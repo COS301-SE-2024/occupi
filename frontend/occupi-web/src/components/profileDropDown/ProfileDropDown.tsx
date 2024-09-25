@@ -31,7 +31,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
   const [notifications, setNotifications] = useState<
     import("NotificationsService").Notification[]
   >([]);
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [, setAvatarUrl] = useState("");
 
   useEffect(() => {
     loadNotifications();
