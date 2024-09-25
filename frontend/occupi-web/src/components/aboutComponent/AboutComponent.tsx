@@ -19,7 +19,7 @@ const AboutComponent = () => {
         <p className="mt-2 text-3xl text-text_col text-center">Predict. Plan. Perfect</p>
 
         <div className="text-center text-2xl mt-4">
-          <p className="text-text_col">version: 0.2.0</p>
+          <p className="text-text_col">version: 0.9.0</p>
           <p className="text-text_col">Web</p>
           <p className="text-text_col">Chrome 18.0.4</p>
         </div>
