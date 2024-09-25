@@ -136,7 +136,7 @@ const ProfileView = () => {
         />
       </div>
       {uploadStatus !== '' && <p className='w-full h-9 text-text_col text-sm leading-none mt-4'>{uploadStatus}</p>}
-      
+      <div className="w-full h-9 text-text_col text-base font-semibold leading-none">Full name Test</div>
 
       <div className="border-b-secondary border-b-[2px] rounded-2xl my-4" />
 
