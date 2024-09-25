@@ -96,12 +96,36 @@ export const fetchUserPeakHours = async (timeFrom?: string, timeTo?: string) => 
         req.timeTo = timeTo;
     }
     const total = await getAnalytics(req, 'user-peak-office-hours');
-    // console.log('peak', total.data[0].overallWeekdayCount)
+    // console.log('peak', total.data[0].days)
+    const ordered = sortDaysInOrder(total.data[0].days);
+    console.log('yurp bruh',getTodayTopHour(ordered));
     if (total.data === null) {
         console.log("returning -1");
         return -1;
     }
-    return total.data.days;
+    return getTodayTopHour(ordered);
+}
+
+function getTodayTopHour(days: { weekday: string; hours: number[] }[]): { weekday: string; hour: number | null } {
+    // Get today's date and weekday index (0 = Sunday, 6 = Saturday)
+    const today = new Date();
+    const dayIndex = today.getDay();
+
+    // Map index to weekday name
+    const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const todayWeekday = weekDays[dayIndex];
+
+    // Find the day object matching today's weekday
+    const todayData = days.find((day) => day.weekday === todayWeekday);
+
+    // Return the top hour if available
+    if (todayData && todayData.hours.length > 0) {
+        const topHour = todayData.hours[0];
+        return { weekday: todayWeekday, hour: topHour };
+    } else {
+        // Return null if today's data is not found or hours are empty
+        return { weekday: todayWeekday, hour: null };
+    }
 }
 
 export const fetchUserArrivalAndDeparture = async (timeFrom?: string, timeTo?: string) => {
@@ -270,6 +294,13 @@ export const convertAvgDeparture = (data: InputObjectArrival[]): OutputObject[] 
             dataPointText: item.avgDeparture,
             value: value
         };
+    });
+}
+
+function sortDaysInOrder(days: {weekday: string, hours: number[]}[]): {weekday: string, hours: number[]}[] {
+    const weekDaysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    return days.sort((a, b) => {
+        return weekDaysOrder.indexOf(a.weekday) - weekDaysOrder.indexOf(b.weekday);
     });
 }
 

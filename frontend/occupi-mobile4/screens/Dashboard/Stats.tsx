@@ -234,7 +234,7 @@ const Stats = () => {
       // console.log('hours', hours);
       const average = await fetchUserAverageHours(timefrom, timeto);
       const ratio = await fetchWorkRatio(timefrom, timeto);
-      // const peak = await fetchUserPeakHours(timeFrom, timeTo);
+      const peak = await fetchUserPeakHours(timeFrom, timeTo);
       const arrivalDeparture = await fetchUserArrivalAndDeparture(timefrom, timeto);
       const inOffice = await fetchUserInOfficeRate(timefrom, timeto);
       // console.log('hours', hours);
@@ -246,7 +246,7 @@ const Stats = () => {
       setUserHours(hours);
       setUserAverage(average);
       setWorkRatio(ratio);
-      // setPeakHours(peak);
+      setPeakHours(peak);
       setArrival(arrivalDeparture[0]);
       setDeparture(arrivalDeparture[1]);
       setInOfficeRate(inOffice);
@@ -541,9 +541,9 @@ const Stats = () => {
               color: textColor,
             }}>Peak Hours:</Text>
             {!isLoading ? (
-              <Text color={textColor}>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(peakHours)}</Text>
+              <Text color={textColor}>{userHours === -1 ? "No data for selected period" : peakHours.weekday + ": " + peakHours.hour + ":00"}</Text>
             ) : (
-              <Text color={textColor}>No peak hours found</Text>
+              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
             )}
           </View>
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
