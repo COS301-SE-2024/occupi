@@ -99,7 +99,7 @@ def get_prediction(day_of_week, month, day_of_month, is_weekend, special_event, 
 def get_hourly_predictions(day_of_week, hour, scaler, day_name):
     try:
         # Prepare input data: [day_of_week, hour]
-        sample_input = np.array([[day_of_week, hour]])  # Example input
+        sample_input = np.array([[day_of_week, hour]])
         
         # Scale the hour feature using the provided scaler
         hour_scaled = scaler.transform(sample_input[:, -1].reshape(-1, 1))  # Scale the hour feature
