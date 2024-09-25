@@ -1,4 +1,5 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
+
 const BASE_URL = '/analytics';
 
 interface AnalyticsParams {
@@ -8,25 +9,25 @@ interface AnalyticsParams {
     page?: number;
 }
 
-interface AnalyticsResponse {
+interface AnalyticsResponse<T> {
     response: string;
-    data: any[];
+    data: T[];
     totalResults: number;
     totalPages: number;
     currentPage: number;
     status: number;
 }
 
-const fetchWithRetry = async (
+const fetchWithRetry = async <T>(
     url: string,
     params: AnalyticsParams,
     retries = 3,
     delay = 1000
-): Promise<AnalyticsResponse> => {
+): Promise<AnalyticsResponse<T>> => {
     try {
-        const response = await axios.get<AnalyticsResponse>(url, { params });
+        const response = await axios.get<AnalyticsResponse<T>>(url, { params });
         return response.data;
-    } catch (error: AxiosError | any) {
+    } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 429 && retries > 0) {
             console.warn(`Rate limit hit, retrying in ${delay}ms...`);
             await new Promise((resolve) => setTimeout(resolve, delay));
@@ -38,33 +39,33 @@ const fetchWithRetry = async (
 };
 
 // Updated fetchAnalytics to use fetchWithRetry
-const fetchAnalytics = (endpoint: string, params: AnalyticsParams): Promise<AnalyticsResponse> =>
-    fetchWithRetry(`${BASE_URL}${endpoint}`, params);
+const fetchAnalytics = <T>(endpoint: string, params: AnalyticsParams): Promise<AnalyticsResponse<T>> =>
+    fetchWithRetry<T>(`${BASE_URL}${endpoint}`, params);
 
 export const getHours = (params: AnalyticsParams) =>
-    fetchAnalytics('/hours', params);
+    fetchAnalytics<unknown>('/hours', params);
 
 export const getAverageHours = (params: AnalyticsParams) =>
-    fetchAnalytics('/average-hours', params);
+    fetchAnalytics<unknown>('/average-hours', params);
 
 export const getWorkRatio = (params: AnalyticsParams) =>
-    fetchAnalytics('/work-ratio', params);
+    fetchAnalytics<unknown>('/work-ratio', params);
 
 export const getPeakOfficeHours = (params: AnalyticsParams) =>
-    fetchAnalytics('/peak-office-hours', params);
+    fetchAnalytics<unknown>('/peak-office-hours', params);
 
 export const getArrivalDepartureAverage = (params: AnalyticsParams) =>
-    fetchAnalytics('/arrival-departure-average', params);
+    fetchAnalytics<unknown>('/arrival-departure-average', params);
 
 export const getInOfficeRate = (params: AnalyticsParams) =>
-    fetchAnalytics('/in-office', params);
+    fetchAnalytics<unknown>('/in-office', params);
 
 // New function to get the most active employee data
 export const getMostActiveEmployee = (params: AnalyticsParams) =>
-    fetchAnalytics('/most-active-employee', params);
+    fetchAnalytics<MostActiveEmployeeData>('/most-active-employee', params);
 
 export const getLeastActiveEmployee = (params: AnalyticsParams) =>
-  fetchAnalytics('/least-active-employee', params);
+  fetchAnalytics<LeastActiveEmployeeData>('/least-active-employee', params);
 
 // Define the shape of the most active employee data
 export interface MostActiveEmployeeData {
