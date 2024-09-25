@@ -4,7 +4,7 @@ import json
 from sklearn.preprocessing import StandardScaler
 import logging
 
-# Define the URL for the TensorFlow Serving API for both daily and hourly model
+# Define the URL for the TensorFlow Serving API for both daily and hourly models
 daily_model_url = 'http://model:8501/v1/models/attendance_model:predict'
 hourly_model_url = 'http://hourly-model:8501/v1/models/hourly_attendance_model:predict'  # Adjust the URL as needed
 
