@@ -6,7 +6,7 @@ import logging
 
 # Define the URL for the TensorFlow Serving API for both daily and hourly models
 daily_model_url = 'http://model:8501/v1/models/attendance_model:predict'
-hourly_model_url = 'http://hourly-model:8501/v1/models/hourly_attendance_model:predict'  # Adjust the URL as needed
+hourly_model_url = 'http://hourly-model:8502/v1/models/hourly_attendance_model:predict'  # Adjust the URL as needed
 
 # Define the attendance levels based on the bin ranges
 attendance_levels = ["0-300", "300-600", "600-900", "900-1200", "1200-1500", "1500-1800", "1800+"]
