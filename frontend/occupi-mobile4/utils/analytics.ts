@@ -128,6 +128,54 @@ function getTodayTopHour(days: { weekday: string; hours: number[] }[]): { weekda
     }
 }
 
+function getFormattedData(days: { weekday: string; hours: number[] }[]): string {
+    // Define the correct order of weekdays
+    const weekDaysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    // Sort the days array in order of weekdays
+    const sortedDays = days.slice().sort((a, b) => {
+        return weekDaysOrder.indexOf(a.weekday) - weekDaysOrder.indexOf(b.weekday);
+    });
+
+    // Suffixes for numbering
+    const suffixes = ["1st", "2nd", "3rd"];
+
+    // Build the formatted string
+    let result = "";
+
+    sortedDays.forEach((day) => {
+        result += `${day.weekday}:\n`;
+        day.hours.forEach((hour, index) => {
+            const suffix = suffixes[index] || `${index + 1}th`;
+            result += `  ${suffix}: ${hour}\n`;
+        });
+    });
+
+    return result;
+}
+
+export const getAllPeakHours = async (timeFrom?: string, timeTo?: string) => {
+    const req: Partial<AnalyticsReq> = {};
+    // console.log(timeFrom);
+
+    if (timeFrom !== "") {
+        req.timeFrom = timeFrom;
+    }
+
+    if (timeTo !== "") {
+        req.timeTo = timeTo;
+    }
+    const total = await getAnalytics(req, 'user-peak-office-hours');
+    // console.log('peak', total.data[0].days)
+    const ordered = sortDaysInOrder(total.data[0].days);
+    console.log('yurp bruh',getTodayTopHour(ordered));
+    if (total.data === null) {
+        // console.log("returning -1");
+        return {};
+    }
+    return ordered;
+}
+
 export const fetchUserArrivalAndDeparture = async (timeFrom?: string, timeTo?: string) => {
     const req: Partial<AnalyticsReq> = {};
     // console.log(timeFrom);

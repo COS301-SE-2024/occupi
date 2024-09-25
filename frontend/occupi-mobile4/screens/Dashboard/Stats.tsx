@@ -13,7 +13,7 @@ import { Text, View, Icon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from 'expo-router';
 import { getAnalytics } from '@/services/analyticsservices';
-import { convertAvgArrival, convertAvgDeparture, convertData, fetchUserArrivalAndDeparture, fetchUserArrivalAndDepartureArray, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio } from '@/utils/analytics';
+import { convertAvgArrival, convertAvgDeparture, convertData, fetchUserArrivalAndDeparture, fetchUserArrivalAndDepartureArray, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio, getAllPeakHours } from '@/utils/analytics';
 import ComparativelineGraph from '@/components/ComparativeLineGraph';
 import PieGraph from '@/components/PieGraph';
 import * as Print from 'expo-print';
@@ -39,6 +39,7 @@ const Stats = () => {
   const [inOfficeRate, setInOfficeRate] = useState<number>();
   const [timeFrom, setTimeFrom] = useState<string>("");
   const [timeTo, setTimeTo] = useState<string>("");
+  const [peakHoursAll, setPeakHoursAll] = useState([]);
   const [totalGraph, setTotalGraph] = useState(false);
   const [graphData, setGraphData] = useState(null);
   const [timeGraph, setTimeGraph] = useState(false);
@@ -49,6 +50,8 @@ const Stats = () => {
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
   const cardBackgroundColor = isDarkMode ? '#101010' : '#F3F3F3';
+
+  const suffixes = ['1', '2', '3'];
 
   const convertToHoursAndMinutes = (totalHours: number): string => {
     const hours = Math.floor(totalHours);
@@ -100,6 +103,22 @@ const Stats = () => {
         setGraphData(inOfficeRate);
         setActiveGraph("rate");
         // console.log(timeFrom, timeTo);
+      }
+    }
+    else if (data === "peak") {
+      if (userHours === -1) {
+        return;
+      }
+      else if (activeGraph !== "") {
+        setGraphData(null);
+        setActiveGraph("");
+        // resetTimeFrames();
+      } else {
+        setActiveGraph("peak");
+        // console.log(timeFrom, timeTo);
+        const data = await getAllPeakHours(timeFrom, timeTo);
+        console.log(data);
+        setPeakHoursAll(data);
       }
     }
   }
@@ -531,22 +550,40 @@ const Stats = () => {
           marginBottom: hp('3%'),
           borderColor: accentColour,
           borderWidth: 2,
-          flexDirection: 'row',
           justifyContent: 'space-between'
         }}>
+          <TouchableOpacity onPress={() => fetchData('peak')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View>
+              <Text style={{
+                fontSize: wp('5%'),
+                fontWeight: 'bold',
+                color: textColor,
+              }}>Peak Hours:</Text>
+              {!isLoading ? (
+                <Text color={textColor}>{userHours === -1 ? "No data for selected period" : peakHours.weekday + ": " + peakHours.hour + ":00"}</Text>
+              ) : (
+                <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
+              )}
+            </View>
+            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
+          </TouchableOpacity>
           <View>
-            <Text style={{
-              fontSize: wp('5%'),
-              fontWeight: 'bold',
-              color: textColor,
-            }}>Peak Hours:</Text>
-            {!isLoading ? (
-              <Text color={textColor}>{userHours === -1 ? "No data for selected period" : peakHours.weekday + ": " + peakHours.hour + ":00"}</Text>
-            ) : (
-              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
-            )}
+            {activeGraph === 'peak' &&
+              peakHoursAll.map((day) => (
+                <View alignItems="center" key={day.weekday}>
+                  <Text bold color={textColor}>{day.weekday}:</Text>
+                  {day.hours.map((hour, index) => {
+                    const suffix = suffixes[index] || `${index + 1}th`;
+                    return (
+                      <Text color={textColor} fontWeight={'$light'} key={index}>
+                        {`  ${suffix}. ${hour}:00`}
+                      </Text>
+                    );
+                  })}
+                </View>
+              ))
+            }
           </View>
-          <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
         </View>
         <View style={{
           backgroundColor: cardBackgroundColor,
