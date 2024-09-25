@@ -18,24 +18,15 @@ export async function getAnalytics(req: AnalyticsReq, endpoint: string): Promise
       },
       withCredentials: true
     });
-    console.log('check',response.data);
+    // console.log('check', response.data);
     return response.data as Success;
   } catch (error) {
-    console.error(`Error1 in ${Function}:`, error);
-    if (axios.isAxiosError(error) && error.response?.data) {
-      console.log(error.response)
+    if (axios.isAxiosError(error) && error.response) {
+      // console.log(error.response.data);
       return error.response.data as Unsuccessful;
+    } else {
+      throw error;
     }
-    return {
-      data: null,
-      status: 'error',
-      message: 'An unexpected error occurred',
-      error: {
-        code: 'UNKNOWN_ERROR',
-        details: 'An unexpected error occurred',
-        message: 'An unexpected error occurred'
-      }
-    } as Unsuccessful;
   }
 }
 

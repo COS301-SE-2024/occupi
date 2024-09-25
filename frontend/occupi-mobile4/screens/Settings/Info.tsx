@@ -32,7 +32,7 @@ const Info = () => {
 
     const handlePressManual = async () => {
         // Replace with actual User Manual URL
-        let result = await WebBrowser.openBrowserAsync('https://example.com/user-manual');
+        let result = await WebBrowser.openBrowserAsync('https://drive.google.com/file/d/1Bljn7L4Bfw71cE3YSctkyA-lgBkzr9G-/view?usp=drive_link');
         setResult(result);
     };
 

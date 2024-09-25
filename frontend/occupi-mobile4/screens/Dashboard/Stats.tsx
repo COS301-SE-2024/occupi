@@ -500,7 +500,7 @@ const Stats = () => {
             }
           </View>
         </View>
-        <View style={{
+        {/* <View style={{
           backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
           padding: wp('4%'),
@@ -523,7 +523,7 @@ const Stats = () => {
             )}
           </View>
           <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
-        </View>
+        </View> */}
         <View style={{
           backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
