@@ -1291,7 +1291,7 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession,
 	return nil
 }
 
-func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
+func AddImageToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -1300,8 +1300,19 @@ func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, i
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
 
+	thumbnailURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), imageID, constants.ThumbnailRes)
+	lowURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), imageID, constants.LowRes)
+	midURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), imageID, constants.MidRes)
+	highURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), imageID, constants.HighRes)
+
 	filter := bson.M{"roomId": roomID}
-	update := bson.M{"$addToSet": bson.M{"roomImageIds": imageID}}
+	update := bson.M{"$set": bson.M{
+		"roomImage.uuid":         imageID,
+		"roomImage.thumbnailRes": thumbnailURL,
+		"roomImage.lowRes":       lowURL,
+		"roomImage.midRes":       midURL,
+		"roomImage.highRes":      highURL,
+	}}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -1312,7 +1323,7 @@ func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, i
 	return nil
 }
 
-func DeleteImageIDFromRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
+func DeleteImageFromRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -1322,7 +1333,13 @@ func DeleteImageIDFromRoom(ctx *gin.Context, appsession *models.AppSession, room
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
 
 	filter := bson.M{"roomId": roomID}
-	update := bson.M{"$pull": bson.M{"roomImageIds": imageID}}
+	update := bson.M{"$set": bson.M{
+		"roomImage.uuid":         "",
+		"roomImage.thumbnailRes": fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.ThumbnailRes),
+		"roomImage.lowRes":       fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.LowRes),
+		"roomImage.midRes":       fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.MidRes),
+		"roomImage.highRes":      fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.HighRes),
+	}}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -1374,7 +1391,13 @@ func AddRoom(ctx *gin.Context, appsession *models.AppSession, rroom models.Reque
 		MaxOccupancy: rroom.MaxOccupancy,
 		Description:  rroom.Description,
 		RoomName:     rroom.RoomName,
-		RoomImageIDs: []string{},
+		RoomImage: models.RoomImage{
+			UUID:         "",
+			ThumbnailRes: fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.ThumbnailRes),
+			LowRes:       fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.LowRes),
+			MidRes:       fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.MidRes),
+			HighRes:      fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.HighRes),
+		},
 	}
 
 	// filter - ensure no room exists with the same roomid or roomno before inserting

@@ -6843,7 +6843,7 @@ func TestUpdateNotificationSettings(t *testing.T) {
 	})
 }
 
-func TestAddImageIDToRoom(t *testing.T) {
+func TestAddImageToRoom(t *testing.T) {
 	// Set Gin mode to match your configuration
 	gin.SetMode(configs.GetGinRunMode())
 
@@ -6856,7 +6856,7 @@ func TestAddImageIDToRoom(t *testing.T) {
 			DB: nil,
 		}
 
-		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		err := database.AddImageToRoom(ctx, appsession, "room1", "image1")
 		assert.EqualError(t, err, "database is nil")
 	})
 
@@ -6868,7 +6868,7 @@ func TestAddImageIDToRoom(t *testing.T) {
 		// Mock the UpdateOne operation as successful
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		err := database.AddImageToRoom(ctx, appsession, "room1", "image1")
 		assert.NoError(t, err)
 	})
 
@@ -6883,12 +6883,12 @@ func TestAddImageIDToRoom(t *testing.T) {
 			Message: "update error",
 		}))
 
-		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		err := database.AddImageToRoom(ctx, appsession, "room1", "image1")
 		assert.EqualError(t, err, "update error")
 	})
 }
 
-func TestDeleteImageIDFromRoom(t *testing.T) {
+func TestDeleteImageFromRoom(t *testing.T) {
 	// Set Gin mode to match your configuration
 	gin.SetMode(configs.GetGinRunMode())
 
@@ -6901,7 +6901,7 @@ func TestDeleteImageIDFromRoom(t *testing.T) {
 			DB: nil,
 		}
 
-		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		err := database.DeleteImageFromRoom(ctx, appsession, "room1", "image1")
 		assert.EqualError(t, err, "database is nil")
 	})
 
@@ -6913,7 +6913,7 @@ func TestDeleteImageIDFromRoom(t *testing.T) {
 		// Mock the UpdateOne operation as successful
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		err := database.DeleteImageFromRoom(ctx, appsession, "room1", "image1")
 		assert.NoError(t, err)
 	})
 
@@ -6928,7 +6928,7 @@ func TestDeleteImageIDFromRoom(t *testing.T) {
 			Message: "delete error",
 		}))
 
-		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		err := database.DeleteImageFromRoom(ctx, appsession, "room1", "image1")
 		assert.EqualError(t, err, "delete error")
 	})
 }
