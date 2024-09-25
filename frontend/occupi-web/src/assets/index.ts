@@ -42,11 +42,12 @@ import Report from "./icons/Report";
 import Faq from "./icons/Faq";
 import UploadButton from "./icons/UploadButton";
 import Upload from "./icons/Upload";
+import LoadingSM from './icons/LoadingSM';
 export {
     loginpng, OccupiLogo, login_image, CheckSquareContained, CloseDrawer, OpenDrawer,
     Grid, PieChart, ColorSwatch, Home, UserProfileGroup, Bell, SettingsIcon, Logout,
     Loading,SettingsImg, Macbook1, Macbook2, Macbook3,
     Userprofile, Pallete, Privacy, AlertIcon, HelpIcon, GraphCol, Cal,
     ChevronDown, ChevronLeft, ChevronRight, Bf, Uptrend, DownTrend, SearchIcon,ChevronDownIcon,PlusIcon,VerticalDotsIcon,EditIcon,EyeIcon,DeleteIcon,occupiLogo,Report,Faq
-    ,UploadButton,Upload
+    ,UploadButton,Upload,LoadingSM
 }

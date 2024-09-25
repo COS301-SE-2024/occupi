@@ -94,7 +94,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
                 as="button"
                 avatarProps={{
                   isBordered: true,
-                  src: `https://i.pravatar.cc/150?u=${userDetails?.employeeid}`,
+                  src: `https://dev.occupi.tech/api/download-profile-image?quality=low`,
                   size: "md",
                 }}
                 className={`transition-transform ${

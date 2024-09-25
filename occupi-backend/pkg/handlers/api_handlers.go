@@ -849,7 +849,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// update has image field in the database
-	if err := database.SetHasImage(ctx, appsession, email, false); err != nil {
+	if err := database.SetHasImage(ctx, appsession, email, true); err != nil {
 		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
