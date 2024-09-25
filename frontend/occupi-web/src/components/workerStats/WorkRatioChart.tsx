@@ -3,8 +3,13 @@ import { Card, CardHeader, CardBody, Spinner } from "@nextui-org/react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { getWorkRatio } from 'WorkerStatsService';
 
+interface WorkRatioData {
+  days: { weekday: string; ratio: number }[];
+  ratio: number;
+}
+
 const WorkRatioChart = () => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<{ weekday: string; ratio: number }[]>([]);
   const [overallRatio, setOverallRatio] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,9 +18,10 @@ const WorkRatioChart = () => {
     const fetchData = async () => {
       try {
         const response = await getWorkRatio({});
-        if (response.data && response.data.length > 0) {
-          setData(response.data[0].days);
-          setOverallRatio(response.data[0].ratio);
+        const responseData = response.data as WorkRatioData[];
+        if (responseData && responseData.length > 0) {
+          setData(responseData[0].days);
+          setOverallRatio(responseData[0].ratio);
         } else {
           throw new Error('No data received');
         }
