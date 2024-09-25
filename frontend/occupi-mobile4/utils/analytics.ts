@@ -14,7 +14,7 @@ export const fetchUserTotalHours = async (timeFrom?: string, timeTo?: string) =>
     if (timeTo !== "") {
         req.timeTo = timeTo;
     }
-    console.log(req);
+    // console.log(req);
     const total = await getAnalytics(req, 'user-hours');
     // console.log('totals',total.data[0].overallTotal);
     if (total.data === null) {
@@ -96,8 +96,16 @@ export const fetchUserPeakHours = async (timeFrom?: string, timeTo?: string) => 
         req.timeTo = timeTo;
     }
     const total = await getAnalytics(req, 'user-peak-office-hours');
-    // console.log('peak', total.data[0].days)
-    const ordered = sortDaysInOrder(total.data[0].days);
+    // console.log('peak', total.data[0].days);
+    let ordered = [];
+    if (total && total.data && total.data.length > 0 && total.data[0].days) {
+        ordered = sortDaysInOrder(total.data[0].days);
+        // Proceed with 'ordered'
+      } else {
+        // Handle the case where 'days' data is missing
+        ordered = [];
+        // You can set a default value or handle it as needed
+      }
     console.log('yurp bruh',getTodayTopHour(ordered));
     if (total.data === null) {
         console.log("returning -1");

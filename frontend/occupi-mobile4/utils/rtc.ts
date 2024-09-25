@@ -78,9 +78,17 @@ const disconnectCentrifuge = () => {
 
 // Function to fetch the latest count from the backend
 const fetchLatestCount = async (): Promise<number> => {
+  let authToken = await SecureStore.getItemAsync('Token');
   try {
-    const response = await axios.get(`https://dev.occupi.tech/rtc/current-count`); // Adjust the URL to match your API endpoint
-    console.log('current-countt:',`${CENTRIFUGO_URL}${RTC_URL}/current-count`);
+    const response = await axios.get(`https://dev.occupi.tech/rtc/current-count`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });// Adjust the URL to match your API endpoint
+    // console.log('current-countt:',`${CENTRIFUGO_URL}${RTC_URL}/current-count`);
     return response.data.data; // Assuming the API response has a 'count' field
   } catch (error) {
     console.error("Error fetching the latest count:", error);

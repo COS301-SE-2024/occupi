@@ -18,6 +18,7 @@ import ComparativelineGraph from '@/components/ComparativeLineGraph';
 import PieGraph from '@/components/PieGraph';
 import * as Print from 'expo-print';
 import { shareAsync } from 'expo-sharing';
+import Tooltip from '@/components/Tooltip';
 
 const Stats = () => {
   const navigation = useNavigation();
@@ -250,10 +251,10 @@ const Stats = () => {
     setIsLoading(true);
     try {
       const hours = await fetchUserTotalHours(timefrom, timeto);
-      // console.log('hours', hours);
+      console.log('hours', hours);
       const average = await fetchUserAverageHours(timefrom, timeto);
       const ratio = await fetchWorkRatio(timefrom, timeto);
-      const peak = await fetchUserPeakHours(timeFrom, timeTo);
+      const peak = await fetchUserPeakHours(timefrom, timeto);
       const arrivalDeparture = await fetchUserArrivalAndDeparture(timefrom, timeto);
       const inOffice = await fetchUserInOfficeRate(timefrom, timeto);
       // console.log('hours', hours);
@@ -490,11 +491,17 @@ const Stats = () => {
         >
           <TouchableOpacity onPress={() => fetchData('hours')} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <View>
-              <Text style={{
-                fontSize: wp('5%'),
-                fontWeight: 'bold',
-                color: textColor,
-              }}>Average Hours Per Day: </Text>
+              <View alignItems='center' flexDirection='row'>
+                <Text style={{
+                  fontSize: wp('5%'),
+                  fontWeight: 'bold',
+                  color: textColor,
+                }}>Average Hours Per Day: </Text>
+                <Tooltip
+                  content="These values indicate on average, the number of hours you spend in the office in 1 day."
+                  placement="bottom"
+                />
+              </View>
               {!isLoading ? (
                 <Text color={textColor}>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userAverage)}</Text>
               ) : (
