@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import * as userStatsService from "userStatsService";
 import PieChartComponent from "./PieChartComponent";
+import { UserWorkRatioData, WorkRatioEntry } from './UserStatsTypes';
 
 interface UserWorkRatioChartProps {
   email: string;
@@ -9,7 +10,7 @@ interface UserWorkRatioChartProps {
 const UserWorkRatioChart = ({ email }: UserWorkRatioChartProps) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [userWorkRatioData, setUserWorkRatioData] = useState<any | null>(null);
+  const [userWorkRatioData, setUserWorkRatioData] = useState<UserWorkRatioData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,7 +34,7 @@ const UserWorkRatioChart = ({ email }: UserWorkRatioChartProps) => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  const chartData = userWorkRatioData?.data.map((entry: any, index: number) => ({
+  const chartData = userWorkRatioData?.data.map((entry: WorkRatioEntry, index: number) => ({
     name: `Entry ${index + 1}`,
     value: entry.ratio,
   }));

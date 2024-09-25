@@ -51,8 +51,19 @@ const defaultLayouts: Layouts = {
   })),
 };
 
+interface WorkerStats {
+  hours: string | null;
+  averageHours: string | null;
+  workRatio: string | null;
+  peakOfficeHours: string | null;
+  arrivalDepartureAverage: string | null;
+  inOfficeRate: string | null;
+  mostActiveEmployee: string | null;
+  leastActiveEmployee: string | null;
+}
+
 const WorkerStatsDashboard: React.FC = () => {
-  const [stats, setStats] = useState<Record<string, string | null>>({
+  const [stats, setStats] = useState<WorkerStats>({
     hours: null,
     averageHours: null,
     workRatio: null,
@@ -89,15 +100,11 @@ const WorkerStatsDashboard: React.FC = () => {
           "inOfficeRate",
           "mostActiveEmployee",
           "leastActiveEmployee",
-        ];
+        ] as const;
         const results = await Promise.all(
           statNames.map((stat) => {
-            const method = workerStats[
-              `get${
-                stat.charAt(0).toUpperCase() + stat.slice(1)
-              }` as keyof typeof workerStats
-            ] as Function;
-            return method({});
+            const method = workerStats[`get${stat.charAt(0).toUpperCase() + stat.slice(1)}` as keyof typeof workerStats] as unknown as () => Promise<{ data: [string] }>;
+            return method();
           })
         );
 
@@ -105,7 +112,7 @@ const WorkerStatsDashboard: React.FC = () => {
           const result = results[index].data[0];
           acc[stat] = formatStat(stat, result);
           return acc;
-        }, {} as Record<string, string>);
+        }, {} as WorkerStats);
 
         setStats(newStats);
         setLoading(false);
@@ -129,23 +136,29 @@ const WorkerStatsDashboard: React.FC = () => {
     );
   }, [layouts, visibleCards]);
 
-  const formatStat = (stat: string, value: any): string => {
+  const formatStat = (stat: string, value: unknown): string => {
     switch (stat) {
       case "hours":
       case "averageHours":
-        return value?.overallTotal?.toFixed(2) || "N/A";
+        return typeof value === "object" && value !== null && "overallTotal" in value
+          ? (value.overallTotal as number).toFixed(2)
+          : "N/A";
       case "workRatio":
-        return value ? `${(value * 100).toFixed(2)}%` : "N/A";
+        return typeof value === "number" ? `${(value * 100).toFixed(2)}%` : "N/A";
       case "peakOfficeHours":
-        return value?.peakHours || "N/A";
-
+        return typeof value === "object" && value !== null && "peakHours" in value
+          ? value.peakHours as string
+          : "N/A";
       case "arrivalDepartureAverage":
-        return value
+        return typeof value === "object" && value !== null &&
+               "overallavgArrival" in value && "overallavgDeparture" in value
           ? `${value.overallavgArrival} - ${value.overallavgDeparture}`
           : "N/A";
       case "mostActiveEmployee":
       case "leastActiveEmployee":
-        return value?.email || "N/A";
+        return typeof value === "object" && value !== null && "email" in value
+          ? value.email as string
+          : "N/A";
       default:
         return "N/A";
     }
@@ -243,9 +256,12 @@ const WorkerStatsDashboard: React.FC = () => {
 
   return (
     <div className="w-full overflow-auto">
-      <TopNav searchQuery={""} onChange={function (): void {
-        throw new Error("Function not implemented.");
-      } }></TopNav>
+      <TopNav
+        searchQuery=""
+        onChange={() => {
+          console.log("Search query changed");
+        }}
+      />
       <div className="flex justify-between mb-4">
         <Button
           color="primary"
@@ -318,22 +334,18 @@ const WorkerStatsDashboard: React.FC = () => {
       <div className="mb-3 ml-5 flex gap-5 ">
         <div>
           <div className=" mb-5">
-            <ActiveEmployeeCard></ActiveEmployeeCard>
+            <ActiveEmployeeCard />
           </div>
-          <LeastActiveEmployeeCard></LeastActiveEmployeeCard>
+          <LeastActiveEmployeeCard />
         </div>
 
         <div className="flex gap-6 ">
-          <PeakOfficeHoursChart></PeakOfficeHoursChart>
-          <HoursDashboard></HoursDashboard>
-          <AverageHoursChart></AverageHoursChart>
-          <WorkRatioChart></WorkRatioChart>
-
+          <PeakOfficeHoursChart />
+          <HoursDashboard />
+          <AverageHoursChart />
+          <WorkRatioChart />
         </div>
       </div>
-      {/* <div className="mb-3 ml-5 flex gap-5 ">
-        <WorkRatioChart></WorkRatioChart>
-      </div> */}
     </div>
   );
 };

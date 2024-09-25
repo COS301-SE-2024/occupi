@@ -27,7 +27,7 @@ import {
   FaPlus,
   FaUpload,
 } from "react-icons/fa";
-import { AddRoomModal, EditRoomModal, FeedBackModal, TopNav } from "@components/index";
+import { AddRoomModal, FeedBackModal, TopNav } from "@components/index";
 import { uploadRoomImage, getImageUrl } from 'Api';
 import axios from "axios";
 
@@ -63,7 +63,7 @@ const Rooms: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [filterCriteria, setFilterCriteria] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [, setIsEditModalOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [roomToDisable, setRoomToDisable] = useState<Room | null>(null);
@@ -154,16 +154,16 @@ const Rooms: React.FC = () => {
     }
   };
 
-  const handleSaveRoom = async (updatedRoom: Room) => {
-    try {
-      await axios.put(`/api/update-room/${updatedRoom.roomId}`, updatedRoom);
-      setRooms(rooms.map((r) => (r.roomId === updatedRoom.roomId ? updatedRoom : r)));
-      setFilteredRooms(filteredRooms.map((r) => (r.roomId === updatedRoom.roomId ? updatedRoom : r)));
-    } catch (error) {
-      console.error("Error updating room:", error);
-      setErrorMessage("Failed to update room. Please try again.");
-    }
-  };
+  // const handleSaveRoom = async (updatedRoom: Room) => {
+  //   try {
+  //     await axios.put(`/api/update-room/${updatedRoom.roomId}`, updatedRoom);
+  //     setRooms(rooms.map((r) => (r.roomId === updatedRoom.roomId ? updatedRoom : r)));
+  //     setFilteredRooms(filteredRooms.map((r) => (r.roomId === updatedRoom.roomId ? updatedRoom : r)));
+  //   } catch (error) {
+  //     console.error("Error updating room:", error);
+  //     setErrorMessage("Failed to update room. Please try again.");
+  //   }
+  // };
 
   const handleAddRoom = async (newRoom: Omit<Room, 'roomId' | 'imageUrl' | 'isDisabled'>) => {
     try {

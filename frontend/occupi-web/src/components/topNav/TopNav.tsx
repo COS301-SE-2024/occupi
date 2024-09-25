@@ -1,6 +1,6 @@
 // TopNav.tsx
 import React, { useState } from 'react';
-import { FaSearch, FaBars, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaTimes } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type TopNavProps = {
