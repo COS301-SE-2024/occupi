@@ -13,14 +13,14 @@ const TopNav = (props: TopNavProps) => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   return (
-    <div
-      data-testid="topnav"
-      className="sticky top-0 z-50 overflow-visible border-b-[2px] border-b-secondary flex items-center justify-between h-[70px] md:h-[110px] backdrop-blur-[20px] bg-primary_40 px-4 md:px-8"
-    >
-      {/* Main component section */}
-      <div className="hidden md:block">{props.mainComponent}</div>
 
-      {/* Search input (visible only on large screens) */}
+    <div data-testid='topnav' className="sticky top-0 z-50 overflow-visible border-b-[2px] border-b-secondary flex items-center justify-between h-[70px] md:h-[110px] backdrop-blur-[20px] bg-primary_40 px-4 md:px-8">
+        {props.mainComponent}
+
+      {/* <div className="md:hidden">
+        <FaBars size={24} className="text-text_col" />
+      </div> */}
+
       <div className="hidden md:block relative">
         <input
           type="text"
