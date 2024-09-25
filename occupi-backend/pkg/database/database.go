@@ -1025,6 +1025,29 @@ func ReadNotifications(ctx *gin.Context, appsession *models.AppSession, email st
 	return nil
 }
 
+func DeleteNotificationForUser(ctx *gin.Context, appsession *models.AppSession, request models.DeleteNotiRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
+
+	// update this notification by removing this email from emails and unreademails array
+	updateFilter := bson.M{"notiId": request.NotiID}
+
+	updateProjection := bson.M{"$pull": bson.M{"emails": request.Email, "unreadEmails": request.Email}}
+
+	_, err := collection.UpdateOne(ctx, updateFilter, updateProjection)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
 func GetSecuritySettings(ctx *gin.Context, appsession *models.AppSession, email string) (models.SecuritySettingsRequest, error) {
 	// check if database is nil
 	if appsession.DB == nil {

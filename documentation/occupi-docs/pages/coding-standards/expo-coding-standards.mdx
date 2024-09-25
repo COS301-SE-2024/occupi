@@ -1,0 +1,507 @@
+## **Coding Standards for Expo App**
+
+- [Coding Standards for Expo App](#coding-standards-for-expo-app)
+  - [1. Naming Conventions](#1-naming-conventions)
+    - [Variables & Functions](#variables--functions)
+    - [Components & Classes](#components--classes)
+    - [Constants](#constants)
+  - [2. Imports & Libraries](#2-imports--libraries)
+    - [GlueStack UI Imports](#gluestack-ui-imports)
+    - [React Native Imports](#react-native-imports)
+  - [3. Styling](#3-styling)
+    - [Inline Styling with `style` Prop](#inline-styling-with-style-prop)
+    - [GlueStack's Inline Styling with `sx` Prop](#gluestacks-inline-styling-with-sx-prop)
+  - [4. Components](#4-components)
+    - [Functional Components](#functional-components)
+    - [Prop Destructuring](#prop-destructuring)
+  - [5. Code Structure & Organization](#5-code-structure--organization)
+    - [5.1 Folder Structure](#51-folder-structure)
+    - [5.2 Folder Responsibilities](#52-folder-responsibilities)
+    - [5.3 General Code Organization](#53-general-code-organization)
+  - [6. State Management](#6-state-management)
+    - [`useState` Hook](#usestate-hook)
+    - [`useEffect` Hook](#useeffect-hook)
+    - [Avoid Inline Functions in JSX](#avoid-inline-functions-in-jsx)
+  - [7. Comments & Documentation](#7-comments--documentation)
+    - [Code Comments](#code-comments)
+    - [Function Documentation](#function-documentation)
+  - [8. TypeScript Practices](#8-typescript-practices)
+    - [Type Annotations](#type-annotations)
+    - [Interfaces vs. Types](#interfaces-vs-types)
+    - [Strict Typing](#strict-typing)
+  - [9. Error Handling](#9-error-handling)
+    - [Services Layer (`services/`)](#services-layer-services)
+    - [Utils Layer (`utils/`)](#utils-layer-utils)
+  - [10. Best Practices](#10-best-practices)
+    - [Reusability](#reusability)
+    - [Readability](#readability)
+    - [Version Control](#version-control)
+  - [11. Testing Standards](#11-testing-standards)
+    - [11.1 General Testing Guidelines](#11.1-general-testing-guidelines)
+    - [11.2 Writing Tests](#11.2-writing-tests)
+    - [11.3 Testing Components](#11.3-testing-components)
+    - [11.4 Mocking and Stubs](#11.4-mocking-and-stubs)
+    - [11.5 Test Organization](#11.5-test-organization)
+    - [11.6 Code Coverage](#11.6-code-coverage)
+    - [11.7 Continuous Integration](#11.7-continuous-integration)
+    - [11.8 Best Practices in Testing](#11.8-best-practices-in-testing)
+    - [11.9 Example Test for a Service Function](#11.9-example-test-for-a-service-function)
+
+---
+
+### **1. Naming Conventions**
+
+- **Variables & Functions:** Use `camelCase` for all variable and function names.
+  - **Example:**
+    ```typescript
+    let userName = "John";
+    function getUserData() {}
+    ```
+
+- **Components & Classes:** Use `PascalCase` for naming React components and class names.
+  - **Example:**
+    ```typescript
+    const UserProfile = () => {};
+    ```
+
+- **Constants:** Use `UPPER_SNAKE_CASE` for constants.
+  - **Example:**
+    ```typescript
+    const API_URL = "https://api.example.com";
+    ```
+
+### **2. Imports & Libraries**
+
+- **GlueStack UI Imports:** For UI components that require inline styling, import the following elements from `gluestack/ui` instead of `react-native`.
+  - **Components to Import from `gluestack/ui`:**
+    - `View`
+    - `Text`
+    - `Toast`
+    - `Icon`
+    - `Box`
+
+  - **Example:**
+    ```typescript
+    import { View, Text, Toast, Icon, Box } from 'gluestack/ui';
+    ```
+
+- **React Native Imports:** For other components that don’t require GlueStack’s inline styling, import them directly from `react-native`.
+
+### **3. Styling**
+
+- **Inline Styling with `style` Prop:** Use the `style` prop for inline styling when working with standard React Native components.
+  - **Example:**
+    ```typescript
+    <View style={{ padding: 10 }}>
+      <Text style={{ color: "blue" }}>Hello World</Text>
+    </View>
+    ```
+
+- **GlueStack's Inline Styling with `sx` Prop:** For components imported from `gluestack/ui`, use the `sx` prop to apply GlueStack's styling system.
+  - **Example:**
+    ```typescript
+    <Box sx={{ padding: 10 }}>
+      <Text sx={{ color: "blue" }}>Hello World</Text>
+    </Box>
+    ```
+
+### **4. Components**
+
+- **Functional Components:** Use arrow functions for defining React components.
+  - **Example:**
+    ```typescript
+    const UserProfile = () => {
+      return <View>...</View>;
+    };
+    ```
+
+- **Prop Destructuring:** Destructure props at the top of the component for clarity.
+  - **Example:**
+    ```typescript
+    const UserProfile = ({ userName }) => {
+      return <Text>{userName}</Text>;
+    };
+    ```
+
+### **5. Code Structure & Organization**
+
+#### **5.1 Folder Structure**
+
+Organize your project files into the following folders:
+
+- **`src/`**
+  - **`assets/`**: Images, fonts, and other static resources.
+  - **`components/`**: Reusable UI components.
+  - **`screens/`**: Screen components for navigation.
+  - **`services/`**: TypeScript files that make direct API calls.
+  - **`utils/`**: Functions that bridge the frontend and backend by calling services and preparing data.
+  - **`models/`**: TypeScript interfaces and types used throughout the project.
+
+**Example Structure:**
+```
+src/
+├── assets/
+├── components/
+├── models/
+│   └── IUser.ts
+├── screens/
+├── services/
+│   └── userService.ts
+├── utils/
+│   └── userUtils.ts
+```
+
+#### **5.2 Folder Responsibilities**
+
+- **`services/`**
+  - Contains TypeScript files that directly interact with external APIs.
+  - **Coding Standards:**
+    - Name files after the service they provide, e.g., `userService.ts`.
+    - Functions should handle API calls and return raw data or error responses.
+    - Handle API errors gracefully and return meaningful error messages.
+
+- **`utils/`**
+  - Acts as a bridge between the frontend and backend.
+  - Calls functions from `services/` and processes data before it's used in the frontend.
+  - **Coding Standards:**
+    - Name files according to their functionality, e.g., `userUtils.ts`.
+    - Functions should prepare and sanitize data, handle request bodies, and format responses.
+    - Ensure data returned is in the appropriate format for frontend consumption.
+
+- **`models/`**
+  - Stores all TypeScript interfaces and types used across the project.
+  - **Coding Standards:**
+    - Name interfaces with a capital `I` prefix, e.g., `IUser`.
+      ```typescript
+      export interface IUser {
+        id: string;
+        name: string;
+        email: string;
+      }
+      ```
+    - Use PascalCase for interface and type names.
+    - Keep interfaces and types concise and relevant to their usage.
+
+#### **5.3 General Code Organization**
+
+- **Component Files:**
+  - Each component should reside in its own file.
+  - The file name should match the component name, using `PascalCase`.
+  - **Example:**
+    ```
+    components/
+    └── UserProfile.tsx
+    ```
+
+- **Export Statements:**
+  - Use named exports for all functions, components, and variables.
+    ```typescript
+    // Correct
+    export const UserProfile = () => { ... };
+    // Incorrect
+    export default UserProfile;
+    ```
+
+### **6. State Management**
+
+- **`useState` Hook:**
+  - Use the `useState` hook for managing local state within functional components.
+  - **Example:**
+    ```typescript
+    const [userName, setUserName] = useState("");
+    ```
+
+- **`useEffect` Hook:**
+  - Use the `useEffect` hook for side effects such as data fetching.
+  - **Example:**
+    ```typescript
+    useEffect(() => {
+      fetchUserData();
+    }, []);
+    ```
+
+- **Avoid Inline Functions in JSX:**
+  - Define functions outside of JSX to prevent unnecessary re-renders.
+  - **Example:**
+    ```typescript
+    const handleClick = () => { ... };
+
+    return (
+      <Button onPress={handleClick}>Click Me</Button>
+    );
+    ```
+
+### **7. Comments & Documentation**
+
+- **Code Comments:**
+  - Use comments to explain complex logic or non-obvious code behavior.
+  - Keep comments up-to-date with code changes.
+  - **Example:**
+    ```typescript
+    // Fetch user data on component mount
+    useEffect(() => {
+      fetchUserData();
+    }, []);
+    ```
+
+- **Function Documentation:**
+  - Use JSDoc comments for functions in `services/`, `utils/`, and critical components.
+  - **Example:**
+    ```typescript
+    /**
+     * Fetches user data from the API.
+     * @param userId - The ID of the user to fetch.
+     * @returns A promise that resolves to the user data.
+     */
+    export const getUserData = async (userId: string): Promise<IUser> => { ... };
+    ```
+
+### **8. TypeScript Practices**
+
+- **Type Annotations:**
+  - Always annotate the return types of functions, especially in `services/`, `utils/`, and `models`.
+    ```typescript
+    const addNumbers = (a: number, b: number): number => {
+      return a + b;
+    };
+    ```
+
+- **Interfaces vs. Types:**
+  - Use `interface` for defining object shapes and `type` for other type definitions.
+  - **Example:**
+    ```typescript
+    // Using interface
+    export interface IUser { ... }
+
+    // Using type
+    export type UserID = string;
+    ```
+
+- **Strict Typing:**
+  - Enable strict mode in your `tsconfig.json` to enforce stricter type-checking options.
+  - Handle all `null` and `undefined` cases explicitly.
+
+### **9. Error Handling**
+
+- **Services Layer (`services/`):**
+  - Catch and handle errors from API calls.
+  - Return meaningful error messages or status codes to the `utils` layer.
+  - **Example:**
+    ```typescript
+    export const getUserData = async (userId: string): Promise<IUser> => {
+      try {
+        const response = await fetch(`api/user/${userId}`);
+        return await response.json();
+      } catch (error) {
+        // Handle error appropriately
+        throw new Error("Failed to fetch user data");
+      }
+    };
+    ```
+
+- **Utils Layer (`utils/`):**
+  - Process errors received from `services` and prepare them for the frontend.
+  - **Example:**
+    ```typescript
+    export const fetchAndFormatUserData = async (userId: string): Promise<IUserFormatted> => {
+      try {
+        const userData = await getUserData(userId);
+        // Format and return data
+      } catch (error) {
+        // Log error and inform frontend
+        console.error(error);
+        throw new Error("Unable to retrieve user information at this time.");
+      }
+    };
+    ```
+
+### **10. Best Practices**
+
+- **Reusability:**
+  - Write reusable functions and components to reduce code duplication.
+  - Abstract common logic into utility functions in the `utils/` folder.
+
+- **Readability:**
+  - Write clean and readable code.
+  - Follow consistent indentation and spacing (e.g., 2 spaces per indent).
+
+- **Version Control:**
+  - Commit code with clear and descriptive commit messages.
+  - Follow a branching strategy that suits your team's workflow (e.g., GitFlow).
+
+### **11. Testing Standards**
+
+#### **11.1 General Testing Guidelines**
+
+- **Testing Framework:** Use **Jest** as the primary testing framework for unit and integration tests.
+- **Test Coverage:** Aim for high test coverage on critical parts of the application, especially in `utils/`, `services/`, and core components.
+- **Test Files:** Place test files alongside the modules they are testing or in a `__tests__` directory.
+  - **File Naming Convention:**
+    - For a module `moduleName.ts`, the test file should be named `moduleName.test.ts` or `moduleName.spec.ts`.
+
+#### **11.2 Writing Tests**
+
+- **Unit Tests:**
+  - Test individual functions and components in isolation.
+  - Mock external dependencies using Jest's mocking capabilities.
+  - **Example:**
+    ```typescript
+    import { addNumbers } from './utils/mathUtils';
+
+    describe('addNumbers', () => {
+      it('should add two numbers correctly', () => {
+        expect(addNumbers(2, 3)).toBe(5);
+      });
+    });
+    ```
+
+- **Integration Tests:**
+  - Test the interaction between multiple modules (e.g., `utils` and `services`).
+  - Use mocks for API calls to avoid hitting real endpoints.
+  - **Example:**
+    ```typescript
+    import { fetchAndFormatUserData } from './utils/userUtils';
+    import * as userService from './services/userService';
+
+    jest.mock('./services/userService');
+
+    describe('fetchAndFormatUserData', () => {
+      it('should fetch and format user data correctly', async () => {
+        const mockUserData = { id: '1', name: 'John Doe', email: 'john@example.com' };
+        userService.getUserData.mockResolvedValue(mockUserData);
+
+        const result = await fetchAndFormatUserData('1');
+        expect(result).toEqual({ ...mockUserData, formatted: true });
+      });
+    });
+    ```
+
+#### **11.3 Testing Components**
+
+- **React Testing Library:** Use **React Testing Library** along with Jest for testing React components.
+- **Component Tests:**
+  - Test component rendering, user interactions, and state changes.
+  - Avoid testing implementation details; focus on behavior and output.
+  - **Example:**
+    ```typescript
+    import React from 'react';
+    import { render, fireEvent } from '@testing-library/react-native';
+    import { UserProfile } from './components/UserProfile';
+
+    describe('UserProfile', () => {
+      it('should display user name', () => {
+        const { getByText } = render(<UserProfile userName="John Doe" />);
+        expect(getByText('John Doe')).toBeTruthy();
+      });
+    });
+    ```
+
+#### **11.4 Mocking and Stubs**
+
+- **Mock External Modules:**
+  - Use Jest's mocking capabilities to mock external modules and dependencies.
+  - **Example:**
+    ```typescript
+    jest.mock('gluestack/ui', () => ({
+      View: 'View',
+      Text: 'Text',
+      // ...other components
+    }));
+    ```
+
+- **Avoid Testing Third-Party Libraries:**
+  - Do not write tests for functionality provided by third-party libraries.
+
+#### **11.5 Test Organization**
+
+- **Test Suites and Test Cases:**
+  - Organize tests using `describe` blocks for modules or components.
+  - Use `it` or `test` blocks for individual test cases.
+
+- **Setup and Teardown:**
+  - Use `beforeEach`, `afterEach`, `beforeAll`, and `afterAll` for setting up and tearing down test environments.
+
+#### **11.6 Code Coverage**
+
+- **Measurement Tools:**
+  - Use Jest's built-in code coverage tools.
+  - Configure Jest to collect coverage data and generate reports.
+
+- **Coverage Thresholds:**
+  - Set minimum coverage thresholds in your Jest configuration to ensure code quality.
+  - **Example in `jest.config.js`:**
+    ```typescript
+    module.exports = {
+      collectCoverage: true,
+      coverageThreshold: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
+        },
+      },
+    };
+    ```
+
+#### **11.7 Continuous Integration**
+
+- **Automated Testing:**
+  - Integrate tests into your CI/CD pipeline to run on each commit or pull request.
+  - Ensure that the build fails if tests do not pass or coverage thresholds are not met.
+
+#### **11.8 Best Practices in Testing**
+
+- **Test Readability:**
+  - Write clear and concise test cases.
+  - Use descriptive names for test functions and variables.
+
+- **Isolation:**
+  - Tests should not depend on the state of other tests.
+  - Reset or mock global states between tests if necessary.
+
+- **Avoid Flaky Tests:**
+  - Ensure tests are reliable and produce the same results every time.
+  - Avoid timing issues and external dependencies that can cause variability.
+
+- **Error Handling:**
+  - Test error conditions and edge cases.
+  - Ensure the application behaves correctly under failure scenarios.
+
+#### **11.9 Example Test for a Service Function**
+
+```typescript
+// services/userService.test.ts
+
+import { getUserData } from './userService';
+
+global.fetch = jest.fn();
+
+describe('getUserData', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should fetch user data successfully', async () => {
+    const mockResponse = {
+      id: '1',
+      name: 'John Doe',
+      email: 'john@example.com',
+    };
+    (global.fetch as jest.Mock).mockResolvedValue({
+      json: jest.fn().mockResolvedValue(mockResponse),
+      ok: true,
+    });
+
+    const result = await getUserData('1');
+    expect(result).toEqual(mockResponse);
+    expect(global.fetch).toHaveBeenCalledWith('api/user/1');
+  });
+
+  it('should throw an error when fetch fails', async () => {
+    (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+    await expect(getUserData('1')).rejects.toThrow('Failed to fetch user data');
+  });
+});
+```

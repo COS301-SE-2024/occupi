@@ -131,6 +131,7 @@ type ResetToken struct {
 
 type ScheduledNotification struct {
 	ID                   string    `json:"_id" bson:"_id,omitempty"`
+	NotiID               string    `json:"notiId" bson:"notiId,omitempty"`
 	Title                string    `json:"title" bson:"title"`
 	Message              string    `json:"message" bson:"message"`
 	Sent                 bool      `json:"sent" bson:"sent"`
@@ -175,4 +176,9 @@ type Attendance struct {
 	SpecialEvent   bool      `json:"Special_Event" bson:"Special_Event"`
 	NumberAttended int       `json:"Number_Attended" bson:"Number_Attended"`
 	AttendeesEmail []string  `json:"Attendees_Email" bson:"Attendees_Email"`
+}
+
+type MobileUser struct {
+	Email string `json:"email" bson:"email"`
+	JWT   string `json:"jwt" bson:"jwt"`
 }

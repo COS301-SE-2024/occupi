@@ -30,6 +30,21 @@ services:
       - webnet
     restart: on-failure:5
 
+  hourly-model:
+    image: tensorflow/serving:latest
+    container_name: hourly-model
+    environment:
+      MODEL_NAME: hourly_attendance_model
+    volumes:
+      - ./models/hourly_predictions:/models/hourly_attendance_model 
+    ports:
+      - "8502:8501"
+    command: >
+      sh -c 'tensorflow_model_server --port=8501 --model_name=hourly_attendance_model --model_base_path=/models/hourly_attendance_model'
+    networks:
+      - webnet
+    restart: on-failure:5
+
 networks:
   webnet:
     external: true

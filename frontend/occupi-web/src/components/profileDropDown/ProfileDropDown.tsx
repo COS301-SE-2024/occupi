@@ -113,7 +113,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
                 as="button"
                 avatarProps={{
                   isBordered: true,
-                  src: avatarUrl || "/default-avatar.png",
+                  src: `https://dev.occupi.tech/api/download-profile-image?quality=low`,
                   size: "md",
                 }}
                 className={`transition-transform ${

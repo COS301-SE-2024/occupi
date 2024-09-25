@@ -41,6 +41,7 @@ The API also allows you to retrieve information about these resources.
     - [Add IP Address](#AddIPAddress)
     - [Remove IP Address](#RemoveIPAddress)
     - [Toggle Allow Anonymous IP](#ToggleAllowAnonymousIP)
+    - [Delete Notifications](#DeleteNotifications)
 
 ## Base URL
 
@@ -1300,3 +1301,44 @@ This endpoint is used to toggle the allow anonymous IP status of a user in the O
 
 - **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
 
+### Delete Notifications
+
+This endpoint is used to delete notifications for a user in the Occupi system.
+
+- **URL**
+
+  `/api/delete-notification`
+
+- **Method**
+    
+    `DELETE`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // optional, if not provided, the email is inferred from the token
+  "notiId": "000000000000000000000" // required
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully deleted notification!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`

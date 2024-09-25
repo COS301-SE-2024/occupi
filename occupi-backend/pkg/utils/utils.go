@@ -18,6 +18,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/sebest/logrusly"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,6 +26,11 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+)
+
+const (
+	prod        = "prod"
+	devdeployed = "devdeployed"
 )
 
 // sets up the logger and configures it
@@ -49,6 +55,12 @@ func SetupLogger() {
 
 	// Set log level (optional, defaults to Info)
 	logrus.SetLevel(logrus.InfoLevel)
+
+	if configs.GetEnv() == prod || configs.GetEnv() == devdeployed {
+		// Add Loggly hook to forward logs to the cloud
+		logglyHook := logrusly.NewLogglyHook(configs.GetLogglyToken(), configs.GetLogglySubDomain(), logrus.InfoLevel)
+		logrus.AddHook(logglyHook)
+	}
 }
 
 // Function to generate a random 4-digit number
@@ -677,4 +689,31 @@ func ValidateIP(ip string) bool {
 	// Regex pattern for IP validation
 	var ipRegex = regexp.MustCompile(`^(\d{1,3}\.){3}\d{1,3}$`)
 	return ipRegex.MatchString(ip)
+}
+
+func IsMobileDevice(ctx *gin.Context) bool {
+	userAgent := ctx.GetHeader("User-Agent")
+	deviceType := DetectDeviceType(userAgent)
+	if deviceType == "iOS" || deviceType == "Android" {
+		return true
+	}
+	return false
+}
+
+func DetectDeviceType(userAgent string) string {
+	switch {
+	case strings.Contains(userAgent, "CFNetwork"),
+		strings.Contains(userAgent, "iPhone"),
+		strings.Contains(userAgent, "iPad"):
+		return "iOS"
+
+	case strings.Contains(userAgent, "Macintosh"):
+		return "macOS"
+
+	case strings.Contains(userAgent, "Android"):
+		return "Android"
+
+	default:
+		return "Unknown"
+	}
 }

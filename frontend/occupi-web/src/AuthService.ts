@@ -345,6 +345,16 @@ const AuthService = {
       throw new Error("An unexpected error occurred");
     }
   },
+  uploadImage: (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      return axios.post(`${API_USER_URL}/upload-profile-image`, formData, {
+          headers: {
+              'Content-Type': 'multipart/form-data',
+          },
+      });
+  },
 };
 
 function bufferEncode(value: ArrayBuffer): string {

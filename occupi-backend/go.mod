@@ -63,6 +63,8 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/philhofer/fwd v1.1.2 // indirect
+	github.com/sebest/logrusly v0.0.0-20180315190218-3235eccb8edc // indirect
+	github.com/segmentio/go-loggly v0.5.0 // indirect
 	github.com/tinylib/msgp v1.1.9 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.22.0 // indirect

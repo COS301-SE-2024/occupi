@@ -16,7 +16,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     const checkAuthentication = async () => {
       if (!userDetails?.email) {
         setIsAuthenticated(false);
-        navigate("/");
         return;
       }
 
@@ -31,6 +30,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
     checkAuthentication();
   }, [navigate, userDetails]);
+  isAuthenticated ? children : null;
 
   return isAuthenticated ? children : null;
 };

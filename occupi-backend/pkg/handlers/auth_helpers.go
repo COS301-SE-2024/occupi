@@ -357,14 +357,14 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 			return false, nil
 		}
 
-		isAllowedNewIP, err := database.CheckIfUserIsAllowedNewIP(ctx, appsession, email)
+		blockAnonymousIPAddress, err := database.CheckIfUserIsAllowedNewIP(ctx, appsession, email)
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return false, err
 		}
 
-		if !isAllowedNewIP {
+		if blockAnonymousIPAddress {
 			ctx.JSON(http.StatusForbidden, utils.ErrorResponse(
 				http.StatusForbidden,
 				"Forbidden from access",
@@ -598,4 +598,19 @@ func CanLogin(ctx *gin.Context, appsession *models.AppSession, email string) (bo
 		return false, err
 	}
 	return true, nil
+}
+
+func AddMobileUser(ctx *gin.Context, appsession *models.AppSession, email string, jwt string) {
+	// check if ctx req header is a mobile device(either iOS or Android)
+	if !utils.IsMobileDevice(ctx) {
+		return
+	}
+
+	mobileUser := models.MobileUser{
+		Email: email,
+		JWT:   jwt,
+	}
+
+	// add the user to the mobile user cache(or overwrite the user if they already exist)
+	cache.SetMobileUser(appsession, mobileUser)
 }
