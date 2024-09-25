@@ -11,7 +11,6 @@ The API also allows you to retrieve information about these resources.
 - [Table of Contents](#table-of-contents)
   - [Base URL](#base-url)
   - [Api](#api)
-    - [Resources](#resources)
     - [Book Room](#BookRoom)
     - [View Bookings](#ViewBookings)
     - [View Rooms](#ViewRooms)
@@ -50,38 +49,6 @@ The base URL for the Occupi API is `https://occupi.tech`, `https://dev.occupi.te
 ## Api
 
 The API endpoints are used to interact with the Occupi platform. Mainly GET, POST, PUT, DELETE requests are used.
-
-### Resources
-
-The resources endpoints are used to create, read, update, and delete resources.
-
-- **URL**
-
-  `/api/resources`
-
-- **Method**
-
-  `GET`
-
-- **Success Response**
-
-  - **Code:** 200
-  - **Content:** `{ "message": "Resources fetched successfully" }`
-
-- **Error Response**
-
-  - **Code:** 400
-  - **Content:** `{ "message": "Bad Request" }`
-
-- **Error Response**
-  - **Code:** 500
-  - **Content:** `{ "message": "Internal server error" }`
-
-**_Example json to send:_**
-
-```json copy
-{}
-```
 
 ### BookRoom
 

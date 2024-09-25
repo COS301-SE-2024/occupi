@@ -38,7 +38,13 @@ interface Room {
   roomId: string;
   roomName: string;
   roomNo: string;
-  imageUrl?: string;
+  roomImage?: {
+    uuid: string;
+    thumbnailRes: string;
+    lowRes: string;
+    midRes: string;
+    highRes: string;
+  };
   isDisabled: boolean;
 }
 
@@ -304,9 +310,9 @@ const Rooms: React.FC = () => {
                   )}
                   <div className="p-4 flex flex-col md:flex-row">
                     <div className="w-full md:w-1/3 mb-4 md:mb-0 md:mr-4">
-                      {room.imageUrl ? (
+                      {room.roomImage ? (
                         <Image
-                          src={room.imageUrl}
+                          src={room.roomImage.midRes}
                           alt={room.roomName}
                           className="w-full h-48 object-cover rounded-lg"
                         />

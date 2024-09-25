@@ -102,14 +102,13 @@ type ImageRequest struct {
 }
 
 type RequestRoom struct {
-	RoomID       string   `json:"roomId" binding:"required,startswith=RM"`
-	RoomNo       string   `json:"roomNo" binding:"required"`
-	FloorNo      string   `json:"floorNo" binding:"required"`
-	MinOccupancy int      `json:"minOccupancy" binding:"required"`
-	MaxOccupancy int      `json:"maxOccupancy" binding:"required"`
-	Description  string   `json:"description" binding:"required"`
-	RoomName     string   `json:"roomName" binding:"required"`
-	Resources    []string `json:"resources" binding:"required"`
+	RoomID       string `json:"roomId" binding:"required,startswith=RM"`
+	RoomNo       string `json:"roomNo" binding:"required"`
+	FloorNo      string `json:"floorNo" binding:"required"`
+	MinOccupancy int    `json:"minOccupancy" binding:"required"`
+	MaxOccupancy int    `json:"maxOccupancy" binding:"required"`
+	Description  string `json:"description" binding:"required"`
+	RoomName     string `json:"roomName" binding:"required"`
 }
 
 type WebAuthnSession struct {
