@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardBody, Spinner } from "@nextui-org/react";
 import * as userStatsService from 'userStatsService';
 

@@ -20,6 +20,7 @@ interface AnalyticsResponse<T> {
 }
 
 interface UserHours {
+  averageHours: number;
   overallTotal: number;
   date: string;
   totalHours: number;
@@ -37,6 +38,7 @@ interface UserArrivalDeparture {
 }
 
 interface UserPeakOfficeHours {
+  peakHour: string;
   days: { weekday: string; hours: string[] }[];
 }
 
