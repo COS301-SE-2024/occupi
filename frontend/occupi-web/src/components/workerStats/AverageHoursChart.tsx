@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardBody, Spinner } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Skeleton } from "@nextui-org/react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { getAverageHours } from 'WorkerStatsService';
 
@@ -29,7 +29,26 @@ const AverageHoursChart = () => {
     fetchData();
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading) {
+    return (
+      <div className="w-[500px] h-[600px]">
+        
+          <Card key={1} className="w-full">
+            <CardBody className="p-4 space-y-3">
+              
+              <div className="flex flex-wrap gap-2">
+                
+                  <Skeleton key={1} className="w-full h-full rounded-lg">
+                    <div className="h-[600px] w-full rounded-lg bg-default-200"></div>
+                  </Skeleton>
+                
+              </div>
+            </CardBody>
+          </Card>
+      
+      </div>
+    );
+  }
   if (error) return <div>{error}</div>;
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardBody, Avatar, Button, Spinner, Progress } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Avatar, Button, Progress, Skeleton } from "@nextui-org/react";
 import { ChevronDown, ChevronUp, Clock, Calendar, TrendingDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getLeastActiveEmployee, LeastActiveEmployeeData } from 'WorkerStatsService';
@@ -36,8 +36,11 @@ const LeastActiveEmployeeCard = () => {
 
   if (isLoading) {
     return (
-      <Card className="max-w-[400px] h-[300px] flex items-center justify-center">
-        <Spinner label="Loading..." color="primary" labelColor="primary" />
+      <Card className="w-[300px] h-[300px] p-4">
+        
+        <Skeleton className="w-full h-full rounded-lg">
+            <div className="h-3 w-2/5 rounded-lg bg-default-200"></div>
+          </Skeleton>
       </Card>
     );
   }
