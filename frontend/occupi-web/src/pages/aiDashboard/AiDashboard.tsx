@@ -5,6 +5,7 @@ import {
   PredictedCapacityGraph,
   CapacityComparisonGraph,
   HourlyPredictionGraph,
+  HourlyComparisonGraph,
 } from "@components/index";
 import {
   FaUsers,
@@ -29,6 +30,7 @@ const defaultLayouts: Layouts = {
     { i: "graph1", x: 0, y: 2, w: 6, h: 4 },
     { i: "graph2", x: 6, y: 2, w: 6, h: 4 },
     { i: "hourlyPrediction", x: 0, y: 6, w: 12, h: 5 },
+    { i: "hourlyCapacity", x: 0, y: 2, w: 6, h: 4 },
   ],
 };
 
@@ -173,16 +175,15 @@ const AiDashboard: React.FC = () => {
         onChange={handleInputChange}
       />
 
-       {/* Add Recommendations Button */}
-       <div className="flex justify-end mb-4">
+      {/* Add Recommendations Button */}
+      <div className="flex justify-end mb-4">
         <button
           className="px-4 py-2 bg-green-400 hover:bg-green-500 text-white font-semibold rounded-lg transition-colors duration-300"
-          onClick={() => alert("Fetching Recommendations...")}
-        >
+          onClick={() => alert("Fetching Recommendations...")}>
           Get Recommendations
         </button>
       </div>
-      
+
       <div className="p-4">
         <div className="flex justify-between mb-4">
           <button
@@ -241,6 +242,11 @@ const AiDashboard: React.FC = () => {
             key="hourlyPrediction"
             className="bg-secondary rounded-lg shadow-md p-4">
             <HourlyPredictionGraph />
+          </div>
+          <div
+            key="hourlyCapacity"
+            className="bg-secondary rounded-lg shadow-md p-4">
+            <HourlyComparisonGraph />
           </div>
         </ResponsiveGridLayout>
       </div>

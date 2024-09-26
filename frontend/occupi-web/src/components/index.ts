@@ -62,7 +62,7 @@ import BuildingTower from "./aiDashboard/aiDashGraphs/BuildingTower";
 import OccupancyRecommendationEngine from "./occupancyRecommendationEngine/OccupancyRecommendationEngine";
 import GlobalSearch from './globalSearch/GlobalSearch';
 import HourlyPredictionGraph from "./aiDashboard/aiDashGraphs/HourlyPredictionGraph";
-
+import HourlyComparisonGraph from "./aiDashboard/aiDashGraphs/HourlyComparisonGraph";
 
 
 export {
@@ -129,5 +129,6 @@ export {
     BookingLevelCalendar,
     BuildingTower,
     OccupancyRecommendationEngine,
-    HourlyPredictionGraph
+    HourlyPredictionGraph,
+    HourlyComparisonGraph
 };
