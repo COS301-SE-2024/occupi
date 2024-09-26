@@ -4,6 +4,7 @@ import {
   AiDashCard,
   PredictedCapacityGraph,
   CapacityComparisonGraph,
+  HourlyPredictionGraph,
 } from "@components/index";
 import {
   FaUsers,
@@ -16,7 +17,6 @@ import {
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { HourlyPredictionGraph } from "@components/index";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 

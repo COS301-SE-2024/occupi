@@ -16,7 +16,7 @@ interface ResponseData {
   Special_Event: boolean;
 }
 
-const HourlyPredictionGraph = () => {
+const HourlyPredictionGraph: React.FC = () => {
   const [predictedData, setPredictedData] = useState<ResponseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
