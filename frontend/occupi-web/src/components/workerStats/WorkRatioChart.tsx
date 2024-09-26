@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardBody, Spinner } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Skeleton } from "@nextui-org/react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { getWorkRatio } from 'WorkerStatsService';
 
@@ -35,7 +35,15 @@ const WorkRatioChart = () => {
     fetchData();
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading) {
+    return (
+      <Card className="max-w-[400px] h-[300px] p-4">
+        <Skeleton className="w-full h-full rounded-lg">
+            <div className="h-3 w-2/5 rounded-lg bg-default-200"></div>
+        </Skeleton>
+      </Card>
+    );
+  }
   if (error) return <div>{error}</div>;
 
   return (
