@@ -61,7 +61,7 @@ import  BookingLevelCalendar  from "./aiDashboard/aiDashGraphs/BookingLevelCalen
 import BuildingTower from "./aiDashboard/aiDashGraphs/BuildingTower";
 import OccupancyRecommendationEngine from "./occupancyRecommendationEngine/OccupancyRecommendationEngine";
 import GlobalSearch from './globalSearch/GlobalSearch';
-
+import TopBookingsBento from './topBookings/TopBookingsBento';
 
 
 export {
@@ -127,6 +127,7 @@ export {
     UserStatsReport,
     BookingLevelCalendar,
     BuildingTower,
-    OccupancyRecommendationEngine
+    OccupancyRecommendationEngine,
+    TopBookingsBento
 
 };
