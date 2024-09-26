@@ -1,9 +1,14 @@
 import {
   ChevronLeft,
   ChevronRight,
-  Grid, Home,
-  PieChart, OccupiLogo,
-  Report,Bar,Worker
+  Grid,
+  Home,
+  PieChart,
+  OccupiLogo,
+  Report,
+  Bar,
+  Worker,
+  Employee,
 } from "@assets/index";
 import { ProfileDropDown, SideNavBarButton } from "@components/index";
 import { motion } from "framer-motion";
@@ -26,6 +31,10 @@ const sidebarcontent = [
     text: "Dashboard",
   },
   {
+    icon: Employee,
+    text: "Employees",
+  },
+  {
     icon: Bar,
     text: "Booking Statistics",
   },
@@ -41,15 +50,11 @@ const sidebarcontent = [
     icon: Home,
     text: "Rooms",
   },
-  // {
-  //   icon: UserProfileGroup,
-  //   text: "Teams",
-  // },
+
   {
     icon: Report,
     text: "Reports",
   },
- 
 ];
 
 const SideNav = () => {
@@ -73,16 +78,17 @@ const SideNav = () => {
 
   function setSelectedPanelF(arg: string) {
     setSelectedPanel(arg);
-    if (arg === "Dashboard")navigate("/dashboard");
-    else if (arg === "AI Analysis")navigate("/ai-dashboard");
-    else if (arg === "Rooms")navigate("/rooms");
-    else if (arg === "Notifications")navigate("/notifications");
-    else if (arg === "Settings")navigate("/settings");
-    else if (arg === "Logout")navigate("/");
-    else if (arg === "Reports")navigate("/reports");
-    else if (arg === "Help")navigate("/faq");
-    else if (arg === "Booking Statistics")navigate("/bookingStats");
-    else if (arg === "Worker Dashboard")navigate("/worker-dashboard");
+    if (arg === "Dashboard") navigate("/dashboard");
+    else if (arg === "AI Analysis") navigate("/ai-dashboard");
+    else if (arg === "Rooms") navigate("/rooms");
+    else if (arg === "Notifications") navigate("/notifications");
+    else if (arg === "Settings") navigate("/settings");
+    else if (arg === "Logout") navigate("/");
+    else if (arg === "Reports") navigate("/reports");
+    else if (arg === "Help") navigate("/faq");
+    else if (arg === "Booking Statistics") navigate("/bookingStats");
+    else if (arg === "Worker Dashboard") navigate("/worker-dashboard");
+    else if (arg === "Employees") navigate("/bookings");
 
     else;
   }

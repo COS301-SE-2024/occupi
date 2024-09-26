@@ -21,7 +21,7 @@ import BuildingTower from "@components/aiDashboard/aiDashGraphs/BuildingTower";
 import BookingLevelCalendar from "@components/aiDashboard/aiDashGraphs/BookingLevelCalendar";
 import BookingStats from "./bookingStats/bookingStats";
 import WorkerStatsDashboard from "./worker-dash/WorkerDashboard";
-
+import BookingsDashboardPage from "./bookingsDash/BookingsDashboardPage";
 export {
   LoginForm,
   OtpPage,
@@ -45,7 +45,8 @@ export {
   BuildingTower,
   BookingLevelCalendar,
   BookingStats,
-  WorkerStatsDashboard
+  WorkerStatsDashboard,
+  BookingsDashboardPage
 
 
 };

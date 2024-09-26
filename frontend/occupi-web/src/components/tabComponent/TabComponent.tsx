@@ -1,46 +1,70 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaChevronDown } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
+type Tab = {
+  name: string;
+  path: string;
+  index: number;
+};
 
 type TabComponentProps = {
   setSelectedTab: (arg: string) => void;
 };
 
-const TabComponent = (props: TabComponentProps) => {
-  const [activeTab, setActiveTab] = useState(1);
+const TabComponent: React.FC<TabComponentProps> = (props) => {
+  const [activeTab, setActiveTab] = useState<Tab | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const tabs = [
-    { name: "Overview", path: "overview", index: 1 },
-    { name: "Employees", path: "bookings", index: 2 },
-    { name: "Visitations", path: "visitations", index: 3 }
+  const tabs: Tab[] = [
+    { name: "Overview", path: "", index: 1 },
+    { name: "Bookings", path: "bookingsDashboard", index: 2 },
+    // { name: "Visitations", path: "visitations", index: 3 }
   ];
 
-  const handleTabClick = (tab: { name: string; path: string; index: number }) => {
-    setActiveTab(tab.index);
+  useEffect(() => {
+    const currentPath = location.pathname.split('/').pop() || '';
+    const currentTab = tabs.find(tab => tab.path === currentPath) || tabs[0];
+    setActiveTab(currentTab);
+  }, [location]);
+
+  const handleTabClick = (tab: Tab) => {
+    setActiveTab(tab);
     setIsDropdownOpen(false);
     props.setSelectedTab(tab.path);
     navigate(tab.path);
   };
 
+  const tabWidth = 95; // Width of each tab
+  const tabSpacing = 5; // Spacing between tabs
+  const backgroundPadding = 20; // Additional padding on each side of the background
+  const totalWidth = tabs.length * tabWidth + (tabs.length - 1) * tabSpacing + 2 * backgroundPadding;
+
   return (
     <div data-testid='tab' className="flex items-center justify-center">
       {/* Desktop view */}
-      <div className="hidden md:flex items-center justify-center h-[46px] w-[305px] rounded-[15px] bg-secondary">
-        {tabs.map((tab) => (
-          <motion.div
-            key={tab.index}
-            whileTap={{ scale: 0.97 }}
-            className={`w-[95px] h-[36px] rounded-[10px] flex justify-center items-center hover:bg-primary ${
-              tab.index !== 3 ? "mr-[5px]" : ""
-            } cursor-pointer ${activeTab === tab.index ? "bg-primary" : ""}`}
-            onClick={() => handleTabClick(tab)}
-          >
-            <p className="text-text_col">{tab.name}</p>
-          </motion.div>
-        ))}
+      <div 
+        className="hidden md:flex items-center justify-center h-[46px] rounded-[15px] bg-secondary"
+        style={{ width: `${totalWidth}px` }}
+      >
+        <div className="flex items-center justify-center">
+          {tabs.map((tab, index) => (
+            <motion.div
+              key={tab.index}
+              whileTap={{ scale: 0.97 }}
+              className={`w-[95px] h-[36px] rounded-[10px] flex justify-center items-center hover:bg-primary cursor-pointer ${
+                activeTab?.index === tab.index ? "bg-primary" : ""
+              }`}
+              style={{ marginRight: index !== tabs.length - 1 ? `${tabSpacing}px` : '0' }}
+              onClick={() => handleTabClick(tab)}
+            >
+              <p className="text-text_col">{tab.name}</p>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Mobile view */}
@@ -50,7 +74,7 @@ const TabComponent = (props: TabComponentProps) => {
           className="flex items-center justify-between w-[120px] h-[36px] rounded-[10px] bg-secondary px-3"
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         >
-          <span className="text-text_col">{tabs.find(tab => tab.index === activeTab)?.name}</span>
+          <span className="text-text_col">{activeTab?.name}</span>
           <FaChevronDown className="text-text_col" />
         </motion.button>
         <AnimatePresence>

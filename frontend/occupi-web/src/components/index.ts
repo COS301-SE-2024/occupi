@@ -57,12 +57,19 @@ import UserPeakOfficeHoursChart from "./modal/UserPeakOfficeHoursChart";
 import UserWorkRatioChart from "./modal/UserWorkRatioChart";
 import AvgArrDep from "./modal/AvgArrDep";
 import UserStatsReport from "./modal/UserStatsReport";
-import  BookingLevelCalendar  from "./aiDashboard/aiDashGraphs/BookingLevelCalendar";
+import BookingLevelCalendar from "./aiDashboard/aiDashGraphs/BookingLevelCalendar";
 import BuildingTower from "./aiDashboard/aiDashGraphs/BuildingTower";
 import OccupancyRecommendationEngine from "./occupancyRecommendationEngine/OccupancyRecommendationEngine";
-import GlobalSearch from './globalSearch/GlobalSearch';
+
+import GlobalSearch from "./globalSearch/GlobalSearch";
+import TopBookingsBento from "./topBookings/TopBookingsBento";
+import HistoricalBookingsBento from "./historicalBookings/HistoricalBookingsBento";
+import CurrentBookingsBento from "./currentBookings/CurrentBookingsBento";
+import BookingsDashboard from "./bookingsDashboardComponent/BookingsDashboard";
+
 import HourlyPredictionGraph from "./aiDashboard/aiDashGraphs/HourlyPredictionGraph";
 import HourlyComparisonGraph from "./aiDashboard/aiDashGraphs/HourlyComparisonGraph";
+
 
 
 export {
@@ -109,7 +116,7 @@ export {
   Security,
   EditRoomModal,
   AddRoomModal,
-    GlobalSearch,
+  GlobalSearch,
   ActiveEmployeeCard,
   AverageHoursChart,
   HoursDashboard,
@@ -118,17 +125,25 @@ export {
   WorkRatioChart,
   MostActiveEmployeeCard,
   UserStatsComponent,
-    BarChartComponent,
-    PieChartComponent,
-    PieChartPeakHoursComponent,
-    UserHoursCharts,
-    UserPeakOfficeHoursChart,
-    UserWorkRatioChart,
-    AvgArrDep,
-    UserStatsReport,
-    BookingLevelCalendar,
-    BuildingTower,
-    OccupancyRecommendationEngine,
+
+  BarChartComponent,
+  PieChartComponent,
+  PieChartPeakHoursComponent,
+  UserHoursCharts,
+  UserPeakOfficeHoursChart,
+  UserWorkRatioChart,
+  AvgArrDep,
+  UserStatsReport,
+  BookingLevelCalendar,
+  BuildingTower,
+  OccupancyRecommendationEngine,
+  TopBookingsBento,
+  HistoricalBookingsBento,
+  CurrentBookingsBento,
+  BookingsDashboard,
+
+  
     HourlyPredictionGraph,
     HourlyComparisonGraph
+
 };

@@ -15,10 +15,11 @@ const BookingsDashboard = () => {
       
 
       <Tabs
-        className="mt-5"
+        className="mt-5  bg-text_col_alt"
         aria-label="Bookings tabs"
         selectedKey={selected}
         onSelectionChange={(key) => setSelected(key as string)}
+
       >
         <Tab key="top" title="Top Bookings">
           <TopBookingsBento />

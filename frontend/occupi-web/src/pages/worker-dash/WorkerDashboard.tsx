@@ -256,11 +256,15 @@ const WorkerStatsDashboard: React.FC = () => {
 
   return (
     <div className="w-full overflow-auto">
-      <TopNav
-        searchQuery=""
-        onChange={() => {
-          console.log("Search query changed");
-        }}
+       <TopNav
+        mainComponent={<div className="text-text_col font-semibold text-2xl ml-5">
+          Employee Statistics
+          <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
+            See all Your Employee Statistics from Occubot
+          </span>
+        </div>} searchQuery={""} onChange={function (): void {
+          throw new Error("Function not implemented.");
+        } }        
       />
       <div className="flex justify-between mb-4">
         <Button
