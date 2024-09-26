@@ -4,7 +4,7 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { NotificationsReq } from '@/models/requests';
-import { getNotifications, markNotificationRead, removeNotification } from '@/services/apiservices';
+import { getNotifications, removeNotification } from '@/services/apiservices';
 
 
 export function setupNotificationHandler() {
