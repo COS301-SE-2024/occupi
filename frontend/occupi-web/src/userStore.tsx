@@ -9,6 +9,9 @@ interface UserDetails {
   employeeid: string;
   number: string;
   pronouns: string;
+  avatarId: string;
+  position: string;
+  departmentNo: string;
   // Add other fields as needed
 }
 
