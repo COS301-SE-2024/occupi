@@ -131,7 +131,7 @@ export default function FileUploadButton({
 			<label htmlFor='_upload'>
 				<Button
 					/* middle finger to the typescript devs */
-					// @ts-ignore */
+                    // @ts-expect-error Spreading props may conflict with Button component's prop types
 					{...props}
 					{...conditionalProps}
 					className={twMerge(
