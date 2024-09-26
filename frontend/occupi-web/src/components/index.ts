@@ -60,6 +60,7 @@ import UserStatsReport from "./modal/UserStatsReport";
 import  BookingLevelCalendar  from "./aiDashboard/aiDashGraphs/BookingLevelCalendar";
 import BuildingTower from "./aiDashboard/aiDashGraphs/BuildingTower";
 import OccupancyRecommendationEngine from "./occupancyRecommendationEngine/OccupancyRecommendationEngine";
+import GlobalSearch from './globalSearch/GlobalSearch';
 
 
 
@@ -107,6 +108,7 @@ export {
   Security,
   EditRoomModal,
   AddRoomModal,
+    GlobalSearch,
   ActiveEmployeeCard,
   AverageHoursChart,
   HoursDashboard,

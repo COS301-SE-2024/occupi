@@ -51,6 +51,7 @@
     "clsx": "^2.1.1",
     "dom-to-image": "^2.6.0",
     "express": "^4.19.2",
+    "flexsearch": "^0.7.43",
     "framer-motion": "^11.2.12",
     "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",

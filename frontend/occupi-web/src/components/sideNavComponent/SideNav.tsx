@@ -98,7 +98,7 @@ const SideNav = () => {
       else if (pn.startsWith("/ai-dashboard")) setSelectedPanel("AI Analysis");
       else if (pn.startsWith("/rooms")) setSelectedPanel("Rooms");
       else if (pn.startsWith("/reports")) setSelectedPanel("Reports");
-      else;
+      else setSelectedPanel("");
     };
 
     selectPanel();
