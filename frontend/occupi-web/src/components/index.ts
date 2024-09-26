@@ -57,12 +57,11 @@ import UserPeakOfficeHoursChart from "./modal/UserPeakOfficeHoursChart";
 import UserWorkRatioChart from "./modal/UserWorkRatioChart";
 import AvgArrDep from "./modal/AvgArrDep";
 import UserStatsReport from "./modal/UserStatsReport";
-import  BookingLevelCalendar  from "./aiDashboard/aiDashGraphs/BookingLevelCalendar";
+import BookingLevelCalendar from "./aiDashboard/aiDashGraphs/BookingLevelCalendar";
 import BuildingTower from "./aiDashboard/aiDashGraphs/BuildingTower";
 import OccupancyRecommendationEngine from "./occupancyRecommendationEngine/OccupancyRecommendationEngine";
-import GlobalSearch from './globalSearch/GlobalSearch';
-import TopBookingsBento from './topBookings/TopBookingsBento';
-
+import GlobalSearch from "./globalSearch/GlobalSearch";
+import TopBookingsBento from "./topBookings/TopBookingsBento";
 
 export {
   DrawerComponent,
@@ -108,7 +107,7 @@ export {
   Security,
   EditRoomModal,
   AddRoomModal,
-    GlobalSearch,
+  GlobalSearch,
   ActiveEmployeeCard,
   AverageHoursChart,
   HoursDashboard,
@@ -117,17 +116,16 @@ export {
   WorkRatioChart,
   MostActiveEmployeeCard,
   UserStatsComponent,
-    BarChartComponent,
-    PieChartComponent,
-    PieChartPeakHoursComponent,
-    UserHoursCharts,
-    UserPeakOfficeHoursChart,
-    UserWorkRatioChart,
-    AvgArrDep,
-    UserStatsReport,
-    BookingLevelCalendar,
-    BuildingTower,
-    OccupancyRecommendationEngine,
-    TopBookingsBento
-
+  BarChartComponent,
+  PieChartComponent,
+  PieChartPeakHoursComponent,
+  UserHoursCharts,
+  UserPeakOfficeHoursChart,
+  UserWorkRatioChart,
+  AvgArrDep,
+  UserStatsReport,
+  BookingLevelCalendar,
+  BuildingTower,
+  OccupancyRecommendationEngine,
+  TopBookingsBento,
 };
