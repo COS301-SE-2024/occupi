@@ -24,7 +24,7 @@ const BookingLevelCalendar = () => {
       const daysInMonth = new Date(year, month + 1, 0).getDate();
 
       const fetchPromises = [];
-      for (let day = 1; day <= daysInMonth; day++) {
+      for (let day = 0; day <= daysInMonth + 1; day++) {  // Fetch one extra day
         const date = new Date(year, month, day);
         const formattedDate = date.toISOString().split('T')[0];
         fetchPromises.push(
@@ -41,7 +41,15 @@ const BookingLevelCalendar = () => {
       try {
         const results = await Promise.all(fetchPromises);
         const newBookingData = Object.assign({}, ...results);
-        setBookingData(newBookingData);
+        // Shift all predictions down by one day
+        const shiftedBookingData = Object.entries(newBookingData).reduce((acc: { [key: string]: BookingData }, [date, data]) => {
+          const shiftedDate = new Date(date);
+          shiftedDate.setDate(shiftedDate.getDate() - 1);
+          const shiftedDateString = shiftedDate.toISOString().split('T')[0];
+          acc[shiftedDateString] = data as BookingData;
+          return acc;
+        }, {});
+        setBookingData(shiftedBookingData);
       } catch (error) {
         console.error('Error fetching booking data:', error);
       }
@@ -53,7 +61,11 @@ const BookingLevelCalendar = () => {
         const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/ZA`);
         const holidays = await response.json();
         const holidayMap = holidays.reduce((acc: HolidayData, holiday: { date: string; name: string }) => {
-          acc[holiday.date] = holiday.name;
+          // Move the holiday one day back
+          const holidayDate = new Date(holiday.date);
+          holidayDate.setDate(holidayDate.getDate() - 1);
+          const adjustedDate = holidayDate.toISOString().split('T')[0];
+          acc[adjustedDate] = holiday.name;
           return acc;
         }, {});
         setHolidayData(holidayMap);
@@ -103,7 +115,7 @@ const BookingLevelCalendar = () => {
               {holiday && (
                 <>
                   <p className='text-text_col_secondary_alt'><strong>{holiday}</strong></p>
-                  <p className="text-yellow-400">Note: AI predictions may be less accurate on holidays.</p>
+                  <p className="text-yellow-400">Note: Predictions on Special days may be inaccurate.</p>
                 </>
               )}
               {dayData ? (
