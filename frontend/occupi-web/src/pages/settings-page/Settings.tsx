@@ -20,7 +20,13 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    handleClick("/profile");
+    const path = window.location.pathname;
+    if (path === "/settings") {
+      handleClick("/profile");
+    } else if (path.includes("/settings")) {
+      const uPath = path.split("/settings")[1];
+      setSelectedItem(uPath);
+    }
   },[]);
 
   return (

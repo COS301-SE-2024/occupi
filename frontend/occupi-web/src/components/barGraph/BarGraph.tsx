@@ -1,7 +1,6 @@
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@nextui-org/react";
 import html2canvas from "html2canvas";
-import "./styles.css";
-import { useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -12,54 +11,91 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { fetchCapacityData, CapacityData } from "CapacityService";
+import axios from "axios";
 
-const data = [
-  {
-    name: "Mon",
-    Yesterday: 4000,
-    Today: 400,
-    amt: 2400,
-  },
-  {
-    name: "Tue",
-    Yesterday: 3000,
-    Today: 1398,
-    amt: 2210,
-  },
-  {
-    name: "Wed",
-    Yesterday: 2000,
-    Today: 9800,
-    amt: 2290,
-  },
-  {
-    name: "Thur",
-    Yesterday: 2780,
-    Today: 3908,
-    amt: 2000,
-  },
-  {
-    name: "Fri",
-    Yesterday: 1890,
-    Today: 4800,
-    amt: 2181,
-  },
-  {
-    name: "Sat",
-    Yesterday: 2390,
-    Today: 3800,
-    amt: 2500,
-  },
-  {
-    name: "Sun",
-    Yesterday: 3490,
-    Today: 4300,
-    amt: 2100,
-  },
-];
+const getDayName = (dayOfWeek: number): string => {
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return days[dayOfWeek] || "";
+};
 
-export default function App() {
+const convertRangeToNumber = (range: string): number => {
+  const [min, max] = range.split("-").map(Number);
+  return Math.round((min + max) / 2);
+};
+
+interface ChartData {
+  name: string;
+  Today: number;
+  LastWeek: number;
+}
+
+
+const CapacityComparisonBarChart = () => {
+  const [data, setData] = useState<ChartData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const chartRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const thisWeekData = await fetchCapacityData();
+        const lastWeekData = await fetchPreviousWeekData();
+
+        const combinedData = thisWeekData.map((item, index) => ({
+          name: item.day,
+          Today: item.predicted,
+          LastWeek: lastWeekData[index % 7].predicted,
+        }));
+
+        setData(combinedData);
+        setLoading(false);
+      } catch (err) {
+        setError(err as Error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const fetchPreviousWeekData = async (): Promise<CapacityData[]> => {
+    const today = new Date();
+    const previousWeekData: CapacityData[] = [];
+
+    for (let i = 7; i <= 13; i++) {
+      const previousDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+      const formattedDate = previousDay.toISOString().split('T')[0];
+
+      try {
+        const response = await axios.get<{
+          Day_of_Week: number;
+          Predicted_Attendance_Level: string;
+          Day_of_month: number;
+          Is_Weekend: boolean;
+          Month: number;
+          Predicted_Class: number;
+          Special_Event: number;
+        }>(`https://ai.occupi.tech/predict_date?date=${formattedDate}`);
+        const item = response.data;
+        previousWeekData.push({
+          day: getDayName(item.Day_of_Week),
+          predicted: convertRangeToNumber(item.Predicted_Attendance_Level),
+          date: formattedDate,
+          dayOfMonth: item.Day_of_month,
+          isWeekend: item.Is_Weekend,
+          month: item.Month,
+          predictedClass: item.Predicted_Class,
+          specialEvent: item.Special_Event === 1,
+        });
+      } catch (error) {
+        console.error(`Error fetching data for ${formattedDate}:`, error);
+      }
+    }
+
+    return previousWeekData;
+  };
 
   const handleDownload = () => {
     if (chartRef.current) {
@@ -67,18 +103,26 @@ export default function App() {
         const imgData = canvas.toDataURL("image/png");
         const downloadLink = document.createElement("a");
         downloadLink.href = imgData;
-        downloadLink.download = "chart.png";
+        downloadLink.download = "capacity_comparison_chart.png";
         downloadLink.click();
       });
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
     <div data-testid="graph">
       <div ref={chartRef} style={{ width: "100%", height: 400 }}>
         <Button
           data-testid="download-button1"
-          className=" -mt-10 mb-5 ml-3 bg-primary_alt font-medium text-text_col_alt"
+          className="-mt-10 mb-5 ml-3 bg-primary_alt font-medium text-text_col_alt"
           onClick={handleDownload}
         >
           Download Chart
@@ -86,7 +130,6 @@ export default function App() {
 
         <ResponsiveContainer data-testid="bar-graph" width="100%" height={390}>
           <BarChart
-          
             data={data}
             margin={{
               top: 4,
@@ -100,11 +143,13 @@ export default function App() {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="Yesterday" fill="#FF5F5F" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="LastWeek" fill="#FF5F5F" radius={[6, 6, 0, 0]} />
             <Bar dataKey="Today" fill="#AFF16C" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
-}
+};
+
+export default CapacityComparisonBarChart;
