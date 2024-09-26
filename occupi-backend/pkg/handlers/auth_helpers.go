@@ -299,16 +299,6 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, err
 	}
 
-	if !verified {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Not verified",
-			constants.IncompleteAuthCode,
-			"Please verify your email before logging in",
-			nil))
-		return false, nil
-	}
-
 	// check if the user is an admin
 	if role == constants.Admin {
 		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
@@ -392,7 +382,7 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	}
 
 	switch {
-	case isVerificationDue:
+	case isVerificationDue, !verified:
 		// update verification status in database to false
 		_, err = database.UpdateVerificationStatusTo(ctx, appsession, email, false)
 		if err != nil {
