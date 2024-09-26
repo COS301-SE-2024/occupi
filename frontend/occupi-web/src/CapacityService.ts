@@ -89,7 +89,7 @@ export interface HourlyCapacityData {
 }
 
 // Define the API URL for hourly predictions (assuming this endpoint)
-const HOURLY_API_URL = "https://ai.occupi.tech/predict_day?date=2024-09-27&start_hour=6&end_hour=17";
+const HOURLY_API_URL = "https://ai.occupi.tech/predict_day";
 
 // Fetch and format hourly prediction data
 export const fetchHourlyCapacityData = async (): Promise<HourlyCapacityData[]> => {
@@ -115,6 +115,5 @@ export const getHourlyPredictionGraphData = async (): Promise<
   Pick<HourlyCapacityData, "hour" | "predicted">[]
 > => {
   const fullData = await fetchHourlyCapacityData();
-  console.log(fullData);
   return fullData.map(({ hour, predicted }) => ({ hour, predicted }));
 };

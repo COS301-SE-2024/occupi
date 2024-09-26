@@ -6,6 +6,7 @@ import {
   CapacityComparisonGraph,
   HourlyPredictionGraph,
   HourlyComparisonGraph,
+  RecommendationsModal,
 } from "@components/index";
 import {
   FaUsers,
@@ -159,6 +160,7 @@ const AiDashboard: React.FC = () => {
       setLayouts(newLayouts);
     }
   };
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal open/close state
 
   return (
     <div className="w-full overflow-auto">
@@ -179,7 +181,7 @@ const AiDashboard: React.FC = () => {
       <div className="flex justify-end mb-4">
         <button
           className="px-4 py-2 bg-green-400 hover:bg-green-500 text-white font-semibold rounded-lg transition-colors duration-300"
-          onClick={() => alert("Fetching Recommendations...")}>
+          onClick={() => {console.log("Opening Modal");setIsModalOpen(true)}}>
           Get Recommendations
         </button>
       </div>
@@ -250,6 +252,11 @@ const AiDashboard: React.FC = () => {
           </div>
         </ResponsiveGridLayout>
       </div>
+      {isModalOpen && (
+      <RecommendationsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />)}
     </div>
   );
 };

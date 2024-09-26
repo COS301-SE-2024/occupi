@@ -69,8 +69,7 @@ import BookingsDashboard from "./bookingsDashboardComponent/BookingsDashboard";
 
 import HourlyPredictionGraph from "./aiDashboard/aiDashGraphs/HourlyPredictionGraph";
 import HourlyComparisonGraph from "./aiDashboard/aiDashGraphs/HourlyComparisonGraph";
-
-
+import RecommendationsModal from "./recommendationModal/recommendationModal";
 
 export {
   DrawerComponent,
@@ -125,7 +124,6 @@ export {
   WorkRatioChart,
   MostActiveEmployeeCard,
   UserStatsComponent,
-
   BarChartComponent,
   PieChartComponent,
   PieChartPeakHoursComponent,
@@ -141,9 +139,7 @@ export {
   HistoricalBookingsBento,
   CurrentBookingsBento,
   BookingsDashboard,
-
-  
-    HourlyPredictionGraph,
-    HourlyComparisonGraph
-
+  HourlyPredictionGraph,
+  HourlyComparisonGraph,
+  RecommendationsModal,
 };
