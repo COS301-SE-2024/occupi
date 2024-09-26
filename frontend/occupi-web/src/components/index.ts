@@ -128,6 +128,6 @@ export {
     UserStatsReport,
     BookingLevelCalendar,
     BuildingTower,
-    OccupancyRecommendationEngine
-
+    OccupancyRecommendationEngine,
+    HourlyPredictionGraph
 };
