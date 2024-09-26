@@ -62,6 +62,9 @@ import BuildingTower from "./aiDashboard/aiDashGraphs/BuildingTower";
 import OccupancyRecommendationEngine from "./occupancyRecommendationEngine/OccupancyRecommendationEngine";
 import GlobalSearch from "./globalSearch/GlobalSearch";
 import TopBookingsBento from "./topBookings/TopBookingsBento";
+import HistoricalBookingsBento from "./historicalBookings/HistoricalBookingsBento";
+import CurrentBookingsBento from "./currentBookings/CurrentBookingsBento";
+import BookingsDashboard from "./bookingsDashboardComponent/BookingsDashboard";
 
 export {
   DrawerComponent,
@@ -128,4 +131,7 @@ export {
   BuildingTower,
   OccupancyRecommendationEngine,
   TopBookingsBento,
+  HistoricalBookingsBento,
+  CurrentBookingsBento,
+  BookingsDashboard,
 };

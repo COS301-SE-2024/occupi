@@ -1,4 +1,4 @@
-import { LoginForm, OtpPage, Settings, Dashboard, Analysis, Visitation, Faq, AiDashboard, Rooms, AboutPage, SecurityPage,BookingStats ,WorkerStatsDashboard} from "@pages/index";
+import { LoginForm, OtpPage, Settings, Dashboard, Faq, AiDashboard, Rooms, AboutPage, SecurityPage, BookingStats, WorkerStatsDashboard, BookingsDashboardPage } from "@pages/index";
 import { Appearance, OverviewComponent, BookingComponent, PDFReport, ProfileView } from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -36,9 +36,9 @@ function App() {
           <Routes>
             <Route path="dashboard/*" element={<Dashboard />} >
               <Route path="overview" element={<OverviewComponent />} />
-              <Route path="visitations" element={<Visitation />} />{/**attach appropriate component */}
-              <Route path="analysis" element={<Analysis/>} />{}
             </Route>
+
+
 
             <Route path="reports" element={<PDFReport />} />{/**attach appropriate component */}
             <Route path="faq" element={ <Faq/> } />{/**attach appropriate component */}
@@ -48,6 +48,14 @@ function App() {
             <Route path="bookingStats" element={<BookingStats />} />{/**attach appropriate component */}
             <Route path="worker-dashboard" element={<WorkerStatsDashboard />} />{/**attach appropriate component */}
             <Route path="bookings" element={<BookingComponent />} />*attach appropriate component
+            {/* <Route path="bookingsDashboard" element={<BookingsDashboard />} />*attach appropriate component */}
+
+
+            <Route path="bookingStats/*" element={<BookingsDashboardPage />} >
+            {/* <Route path="bookings" element={<BookingComponent />} />*attach appropriate component */}
+
+            </Route>
+
 
 
            

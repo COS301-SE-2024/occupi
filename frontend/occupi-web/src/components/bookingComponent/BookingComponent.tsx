@@ -379,7 +379,7 @@ export default function App() {
           <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
             Manage your Employees, and view their occupancy statistics
           </span>
-        </div>} searchQuery={""} onChange={function (e: React.ChangeEvent<HTMLInputElement>): void {
+        </div>} searchQuery={""} onChange={function (): void {
           throw new Error("Function not implemented.");
         } }        
         

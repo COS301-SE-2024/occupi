@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardBody, CardHeader, Spinner, Button, Popover, PopoverTrigger, PopoverContent } from "@nextui-org/react";
 import { Users, Calendar, Building, ChevronDown } from 'lucide-react';
 
@@ -47,7 +47,7 @@ const TopBookingsBento = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-3">
       {bookings.map((booking, index) => (
         <Card 
           key={booking._id} 
