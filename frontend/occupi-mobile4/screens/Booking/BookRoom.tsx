@@ -3,8 +3,6 @@ import { ScrollView, useColorScheme, TouchableOpacity, Image } from 'react-nativ
 import { Ionicons, Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
-  Toast,
-  ToastTitle,
   useToast,
   Text,
   View

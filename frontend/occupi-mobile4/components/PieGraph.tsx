@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import React, { useEffect, useState } from 'react';
 import {
     View, Text
 } from '@gluestack-ui/themed';

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import React, { useEffect, useState } from 'react';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import {
     View, Text
 } from '@gluestack-ui/themed';
 import * as SecureStore from 'expo-secure-store';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { LineChart } from "react-native-gifted-charts"
+import { LineChart } from "react-native-gifted-charts";
 import { useColorScheme } from 'react-native';
 import { useTheme } from './ThemeContext';
 

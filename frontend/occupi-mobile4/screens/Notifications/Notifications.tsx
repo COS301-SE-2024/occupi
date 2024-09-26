@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SafeAreaView, FlatList, RefreshControl, Pressable, TouchableOpacity, Animated } from 'react-native';
-import { View, Text, VStack, HStack, Avatar, Input, InputField, InputIcon, Icon, Button, Box } from '@gluestack-ui/themed';
-import { AntDesign, Ionicons, Feather, MaterialIcons } from '@expo/vector-icons';
+import { SafeAreaView, FlatList, RefreshControl, Pressable, TouchableOpacity } from 'react-native';
+import { View, Text, VStack, HStack, Avatar, Input, InputField, Icon, Button } from '@gluestack-ui/themed';
+import { AntDesign, Feather, MaterialIcons } from '@expo/vector-icons';
 import { Skeleton } from 'moti/skeleton';
 import * as SecureStore from 'expo-secure-store';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-import { LinearGradient } from 'expo-linear-gradient';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useColorScheme } from 'react-native';
-import { router } from 'expo-router';
 import Tooltip from '@/components/Tooltip';
 import { useTheme } from '@/components/ThemeContext';
-import { getUserNotifications, markNotificationAsRead, deleteNotification } from '@/utils/notifications';
+import { getUserNotifications, deleteNotification } from '@/utils/notifications';
 import { MotiView } from 'moti';
 import Navbar from '../../components/NavBar';
 

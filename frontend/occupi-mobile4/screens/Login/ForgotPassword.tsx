@@ -1,13 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   View,
   FormControl,
   HStack,
   Input,
-  Text,
-  VStack,
-  useToast,
+  Text, useToast,
   Toast,
   Box,
   Icon,
@@ -18,21 +16,17 @@ import {
   FormControlErrorText,
   Image,
   ChevronLeftIcon,
-  Heading,
-  Center,
-  FormControlLabel,
-  FormControlLabelText,
+  Heading, FormControlLabel,
+  FormControlLabelText
 } from '@gluestack-ui/themed';
-import GuestLayout from '../../layouts/GuestLayout';
 import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Keyboard, StyleSheet, TextInput, Animated, Easing } from 'react-native';
+import { Keyboard, StyleSheet, Animated, Easing } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { AlertTriangle } from 'lucide-react-native';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
-import { useNavigation } from '@react-navigation/native';
 import { userForgotPassword } from '@/utils/auth';
 
 const forgotPasswordSchema = z.object({

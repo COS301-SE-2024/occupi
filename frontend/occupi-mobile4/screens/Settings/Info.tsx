@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Pressable, Animated, Easing, SafeAreaView, ScrollView, Dimensions } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, Dimensions } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { router } from 'expo-router';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, ScrollView, Alert, Dimensions } from 'react-native';
-import { VStack, HStack, Box, Center, Icon, Pressable, Toast, ToastTitle, Text, Button } from '@gluestack-ui/themed';
+import { View, Image, ScrollView, Alert, Dimensions } from 'react-native';
+import { Box, Icon, Pressable, Toast, ToastTitle, Text, Button } from '@gluestack-ui/themed';
 import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Navbar from '../../components/NavBar';

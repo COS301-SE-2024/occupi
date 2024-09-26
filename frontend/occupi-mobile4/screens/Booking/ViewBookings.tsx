@@ -1,12 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView, useColorScheme, TouchableOpacity, RefreshControl, StyleSheet } from 'react-native';
-import {
-    Icon, View, Text, Input, InputField, Image, Box, ChevronDownIcon, Toast, Stack,
-    ToastTitle,
-    useToast,
-} from '@gluestack-ui/themed';
+import { ScrollView, useColorScheme, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, Input, InputField, Image } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { SimpleLineIcons } from '@expo/vector-icons';
 import RNPickerSelect from 'react-native-picker-select';
 import { Octicons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +12,6 @@ import { Skeleton } from 'moti/skeleton';
 import { Booking } from '@/models/data';
 import { fetchUserBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
-import bookings from '@/app/bookings';
 import Tooltip from '@/components/Tooltip';
 import { getHistoricalBookings, getCurrentBookings } from '@/utils/analytics';
 

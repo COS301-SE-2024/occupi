@@ -1,18 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StatusBar, useColorScheme, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import { useColorScheme, TouchableOpacity, Alert } from 'react-native';
 import Navbar from '../../components/NavBar';
 import Entypo from '@expo/vector-icons/Entypo';
 import {
   Text,
   View,
-  Image,
-  Card,
-  Toast,
+  Image, Toast,
   useToast,
   ToastTitle,
   Button,
   ButtonText,
-  ScrollView,
+  ScrollView
 } from '@gluestack-ui/themed';
 // import {
 //   LineChart
@@ -20,23 +18,21 @@ import {
 import * as SecureStore from 'expo-secure-store';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { enter, exit, useCentrifugeCounter } from '@/utils/rtc';
-import { FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 // import { router } from 'expo-router';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { Centrifuge } from 'centrifuge';
 import { fetchUsername } from '@/utils/user';
 import { Booking } from '@/models/data';
-import { fetchTopBookings, fetchUserBookings } from '@/utils/bookings';
+import { fetchTopBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
 import BarGraph from '@/components/BarGraph';
-import { getFormattedDailyPredictionData, getFormattedPredictionData, getFormattedPredictionWeekData, valueToColor } from '@/utils/occupancy';
+import { getFormattedPredictionData, getFormattedPredictionWeekData } from '@/utils/occupancy';
 import * as Location from 'expo-location';
 import { storeCheckInValue } from '@/services/securestore';
 import { isPointInPolygon } from '@/utils/dashboard';
 import { extractDateFromTimestamp } from '@/utils/utils';
 import PagerView from 'react-native-pager-view';
-import SetDetails from '../Login/SetDetails';
 import { router } from 'expo-router';
 import Tooltip from '@/components/Tooltip';
 import { getCurrentBookings } from '@/utils/analytics';

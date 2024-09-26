@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Keyboard, Animated, Easing } from 'react-native';
-import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
-import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
 import {
   FormControl,
@@ -13,24 +11,17 @@ import {
   VStack,
   useToast,
   Toast,
-  Box,
-  CheckIcon,
-  Checkbox,
-  ToastTitle,
+  Box, ToastTitle,
   InputField,
   FormControlError,
   FormControlErrorIcon,
   FormControlErrorText,
-  InputIcon,
-  CheckboxIndicator,
-  CheckboxIcon,
-  CheckboxLabel,
-  Image,
+  InputIcon, Image,
   Heading,
   LinkText,
   InputSlot,
   FormControlLabel,
-  FormControlLabelText,
+  FormControlLabelText
 } from '@gluestack-ui/themed';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
