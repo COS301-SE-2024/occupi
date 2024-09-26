@@ -14,8 +14,8 @@
     "test": "NODE_ENV=test jest"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.5.2",
-    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@grafana/faro-react": "^1.9.0",
     "@grafana/faro-web-sdk": "^1.9.0",

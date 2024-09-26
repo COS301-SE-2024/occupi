@@ -6,6 +6,7 @@ import {
   CapacityComparisonGraph,
   HourlyPredictionGraph,
   HourlyComparisonGraph,
+  RecommendationsModal,
 } from "@components/index";
 import {
   FaUsers,
@@ -30,7 +31,27 @@ const defaultLayouts: Layouts = {
     { i: "graph1", x: 0, y: 2, w: 6, h: 4 },
     { i: "graph2", x: 6, y: 2, w: 6, h: 4 },
     { i: "hourlyPrediction", x: 0, y: 6, w: 12, h: 5 },
-    { i: "hourlyCapacity", x: 0, y: 2, w: 6, h: 4 },
+    { i: "hourlyCapacity", x: 0, y: 11, w: 12, h: 5 },
+  ],
+  sm: [
+    { i: "card1", x: 0, y: 0, w: 6, h: 2 }, // Wider on small screens
+    { i: "card2", x: 0, y: 2, w: 6, h: 2 },
+    { i: "card3", x: 0, y: 4, w: 6, h: 2 },
+    { i: "card4", x: 0, y: 6, w: 6, h: 2 },
+    { i: "graph1", x: 0, y: 8, w: 6, h: 4 },
+    { i: "graph2", x: 0, y: 12, w: 6, h: 4 },
+    { i: "hourlyPrediction", x: 0, y: 16, w: 6, h: 5 },
+    { i: "hourlyCapacity", x: 0, y: 21, w: 6, h: 5 },
+  ],
+  xxs: [
+    { i: "card1", x: 0, y: 0, w: 1, h: 2 }, // 1 column layout on very small screens
+    { i: "card2", x: 0, y: 2, w: 1, h: 2 },
+    { i: "card3", x: 0, y: 4, w: 1, h: 2 },
+    { i: "card4", x: 0, y: 6, w: 1, h: 2 },
+    { i: "graph1", x: 0, y: 8, w: 1, h: 4 },
+    { i: "graph2", x: 0, y: 12, w: 1, h: 4 },
+    { i: "hourlyPrediction", x: 0, y: 16, w: 1, h: 5 },
+    { i: "hourlyCapacity", x: 0, y: 21, w: 1, h: 5 },
   ],
 };
 
@@ -159,6 +180,7 @@ const AiDashboard: React.FC = () => {
       setLayouts(newLayouts);
     }
   };
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal open/close state
 
   return (
     <div className="w-full overflow-auto">
@@ -175,22 +197,28 @@ const AiDashboard: React.FC = () => {
         onChange={handleInputChange}
       />
 
-      {/* Add Recommendations Button */}
-      <div className="flex justify-end mb-4">
+      {/* Add Recommendations and Reset to Default Buttons */}
+      <div className="flex justify-between mb-4 px-8 pt-6 pb-2">
+        {/* Left: Get Recommendations Button */}
         <button
-          className="px-4 py-2 bg-green-400 hover:bg-green-500 text-white font-semibold rounded-lg transition-colors duration-300"
-          onClick={() => alert("Fetching Recommendations...")}>
+          className="px-4 py-2 bg-[#9bfb2d] hover:bg-[#7ddd3d] text-black rounded-lg transition-colors duration-300 font-semibold"
+          onClick={() => {
+            console.log("Opening Modal");
+            setIsModalOpen(true);
+          }}>
           Get Recommendations
+        </button>
+
+        {/* Right: Reset to Default Layout Button */}
+        <button
+          onClick={resetToDefaultLayout}
+          className="px-4 py-2 bg-text_col text-text_col_alt font-semibold rounded-lg transition-colors duration-300 flex items-center">
+          <FaUndo className="mr-2" /> Reset to Default Layout
         </button>
       </div>
 
       <div className="p-4">
         <div className="flex justify-between mb-4">
-          <button
-            onClick={resetToDefaultLayout}
-            className="px-4 py-2 bg-text_col text-text_col_alt font-semibold rounded-lg transition-colors duration-300 flex items-center">
-            <FaUndo className="mr-2 " /> Reset to Default Layout
-          </button>
           <div className="flex gap-2">
             {cardData.map(
               (card) =>
@@ -211,7 +239,7 @@ const AiDashboard: React.FC = () => {
           layouts={layouts}
           onLayoutChange={onLayoutChange}
           breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 1 }}
           rowHeight={100}
           isDraggable={true}
           isResizable={true}
@@ -250,6 +278,12 @@ const AiDashboard: React.FC = () => {
           </div>
         </ResponsiveGridLayout>
       </div>
+      {isModalOpen && (
+        <RecommendationsModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
