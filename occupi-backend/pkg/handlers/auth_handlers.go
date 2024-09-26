@@ -151,7 +151,6 @@ func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {
 			http.StatusOK,
 			"Error getting user credentials, please register for WebAuthn",
 			gin.H{"error": "Error getting user credentials, please register for WebAuthn"}))
-		fmt.Printf("error getting user credentials: %v", err)
 		return
 	}
 	webauthnUser := models.NewWebAuthnUser([]byte(requestEmail.Email), requestEmail.Email, requestEmail.Email, cred)
