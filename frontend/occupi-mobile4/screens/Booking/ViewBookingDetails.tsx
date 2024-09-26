@@ -91,8 +91,8 @@ const ViewBookingDetails = () => {
     return (
         <View pt="$16" flex="$1" backgroundColor={currentTheme === 'dark' ? 'black' : 'white'}>
             <View flexDirection="$row" alignItems="$center" >
-                <Icon as={Feather} name="chevron-left" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
-                <Text fontWeight="$bold" fontSize="$16" left="$10" color={currentTheme === 'dark' ? 'white' : 'black'}>{room?.roomName}</Text>
+                <Icon as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
+                <Text fontWeight="$bold" fontSize={16} left="$10" color={currentTheme === 'dark' ? 'white' : 'black'}>{room?.roomName}</Text>
             </View>
             <ScrollView contentContainerStyle={{ paddingBottom: 40 }} style={{ paddingBottom: 20, paddingHorizontal: 11 }} showsVerticalScrollIndicator={false}>
                 <View height={400} my="$4">
@@ -109,7 +109,7 @@ const ViewBookingDetails = () => {
                     </PagerView>
                 </View>
                 <View style={{ padding: wp('5%') }}>
-                    <Text fontSize="$24" fontWeight="$bold" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{room?.roomName}</Text>
+                    <Text fontSize={24} fontWeight="$bold" mb="$3" style={{ color: isDarkMode ? '#fff' : '#000' }}>{room?.roomName}</Text>
                     <View alignItems="center" flexDirection="row">
                         <Ionicons name="wifi" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> Fast   </Text>
                         <MaterialCommunityIcons name="television" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text color={isDarkMode ? '#fff' : '#000'}> OLED   </Text>
@@ -120,26 +120,26 @@ const ViewBookingDetails = () => {
                 <View px="$4">
                     <View flexDirection="$row" alignItems="$center">
                         <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} />
-                        <Text color={isDarkMode ? '#fff' : '#000'} fontSize="$20"> Attendees: {room?.emails?.length}</Text>
+                        <Text color={isDarkMode ? '#fff' : '#000'} fontSize={20}> Attendees: {room?.emails?.length}</Text>
                     </View>
                     {room?.emails?.map((email, idx) => (
                         <Text key={idx} color={isDarkMode ? '#fff' : '#000'}>{idx + 1}. {email}</Text>
                     ))}
-                    <Text mt="$4" mb="$1" fontSize="$16" fontWeight="$bold" color={currentTheme === 'dark' ? 'white' : 'black'}>Description</Text>
-                    <Text fontSize="$14" color={currentTheme === 'dark' ? 'white' : 'black'}>The {room?.roomName} is a state-of-the-art conference space designed for modern digital connectivity, seating 3-6 comfortably. Equipped with multiple HDMI ports, a high-definition projector or large LED screen, surround sound, and wireless display options, it ensures seamless presentations and video conferencing. The room features an intuitive control panel, high-speed Wi-Fi, and ample power outlets. Additional amenities include whiteboards, flip charts, adjustable lighting, and climate control, all within a professional and comfortable interior designed for productivity.</Text>
+                    <Text mt="$4" mb="$1" fontSize={16} fontWeight="$bold" color={currentTheme === 'dark' ? 'white' : 'black'}>Description</Text>
+                    <Text fontSize={14} color={currentTheme === 'dark' ? 'white' : 'black'}>The {room?.roomName} is a state-of-the-art conference space designed for modern digital connectivity, seating 3-6 comfortably. Equipped with multiple HDMI ports, a high-definition projector or large LED screen, surround sound, and wireless display options, it ensures seamless presentations and video conferencing. The room features an intuitive control panel, high-speed Wi-Fi, and ample power outlets. Additional amenities include whiteboards, flip charts, adjustable lighting, and climate control, all within a professional and comfortable interior designed for productivity.</Text>
                 </View>
                 
                 {isBookingActive ? (
                     <>
                         <TouchableOpacity style={{ paddingHorizontal: 15 }}>
-                            <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                            <View flexDirection="$row" my="$2" borderRadius={10} alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                 <Ionicons name="receipt-outline" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$bold" color={isDarkMode ? '#fff' : '#000'}> ViewBooking</Text>
                             </View>
                         </TouchableOpacity>
                         
                         {isLoading ? (
                             <TouchableOpacity style={{ paddingHorizontal: 15 }} >
-                                <View flexDirection="row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                <View flexDirection="row" my="$2" borderRadius={10} alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                     <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
                                 </View>
                             </TouchableOpacity>
@@ -163,7 +163,7 @@ const ViewBookingDetails = () => {
 
                         {!isLoading && (
                             <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
-                                <View flexDirection="$row" my="$2" borderRadius="$10" alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                <View flexDirection="$row" my="$2" borderRadius={10} alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                     <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="red">Cancel Booking</Text>
                                 </View>
                             </TouchableOpacity>

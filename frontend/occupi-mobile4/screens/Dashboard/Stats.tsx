@@ -344,7 +344,7 @@ const Stats = () => {
       justifyContent: 'space-between',
       backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
     }}>
-      <TouchableOpacity
+       <TouchableOpacity
         style={{
           position: 'absolute',
           top: hp('5%'),
@@ -506,7 +506,7 @@ const Stats = () => {
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
             </View>
-            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
+            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} />}
           </TouchableOpacity>
           <View>
             {activeGraph === 'hours' &&
@@ -524,30 +524,6 @@ const Stats = () => {
             }
           </View>
         </View>
-        {/* <View style={{
-          backgroundColor: cardBackgroundColor,
-          borderRadius: wp('4%'),
-          padding: wp('4%'),
-          marginBottom: hp('3%'),
-          borderColor: accentColour,
-          borderWidth: 2,
-          flexDirection: 'row',
-          justifyContent: 'space-between'
-        }}>
-          <View>
-            <Text style={{
-              fontSize: wp('5%'),
-              fontWeight: 'bold',
-              color: textColor,
-            }}>Work Ratio: </Text>
-            {!isLoading ? (
-              <Text color={textColor}>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(workRatio)}</Text>
-            ) : (
-              <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
-            )}
-          </View>
-          <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
-        </View> */}
         <View style={{
           backgroundColor: cardBackgroundColor,
           borderRadius: wp('4%'),
@@ -570,7 +546,7 @@ const Stats = () => {
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
             </View>
-            <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />
+            <Icon as={Feather} name="chevron-down" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} />
           </TouchableOpacity>
           <View>
             {activeGraph === 'peak' &&
@@ -615,7 +591,7 @@ const Stats = () => {
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={40} width={"80%"} />
               )}
             </View>
-            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
+            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} />}
           </TouchableOpacity>
           <View>
             {activeGraph === 'times' &&
@@ -657,7 +633,7 @@ const Stats = () => {
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
             </View>
-            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="40" color={currentTheme === 'dark' ? 'white' : 'black'} />}
+            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} />}
           </TouchableOpacity>
           <View>
             {activeGraph === 'rate' &&
@@ -675,44 +651,6 @@ const Stats = () => {
             }
           </View>
         </View>
-
-        {/* <Text style={{
-          fontSize: wp('4%'),
-          color: isDarkMode ? '#888' : '#555',
-          marginBottom: hp('2%'),
-        }}>Workplace Optimization</Text>
-
-        <View style={{
-          backgroundColor: '#9CF0E2',
-          borderRadius: wp('4%'),
-          padding: wp('4%'),
-          marginBottom: hp('3%'),
-          borderColor: '#1EE9C8',
-          borderWidth: 2,
-        }}>
-          <Text style={{
-            fontSize: wp('5%'),
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: hp('2%'),
-          }}>Meeting Room Utilization</Text>
-        </View>
-
-        <View style={{
-          backgroundColor: '#FFB6C1',
-          borderRadius: wp('4%'),
-          padding: wp('4%'),
-          marginBottom: hp('3%'),
-          borderColor: '#FF69B4',
-          borderWidth: 2,
-        }}>
-          <Text style={{
-            fontSize: wp('5%'),
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: hp('2%'),
-          }}>Workspace Efficiency</Text>
-        </View> */}
       </ScrollView>
     </View>
   );

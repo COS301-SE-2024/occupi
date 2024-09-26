@@ -47,8 +47,7 @@ const NotificationItem = ({ notification, accentColour, isDarkMode, onSwipeLeft 
             justifyContent: 'center',
             alignItems: 'center',
             borderRadius: 20,
-            height: 80
-            ,
+            height: 80,
             marginTop: 50
           }}
         >
@@ -84,7 +83,7 @@ const NotificationItem = ({ notification, accentColour, isDarkMode, onSwipeLeft 
             <Text color={isDarkMode ? 'white' : 'black'}>
               {notification.message}
             </Text>
-            <Text color="gray.500" fontSize="xs">
+            <Text color="gray.500" fontSize="$xs">
               {formatNotificationDate(notification.send_time)}
             </Text>
           </VStack>
@@ -175,12 +174,11 @@ const Notifications = () => {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
            
               <Text fontWeight="$bold" fontSize={24} color={isDarkMode ? 'white' : 'black'}>Notifications</Text>
-              <Tooltip
-                content={<Text>View and manage your notifications here. Swipe left for actions.</Text>}
+              {/* <Tooltip
+                content="View and manage your notifications here. Swipe left for actions."
                 placement="bottom"
-              >
+              /> */}
                 <Icon as={Feather} name="info" size="lg" color={isDarkMode ? 'white' : 'black'} />
-              </Tooltip>
             </View>
             <Input 
               my="$6" 
