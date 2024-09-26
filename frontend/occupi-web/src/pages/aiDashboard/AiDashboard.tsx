@@ -28,7 +28,7 @@ const defaultLayouts: Layouts = {
     { i: "card4", x: 9, y: 0, w: 3, h: 2 },
     { i: "graph1", x: 0, y: 2, w: 6, h: 4 },
     { i: "graph2", x: 6, y: 2, w: 6, h: 4 },
-    { i: "hourlyPrediction", x: 0, y: 6, w: 12, h: 3 },
+    { i: "hourlyPrediction", x: 0, y: 6, w: 12, h: 5 },
   ],
 };
 
@@ -173,6 +173,16 @@ const AiDashboard: React.FC = () => {
         onChange={handleInputChange}
       />
 
+       {/* Add Recommendations Button */}
+       <div className="flex justify-end mb-4">
+        <button
+          className="px-4 py-2 bg-green-400 hover:bg-green-500 text-white font-semibold rounded-lg transition-colors duration-300"
+          onClick={() => alert("Fetching Recommendations...")}
+        >
+          Get Recommendations
+        </button>
+      </div>
+      
       <div className="p-4">
         <div className="flex justify-between mb-4">
           <button
