@@ -102,14 +102,13 @@ type ImageRequest struct {
 }
 
 type RequestRoom struct {
-	RoomID       string   `json:"roomId" binding:"required,startswith=RM"`
-	RoomNo       string   `json:"roomNo" binding:"required"`
-	FloorNo      string   `json:"floorNo" binding:"required"`
-	MinOccupancy int      `json:"minOccupancy" binding:"required"`
-	MaxOccupancy int      `json:"maxOccupancy" binding:"required"`
-	Description  string   `json:"description" binding:"required"`
-	RoomName     string   `json:"roomName" binding:"required"`
-	Resources    []string `json:"resources" binding:"required"`
+	RoomID       string `json:"roomId" binding:"required,startswith=RM"`
+	RoomNo       string `json:"roomNo" binding:"required"`
+	FloorNo      string `json:"floorNo" binding:"required"`
+	MinOccupancy int    `json:"minOccupancy" binding:"required"`
+	MaxOccupancy int    `json:"maxOccupancy" binding:"required"`
+	Description  string `json:"description" binding:"required"`
+	RoomName     string `json:"roomName" binding:"required"`
 }
 
 type WebAuthnSession struct {
@@ -191,4 +190,9 @@ type RequestIP struct {
 type AllowAnonymousIPRequest struct {
 	Emails                  []string `json:"emails" binding:"omitempty"`
 	BlockAnonymousIPAddress bool     `json:"blockAnonymousIPAddress" binding:"omitempty"`
+}
+
+type DeleteNotiRequest struct {
+	Email  string `json:"email" binding:"omitempty,email"`
+	NotiID string `json:"notiId" binding:"required"`
 }

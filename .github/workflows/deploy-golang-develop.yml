@@ -113,7 +113,8 @@ jobs:
                       RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \
                       RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_DEFAULT_PASS }} \
                       DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
-                      docker compose -f docker-compose.dev.yml down
+                      docker compose -f docker-compose.dev.yml down --rmi all
+                    docker image prune -f
                     MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }} \
                       MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }} \
                       RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_DEFAULT_USER }} \

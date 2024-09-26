@@ -57,7 +57,6 @@ const (
 	MiddelwareAT            = "MIDDLEWARE_AT"
 	MiddlewareTarget        = "MIDDLEWARE_TARGET"
 	MiddlewareAgentService  = "MW_AGENT_SERVICE"
-	RedisUsername           = "REDIS_USERNAME"
 	RedisPassword           = "REDIS_PASSWORD"
 	RedisHost               = "REDIS_HOST"
 	RedisPort               = "REDIS_PORT"
@@ -66,6 +65,8 @@ const (
 	AzureRoomsContainerName = "AZURE_ROOMS_CONTAINER_NAME"
 	AzureAccountKey         = "AZURE_ACCOUNT_KEY"
 	TimeZone                = "TIMEZONE"
+	LogglyT                 = "LOGGLY_TOKEN"
+	LogglySubdomain         = "LOGGLY_SUBDOMAIN"
 )
 
 // init viper
@@ -514,14 +515,6 @@ func GetMiddlewareAgentService() string {
 	return service
 }
 
-func GetRedisUsername() string {
-	username := viper.GetString(RedisUsername)
-	if username == "" {
-		username = "REDIS_USERNAME"
-	}
-	return username
-}
-
 func GetRedisPassword() string {
 	password := viper.GetString(RedisPassword)
 	if password == "" {
@@ -584,4 +577,20 @@ func GetTimeZone() string {
 		timeZone = "TIMEZONE"
 	}
 	return timeZone
+}
+
+func GetLogglyToken() string {
+	tk := viper.GetString(LogglyT)
+	if tk == "" {
+		tk = "LOGGLY_TOKEN"
+	}
+	return tk
+}
+
+func GetLogglySubDomain() string {
+	domain := viper.GetString(LogglySubdomain)
+	if domain == "" {
+		domain = "LOGGLY_SUBDOMAIN"
+	}
+	return domain
 }

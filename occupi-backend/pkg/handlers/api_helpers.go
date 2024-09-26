@@ -27,7 +27,7 @@ func MultiDeleteImages(ctx *gin.Context, appsession *models.AppSession, containe
 		_, err := appsession.AzureClient.DeleteBlob(ctx, configs.GetAzurePFPContainerName(), id, &azblob.DeleteBlobOptions{})
 
 		if err != nil && !strings.Contains(err.Error(), "BlobNotFound") {
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to delete image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
@@ -42,7 +42,7 @@ func MultiUploadImages(ctx *gin.Context, appsession *models.AppSession, containe
 		fileData, err := os.Open(file.FileName)
 		if err != nil {
 			deleteTempFiles(files)
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to open image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
@@ -50,7 +50,7 @@ func MultiUploadImages(ctx *gin.Context, appsession *models.AppSession, containe
 
 		if _, err := appsession.AzureClient.UploadFile(ctx, containerName, utils.RemoveImageExtension(file.FileName), fileData, &azblob.UploadFileOptions{}); err != nil {
 			deleteTempFiles(files)
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to upload image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
@@ -58,7 +58,7 @@ func MultiUploadImages(ctx *gin.Context, appsession *models.AppSession, containe
 
 		if err := fileData.Close(); err != nil {
 			deleteTempFiles(files)
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to close image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
@@ -78,7 +78,7 @@ func ResizeImagesAndReturnAsFiles(ctx *gin.Context, appsession *models.AppSessio
 		widthV, err := safecast.ToUint(width)
 		if err != nil {
 			deleteTempFiles(files)
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to convert width to uint")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return nil, err
@@ -212,13 +212,13 @@ func DefaultMalePFP(race ...string) string {
 
 	if len(race) == 0 {
 		// choose a random pfp
-		return pfps[utils.RandomInt(0, len(pfps))]
+		return pfps[utils.RandomInt(0, len(pfps)-1)]
 	} else {
 		// choose a random pfp based on the race
 		if race[0] == "white" {
 			return pfps[utils.RandomInt(0, 4)]
 		} else {
-			return pfps[utils.RandomInt(4, len(pfps))]
+			return pfps[utils.RandomInt(4, len(pfps)-1)]
 		}
 	}
 }
@@ -235,13 +235,13 @@ func DefaultFemalePFP(race ...string) string {
 
 	if len(race) == 0 {
 		// choose a random pfp
-		return pfps[utils.RandomInt(0, len(pfps))]
+		return pfps[utils.RandomInt(0, len(pfps)-1)]
 	} else {
 		// choose a random pfp based on the race
 		if race[0] == "white" {
-			return pfps[utils.RandomInt(0, 4)]
+			return pfps[utils.RandomInt(0, 3)]
 		} else {
-			return pfps[utils.RandomInt(4, len(pfps))]
+			return pfps[utils.RandomInt(4, len(pfps)-1)]
 		}
 	}
 }

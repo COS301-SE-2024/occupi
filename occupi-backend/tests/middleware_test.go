@@ -10,7 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-redis/redismock/v9"
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -18,6 +20,7 @@ import (
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -1176,11 +1179,134 @@ func TestBlockWeekendsAndAfterHours(t *testing.T) {
 			ctx, w := createTestContext()
 
 			// Call the middleware with the test context and mock time
-			handler := middleware.BlockWeekendsAndAfterHours(tt.mockTime)
+			handler := middleware.BlockAfterHours(tt.mockTime)
 			handler(ctx)
 
 			// Assert the expected status code
 			assert.Equal(t, tt.expectedCode, w.Code)
 		})
 	}
+}
+
+func TestVerifyMobileUser(t *testing.T) {
+	email := "test@example.com"
+	role := constants.Basic
+
+	mockJWT, _, _, _ := authenticator.GenerateToken(email, role)
+	secondMockJWT, _, _, _ := authenticator.GenerateToken("test1@example.com", role)
+
+	tests := []struct {
+		name            string
+		email           string
+		expectedCode    int
+		tokenToValidate string
+		isMobileDevice  bool
+		cacheAction     bool
+		cacheErr        bool
+	}{
+		{
+			name:            "Invalid ctx that is Authorization header not set",
+			email:           email,
+			expectedCode:    http.StatusUnauthorized,
+			tokenToValidate: "",
+			isMobileDevice:  false,
+			cacheAction:     false,
+			cacheErr:        false,
+		},
+		{
+			name:            "Valid ctx with Authorization header set but not a mobile device",
+			email:           email,
+			expectedCode:    http.StatusOK,
+			tokenToValidate: mockJWT,
+			isMobileDevice:  false,
+			cacheAction:     false,
+			cacheErr:        false,
+		},
+		{
+			name:            "Valid ctx with Authorization header set and a mobile device but user not in cache",
+			email:           email,
+			expectedCode:    http.StatusBadRequest,
+			tokenToValidate: mockJWT,
+			isMobileDevice:  true,
+			cacheAction:     true,
+			cacheErr:        true,
+		},
+		{
+			name:            "Valid ctx with Authorization header set and a mobile device and token valid",
+			email:           email,
+			expectedCode:    http.StatusOK,
+			tokenToValidate: mockJWT,
+			isMobileDevice:  true,
+			cacheAction:     true,
+			cacheErr:        false,
+		},
+		{
+			name:            "Valid ctx with Authorization header set and a mobile device and token invalid",
+			email:           "test1@example.com",
+			expectedCode:    http.StatusUnauthorized,
+			tokenToValidate: secondMockJWT,
+			isMobileDevice:  true,
+			cacheAction:     true,
+			cacheErr:        false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Mock the Redis client
+			db, mock := redismock.NewClientMock()
+			appsession := &models.AppSession{MobileCache: db}
+
+			// Call the middleware with the test context
+			router := gin.Default()
+			router.Use(func(c *gin.Context) {
+				// Set the Authorization header if tokenToValidate is not empty
+				if tt.tokenToValidate != "" {
+					c.Request.Header.Set("Authorization", tt.tokenToValidate)
+				}
+				// Set the User-Agent header if isMobileDevice is true
+				if tt.isMobileDevice {
+					c.Request.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 10; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.181 Mobile Safari/537.36")
+				}
+				middleware.VerifyMobileUser(c, appsession)
+			})
+
+			// if cache action is true, then set the cache
+			if tt.cacheAction {
+				// if cache error is true, then set the cache with error
+				if tt.cacheErr {
+					// Expect the Get command to return a key not found error
+					mock.ExpectGet(cache.MobileUserKey(tt.email)).RedisNil()
+				} else {
+					// Create a sample user and marshal it into BSON
+					expectedUser := models.MobileUser{Email: tt.email, JWT: mockJWT}
+
+					userBson, err := bson.Marshal(expectedUser)
+					if err != nil {
+						t.Fatalf("failed to marshal user: %v", err)
+					}
+
+					// Expect the Get command to return the valid BSON
+					mock.ExpectGet(cache.MobileUserKey(tt.email)).SetVal(string(userBson))
+				}
+			}
+
+			// create endpoint to test middleware
+			router.GET("/ping", func(c *gin.Context) {
+				c.JSON(http.StatusOK, gin.H{"message": "pong"})
+			})
+
+			// Create a test context
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/ping", nil)
+			router.ServeHTTP(w, req)
+
+			// Assert the expected status code
+			assert.Equal(t, tt.expectedCode, w.Code)
+
+			//ensure all expectations are met
+			assert.Nil(t, mock.ExpectationsWereMet())
+		})
+	}
+
 }

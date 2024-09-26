@@ -111,16 +111,24 @@ type ViewBookings struct {
 }
 
 type Room struct {
-	ID           string   `json:"_id" bson:"_id,omitempty"`
-	RoomID       string   `json:"roomId" bson:"roomId,omitempty"`
-	RoomNo       string   `json:"roomNo" bson:"roomNo,omitempty"`
-	FloorNo      string   `json:"floorNo" bson:"floorNo" binding:"required"`
-	MinOccupancy int      `json:"minOccupancy" bson:"minOccupancy,omitempty"`
-	MaxOccupancy int      `json:"maxOccupancy" bson:"maxOccupancy"`
-	Description  string   `json:"description" bson:"description"`
-	RoomName     string   `json:"roomName" bson:"roomName"`
-	RoomImageIDs []string `json:"roomImageIds" bson:"roomImageIds"`
-	Resources    []string `json:"resources" bson:"resources"`
+	ID           string    `json:"_id" bson:"_id,omitempty"`
+	RoomID       string    `json:"roomId" bson:"roomId,omitempty"`
+	RoomNo       string    `json:"roomNo" bson:"roomNo,omitempty"`
+	FloorNo      string    `json:"floorNo" bson:"floorNo" binding:"required"`
+	MinOccupancy int       `json:"minOccupancy" bson:"minOccupancy,omitempty"`
+	MaxOccupancy int       `json:"maxOccupancy" bson:"maxOccupancy"`
+	Description  string    `json:"description" bson:"description"`
+	RoomName     string    `json:"roomName" bson:"roomName"`
+	RoomImage    RoomImage `json:"roomImage" bson:"roomImage"`
+}
+
+type RoomImage struct {
+	ID           string `json:"_id" bson:"_id,omitempty"`
+	UUID         string `json:"uuid" bson:"uuid"`
+	ThumbnailRes string `json:"thumbnailRes" bson:"thumbnailRes"`
+	LowRes       string `json:"lowRes" bson:"lowRes"`
+	MidRes       string `json:"midRes" bson:"midRes"`
+	HighRes      string `json:"highRes" bson:"highRes"`
 }
 
 type ResetToken struct {
@@ -131,6 +139,7 @@ type ResetToken struct {
 
 type ScheduledNotification struct {
 	ID                   string    `json:"_id" bson:"_id,omitempty"`
+	NotiID               string    `json:"notiId" bson:"notiId,omitempty"`
 	Title                string    `json:"title" bson:"title"`
 	Message              string    `json:"message" bson:"message"`
 	Sent                 bool      `json:"sent" bson:"sent"`
@@ -175,4 +184,9 @@ type Attendance struct {
 	SpecialEvent   bool      `json:"Special_Event" bson:"Special_Event"`
 	NumberAttended int       `json:"Number_Attended" bson:"Number_Attended"`
 	AttendeesEmail []string  `json:"Attendees_Email" bson:"Attendees_Email"`
+}
+
+type MobileUser struct {
+	Email string `json:"email" bson:"email"`
+	JWT   string `json:"jwt" bson:"jwt"`
 }

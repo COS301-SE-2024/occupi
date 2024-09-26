@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -38,6 +40,7 @@ func ProtectedRoute(ctx *gin.Context) {
 	if !utils.IsSessionSet(ctx) {
 		err := utils.SetSession(ctx, claims)
 		if err != nil {
+			configs.CaptureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -61,6 +64,52 @@ func ProtectedRoute(ctx *gin.Context) {
 	ctx.Next()
 }
 
+func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
+	claims, err := utils.GetClaimsFromCTX(ctx)
+
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized,
+			utils.ErrorResponse(
+				http.StatusUnauthorized,
+				"Bad Request",
+				constants.InvalidAuthCode,
+				"User not authorized or Invalid auth token or You may have forgotten to include the Authorization header",
+				nil))
+		ctx.Abort()
+		return
+	}
+
+	if utils.IsMobileDevice(ctx) {
+		user, errv := cache.GetMobileUser(appsession, claims.Email)
+		if errv != nil {
+			ctx.JSON(http.StatusBadRequest,
+				utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Bad Request",
+					constants.BadRequestCode,
+					"This account does not have a valid session. Attempt to login first.",
+					nil))
+			ctx.Abort()
+			return
+		}
+
+		headertokenStr := ctx.GetHeader("Authorization")
+
+		// check if the jwt tokens match
+		if user.JWT != headertokenStr {
+			ctx.JSON(http.StatusUnauthorized,
+				utils.ErrorResponse(
+					http.StatusUnauthorized,
+					"Bad Request",
+					constants.InvalidAuthCode,
+					"This token is no longer valid as another device has logged into this account",
+					nil))
+			ctx.Abort()
+			return
+		}
+	}
+}
+
 // ProtectedRoute is a middleware that checks if
 // the user has not been authenticated previously.
 func UnProtectedRoute(ctx *gin.Context) {
@@ -81,6 +130,7 @@ func UnProtectedRoute(ctx *gin.Context) {
 	if utils.IsSessionSet(ctx) {
 		err := utils.ClearSession(ctx)
 		if err != nil {
+			configs.CaptureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -130,6 +180,7 @@ func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSessio
 	// Add the user's IP address to the cache
 	err = appsession.OtpReqCache.Set(utils.GetClientIP(ctx), []byte("sent"))
 	if err != nil {
+		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		ctx.Abort()
@@ -240,7 +291,7 @@ func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
 }
 
 // block endpoint on weekends and after hours that is only allow access between Mon - Fri 08:00 - 17:00
-func BlockWeekendsAndAfterHours(now time.Time) gin.HandlerFunc {
+func BlockAfterHours(now time.Time) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Check if the current time is outside working hours
 		if now.Hour() < 7 || now.Hour() >= 17 {

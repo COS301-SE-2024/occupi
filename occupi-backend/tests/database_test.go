@@ -4742,6 +4742,58 @@ func TestReadNotifications(t *testing.T) {
 	})
 }
 
+func TestDeleteNotificationForUser(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Test case: database is nil
+	t.Run("Database is nil", func(t *testing.T) {
+		appsession := &models.AppSession{DB: nil}
+		request := models.DeleteNotiRequest{NotiID: "noti-id", Email: "test@example.com"}
+
+		err := database.DeleteNotificationForUser(ctx, appsession, request)
+
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	// Test case: successful update
+	mt.Run("successful update", func(mt *mtest.T) {
+		appsession := &models.AppSession{DB: mt.Client}
+		request := models.DeleteNotiRequest{NotiID: "noti-id", Email: "test@example.com"}
+
+		// Mock successful update
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.DeleteNotificationForUser(ctx, appsession, request)
+		assert.NoError(t, err)
+
+		// Assert the expected filter and update used in UpdateOne
+		mt.DB.Collection("Notifications").FindOne(ctx, bson.M{"notiId": request.NotiID})
+	})
+
+	// Test case: failed update
+	mt.Run("failed update", func(mt *mtest.T) {
+		appsession := &models.AppSession{DB: mt.Client}
+		request := models.DeleteNotiRequest{NotiID: "noti-id", Email: "test@example.com"}
+
+		// Mock an error response from MongoDB
+		mt.AddMockResponses(mtest.CreateWriteErrorsResponse(mtest.WriteError{
+			Index:   0,
+			Code:    11000,
+			Message: "duplicate key error",
+		}))
+
+		err := database.DeleteNotificationForUser(ctx, appsession, request)
+		assert.Error(t, err)
+
+		// Optionally assert the error message
+		assert.Contains(t, err.Error(), "duplicate key error")
+	})
+}
+
 func TestGetSecuritySettings(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
@@ -5716,7 +5768,8 @@ func TestIsLocationInRange(t *testing.T) {
 		{
 			name: "Empty Location String",
 			locations: []models.Location{
-				{City: "CityF", Region: "RegionF", Country: "CountryF", Location: ""}, // Empty location
+				{City: "CityG", Region: "RegionG", Country: "CountryG", Location: "40.7128,-74.0060"}, // New York
+				{City: "CityF", Region: "RegionF", Country: "CountryF", Location: ""},                 // Empty location
 			},
 			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
 			expected:           false,                                       // Should skip and return false since there's no valid location within range
@@ -5752,6 +5805,14 @@ func TestIsLocationInRange(t *testing.T) {
 			},
 			unrecognizedLogger: &ipinfo.Core{Location: "abc,-118"}, // Non-numeric latitude
 			expected:           false,                              // Should skip and return false since the location format is invalid
+		},
+		{
+			name: "All current locations are empty strings",
+			locations: []models.Location{
+				{City: "", Region: "", Country: "", Location: ""}, // Empty location
+			},
+			unrecognizedLogger: &ipinfo.Core{Location: "34.0522,-118.2437"}, // Los Angeles
+			expected:           true,                                        // Should skip and return true since there's no valid location within range
 		},
 	}
 
@@ -6782,7 +6843,7 @@ func TestUpdateNotificationSettings(t *testing.T) {
 	})
 }
 
-func TestAddImageIDToRoom(t *testing.T) {
+func TestAddImageToRoom(t *testing.T) {
 	// Set Gin mode to match your configuration
 	gin.SetMode(configs.GetGinRunMode())
 
@@ -6795,7 +6856,7 @@ func TestAddImageIDToRoom(t *testing.T) {
 			DB: nil,
 		}
 
-		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		err := database.AddImageToRoom(ctx, appsession, "room1", "image1")
 		assert.EqualError(t, err, "database is nil")
 	})
 
@@ -6807,7 +6868,7 @@ func TestAddImageIDToRoom(t *testing.T) {
 		// Mock the UpdateOne operation as successful
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		err := database.AddImageToRoom(ctx, appsession, "room1", "image1")
 		assert.NoError(t, err)
 	})
 
@@ -6822,12 +6883,12 @@ func TestAddImageIDToRoom(t *testing.T) {
 			Message: "update error",
 		}))
 
-		err := database.AddImageIDToRoom(ctx, appsession, "room1", "image1")
+		err := database.AddImageToRoom(ctx, appsession, "room1", "image1")
 		assert.EqualError(t, err, "update error")
 	})
 }
 
-func TestDeleteImageIDFromRoom(t *testing.T) {
+func TestDeleteImageFromRoom(t *testing.T) {
 	// Set Gin mode to match your configuration
 	gin.SetMode(configs.GetGinRunMode())
 
@@ -6840,7 +6901,7 @@ func TestDeleteImageIDFromRoom(t *testing.T) {
 			DB: nil,
 		}
 
-		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		err := database.DeleteImageFromRoom(ctx, appsession, "room1", "image1")
 		assert.EqualError(t, err, "database is nil")
 	})
 
@@ -6852,7 +6913,7 @@ func TestDeleteImageIDFromRoom(t *testing.T) {
 		// Mock the UpdateOne operation as successful
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		err := database.DeleteImageFromRoom(ctx, appsession, "room1", "image1")
 		assert.NoError(t, err)
 	})
 
@@ -6867,7 +6928,7 @@ func TestDeleteImageIDFromRoom(t *testing.T) {
 			Message: "delete error",
 		}))
 
-		err := database.DeleteImageIDFromRoom(ctx, appsession, "room1", "image1")
+		err := database.DeleteImageFromRoom(ctx, appsession, "room1", "image1")
 		assert.EqualError(t, err, "delete error")
 	})
 }

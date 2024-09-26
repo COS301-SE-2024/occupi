@@ -19,13 +19,13 @@ const AboutComponent = () => {
         <p className="mt-2 text-3xl text-text_col text-center">Predict. Plan. Perfect</p>
 
         <div className="text-center text-2xl mt-4">
-          <p className="text-text_col">version: 0.2.0</p>
+          <p className="text-text_col">version: 0.9.0</p>
           <p className="text-text_col">Web</p>
           <p className="text-text_col">Chrome 18.0.4</p>
         </div>
 
         <div className="flex flex-col underline text-center text-xl mt-4">
-          <a href="/privacy-policy" className="text-blue-500">privacy policy</a>
+          <a href="https://www.freeprivacypolicy.com/live/8f124563-97fc-43fa-bf37-7a82ba153ea3" className="text-blue-500">privacy policy</a>
           <a href="/terms-of-service" className="text-blue-500">terms of service</a>
           <a href="/user-manual" className="text-blue-500">user manual</a>
         </div>

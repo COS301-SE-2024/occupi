@@ -2990,3 +2990,65 @@ func TestRandomIntErrorHandling(t *testing.T) {
 		t.Errorf("Expected 10, got %d", result)
 	}
 }
+
+func TestDetectDeviceType(t *testing.T) {
+	tests := []struct {
+		userAgent string
+		expected  string
+	}{
+		// iOS examples
+		{"Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1", "iOS"},
+		{"Expo/1017616 CFNetwork/1490.0.4 Darwin/23.2.0", "iOS"},
+		{"Dalvik/2.1.0 (Linux; U; Android 11; Pixel 5 Build/RQ2A.210405.005)", "Android"},
+
+		// macOS example
+		{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15", "macOS"},
+
+		// Android example
+		{"Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.93 Mobile Safari/537.36", "Android"},
+
+		// Unknown device example
+		{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36", "Unknown"},
+	}
+
+	for _, test := range tests {
+		result := utils.DetectDeviceType(test.userAgent)
+		if result != test.expected {
+			t.Errorf("For user agent %s, expected %s, got %s", test.userAgent, test.expected, result)
+		}
+	}
+}
+
+func TestIsMobileDevice(t *testing.T) {
+	// Create a table of test cases
+	tests := []struct {
+		userAgent string
+		expected  bool
+	}{
+		// iOS mobile case
+		{"Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1", true},
+
+		// Android mobile case
+		{"Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.93 Mobile Safari/537.36", true},
+
+		// macOS desktop case
+		{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15", false},
+
+		// Unknown device case
+		{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36", false},
+	}
+
+	for _, test := range tests {
+		// Create a mock gin context with the User-Agent header
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
+		c.Request.Header.Set("User-Agent", test.userAgent)
+
+		// Call the function and compare the result with the expected value
+		result := utils.IsMobileDevice(c)
+		if result != test.expected {
+			t.Errorf("For user agent %s, expected %v, got %v", test.userAgent, test.expected, result)
+		}
+	}
+}

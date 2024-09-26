@@ -31,9 +31,11 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
   const [notifications, setNotifications] = useState<
     import("NotificationsService").Notification[]
   >([]);
+  const [, setAvatarUrl] = useState("");
 
   useEffect(() => {
     loadNotifications();
+    loadAvatarImage();
   }, []);
 
   const loadNotifications = async () => {
@@ -43,6 +45,23 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
       setNotifications(fetchedNotifications);
     } catch (error) {
       console.error("Error loading notifications:", error);
+    }
+  };
+
+  const loadAvatarImage = async () => {
+    if (userDetails?.avatarId) {
+      try {
+        const response = await fetch(`/api/image/${userDetails.avatarId}?quality=medium`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          setAvatarUrl(imageUrl);
+        } else {
+          console.error("Failed to fetch avatar image");
+        }
+      } catch (error) {
+        console.error("Error loading avatar image:", error);
+      }
     }
   };
 
@@ -94,13 +113,13 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
                 as="button"
                 avatarProps={{
                   isBordered: true,
-                  src: `https://i.pravatar.cc/150?u=${userDetails?.employeeid}`,
+                  src: `https://dev.occupi.tech/api/download-profile-image?quality=low`,
                   size: "md",
                 }}
                 className={`transition-transform ${
                   isMinimized ? "p-0" : "w-full p-2"
                 }`}
-                description={isMinimized ? null : "occupi-admin"}
+                description={isMinimized ? 'no post' : userDetails?.position}
                 name={isMinimized ? null : userDetails?.name}
               />
             </Badge>
