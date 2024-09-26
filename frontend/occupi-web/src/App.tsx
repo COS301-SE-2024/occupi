@@ -36,7 +36,6 @@ function App() {
           <Routes>
             <Route path="dashboard/*" element={<Dashboard />} >
               <Route path="overview" element={<OverviewComponent />} />
-              <Route path="bookings" element={<BookingComponent />} />*attach appropriate component
               <Route path="visitations" element={<Visitation />} />{/**attach appropriate component */}
               <Route path="analysis" element={<Analysis/>} />{}
             </Route>
@@ -48,6 +47,7 @@ function App() {
            {/* <Route path="notifications" element={<Notifications />} />*attach appropriate component */}
             <Route path="bookingStats" element={<BookingStats />} />{/**attach appropriate component */}
             <Route path="worker-dashboard" element={<WorkerStatsDashboard />} />{/**attach appropriate component */}
+            <Route path="bookings" element={<BookingComponent />} />*attach appropriate component
 
 
            

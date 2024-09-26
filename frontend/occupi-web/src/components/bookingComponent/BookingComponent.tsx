@@ -30,7 +30,7 @@ import { SearchIcon } from "@assets/index";
 import { ChevronDownIcon } from "@assets/index";
 import { columns, users, statusOptions } from "../data/Data";
 import { capitalize } from "../data/Utils";
-import { OccupancyModal } from "@components/index";
+import { OccupancyModal,TopNav } from "@components/index";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
   ONSITE: "success",
@@ -370,8 +370,20 @@ export default function App() {
       initial={{ opacity: 0, scale: 0.7 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
+      className="w-full overflow-auto"
     >
 
+<TopNav
+        mainComponent={<div className="text-text_col font-semibold text-2xl ml-5">
+          Employees
+          <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
+            Manage your Employees, and view their occupancy statistics
+          </span>
+        </div>} searchQuery={""} onChange={function (e: React.ChangeEvent<HTMLInputElement>): void {
+          throw new Error("Function not implemented.");
+        } }        
+        
+      />
       
       <div data-testid="table" className="max-w-[95%] mx-auto">
         <Table
