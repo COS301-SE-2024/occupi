@@ -67,7 +67,6 @@ import HistoricalBookingsBento from "./historicalBookings/HistoricalBookingsBent
 import CurrentBookingsBento from "./currentBookings/CurrentBookingsBento";
 import BookingsDashboard from "./bookingsDashboardComponent/BookingsDashboard";
 
-import GlobalSearch from './globalSearch/GlobalSearch';
 import HourlyPredictionGraph from "./aiDashboard/aiDashGraphs/HourlyPredictionGraph";
 import HourlyComparisonGraph from "./aiDashboard/aiDashGraphs/HourlyComparisonGraph";
 
