@@ -53,7 +53,14 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/auth/, '/auth'),
+      },
+      '/analytics': {
+        target: process.env.NODE_ENV === "development" || process.env.NODE_ENV === "preview-dev" ? 'https://dev.occupi.tech' : "https://occupi.tech",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/analytics/, '/analytics'),
       }
+
     },
     https: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'preview' || process.env.NODE_ENV === 'development' ? {} : {
       key: fs.readFileSync(keyPath),

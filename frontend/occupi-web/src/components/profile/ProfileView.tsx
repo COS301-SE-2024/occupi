@@ -49,7 +49,7 @@ const ProfileView = () => {
     }
 
     AuthService.uploadImage(file)
-    .then(_ => {
+    .then(() => {
       setUploadStatus(`Upload successful`);
         setIsUploading(false);
     })
@@ -72,6 +72,9 @@ const ProfileView = () => {
         employeeid: userDetails?.employeeid || '',
         number,
         pronouns,
+        avatarId: userDetails?.avatarId || '',
+        position: userDetails?.position || '',
+        departmentNo: userDetails?.departmentNo || '',
       };
 
       // Call the API to update the user details

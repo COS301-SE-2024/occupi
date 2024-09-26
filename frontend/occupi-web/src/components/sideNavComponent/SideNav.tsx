@@ -3,7 +3,7 @@ import {
   ChevronRight,
   Grid, Home,
   PieChart, OccupiLogo,
-  Report
+  Report,Bar,Worker
 } from "@assets/index";
 import { ProfileDropDown, SideNavBarButton } from "@components/index";
 import { motion } from "framer-motion";
@@ -25,10 +25,14 @@ const sidebarcontent = [
     icon: Grid,
     text: "Dashboard",
   },
-  // {
-  //   // icon: PieChart,
-  //   // text: "Analysis",
-  // },
+  {
+    icon: Bar,
+    text: "Booking Statistics",
+  },
+  {
+    icon: Worker,
+    text: "Worker Dashboard",
+  },
   {
     icon: PieChart,
     text: "AI Analysis",
@@ -45,6 +49,7 @@ const sidebarcontent = [
     icon: Report,
     text: "Reports",
   },
+ 
 ];
 
 const SideNav = () => {
@@ -76,6 +81,10 @@ const SideNav = () => {
     else if (arg === "Logout")navigate("/");
     else if (arg === "Reports")navigate("/reports");
     else if (arg === "Help")navigate("/faq");
+    else if (arg === "Booking Statistics")navigate("/bookingStats");
+    else if (arg === "Worker Dashboard")navigate("/worker-dashboard");
+
+    else;
   }
 
   function toggleSideNav() {

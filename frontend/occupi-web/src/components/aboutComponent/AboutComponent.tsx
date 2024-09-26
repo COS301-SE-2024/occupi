@@ -25,7 +25,7 @@ const AboutComponent = () => {
         </div>
 
         <div className="flex flex-col underline text-center text-xl mt-4">
-          <a href="/privacy-policy" className="text-blue-500">privacy policy</a>
+          <a href="https://www.freeprivacypolicy.com/live/8f124563-97fc-43fa-bf37-7a82ba153ea3" className="text-blue-500">privacy policy</a>
           <a href="/terms-of-service" className="text-blue-500">terms of service</a>
           <a href="/user-manual" className="text-blue-500">user manual</a>
         </div>

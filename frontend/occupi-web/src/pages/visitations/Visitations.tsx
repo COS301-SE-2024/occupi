@@ -1,108 +1,162 @@
-// import React from 'react';
-// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-// import { Visitation } from '..';
+// import { useState, useEffect } from 'react';
+// import axios from 'axios';
+// import { motion } from 'framer-motion';
+// import { Card, CardHeader, CardBody, Grid, Text, Spacer, Avatar } from '@nextui-org/react';
+// import { Calendar, Lock, UserCircle, Mail } from 'lucide-react';
 
-// const data = [
-//   { date: "2024-08-05", day: "Sun", predicted: "300-600", isWeekend: false, specialEvent: true },
-//   { date: "2024-08-06", day: "Mon", predicted: "300-600", isWeekend: false, specialEvent: false },
-//   { date: "2024-08-07", day: "Tue", predicted: "300-600", isWeekend: false, specialEvent: false },
-//   { date: "2024-08-08", day: "Wed", predicted: "1200-1500", isWeekend: false, specialEvent: false },
-//   { date: "2024-08-09", day: "Thu", predicted: "300-600", isWeekend: false, specialEvent: false },
-//   { date: "2024-08-10", day: "Fri", predicted: "0-300", isWeekend: true, specialEvent: false },
-//   { date: "2024-08-11", day: "Sat", predicted: "0-300", isWeekend: true, specialEvent: false },
-// ];
+// interface BookingData {
+//   occupiID: string;
+//   roomName: string;
+//   floorNo: string;
+//   start: string;
+//   end: string;
+//   creators: string;
+//   emails: string[];
+//   checkedIn: boolean;
+// }
 
-// // Line Chart for Attendance Predictions
-// const AttendanceLineChart = () => (
-//   <LineChart width={600} height={300} data={data}>
-//     <CartesianGrid strokeDasharray="3 3" />
-//     <XAxis dataKey="date" />
-//     <YAxis />
-//     <Tooltip />
-//     <Legend />
-//     <Line type="monotone" dataKey="predicted" stroke="#8884d8" />
-//   </LineChart>
-// );
+// interface UserDetails {
+//   email: string;
+//   name: string;
+//   dob: string;
+//   gender: string;
+//   employeeid: string;
+//   number: string;
+//   pronouns: string;
+// }
 
-// // Bar Chart for Predicted Class Levels
-// const ClassBarChart = () => (
-//   <BarChart width={600} height={300} data={data}>
-//     <CartesianGrid strokeDasharray="3 3" />
-//     <XAxis dataKey="date" />
-//     <YAxis />
-//     <Tooltip />
-//     <Legend />
-//     <Bar dataKey="Predicted_Class" fill="#82ca9d" />
-//   </BarChart>
-// );
+// const BookingsCard = () => {
+//   const [bookings, setBookings] = useState<BookingData[]>([]);
+//   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
-// // Pie Chart for Special Events
-// const SpecialEventPieChart = () => {
-//   const eventCount = data.reduce(
-//     (acc, item) => {
-//       if (item.specialEvent) acc.yes++;
-//       else acc.no++;
-//       return acc;
-//     },
-//     { yes: 0, no: 0 }
-//   );
-  
-//   const pieData = [
-//     { name: 'Special Event', value: eventCount.yes },
-//     { name: 'No Special Event', value: eventCount.no },
-//   ];
+//   useEffect(() => {
+//     const fetchBookings = async () => {
+//       try {
+//         const response = await axios.get('/analytics/bookings-historical');
+//         setBookings(response.data.data);
+//       } catch (error) {
+//         console.error('Error fetching bookings:', error);
+//       }
+//     };
+
+//     const fetchUserDetails = async () => {
+//       try {
+//         const response = await axios.get('/api/user-details?email=tintinaustin12345@gmail.com');
+//         setUserDetails(response.data.data);
+//       } catch (error) {
+//         console.error('Error fetching user details:', error);
+//       }
+//     };
+
+//     fetchBookings();
+//     fetchUserDetails();
+//   }, []);
 
 //   return (
-//     <PieChart width={400} height={400}>
-//       <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={150} fill="#8884d8" label>
-//         {pieData.map((entry, index) => (
-//           <Cell key={`cell-${index}`} fill={index === 0 ? "#00C49F" : "#FF8042"} />
-//         ))}
-//       </Pie>
-//       <Tooltip />
-//     </PieChart>
+//     <motion.div
+//       initial={{ opacity: 0, y: 20 }}
+//       animate={{ opacity: 1, y: 0 }}
+//       transition={{ duration: 0.5 }}
+//     >
+//       <Card>
+//         <CardHeader>
+//           <Text h1>Bookings and User Details</Text>
+//         </CardHeader>
+//         <CardBody>
+//           {userDetails && (
+//             <div>
+//               <Grid.Container justify="space-between" align="center">
+//                 <Grid>
+//                   <Avatar size="lg" src={`https://ui-avatars.com/api/?name=${userDetails.name}`} />
+//                 </Grid>
+//                 <Grid>
+//                   <Text h3>{userDetails.name}</Text>
+//                   <Text size="$md" color="$text_col_secondary_alt">
+//                     {userDetails.email}
+//                   </Text>
+//                   <Text size="$md" color="$text_col_secondary_alt">
+//                     <Calendar size={16} />
+//                     {userDetails.dob}
+//                   </Text>
+//                   <Text size="$md" color="$text_col_secondary_alt">
+//                     <Mail size={16} />
+//                     {userDetails.pronouns}
+//                   </Text>
+//                   <Text size="$md" color="$text_col_secondary_alt">
+//                     <UserCircle size={16} />
+//                     {userDetails.employeeid}
+//                   </Text>
+//                   <Text size="$md" color="$text_col_secondary_alt">
+//                     <Lock size={16} />
+//                     {userDetails.number}
+//                   </Text>
+//                 </Grid>
+//               </Grid.Container>
+//               <Spacer y={2} />
+//             </div>
+//           )}
+//           <Text h2>Bookings</Text>
+//           {bookings.map((booking, index) => (
+//             <Card key={index} className='mb-5'>
+//               <CardBody>
+//                 <Grid.Container justify="space-between" align="center">
+//                   <Grid>
+//                     <Text h3>{booking.roomName}</Text>
+//                     <Text size="$md" color="$text_col_secondary_alt">
+//                       <Calendar size={16} />
+//                       {booking.start} - {booking.end}
+//                     </Text>
+//                     <Text size="$md" color="$text_col_secondary_alt">
+//                       <Lock size={16} />
+//                       Floor {booking.floorNo}
+//                     </Text>
+//                   </Grid>
+//                   <Grid>
+//                     <Text h4>Booking ID</Text>
+//                     <Text size="$md" color="$text_col_secondary_alt">
+//                       {booking.occupiID}
+//                     </Text>
+//                     <Text h4>Creators</Text>
+//                     <Text size="$md" color="$text_col_secondary_alt">
+//                       {booking.creators}
+//                     </Text>
+//                     <Text h4>Checked In</Text>
+//                     <Text size="$md" color="$text_col_secondary_alt">
+//                       {booking.checkedIn ? 'Yes' : 'No'}
+//                     </Text>
+//                   </Grid>
+//                 </Grid.Container>
+//                 <Spacer y={1} />
+//                 <Grid.Container align="center">
+//                   <Grid>
+//                     <Text h4>Attendees</Text>
+//                     {booking.emails.map((email, i) => (
+//                       <Grid.Container key={i} align="center" css={{ marginBottom: '$4' }}>
+//                         <Grid>
+//                           <Avatar
+//                             size="md"
+//                             src={`https://ui-avatars.com/api/?name=${email.split('@')[0]}`}
+//                           />
+//                         </Grid>
+//                         <Grid>
+//                           <Text size="$md" color="$text_col_secondary_alt">
+//                             {email}
+//                           </Text>
+//                         </Grid>
+//                       </Grid.Container>
+//                     ))}
+//                   </Grid>
+//                 </Grid.Container>
+//               </CardBody>
+//             </Card>
+//           ))}
+//         </CardBody>
+//       </Card>
+//     </motion.div>
 //   );
 // };
 
-// // Bar Chart for Attendance Levels by Day of the Week
-// const DayOfWeekBarChart = () => {
-//   const attendanceByDay = data.reduce((acc, item) => {
-//     acc[item.day] = (acc[item.day] || 0) + Number(item.predicted.split('-')[0]); // Simplified average
-//     return acc;
-//   }, {});
-  
-//   const dayOfWeekData = Object.keys(attendanceByDay).map(day => ({
-//     day,
-//     averageAttendance: attendanceByDay[day] / data.filter(d => d.day === day).length
-//   }));
-
-//   return (
-//     <BarChart width={600} height={300} data={dayOfWeekData}>
-//       <CartesianGrid strokeDasharray="3 3" />
-//       <XAxis dataKey="day" />
-//       <YAxis />
-//       <Tooltip />
-//       <Legend />
-//       <Bar dataKey="averageAttendance" fill="#8884d8" />
-//     </BarChart>
-//   );
-// };
-
-// const Visitations = () => (
-//   <div>
-//     <h2>Attendance Line Chart</h2>
-//     <AttendanceLineChart />
-//     <h2>Predicted Class Bar Chart</h2>
-//     <ClassBarChart />
-//     <h2>Special Event Pie Chart</h2>
-//     <SpecialEventPieChart />
-//     <h2>Attendance by Day of the Week Bar Chart</h2>
-//     <DayOfWeekBarChart />
-//   </div>
-// );
-
-// export default Visitations;
-
+// export default BookingsCard;
 
 
 const Visitations = () => {
