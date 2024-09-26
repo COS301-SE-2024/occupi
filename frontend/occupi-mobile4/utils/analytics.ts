@@ -106,7 +106,7 @@ export const fetchUserPeakHours = async (timeFrom?: string, timeTo?: string) => 
         ordered = [];
         // You can set a default value or handle it as needed
       }
-    console.log('yurp bruh',getTodayTopHour(ordered));
+    // console.log('yurp bruh',getTodayTopHour(ordered));
     if (total.data === null) {
         console.log("returning -1");
         return -1;

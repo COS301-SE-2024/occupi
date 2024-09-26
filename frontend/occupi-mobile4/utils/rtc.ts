@@ -10,19 +10,30 @@ let centrifuge: Centrifuge | null = null; // Singleton instance of Centrifuge
 const CENTRIFUGO_URL = "wss://dev.occupi.tech/connection"; // Adjust the URL to match your Centrifugo server
 const RTC_URL = "/rtc";
 
+const getTodaysDate = (): string => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // Function to fetch or retrieve a valid RTC token
 const fetchToken = async (): Promise<string | null> => {
   // Try to get the token from cookies
   let token = await SecureStore.getItemAsync('rtc-token');
   console.log('tokennn',token);
-  const response = await getRTCToken();
-  console.log('yessir',response);
+  let tokentime = await SecureStore.getItemAsync('tokenTime');
+  const todaysDate = getTodaysDate();
+  // const response = await getRTCToken();
+  // console.log('yessir',response);
 
   // If the token is not found in cookies, fetch it from the AuthService
-  if (!token) {
+  if (!token || tokentime !== todaysDate) {
     console.log("No RTC token found in cookies, fetching a new token...");
     try {
       const response = await getRTCToken();
+      SecureStore.setItemAsync("tokenTime",todaysDate);
       console.log('responseee',response);
       token = response.data; // Assuming response directly returns the token
       storeRTCToken(token as string);

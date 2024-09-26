@@ -151,7 +151,7 @@ const Dashboard: React.FC = () => {
     const LocationCheckin = async () => {
       let checkedInVal = await SecureStore.getItemAsync('CheckedIn');
       setCheckedIn(checkedInVal === "true" ? true : false);
-      // console.log(checkedIn.toString());
+      console.log('checkedin: ',checkedInVal);
       if (checkedInVal === "false") {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {

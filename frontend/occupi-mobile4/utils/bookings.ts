@@ -131,7 +131,7 @@ export async function userBookRoom(attendees: string[], startTime: string, endTi
         const pushTokens: string[] = response?.data || [];
         console.log(pushTokens);
         sendPushNotification(pushTokens, 'Meeting Invite', `${email} has invited you to a meeting in ${room.roomName} on ${room.date}`);
-        return response.message || 'Room booked successfully';
+        return 'Successfully booked!';
       }
       return response.message || 'Booking failed';
     } catch (error) {
