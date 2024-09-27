@@ -50,7 +50,7 @@ const Dashboard: React.FC = () => {
   const [numbers, setNumbers] = useState(Array.from({ length: 15 }, getRandomNumber));
   const [isDarkMode, setIsDarkMode] = useState(currentTheme === 'dark');
   const [checkedIn, setCheckedIn] = useState<boolean>();
-  const [topBookings, setTopBookings] = useState([]);
+  // const [topBookings, setTopBookings] = useState([]);
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
   const [date, setDate] = useState('');
@@ -146,8 +146,8 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const LocationCheckin = async () => {
       let checkedInVal = await SecureStore.getItemAsync('CheckedIn');
-      setCheckedIn(checkedInVal === "true" ? true : false);     
-      console.log('checkedin: ',checkedInVal);
+      setCheckedIn(checkedInVal === "true" ? true : false);
+      console.log('checkedin: ', checkedInVal);
       if (checkedInVal === "false") {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
@@ -212,7 +212,7 @@ const Dashboard: React.FC = () => {
 
     getWeeklyPrediction();
     getAccentColour();
-    getTopBookings();
+    // getTopBookings();
   }, []);
 
   const getPredictionsFromWeek = async (date: string) => {
@@ -677,7 +677,7 @@ const Dashboard: React.FC = () => {
             </View>
           </TouchableOpacity>
         </View>
-        <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
+        {/* <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <View flexDirection='row' alignItems='center'>
             <Text fontSize={18} color={textColor}>Top Bookings </Text>
             <Tooltip
@@ -709,7 +709,7 @@ const Dashboard: React.FC = () => {
             </View>
             <Text color={textColor}>{topBookings[2]?.count} bookings</Text>
           </View>
-        </View>
+        </View> */}
         <View mb="$48" px="$4" mt="$4" pb="$3" pt="$2" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <Text mt="$1" fontSize={18} fontWeight="light" color={textColor}>
             Next booking:

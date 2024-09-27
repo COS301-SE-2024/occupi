@@ -5,7 +5,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import Svg, { Path } from 'react-native-svg'; 
 import { router } from 'expo-router';
 import Tooltip from '@/components/Tooltip';
-import {TextGenerateEffect} from '../../components/TextGenerateEffect';
 
 const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats }) => {
   const colorScheme = useColorScheme();
@@ -89,13 +88,6 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
         />
       </Animated.View>
 
-      {/* Subheading */}
-      <TextGenerateEffect
-        words="Get your personalized data today!"
-        className="font-roboto-bold text-2xl text-center mb-10 z-1"
-        filter={true}
-        duration={0.5}
-      />
 
       {/* Fetch My Stats Button */}
       <TouchableOpacity
