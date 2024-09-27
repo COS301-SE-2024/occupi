@@ -158,7 +158,7 @@ const BookRoom = () => {
               <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                 {pair.map((room : Room, idx) => (
                   <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => handleRoomSelect(room)}>
-                    <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: resolution === "low" ? room.roomImage.lowRes : resolution === "mid" ? room.roomImage.midRes : room.roomImage.highRes}} />
+                    <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: resolution === "low" ? room.roomImage.lowRes : resolution === "mid" ? room.roomImage.midRes : room.roomImage.highRes }} />
                     <View style={{ padding: 10 }}>
                       <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
                       <View>

@@ -46,6 +46,7 @@ const ViewBookings = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [resolution, setResolution] = useState("low");
     const [activeTab, setActiveTab] = useState('current');
     const [currentBookings, setCurrentBookings] = useState<Booking[]>([]);
     const [pastBookings, setPastBookings] = useState<Booking[]>([]);
@@ -56,12 +57,12 @@ const ViewBookings = () => {
                 setLoading(true);
                 const currentData = await getCurrentBookings();
                 const historicalData = await getHistoricalBookings();
-
-                if (currentData && currentData.data) {
-                    setCurrentBookings(currentData.data);
+                console.log(currentData);
+                if (currentData) {
+                    setCurrentBookings(currentData);
                 }
-                if (historicalData && historicalData.data) {
-                    setPastBookings(historicalData.data);
+                if (historicalData) {
+                    setPastBookings(historicalData);
                 }
             } catch (error) {
                 console.error('Error fetching bookings:', error);
@@ -96,29 +97,30 @@ const ViewBookings = () => {
         fetchBookings();
     }, []);
 
-    useEffect(() => {
-        const getRoomData = async () => {
-            try {
-                const roomData = await fetchUserBookings(selectedSort);
-                if (roomData) {
-                    const now = new Date();
-                    const current = roomData.filter(booking => new Date(booking.date) >= now);
-                    const past = roomData.filter(booking => new Date(booking.date) < now);
-                    setCurrentBookings(current);
-                    setPastBookings(past);
-                    setRoomData(roomData);
-                } else {
-                    setCurrentBookings([]);
-                    setPastBookings([]);
-                    setRoomData([]);
-                }
-            } catch (error) {
-                console.error('Error fetching bookings:', error);
-            }
-            setLoading(false);
-        };
-        getRoomData();
-    }, []);
+    // useEffect(() => {
+    //     const getRoomData = async () => {
+    //         try {
+    //             const roomData = await fetchUserBookings(selectedSort);
+    //             if (roomData) {
+    //                 const now = new Date();
+    //                 const current = roomData.filter(booking => new Date(booking.date) >= now);
+    //                 const past = roomData.filter(booking => new Date(booking.date) < now);
+    //                 // console.log(current);
+    //                 setCurrentBookings(current);
+    //                 setPastBookings(past);
+    //                 setRoomData(roomData);
+    //             } else {
+    //                 setCurrentBookings([]);
+    //                 setPastBookings([]);
+    //                 setRoomData([]);
+    //             }
+    //         } catch (error) {
+    //             console.error('Error fetching bookings:', error);
+    //         }
+    //         setLoading(false);
+    //     };
+    //     getRoomData();
+    // }, []);
 
     const [accentColour, setAccentColour] = useState<string>('greenyellow');
 
@@ -127,6 +129,19 @@ const ViewBookings = () => {
             let accentcolour = await SecureStore.getItemAsync('accentColour');
             setAccentColour(accentcolour);
         };
+        const setResolutionToMid = () => {
+            setTimeout(() => {
+              setResolution("mid");
+            }, 1000);
+          };
+        
+          const setResolutionToHigh = () => {
+            setTimeout(() => {
+              setResolution("high");
+            }, 3000);
+          };
+          setResolutionToMid();
+          setResolutionToHigh();
         getAccentColour();
     }, []);
 
@@ -168,6 +183,7 @@ const ViewBookings = () => {
     }
 
     const renderBookings = (bookings: Booking[]) => {
+        console.log('boookings',bookings);
         if (loading) {
             return (
                 <>
@@ -204,9 +220,9 @@ const ViewBookings = () => {
             >
                 {roomPairs.map((pair, index) => (
                     <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                        {pair.map((room, idx) => (
+                        {pair.map((room : Booking, idx) => (
                             <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => handleRoomClick(JSON.stringify(room))}>
-                                <Image alt="room" style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                                <Image alt="room" style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: room.roomImage === undefined ? 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' : resolution === "low" ? room.roomImage?.thumbnailRes : resolution === "mid" ? room.roomImage?.midRes : room.roomImage?.highRes }} />
                                 <View style={{ padding: 10 }}>
                                     <Text style={{ fontSize: 17, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
                                     <View flexDirection="column">
@@ -250,7 +266,6 @@ const ViewBookings = () => {
                             backgroundColor: cardBackgroundColor,
                             marginVertical: 4,
                             flexDirection: "row",
-                            padding: 10,
                         }}
                     >
                         <Image
@@ -258,7 +273,7 @@ const ViewBookings = () => {
                             h="$full"
                             alt="image"
                             borderRadius={10}
-                            source={'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png'}
+                            source={room.roomImage === undefined ? 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' : resolution === "low" ? room.roomImage?.thumbnailRes : resolution === "mid" ? room.roomImage?.midRes : room.roomImage?.highRes}
                         />
                         <View
                             // key={room.title}

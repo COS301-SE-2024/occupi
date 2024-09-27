@@ -102,7 +102,7 @@ const fetchLatestCount = async (): Promise<number> => {
     // console.log('current-countt:',`${CENTRIFUGO_URL}${RTC_URL}/current-count`);
     return response.data.data; // Assuming the API response has a 'count' field
   } catch (error) {
-    console.error("Error fetching the latest count:", error);
+    // console.error("Error fetching the latest count:", error);
     return 0; // Default to 0 if there's an error
   }
 };

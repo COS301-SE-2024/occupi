@@ -10,6 +10,13 @@ export interface Room {
     roomNo: string; 
 }
 
+interface Images {
+    highRes: string;
+    lowRes: string;
+    midRes: string;
+    thumbnailRes: string;
+  }
+
 export interface Booking {
     checkedIn: boolean;
     creator: string;
@@ -21,6 +28,7 @@ export interface Booking {
     roomId: string;
     roomName: string;
     start: string;
+    roomImage : Images;
 }
 
 export interface User {

@@ -64,7 +64,7 @@ import { sendPushNotification } from "./notifications";
       }
     } catch (error) {
       console.error('Error:', error);
-      throw error;
+      return {};
     }
   }
 
