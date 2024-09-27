@@ -72,6 +72,9 @@ const Security = () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           console.log('Tap detected! Magnitude:', magnitude);
           lastTapTime.current = currentTime;
+          
+          // Navigate to loading screen when flip is detected
+          router.push('/loadingscreen');
         }
       });
 
@@ -85,7 +88,9 @@ const Security = () => {
     };
   }, [isBackTapEnabled]);
 
-  const toggleSwitch = (setter) => () => setter(prev => !prev);
+  const toggleSwitch = (setter) => () => {
+    setter(prev => !prev);
+  };
 
   const handleBiometricAuth = async () => {
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
