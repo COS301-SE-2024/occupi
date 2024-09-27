@@ -1,5 +1,5 @@
 import { Success, Unsuccessful } from "@/models/response";
-import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq, NotificationsReq, UpdateDetailsReq, ViewRoomsReq, ViewBookingsReq, AnalyticsReq } from "@/models/requests";
+import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq, NotificationsReq, UpdateDetailsReq, ViewRoomsReq, ViewBookingsReq, AnalyticsReq, DeleteNotiRequest } from "@/models/requests";
 // import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import axios, { AxiosError } from 'axios';
@@ -470,23 +470,40 @@ export async function updateNotificationSettings(req: NotificationSettingsReq): 
   }
 }
 
-export const removeNotification = async (notificationId: string, email: string): Promise<Success | Unsuccessful> => {
-  let authToken = await SecureStore.getItemAsync('Token');
+export const removeNotification = async (req: DeleteNotiRequest): Promise<Success | Unsuccessful> => {
+  const authToken = await SecureStore.getItemAsync('Token');
+  
+  // Check for undefined or empty values
+  if (!req.email || !req.notiId) {
+    console.log('Invalid request parameters:', req);
+    return {
+      status: 'error',
+      data: null,
+      message: 'Invalid request parameters',
+      error: {
+        code: 'INVALID_PARAMETERS',
+        details: 'Email or notiId is missing or empty',
+        message: 'Invalid request parameters'
+      }
+    };
+  }
+
   try {
-    const response = await axios.delete(`https://dev.occupi.tech/api/notifications/${notificationId}`, {
-      data: { email },
-      params: { email },
+    const response = await axios.delete(`https://dev.occupi.tech/api/delete-notification`, {
+      data: req,
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `${authToken}`
+        'Authorization': authToken
       },
       withCredentials: true
     });
+    console.log('Delete request:', req);
     return response.data as Success;
   } catch (error) {
-    console.error('Error deleting notification:', error);
+    console.log("Failed delete request:", req);
     if (axios.isAxiosError(error) && error.response?.data) {
+      console.log("Full error response:", error.response.data);
       return error.response.data as Unsuccessful;
     }
     return {
