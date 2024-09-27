@@ -9,7 +9,7 @@ import numpy as np
 # Initialize the Flask application
 app = Flask(__name__)
 
-CORS(app, resources={r"/*": {"origins": ["https://dev.occupi.tech, https://occupi.tech, https://localhost"]}})
+CORS(app, resources={r"/*": {"origins": ["https://dev.occupi.tech, https://occupi.tech"]}})
 
 # Load the scaler
 scaler = joblib.load('attendance_scaler.pkl')
