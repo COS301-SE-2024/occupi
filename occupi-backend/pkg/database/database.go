@@ -2141,11 +2141,53 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cre
 
 	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, mongoFilter)
 
+	results = GetImagesForRooms(ctx, appsession, results)
+
 	if errv != nil {
 		logrus.Error(errv)
 		return nil, 0, errv
 	}
 
 	return results, totalResults, nil
+}
 
+func GetImagesForRooms(ctx *gin.Context, appsession *models.AppSession, results []primitive.M) []primitive.M {
+	// iterate through results and extract the roomId and add it to the roomIds array
+	roomIds := make([]string, 0)
+	for _, result := range results {
+		roomIds = append(roomIds, result["roomId"].(string))
+	}
+
+	// get the images for the rooms from the Rooms collection
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
+	filter := bson.M{"roomId": bson.M{"$in": roomIds}}
+
+	// return only the roomImage field
+	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(bson.M{"roomImage": 1, "roomId": 1}))
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get data from database")
+		return results
+	}
+
+	// iterate through the cursor and add the roomImage to the results matching on roomId
+	var imageRes []bson.M
+	if err := cursor.All(ctx, &imageRes); err != nil {
+		logrus.WithError(err).Error("Failed to get data from cursor")
+		return results
+	}
+
+	// Create a map for quick lookup of room images by roomId
+	imageMap := make(map[string]interface{})
+	for _, image := range imageRes {
+		imageMap[image["roomId"].(string)] = image["roomImage"]
+	}
+
+	// Iterate through the results and add the roomImage from the map
+	for _, result := range results {
+		if roomImage, ok := imageMap[result["roomId"].(string)]; ok {
+			result["roomImage"] = roomImage
+		}
+	}
+
+	return results
 }

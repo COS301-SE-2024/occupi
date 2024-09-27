@@ -10545,3 +10545,103 @@ func TestGetAnalyticsOnBookings(t *testing.T) {
 		assert.EqualError(t, err, "database response does not contain a cursor", "Expected error for failed count documents")
 	})
 }
+
+func TestGetImagesForRooms_Success(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	results := []primitive.M{
+		{"roomId": "room1"},
+		{"roomId": "room2"},
+	}
+
+	mt.Run("successfully fetches room images and maps to results", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		roomImageDocs := []bson.D{
+			mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Rooms", mtest.FirstBatch, bson.D{
+				{Key: "roomId", Value: "room1"},
+				{Key: "roomImage", Value: "image1"},
+			}),
+			mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Rooms", mtest.NextBatch, bson.D{
+				{Key: "roomId", Value: "room2"},
+				{Key: "roomImage", Value: "image2"},
+			}),
+		}
+
+		// Mocking the Find result
+		mt.AddMockResponses(roomImageDocs...)
+
+		// Call the function
+		updatedResults := database.GetImagesForRooms(ctx, appsession, results)
+
+		// Assert that roomImage has been added to the results
+		expectedResults := []primitive.M{
+			{"roomId": "room1", "roomImage": "image1"},
+			{"roomId": "room2", "roomImage": "image2"},
+		}
+
+		assert.Equal(t, expectedResults, updatedResults)
+	})
+}
+
+func TestGetImagesForRooms_DatabaseError(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	results := []primitive.M{
+		{"roomId": "room1"},
+		{"roomId": "room2"},
+	}
+
+	mt.Run("handles database error gracefully", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock a database error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "mocked database error",
+		}))
+
+		// Call the function
+		updatedResults := database.GetImagesForRooms(ctx, appsession, results)
+
+		// Assert that the original results are returned due to the error
+		assert.Equal(t, results, updatedResults)
+	})
+}
+
+func TestGetImagesForRooms_NoImagesFound(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	results := []primitive.M{
+		{"roomId": "room1"},
+		{"roomId": "room2"},
+	}
+
+	mt.Run("handles case where no images are found", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock the Find result with an empty response
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Rooms", mtest.FirstBatch))
+
+		// Call the function
+		updatedResults := database.GetImagesForRooms(ctx, appsession, results)
+
+		assert.Equal(t, results, updatedResults)
+	})
+}
