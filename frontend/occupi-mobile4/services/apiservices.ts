@@ -1,5 +1,5 @@
 import { Success, Unsuccessful } from "@/models/response";
-import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq, NotificationsReq, UpdateDetailsReq, ViewRoomsReq, ViewBookingsReq, AnalyticsReq } from "@/models/requests";
+import { SecuritySettingsReq, NotificationSettingsReq, CheckInReq, CancelBookingReq, BookRoomReq, NotificationsReq, UpdateDetailsReq, ViewRoomsReq, ViewBookingsReq, AnalyticsReq, OnSiteReq } from "@/models/requests";
 // import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import axios, { AxiosError } from 'axios';
@@ -31,6 +31,39 @@ export const getUserDetails = async (email: string, authToken: string): Promise<
     };
   }
 };
+
+export async function toggleOnSite(req: OnSiteReq): Promise<Success | Unsuccessful> {
+  let authToken = await SecureStore.getItemAsync('Token');
+  console.log(req);
+  try {
+    const response = await axios.put("https://dev.occupi.tech/api/toggle-onsite", 
+      req,
+      {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    return response.data as Success;
+  } catch (error) {
+    console.error(`Error in ${Function}:`, error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+}
 
 export async function getRooms(req: ViewRoomsReq): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');

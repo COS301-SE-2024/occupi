@@ -30,7 +30,7 @@ import BarGraph from '@/components/BarGraph';
 import { getFormattedPredictionData, getFormattedPredictionWeekData } from '@/utils/occupancy';
 import * as Location from 'expo-location';
 import { storeCheckInValue } from '@/services/securestore';
-import { isPointInPolygon } from '@/utils/dashboard';
+import { isPointInPolygon, onSite } from '@/utils/dashboard';
 import { extractDateFromTimestamp } from '@/utils/utils';
 import PagerView from 'react-native-pager-view';
 import { router } from 'expo-router';
@@ -146,7 +146,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const LocationCheckin = async () => {
       let checkedInVal = await SecureStore.getItemAsync('CheckedIn');
-      setCheckedIn(checkedInVal === "true" ? true : false);
+      setCheckedIn(checkedInVal === "true" ? true : false);     
       console.log('checkedin: ',checkedInVal);
       if (checkedInVal === "false") {
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -303,6 +303,7 @@ const Dashboard: React.FC = () => {
 
   const checkIn = async () => {
     const entered = await enter();
+    // await onSite("Yes");
     console.log(entered);
     if (entered.status === 200) {
       setCheckedIn(true);
@@ -331,6 +332,7 @@ const Dashboard: React.FC = () => {
 
   const checkOut = async () => {
     const exited = await exit();
+    // await onSite("No");
     console.log(exited);
     if (exited.status === 200) {
       setCheckedIn(false);

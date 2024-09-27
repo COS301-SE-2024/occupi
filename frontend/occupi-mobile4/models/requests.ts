@@ -67,6 +67,10 @@ export interface ViewRoomsReq {
     page?: number;
 }
 
+export interface OnSiteReq {
+    email: string;
+    onSite: "Yes" | "No"
+}
 export interface CancelBookingReq {
     bookingId: string;
     roomId: string;
