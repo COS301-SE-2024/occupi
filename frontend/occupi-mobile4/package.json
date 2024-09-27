@@ -49,6 +49,7 @@
     "@ui-kitten/components": "^5.3.1",
     "axios": "^1.7.2",
     "centrifuge": "^5.2.2",
+    "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "expo": "~51.0.14",
     "expo-av": "^14.0.7",
@@ -75,6 +76,7 @@
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.6",
     "expo-web-browser": "~13.0.3",
+    "framer-motion": "^11.8.0",
     "gifted-charts-core": "^0.1.29",
     "lucide-react-native": "^0.395.0",
     "moti": "^0.29.0",
@@ -104,6 +106,7 @@
     "react-native-web": "~0.19.10",
     "react-query": "^3.39.3",
     "reanimated-color-picker": "^3.0.4",
+    "tailwind-merge": "^2.5.2",
     "tinycolor2": "^1.6.0",
     "universal-tooltip": "^1.1.0",
     "zod": "^3.23.8"

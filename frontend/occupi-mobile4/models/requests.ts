@@ -139,3 +139,9 @@ export interface AnalyticsReq {
     timeTo?: string;
     limit?: number
 }
+
+
+ export interface DeleteNotiRequest {
+    email: string;
+    notiId: string;
+}

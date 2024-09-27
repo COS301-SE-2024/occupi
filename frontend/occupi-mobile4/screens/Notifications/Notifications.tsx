@@ -30,6 +30,7 @@ const formatNotificationDate = (sendTime) => {
 };
 
 const NotificationItem = ({ notification, accentColour, isDarkMode, onSwipeLeft }) => {
+  // console.log(notification);
   const renderRightActions = (progress, dragX) => {
     const trans = dragX.interpolate({
       inputRange: [-100, 0],
@@ -40,7 +41,7 @@ const NotificationItem = ({ notification, accentColour, isDarkMode, onSwipeLeft 
     return (
       <View style={{ flexDirection: 'row', width: 60 }}>
         <TouchableOpacity
-          onPress={() => onSwipeLeft('delete', notification.id)}
+          onPress={() => onSwipeLeft('delete', notification.notiId)}
           style={{
             flex: 1,
             backgroundColor: '#c30101',
@@ -60,7 +61,7 @@ const NotificationItem = ({ notification, accentColour, isDarkMode, onSwipeLeft 
   return (
     <Swipeable renderRightActions={renderRightActions}>
       <Pressable
-        onPress={() => console.log('Notification pressed:', notification.id)}
+        onPress={() => console.log('Notification pressed:', notification.notiId)}
         style={{
           backgroundColor: isDarkMode ? '#2C2C2E' : '#F3F3F3',
           marginVertical: 8,
@@ -139,7 +140,7 @@ const Notifications = () => {
     } else if (activeTab === 'updates') {
       filtered = filtered.filter(notification => notification.title !== "Booking Invitation");
     }
-    
+  
     if (searchQuery) {
       filtered = filtered.filter(notification => 
         notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
