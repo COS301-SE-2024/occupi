@@ -16,6 +16,7 @@ export const fetchUserTotalHours = async (timeFrom?: string, timeTo?: string) =>
     }
     // console.log(req);
     const total = await getAnalytics(req, 'user-hours');
+    console.log('total');
     // console.log('totals',total.data[0].overallTotal);
     if (total.data === null) {
         console.log("returning -1");
@@ -55,9 +56,13 @@ export const fetchUserAverageHours = async (timeFrom?: string, timeTo?: string) 
     if (timeTo !== "") {
         req.timeTo = timeTo;
     }
-    const total = await getAnalytics(req, 'user-average-hours');
-    // console.log('averages', total.data[0].overallAverage);
-    if (total.data === null) {
+    console.log('average');
+    let total = await getAnalytics(req, 'user-average-hours');
+    console.log('averages', total);
+    while (total === null || total.data === null) {
+        total = await getAnalytics(req, 'user-average-hours');
+    }
+    if (total.data === null || total.data === undefined) {
         console.log("returning -1");
         return -1;
     }

@@ -22,8 +22,17 @@ export async function getAnalytics(req: AnalyticsReq, endpoint: string): Promise
     return response.data as Success;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      // console.log(error.response.data);
-      return error.response.data as Unsuccessful;
+      // console.log('eish...: ', error.response);
+      return {
+        data: null,
+        status: error.response.status.toString(),
+        message: error.response.statusText,
+        error: {
+          code: error.response.status.toString(),
+          details: error.response.data,
+          message: error.response.data
+        }
+      } as Unsuccessful;
     } else {
       throw error;
     }

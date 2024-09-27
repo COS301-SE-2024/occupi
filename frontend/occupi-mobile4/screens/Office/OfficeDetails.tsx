@@ -32,6 +32,25 @@ type RootStackParamList = {
   BookingDetails: undefined;
 };
 
+interface Images {
+  highRes: string;
+  lowRes: string;
+  midRes: string;
+  thumbnailRes: string;
+}
+
+interface Room {
+  _id: string;
+  roomName: string;
+  roomId: string;
+  roomNo: number;
+  floorNo: number;
+  minOccupancy: number;
+  maxOccupancy: number;
+  description: string;
+  roomImage : Images;
+}
+
 const pages = ['Page 1', 'Page 2', 'Page 3'];
 
 const OfficeDetails = () => {
@@ -43,7 +62,8 @@ const OfficeDetails = () => {
   const colorscheme = useColorScheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
   const isDarkMode = currentTheme === 'dark';
-  const [room, setRoom] = useState();
+  const [room, setRoom] = useState<Room>();
+  const [resolution, setResolution] = useState("low");
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const scrollX = useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
@@ -77,6 +97,19 @@ const OfficeDetails = () => {
       // console.log(jsonresult);
       setRoom(jsonresult);
     };
+    const setResolutionToMid = () => {
+      setTimeout(() => {
+        setResolution("mid");
+      }, 1000);
+    };
+  
+    const setResolutionToHigh = () => {
+      setTimeout(() => {
+        setResolution("high");
+      }, 3000);
+    };
+    setResolutionToMid();
+    setResolutionToHigh();
     getCurrentRoom();
   }, []);
 
@@ -111,7 +144,8 @@ const OfficeDetails = () => {
       roomId: room?.roomId,
       floorNo: room?.floorNo,
       minOccupancy: room?.minOccupancy,
-      maxOccupancy: room?.maxOccupancy
+      maxOccupancy: room?.maxOccupancy,
+      roomImage: room?.roomImage
     };
 
     // console.log(bookingInfo);
@@ -119,7 +153,7 @@ const OfficeDetails = () => {
     router.replace('/booking-details');
   }
 
-  console.log(theme);
+  // console.log(theme);
   // console.log(room?);
   // console.log(userEmail);
 
@@ -152,7 +186,7 @@ const OfficeDetails = () => {
               {pages.map((page, index) => (
                 <View key={index} style={{ width }}>
                   <View style={styles.page} key="1">
-                    <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                    <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: resolution === "low" ? room?.roomImage.thumbnailRes : resolution === "mid" ? room?.roomImage.midRes : room?.roomImage.highRes }} />
                   </View>
                   <View style={styles.page} key="2">
                     <Image alt="slide2" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
