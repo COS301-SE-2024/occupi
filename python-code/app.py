@@ -9,7 +9,7 @@ import numpy as np
 # Initialize the Flask application
 app = Flask(__name__)
 
-CORS(app, resources={r"/*": {"origins": ["*"]}})
+CORS(app, resources={r"/*": {"origins": ["https://dev.occupi.tech, https://occupi.tech, https://localhost"]}})
 
 # Load the scaler
 scaler = joblib.load('attendance_scaler.pkl')
@@ -241,14 +241,15 @@ def predict_hourly():
 @app.route('/predict_day', methods=['GET'])
 def predict_range():
     try:
-        # Get the date, start_hour, and end_hour from query parameters
-        date_str = request.args.get('date')
-        start_hour = request.args.get('start_hour', type=int)
-        end_hour = request.args.get('end_hour', type=int)
+        # Set defaults for date, start_hour, and end_hour
+        today = datetime.today().strftime('%Y-%m-%d')  # Default to today's date
+        default_start_hour = 6  # Default start time
+        default_end_hour = 17  # Default end time
 
-        # Check if date, start_hour, and end_hour are provided
-        if not date_str or start_hour is None or end_hour is None:
-            return jsonify({"error": "Both 'date', 'start_hour', and 'end_hour' parameters are required"}), 400
+        # Get the date, start_hour, and end_hour from query parameters (use defaults if not provided)
+        date_str = request.args.get('date', default=today)  # Default to today's date
+        start_hour = request.args.get('start_hour', default=default_start_hour, type=int)  # Default start hour
+        end_hour = request.args.get('end_hour', default=default_end_hour, type=int)  # Default end hour
 
         # Validate the hours (must be between 0 and 23)
         if not (0 <= start_hour <= 23) or not (0 <= end_hour <= 23):

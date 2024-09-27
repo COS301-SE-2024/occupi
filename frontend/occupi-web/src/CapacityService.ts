@@ -24,6 +24,7 @@ export interface CapacityData {
   specialEvent: boolean;
 }
 
+
 const API_URL = "https://ai.occupi.tech/predict_week";
 
 const convertRangeToNumber = (range: string) => {
@@ -55,10 +56,64 @@ export const fetchCapacityData = async (): Promise<CapacityData[]> => {
   }
 };
 
+
 // Additional function to get only the data needed for the CapacityComparisonGraph
 export const getCapacityComparisonData = async (): Promise<
   Pick<CapacityData, "day" | "predicted">[]
 > => {
   const fullData = await fetchCapacityData();
   return fullData.map(({ day, predicted }) => ({ day, predicted }));
+};
+
+interface HourlyResponse {
+  Date: string;
+  Day_of_Week: number;
+  Day_of_month: number;
+  Is_Weekend: boolean;
+  Month: number;
+  Special_Event: boolean;
+  Hourly_Predictions: HourlyResponseItem[];
+}
+
+interface HourlyResponseItem {
+  Hour: number;
+  Predicted_Attendance_Level: string;
+  Predicted_Class: number;
+  Hourly_Predictions: HourlyResponseItem[];
+}
+
+export interface HourlyCapacityData {
+  hour: number;
+  predicted: number;
+  predictedClass: number;
+}
+
+// Define the API URL for hourly predictions (assuming this endpoint)
+const HOURLY_API_URL = "https://ai.occupi.tech/predict_day";
+
+// Fetch and format hourly prediction data
+export const fetchHourlyCapacityData = async (): Promise<HourlyCapacityData[]> => {
+  try {
+    const response = await axios.get<HourlyResponse>(HOURLY_API_URL);
+    
+    // Access the Hourly_Predictions array inside response.data
+    const hourlyPredictions = response.data.Hourly_Predictions;
+
+    return hourlyPredictions.map((item: HourlyResponseItem) => ({
+      hour: item.Hour,
+      predicted: convertRangeToNumber(item.Predicted_Attendance_Level),
+      predictedClass: item.Predicted_Class,
+    }));
+  } catch (error) {
+    console.error("Error fetching hourly capacity data:", error);
+    throw error;
+  }
+};
+
+// Additional function to get only the data needed for the HourlyPredictionGraph
+export const getHourlyPredictionGraphData = async (): Promise<
+  Pick<HourlyCapacityData, "hour" | "predicted">[]
+> => {
+  const fullData = await fetchHourlyCapacityData();
+  return fullData.map(({ hour, predicted }) => ({ hour, predicted }));
 };

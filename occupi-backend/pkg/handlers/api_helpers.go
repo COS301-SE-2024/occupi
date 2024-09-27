@@ -212,13 +212,13 @@ func DefaultMalePFP(race ...string) string {
 
 	if len(race) == 0 {
 		// choose a random pfp
-		return pfps[utils.RandomInt(0, len(pfps))]
+		return pfps[utils.RandomInt(0, len(pfps)-1)]
 	} else {
 		// choose a random pfp based on the race
 		if race[0] == "white" {
 			return pfps[utils.RandomInt(0, 4)]
 		} else {
-			return pfps[utils.RandomInt(4, len(pfps))]
+			return pfps[utils.RandomInt(4, len(pfps)-1)]
 		}
 	}
 }
@@ -235,13 +235,13 @@ func DefaultFemalePFP(race ...string) string {
 
 	if len(race) == 0 {
 		// choose a random pfp
-		return pfps[utils.RandomInt(0, len(pfps))]
+		return pfps[utils.RandomInt(0, len(pfps)-1)]
 	} else {
 		// choose a random pfp based on the race
 		if race[0] == "white" {
-			return pfps[utils.RandomInt(0, 4)]
+			return pfps[utils.RandomInt(0, 3)]
 		} else {
-			return pfps[utils.RandomInt(4, len(pfps))]
+			return pfps[utils.RandomInt(4, len(pfps)-1)]
 		}
 	}
 }

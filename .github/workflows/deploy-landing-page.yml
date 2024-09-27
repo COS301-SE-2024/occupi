@@ -92,6 +92,7 @@ jobs:
                   script: |
                       cd /home/${{ secrets.VM_USERNAME }}/occupi/frontend/occupi
                       echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-                      DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml down
+                      DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml down --rmi all
+                      docker image prune -f
                       DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml pull
                       DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} docker compose -f docker-compose.yml up -d

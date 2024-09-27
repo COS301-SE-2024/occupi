@@ -849,7 +849,7 @@ func UploadProfileImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// update has image field in the database
-	if err := database.SetHasImage(ctx, appsession, email, false); err != nil {
+	if err := database.SetHasImage(ctx, appsession, email, true); err != nil {
 		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
@@ -1036,7 +1036,7 @@ func UploadRoomImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Update the room details with the image id
-	err = database.AddImageIDToRoom(ctx, appsession, roomid, uuid)
+	err = database.AddImageToRoom(ctx, appsession, roomid, uuid)
 
 	if err != nil {
 		configs.CaptureError(ctx, err)
@@ -1071,7 +1071,7 @@ func DeleteRoomImage(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Update the room details with the image id
-	if err := database.DeleteImageIDFromRoom(ctx, appsession, request.RoomID, request.ID); err != nil {
+	if err := database.DeleteImageFromRoom(ctx, appsession, request.RoomID, request.ID); err != nil {
 		configs.CaptureError(ctx, err)
 		logrus.WithError(err).Error("Failed to delete image id")
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to delete room image id", constants.InternalServerErrorCode, "Failed to delete room image", nil))
