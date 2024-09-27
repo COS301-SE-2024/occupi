@@ -43,6 +43,7 @@ const BookingDetails = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const { theme } = useTheme();
+  const [resolution, setResolution] = useState("low");
   const currentTheme = theme === "system" ? colorscheme : theme;
   const isDark = colorscheme === "dark";
   const [attendees, setAttendees] = useState(['']);
@@ -56,6 +57,19 @@ const BookingDetails = () => {
       let accentcolour = await SecureStore.getItemAsync('accentColour');
       setAccentColour(accentcolour);
     };
+    const setResolutionToMid = () => {
+      setTimeout(() => {
+        setResolution("mid");
+      }, 1000);
+    };
+  
+    const setResolutionToHigh = () => {
+      setTimeout(() => {
+        setResolution("high");
+      }, 3000);
+    };
+    setResolutionToMid();
+    setResolutionToHigh();
     getAccentColour();
   }, []);
 
@@ -102,6 +116,8 @@ const BookingDetails = () => {
     }
     setLoading(false);
   };
+
+  console.log(bookingInfo);
 
   const renderAttendee = ({ item }) => (
     <View
@@ -203,7 +219,7 @@ const BookingDetails = () => {
               Booking for ${bookingInfo?.roomName}
             </h1>
             <img
-              src="https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png"
+              src=${resolution === "low" ? bookingInfo?.roomImage.thumbnailRes : resolution === "mid" ? bookingInfo?.roomImage.midRes : bookingInfo?.roomImage.highRes}
               style="width: 65vw;" />
             <br/>
             <h2 style="font-family: Helvetica Neue; font-weight: semi-bold;">Booking Details</h2>
@@ -288,7 +304,7 @@ const BookingDetails = () => {
         <View>
           <Image
             source={{
-              uri: "https://fancyhouse-design.com/wp-content/uploads/2023/11/With-a-backdrop-of-Dubais-cityscape-the-office-interior-design-is-as-dynamic-as-it-is-luxurious..jpg",
+              uri: resolution === "low" ? bookingInfo?.roomImage.thumbnailRes : resolution === "mid" ? bookingInfo?.roomImage.midRes : bookingInfo?.roomImage.highRes,
             }}
             style={{ width: "100%", height: 400, borderRadius: 20 }}
           />
@@ -468,7 +484,7 @@ const BookingDetails = () => {
             }}
           > */}
           <View style={{ width: 365, height: 500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom: 50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
-            <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+            <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: resolution === "low" ? bookingInfo?.roomImage.thumbnailRes : resolution === "mid" ? bookingInfo?.roomImage.midRes : bookingInfo?.roomImage.highRes, }} />
             <Text fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000', fontSize: 24 }}>{bookingInfo?.roomName}</Text>
             <View px="$3" alignItems="center" flexDirection="row">
               <Ionicons name="wifi" size={24} color={isDark ? '#fff' : '#000'} /><Text fontWeight="$light" color={isDark ? '#fff' : '#000'}> Fast   </Text>
