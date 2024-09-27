@@ -1082,6 +1082,7 @@ func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter
 		// Stage 4: Group by the room ID to calculate the total bookings
 		bson.D{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: "$roomId"},
+			{Key: "roomId", Value: "$roomId"},
 			{Key: "roomName", Value: bson.D{{Key: "$first", Value: "$roomName"}}},
 			{Key: "floorNo", Value: bson.D{{Key: "$first", Value: "$floorNo"}}},
 			{Key: "creators", Value: bson.D{{Key: "$push", Value: "$creator"}}},
