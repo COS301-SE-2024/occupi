@@ -5,6 +5,8 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import Svg, { Path } from 'react-native-svg'; 
 import { router } from 'expo-router';
 import Tooltip from '@/components/Tooltip';
+import {TextGenerateEffect} from '../../components/TextGenerateEffect';
+
 const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats }) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
@@ -28,22 +30,6 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
     ).start();
   }, [translateY]);
 
-  const generateContourPaths = () => {
-    // const paths = [];
-    // for (let i = 0; i < 25; i++) {
-    //   const yOffset = i * 15;
-    //   paths.push(
-    //     <Path
-    //       key={i}
-    //       d={`M0 ${1 + yOffset} Q50 ${30 + yOffset}, 100 ${1 + yOffset} T200 ${0 + yOffset}`}
-    //       stroke={isDarkMode ? '#2F2F2F' : '#D3D3D3'}
-    //       strokeWidth="0.8"
-    //       fill="none"
-    //     />
-    //   );
-    // }
-    // return paths;
-  };
 
   return (
     <View
@@ -55,18 +41,6 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
         padding: 20,
       }}
     >
-      {/* Contour Background
-      <Svg
-        height="100%"
-        width="100%"
-        style={StyleSheet.absoluteFill}
-        viewBox="0 0 200 200"
-      >
-        {generateContourPaths()}
-      </Svg> */}
-
-     
-      {/* OccuBot Header */}
       <View
         style={{
           backgroundColor: '#E0FF7B',
@@ -116,18 +90,12 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
       </Animated.View>
 
       {/* Subheading */}
-      <Heading
-        style={{
-          fontFamily: 'Roboto-Bold',
-          fontSize: 28,
-          color: isDarkMode ? 'white' : 'black',
-          textAlign: 'center',
-          marginBottom: 40,
-          zIndex: 1,
-        }}
-      >
-        Get your personalized{'\n'}data today!
-      </Heading>
+      <TextGenerateEffect
+        words="Get your personalized data today!"
+        className="font-roboto-bold text-2xl text-center mb-10 z-1"
+        filter={true}
+        duration={0.5}
+      />
 
       {/* Fetch My Stats Button */}
       <TouchableOpacity
