@@ -251,7 +251,7 @@ const Stats = () => {
       const hours = await fetchUserTotalHours(timefrom, timeto);
       console.log('hours', hours);
       const average = await fetchUserAverageHours(timefrom, timeto);
-      const ratio = await fetchWorkRatio(timefrom, timeto);
+      // const ratio = await fetchWorkRatio(timefrom, timeto);
       const peak = await fetchUserPeakHours(timefrom, timeto);
       const arrivalDeparture = await fetchUserArrivalAndDeparture(timefrom, timeto);
       const inOffice = await fetchUserInOfficeRate(timefrom, timeto);
@@ -263,7 +263,7 @@ const Stats = () => {
       // console.log('inOffice', inOffice);
       setUserHours(hours);
       setUserAverage(average);
-      setWorkRatio(ratio);
+      // setWorkRatio(ratio);
       setPeakHours(peak);
       setArrival(arrivalDeparture[0]);
       setDeparture(arrivalDeparture[1]);
@@ -501,12 +501,12 @@ const Stats = () => {
                 />
               </View>
               {!isLoading ? (
-                <Text color={textColor}>{userHours === -1 ? "No data for selected period" : convertToHoursAndMinutes(userAverage)}</Text>
+                <Text color={textColor}>{userAverage === -1 ? "No data for selected period" : convertToHoursAndMinutes(userAverage)}</Text>
               ) : (
                 <Skeleton colorMode={isDarkMode ? 'dark' : 'light'} height={20} width={"80%"} />
               )}
             </View>
-            {userHours !== -1 && <Icon as={Feather} name="chevron-down" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} />}
+            {userAverage !== -1 && <Icon as={Feather} name="chevron-down" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} />}
           </TouchableOpacity>
           <View>
             {activeGraph === 'hours' &&
