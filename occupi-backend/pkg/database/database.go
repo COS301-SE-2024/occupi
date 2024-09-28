@@ -2191,3 +2191,37 @@ func GetImagesForRooms(ctx *gin.Context, appsession *models.AppSession, results 
 
 	return results
 }
+
+func ToggleAdminStatus(ctx *gin.Context, appsession *models.AppSession, request models.RoleRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// filter for user with the email
+	filter := bson.M{"email": request.Email}
+
+	// validate role is either basic or admin
+	if request.Role != constants.Admin && request.Role != constants.Basic {
+		request.Role = constants.Basic
+	}
+
+	update := bson.M{"$set": bson.M{"role": request.Role}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// fetch the email in cache and update the role field
+	if userData, cacheErr := cache.GetUser(appsession, request.Email); cacheErr == nil {
+		userData.Role = request.Role
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
+}
