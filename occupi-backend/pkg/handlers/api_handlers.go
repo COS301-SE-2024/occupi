@@ -1604,3 +1604,35 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cal
 	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "Successfully fetched analytics!", result,
 		gin.H{"totalResults": len(result), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
 }
+
+func ToggleAdminStatus(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RoleRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		email := ctx.Query("email")
+		role := ctx.Query("role")
+		if email == "" || role == "" {
+			configs.CaptureError(ctx, err)
+			ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+				http.StatusBadRequest,
+				"Invalid request payload",
+				constants.InvalidRequestPayloadCode,
+				"Email and role must be provided",
+				nil))
+			return
+		} else {
+			request.Email = email
+			request.Role = role
+		}
+	}
+
+	// Toggle the admin status
+	err := database.ToggleAdminStatus(ctx, appsession, request)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to toggle admin status because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled admin status!", nil))
+}
