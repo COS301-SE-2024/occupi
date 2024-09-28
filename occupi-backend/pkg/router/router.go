@@ -66,6 +66,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.POST("/add-ip", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddIP(ctx, appsession) })
 		api.DELETE("/remove-ip", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.RemoveIP(ctx, appsession) })
 		api.PUT("/toggle-allow-anonymous-ip", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.ToggleAllowAnonymousIP(ctx, appsession) })
+		api.PUT("/toggle-admin-status", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.ToggleAdminStatus(ctx, appsession) })
 	}
 	analytics := router.Group("/analytics")
 	{
