@@ -10758,4 +10758,82 @@ func TestToggleAdminStatus(t *testing.T) {
 		// Validate the result
 		assert.NoError(t, err)
 	})
+
+	mt.Run("UpdateOne success in cache", func(mt *mtest.T) {
+		// Mock the UpdateOne operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+		Cache, mock := redismock.NewClientMock()
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		user := models.User{
+			Email: "test@example.com",
+			Role:  "admin",
+		}
+
+		// add user to Cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res.Err())
+
+		// Mock the get and set operations
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		updatedUser := models.User{
+			Email: "test@example.com",
+			Role:  "basic",
+		}
+
+		// marshal updated user
+		updatedUserData, err := bson.Marshal(updatedUser)
+
+		assert.Nil(t, err)
+
+		// mock expect set
+		mock.ExpectSet(cache.UserKey(user.Email), updatedUserData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(updatedUserData))
+
+		// Call the function under test
+		errv := database.ToggleAdminStatus(ctx, appSession, models.RoleRequest{
+			Email: "test@example.com",
+			Role:  "basic",
+		})
+
+		// Validate the result
+		assert.NoError(t, errv)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(updatedUserData))
+
+		// Assert that the user is in the Cache
+		res1 := Cache.Get(context.Background(), cache.UserKey(user.Email))
+
+		userA, err := res1.Bytes()
+
+		assert.Nil(t, err)
+
+		// unmarshal user
+		var userB models.User
+
+		if err := bson.Unmarshal(userA, &userB); err != nil {
+			t.Fatal(err)
+		}
+
+		// ensure the value is updated
+		assert.Equal(t, userB.Role, "basic")
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
 }
