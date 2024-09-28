@@ -43,6 +43,10 @@ jobs:
     - name: ⬇️ Checkout code
       uses: actions/checkout@v4
 
+    # run npm install so we can get package-lock.json file since it's not in the repo due to bun
+    - name: 📦 Install dependencies
+      run: npm install
+
     - name: 🏗 Set up QEMU
       uses: docker/setup-qemu-action@v3
 

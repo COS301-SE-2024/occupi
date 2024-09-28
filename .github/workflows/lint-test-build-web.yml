@@ -77,7 +77,7 @@ jobs:
       - name: 📦 Install dependencies with Bun
         run: bun install
 
-      - name: 🚀 Build with Next.js
+      - name: 🚀 Build with Vite.js
         run: bun run build
 
   # test docker build and up the container then down
