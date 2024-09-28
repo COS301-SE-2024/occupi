@@ -10679,3 +10679,23 @@ func TestGetImagesForRooms_NoImagesFound(t *testing.T) {
 		assert.Equal(t, results, updatedResults)
 	})
 }
+
+func TestToggleAdminStatus(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		err := database.ToggleAdminStatus(ctx, appsession, models.RoleRequest{
+			Email: "test@example.com",
+			Role:  "admin",
+		})
+
+		// Validate the result
+		assert.EqualError(t, err, "database is nil")
+	})
+}
