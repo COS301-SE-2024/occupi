@@ -44,7 +44,6 @@ jobs:
     build-up-down-test-docker:
       name: 🐋 Build Test Docker Container
       runs-on: ubuntu-latest
-      needs: build-test
 
       steps:
       - name: ⬇️ Checkout code
