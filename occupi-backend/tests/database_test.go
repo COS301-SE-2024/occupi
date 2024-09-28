@@ -10721,4 +10721,22 @@ func TestToggleAdminStatus(t *testing.T) {
 		assert.EqualError(t, err, "update error")
 	})
 
+	mt.Run("UpdateOne success", func(mt *mtest.T) {
+		// Mock the UpdateOne operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.ToggleAdminStatus(ctx, appSession, models.RoleRequest{
+			Email: "test@example.com",
+			Role:  "admin",
+		})
+
+		// Validate the result
+		assert.NoError(t, err)
+	})
 }
