@@ -178,7 +178,7 @@ ${reportData.arrivalDeparture.days.map((day) => `   ${day.weekday}: Arrival - ${
                 <div className="flex flex-col gap-6">
                   <div className="border flex items-center justify-between bg-secondary px-12 py-4 rounded-lg">
                     <ProfileComponent
-                      profileImage={user.avatar}
+                      profileImage={`https://dev.occupi.tech/api/download-profile-image?email=${user.email}&quality=mid`}
                       email={user.email}
                       name={user.name}
                       officeStatus={user.status.toLowerCase() as "onsite" | "offsite" | "booked"}

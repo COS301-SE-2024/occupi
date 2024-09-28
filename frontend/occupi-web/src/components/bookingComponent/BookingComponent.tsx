@@ -124,7 +124,7 @@ export default function App() {
       case "name":
         return (
           <User
-            avatarProps={{ radius: "lg", src: user.avatar }}
+            avatarProps={{ radius: "lg", src: `https://dev.occupi.tech/api/download-profile-image?email=${user.email}&quality=low` }}
             description={user.email}
             name={cellValue}
           >
