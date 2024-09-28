@@ -1625,6 +1625,20 @@ func ToggleAdminStatus(ctx *gin.Context, appsession *models.AppSession) {
 		}
 	}
 
+	// validate email
+	if !utils.ValidateEmail(request.Email) {
+		configs.CaptureError(ctx, errors.New("invalid email address"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid email address", nil))
+		return
+	}
+
+	// ensure email exists
+	if !database.EmailExists(ctx, appsession, request.Email) {
+		configs.CaptureError(ctx, errors.New("email does not exist"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Email does not exist", nil))
+		return
+	}
+
 	// Toggle the admin status
 	err := database.ToggleAdminStatus(ctx, appsession, request)
 	if err != nil {
