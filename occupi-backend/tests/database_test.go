@@ -10698,4 +10698,27 @@ func TestToggleAdminStatus(t *testing.T) {
 		// Validate the result
 		assert.EqualError(t, err, "database is nil")
 	})
+
+	mt.Run("UpdateOne failure", func(mt *mtest.T) {
+		// Mock the UpdateOne operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "update error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		err := database.ToggleAdminStatus(ctx, appSession, models.RoleRequest{
+			Email: "test@example.com",
+			Role:  "admin",
+		})
+
+		// Validate the result
+		assert.EqualError(t, err, "update error")
+	})
+
 }
