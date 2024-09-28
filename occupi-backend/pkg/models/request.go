@@ -196,3 +196,8 @@ type DeleteNotiRequest struct {
 	Email  string `json:"email" binding:"omitempty,email"`
 	NotiID string `json:"notiId" binding:"required"`
 }
+
+type RoleRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	Role  string `json:"role" binding:"required"`
+}
