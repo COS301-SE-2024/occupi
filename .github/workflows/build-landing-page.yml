@@ -35,7 +35,7 @@ jobs:
         run: npm run build
 
   # test docker build and up the container then down
-  build-up-down-test-docker:
+  build-test-docker:
     name: 🐋 Build Test Docker Container
     runs-on: ubuntu-latest
 
