@@ -10590,6 +10590,40 @@ func TestGetImagesForRooms_Success(t *testing.T) {
 	})
 }
 
+func TestGetImagesForRooms_CursorError(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	results := []primitive.M{
+		{"roomId": "room1"},
+		{"roomId": "room2"},
+	}
+
+	mt.Run("handles cursor error gracefully", func(mt *mtest.T) {
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Mock a cursor error
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Rooms", mtest.FirstBatch, bson.D{
+			{Key: "roomId", Value: "room1"},
+			{Key: "roomImage", Value: "image1"},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Call the function
+		updatedResults := database.GetImagesForRooms(ctx, appsession, results)
+
+		// Assert that the original results are returned due to the error
+		assert.Equal(t, results, updatedResults)
+	})
+}
+
 func TestGetImagesForRooms_DatabaseError(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
