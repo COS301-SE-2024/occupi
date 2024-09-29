@@ -6,7 +6,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { useTheme } from '@/components/ThemeContext';
 import * as Speech from 'expo-speech';
 import { PieChart } from 'react-native-chart-kit';
-import { getRecommendations, recommendOfficeTimes, predictDay } from '@/services/apiservices'; // Importing the service functions
+import { getRecommendations, recommendOfficeTimes, predictDay } from '@/services/apiservices'; 
 
 const Recommendations = ({ onClose }) => {
   const colorScheme = useColorScheme();
@@ -29,7 +29,6 @@ const Recommendations = ({ onClose }) => {
     fetchData();
   }, []);
 
-  // Replace fetchData with API service calls
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -39,7 +38,6 @@ const Recommendations = ({ onClose }) => {
         predictDay(new Date().toISOString().split('T')[0], 6, 17),
       ]);
 
-      // Check if API calls were successful
       if (recommendResponse.status === 'success' && officeTimesResponse.status === 'success' && predictDayResponse.status === 'success') {
         const formattedData = Object.entries(predictDayResponse.data).map(([hour, occupancy]) => ({
           name: `${hour}:00`,
