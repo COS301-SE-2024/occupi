@@ -130,6 +130,11 @@ func SendPushNotification(notification models.ScheduledNotification, appsession 
 		}
 	}
 
+	// if notification id is invalid or empty, return
+	if notification.ID == "" {
+		return nil
+	}
+
 	// update notification in database
 	err := database.MarkNotificationAsSent(context.Background(), appsession, notification.ID)
 

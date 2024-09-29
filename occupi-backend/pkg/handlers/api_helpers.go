@@ -302,7 +302,7 @@ func CreateAndSendNotificationLogic(ctx *gin.Context, appsession *models.AppSess
 		return err
 	}
 
-	if saved, err := database.AddNotification(ctx, appsession, notificationSender, true); err != nil || !saved {
+	if saved, err := database.AddNotification(ctx, appsession, notificationSender, false); err != nil || !saved {
 		configs.CaptureError(ctx, err)
 		logrus.Error("Failed to save notification to the database because: ", err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
