@@ -1,25 +1,12 @@
-import { TopNav } from "@components/index";
-import { useState, useEffect } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { OverviewComponent, TopNav } from "@components/index";
+import { useState } from "react";
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const navigate = useNavigate();
-
-  const handleClick = (path: string) => {
-    navigate("/dashboard" + path);
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === "/dashboard") {
-      handleClick("/overview");
-    }
-  },[]);
 
   return (
     <div data-testid='dashboard' className="w-full overflow-auto">
@@ -36,7 +23,7 @@ const Dashboard = () => {
         searchQuery={searchQuery}
         onChange={handleInputChange}
       />
-      <Outlet />
+      <OverviewComponent />
     </div>
   );
 };
