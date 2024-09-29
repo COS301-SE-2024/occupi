@@ -49,9 +49,15 @@
       "expo-secure-store",
       "expo-location",
       "expo-notifications",
-      "expo-sensors"
+      "expo-sensors",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
+      ]
     ],
-    "experiments": {
+    "experiaments": {
       "typedRoutes": true
     },
     "extra": {
