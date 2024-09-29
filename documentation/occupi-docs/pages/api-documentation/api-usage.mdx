@@ -43,6 +43,7 @@ The API also allows you to retrieve information about these resources.
     - [Delete Notifications](#DeleteNotifications)
     - [Toggle Admin Status](#ToggleAdminStatus)
     - [Notify Report Download](#NotifyReportDownload)
+    - [Count Unread Notifications](#CountUnreadNotifications)
 
 ## Base URL
 
@@ -1379,6 +1380,46 @@ This endpoint is used to notify the system that a report has been downloaded. On
 - **Code:** 200
 
 - **Content:** `{ "status":  200, "message": "Successfully notified report download!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Count Unread Notifications
+
+This endpoint is used to count the number of unread notifications for a user in the Occupi system.
+
+- **URL**
+
+  `/api/get-notifications-count`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // optional, if not provided, the email is inferred from the token
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched notification count!", "data": {"count": 0} }`
 
 **Error Response**
 
