@@ -99,6 +99,8 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 
 	// Use AllocateAuthTokens to handle the response
 	AllocateAuthTokens(ctx, token, expirationTime, cookies)
+
+	logrus.WithContext(ctx).Info("User logged in successfully")
 }
 
 func BeginLoginAdmin(ctx *gin.Context, appsession *models.AppSession) {

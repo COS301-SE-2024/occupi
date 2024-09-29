@@ -22,6 +22,7 @@ import (
 // ProtectedRoute is a middleware that checks if
 // the user has already been authenticated previously.
 func ProtectedRoute(ctx *gin.Context) {
+	logrus.WithContext(ctx).Info("User accessing protected route")
 	claims, err := utils.GetClaimsFromCTX(ctx)
 
 	if err != nil {
@@ -61,10 +62,12 @@ func ProtectedRoute(ctx *gin.Context) {
 		return
 	}
 
+	logrus.WithContext(ctx).Info("User allowed to access protected route")
 	ctx.Next()
 }
 
 func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
+	logrus.WithContext(ctx).Info("User logged in successfully")
 	claims, err := utils.GetClaimsFromCTX(ctx)
 
 	if err != nil {
@@ -108,6 +111,10 @@ func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
 			return
 		}
 	}
+
+	logrus.WithContext(ctx).Info("User allowed to access protected route as a mobile user")
+	ctx.Next()
+
 }
 
 // ProtectedRoute is a middleware that checks if
