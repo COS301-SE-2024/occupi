@@ -1868,6 +1868,14 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.Reque
 		return nil, err
 	}
 
+	// get users from cache and update their knownLocations
+	for _, email := range request.Emails {
+		if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
+			userData.KnownLocations = append(userData.KnownLocations, location)
+			cache.SetUser(appsession, userData)
+		}
+	}
+
 	return ipInfo, nil
 }
 
@@ -1902,6 +1910,19 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.Re
 	if err != nil {
 		logrus.Error(err)
 		return nil, err
+	}
+
+	// get users from cache and update their knownLocations
+	for _, email := range request.Emails {
+		if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
+			for i, loc := range userData.KnownLocations {
+				if loc == location {
+					userData.KnownLocations = append(userData.KnownLocations[:i], userData.KnownLocations[i+1:]...)
+					cache.SetUser(appsession, userData)
+					break
+				}
+			}
+		}
 	}
 
 	return ipInfo, nil
