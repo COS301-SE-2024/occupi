@@ -10,11 +10,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/receiver"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/ccoveille/go-safecast"
 	"github.com/gin-gonic/gin"
@@ -248,4 +251,71 @@ func DefaultFemalePFP(race ...string) string {
 
 func DefaultNBPFP() string {
 	return "default_nb1.jpg"
+}
+
+func CreateAndSendNotificationLogic(ctx *gin.Context, appsession *models.AppSession, senderEmail string, receiverEmails []string,
+	title string, messageReciever string, messageSender string) error {
+	// get the users expo push token
+	tokens, err := database.GetUsersPushTokens(ctx, appsession, receiverEmails)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to get users push tokens because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	tokenArr, err := utils.ConvertTokensToStringArray(tokens, "expoPushToken")
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to convert tokens to string array because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	notificationReciever := models.ScheduledNotification{
+		NotiID:               utils.GenerateUUID(),
+		Title:                title,
+		Message:              messageReciever,
+		Sent:                 false,
+		SendTime:             time.Now(),
+		Emails:               receiverEmails,
+		UnsentExpoPushTokens: tokenArr,
+		UnreadEmails:         receiverEmails,
+	}
+
+	notificationSender := models.ScheduledNotification{
+		NotiID:               utils.GenerateUUID(),
+		Title:                title,
+		Message:              messageSender,
+		Sent:                 true,
+		SendTime:             time.Now(),
+		Emails:               []string{senderEmail},
+		UnsentExpoPushTokens: []string{},
+		UnreadEmails:         []string{senderEmail},
+	}
+
+	// Save the notifications to the database
+	if saved, err := database.AddNotification(ctx, appsession, notificationReciever, false); err != nil || !saved {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to save notification to the database because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	if saved, err := database.AddNotification(ctx, appsession, notificationSender, true); err != nil || !saved {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to save notification to the database because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	// send the notification
+	if err := receiver.SendPushNotification(notificationReciever, appsession); err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to send notification because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	return nil
 }

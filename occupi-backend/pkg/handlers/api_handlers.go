@@ -1431,7 +1431,7 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Add the IP to the database
-	err := database.AddIP(ctx, appsession, request)
+	ipInfo, err := database.AddIP(ctx, appsession, request)
 	if err != nil {
 		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
@@ -1440,6 +1440,39 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession) {
 			constants.InternalServerErrorCode,
 			"Failed to add IP",
 			nil))
+		return
+	}
+
+	// get logged users email from ctx
+	email, errv := AttemptToGetEmail(ctx, appsession)
+	if errv != nil {
+		configs.CaptureError(ctx, errv)
+		logrus.Error("Failed to get logged users email because: ", errv)
+		// we are more focused on theadding of the ip address so we will not return an error
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled admin status!", nil))
+		return
+	}
+
+	if err := CreateAndSendNotificationLogic(
+		ctx,
+		appsession,
+		email,
+		request.Emails,
+		"IP address added",
+		fmt.Sprintf("%s has added %s to the list of allowed IP addresses for you. Check your email for more details.", email, request.IP),
+		fmt.Sprintf("You have successfully added %s to the list of allowed IP addresses for %s.", request.IP, utils.ConvertArrayToCommaDelimitedString(request.Emails)),
+	); err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to send notification because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	subject := "IP address added"
+	body := utils.FormatIPAddressAddedEmailBody(ipInfo, email)
+
+	if err := mail.SendBulkEmailWithBCC(request.Emails, subject, body, appsession); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -1467,7 +1500,7 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Remove the IP from the database
-	err := database.RemoveIP(ctx, appsession, request)
+	ipInfo, err := database.RemoveIP(ctx, appsession, request)
 	if err != nil {
 		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(
@@ -1476,6 +1509,39 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession) {
 			constants.InternalServerErrorCode,
 			"Failed to remove IP",
 			nil))
+		return
+	}
+
+	// get logged users email from ctx
+	email, errv := AttemptToGetEmail(ctx, appsession)
+	if errv != nil {
+		configs.CaptureError(ctx, errv)
+		logrus.Error("Failed to get logged users email because: ", errv)
+		// we are more focused on the removing the ip address so we will not return an error
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled admin status!", nil))
+		return
+	}
+
+	if err := CreateAndSendNotificationLogic(
+		ctx,
+		appsession,
+		email,
+		request.Emails,
+		"IP address removed",
+		fmt.Sprintf("%s has removed %s from the list of allowed IP addresses for you. Check your email for more details.", email, request.IP),
+		fmt.Sprintf("You have successfully removed %s from the list of allowed IP addresses for %s.", request.IP, utils.ConvertArrayToCommaDelimitedString(request.Emails)),
+	); err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to send notification because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	subject := "IP address removed"
+	body := utils.FormatIPAddressRemovedEmailBody(ipInfo, email)
+
+	if err := mail.SendBulkEmailWithBCC(request.Emails, subject, body, appsession); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -1503,11 +1569,44 @@ func ToggleAllowAnonymousIP(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// Toggle the allow anonymous IP status
-	err := database.ToggleAllowAnonymousIP(ctx, appsession, request)
-
-	if err != nil {
+	if err := database.ToggleAllowAnonymousIP(ctx, appsession, request); err != nil {
 		configs.CaptureError(ctx, err)
 		logrus.Error("Failed to toggle allow anonymous IP because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	// get logged users email from ctx
+	email, errv := AttemptToGetEmail(ctx, appsession)
+	if errv != nil {
+		configs.CaptureError(ctx, errv)
+		logrus.Error("Failed to get logged users email because: ", errv)
+		// we are more focused on the removing the ip address so we will not return an error
+		ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled admin status!", nil))
+		return
+	}
+
+	var receiverAllow string
+	var senderAllow string
+	if request.BlockAnonymousIPAddress {
+		receiverAllow = fmt.Sprintf(("%s has allowed anonymous IP addresses for you."), email)
+		senderAllow = fmt.Sprintf("You have successfully allowed anonymous IP addresses for %s.", utils.ConvertArrayToCommaDelimitedString(request.Emails))
+	} else {
+		receiverAllow = fmt.Sprintf(("%s has disallowed anonymous IP addresses for you."), email)
+		senderAllow = fmt.Sprintf("You have successfully disallowed anonymous IP addresses for %s.", utils.ConvertArrayToCommaDelimitedString(request.Emails))
+	}
+
+	if err := CreateAndSendNotificationLogic(
+		ctx,
+		appsession,
+		email,
+		request.Emails,
+		"Allow anonymous IP address toggled",
+		receiverAllow,
+		senderAllow,
+	); err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to send notification because: ", err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
@@ -1632,13 +1731,6 @@ func ToggleAdminStatus(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	// ensure email exists
-	if !database.EmailExists(ctx, appsession, request.Email) {
-		configs.CaptureError(ctx, errors.New("email does not exist"))
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Email does not exist", nil))
-		return
-	}
-
 	// Toggle the admin status
 	err := database.ToggleAdminStatus(ctx, appsession, request)
 	if err != nil {
@@ -1648,5 +1740,82 @@ func ToggleAdminStatus(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled admin status!", nil))
+	email, err := AttemptToGetEmail(ctx, appsession)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Email must be provided",
+			nil))
+		return
+	}
+
+	if err := CreateAndSendNotificationLogic(
+		ctx,
+		appsession,
+		email,
+		[]string{request.Email},
+		"Role status changed",
+		fmt.Sprintf("%s has changed your role status to %s", email, request.Role),
+		fmt.Sprintf("You have changed %s's role status to %s", request.Email, request.Role),
+	); err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to send notification because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully toggled admin status and sent notifications!", nil))
+}
+
+func SendDownloadReportNotification(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Invalid JSON payload",
+			nil))
+		return
+	}
+
+	// valdidate the email
+	if !utils.ValidateEmail(request.Email) {
+		configs.CaptureError(ctx, errors.New("invalid email address"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid email address", nil))
+		return
+	}
+
+	email, err := AttemptToGetEmail(ctx, appsession)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+			http.StatusBadRequest,
+			"Invalid request payload",
+			constants.InvalidRequestPayloadCode,
+			"Email must be provided",
+			nil))
+		return
+	}
+
+	if err := CreateAndSendNotificationLogic(
+		ctx,
+		appsession,
+		email,
+		[]string{request.Email},
+		"Report Downloaded",
+		fmt.Sprintf("%s has downloaded your report", email),
+		fmt.Sprintf("You have downloaded %s's report", request.Email),
+	); err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to send notification because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully sent notification!", nil))
 }

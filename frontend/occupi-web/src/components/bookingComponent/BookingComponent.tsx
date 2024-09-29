@@ -39,10 +39,10 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
 };
 
 // type BookingComponentProps = {
-//   roleColumnName: string; // Add other props as needed
+//   positionColumnName: string; // Add other props as needed
 // };
 
-const INITIAL_VISIBLE_COLUMNS = ["name", "role", "status", "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["name", "position", "status", "role", "actions"];
 
 type User = (typeof users)[0];
 
@@ -131,7 +131,7 @@ export default function App() {
             {user.email}
           </User>
         );
-      case "role":
+      case "position":
         return (
           <div className="flex  flex-col">
             <p className="text-bold text-small text-text_col capitalize">
@@ -153,7 +153,26 @@ export default function App() {
             {cellValue}
           </Chip>
         );
-
+      case "role":
+        return (
+          <Dropdown>
+            <DropdownTrigger>
+              <Button 
+                color={user.role === "basic" ? "primary" : "secondary"}
+                variant="bordered" 
+              >
+                {user.role}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu 
+              aria-label="Action event example" 
+              onAction={(key) => alert(key)}
+            >
+              <DropdownItem key="basic">basic</DropdownItem>
+              <DropdownItem key="admin">admin</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        )
         
       case "actions":
         
