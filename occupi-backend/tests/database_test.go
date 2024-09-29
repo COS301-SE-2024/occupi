@@ -8997,7 +8997,7 @@ func TestAddIP(t *testing.T) {
 		// Create a mock AppSession with a nil database
 		appsession := &models.AppSession{DB: nil}
 
-		err := database.AddIP(ctx, appsession, request)
+		_, err := database.AddIP(ctx, appsession, request)
 		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
 		mt.ClearMockResponses()
 	})
@@ -9013,7 +9013,7 @@ func TestAddIP(t *testing.T) {
 			Message: "update failed",
 		}))
 
-		err := database.AddIP(ctx, appsession, request)
+		_, err := database.AddIP(ctx, appsession, request)
 		assert.NotNil(t, err, "Expected an error on UpdateMany failure")
 		assert.EqualError(t, err, "update failed", "Expected error for failed UpdateMany")
 		mt.ClearMockResponses()
@@ -9027,7 +9027,7 @@ func TestAddIP(t *testing.T) {
 		// Simulate a successful UpdateMany operation
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		err := database.AddIP(ctx, appsession, request)
+		_, err := database.AddIP(ctx, appsession, request)
 		assert.NoError(t, err, "Expected no error for successful UpdateMany")
 
 		mt.ClearMockResponses()
@@ -9052,7 +9052,7 @@ func TestRemoveIP(t *testing.T) {
 		// Create a mock AppSession with a nil database
 		appsession := &models.AppSession{DB: nil}
 
-		err := database.RemoveIP(ctx, appsession, request)
+		_, err := database.RemoveIP(ctx, appsession, request)
 		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
 		mt.ClearMockResponses()
 	})
@@ -9068,7 +9068,7 @@ func TestRemoveIP(t *testing.T) {
 			Message: "update failed",
 		}))
 
-		err := database.RemoveIP(ctx, appsession, request)
+		_, err := database.RemoveIP(ctx, appsession, request)
 		assert.NotNil(t, err, "Expected an error on UpdateMany failure")
 		assert.EqualError(t, err, "update failed", "Expected error for failed UpdateMany")
 		mt.ClearMockResponses()
@@ -9082,7 +9082,7 @@ func TestRemoveIP(t *testing.T) {
 		// Simulate a successful UpdateMany operation
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		err := database.RemoveIP(ctx, appsession, request)
+		_, err := database.RemoveIP(ctx, appsession, request)
 		assert.NoError(t, err, "Expected no error for successful UpdateMany")
 
 		mt.ClearMockResponses()

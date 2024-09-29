@@ -3052,3 +3052,49 @@ func TestIsMobileDevice(t *testing.T) {
 		}
 	}
 }
+
+func TestFormatIPAddressAddedEmailBody(t *testing.T) {
+	// Mock ipInfo data
+	ip := net.ParseIP("192.168.1.1")
+	ipInfo := &ipinfo.Core{
+		IP:          ip,
+		City:        "New York",
+		Region:      "New York",
+		CountryName: "USA",
+	}
+
+	privilegeGranterEmail := "admin@occupi.com"
+
+	// Call the function to generate email body
+	emailBody := utils.FormatIPAddressAddedEmailBody(ipInfo, privilegeGranterEmail)
+
+	// Check that the email body contains expected information
+	assert.Contains(t, emailBody, "IP Address Added")
+	assert.Contains(t, emailBody, "<b>IP Address:</b> 192.168.1.1")
+	assert.Contains(t, emailBody, "<b>This allows you to login from:</b> New York, New York, USA")
+	assert.Contains(t, emailBody, privilegeGranterEmail)
+	assert.Contains(t, emailBody, "The Occupi Team")
+}
+
+func TestFormatIPAddressRemovedEmailBody(t *testing.T) {
+	// Mock ipInfo data
+	ip := net.ParseIP("192.168.1.1")
+	ipInfo := &ipinfo.Core{
+		IP:          ip,
+		City:        "New York",
+		Region:      "New York",
+		CountryName: "USA",
+	}
+
+	privilegeGranterEmail := "admin@occupi.com"
+
+	// Call the function to generate email body
+	emailBody := utils.FormatIPAddressRemovedEmailBody(ipInfo, privilegeGranterEmail)
+
+	// Check that the email body contains expected information
+	assert.Contains(t, emailBody, "IP Address Removed")
+	assert.Contains(t, emailBody, "<b>IP Address:</b> 192.168.1.1")
+	assert.Contains(t, emailBody, "<b>This IP address was allowed to login from:</b> New York, New York, USA")
+	assert.Contains(t, emailBody, privilegeGranterEmail)
+	assert.Contains(t, emailBody, "The Occupi Team")
+}

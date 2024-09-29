@@ -246,3 +246,36 @@ func FormatTwoFAEmailBody(otp string, email string) string {
 			</p>
 		</div>` + AppendFooter()
 }
+
+// formatIPaddressaddedEmailBody
+func FormatIPAddressAddedEmailBody(ipInfo *ipinfo.Core, privilegeGranterEmail string) string {
+	return AppendHeader("IP Address Added") + `
+		<div class="content">
+			<p>Dear user,</p>
+			<p>
+				` + privilegeGranterEmail + ` has added the following IP address to your account:<br><br>
+				<b>IP Address:</b> ` + ipInfo.IP.String() + `<br>
+				<b>This allows you to login from:</b> ` + ipInfo.City + `, ` + ipInfo.Region + `, ` + ipInfo.CountryName + `<br><br>
+				If you did not request this email, please contact us immediately.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + AppendFooter()
+}
+
+// formatIPaddressremovedEmailBody
+func FormatIPAddressRemovedEmailBody(ipInfo *ipinfo.Core, privilegeGranterEmail string) string {
+	return AppendHeader("IP Address Removed") + `
+		<div class="content">
+			<p>Dear user,</p>
+			<p>
+				` + privilegeGranterEmail + ` has removed the following IP address from your account:<br><br>
+				<b>IP Address:</b> ` + ipInfo.IP.String() + `<br>
+				<b>This IP address is no longer allowed to login to your account.</b><br><br>
+				<b>This IP address was allowed to login from:</b> ` + ipInfo.City + `, ` + ipInfo.Region + `, ` + ipInfo.CountryName + `<br><br>
+				If you did not request this email, please contact us immediately.<br><br>
+				Thank you,<br>
+				<b>The Occupi Team</b><br>
+			</p>
+		</div>` + AppendFooter()
+}

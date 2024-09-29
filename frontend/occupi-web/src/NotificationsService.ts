@@ -74,6 +74,20 @@ const NotificationService = {
       console.error("Error getting notification summary:", error);
       throw error;
     }
+  },
+  downloadPDFReport: async(email: string): Promise<void> => {
+    try {
+      const response = await axios.put(`${API_USER_URL}/notify-report-download`, { email: email });
+      if (response.status !== 200) {
+        throw new Error('Failed to notify report download');
+      }
+    } catch (error) {
+      console.error("Error notify report download:", error);
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error('An unexpected error occurred while notifying of report download');
+    }
   }
 };
 
