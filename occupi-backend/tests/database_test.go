@@ -10837,3 +10837,89 @@ func TestToggleAdminStatus(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
+
+func TestCountNotifications(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+
+		unread, total, err := database.CountNotifications(ctx, appsession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, int64(0), unread)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("Count unread Documents failure", func(mt *mtest.T) {
+		// Mock the unread CountDocuments operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "count error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		unread, total, err := database.CountNotifications(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, int64(0), unread)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "count error")
+	})
+
+	mt.Run("Count total Documents failure", func(mt *mtest.T) {
+		// Mock the unread CountDocuments operation to success
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Notifications", mtest.FirstBatch))
+
+		// Mock the total CountDocuments operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "count error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		unread, total, err := database.CountNotifications(ctx, appSession, "test@example.com")
+
+		// Validate the result
+		assert.Equal(t, int64(0), unread)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "count error")
+	})
+
+	mt.Run("Count success", func(mt *mtest.T) {
+		// Mock the unread CountDocuments operation to success
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Notifications", mtest.FirstBatch))
+
+		// Mock the total CountDocuments operation to success
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Notifications", mtest.FirstBatch))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		unread, total, err := database.CountNotifications(ctx, appSession, "tst@example.com")
+
+		// Validate the result
+		assert.Equal(t, int64(0), unread)
+		assert.Equal(t, int64(0), total)
+		assert.NoError(t, err)
+	})
+}

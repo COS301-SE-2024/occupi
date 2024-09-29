@@ -2223,7 +2223,7 @@ func ToggleAdminStatus(ctx *gin.Context, appsession *models.AppSession, request 
 	return nil
 }
 
-func CounNotifications(ctx *gin.Context, appsession *models.AppSession, email string) (int64, int64, error) {
+func CountNotifications(ctx *gin.Context, appsession *models.AppSession, email string) (int64, int64, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")

@@ -1808,8 +1808,8 @@ func SendDownloadReportNotification(ctx *gin.Context, appsession *models.AppSess
 		email,
 		[]string{request.Email},
 		"Report Downloaded",
-		fmt.Sprintf("%s has downloaded your report", email),
-		fmt.Sprintf("You have downloaded %s's report", request.Email),
+		email+" has downloaded your worker analytics report",
+		fmt.Sprintf("You have downloaded %s's worker analytics report", request.Email),
 	); err != nil {
 		configs.CaptureError(ctx, err)
 		logrus.Error("Failed to send notification because: ", err)
@@ -1844,7 +1844,7 @@ func GetNotificationCount(ctx *gin.Context, appsession *models.AppSession) {
 	}
 
 	// get count
-	unReadCount, totalCount, err := database.CounNotifications(ctx, appsession, request.Email)
+	unReadCount, totalCount, err := database.CountNotifications(ctx, appsession, request.Email)
 	if err != nil {
 		configs.CaptureError(ctx, err)
 		logrus.Error("Failed to get notification count because: ", err)
