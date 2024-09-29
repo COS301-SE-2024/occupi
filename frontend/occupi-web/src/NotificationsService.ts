@@ -94,7 +94,7 @@ const NotificationService = {
   getNotificationsCount: async (): Promise<number> => {
     try {
       const response = await axios.get(`${API_USER_URL}/get-notifications-count`);
-      return response.data.unread;
+      return response.data.data.unread;
     } catch (error) {
       console.error("Error getting notifications count:", error);
       throw error;

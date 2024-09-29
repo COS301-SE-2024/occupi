@@ -65,6 +65,10 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
   };
 
   useEffect(() => {
+    // get initial notification count
+    NotificationService.getNotificationsCount().then((res) => {
+      setUnreadCount(res);
+    });
     // get notification count every 2 minutes or so
     const interval = setInterval(async() => {
       const res = await NotificationService.getNotificationsCount();
