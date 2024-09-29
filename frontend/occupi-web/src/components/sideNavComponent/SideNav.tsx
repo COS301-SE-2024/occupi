@@ -120,7 +120,6 @@ const SideNav = () => {
       animate={isMinimized ? "closed" : "open"}
       variants={sidenavvariants}
     >
-      <div className="flex flex-col h-full w-full">
         <div
           className={
             "flex flex-wrap items-center h-[110px] relative z-50 w-full " +
@@ -159,22 +158,20 @@ const SideNav = () => {
             </motion.div>
           )}
         </div>
-        <div className="flex-grow ml-2">
-          {sidebarcontent.map((button_content, index) => (
-            <SideNavBarButton
-              key={index}
-              icon={button_content.icon}
-              text={button_content.text}
-              isMinimized={isMinimized}
-              selected_panel={selectedPanel}
-              setSelectedPanelF={setSelectedPanelF}
-            />
-          ))}
-        </div>
-        <div className={`mb-4 ${isMinimized ? "mx-2" : "ml-3"}`}>
+        {sidebarcontent.map((button_content, index) => (
+          <SideNavBarButton
+            key={index}
+            icon={button_content.icon}
+            text={button_content.text}
+            isMinimized={isMinimized}
+            selected_panel={selectedPanel}
+            setSelectedPanelF={setSelectedPanelF}
+          />
+        ))}
+        <div className="flex-grow"/>
+        <div className="mb-4">
           <ProfileDropDown isMinimized={isMinimized} />
-        </div>{" "}
-      </div>
+        </div>
     </motion.div>
   );
 };
