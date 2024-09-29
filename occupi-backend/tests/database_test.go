@@ -9032,6 +9032,63 @@ func TestAddIP(t *testing.T) {
 
 		mt.ClearMockResponses()
 	})
+
+	// Test case: Update in cache
+	mt.Run("Update in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		// add user to Cache
+		user := models.User{
+			Email: request.Emails[0],
+		}
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+		assert.Nil(t, res.Err())
+
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Simulate a successful UpdateMany operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		updatedUser := models.User{
+			Email: request.Emails[0],
+			KnownLocations: []models.Location{
+				{
+					City:     "Cape Town",
+					Region:   "Western Cape",
+					Country:  "South Africa",
+					Location: "-33.9258,18.4232",
+				},
+			},
+		}
+
+		userData, err = bson.Marshal(updatedUser)
+		assert.Nil(t, err)
+
+		// mock the get operation
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// mock the set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		_, err = database.AddIP(ctx, appsession, request)
+
+		assert.Nil(t, err)
+
+		mt.ClearMockResponses()
+	})
+
 }
 
 func TestRemoveIP(t *testing.T) {
@@ -9084,6 +9141,63 @@ func TestRemoveIP(t *testing.T) {
 
 		_, err := database.RemoveIP(ctx, appsession, request)
 		assert.NoError(t, err, "Expected no error for successful UpdateMany")
+
+		mt.ClearMockResponses()
+	})
+
+	// Test case: Update in cache
+	mt.Run("Update in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		// add user to Cache
+		user := models.User{
+			Email: request.Emails[0],
+			KnownLocations: []models.Location{
+				{
+					City:     "Cape Town",
+					Region:   "Western Cape",
+					Country:  "South Africa",
+					Location: "-33.9258,18.4232",
+				},
+			},
+		}
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+		assert.Nil(t, res.Err())
+
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Simulate a successful UpdateMany operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		updatedUser := models.User{
+			Email:          request.Emails[0],
+			KnownLocations: []models.Location{},
+		}
+
+		userData, err = bson.Marshal(updatedUser)
+		assert.Nil(t, err)
+
+		// mock the get operation
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// mock the set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		_, err = database.RemoveIP(ctx, appsession, request)
+
+		assert.Nil(t, err)
 
 		mt.ClearMockResponses()
 	})
