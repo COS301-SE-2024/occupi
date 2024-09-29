@@ -120,6 +120,8 @@ export default function App() {
   const renderCell = React.useCallback((user: User, columnKey: React.Key) => {
     const cellValue = user[columnKey as keyof User];
 
+    console.log(user);
+
     switch (columnKey) {
       case "name":
         return (
@@ -159,7 +161,7 @@ export default function App() {
             <DropdownTrigger>
               <Button 
                 color={user.role === "basic" ? "primary" : "secondary"}
-                variant="bordered" 
+                variant="flat" 
               >
                 {user.role}
               </Button>
