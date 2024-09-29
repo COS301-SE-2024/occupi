@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useColorScheme, TouchableOpacity, Alert } from 'react-native';
+import { useColorScheme, TouchableOpacity, Alert,Modal } from 'react-native';
 import Navbar from '../../components/NavBar';
 import Entypo from '@expo/vector-icons/Entypo';
 import {
@@ -36,7 +36,7 @@ import PagerView from 'react-native-pager-view';
 import { router } from 'expo-router';
 import Tooltip from '@/components/Tooltip';
 import { getCurrentBookings } from '@/utils/analytics';
-
+import Recommendations from './Recommendations';
 // import { number } from 'zod';
 
 const getRandomNumber = () => {
@@ -63,7 +63,8 @@ const Dashboard: React.FC = () => {
   const [weeklyData, setWeeklyData] = useState();
   const [hourlyData, setHourlyData] = useState();
   const counter = useCentrifugeCounter();
-  console.log('counter:', counter);
+  const [isRecommendationsVisible, setIsRecommendationsVisible] = useState(false);
+
   // console.log(isDarkMode);
 
   // console.log('darkmode? ', isDarkMode);
@@ -411,6 +412,7 @@ const Dashboard: React.FC = () => {
   const backgroundColor = isDarkMode ? 'black' : 'white';
   const textColor = isDarkMode ? 'white' : 'black';
   const cardBackgroundColor = isDarkMode ? '#101010' : '#F3F3F3';
+  const recommendationColor = isDarkMode ? '#6e6d6d' : '#F3F3F3';
 
   return (
     <>
@@ -592,6 +594,34 @@ const Dashboard: React.FC = () => {
             </View>
           </TouchableOpacity>
         </View>
+
+        <View>
+          <TouchableOpacity
+            style={{
+              paddingVertical: 7,
+              paddingHorizontal: 20,
+              borderRadius: 8,
+              marginTop: 18,
+              height: 60,
+              backgroundColor: recommendationColor,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+            onPress={() => setIsRecommendationsVisible(true)}
+          >
+            <View flexDirection="row" alignItems="center" justifyContent='space-between'>
+              <View flexDirection='row' alignItems='center'>
+                <Text color={textColor} fontWeight="$bold" fontSize={18}>Recommendations</Text>
+                <Tooltip
+                  content="Office too full? Need help on when to check in? OccuBot's got you covered."
+                  placement="bottom"
+                />
+              </View>
+              <Ionicons name="chevron-forward-outline" size={30} color={textColor} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         <View px="$4" mt="$4" pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <View flexDirection='row' alignItems='center'>
             <Text fontSize={18} color={textColor}>Top Bookings </Text>
@@ -677,7 +707,35 @@ const Dashboard: React.FC = () => {
         </View>
       </ScrollView >
       <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
+
+    <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isRecommendationsVisible}
+        onRequestClose={() => setIsRecommendationsVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <View style={{ 
+            backgroundColor: backgroundColor,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            padding: 35,
+            shadowColor: '#000',
+            shadowOffset: {
+              width: 0,
+              height: 2
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 5,
+            height: '80%' // Adjust this value to control how much of the screen the modal covers
+          }}>
+            <Recommendations onClose={() => setIsRecommendationsVisible(false)} />
+          </View>
+        </View>
+      </Modal>
     </>
+
   );
 };
 
