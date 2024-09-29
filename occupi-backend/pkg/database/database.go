@@ -2222,3 +2222,32 @@ func ToggleAdminStatus(ctx *gin.Context, appsession *models.AppSession, request 
 
 	return nil
 }
+
+func CounNotifications(ctx *gin.Context, appsession *models.AppSession, email string) (int64, int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return 0, 0, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
+
+	// filter for all notifications with the email in the unreadEmails field
+	filter := bson.M{"unreadEmails": email}
+
+	// get the count of unread notifications
+	unreadCount, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return 0, 0, err
+	}
+
+	// count total notifications
+	totalCount, err := collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		logrus.Error(err)
+		return 0, 0, err
+	}
+
+	return unreadCount, totalCount, nil
+}

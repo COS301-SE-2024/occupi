@@ -1819,3 +1819,38 @@ func SendDownloadReportNotification(ctx *gin.Context, appsession *models.AppSess
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully sent notification!", nil))
 }
+
+func GetNotificationCount(ctx *gin.Context, appsession *models.AppSession) {
+	var request models.RequestEmail
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		emailStr := ctx.Query("email")
+		if emailStr == "" {
+			email, err := AttemptToGetEmail(ctx, appsession)
+			if err != nil {
+				configs.CaptureError(ctx, err)
+				ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
+					http.StatusBadRequest,
+					"Invalid request payload",
+					constants.InvalidRequestPayloadCode,
+					"Email must be provided",
+					nil))
+				return
+			} else {
+				request.Email = email
+			}
+		} else {
+			request.Email = emailStr
+		}
+	}
+
+	// get count
+	unReadCount, totalCount, err := database.CounNotifications(ctx, appsession, request.Email)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to get notification count because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched notification count!", gin.H{"unread": unReadCount, "total": totalCount}))
+}
