@@ -171,7 +171,7 @@ export async function getRTCToken(): Promise<Success | Unsuccessful> {
             },
             withCredentials: true
         });
-        // console.log(response.data);
+        console.log('token here',response.data);
         return response.data as Success;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {

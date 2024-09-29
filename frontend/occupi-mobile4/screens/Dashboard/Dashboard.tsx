@@ -27,7 +27,7 @@ import { fetchTopBookings } from '@/utils/bookings';
 import { useTheme } from '@/components/ThemeContext';
 import LineGraph from '@/components/LineGraph';
 import BarGraph from '@/components/BarGraph';
-import { getFormattedPredictionData, getFormattedPredictionWeekData } from '@/utils/occupancy';
+import { getFormattedPredictionData, getFormattedPredictionWeekData, getHourlyPredictions, mapToClassForSpecificHours } from '@/utils/occupancy';
 import * as Location from 'expo-location';
 import { storeCheckInValue } from '@/services/securestore';
 import { isPointInPolygon, onSite } from '@/utils/dashboard';
@@ -61,6 +61,7 @@ const Dashboard: React.FC = () => {
   const pagerRef = useRef<PagerView>(null);
   const [activeTab, setActiveTab] = useState(1);
   const [weeklyData, setWeeklyData] = useState();
+  const [hourlyData, setHourlyData] = useState();
   const counter = useCentrifugeCounter();
   console.log('counter:', counter);
   // console.log(isDarkMode);
@@ -117,7 +118,7 @@ const Dashboard: React.FC = () => {
   };
 
   const setHourly = () => {
-    setCurrentData(mockhourly);
+    setCurrentData(hourlyData);
   }
 
   const setWeekly = () => {
@@ -190,7 +191,7 @@ const Dashboard: React.FC = () => {
     const getTopBookings = async () => {
       try {
         const topBookings = await fetchTopBookings();
-        console.log('yurppp', topBookings);
+        // console.log('yurppp', topBookings);
         setTopBookings(topBookings);
       } catch (error) {
         console.error('Error fetching top bookings', error);
@@ -210,6 +211,22 @@ const Dashboard: React.FC = () => {
       }
     }
 
+    const getHourlyPrediction = async () => {
+      try {
+        const prediction = await mapToClassForSpecificHours();
+        setHourlyData(prediction);
+        console.log('hourly',prediction);
+        // if (prediction) {
+        //   // console.log(prediction);
+        //   setCurrentData(prediction);
+        //   setWeeklyData(prediction);
+        // }
+      } catch (error) {
+        console.error('Error fetching predictions:', error);
+      }
+    }
+
+    getHourlyPrediction();
     getWeeklyPrediction();
     getAccentColour();
     getTopBookings();
@@ -275,7 +292,8 @@ const Dashboard: React.FC = () => {
               emails: [],
               floorNo: "0",
               occupiId: "0",
-              roomId: "0"
+              roomId: "0",
+              roomImage: {}
             }
           );
         }
