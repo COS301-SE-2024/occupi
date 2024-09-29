@@ -11,6 +11,7 @@ import {
 import { FaBell, FaTools, FaUserCheck, FaChartBar } from 'react-icons/fa';
 import NotificationService, { Notification } from 'NotificationsService';
 import { OccupiLoader } from '@components/index'; // Assuming you have this loading component
+import ReactTimeAgo from 'react-time-ago'
 
 interface NotificationsModalProps {
   title: string;
@@ -42,20 +43,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const markAsRead = async (id: number) => {
-    try {
-      // await NotificationService.markNotificationAsRead(id);
-      setNotifications((prevNotifications) =>
-        prevNotifications.map((notification) =>
-          notification.id === id ? { ...notification, read: true } : notification
-        )
-      );
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
+  }
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
@@ -77,11 +65,17 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
       <ModalContent>
         <ModalHeader>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <FaBell style={{ marginRight: '10px' }} />
-            {title}
-            <Badge color='warning' style={{ marginLeft: 'auto' }}>
-              {unreadCount}
+            <Badge content={unreadCount} shape="circle" color="danger" className='mr-[10px]'>
+              <Button
+                radius="full"
+                isIconOnly
+                aria-label={`You have ${unreadCount} notifications`}
+                variant="light"
+              >
+                <FaBell size={24} />
+              </Button>
             </Badge>
+            {title}
           </div>
         </ModalHeader>
         <ModalBody>
@@ -99,18 +93,14 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
               >
                 <div style={{ marginRight: '10px' }}>{getIcon(notification.type)}</div>
                 <div style={{ flexGrow: 1 }}>
-                  <div>{notification.message}</div>
+                  <div>{notification.title}</div>
+                  <div style={{ fontSize: '14px'}}>{notification.message}</div>
                   <div style={{ fontSize: '12px', color: 'gray' }}>
-                    {new Date(notification.timestamp).toLocaleString()}
+                    <ReactTimeAgo date={new Date(notification.timestamp)} locale="en-US"/>
                   </div>
                 </div>
                 {!notification.read && (
-                  <Button
-                    className='bg-secondary_alt text-text_col_alt'
-                    onClick={() => markAsRead(notification.id)}
-                  >
-                    Mark as read
-                  </Button>
+                  <div className="h-[10px] w-[10px] rounded-full bg-blue-500"/>
                 )}
               </div>
             ))
