@@ -551,3 +551,129 @@ export const removeNotification = async (req: DeleteNotiRequest): Promise<Succes
     } as Unsuccessful;
   }
 };
+
+// AI Recommendations
+export async function getRecommendations(): Promise<Success | Unsuccessful> {
+  let authToken = await SecureStore.getItemAsync('Token');
+  try {
+    const response = await axios.get("https://ai.occupi.tech/recommend", {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    return response.data as Success;
+  } catch (error) {
+    console.error("Error in getRecommendations:", error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+}
+
+// AI Office Time Recommendations
+export async function recommendOfficeTimes(): Promise<Success | Unsuccessful> {
+  let authToken = await SecureStore.getItemAsync('Token');
+  try {
+    const response = await axios.get("https://ai.occupi.tech/recommend_office_times", {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    return response.data as Success;
+  } catch (error) {
+    console.error("Error in recommendOfficeTimes:", error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+}
+
+// Predict Day Occupancy
+export async function predictDay(date: string, startHour: number, endHour: number): Promise<Success | Unsuccessful> {
+  let authToken = await SecureStore.getItemAsync('Token');
+  try {
+    const response = await axios.get(`https://ai.occupi.tech/predict_day`, {
+      params: { date, start_hour: startHour, end_hour: endHour },
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    return response.data as Success;
+  } catch (error) {
+    console.error("Error in predictDay:", error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+}
+
+// Predict Hourly Occupancy
+export async function predictHourly(date: string, hour: number): Promise<Success | Unsuccessful> {
+  let authToken = await SecureStore.getItemAsync('Token');
+  try {
+    const response = await axios.get(`https://ai.occupi.tech/predict_hourly`, {
+      params: { date, hour },
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': authToken
+      },
+      withCredentials: true
+    });
+    return response.data as Success;
+  } catch (error) {
+    console.error("Error in predictHourly:", error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      return error.response.data as Unsuccessful;
+    }
+    return {
+      data: null,
+      status: 'error',
+      message: 'An unexpected error occurred',
+      error: {
+        code: 'UNKNOWN_ERROR',
+        details: 'An unexpected error occurred',
+        message: 'An unexpected error occurred'
+      }
+    } as Unsuccessful;
+  }
+}
