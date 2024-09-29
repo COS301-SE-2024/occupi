@@ -553,7 +553,7 @@ export const removeNotification = async (req: DeleteNotiRequest): Promise<Succes
 };
 
 // AI Recommendations
-export async function getRecommendations(): Promise<Success | Unsuccessful> {
+export async function getRecommendations() {
   let authToken = await SecureStore.getItemAsync('Token');
   try {
     const response = await axios.get("https://ai.occupi.tech/recommend", {
@@ -584,7 +584,7 @@ export async function getRecommendations(): Promise<Success | Unsuccessful> {
 }
 
 // AI Office Time Recommendations
-export async function recommendOfficeTimes(): Promise<Success | Unsuccessful> {
+export async function recommendOfficeTimes() {
   let authToken = await SecureStore.getItemAsync('Token');
   try {
     const response = await axios.get("https://ai.occupi.tech/recommend_office_times", {

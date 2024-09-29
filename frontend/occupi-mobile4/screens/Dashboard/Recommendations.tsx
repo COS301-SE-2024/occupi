@@ -38,7 +38,7 @@ const Recommendations = ({ onClose }) => {
         predictDay(new Date().toISOString().split('T')[0], 6, 17),
       ]);
 
-      if (recommendResponse.status === 'success' && officeTimesResponse.status === 'success' && predictDayResponse.status === 'success') {
+      if (recommendResponse && officeTimesResponse && predictDayResponse) {
         const formattedData = Object.entries(predictDayResponse.data).map(([hour, occupancy]) => ({
           name: `${hour}:00`,
           occupancy: occupancy,
