@@ -1834,11 +1834,11 @@ func CreateUser(ctx *gin.Context, appsession *models.AppSession, user models.Use
 	return nil
 }
 
-func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) error {
+func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) (*ipinfo.Core, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
-		return errors.New("database is nil")
+		return nil, errors.New("database is nil")
 	}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
@@ -1846,7 +1846,7 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.Reque
 	ipInfo, err := configs.GetIPInfo(request.IP, appsession.IPInfo)
 	if err != nil {
 		logrus.Error(err)
-		return err
+		return nil, err
 	}
 
 	location := models.Location{
@@ -1865,17 +1865,17 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.Reque
 	_, err = collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return ipInfo, nil
 }
 
-func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) error {
+func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) (*ipinfo.Core, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
-		return errors.New("database is nil")
+		return nil, errors.New("database is nil")
 	}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
@@ -1883,7 +1883,7 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.Re
 	ipInfo, err := configs.GetIPInfo(request.IP, appsession.IPInfo)
 	if err != nil {
 		logrus.Error(err)
-		return err
+		return nil, err
 	}
 
 	location := models.Location{
@@ -1901,10 +1901,10 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.Re
 	_, err = collection.UpdateMany(ctx, filter, update)
 	if err != nil {
 		logrus.Error(err)
-		return err
+		return nil, err
 	}
 
-	return nil
+	return ipInfo, nil
 }
 
 func UserHasImage(ctx *gin.Context, appsession *models.AppSession, email string) bool {
@@ -1942,9 +1942,6 @@ func SetHasImage(ctx *gin.Context, appsession *models.AppSession, email string, 
 		return errors.New("database is nil")
 	}
 
-	// get user from cache
-	userData, cacheErr := cache.GetUser(appsession, email)
-
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
 	filter := bson.M{"email": email}
@@ -1956,8 +1953,8 @@ func SetHasImage(ctx *gin.Context, appsession *models.AppSession, email string, 
 		return err
 	}
 
-	// update user in cache
-	if cacheErr == nil {
+	// get user from cache
+	if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
 		userData.Details.HasImage = hasImage
 		cache.SetUser(appsession, userData)
 	}

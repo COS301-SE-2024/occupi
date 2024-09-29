@@ -15,6 +15,7 @@ import { ProfileComponent ,UserStatsComponent,UserHoursCharts,UserWorkRatioChart
 
 import { motion } from "framer-motion";
 import * as userStatsService from 'userStatsService';
+import NotificationService from "NotificationsService";
 interface User {
   id: string;
   name: string;
@@ -83,8 +84,9 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
     try {
       const params = {
         email: user.email,
-        timeFrom: '2024-01-01T00:00:00.000Z',
-        timeTo: '2024-09-11T00:00:00.000Z',
+        // Assuming the start and end dates for the report in ISO format
+        timeFrom: new Date('1970-01-01T00:00:00.000Z').toISOString(),
+        timeTo: new Date().toISOString(),
       };
 
       const [userHours, userWorkRatio, userArrivalDepartureAverage, userPeakOfficeHours] = await Promise.all([
@@ -148,6 +150,9 @@ ${reportData.arrivalDeparture.days.map((day) => `   ${day.weekday}: Arrival - ${
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
+
+      // Notify the backend that the report has been downloaded
+      await NotificationService.downloadPDFReport(user.email);
     } catch (error) {
       console.error('Error generating report:', error);
       // You might want to show an error message to the user here

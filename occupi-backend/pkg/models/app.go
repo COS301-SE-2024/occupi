@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
+	expo "github.com/oliveroneill/exponent-server-sdk-golang/sdk"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
@@ -36,6 +37,7 @@ type AppSession struct {
 	MailConn     *gomail.Dialer
 	AzureClient  *azblob.Client
 	MobileCache  *redis.Client
+	ExpoClient   *expo.PushClient
 }
 
 // constructor for app session
@@ -59,6 +61,7 @@ func New(db *mongo.Client, cache *redis.Client) *AppSession {
 		AzureClient:  configs.CreateAzureBlobClient(),
 		Counter:      CreateCounter(centrifugo),
 		MobileCache:  configs.CreateMobileCache(),
+		ExpoClient:   expo.NewPushClient(nil),
 	}
 }
 
