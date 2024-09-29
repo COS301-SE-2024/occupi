@@ -1,7 +1,6 @@
 export const pages = [
-    { id: 1, path: "/dashboard/overview", title: "Dashboard Overview", description: "View the overview of the system info at a glance" },
-    { id: 2, path: "/dashboard/employees", title: "Dashboard Employees", description: "View employee details" },
-    { id: 3, path: "/dashboard/visitations", title: "Dashboard Visitations", description: "View and manage visitations" },
+    { id: 1, path: "/", title: "Dashboard Overview", description: "View the overview of the system info at a glance" },
+    { id: 2, path: "/employees", title: "Dashboard Employees", description: "View employee details" },
     { id: 4, path: "/ai-dashboard", title: "AI Dashboard", description: "Leverage the power of AI to analyze office trends (office occupancy, available desks, reservations, check-ins today)" },
     { id: 5, path: "/rooms", title: "Rooms", description: "Update and edit available rooms in the building" },
     { id: 6, path: "/reports", title: "Reports", description: "Generate and download reports for analysis" },
@@ -10,5 +9,10 @@ export const pages = [
     { id: 9, path: "/settings/appearance", title: "Appearance", description: "Change the appearance of the app" },
     { id: 10, path: "/settings/notifications", title: "Notifications", description: "Manage your notification settings" },
     { id: 11, path: "/settings/security", title: "Security", description: "Manage your security settings" },
-    { id: 12, path: "/settings/about", title: "About, Privacy Policy, TOS, User Manual", description: "View information about the app" }
+    { id: 12, path: "/settings/about", title: "About, Privacy Policy, TOS, User Manual", description: "View information about the app" },
+    { id: 13, path: "/booking-statistics", title: "Booking Statistics", description: "View statistics on bookings" },
+    { id: 14, path: "/worker-dashboard", title: "Worker Dashboard", description: "View organisation wide worker statistics" },
+    { id: 15, path: "/employees", title: "Employees", description: "View employee details and employee statistics on an individualised level" },
+    { id: 16, path: "/booking-statistics/overview", title: "Bookings Overview", description: "View overview statistics on bookings" },
+    { id: 17, path: "/booking-statistics/bookings-dashboard", title: "Bookings Dashboard", description: "View deeper statistics on bookings" },
   ];
