@@ -89,7 +89,7 @@ const LoginForm = (): JSX.Element => {
       setUserDetails(userDetails);
       console.log("UserDetails after setting:", userDetails);
 
-      navigate("/dashboard/overview");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login or user details error:", error);
       if (typeof error === 'object' && error !== null && 'message' in error) {

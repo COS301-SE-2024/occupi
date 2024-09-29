@@ -40,7 +40,7 @@ const OtpPage = () => {
       const userDetails = await AuthService.getUserDetails(email);
       setUserDetails(userDetails);
 
-      navigate("/dashboard/overview");
+      navigate("/dashboard");
     } catch (error) {
       console.error("OTP verification error:", error);
       setError("OTP verification failed. Please try again.");

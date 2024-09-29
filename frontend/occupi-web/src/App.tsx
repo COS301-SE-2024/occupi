@@ -1,5 +1,5 @@
 import { LoginForm, OtpPage, Settings, Dashboard, Faq, AiDashboard, Rooms, AboutPage, SecurityPage, BookingStats, WorkerStatsDashboard, BookingsDashboardPage, ForgotPassword, ResetPassword } from "@pages/index";
-import { Appearance, OverviewComponent, BookingComponent, PDFReport, ProfileView } from "@components/index";
+import { Appearance, BookingComponent, PDFReport, ProfileView } from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
@@ -12,19 +12,7 @@ function App() {
     const savedTheme = localStorage.getItem('theme') || 'system';
     return savedTheme;
   });
-  const [isAuthenticated] = useState(() => {
-    // Retrieve user storage from localStorage
-    const userStorage = localStorage.getItem("user-storage");
 
-    // Parse the userStorage if it exists
-    if (userStorage) {
-      const parsedUserStorage = JSON.parse(userStorage);
-      // Check if the email in userDetails is null or empty
-      return parsedUserStorage?.state?.userDetails?.email ? true : false;
-    }
-
-    return false;
-  });
   useEffect(() => {
     const applyTheme = (theme: string) => {
       if (theme === "system") {
@@ -46,89 +34,48 @@ function App() {
   }, [theme]);
   return (
     <Router>
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard/overview" />
-            ) : (
-              <LoginForm />
-            )
+  <Routes>
+    <Route
+      path="/*"
+      element={
+        <ProtectedRoutes 
+          unAuthRoutes={
+            <Routes>
+              <Route index element={<LoginForm />} />
+              <Route path="otp" element={<OtpPage />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password" element={<ResetPassword />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
           }
-        />
-        <Route
-          path="/otp"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard/overview" />
-            ) : (
-              <OtpPage />
-            )
-          }
-        />
-        <Route
-          path="/forgot-password"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard/overview" />
-            ) : (
-              <ForgotPassword />
-            )
-          }
-        />
-        <Route
-          path="/reset-password"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard/overview" />
-            ) : (
-              <ResetPassword />
-            )
-          }
-        />
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoutes>
-              <Layout>
+          authRoutes={
+            <Layout>
               <Routes>
-                <Route path="dashboard/*" element={<Dashboard />} >
-                  <Route path="overview" element={<OverviewComponent />} />
-                </Route>
-
-
-
-                <Route path="reports" element={<PDFReport />} />{/**attach appropriate component */}
-                <Route path="faq" element={ <Faq/> } />{/**attach appropriate component */}
-                <Route path="ai-dashboard" element={<AiDashboard />} />{/**consider making ths its own page */}
-              <Route path="rooms" element={<Rooms />} />{/**attach appropriate component */}
-              {/* <Route path="notifications" element={<Notifications />} />*attach appropriate component */}
-                <Route path="bookingStats" element={<BookingStats />} />{/**attach appropriate component */}
-                <Route path="worker-dashboard" element={<WorkerStatsDashboard />} />{/**attach appropriate component */}
-                <Route path="bookings" element={<BookingComponent />} />*attach appropriate component
-                {/* <Route path="bookingsDashboard" element={<BookingsDashboard />} />*attach appropriate component */}
-
-
-                <Route path="bookingStats/*" element={<BookingsDashboardPage />} >
-                {/* <Route path="bookings" element={<BookingComponent />} />*attach appropriate component */}
-
-                </Route>
-
-
-
-              
+                <Route index path="dashboard" element={<Dashboard />}/>
+                <Route path="reports" element={<PDFReport />} />
+                <Route path="faq" element={<Faq />} />
+                <Route path="ai-dashboard" element={<AiDashboard />} />
+                <Route path="rooms" element={<Rooms />} />
+                <Route path="booking-statistics/overview" element={<BookingStats />} />
+                <Route path="booking-statistics/bookings-dashboard" element={<BookingsDashboardPage />} />
+                <Route path="worker-dashboard" element={<WorkerStatsDashboard />} />
+                <Route path="employees" element={<BookingComponent />} />
                 <Route path="settings/*" element={<Settings />}>
-                  <Route path="profile" element={<ProfileView />} />{/**attach appropriate component */}
+                  <Route path="profile" element={<ProfileView />} />
                   <Route path="appearance" element={<Appearance />} />
-                  <Route path="notifications" element={<NotificationsSettings />} />{/**attach appropriate component */}
-                  <Route path="security" element={<SecurityPage />} />{/**attach appropriate component */}
-                  <Route path="about" element={<AboutPage />} />{/**attach appropriate component */}
+                  <Route path="notifications" element={<NotificationsSettings />} />
+                  <Route path="security" element={<SecurityPage />} />
+                  <Route path="about" element={<AboutPage />} />
                 </Route>
+                <Route path="*" element={<Navigate to="/dashboard" />} />
               </Routes>
             </Layout>
-            </ProtectedRoutes>}>
-        </Route>
-    </Router>
+          }
+        />
+      }
+    />
+  </Routes>
+</Router>
   )
 }
 
