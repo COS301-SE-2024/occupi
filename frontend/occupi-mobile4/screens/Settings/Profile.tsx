@@ -51,6 +51,7 @@ const Profile = () => {
   useEffect(() => {
     const getUserDetails = async () => {
       let result = await SecureStore.getItemAsync('UserData');
+      console.log(result);
       const email = await SecureStore.getItemAsync('Email');
       let user = JSON.parse(result);
       setName(user?.name);
@@ -63,7 +64,8 @@ const Profile = () => {
 
       const [datePart] = dateString.split('T');
       const [year, month, day] = datePart.split('-').map(Number);
-      const formatted = `${year}-${month}-${day}`;
+      const formatted = dateString.split('T')[0];
+      console.log(dateString);
       setDate(formatted);
     };
     getUserDetails();

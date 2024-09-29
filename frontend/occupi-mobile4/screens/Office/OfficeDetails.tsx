@@ -186,13 +186,7 @@ const OfficeDetails = () => {
               {pages.map((page, index) => (
                 <View key={index} style={{ width }}>
                   <View style={styles.page} key="1">
-                    <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: resolution === "low" ? room?.roomImage.thumbnailRes : resolution === "mid" ? room?.roomImage.midRes : room?.roomImage.highRes }} />
-                  </View>
-                  <View style={styles.page} key="2">
-                    <Image alt="slide2" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
-                  </View>
-                  <View style={styles.page} key="3">
-                    <Image alt="slide3" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                    <Image alt="slide1" style={{ width: '90%', height: '100%', borderRadius: 20 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
                   </View>
                 </View>
               ))}
@@ -277,8 +271,9 @@ const OfficeDetails = () => {
                 borderColor: 'lightgrey',
                 borderRadius: 4,
                 color: isDarkMode ? '#fff' : '#000',
+                backgroundColor: isDarkMode ? '#2e2e2e' : '#e5e5e5',
                 paddingRight: 30, // to ensure the text is never behind the icon
-              },
+              }
             }}
             Icon={() => {
               return <Icon as={ChevronDownIcon} m="$2" w="$4" h="$4" alignSelf="center" />;
@@ -324,6 +319,7 @@ const OfficeDetails = () => {
                   borderColor: 'lightgrey',
                   borderRadius: 4,
                   color: isDarkMode ? '#fff' : '#000',
+                  backgroundColor: isDarkMode ? '#2e2e2e' : '#e5e5e5',
                   paddingRight: 30, // to ensure the text is never behind the icon
                 },
               }}
@@ -370,6 +366,7 @@ const OfficeDetails = () => {
                   borderColor: 'lightgrey',
                   borderRadius: 4,
                   color: isDarkMode ? '#fff' : '#000',
+                  backgroundColor: isDarkMode ? '#2e2e2e' : '#e5e5e5',
                   paddingRight: 30, // to ensure the text is never behind the icon
                 },
               }}

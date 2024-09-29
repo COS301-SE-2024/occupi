@@ -74,7 +74,7 @@ const Appearance = () => {
           }}>Theme</Text>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-            <TouchableOpacity onPress={() => setTheme("light")} style={{ width: wp('28%') }}>
+            <TouchableOpacity onPress={() => setTheme("light")} style={{ width: wp('23%') }}>
               <View style={{ alignItems: 'center' }}>
                 <Image
                   style={{
@@ -90,7 +90,7 @@ const Appearance = () => {
                 <Text style={{ marginTop: 8, fontWeight: '400', color: currentTheme === 'dark' ? 'white' : 'black' }}>Light</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setTheme("dark")} style={{ width: wp('28%') }}>
+            <TouchableOpacity onPress={() => setTheme("dark")} style={{ width: wp('23%') }}>
               <View style={{ alignItems: 'center' }}>
                 <Image
                   style={{
@@ -106,7 +106,7 @@ const Appearance = () => {
                 <Text style={{ marginTop: 8, fontWeight: '400', color: currentTheme === 'dark' ? 'white' : 'black' }}>Dark</Text>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setTheme("system")} style={{ width: wp('28%') }}>
+            <TouchableOpacity onPress={() => setTheme("system")} style={{ width: wp('23%') }}>
               <View style={{ alignItems: 'center' }}>
                 <Image
                   style={{

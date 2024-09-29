@@ -338,41 +338,27 @@ const Stats = () => {
   return (
     <View style={{
       flex: 1,
-      borderRadius: wp('5%'),
-      paddingVertical: wp('5%'),
       paddingHorizontal: wp('3%'),
+      paddingTop: hp('5%'),
       justifyContent: 'space-between',
       backgroundColor: isDarkMode ? '#000000' : '#FFFFFF',
     }}>
-       <TouchableOpacity
-        style={{
-          position: 'absolute',
-          top: hp('5%'),
-          left: wp('5%'),
-          zIndex: 1,
-        }}
-        onPress={() => router.replace('home')}
-      >
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color={isDarkMode ? 'white' : 'black'}
-          style={{
-            padding: wp('3%'),
-            borderRadius: wp('4%'),
-            marginBottom: hp('3%'),
-          }}
-        />
-      </TouchableOpacity>
-
-      <Text style={{
-        fontSize: wp('6%'),
-        fontWeight: 'bold',
-        color: isDarkMode ? 'white' : 'black',
-        marginTop: hp('8%'),
-        marginBottom: hp('1%'),
-      }}>OccuBot - AI Analyser</Text>
-
+      <View flexDirection='row' alignItems='center'>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Icon
+            as={Feather}
+            name="chevron-left"
+            size={40}
+            color={currentTheme === 'dark' ? 'white' : 'black'}
+          />
+        </TouchableOpacity>
+        <Text style={{
+          fontSize: wp('6%'),
+          fontWeight: 'bold',
+          paddingLeft: 14,
+          color: isDarkMode ? 'white' : 'black'
+        }}>OccuBot - AI Analyser</Text>
+      </View>
       <Text style={{
         fontSize: wp('4%'),
         color: isDarkMode ? '#888' : '#555',

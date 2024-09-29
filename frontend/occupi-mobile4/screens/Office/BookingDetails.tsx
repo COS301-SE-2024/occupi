@@ -30,6 +30,10 @@ import * as SecureStore from 'expo-secure-store';
 import GradientButton from '@/components/GradientButton';
 import { userBookRoom } from "@/utils/bookings";
 import { useTheme } from "@/components/ThemeContext";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const BookingDetails = () => {
   const navigation = useNavigation();
@@ -476,14 +480,14 @@ const BookingDetails = () => {
       )}
 
       {currentStep === 2 && (
-        <View style={{ paddingHorizontal: 15, flex: 1 }}>
+        <View style={{ paddingHorizontal: 15, flex: 1, alignItems: 'center' }}>
           {/* <Text
             style={{
               fontSize: 16,
               color: isDark ? "#fff" : "#000",
             }}
           > */}
-          <View style={{ width: 365, height: 500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom: 50, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
+          <View style={{ width: 365, height: 500, borderWidth: 1, borderColor: cardBackgroundColor, paddingBottom: 75, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }}>
             <Image style={{ width: '100%', height: '30%', borderTopLeftRadius: 10, borderTopRightRadius: 10 }} source={{ uri: resolution === "low" ? bookingInfo?.roomImage.thumbnailRes : resolution === "mid" ? bookingInfo?.roomImage.midRes : bookingInfo?.roomImage.highRes, }} />
             <Text fontWeight="$bold" m="$3" style={{ color: isDark ? '#fff' : '#000', fontSize: 24 }}>{bookingInfo?.roomName}</Text>
             <View px="$3" alignItems="center" flexDirection="row">
@@ -501,9 +505,9 @@ const BookingDetails = () => {
               </View>
             </View>
             <View mt="$1" flexDirection="row" alignItems="center" right="$6">
-              <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius="$lg" w="$10" />
-              <Text color={isDark ? '#000' : '#fff'}>----------------------------------------------</Text>
-              <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius="$lg" w="$10" />
+              <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius={50} w="$10" />
+              <Text color={isDark ? '#000' : '#fff'}>------------------------------------------------------------------------</Text>
+              <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius={50} w="$10" />
             </View>
             <View px="$4" py="$2">
               <View flexDirection="row" alignItems="center">
@@ -545,7 +549,7 @@ const BookingDetails = () => {
 
           </View>
           {/* </Text> */}
-          <TouchableOpacity style={{ paddingHorizontal: 0, marginBottom: 50 }} onPress={() => router.push('/home')}>
+          <TouchableOpacity style={{ paddingHorizontal: 0, marginBottom: 50, width: wp('80%') }} onPress={() => router.push('/home')}>
             <View flexDirection="row" mt="$8" borderRadius="$lg" alignItems="center" justifyContent="center" backgroundColor={isDark ? '#2C2C2E' : '#F3F3F3'} h="$11">
               <Text fontWeight="$bold" color="black">Home</Text>
             </View>
