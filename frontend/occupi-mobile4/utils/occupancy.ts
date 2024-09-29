@@ -1,4 +1,4 @@
-import { getDayPredictions, getPredictions, getWeekPredictions } from '../services/aimodel';
+import { fetchHourlyPredictions, getDayPredictions, getPredictions, getWeekPredictions } from '../services/aimodel';
 import { Prediction } from '@/models/data';
 
 export interface ExtractedPrediction {
@@ -36,7 +36,7 @@ export async function getExtractedPredictions(): Promise<ExtractedPrediction[] |
     }
 }
 
-export async function getExtractedPredictionsFromDate(date : string): Promise<ExtractedPrediction[] | undefined> {
+export async function getExtractedPredictionsFromDate(date: string): Promise<ExtractedPrediction[] | undefined> {
     try {
         const predictions = await getWeekPredictions(date);
 
@@ -114,20 +114,20 @@ export function convertValues(data: DayValue[]): DayValue[] {
 export function valueToColor(value: number): string {
     // Ensure the value is within the expected range
     const clampedValue = Math.max(1, Math.min(value, 5));
-  
+
     // Map 1 to 5 to a percentage between 0 and 1
     const ratio = (clampedValue - 1) / (5 - 1);
-  
+
     // Green to Red gradient
     const green = [0, 255, 0];
     const red = [255, 0, 0];
-  
+
     // Calculate the color based on the ratio
     const color = green.map((g, i) => Math.round(g + (red[i] - g) * ratio));
-  
+
     // Return the color as a hex string
     return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-  }
+}
 
 function convertNumToDay(num: number) {
     switch (num) {
@@ -163,7 +163,7 @@ export async function getFormattedPredictionData() {
     }));
 }
 
-export async function getFormattedPredictionWeekData(date : string) {
+export async function getFormattedPredictionWeekData(date: string) {
     const data = await getExtractedPredictionsFromDate(date);
 
     if (!data) {
@@ -207,6 +207,70 @@ export async function getFormattedDailyPredictionData() {
         class: data.Predicted_Class + 1,
         day: convertNumToDay(data.Day_of_week),
         attendance: data.Predicted_Attendance_Level
+    }
+}
+
+
+
+export async function getHourlyPredictions() {
+    try {
+        const prediction = await fetchHourlyPredictions();
+
+        if (!prediction) {
+            console.error('No predictions data received');
+            return undefined;
+        }
+
+        // console.log(predictions.map((prediction: Prediction) => ({
+        //     Date: prediction.Date,
+        //     Day_of_week: prediction.Day_of_Week,
+        //     Predicted_Attendance_Level: prediction.Predicted_Attendance_Level,
+        //     Predicted_Class: prediction.Predicted_Class
+        // })));
+
+        return prediction.Hourly_Predictions;
+    } catch (error) {
+        console.error('Error in getExtractedPredictions:', error);
+        return undefined;
+    }
+}
+
+export async function mapToAttendanceMidpointForSpecificHours() {
+    const specificHours = [7, 9, 11, 12, 13, 15, 17];
+    const prediction = await fetchHourlyPredictions();
+    console.log(prediction);
+    if (prediction) {
+        return prediction.Hourly_Predictions
+            .filter(item => specificHours.includes(item.Hour))  // Filter specific hours
+            .map(item => {
+                const [min, max] = item.Predicted_Attendance_Level.split('-').map(Number);
+                const midpoint = (min + max) / 2;
+
+                return {
+                    label: item.Hour,
+                    value: midpoint
+                };
+            });
+    }
+    else {
+        return {};
+    }
+}
+
+export async function mapToClassForSpecificHours() {
+    const specificHours = [7, 9, 11, 12, 13, 15, 17];
+    const prediction = await fetchHourlyPredictions();
+    console.log(prediction);
+    if (prediction) {
+    return prediction.Hourly_Predictions
+        .filter(item => specificHours.includes(item.Hour))  // Filter specific hours
+        .map(item => ({
+            label: item.Hour,
+            value: item.Predicted_Class
+        }));
+    }
+    else {
+        return {};
     }
 }
 

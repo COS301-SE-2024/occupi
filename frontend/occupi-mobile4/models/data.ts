@@ -69,3 +69,19 @@ export interface Prediction {
     Predicted_Class: number,
     Special_Event: number
 }
+
+export interface HourlyPrediction {
+    Date: number,
+    Day_of_Week: number,
+    Day_of_month: number,
+    Is_Weekend: boolean,
+    Month: number,
+    Hourly_Predictions: HourPrediction[],
+    Special_Event: number
+}
+
+export interface HourPrediction {
+    Hour: number;
+    Predicted_Attendance_Level: string,
+    Predicted_Class: number,
+}

@@ -21,12 +21,13 @@ const getTodaysDate = (): string => {
 // Function to fetch or retrieve a valid RTC token
 const fetchToken = async (): Promise<string | null> => {
   // Try to get the token from cookies
+  console.log('fetching...');
   let token = await SecureStore.getItemAsync('rtc-token');
   console.log('tokennn',token);
   let tokentime = await SecureStore.getItemAsync('tokenTime');
   const todaysDate = getTodaysDate();
   // const response = await getRTCToken();
-  // console.log('yessir',response);
+  console.log('yessir',tokentime);
 
   // If the token is not found in cookies, fetch it from the AuthService
   if (!token || tokentime !== todaysDate) {
