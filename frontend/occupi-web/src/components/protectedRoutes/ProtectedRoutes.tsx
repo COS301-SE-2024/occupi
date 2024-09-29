@@ -1,38 +1,32 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthService from "AuthService";
 import { useUser } from "userStore"; // Assuming this is your user context or global state
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  authRoutes: ReactNode;
+  unAuthRoutes: ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const { userDetails } = useUser(); // Retrieve userDetails from global state
+const ProtectedRoute = (props: ProtectedRouteProps) => {
+  const { userDetails, setUserDetails } = useUser(); // Retrieve userDetails from global state
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuthentication = async () => {
-      if (!userDetails?.email) {
-        setIsAuthenticated(false);
-        return;
-      }
-
-      try {
-        await AuthService.getUserDetails(userDetails.email); // Pass the stored email here
-        setIsAuthenticated(true);
-      } catch (error) {
-        setIsAuthenticated(false);
-        navigate("/");
+      if (userDetails === null) {
+        const res = await AuthService.pingAuth();
+        if (res.status === 200 && res.message === "pong -> I am alive and kicking and you are auth'd") {
+          const userDeets = await AuthService.getUserDetails();
+          setUserDetails(userDeets);
+        }
       }
     };
 
     checkAuthentication();
-  }, [navigate, userDetails]);
-  isAuthenticated ? children : null;
+  }, [navigate]);
 
-  return isAuthenticated ? children : null;
+  return userDetails ? props.authRoutes : props.unAuthRoutes;
 };
 
 export default ProtectedRoute;

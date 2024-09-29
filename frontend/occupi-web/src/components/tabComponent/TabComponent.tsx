@@ -20,8 +20,8 @@ const TabComponent: React.FC<TabComponentProps> = (props) => {
   const location = useLocation();
 
   const tabs: Tab[] = [
-    { name: "Overview", path: "", index: 1 },
-    { name: "Bookings", path: "bookingsDashboard", index: 2 },
+    { name: "Overview", path: "overview", index: 1 },
+    { name: "Bookings", path: "bookings-dashboard", index: 2 },
     // { name: "Visitations", path: "visitations", index: 3 }
   ];
 
@@ -35,7 +35,7 @@ const TabComponent: React.FC<TabComponentProps> = (props) => {
     setActiveTab(tab);
     setIsDropdownOpen(false);
     props.setSelectedTab(tab.path);
-    navigate(tab.path);
+    navigate("/booking-statistics/" + tab.path);
   };
 
   const tabWidth = 95; // Width of each tab

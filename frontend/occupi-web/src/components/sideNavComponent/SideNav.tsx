@@ -81,15 +81,13 @@ const SideNav = () => {
     if (arg === "Dashboard") navigate("/dashboard");
     else if (arg === "AI Analysis") navigate("/ai-dashboard");
     else if (arg === "Rooms") navigate("/rooms");
-    else if (arg === "Notifications") navigate("/notifications");
     else if (arg === "Settings") navigate("/settings");
     else if (arg === "Logout") navigate("/");
     else if (arg === "Reports") navigate("/reports");
     else if (arg === "Help") navigate("/faq");
-    else if (arg === "Booking Statistics") navigate("/bookingStats");
+    else if (arg === "Booking Statistics") navigate("/booking-statistics/overview");
     else if (arg === "Worker Dashboard") navigate("/worker-dashboard");
-    else if (arg === "Employees") navigate("/bookings");
-
+    else if (arg === "Employees") navigate("/employees");
     else;
   }
 
@@ -103,7 +101,12 @@ const SideNav = () => {
       if (pn.startsWith("/dashboard")) setSelectedPanel("Dashboard");
       else if (pn.startsWith("/ai-dashboard")) setSelectedPanel("AI Analysis");
       else if (pn.startsWith("/rooms")) setSelectedPanel("Rooms");
+      else if (pn.startsWith("/settings")) setSelectedPanel("Settings");
       else if (pn.startsWith("/reports")) setSelectedPanel("Reports");
+      else if (pn.startsWith("/faq")) setSelectedPanel("Help");
+      else if (pn.startsWith("/booking-statistics")) setSelectedPanel("Booking Statistics");
+      else if (pn.startsWith("/worker-dashboard")) setSelectedPanel("Worker Dashboard");
+      else if (pn.startsWith("/employees")) setSelectedPanel("Employees");
       else setSelectedPanel("");
     };
 
@@ -127,6 +130,7 @@ const SideNav = () => {
           <motion.div
             className="flex items-center h-[110px] w-fit cursor-pointer "
             whileTap={{ scale: 0.98 }}
+            onClick={() => setSelectedPanelF("Dashboard")}
           >
             <div className="w-[40px] h-[40px] ml-2 mr-2">
               <OccupiLogo />
@@ -147,7 +151,7 @@ const SideNav = () => {
             </motion.div>
           ) : (
             <motion.div
-              className="w-[20px] h-[40px] bg-secondary rounded-l-[10px] flex justify-center items-center cursor-pointer "
+              className="w-[20px] h-[40px] bg-secondary rounded-l-[10px] flex justify-center items-center cursor-pointer z-50"
               whileTap={{ scale: 0.98 }}
               onClick={toggleSideNav}
             >
