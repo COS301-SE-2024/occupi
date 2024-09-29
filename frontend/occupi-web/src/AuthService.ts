@@ -229,11 +229,11 @@ const AuthService = {
     }
   },
 
-  getUserDetails: async (email: string) => {
+  getUserDetails: async (email: string = "") => {
     try {
-      console.log(API_USER_URL);
+      
       const response = await axios.get(
-        `${API_USER_URL}/user-details?email=${email}`,
+        `${API_USER_URL}/user-details${email ? `?email=${email}` : ""}`,
         {
           headers: {
             Accept: "application/json",
@@ -355,6 +355,19 @@ const AuthService = {
           },
       });
   },
+  pingAuth: async () => {
+    try {
+      const response = await axios.get(`/ping-auth`, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
+    }
+  }
 };
 
 function bufferEncode(value: ArrayBuffer): string {
