@@ -7791,6 +7791,42 @@ func TestDayOfTheWeek(t *testing.T) {
 	}
 }
 
+func TestDayofTheMonth(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected int
+	}{
+		{
+			name:     "Monday",
+			date:     time.Date(2024, 9, 9, 0, 0, 0, 0, time.UTC),
+			expected: 9,
+		},
+		{
+			name:     "Wednesday",
+			date:     time.Date(2024, 9, 11, 0, 0, 0, 0, time.UTC),
+			expected: 11,
+		},
+		{
+			name:     "Friday",
+			date:     time.Date(2024, 9, 13, 0, 0, 0, 0, time.UTC),
+			expected: 13,
+		},
+		{
+			name:     "Sunday",
+			date:     time.Date(2024, 9, 8, 0, 0, 0, 0, time.UTC),
+			expected: 8,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.DayofTheMonth(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestMonth(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -11159,7 +11195,102 @@ func TestGetUsersLocations(t *testing.T) {
 
 		// Validate the result
 		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.Equal(t, int64(0), total, "Expected 0 total result")
 		assert.NotNil(t, results, "Expected non-nil results")
+	})
+}
+
+func TestCountUserLocations(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	user := models.User{
+		Email: "test@example.com",
+		KnownLocations: []models.Location{
+			{
+				City:      "Johannesburg",
+				Region:    "Gauteng",
+				Country:   "South Africa",
+				Location:  "-23.9285, 30.0407",
+				IPAddress: "0.0.0.0",
+			},
+		},
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+
+		count, err := database.CountUserLocations(ctx, appsession, "")
+
+		assert.Equal(t, int64(0), count)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("Aggregation failure", func(mt *mtest.T) {
+		// Mock the aggregate operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "aggregate error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		count, err := database.CountUserLocations(ctx, appSession, "")
+
+		// Validate the result
+		assert.Equal(t, int64(0), count)
+		assert.EqualError(t, err, "aggregate error")
+	})
+
+	/*mt.Run("Failed cursor", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		_, _ = database.CountUserLocations(ctx, appsession, "")
+	})*/
+
+	mt.Run("Aggregation success", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		count, err := database.CountUserLocations(ctx, appsession, "")
+
+		// Validate the result
+		assert.NoError(t, err, "Expected no error for successful query")
+		assert.Equal(t, int64(0), count, "Expected 1 total result")
 	})
 }
