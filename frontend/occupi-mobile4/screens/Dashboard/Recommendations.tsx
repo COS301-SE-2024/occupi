@@ -113,32 +113,37 @@ const Recommendations = ({ onClose }) => {
     return recommendation;
   }, [data]);
 
-  const speakRecommendation = async () => {
-    const textToSpeak = generateRecommendation();
-
-    if (isSpeaking) {
-      await Speech.stop();
-      setIsSpeaking(false);
-    } else {
-      setIsSpeaking(true);
-      try {
-        await Speech.speak(textToSpeak, {
-          language: "en-ZA",
-          pitch: 1.5,
-          rate: 1.0,
-          voice: "com.apple.ttsbundle.siri_female_en-GB_compact",
-          onDone: () => setIsSpeaking(false),
-          onError: (error) => {
-            console.error("Speech error:", error);
-            setIsSpeaking(false);
-          },
-        });
-      } catch (error) {
-        console.error("Speech error:", error);
+    const speakRecommendation = async () => {
+      const textToSpeak = generateRecommendation();
+  
+      if (isSpeaking) {
+        await Speech.stop();
         setIsSpeaking(false);
+      } else {
+        setIsSpeaking(true);
+        try {
+          const availableVoices = await Speech.getAvailableVoicesAsync();
+          const preferredVoice = availableVoices.find(
+            voice => voice.quality === Speech.VoiceQuality.Enhanced
+          );
+  
+          await Speech.speak(textToSpeak, {
+            language: "en-US",
+            pitch: 1.0,
+            rate: 0.9,
+            voice: preferredVoice ? preferredVoice.identifier : undefined,
+            onDone: () => setIsSpeaking(false),
+            onError: (error) => {
+              console.error("Speech error:", error);
+              setIsSpeaking(false);
+            },
+          });
+        } catch (error) {
+          console.error("Speech error:", error);
+          setIsSpeaking(false);
+        }
       }
-    }
-  };
+    };
 
   if (loading) {
     return (
