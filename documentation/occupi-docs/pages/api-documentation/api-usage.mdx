@@ -1452,7 +1452,10 @@ This endpoint is used to get the locations of users in the Occupi system that th
 
 ```json copy
 {
-
+  "email": "email 1", // optional, if not provided, then no email is filtered
+  "sort": "asc", // optional, can be "asc" or "desc" but defaults to "asc"
+  "limit": 50, // optional, defaults to 50
+  "page": 1 // optional, defaults to 1
 }
 ```
 

@@ -11062,10 +11062,11 @@ func TestGetUsersLocations(t *testing.T) {
 		// Call the function under test
 		appsession := &models.AppSession{}
 
-		results, err := database.GetUsersLocations(ctx, appsession)
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
 
 		// Validate the result
 		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
 		assert.EqualError(t, err, "database is nil")
 	})
 
@@ -11082,10 +11083,11 @@ func TestGetUsersLocations(t *testing.T) {
 		}
 
 		// Call the function under test
-		results, err := database.GetUsersLocations(ctx, appSession)
+		results, total, err := database.GetUsersLocations(ctx, appSession, 50, 0, "asc", "")
 
 		// Validate the result
 		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
 		assert.EqualError(t, err, "find error")
 	})
 
@@ -11104,11 +11106,35 @@ func TestGetUsersLocations(t *testing.T) {
 			DB: mt.Client,
 		}
 
-		results, err := database.GetUsersLocations(ctx, appsession)
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
 
 		// Validate the result
 		assert.Nil(t, results)
-		assert.EqualError(t, err, "cursor.id should be an int64 but is a BSON invalid", "Expected error for failed count documents")
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "cursor.id should be an int64 but is a BSON invalid", "Expected error for failed cursor")
+	})
+
+	mt.Run("Failed count", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
+
+		// Validate the result
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "database response does not contain a cursor", "Expected error for failed count documents")
 	})
 
 	mt.Run("Successful query", func(mt *mtest.T) {
@@ -11118,15 +11144,22 @@ func TestGetUsersLocations(t *testing.T) {
 			{Key: "knownLocations", Value: user.KnownLocations},
 		}))
 
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
 		// Create a mock AppSession with a valid database
 		appsession := &models.AppSession{
 			DB: mt.Client,
 		}
 
-		results, err := database.GetUsersLocations(ctx, appsession)
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
 
 		// Validate the result
 		assert.NoError(t, err, "Expected no error for successful query")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
 		assert.NotNil(t, results, "Expected non-nil results")
 	})
 }

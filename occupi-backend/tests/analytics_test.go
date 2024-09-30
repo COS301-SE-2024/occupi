@@ -302,7 +302,7 @@ func TestAggregateBookings(t *testing.T) {
 }
 
 func TestGetUsersLocationsPipeLine(t *testing.T) {
-	res := analytics.GetUsersLocationsPipeLine()
+	res := analytics.GetUsersLocationsPipeLine(0, 0, "asc", "test@example.com")
 
 	// check len is greater than 0
 	if len(res) == 0 {
