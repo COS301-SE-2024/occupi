@@ -344,10 +344,9 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                       document={generateReportPDF()}
                       fileName={`${user.name}_Stats_Report.pdf`}
                     >
-                      {/* @ts-ignore */}
-                    {({ blob, url, loading, error }) =>
-                        loading ? "Report loading..." : "Report ready to download"
-                    }
+                      {({ loading }) =>
+                          loading ? "Report loading..." : "Report ready to download"
+                      }
                     </PDFDownloadLink>
                   </Button>
                 ) : (
