@@ -93,6 +93,11 @@ func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
 			return
 		}
 
+		if errv.Error() == "cache not found" {
+			ctx.Next()
+			return
+		}
+
 		headertokenStr := ctx.GetHeader("Authorization")
 
 		// check if the jwt tokens match
