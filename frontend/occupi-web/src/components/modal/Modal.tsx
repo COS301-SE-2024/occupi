@@ -11,10 +11,25 @@ import {
   AccordionItem,
 } from "@nextui-org/react";
 import { EyeIcon } from "@assets/index";
-import { ProfileComponent, UserStatsComponent, UserHoursCharts, UserWorkRatioChart, UserPeakOfficeHoursChart, AvgArrDep } from "@components/index";
+import {
+  ProfileComponent,
+  UserStatsComponent,
+  UserHoursCharts,
+  UserWorkRatioChart,
+  UserPeakOfficeHoursChart,
+  AvgArrDep,
+} from "@components/index";
 import { motion } from "framer-motion";
-import * as userStatsService from 'userStatsService';
-import { PDFDownloadLink, Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
+import * as userStatsService from "userStatsService";
+import {
+  PDFDownloadLink,
+  Page,
+  Text,
+  View,
+  Document,
+  StyleSheet,
+  Image,
+} from "@react-pdf/renderer";
 import { occupiLogo } from "@assets/index"; // Assuming occupiLogo is an image asset
 import NotificationService from "NotificationsService";
 
@@ -85,11 +100,16 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
   const fetchDataForReport = async () => {
     const params = {
       email: user.email,
-      timeFrom: new Date('1970-01-01T00:00:00.000Z').toISOString(),
+      timeFrom: new Date("1970-01-01T00:00:00.000Z").toISOString(),
       timeTo: new Date().toISOString(),
     };
 
-    const [userHours, userWorkRatio, userArrivalDepartureAverage, userPeakOfficeHours] = await Promise.all([
+    const [
+      userHours,
+      userWorkRatio,
+      userArrivalDepartureAverage,
+      userPeakOfficeHours,
+    ] = await Promise.all([
       userStatsService.getUserHours(params),
       userStatsService.getUserWorkRatio(params),
       userStatsService.getUserArrivalDepartureAverage(params),
@@ -102,18 +122,18 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
       dailyHours: userHours.data,
       workRatio: {
         ...userWorkRatio.data[0],
-        days: userWorkRatio.data[0].days.map(day => ({
+        days: userWorkRatio.data[0].days.map((day) => ({
           ...day,
-          avgArrival: '', // Provide appropriate default or fetched value
-          avgDeparture: '' // Provide appropriate default or fetched value
-        }))
+          avgArrival: "", // Provide appropriate default or fetched value
+          avgDeparture: "", // Provide appropriate default or fetched value
+        })),
       },
       arrivalDeparture: {
         ...userArrivalDepartureAverage.data[0],
-        days: userArrivalDepartureAverage.data[0].days.map(day => ({
+        days: userArrivalDepartureAverage.data[0].days.map((day) => ({
           ...day,
-          ratio: 0 // Provide an appropriate default or fetched value for ratio
-        }))
+          ratio: 0, // Provide an appropriate default or fetched value for ratio
+        })),
       },
       peakHours: userPeakOfficeHours.data[0],
     };
@@ -137,7 +157,9 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Work Ratio</Text>
-          <Text style={styles.text}>Overall Work Ratio: {reportData?.workRatio.ratio.toFixed(2)}</Text>
+          <Text style={styles.text}>
+            Overall Work Ratio: {reportData?.workRatio.ratio.toFixed(2)}
+          </Text>
           {reportData?.workRatio.days.map((day, index) => (
             <Text key={index} style={styles.text}>
               {day.weekday}: {day.ratio.toFixed(2)}
@@ -148,14 +170,17 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Arrival & Departure Times</Text>
           <Text style={styles.text}>
-            Overall Average Arrival: {reportData?.arrivalDeparture.overallavgArrival}
+            Overall Average Arrival:{" "}
+            {reportData?.arrivalDeparture.overallavgArrival}
           </Text>
           <Text style={styles.text}>
-            Overall Average Departure: {reportData?.arrivalDeparture.overallavgDeparture}
+            Overall Average Departure:{" "}
+            {reportData?.arrivalDeparture.overallavgDeparture}
           </Text>
           {reportData?.arrivalDeparture.days.map((day, index) => (
             <Text key={index} style={styles.text}>
-              {day.weekday}: Arrival - {day.avgArrival}, Departure - {day.avgDeparture}
+              {day.weekday}: Arrival - {day.avgArrival}, Departure -{" "}
+              {day.avgDeparture}
             </Text>
           ))}
         </View>
@@ -181,18 +206,17 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
     </Document>
   );
 
-  const handleGenerateReport = async () => {  
-    setIsDownloading(true);  
-    try {  
-     await fetchDataForReport();  
-     await NotificationService.downloadPDFReport(user.email);  
-    } catch (error) {  
-     console.error('Error generating report:', error);  
-    } finally {  
-     setIsDownloading(false);  
-    }  
+  const handleGenerateReport = async () => {
+    setIsDownloading(true);
+    try {
+      await fetchDataForReport();
+      await NotificationService.downloadPDFReport(user.email);
+    } catch (error) {
+      console.error("Error generating report:", error);
+    } finally {
+      setIsDownloading(false);
+    }
   };
-  
 
   return (
     <>
@@ -219,7 +243,12 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                       profileImage={`https://dev.occupi.tech/api/download-profile-image?email=${user.email}&quality=mid`}
                       email={user.email}
                       name={user.name}
-                      officeStatus={user.status.toLowerCase() as "onsite" | "offsite" | "booked"}
+                      officeStatus={
+                        user.status.toLowerCase() as
+                          | "onsite"
+                          | "offsite"
+                          | "booked"
+                      }
                     />
                     <UserStatsComponent email={user.email} />
                   </div>
@@ -310,12 +339,15 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                 </Button>
                 {reportData ? (
                   <Button className="bg-text_col_secondary_alt  ">
-                
-                  <PDFDownloadLink className="text-text_col_alt bg-secondary-alt " document={generateReportPDF()} fileName={`${user.name}_Stats_Report.pdf`}>
-                    {({ loading }) =>
-                      loading ? 'Generating PDF...' : 'Download PDF Report'
-                    }
-                  </PDFDownloadLink>
+                    <PDFDownloadLink
+                      className="text-text_col_alt bg-secondary-alt "
+                      document={generateReportPDF()}
+                      fileName={`${user.name}_Stats_Report.pdf`}
+                    >
+                      {({ loading }) =>
+                        loading ? "Generating PDF..." : "Download PDF Report"
+                      }
+                    </PDFDownloadLink>
                   </Button>
                 ) : (
                   <Button
@@ -323,7 +355,7 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                     onPress={handleGenerateReport}
                     isLoading={isDownloading}
                   >
-                    {isDownloading ? 'Generating Report...' : 'Generate Report'}
+                    {isDownloading ? "Generating Report..." : "Generate Report"}
                   </Button>
                 )}
               </ModalFooter>
@@ -339,13 +371,13 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
 const styles = StyleSheet.create({
   page: {
     padding: 30,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   header: {
     padding: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderBottom: '2 solid black',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottom: "2 solid black",
     marginBottom: 20,
   },
   logo: {
@@ -354,8 +386,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    textAlign: 'right',
-    textTransform: 'uppercase',
+    textAlign: "right",
+    textTransform: "uppercase",
   },
   section: {
     marginBottom: 20,
