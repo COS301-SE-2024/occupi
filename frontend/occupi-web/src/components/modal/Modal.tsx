@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import * as userStatsService from 'userStatsService';
 import { PDFDownloadLink, Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 import { occupiLogo } from "@assets/index"; // Assuming occupiLogo is an image asset
+import NotificationService from "NotificationsService";
 
 interface User {
   id: string;
@@ -180,16 +181,18 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
     </Document>
   );
 
-  const handleGenerateReport = async () => {
-    setIsDownloading(true);
-    try {
-      await fetchDataForReport();
-    } catch (error) {
-      console.error('Error generating report:', error);
-    } finally {
-      setIsDownloading(false);
-    }
+  const handleGenerateReport = async () => {  
+    setIsDownloading(true);  
+    try {  
+     await fetchDataForReport();  
+     await NotificationService.downloadPDFReport(user.email);  
+    } catch (error) {  
+     console.error('Error generating report:', error);  
+    } finally {  
+     setIsDownloading(false);  
+    }  
   };
+  
 
   return (
     <>
