@@ -12,7 +12,7 @@ export const getUserDetails = async (email: string, authToken: string): Promise<
     });
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in getUserDetails:`, error);
+    // console.error(`Error in getUserDetails:`, error);
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<Unsuccessful>;
       if (axiosError.response?.data) {
@@ -79,7 +79,7 @@ export async function getRooms(req: ViewRoomsReq): Promise<Success | Unsuccessfu
     });
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    // console.error(`Error in ${Function}:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }
@@ -114,7 +114,7 @@ export async function getNotificationSettings(email: string): Promise<Success | 
     // console.log(response.data);
     return response.data as Success;
   } catch (error) {
-    console.error(`Error in ${Function}:`, error);
+    console.error(`Error in fethcing Notification Settings:`, error);
     if (axios.isAxiosError(error) && error.response?.data) {
       return error.response.data as Unsuccessful;
     }

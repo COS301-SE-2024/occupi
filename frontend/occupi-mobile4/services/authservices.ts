@@ -10,6 +10,7 @@ import * as SecureStore from 'expo-secure-store';
 
 export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful> {
     try {
+        console.log(req);
         const response = await axios.post("https://dev.occupi.tech/auth/login-mobile", req, {
             headers: {
                 'Accept': 'application/json',
@@ -21,10 +22,10 @@ export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful>
         return response.data as LoginSuccess;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            console.log('Error02');
+            console.error('Error02');
             return error.response.data as Unsuccessful;
         } else {
-            console.log('Error03')
+            console.error('Error03', error)
             throw error;
         }
     }
