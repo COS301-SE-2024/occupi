@@ -102,7 +102,7 @@ const LoadingScreen: React.FC<{ onFetchStats: () => void }> = ({ onFetchStats })
           height: hp('6%'),
           zIndex: 1,
         }}
-        onPress={() =>  router.replace('stats')}
+        onPress={() =>  router.replace('/stats')}
       >
         <Text
           style={{

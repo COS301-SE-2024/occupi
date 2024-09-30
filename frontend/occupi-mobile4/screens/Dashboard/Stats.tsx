@@ -11,6 +11,7 @@ import AnalyticsGraph from '@/components/AnalyticsGraph';
 import { Text, View, Icon } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { convertAvgArrival, convertAvgDeparture, convertData, fetchUserArrivalAndDeparture, fetchUserArrivalAndDepartureArray, fetchUserAverageHours, fetchUserInOfficeRate, fetchUserPeakHours, fetchUserTotalHours, fetchUserTotalHoursArray, fetchWorkRatio, getAllPeakHours } from '@/utils/analytics';
 import ComparativelineGraph from '@/components/ComparativeLineGraph';
 import PieGraph from '@/components/PieGraph';
@@ -56,6 +57,14 @@ const Stats = () => {
     const hours = Math.floor(totalHours);
     const minutes = Math.round((totalHours - hours) * 60);
     return `${hours} hours and ${minutes} minutes`;
+  };
+
+  const handleConfirm = (event, date?: Date) => {
+    const selectedDate: string = date?.toString();
+    console.log('selected', extractDateFromTimestamp(selectedDate));
+    setDate(extractDateFromTimestamp(selectedDate));
+    getPredictionsFromWeek(extractDateFromTimestamp(selectedDate));
+    hideDatePicker();
   };
 
   const fetchData = async (data: string) => {
