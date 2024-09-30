@@ -1,0 +1,155 @@
+# Unit Testing Policy for Golang
+
+### Table of Contents
+- [Purpose](#purpose)
+- [Scope](#scope)
+- [Unit Test Coverage](#unit-test-coverage)
+- [Test Case Structure](#test-case-structure)
+- [Test Case Naming Convention](#test-case-naming-convention)
+- [Mocking and Dependencies](#mocking-and-dependencies)
+- [Assertions and Error Handling](#assertions-and-error-handling)
+- [Table-Driven Tests](#table-driven-tests)
+- [Avoiding Flaky Tests](#avoiding-flaky-tests)
+- [Performance Tests](#performance-tests)
+- [Test Execution and Automation](#test-execution-and-automation)
+- [Test Files and Directories](#test-files-and-directories)
+- [Refactoring and Test Maintenance](#refactoring-and-test-maintenance)
+- [Test Isolation](#test-isolation)
+- [Best Practices](#best-practices)
+- [Code Review Guidelines](#code-review-guidelines)
+- [Tools](#tools)
+- [Conclusion](#conclusion)
+
+#### Purpose
+The purpose of this policy is to outline the standards and guidelines for writing, maintaining, and executing unit tests in Golang projects. The goal is to ensure the delivery of reliable, maintainable, and high-quality code through effective testing practices.
+
+#### Scope
+This policy applies to all Golang projects and developers working on writing, maintaining, and running unit tests.
+
+### 1. Unit Test Coverage
+All new code must have unit tests covering 100% of the core logic.
+All business-critical code must have at least 80% code coverage.
+Any uncovered or skipped code must be justified through comments or documentation explaining the rationale.
+
+### 2. Test Case Structure
+Group all related test cases into one test function using t.Run() subtests.
+Use descriptive test function names that explain what the function does or what scenario is being tested (e.g., TestUserAuthentication_Success).
+Keep the Arrange-Act-Assert pattern for clarity:
+Arrange: Set up necessary objects, mocks, or state.
+Act: Perform the action or call the method being tested.
+Assert: Verify that the results are as expected.
+Example:
+
+```go copy
+func TestCalculateTotalPrice(t *testing.T) {
+    t.Run("Should return correct total for valid input", func(t *testing.T) {
+        // Arrange
+        price := 100.0
+        quantity := 2
+        expectedTotal := 200.0
+
+        // Act
+        total := CalculateTotalPrice(price, quantity)
+
+        // Assert
+        if total != expectedTotal {
+            t.Errorf("Expected %v, but got %v", expectedTotal, total)
+        }
+    })
+}
+```
+
+### 3. Test Case Naming Convention
+Single scenario: Test```<FunctionName>_<Scenario>_<ExpectedOutcome>```
+Multiple scenarios (table-driven tests): Prefer clear, meaningful test names within the table to define each case.
+
+### 4. Mocking and Dependencies
+For external services and dependencies, use mocking libraries such as:
+go-redis mock for Redis-related functions.
+mtest for MongoDB-related tests.
+Avoid global mocks unless necessary; keep mocks local to the test function or package.
+
+### 5. Assertions and Error Handling
+Prefer using t.Fatalf when failures are critical and should stop the test.
+Use t.Error or t.Errorf for non-critical failures, allowing the test to proceed but noting failure.
+Avoid panicking inside tests—let the testing framework handle errors via t methods.
+
+### 6. Table-Driven Tests
+Use table-driven tests to handle multiple test scenarios in a concise manner.
+Always prefer table-driven tests for repetitive test cases.
+Example:
+
+```go copy
+func TestAdd(t *testing.T) {
+    tests := []struct {
+        name     string
+        a, b     int
+        expected int
+    }{
+        {"Positive numbers", 1, 2, 3},
+        {"Negative numbers", -1, -2, -3},
+        {"Zero", 0, 0, 0},
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            result := Add(tt.a, tt.b)
+            if result != tt.expected {
+                t.Errorf("Expected %v, got %v", tt.expected, result)
+            }
+        })
+    }
+}
+```
+
+### 7. Avoiding Flaky Tests
+Flaky tests (tests that pass/fail inconsistently) should be investigated immediately.
+External dependencies (e.g., databases, APIs) should be mocked to avoid dependency on network latency or availability.
+Ensure proper cleanup in tests (e.g., resetting shared states, using defer for teardown).
+
+### 8. Performance Tests
+Performance tests should not be mixed with unit tests.
+Use Go’s built-in benchmarking tool for performance tests (testing.B), and keep them in a separate test file (e.g., performance_test.go).
+
+### 9. Test Execution and Automation
+Run all unit tests on every commit via Continuous Integration (CI) pipelines. We use GitHub Actions for this purpose.
+Tests should be run with go test ./... and should be green (pass) before any code can be merged to the main branch.
+Lint tests for consistency using golangci-lint or similar tools.
+
+### 10. Test Files and Directories
+Unit test files should have the _test.go suffix.
+Place test files in the same package/directory as the code being tested.
+Keep all tests within a dedicated folder when applicable, e.g., /tests/unit/.
+
+### 11. Refactoring and Test Maintenance
+Any time code is refactored, ensure that related unit tests are also updated.
+Regularly review test cases for obsolete tests, remove unnecessary tests, and ensure all tests are still valid.
+
+### 12. Test Isolation
+Unit tests must be isolated from each other and any external environment.
+Shared global states should be avoided between tests.
+Ensure each test case can run independently.
+
+### 13. Best Practices
+Keep tests small and focused. Each test should ideally test one thing.
+Avoid testing trivial code (e.g., getters and setters) unless they contain logic.
+Always test both the happy path (expected behavior) and edge cases (e.g., errors, nil values).
+
+### 14. Code Review Guidelines
+All unit tests must pass before code can be merged.
+Reviewers must check for:
+Adequate test coverage.
+Adherence to naming conventions and structure.
+Readability and maintainability of the tests.
+
+### 15. Tools
+Recommended tools for unit testing in Go:
+
+testing package for test creation.
+testify/assert or testify/require for assertions.
+gomock for generating mocks of interfaces.
+go-redis/mock for mocking Redis.
+mtest for mocking MongoDB in tests.
+
+### 16. Conclusion
+Adhering to this unit testing policy will ensure that our Golang codebase remains reliable, maintainable, and scalable over time. Developers are encouraged to revisit this policy periodically to ensure continuous alignment with best practices.
