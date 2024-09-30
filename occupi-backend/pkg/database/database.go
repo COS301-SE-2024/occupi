@@ -292,10 +292,11 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	}
 
 	location := &models.Location{
-		City:     info.City,
-		Region:   info.Region,
-		Country:  info.Country,
-		Location: info.Location,
+		City:      info.City,
+		Region:    info.Region,
+		Country:   info.Country,
+		Location:  info.Location,
+		IPAddress: ipAddress,
 	}
 
 	// Verify the user in the database and set next date to verify to 30 days from now
@@ -1850,10 +1851,11 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.Reque
 	}
 
 	location := models.Location{
-		City:     ipInfo.City,
-		Region:   ipInfo.Region,
-		Country:  ipInfo.Country,
-		Location: ipInfo.Location,
+		City:      ipInfo.City,
+		Region:    ipInfo.Region,
+		Country:   ipInfo.Country,
+		Location:  ipInfo.Location,
+		IPAddress: request.IP,
 	}
 
 	// filter for all users emails which are in the request.Emails array also these emails
@@ -1895,10 +1897,11 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.Re
 	}
 
 	location := models.Location{
-		City:     ipInfo.City,
-		Region:   ipInfo.Region,
-		Country:  ipInfo.Country,
-		Location: ipInfo.Location,
+		City:      ipInfo.City,
+		Region:    ipInfo.Region,
+		Country:   ipInfo.Country,
+		Location:  ipInfo.Location,
+		IPAddress: request.IP,
 	}
 
 	// filter for all users emails which are in the request.Emails array and have this location in the knownLocations array
@@ -2271,4 +2274,30 @@ func CountNotifications(ctx *gin.Context, appsession *models.AppSession, email s
 	}
 
 	return unreadCount, totalCount, nil
+}
+
+func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession) ([]primitive.M, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	pipeline := analytics.GetUsersLocationsPipeLine()
+
+	// get all known locations
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	var locations []primitive.M
+	if err = cursor.All(ctx, &locations); err != nil {
+		return nil, err
+	}
+
+	return locations, nil
 }
