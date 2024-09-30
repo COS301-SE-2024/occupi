@@ -8,6 +8,9 @@ import * as SecureStore from 'expo-secure-store';
 import { storeUserEmail, storeToken, setState, deleteAllData, storeOtp } from "../services/securestore";
 import { retrievePushToken } from "./notifications";
 
+function delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 export async function UserLogin(email: string, password: string) {
     storeUserEmail(email);
@@ -16,6 +19,7 @@ export async function UserLogin(email: string, password: string) {
             email: email,
             password: password
         });
+        await delay(3000);
         if (response.status === 200) {
             console.log('responseee',response);
             if (response.data !== null) {
@@ -34,12 +38,16 @@ export async function UserLogin(email: string, password: string) {
 
             return response.message;
         }
+        else if (response.status === 400) {
+            router.replace('/login');
+        }
         else {
             console.log('woahhh', response)
             return response.message;
         }
-    } catch (error) {
+    } catch (error : Error) {
         console.error('Error01:', error);
+        return 'Error logging in';
     }
 }
 
@@ -60,11 +68,12 @@ export async function userRegister(email: string, password: string, employeeId: 
             return response.message;
         }
         else {
-            console.log('woahhh', response)
+            console.log('woahhh', response);
             return response.message;
         }
     } catch (error) {
         console.error('Error Registering:', error);
+        return 'Error Registering';
     }
 }
 

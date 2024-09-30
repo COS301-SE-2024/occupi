@@ -14,6 +14,9 @@ export async function fetchUserDetails(email: string, token: string) {
         if (response.status === 200) {
             storeUserData(JSON.stringify(response.data));
         }
+        else if (response.status === 400) {
+            router.replace('/login');
+        }
         else {
             console.log(response)
         }
@@ -34,6 +37,9 @@ export async function fetchNotificationSettings(email: string) {
             // console.log(settings);
             storeNotificationSettings(JSON.stringify(settings));
         }
+        else if (response.status === 400) {
+            router.replace('/login');
+        }
         else {
             console.log(response)
         }
@@ -53,6 +59,9 @@ export async function fetchSecuritySettings(email: string) {
             // console.log('settings response', response.data);
             // console.log(settings);
             storeSecuritySettings(JSON.stringify(settings));
+        }
+        else if (response.status === 400) {
+            router.replace('/login');
         }
         else {
             console.log(response)
@@ -85,6 +94,9 @@ export async function updateSecurity(type: string, values: any) {
                 router.replace('/settings')
                 return "Settings updated successfully"
             }
+            else if (response.status === 400) {
+                router.replace('/login');
+            }
             else {
                 // console.log(response)
                 return response.message;
@@ -104,6 +116,9 @@ export async function updateSecurity(type: string, values: any) {
             if (response.status === 200) {
                 router.replace('/set-security')
                 return "Successfully changed password"
+            }
+            else if (response.status === 400) {
+                router.replace('/login');
             }
             else {
                 // console.log(response);
@@ -138,6 +153,9 @@ export async function updateDetails(name: string, dob: string, gender: string, c
             router.replace('/settings')
             return "Details updated successfully"
         }
+        else if (response.status === 400) {
+            router.replace('/login');
+        }
         else {
             // console.log(response)
             return response.message;
@@ -169,6 +187,9 @@ export async function updateNotifications(values: any) {
             storeNotificationSettings(JSON.stringify(settings));
             router.replace('/settings')
             return "Settings updated successfully"
+        }
+        else if (response.status === 400) {
+            router.replace('/login');
         }
         else {
             console.log(response)

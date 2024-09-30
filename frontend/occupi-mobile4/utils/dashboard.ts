@@ -2,7 +2,7 @@
 import { OnSiteReq } from '@/models/requests';
 import { toggleOnSite } from '@/services/apiservices';
 import * as SecureStore from 'expo-secure-store';
-
+import { router } from 'expo-router';
 
 const polygon = [
     { latitude: -25.755736, longitude: 28.225309 }, // Point 1
@@ -42,9 +42,11 @@ export const isPointInPolygon = (point: { latitude: number; longitude: number })
       };
         const response = await toggleOnSite(request);
         if (response.status === 200) {
-            // console.log('notifications', response.data);
             return response.data
         }
+        else if (response.status === 400) {
+          router.replace('/login');
+      }
         else {
             console.log(response)
             return response.data;
