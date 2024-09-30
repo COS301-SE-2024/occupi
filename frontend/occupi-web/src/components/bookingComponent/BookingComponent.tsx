@@ -184,12 +184,11 @@ export default function App() {
         return (
           <Dropdown>
             <DropdownTrigger>
-              {" "}
               <Button
                 color={user.role === "basic" ? "primary" : "secondary"}
                 variant="flat"
               >
-                {user.role}{" "}
+                {user.role}
               </Button>
             </DropdownTrigger>
             <DropdownMenu
@@ -198,7 +197,7 @@ export default function App() {
             >
               <DropdownItem key="basic">basic</DropdownItem>
               <DropdownItem key="admin">admin</DropdownItem>
-            </DropdownMenu>{" "}
+            </DropdownMenu>
           </Dropdown>
         );
 
