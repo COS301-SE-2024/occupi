@@ -5,25 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useTheme } from '@/components/ThemeContext';
 import * as Speech from 'expo-speech';
-import { PieChart } from 'react-native-chart-kit';
-import { getRecommendations, recommendOfficeTimes, predictDay } from '@/services/apiservices'; 
+import { PieChart, LineChart } from 'react-native-chart-kit';
+import { getRecommendations, recommendOfficeTimes, predictDay, predictHourly } from '../../services/apiservices';
+import OccupancyModel from '@/components/OccupancyModel';
 
 const Recommendations = ({ onClose }) => {
-  const colorScheme = useColorScheme();
-  const { theme } = useTheme();
-  const currentTheme = theme === "system" ? colorScheme : theme;
-  const isDarkMode = currentTheme === 'dark';
-  const [activeTab, setActiveTab] = useState('today');
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
-    occupancyData: [],
-    recommendations: null,
-    officeTimesRecommendations: null,
-    predictedOccupancy: null,
-  });
-
-  const styles = getStyles(isDarkMode);
+    const colorScheme = useColorScheme();
+    const { theme } = useTheme();
+    const currentTheme = theme === "system" ? colorScheme : theme;
+    const isDarkMode = currentTheme === 'dark';
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState({
+      occupancyData: [],
+      recommendations: null,
+      officeTimesRecommendations: null,
+      predictedOccupancy: null,
+      hourlyPredictions: [],
+    });
+  
 
   useEffect(() => {
     fetchData();
@@ -32,27 +32,31 @@ const Recommendations = ({ onClose }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [recommendResponse, officeTimesResponse, predictDayResponse] = await Promise.all([
+      const today = new Date().toISOString().split('T')[0];
+      const [recommendResponse, officeTimesResponse, predictDayResponse, ...hourlyPredictions] = await Promise.all([
         getRecommendations(),
         recommendOfficeTimes(),
-        predictDay(new Date().toISOString().split('T')[0], 6, 17),
+        predictDay(today, 6, 17),
+        ...Array.from({ length: 12 }, (_, i) => predictHourly(today, i + 6)), // Predict for hours 6-17
       ]);
 
-      if (recommendResponse && officeTimesResponse && predictDayResponse) {
-        const formattedData = Object.entries(predictDayResponse.data).map(([hour, occupancy]) => ({
-          name: `${hour}:00`,
-          occupancy: occupancy,
-        }));
+      const formattedData = Object.entries(predictDayResponse.data || {}).map(([hour, occupancy]) => ({
+        name: `${hour}:00`,
+        occupancy: occupancy,
+      }));
 
-        setData({
-          occupancyData: formattedData,
-          recommendations: recommendResponse.data,
-          officeTimesRecommendations: officeTimesResponse.data,
-          predictedOccupancy: predictDayResponse.data,
-        });
-      } else {
-        console.error('Error in one of the API responses');
-      }
+      const hourlyData = hourlyPredictions.map((prediction, index) => ({
+        hour: index + 6,
+        occupancy: prediction.data,
+      }));
+
+      setData({
+        occupancyData: formattedData,
+        recommendations: recommendResponse.data,
+        officeTimesRecommendations: officeTimesResponse.data,
+        predictedOccupancy: predictDayResponse.data,
+        hourlyPredictions: hourlyData,
+      });
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -60,17 +64,38 @@ const Recommendations = ({ onClose }) => {
   };
 
   const generateRecommendation = useCallback(() => {
-    const { recommendations, officeTimesRecommendations } = data;
-    if (!recommendations || !officeTimesRecommendations) return "Loading recommendations...";
+    const { recommendations, officeTimesRecommendations, hourlyPredictions } = data;
+    if (!recommendations || !officeTimesRecommendations || !hourlyPredictions.length) return "Loading recommendations...";
 
-    const recommendationMap = {
-      today: `${recommendations.today_recommendation || ''}\n\nBest office time: ${officeTimesRecommendations.best_time || 'Not available'}`,
-      week: `${recommendations.week_recommendation || ''}\n\nBest days this week: ${officeTimesRecommendations.best_days ? officeTimesRecommendations.best_days.join(', ') : 'Not available'}`,
-      future: `${recommendations.future_recommendation || ''}\n\nUpcoming busy weeks: ${officeTimesRecommendations.busy_weeks ? officeTimesRecommendations.busy_weeks.join(', ') : 'Not available'}`,
-    };
+    const lowOccupancyHours = hourlyPredictions
+      .filter(pred => pred.occupancy < 0.4)
+      .map(pred => `${pred.hour}:00`)
+      .join(', ');
 
-    return recommendationMap[activeTab] || "No recommendation available.";
-  }, [data, activeTab]);
+    const highOccupancyHours = hourlyPredictions
+      .filter(pred => pred.occupancy > 0.7)
+      .map(pred => `${pred.hour}:00`)
+      .join(', ');
+
+    return `Based on our analysis, here are the recommendations for office attendance:
+
+    Today's recommendation: ${recommendations.today_recommendation || 'Not available'}
+
+    Best office time: ${officeTimesRecommendations.best_time || 'Not available'}
+
+    Low occupancy hours (recommended): ${lowOccupancyHours || 'None'}
+
+    High occupancy hours (avoid if possible): ${highOccupancyHours || 'None'}
+
+    Best days this week: ${officeTimesRecommendations.best_days ? officeTimesRecommendations.best_days.join(', ') : 'Not available'}
+
+    Week recommendation: ${recommendations.week_recommendation || 'Not available'}
+
+    Future outlook: ${recommendations.future_recommendation || 'Not available'}
+
+    Upcoming busy weeks: ${officeTimesRecommendations.busy_weeks ? officeTimesRecommendations.busy_weeks.join(', ') : 'Not available'}`;
+  }, [data]);
+
 
   const speakRecommendation = async () => {
     const textToSpeak = generateRecommendation();
@@ -83,7 +108,6 @@ const Recommendations = ({ onClose }) => {
       try {
         await Speech.speak(textToSpeak, {
           language: 'en-US',
-          voice: 'com.apple.ttsbundle.Samantha-compact',
           pitch: 1.1,
           rate: 0.9,
           onDone: () => setIsSpeaking(false),
@@ -99,12 +123,25 @@ const Recommendations = ({ onClose }) => {
     }
   };
 
+  const getOccupancyLevel = (occupancy) => {
+    if (occupancy >= 0.8) return 5;
+    if (occupancy >= 0.6) return 4;
+    if (occupancy >= 0.4) return 3;
+    if (occupancy >= 0.2) return 2;
+    return 1;
+  };
+
+  const getLevelColor = (level) => {
+    const colors = ['#008000', '#90EE90', '#FFFF00', '#FFA500', '#FF0000'];
+    return colors[level - 1] || colors[0];
+  };
+
   const renderOccupancyLevel = (occupancy) => {
     const level = getOccupancyLevel(occupancy);
     return (
       <HStack justifyContent="space-between" alignItems="center">
-        <Text style={styles.occupancyText}>Level {level}</Text>
-        <View style={[styles.occupancyIndicator, { backgroundColor: getLevelColor(level) }]} />
+        <Text style={{ color: isDarkMode ? '#FFFFFF' : '#000000', fontSize: wp('3.5%') }}>Level {level}</Text>
+        <View style={{ width: wp('5%'), height: wp('5%'), borderRadius: wp('2.5%'), backgroundColor: getLevelColor(level) }} />
       </HStack>
     );
   };
@@ -113,62 +150,90 @@ const Recommendations = ({ onClose }) => {
     name: item.name,
     population: item.occupancy * 100,
     color: getLevelColor(getOccupancyLevel(item.occupancy)),
-    legendFontColor: styles.text.color,
+    legendFontColor: isDarkMode ? '#FFFFFF' : '#000000',
     legendFontSize: wp('3%'),
   }));
 
+  const renderOccupancyChart = () => (
+    <LineChart
+      data={{
+        labels: data.hourlyPredictions.map(pred => `${pred.hour}:00`),
+        datasets: [{
+          data: data.hourlyPredictions.map(pred => pred.occupancy)
+        }]
+      }}
+      width={wp('90%')}
+      height={220}
+      yAxisLabel=""
+      yAxisSuffix=""
+      yAxisInterval={1}
+      chartConfig={{
+        backgroundColor: isDarkMode ? '#1E1E1E' : '#F5F5F5',
+        backgroundGradientFrom: isDarkMode ? '#1E1E1E' : '#F5F5F5',
+        backgroundGradientTo: isDarkMode ? '#1E1E1E' : '#F5F5F5',
+        decimalPlaces: 2,
+        color: (opacity = 1) => `rgba(${isDarkMode ? '255, 255, 255,' : '0, 0, 0,'} ${opacity})`,
+        labelColor: (opacity = 1) => `rgba(${isDarkMode ? '255, 255, 255,' : '0, 0, 0,'} ${opacity})`,
+        style: {
+          borderRadius: 16
+        },
+        propsForDots: {
+          r: "6",
+          strokeWidth: "2",
+          stroke: isDarkMode ? "#ffa726" : "#ff6384"
+        }
+      }}
+      bezier
+      style={{
+        marginVertical: 8,
+        borderRadius: 16
+      }}
+    />
+  );
+
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#121212' : '#FFFFFF' }}>
         <Spinner size="large" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: isDarkMode ? '#121212' : '#FFFFFF', padding: wp('5%') }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <HStack justifyContent="space-between" alignItems="center" marginBottom={hp('2%')}>
-          <Text style={styles.title}>Office Occupancy</Text>
+          <Text style={{ fontSize: wp('5.5%'), fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#000000' }}>Office Recommendations</Text>
           <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={wp('6%')} color={styles.text.color} />
+            <Ionicons name="close" size={wp('6%')} color={isDarkMode ? '#FFFFFF' : '#000000'} />
           </TouchableOpacity>
         </HStack>
 
-        <HStack marginBottom={hp('2%')} justifyContent="space-between">
-          {['today', 'week', 'future'].map((tab) => (
-            <Button
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
-            >
-              <ButtonText style={[styles.tabButtonText, activeTab === tab && styles.activeTabButtonText]}>
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </ButtonText>
-            </Button>
-          ))}
-        </HStack>
-
         <VStack space={4}>
-          <View style={styles.card}>
-            <Text style={styles.cardText}>{generateRecommendation()}</Text>
-            <TouchableOpacity onPress={speakRecommendation} style={styles.speakButton}>
-              <Ionicons name={isSpeaking ? "volume-high" : "volume-medium"} size={wp('6%')} color={styles.text.color} />
-              <Text style={styles.speakButtonText}>{isSpeaking ? 'Stop' : 'Listen'}</Text>
+          <View style={{ backgroundColor: isDarkMode ? '#1E1E1E' : '#F5F5F5', padding: wp('4%'), borderRadius: wp('2.5%'), marginBottom: hp('2%') }}>
+            <Text style={{ color: isDarkMode ? '#FFFFFF' : '#000000', fontSize: wp('4%') }}>{generateRecommendation()}</Text>
+            <TouchableOpacity onPress={speakRecommendation} style={{ flexDirection: 'row', alignItems: 'center', marginTop: hp('1%') }}>
+              <Ionicons name={isSpeaking ? "volume-high" : "volume-medium"} size={wp('6%')} color={isDarkMode ? '#FFFFFF' : '#000000'} />
+              <Text style={{ color: isDarkMode ? '#FFFFFF' : '#000000', marginLeft: wp('2%'), fontSize: wp('3.5%') }}>{isSpeaking ? 'Stop' : 'Listen'}</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Weekly Occupancy</Text>
+          <View style={{ backgroundColor: isDarkMode ? '#1E1E1E' : '#F5F5F5', padding: wp('4%'), borderRadius: wp('2.5%'), marginBottom: hp('2%') }}>
+            <Text style={{ fontSize: wp('4%'), fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#000000', marginBottom: hp('1%') }}>Hourly Occupancy Prediction</Text>
+            {renderOccupancyChart()}
+          </View>
+
+          <View style={{ backgroundColor: isDarkMode ? '#1E1E1E' : '#F5F5F5', padding: wp('4%'), borderRadius: wp('2.5%'), marginBottom: hp('2%') }}>
+            <Text style={{ fontSize: wp('4%'), fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#000000', marginBottom: hp('1%') }}>Office Occupancy</Text>
             <PieChart
               data={pieChartData}
               width={wp('85%')}
               height={hp('30%')}
               chartConfig={{
-                backgroundColor: styles.card.backgroundColor,
-                backgroundGradientFrom: styles.card.backgroundColor,
-                backgroundGradientTo: styles.card.backgroundColor,
-                color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                backgroundColor: isDarkMode ? '#1E1E1E' : '#F5F5F5',
+                backgroundGradientFrom: isDarkMode ? '#1E1E1E' : '#F5F5F5',
+                backgroundGradientTo: isDarkMode ? '#1E1E1E' : '#F5F5F5',
+                color: (opacity = 1) => `rgba(${isDarkMode ? '255, 255, 255,' : '0, 0, 0,'} ${opacity})`,
               }}
               accessor="population"
               backgroundColor="transparent"
@@ -177,11 +242,16 @@ const Recommendations = ({ onClose }) => {
             />
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Hourly Occupancy Levels</Text>
+          <View style={{ backgroundColor: isDarkMode ? '#1E1E1E' : '#F5F5F5', padding: wp('4%'), borderRadius: wp('2.5%'), marginBottom: hp('2%') }}>
+            <Text style={{ fontSize: wp('4%'), fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#000000', marginBottom: hp('1%') }}>3D Office Model</Text>
+            <OccupancyModel occupancyData={data.occupancyData} />
+          </View>
+
+          <View style={{ backgroundColor: isDarkMode ? '#1E1E1E' : '#F5F5F5', padding: wp('4%'), borderRadius: wp('2.5%'), marginBottom: hp('2%') }}>
+            <Text style={{ fontSize: wp('4%'), fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#000000', marginBottom: hp('1%') }}>Hourly Occupancy Levels</Text>
             {data.occupancyData.map((item, index) => (
               <HStack key={index} justifyContent="space-between" alignItems="center" marginBottom={hp('1%')}>
-                <Text style={styles.occupancyText}>{item.name}</Text>
+                <Text style={{ color: isDarkMode ? '#FFFFFF' : '#000000', fontSize: wp('3.5%') }}>{item.name}</Text>
                 {renderOccupancyLevel(item.occupancy)}
               </HStack>
             ))}
@@ -190,88 +260,6 @@ const Recommendations = ({ onClose }) => {
       </ScrollView>
     </View>
   );
-};
-
-const getStyles = (isDarkMode) => ({
-  container: {
-    flex: 1,
-    backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
-    padding: wp('5%'),
-  },
-  title: {
-    fontSize: wp('5.5%'),
-    fontWeight: 'bold',
-    color: isDarkMode ? '#FFFFFF' : '#000000',
-  },
-  text: {
-    color: isDarkMode ? '#FFFFFF' : '#000000',
-  },
-  card: {
-    backgroundColor: isDarkMode ? '#1E1E1E' : '#F5F5F5',
-    padding: wp('4%'),
-    borderRadius: wp('2.5%'),
-    marginBottom: hp('2%'),
-  },
-  cardTitle: {
-    fontSize: wp('4%'),
-    fontWeight: 'bold',
-    color: isDarkMode ? '#FFFFFF' : '#000000',
-    marginBottom: hp('1%'),
-  },
-  cardText: {
-    color: isDarkMode ? '#FFFFFF' : '#000000',
-    fontSize: wp('4%'),
-  },
-  tabButton: {
-    backgroundColor: isDarkMode ? '#2C2C2C' : '#E0E0E0',
-    paddingHorizontal: wp('3%'),
-    paddingVertical: hp('1%'),
-    borderRadius: wp('5%'),
-    flex: 1,
-    marginHorizontal: wp('1%'),
-  },
-  activeTabButton: {
-    backgroundColor: '#007AFF',
-  },
-  tabButtonText: {
-    color: isDarkMode ? '#FFFFFF' : '#000000',
-    fontSize: wp('3%'),
-  },
-  activeTabButtonText: {
-    color: '#FFFFFF',
-  },
-  speakButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: hp('1%'),
-  },
-  speakButtonText: {
-    color: isDarkMode ? '#FFFFFF' : '#000000',
-    marginLeft: wp('2%'),
-    fontSize: wp('3.5%'),
-  },
-  occupancyText: {
-    color: isDarkMode ? '#FFFFFF' : '#000000',
-    fontSize: wp('3.5%'),
-  },
-  occupancyIndicator: {
-    width: wp('5%'),
-    height: wp('5%'),
-    borderRadius: wp('2.5%'),
-  },
-});
-
-const getOccupancyLevel = (occupancy) => {
-  if (occupancy >= 0.8) return 5;
-  if (occupancy >= 0.6) return 4;
-  if (occupancy >= 0.4) return 3;
-  if (occupancy >= 0.2) return 2;
-  return 1;
-};
-
-const getLevelColor = (level) => {
-  const colors = ['#008000', '#90EE90', '#FFFF00', '#FFA500', '#FF0000'];
-  return colors[level - 1] || colors[0];
 };
 
 export default Recommendations;
