@@ -300,3 +300,12 @@ func TestAggregateBookings(t *testing.T) {
 		t.Errorf("CalculateInOfficeRate() = %v, want greater than 0", res)
 	}
 }
+
+func TestGetUsersLocationsPipeLine(t *testing.T) {
+	res := analytics.GetUsersLocationsPipeLine()
+
+	// check len is greater than 0
+	if len(res) == 0 {
+		t.Errorf("CalculateInOfficeRate() = %v, want greater than 0", res)
+	}
+}

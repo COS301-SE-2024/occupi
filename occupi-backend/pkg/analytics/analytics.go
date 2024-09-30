@@ -1124,3 +1124,22 @@ func AggregateBookings(creatorEmail string, attendeeEmails []string, filter mode
 		bson.D{{Key: "$sort", Value: bson.D{{Key: "date", Value: 1}}}},
 	}
 }
+
+func GetUsersLocationsPipeLine() bson.A {
+	return bson.A{
+		bson.D{{Key: "$unwind", Value: "$knownLocations"}},
+		bson.D{
+			{Key: "$project",
+				Value: bson.D{
+					{Key: "_id", Value: 0},
+					{Key: "email", Value: 1},
+					{Key: "city", Value: "$knownLocations.city"},
+					{Key: "region", Value: "$knownLocations.region"},
+					{Key: "country", Value: "$knownLocations.country"},
+					{Key: "location", Value: "$knownLocations.location"},
+					{Key: "ipAddress", Value: "$knownLocations.ipAddress"},
+				},
+			},
+		},
+	}
+}
