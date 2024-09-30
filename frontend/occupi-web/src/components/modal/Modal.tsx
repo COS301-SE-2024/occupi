@@ -344,13 +344,13 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                       document={generateReportPDF()}
                       fileName={`${user.name}_Stats_Report.pdf`}
                     >
-                      {/* {({ loading }) => (
-                        <React.Fragment>
+                      {({ loading }) => (
+                        <>
                           {loading
                             ? "Report is loading..."
                             : "Report ready to download"}
-                        </React.Fragment>
-                      )} */}
+                        </>
+                      )}
                     </PDFDownloadLink>
                   </Button>
                 ) : (
