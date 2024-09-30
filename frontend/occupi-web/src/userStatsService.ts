@@ -28,7 +28,11 @@ interface UserHours {
 
 interface UserWorkRatio {
   ratio: number;
-  days: { weekday: string; ratio: number }[];
+  days: {
+    hours: never[];
+    avgArrival: string;
+    avgDeparture: string; weekday: string; ratio: number 
+}[];
 }
 
 interface UserArrivalDeparture {
@@ -39,7 +43,11 @@ interface UserArrivalDeparture {
 
 interface UserPeakOfficeHours {
   peakHour: string;
-  days: { weekday: string; hours: string[] }[];
+  days: {
+    avgArrival: string;
+    avgDeparture: string;
+    ratio: number; weekday: string; hours: string[] 
+}[];
 }
 
 interface UserInOfficeRate {

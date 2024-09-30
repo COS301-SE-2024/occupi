@@ -25,12 +25,11 @@ import {
   SortDescriptor,
   Tooltip,
 } from "@nextui-org/react";
-import { PlusIcon } from "@assets/index";
 import { SearchIcon } from "@assets/index";
 import { ChevronDownIcon } from "@assets/index";
 import { columns, users, statusOptions } from "../data/Data";
 import { capitalize } from "../data/Utils";
-import { OccupancyModal,TopNav } from "@components/index";
+import { OccupancyModal, TopNav } from "@components/index";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
   ONSITE: "success",
@@ -311,12 +310,12 @@ export default function App() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button
+            {/* <Button
               endContent={<PlusIcon />}
               className=" bg-primary_alt text-text_col_alt"
             >
               Add New
-            </Button>
+            </Button> */}
           </div>
         </div>
         <div className="flex justify-between items-center">

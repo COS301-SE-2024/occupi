@@ -31,7 +31,7 @@ const UserPeakOfficeHoursChart = ({ email }: { email: string }) => {
         const userPeakOfficeHours = await userStatsService.getUserPeakOfficeHours(params);
         if (userPeakOfficeHours.data && userPeakOfficeHours.data.length > 0) {
           const userPeakHours = userPeakOfficeHours.data[0];
-          if (userPeakHours.days) {
+          if (userPeakHours.days && userPeakHours.days.length > 0) {
             const formattedData: ChartDataItem[] = userPeakHours.days.map((day) => ({
               weekday: day.weekday,
               peak1: parseInt(day.hours[0]) || 0,
@@ -40,10 +40,10 @@ const UserPeakOfficeHoursChart = ({ email }: { email: string }) => {
             }));
             setChartData(formattedData);
           } else {
-            setError("No peak hours data available");
+            setError("No data found for user. User should make bookings.");
           }
         } else {
-          setError("No data available");
+          setError("No data found for user. User should make bookings.");
         }
       } catch (err) {
         setError("Failed to fetch user statistics");
@@ -63,7 +63,7 @@ const UserPeakOfficeHoursChart = ({ email }: { email: string }) => {
         <img className=" h-96 w-62 ml-80" src={AI_loader} alt="" />
       </div>
     );
-  if (error) return <div>Error: {error}</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="w-full h-96">

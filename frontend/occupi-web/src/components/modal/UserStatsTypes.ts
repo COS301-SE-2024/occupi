@@ -46,6 +46,7 @@ export interface DayStats {
   }
   
   export interface UserHoursEntry {
+    date: string | number | Date;
     totalHours: number;
     // Add other properties if needed
   }

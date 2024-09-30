@@ -30,8 +30,6 @@ const AvgArrDep: React.FC<AvgArrDepProps> = ({ email }) => {
 
       const params = {
         email: email,
-        // timeFrom: '2024-01-01T00:00:00.000Z',
-        // timeTo: '2024-09-11T00:00:00.000Z',
       };
 
       try {
@@ -44,7 +42,7 @@ const AvgArrDep: React.FC<AvgArrDepProps> = ({ email }) => {
           }));
           setChartData(formattedData);
         } else {
-          setError("No data available");
+          setError("No data found for user. User should make bookings.");
         }
       } catch (err) {
         setError("Failed to fetch user statistics");
@@ -63,7 +61,7 @@ const AvgArrDep: React.FC<AvgArrDepProps> = ({ email }) => {
   };
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <ResponsiveContainer width="100%" height={400}>
