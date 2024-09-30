@@ -225,7 +225,8 @@ const RecommendationsModal = ({
 
         <button
           className="absolute top-4 right-4 w-10 h-10 text-2xl text-gray-400 hover:bg-red-500 hover:text-white rounded-full flex justify-center items-center focus:outline-none transition-all duration-300 pb-1"
-          onClick={onClose}>
+          onClick={onClose}
+        >
           &times;
         </button>
 
@@ -237,7 +238,8 @@ const RecommendationsModal = ({
                 ? "bg-[#b6ff00] hover:bg-[#a6ee00] text-black font-semibold"
                 : "bg-black text-white hover:bg-[#b6ff00] hover:text-black font-semibold"
             }`}
-            onClick={() => handleTabSwitch("today")}>
+            onClick={() => handleTabSwitch("today")}
+          >
             Recommendend Hours
           </button>
           <button
@@ -246,7 +248,8 @@ const RecommendationsModal = ({
                 ? "bg-[#b6ff00] hover:bg-[#a6ee00] text-black font-semibold"
                 : "bg-black text-white hover:bg-[#b6ff00] hover:text-black font-semibold"
             }`}
-            onClick={() => handleTabSwitch("next7days")}>
+            onClick={() => handleTabSwitch("next7days")}
+          >
             Recommended Days
           </button>
         </div>
@@ -270,7 +273,8 @@ const RecommendationsModal = ({
                     activeTab === "today"
                       ? "translateX(0%)"
                       : "translateX(-100%)",
-                }}>
+                }}
+              >
                 <div className="w-full flex-shrink-0">
                   <h4 className="text-xl font-semibold mb-4">
                     {typedMessageToday}

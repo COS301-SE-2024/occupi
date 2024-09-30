@@ -73,7 +73,7 @@ const OverviewComponent = () => {
         className="flex w-11/12 mr-auto ml-auto h-8 text-text_col text-3xl font-semibold leading-none mt-10 items-center cursor-pointer"
         onClick={handleNavigateToBookingsDashboard}
       >
-        Most Visitations <ChevronRight size={24} className="mt-2" />
+       Prediction Comparison <ChevronRight size={24} className="mt-2" />
       </motion.div>
 
       <div className="lg:flex md:flex-row sm:flex-row mt-5 mb-5 gap-10 w-11/12 mr-auto ml-auto">

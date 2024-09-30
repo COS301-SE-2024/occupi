@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text } from '@react-three/drei';
-import { Vector3, Group, Color } from 'three';
+import React, { useState, useRef, useEffect } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Text } from "@react-three/drei";
+import { Vector3, Group, Color } from "three";
 
 interface FloorProps {
   position: [number, number, number];
-  occupancy: number;
+  maxOccupancy: number;
+  totalBookings: number;
   floorNumber: number;
   width: number;
   depth: number;
@@ -13,21 +14,30 @@ interface FloorProps {
 
 interface Room {
   floorNo: string;
-  maxOccupancy: number;
+  maxOccupancy?: number;
+  count: number;
 }
 
-const Floor: React.FC<FloorProps> = ({ position, occupancy, floorNumber, width, depth }) => {
+const Floor: React.FC<FloorProps> = ({
+  position,
+  maxOccupancy,
+  totalBookings,
+  floorNumber,
+  width,
+  depth,
+}) => {
   const [, setHovered] = useState(false);
 
-  const getColor = (value: number): Vector3 => {
+  const getColor = (value: number, max: number): Vector3 => {
+    const ratio = value / max;
     const colors = [
-      [0.2, 0.8, 0.2], // Green (1)
-      [0.5, 0.8, 0.2], // Yellow-green (2)
-      [0.8, 0.8, 0.2], // Yellow (3)
-      [0.8, 0.5, 0.2], // Orange (4)
-      [0.8, 0.2, 0.2]  // Red (5)
+      [0.2, 0.8, 0.2], // Green (0-20%)
+      [0.5, 0.8, 0.2], // Yellow-green (21-40%)
+      [0.8, 0.8, 0.2], // Yellow (41-60%)
+      [0.8, 0.5, 0.2], // Orange (61-80%)
+      [0.8, 0.2, 0.2], // Red (81-100%)
     ];
-    const index = Math.max(0, Math.min(Math.floor(value) - 1, 4));
+    const index = Math.min(Math.floor(ratio * 5), 4);
     return new Vector3(...colors[index]);
   };
 
@@ -37,33 +47,17 @@ const Floor: React.FC<FloorProps> = ({ position, occupancy, floorNumber, width, 
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        <boxGeometry args={[width, 0.5, depth]} />
-        <meshStandardMaterial color={new Color().fromArray(getColor(occupancy).toArray())} />
+        <boxGeometry args={[width, 1, depth]} />
+        <meshStandardMaterial
+          color={new Color().fromArray(
+            getColor(totalBookings, maxOccupancy).toArray()
+          )}
+        />
       </mesh>
       <Text
-        position={[width / 2 + 0.2, 0, 0]}
-        rotation={[0, -Math.PI / 2, 0]}
-        fontSize={0.2}
-        color="black"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {`Floor ${floorNumber}`}
-      </Text>
-      <Text
-        position={[-width / 2 - 0.2, 0, 0]}
-        rotation={[0, Math.PI / 2, 0]}
-        fontSize={0.2}
-        color="black"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {`Occupancy: ${occupancy}/5`}
-      </Text>
-      <Text
         position={[0, 0, depth / 2 + 0.2]}
-        rotation={[0, Math.PI, 0]}
-        fontSize={0.2}
+        // rotation={[0, Math.PI, 0]}
+        fontSize={0.3}
         color="black"
         anchorX="center"
         anchorY="middle"
@@ -72,26 +66,27 @@ const Floor: React.FC<FloorProps> = ({ position, occupancy, floorNumber, width, 
       </Text>
       <Text
         position={[0, 0, -depth / 2 - 0.2]}
-        fontSize={0.2}
+        fontSize={0.3}
+        rotation={[0, Math.PI, 0]}
         color="black"
         anchorX="center"
         anchorY="middle"
       >
-        {`Occupancy: ${occupancy}/5`}
+        {`Bookings: ${totalBookings}/${maxOccupancy}`}
       </Text>
     </group>
   );
 };
 
 interface BuildingProps {
-  floors: number[];
+  floors: { maxOccupancy: number; totalBookings: number }[];
 }
 
 const Building: React.FC<BuildingProps> = ({ floors }) => {
   const groupRef = useRef<Group>(null);
-  const baseWidth = 4;
-  const baseDepth = 4;
-  const shrinkFactor = 0.05;
+  const baseWidth = 6;
+  const baseDepth = 6;
+  const shrinkFactor = 0.1;
 
   useFrame(() => {
     if (groupRef.current) {
@@ -101,15 +96,16 @@ const Building: React.FC<BuildingProps> = ({ floors }) => {
 
   return (
     <group ref={groupRef}>
-      {floors.map((occupancy: number, index: number) => {
+      {floors.map(({ maxOccupancy, totalBookings }, index) => {
         const width = baseWidth - index * shrinkFactor;
         const depth = baseDepth - index * shrinkFactor;
         return (
           <Floor
             key={index}
-            position={[0, index * 0.6, 0]}
-            occupancy={occupancy}
-            floorNumber={floors.length - index}
+            position={[0, index * 1.2, 0]}
+            maxOccupancy={maxOccupancy}
+            totalBookings={totalBookings}
+            floorNumber={index}
             width={width}
             depth={depth}
           />
@@ -120,42 +116,127 @@ const Building: React.FC<BuildingProps> = ({ floors }) => {
 };
 
 const BuildingTower: React.FC = () => {
-  const [occupancyData, setOccupancyData] = useState<number[]>([]);
+  const [floorData, setFloorData] = useState<
+    { maxOccupancy: number; totalBookings: number }[]
+  >([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // In a real scenario, you would fetch this data from your API
-        const response = await fetch('/api/view-rooms');
-        const data = await response.json();
-        
-        const rooms: Room[] = data.data;
-        const highestFloor = Math.max(...rooms.map(room => parseInt(room.floorNo)));
-        
-        // Calculate occupancy for each floor
-        const occupancy = Array(highestFloor + 1).fill(0);
+        const [roomsResponse, bookingsResponse] = await Promise.all([
+          fetch("/api/view-rooms"),
+          fetch("/analytics/top-bookings"),
+        ]);
+
+        if (!roomsResponse.ok || !bookingsResponse.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const roomsData = await roomsResponse.json();
+        const bookingsData = await bookingsResponse.json();
+
+        if (
+          !Array.isArray(roomsData.data) ||
+          !Array.isArray(bookingsData.data)
+        ) {
+          throw new Error("Data is not in the expected format");
+        }
+
+        const rooms: Room[] = roomsData.data;
+        const bookings: Room[] = bookingsData.data;
+
+        // Combine room and booking data
+        const floorMap = new Map<
+          string,
+          { maxOccupancy: number; totalBookings: number }
+        >();
+
         rooms.forEach((room: Room) => {
-          const floor = parseInt(room.floorNo);
-          occupancy[floor] = Math.max(occupancy[floor], room.maxOccupancy);
+          const floor = room.floorNo;
+          if (!floorMap.has(floor)) {
+            floorMap.set(floor, { maxOccupancy: 0, totalBookings: 0 });
+          }
+          const floorInfo = floorMap.get(floor)!;
+          floorInfo.maxOccupancy += room.maxOccupancy || 0;
         });
-        
-        // Remove the ground floor (index 0) and reverse the array so the highest floor is first
-        setOccupancyData(occupancy.slice(1).reverse());
+
+        bookings.forEach((booking: Room) => {
+          const floor = booking.floorNo;
+          if (floorMap.has(floor)) {
+            const floorInfo = floorMap.get(floor)!;
+            // Ensure totalBookings doesn't exceed maxOccupancy
+            floorInfo.totalBookings = Math.min(
+              floorInfo.totalBookings + booking.count,
+              floorInfo.maxOccupancy
+            );
+          }
+        });
+
+        // Convert map to array and sort by floor number
+        const sortedFloorData = Array.from(floorMap.entries())
+          .sort(([a], [b]) => parseInt(a) - parseInt(b))
+          .map(([, data]) => data);
+
+        setFloorData(sortedFloorData);
       } catch (error) {
-        console.error('Error fetching room data:', error);
+        console.error("Error fetching data:", error);
+        setError("Failed to fetch data. Please try again later.");
       }
     };
 
     fetchData();
   }, []);
 
+  // Add touch event handlers
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (floorData.length === 0) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
-      <Canvas camera={{ position: [10, 10, 10], fov: 50 }}>
+    <div
+      style={{ width: "100%", height: "100%", minHeight: "500px" }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+    >
+      <Canvas
+        camera={{ position: [15, 15, 15], fov: 50 }}
+        onCreated={({ gl }) => {
+          gl.domElement.addEventListener(
+            "touchstart",
+            (e) => e.preventDefault(),
+            { passive: false }
+          );
+          gl.domElement.addEventListener(
+            "touchmove",
+            (e) => e.preventDefault(),
+            { passive: false }
+          );
+        }}
+      >
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 5, 5]} intensity={0.5} />
-        <Building floors={occupancyData} />
-        <OrbitControls target={[0, 2, 0]} maxPolarAngle={Math.PI / 2} />
+        <Building floors={floorData} />
+        <OrbitControls
+          target={[0, (floorData.length * 1.2) / 2, 0]}
+          maxPolarAngle={Math.PI / 2}
+          enableDamping={false}
+          enableZoom={true}
+          enablePan={true}
+          enableRotate={true}
+        />
       </Canvas>
     </div>
   );
