@@ -13,41 +13,49 @@ describe('Auth Services', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     console.log = jest.fn();
+    console.error = jest.fn();
+    global.fetch = jest.fn();
   });
 
   describe('login', () => {
     const loginReq: LoginReq = { email: 'test@example.com', password: 'password123' };
 
     it('should return LoginSuccess on successful login', async () => {
-      const mockResponse = { data: { token: 'abc123', user: { id: 1, name: 'Test User' } } };
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      const mockResponse = { token: 'abc123', user: { id: 1, name: 'Test User' } };
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse)
+      });
 
       const result = await authServices.login(loginReq);
 
-      expect(result).toEqual(mockResponse.data);
+      expect(result).toEqual(mockResponse);
     });
 
-    it('should throw error on login failure', async () => {
+    it('should return Unsuccessful on login failure', async () => {
       const mockError = {
-        response: { data: { message: 'Invalid credentials' } }
+        error: {
+          code: 'INVALID_AUTH',
+          details: null,
+          message: 'Email does not exist'
+        },
+        message: 'Invalid email',
+        status: 401
       };
-      mockedAxios.post.mockRejectedValue(mockError);
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        json: jest.fn().mockResolvedValue(mockError)
+      });
     
-      await expect(authServices.login(loginReq)).rejects.toEqual(mockError);
+      const result = await authServices.login(loginReq);
+      expect(result).toEqual(mockError);
     });
 
-    it('should throw error for non-Axios errors', async () => {
+    it('should throw error for network errors', async () => {
       const mockError = new Error('Network error');
-      mockedAxios.post.mockRejectedValue(mockError);
+      (global.fetch as jest.Mock).mockRejectedValue(mockError);
 
       await expect(authServices.login(loginReq)).rejects.toThrow('Network error');
-    });
-
-    it('should handle non-axios errors in login', async () => {
-      const nonAxiosError = new Error('Non-Axios error');
-      mockedAxios.post.mockRejectedValue(nonAxiosError);
-    
-      await expect(authServices.login(loginReq)).rejects.toThrow('Non-Axios error');
     });
   });
 
