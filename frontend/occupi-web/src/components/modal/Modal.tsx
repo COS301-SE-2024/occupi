@@ -32,7 +32,6 @@ import {
 } from "@react-pdf/renderer";
 import { occupiLogo } from "@assets/index"; // Assuming occupiLogo is an image asset
 import NotificationService from "NotificationsService";
-import React from "react";
 
 interface User {
   id: string;
@@ -345,13 +344,13 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                       document={generateReportPDF()}
                       fileName={`${user.name}_Stats_Report.pdf`}
                     >
-                      {({ loading }) => (
+                      {/* {({ loading }) => (
                         <React.Fragment>
                           {loading
                             ? "Report is loading..."
                             : "Report ready to download"}
                         </React.Fragment>
-                      )}
+                      )} */}
                     </PDFDownloadLink>
                   </Button>
                 ) : (
