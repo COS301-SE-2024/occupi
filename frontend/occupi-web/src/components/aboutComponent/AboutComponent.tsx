@@ -1,17 +1,18 @@
 import { OccupiLogo } from "@assets/index";
 import { motion } from "framer-motion";
 
+
 const AboutComponent = () => {
   return (
     <div>
       <div className="flex flex-col items-center">
         
-        <div className="fixed w-40 h-40 flex flex-col items-center justify-center ">
+        <div className="fixed w-40 h-40 flex flex-col items-center justify-center " data-testid='Logo'>
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
           >
-            <OccupiLogo />
+          <OccupiLogo />
           </motion.div>
         </div>
 
