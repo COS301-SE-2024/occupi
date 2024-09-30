@@ -25,11 +25,12 @@ export async function UserLogin(email: string, password: string) {
             if (response.data !== null) {
                 setState('logged_in');
                 await storeToken(response.data.token);
+                await delay(1000);
                 console.log('log in token',response.data.token);
                 fetchUserDetails(email, response.data.token);
                 fetchNotificationSettings(email);
                 fetchSecuritySettings(email);
-                router.replace('/home');
+                router.replace('/viewbookings');
             }
             else {
                 setState('verify_otp_login');

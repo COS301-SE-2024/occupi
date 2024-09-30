@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import axios, { AxiosError } from 'axios';
 import { storeUserData } from "./securestore";
 export const getUserDetails = async (email: string, authToken: string): Promise<Success | Unsuccessful> => {
+  console.log('AuuuthToken1',authToken);
   try {
     const response = await axios.get("https://dev.occupi.tech/api/user-details", {
       params: { email },
@@ -98,7 +99,7 @@ export async function getRooms(req: ViewRoomsReq): Promise<Success | Unsuccessfu
 
 export async function getNotificationSettings(email: string): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  // console.log(authToken);
+  console.log('AuuuthToken',authToken);
   try {
     const response = await axios.get(`https://dev.occupi.tech/api/get-notification-settings`, {
       params: {
@@ -213,7 +214,7 @@ export async function getNotifications(req: NotificationsReq): Promise<Success |
 
 export async function getTopBookings(): Promise<Success | Unsuccessful> {
   let authToken = await SecureStore.getItemAsync('Token');
-  // console.log(authToken);
+  console.log('bookings authtoken',authToken);
   try {
     const response = await axios.get("https://dev.occupi.tech/analytics/top-bookings", {
       headers: {
