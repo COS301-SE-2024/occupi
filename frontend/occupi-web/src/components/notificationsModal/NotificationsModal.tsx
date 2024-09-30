@@ -61,7 +61,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} backdrop='blur' size='4xl'>
+    <Modal isOpen={isOpen} onClose={onClose} backdrop='blur' size='4xl' scrollBehavior='inside'>
       <ModalContent>
         <ModalHeader>
           <div style={{ display: 'flex', alignItems: 'center' }}>

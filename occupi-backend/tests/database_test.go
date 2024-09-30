@@ -11037,3 +11037,129 @@ func TestCountNotifications(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestGetUsersLocations(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	user := models.User{
+		Email: "test@example.com",
+		KnownLocations: []models.Location{
+			{
+				City:      "Johannesburg",
+				Region:    "Gauteng",
+				Country:   "South Africa",
+				Location:  "-23.9285, 30.0407",
+				IPAddress: "0.0.0.0",
+			},
+		},
+	}
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
+
+		// Validate the result
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("Find failure", func(mt *mtest.T) {
+		// Mock the Find operation to return an error
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "find error",
+		}))
+
+		// Initialize the app session with the mock client
+		appSession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		// Call the function under test
+		results, total, err := database.GetUsersLocations(ctx, appSession, 50, 0, "asc", "")
+
+		// Validate the result
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "find error")
+	})
+
+	mt.Run("Failed cursor", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
+
+		// Validate the result
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "cursor.id should be an int64 but is a BSON invalid", "Expected error for failed cursor")
+	})
+
+	mt.Run("Failed count", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
+		// Mock CountDocuments to return an error
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
+
+		// Validate the result
+		assert.Nil(t, results)
+		assert.Equal(t, int64(0), total)
+		assert.EqualError(t, err, "database response does not contain a cursor", "Expected error for failed count documents")
+	})
+
+	mt.Run("Successful query", func(mt *mtest.T) {
+		// Mock Find to return the OfficeHours document
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "n", Value: int64(1)},
+			{Key: "email", Value: user.Email},
+			{Key: "knownLocations", Value: user.KnownLocations},
+		}))
+
+		// Create a mock AppSession with a valid database
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
+
+		// Validate the result
+		assert.NoError(t, err, "Expected no error for successful query")
+		assert.Equal(t, int64(1), total, "Expected 1 total result")
+		assert.NotNil(t, results, "Expected non-nil results")
+	})
+}

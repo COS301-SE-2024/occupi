@@ -58,6 +58,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
 
   const handleOpenNotifications = () => {
     setNotificationsModalOpen(true);
+    setUnreadCount(0);
   };
 
   const handleCloseNotifications = () => {

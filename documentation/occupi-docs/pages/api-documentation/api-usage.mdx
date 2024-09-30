@@ -44,6 +44,7 @@ The API also allows you to retrieve information about these resources.
     - [Toggle Admin Status](#ToggleAdminStatus)
     - [Notify Report Download](#NotifyReportDownload)
     - [Count Unread Notifications](#CountUnreadNotifications)
+    - [Get Users Locations](#GetUsersLocations)
 
 ## Base URL
 
@@ -1426,6 +1427,43 @@ This endpoint is used to count the number of unread notifications for a user in 
 - **Code:** 400
 
 - **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Get Users Locations
+
+This endpoint is used to get the locations of users in the Occupi system that they are allowed to login from. This will return the ip address, city, region, country and longitude and latitude of the location.
+
+- **URL**
+
+  `/api/get-users-locations`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // optional, if not provided, then no email is filtered
+  "sort": "asc", // optional, can be "asc" or "desc" but defaults to "asc"
+  "limit": 50, // optional, defaults to 50
+  "page": 1 // optional, defaults to 1
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched user locations!", "data": ["list of user locations"] }`
 
 **Error Response**
 

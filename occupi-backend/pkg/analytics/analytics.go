@@ -1075,11 +1075,7 @@ func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
 		bson.D{{Key: "$match", Value: matchFilter}},
-		// Stage 2: Apply skip for pagination
-		bson.D{{Key: "$skip", Value: filter.Skip}},
-		// Stage 3: Apply limit for pagination
-		bson.D{{Key: "$limit", Value: filter.Limit}},
-		// Stage 4: Group by the room ID to calculate the total bookings
+		// Stage 2: Group by the room ID to calculate the total bookings
 		bson.D{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: "$roomId"},
 			{Key: "roomId", Value: bson.D{{Key: "$first", Value: "$roomId"}}},
@@ -1089,9 +1085,9 @@ func GetTop3MostBookedRooms(creatorEmail string, attendeeEmails []string, filter
 			{Key: "emails", Value: bson.D{{Key: "$push", Value: "$emails"}}},
 			{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
 		}}},
-		// Stage 5: Sort by count
+		// Stage 3: Sort by count
 		bson.D{{Key: "$sort", Value: bson.D{{Key: "count", Value: -1}}}},
-		// Stage 6: Limit to the top 3 results
+		// Stage 4: Limit to the top 3 results
 		bson.D{{Key: "$limit", Value: 3}},
 	}
 }
@@ -1102,11 +1098,7 @@ func AggregateBookings(creatorEmail string, attendeeEmails []string, filter mode
 	return bson.A{
 		// Stage 1: Match filter conditions (email and time range)
 		bson.D{{Key: "$match", Value: matchFilter}},
-		// Stage 2: Apply skip for pagination
-		bson.D{{Key: "$skip", Value: filter.Skip}},
-		// Stage 3: Apply limit for pagination
-		bson.D{{Key: "$limit", Value: filter.Limit}},
-		// Stage 4: Get all bookings without grouping
+		// Stage 2: Get all bookings without grouping
 		bson.D{{Key: "$project", Value: bson.D{
 			{Key: "_id", Value: 0},
 			{Key: "occupiID", Value: "$occupiId"},
@@ -1120,7 +1112,50 @@ func AggregateBookings(creatorEmail string, attendeeEmails []string, filter mode
 			{Key: "start", Value: "$start"},
 			{Key: "end", Value: "$end"},
 		}}},
-		// Stage 5: Sort by date
+		// Stage 3: Sort by date
 		bson.D{{Key: "$sort", Value: bson.D{{Key: "date", Value: 1}}}},
+		// Stage 4: Apply skip for pagination
+		bson.D{{Key: "$skip", Value: filter.Skip}},
+		// Stage 5: Apply limit for pagination
+		bson.D{{Key: "$limit", Value: filter.Limit}},
+	}
+}
+
+func GetUsersLocationsPipeLine(limit int64, skip int64, order string, email string) bson.A {
+	// Create a match filter
+	matchFilter := bson.D{}
+
+	// Conditionally add the email filter if email is not empty
+	if email != "" {
+		matchFilter = append(matchFilter, bson.E{Key: "email", Value: bson.D{{Key: "$eq", Value: email}}})
+	}
+
+	var sort int64
+	if order == "asc" {
+		sort = 1
+	} else {
+		sort = -1
+	}
+
+	return bson.A{
+		bson.D{{Key: "$match", Value: matchFilter}},
+		bson.D{{Key: "$unwind", Value: "$knownLocations"}},
+		bson.D{
+			{Key: "$project",
+				Value: bson.D{
+					{Key: "_id", Value: 0},
+					{Key: "email", Value: 1},
+					{Key: "name", Value: "$details.name"},
+					{Key: "city", Value: "$knownLocations.city"},
+					{Key: "region", Value: "$knownLocations.region"},
+					{Key: "country", Value: "$knownLocations.country"},
+					{Key: "location", Value: "$knownLocations.location"},
+					{Key: "ipAddress", Value: "$knownLocations.ipAddress"},
+				},
+			},
+		},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "email", Value: sort}}}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
 	}
 }

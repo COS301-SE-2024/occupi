@@ -22,6 +22,7 @@ import BookingLevelCalendar from "@components/aiDashboard/aiDashGraphs/BookingLe
 import BookingStats from "./bookingStats/bookingStats";
 import WorkerStatsDashboard from "./worker-dash/WorkerDashboard";
 import BookingsDashboardPage from "./bookingsDash/BookingsDashboardPage";
+import LocationPage from './Locations-page/LocationPage';
 export {
   LoginForm,
   OtpPage,
@@ -46,7 +47,7 @@ export {
   BookingLevelCalendar,
   BookingStats,
   WorkerStatsDashboard,
-  BookingsDashboardPage
-
+  BookingsDashboardPage,
+  LocationPage
 
 };

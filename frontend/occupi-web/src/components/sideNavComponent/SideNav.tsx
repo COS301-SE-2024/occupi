@@ -9,6 +9,7 @@ import {
   Bar,
   Worker,
   Employee,
+  Location,
 } from "@assets/index";
 import { ProfileDropDown, SideNavBarButton } from "@components/index";
 import { motion } from "framer-motion";
@@ -50,7 +51,10 @@ const sidebarcontent = [
     icon: Home,
     text: "Rooms",
   },
-
+  {
+    icon: Location,
+    text: "IP addresses",
+  },
   {
     icon: Report,
     text: "Reports",
@@ -88,6 +92,7 @@ const SideNav = () => {
     else if (arg === "Booking Statistics") navigate("/booking-statistics/overview");
     else if (arg === "Worker Dashboard") navigate("/worker-dashboard");
     else if (arg === "Employees") navigate("/employees");
+    else if (arg === "IP addresses") navigate("/user-locations");
     else;
   }
 
@@ -107,6 +112,7 @@ const SideNav = () => {
       else if (pn.startsWith("/booking-statistics")) setSelectedPanel("Booking Statistics");
       else if (pn.startsWith("/worker-dashboard")) setSelectedPanel("Worker Dashboard");
       else if (pn.startsWith("/employees")) setSelectedPanel("Employees");
+      else if (pn.startsWith("/user-locations")) setSelectedPanel("IP addresses");
       else setSelectedPanel("");
     };
 

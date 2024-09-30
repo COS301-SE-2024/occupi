@@ -58,6 +58,16 @@ export class DataService {
     }
   }
 
+  public async fecthUserLocations() {
+    try {
+      const response = await axios.get(`${this.baseUrl}/get-users-locations`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching user locations:', error);
+      throw error;
+    }
+  }
+
   // You can add more methods here for other API calls
 }
 

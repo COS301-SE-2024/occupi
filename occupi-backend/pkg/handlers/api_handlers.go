@@ -1854,3 +1854,60 @@ func GetNotificationCount(ctx *gin.Context, appsession *models.AppSession) {
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched notification count!", gin.H{"unread": unReadCount, "total": totalCount}))
 }
+
+func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession) {
+	var email string
+	var order string
+	var limit int64
+	var page int64
+	var err error
+	order = ctx.Query("sort")
+	if order == "" || (order != "asc" && order != "desc") {
+		order = "asc"
+	}
+
+	limitStr := ctx.Query("limit")
+	if limitStr != "" {
+		limit, err = strconv.ParseInt(limitStr, 10, 64) // Base 10, 64-bit size
+		if err != nil {
+			limit = 50 // Default limit
+		}
+	}
+
+	pageStr := ctx.Query("page")
+	if pageStr != "" {
+		page, err = strconv.ParseInt(pageStr, 10, 64) // Base 10, 64-bit size
+		if err != nil {
+			page = 1 // Default page
+		}
+	}
+
+	// For email filter
+	email = ctx.Query("email")
+	// validate email
+	if email != "" && !utils.ValidateEmail(email) {
+		configs.CaptureError(ctx, errors.New("invalid email address"))
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Invalid request payload", constants.InvalidRequestPayloadCode, "Invalid email address", nil))
+		return
+	}
+
+	if limit <= 0 || limit > 50 {
+		limit = 50 // Default limit
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+	skip := (page - 1) * limit
+
+	locations, totalResults, err := database.GetUsersLocations(ctx, appsession, limit, skip, order, email)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to get users locations because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponseWithMeta(http.StatusOK, "Successfully fetched users locations!", locations, gin.H{
+		"totalResults": len(locations), "totalPages": (totalResults + limit - 1) / limit, "currentPage": page}))
+}
