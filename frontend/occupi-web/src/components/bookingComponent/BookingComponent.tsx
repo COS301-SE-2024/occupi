@@ -184,7 +184,6 @@ export default function App() {
         return (
           <Dropdown>
             <DropdownTrigger>
-              
               <Button
                 color={user.role === "basic" ? "primary" : "secondary"}
                 variant="flat"
