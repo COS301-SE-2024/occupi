@@ -57,7 +57,7 @@ const ViewBookings = () => {
                 setLoading(true);
                 const currentData = await getCurrentBookings();
                 const historicalData = await getHistoricalBookings();
-                console.log(currentData);
+                // console.log(currentData);
                 if (currentData) {
                     setCurrentBookings(currentData);
                 }
@@ -183,7 +183,7 @@ const ViewBookings = () => {
     }
 
     const renderBookings = (bookings: Booking[]) => {
-        console.log('boookings',bookings);
+        // console.log('boookings',bookings);
         if (loading) {
             return (
                 <>

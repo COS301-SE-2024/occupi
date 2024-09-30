@@ -101,9 +101,9 @@ export async function fetchRooms(floorNo: string, roomName: string) {
             return response.data;
             // console.log(settings);
         }
-        else {
-            console.log(response)
-        }
+        // else {
+        //     console.log(response)
+        // }
         return response.data as Room[];
     } catch (error) {
         console.error('Error:', error);

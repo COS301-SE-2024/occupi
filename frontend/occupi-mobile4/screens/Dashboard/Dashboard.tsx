@@ -62,7 +62,7 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState(1);
   const [weeklyData, setWeeklyData] = useState();
   const [hourlyData, setHourlyData] = useState();
-  const counter = useCentrifugeCounter();
+  const counter = 0;
   const [isRecommendationsVisible, setIsRecommendationsVisible] = useState(false);
 
   // console.log(isDarkMode);

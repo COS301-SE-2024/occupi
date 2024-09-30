@@ -6,6 +6,7 @@ export async function storeUserData(value: string) {
 }
 
 export async function storeToken(value: string) {
+  console.log('tokenn',value);
   await SecureStore.setItemAsync('Token', value);
 }
 

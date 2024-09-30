@@ -15,7 +15,7 @@ export async function fetchUserDetails(email: string, token: string) {
             console.log(response)
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error User Data:', error);
     }
 }
 
@@ -35,7 +35,7 @@ export async function fetchNotificationSettings(email: string) {
             console.log(response)
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching Notisettings:', error);
     }
 }
 
@@ -55,7 +55,7 @@ export async function fetchSecuritySettings(email: string) {
             console.log(response)
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching secusettings:', error);
     }
 }
 

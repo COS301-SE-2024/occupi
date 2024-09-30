@@ -49,7 +49,7 @@ export default function ForgotPassword() {
   const toast = useToast();
 
   const onSubmit = async (data: SignUpSchemaType) => {
-    const response = await userForgotPassword(data.email);
+    const response = await userForgotPassword(data?.email);
     console.log(response);
     if (response === "Invalid email") {
       toast.show({
@@ -180,7 +180,7 @@ export default function ForgotPassword() {
 
           <FormControl
             my={24}
-            isInvalid={(!!errors.email) && !!errors.email}
+            isInvalid={(!!errors?.email) && !!errors?.email}
             isRequired={true}
             px="$4"
           >

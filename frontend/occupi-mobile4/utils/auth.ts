@@ -17,15 +17,15 @@ export async function UserLogin(email: string, password: string) {
             password: password
         });
         if (response.status === 200) {
-            // console.log('responseee',response);
+            console.log('responseee',response);
             if (response.data !== null) {
                 setState('logged_in');
-                storeToken(response.data.token);
-                // console.log('here');
+                await storeToken(response.data.token);
+                console.log('log in token',response.data.token);
                 fetchUserDetails(email, response.data.token);
                 fetchNotificationSettings(email);
                 fetchSecuritySettings(email);
-                router.replace('/home');
+                router.replace('/viewbookings');
             }
             else {
                 setState('verify_otp_login');
@@ -39,7 +39,7 @@ export async function UserLogin(email: string, password: string) {
             return response.message;
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error01:', error);
     }
 }
 

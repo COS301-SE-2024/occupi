@@ -21,9 +21,10 @@ export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful>
         return response.data as LoginSuccess;
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            // console.log(error.response.data);
+            console.log('Error02');
             return error.response.data as Unsuccessful;
         } else {
+            console.log('Error03')
             throw error;
         }
     }
