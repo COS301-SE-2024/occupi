@@ -709,7 +709,7 @@ const Dashboard: React.FC = () => {
             shadowOpacity: 0.25,
             shadowRadius: 4,
             elevation: 5,
-            height: '80%' // Adjust this value to control how much of the screen the modal covers
+            height: '90%' 
           }}>
             <Recommendations onClose={() => setIsRecommendationsVisible(false)} />
           </View>
