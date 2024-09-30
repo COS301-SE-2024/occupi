@@ -74,7 +74,7 @@
     "lucide-react-native": "^0.395.0",
     "moti": "^0.29.0",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react-dom": "18.3.1",
     "react-hook-form": "^7.52.0",
     "react-native": "0.74.2",
     "react-native-calendar-picker": "^6.1.5",
