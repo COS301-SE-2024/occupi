@@ -339,14 +339,15 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                 </Button>
                 {reportData ? (
                   <Button className="bg-text_col_secondary_alt  ">
+                    {/* @ts-ignore */}
                     <PDFDownloadLink
                       className="text-text_col_alt bg-secondary-alt "
                       document={generateReportPDF()}
                       fileName={`${user.name}_Stats_Report.pdf`}
                     >
-                       {({ loading }: { loading: boolean }) => (
-                          <>{loading ? "Generating PDF..." : "Download PDF Report"}</>
-                        )}
+                      {({ loading }) =>
+                        loading ? "Generating PDF..." : "Download PDF Report"
+                      }
                     </PDFDownloadLink>
                   </Button>
                 ) : (
