@@ -48,7 +48,7 @@
     "@ui-kitten/components": "^5.3.1",
     "axios": "^1.7.2",
     "date-fns": "^3.6.0",
-    "expo": "^51.0.32",
+    "expo": "^51.0.31",
     "expo-blur": "^13.0.2",
     "expo-checkbox": "~3.0.0",
     "expo-constants": "~16.0.2",
