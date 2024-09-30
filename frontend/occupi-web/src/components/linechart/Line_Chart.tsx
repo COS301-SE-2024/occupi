@@ -14,7 +14,7 @@ import { Button } from "@nextui-org/react";
 import { getCapacityComparisonData, CapacityData } from "CapacityService";
 
 const CapacityComparisonGraph = () => {
-  const [capacityComparisonData, setCapacityComparisonData] = useState<Pick<CapacityData, 'day' | 'predicted'>[]>([]);
+  const [capacityComparisonData, setCapacityComparisonData] = useState<(Pick<CapacityData, 'day' | 'predicted'> & { date: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const chartRef = useRef<HTMLDivElement | null>(null);
@@ -23,7 +23,11 @@ const CapacityComparisonGraph = () => {
     const loadData = async () => {
       try {
         const data = await getCapacityComparisonData();
-        setCapacityComparisonData(data);
+        const dataWithDates = data.map((item, index) => ({
+          ...item,
+          date: new Date(Date.now() + index * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        }));
+        setCapacityComparisonData(dataWithDates);
         setLoading(false);
       } catch (err) {
         setError(err as Error);
@@ -56,7 +60,6 @@ const CapacityComparisonGraph = () => {
 
   return (
     <div ref={chartRef} style={{ width: "100%", height: 400 }}>
-      {/* <h3 className="text-lg font-semibold mb-4">AI Predicted Capacity</h3> */}
       <Button 
         className="mt-3 mb-3 ml-3 bg-primary_alt font-semibold text-text_col_alt"
         onClick={handleDownload}
@@ -83,9 +86,19 @@ const CapacityComparisonGraph = () => {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="day" />
+          <XAxis 
+            dataKey="date" 
+            tickFormatter={(value) => value}
+          />
           <YAxis />
-          <Tooltip />
+          <Tooltip 
+            labelFormatter={(value, payload) => {
+              if (payload && payload[0]) {
+                return `Date: ${value} (Day ${payload[0].payload.day})`;
+              }
+              return `Date: ${value}`;
+            }} 
+          />
           <Legend />
           <Area
             type="monotone"
@@ -93,7 +106,7 @@ const CapacityComparisonGraph = () => {
             stroke="#A1FF43"
             fill="url(#colorPredicted)"
             strokeWidth={3}
-            name="Predicted"
+            name="Predicted Capacity"
           />
         </AreaChart>
       </ResponsiveContainer>

@@ -26,10 +26,10 @@ const convertRangeToNumber = (range: string): number => {
 
 interface ChartData {
   name: string;
-  Today: number;
+  date: string;
+  ThisWeek: number;
   LastWeek: number;
 }
-
 
 const CapacityComparisonBarChart = () => {
   const [data, setData] = useState<ChartData[]>([]);
@@ -44,8 +44,9 @@ const CapacityComparisonBarChart = () => {
         const lastWeekData = await fetchPreviousWeekData();
 
         const combinedData = thisWeekData.map((item, index) => ({
-          name: item.day,
-          Today: item.predicted,
+          name: `${item.day} (${item.date.slice(5)})`,
+          date: item.date,
+          ThisWeek: item.predicted,
           LastWeek: lastWeekData[index % 7].predicted,
         }));
 
@@ -141,10 +142,13 @@ const CapacityComparisonBarChart = () => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis />
-            <Tooltip />
-            <Legend />
+            <Tooltip 
+              labelFormatter={(value) => `Date: ${value}`}
+              formatter={(value, name) => [value, name === "ThisWeek" ? "This Week" : "Last Week"]}
+            />
+            <Legend formatter={(value) => (value === "ThisWeek" ? "This Week" : "Last Week")} />
             <Bar dataKey="LastWeek" fill="#FF5F5F" radius={[6, 6, 0, 0]} />
-            <Bar dataKey="Today" fill="#AFF16C" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="ThisWeek" fill="#AFF16C" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
