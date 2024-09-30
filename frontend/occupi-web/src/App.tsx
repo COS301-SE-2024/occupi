@@ -1,4 +1,4 @@
-import { LoginForm, OtpPage, Settings, Dashboard, Faq, AiDashboard, Rooms, AboutPage, SecurityPage, BookingStats, WorkerStatsDashboard, BookingsDashboardPage, ForgotPassword, ResetPassword } from "@pages/index";
+import { LoginForm, OtpPage, Settings, Dashboard, Faq, AiDashboard, Rooms, AboutPage, SecurityPage, BookingStats, WorkerStatsDashboard, BookingsDashboardPage, ForgotPassword, ResetPassword, LocationPage } from "@pages/index";
 import { Appearance, BookingComponent, PDFReport, ProfileView } from "@components/index";
 import { Layout } from "@layouts/index";
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -60,6 +60,7 @@ function App() {
                 <Route path="booking-statistics/bookings-dashboard" element={<BookingsDashboardPage />} />
                 <Route path="worker-dashboard" element={<WorkerStatsDashboard />} />
                 <Route path="employees" element={<BookingComponent />} />
+                <Route path="user-locations" element={<LocationPage />} />
                 <Route path="settings/*" element={<Settings />}>
                   <Route path="profile" element={<ProfileView />} />
                   <Route path="appearance" element={<Appearance />} />
