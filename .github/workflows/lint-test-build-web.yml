@@ -95,6 +95,10 @@ jobs:
     - name: 🏗 Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    # run npm install so we can get package-lock.json file since it's not in the repo due to bun
+    - name: 📦 Install dependencies
+      run: npm install
+
     - name: 🐳 Build Docker image
       run: |
         docker build --no-cache -t ${{ secrets.DOCKER_USERNAME }}/occupi-web:latest-develop -f Dockerfile.dev .
