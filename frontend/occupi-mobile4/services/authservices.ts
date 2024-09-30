@@ -9,25 +9,29 @@ import * as SecureStore from 'expo-secure-store';
 // console.log(devUrl);
 
 export async function login(req: LoginReq): Promise<LoginSuccess | Unsuccessful> {
-    try {
+        try {
         console.log(req);
-        const response = await axios.post("https://dev.occupi.tech/auth/login-mobile", req, {
+        const response = await fetch("https://dev.occupi.tech/auth/login-mobile", {
+            method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            withCredentials: true
+            credentials: 'include',
+            body: JSON.stringify(req)
         });
-        // console.log(response.data);
-        return response.data as LoginSuccess;
-    } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
-            console.error('Error02');
-            return error.response.data as Unsuccessful;
-        } else {
-            console.error('Error03', error)
-            throw error;
+    
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error02', errorData);
+            return errorData as Unsuccessful;
         }
+    
+        const data = await response.json();
+        return data as LoginSuccess;
+    } catch (error) {
+        console.error('Error03', error);
+        throw error;
     }
 }
 

@@ -17,6 +17,7 @@ import {
 // } from "react-native-chart-kit";
 import * as SecureStore from 'expo-secure-store';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { enter, exit, useCentrifugeCounter } from '@/utils/rtc';
 import { Ionicons } from '@expo/vector-icons';
 // import { router } from 'expo-router';
@@ -53,7 +54,7 @@ const Dashboard: React.FC = () => {
   const [topBookings, setTopBookings] = useState([]);
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState<Date>(new Date(1598051730000));
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [shouldCheckin, setShouldCheckin] = useState(false);
   const toast = useToast();
@@ -117,6 +118,11 @@ const Dashboard: React.FC = () => {
     setCurrentData(weeklyData);
   }
 
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate;
+    setDatePickerVisibility(false);
+    setDate(currentDate);
+  };
 
   const useLocationCheckin = () => {
     Alert.alert(
@@ -392,7 +398,7 @@ const Dashboard: React.FC = () => {
     setDatePickerVisibility(true);
   };
 
-  const handleConfirm = (date: Date) => {
+  const handleConfirm = (event, date: Date) => {
     const selectedDate: string = date.toString();
     console.log('selected', extractDateFromTimestamp(selectedDate));
     setDate(extractDateFromTimestamp(selectedDate));
@@ -530,13 +536,14 @@ const Dashboard: React.FC = () => {
                 )}
 
               </TouchableOpacity>
-              <DateTimePickerModal
-                isVisible={isDatePickerVisible}
-                mode="date"
-                // display="calendar"
-                onConfirm={handleConfirm}
-                onCancel={hideDatePicker}
-              />
+              {isDatePickerVisible && (
+                <DateTimePicker
+                  value={new Date()}
+                  mode='date'
+                  is24Hour={true}
+                  onChange={handleConfirm}
+                />
+              )}
             </>
           }
         </View>
@@ -709,7 +716,7 @@ const Dashboard: React.FC = () => {
             shadowOpacity: 0.25,
             shadowRadius: 4,
             elevation: 5,
-            height: '90%' 
+            height: '90%'
           }}>
             <Recommendations onClose={() => setIsRecommendationsVisible(false)} />
           </View>
