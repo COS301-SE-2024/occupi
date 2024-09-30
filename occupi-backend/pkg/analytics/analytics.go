@@ -1173,7 +1173,26 @@ func GetLocationsCount(email string) bson.A {
 		// Step 1: Match users by email
 		bson.D{{Key: "$match", Value: matchFilter}},
 		// Step 2: Project only the size of the knownLocations array
-		bson.D{{Key: "$project", Value: bson.M{"locationCount": bson.M{"$size": "$knownLocations"}}}},
+		bson.D{
+			{Key: "$project",
+				Value: bson.D{
+					{Key: "locationCount",
+						Value: bson.D{
+							{Key: "$size",
+								Value: bson.D{
+									{Key: "$ifNull",
+										Value: bson.A{
+											"$knownLocations",
+											bson.A{},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		// Step 3: Group to sum up the total size of all knownLocations arrays
 		bson.D{{Key: "$group", Value: bson.M{
 			"_id":            nil,                              // We don't care about grouping by email here
