@@ -1133,6 +1133,7 @@ func GetUsersLocationsPipeLine() bson.A {
 				Value: bson.D{
 					{Key: "_id", Value: 0},
 					{Key: "email", Value: 1},
+					{Key: "name", Value: "$details.name"},
 					{Key: "city", Value: "$knownLocations.city"},
 					{Key: "region", Value: "$knownLocations.region"},
 					{Key: "country", Value: "$knownLocations.country"},
