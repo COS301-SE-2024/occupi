@@ -81,7 +81,7 @@ func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
 
 	if utils.IsMobileDevice(ctx) {
 		user, errv := cache.GetMobileUser(appsession, claims.Email)
-		if errv != nil {
+		if errv != nil && errv.Error() != "cache not found" {
 			ctx.JSON(http.StatusBadRequest,
 				utils.ErrorResponse(
 					http.StatusBadRequest,
