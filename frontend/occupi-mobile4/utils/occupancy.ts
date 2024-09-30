@@ -1,5 +1,6 @@
 import { fetchHourlyPredictions, getDayPredictions, getPredictions, getWeekPredictions } from '../services/aimodel';
 import { Prediction } from '@/models/data';
+import { getRecommendations, recommendOfficeTimes, predictDay, predictHourly } from '../services/apiservices';
 
 export interface ExtractedPrediction {
     Date: number;
@@ -274,4 +275,93 @@ export async function mapToClassForSpecificHours() {
     }
 }
 
-// getFormattedPredictionData();
+
+
+export async function getAIRecommendations() {
+    try {
+        const recommendations = await getRecommendations();
+        if (recommendations.status === 200) {
+            return recommendations.data;
+        } else {
+            console.error('Failed to get AI recommendations:', recommendations.error);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error in getAIRecommendations:', error);
+        return null;
+    }
+}
+
+export async function getAIOfficeTimeRecommendations() {
+    try {
+        const officeTimeRecommendations = await recommendOfficeTimes();
+        if (officeTimeRecommendations.status === 200) {
+            return officeTimeRecommendations.data;
+        } else {
+            console.error('Failed to get AI office time recommendations:', officeTimeRecommendations.error);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error in getAIOfficeTimeRecommendations:', error);
+        return null;
+    }
+}
+
+export async function getDayOccupancyPrediction(date: string, startHour: number, endHour: number) {
+    try {
+        const dayPrediction = await predictDay(date, startHour, endHour);
+        if (dayPrediction.status === 200) {
+            return dayPrediction.data;
+        } else {
+            console.error('Failed to get day occupancy prediction:', dayPrediction.error);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error in getDayOccupancyPrediction:', error);
+        return null;
+    }
+}
+
+export async function getHourlyOccupancyPrediction(date: string, hour: number) {
+    try {
+        const hourlyPrediction = await predictHourly(date, hour);
+        if (hourlyPrediction.status === 200) {
+            return hourlyPrediction.data;
+        } else {
+            console.error('Failed to get hourly occupancy prediction:', hourlyPrediction.error);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error in getHourlyOccupancyPrediction:', error);
+        return null;
+    }
+}
+
+export async function getFormattedAIRecommendations() {
+    const recommendations = await getAIRecommendations();
+    if (!recommendations) {
+        return [];
+    }
+    // Format the recommendations as needed for the frontend
+    // This is a placeholder - adjust according to your actual data structure
+    return recommendations.map((rec: any) => ({
+        title: rec.title,
+        description: rec.description,
+        // Add any other relevant fields
+    }));
+}
+
+export async function getFormattedOfficeTimeRecommendations() {
+    const officeTimeRecommendations = await getAIOfficeTimeRecommendations();
+    if (!officeTimeRecommendations) {
+        return [];
+    }
+    // Format the office time recommendations as needed for the frontend
+    // This is a placeholder - adjust according to your actual data structure
+    return officeTimeRecommendations.map((rec: any) => ({
+        day: rec.day,
+        startTime: rec.startTime,
+        endTime: rec.endTime,
+        // Add any other relevant fields
+    }));
+}
