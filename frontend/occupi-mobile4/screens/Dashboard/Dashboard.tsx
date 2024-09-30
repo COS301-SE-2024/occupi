@@ -16,7 +16,6 @@ import {
 //   LineChart
 // } from "react-native-chart-kit";
 import * as SecureStore from 'expo-secure-store';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { enter, exit, useCentrifugeCounter } from '@/utils/rtc';
 import { Ionicons } from '@expo/vector-icons';
@@ -324,7 +323,6 @@ const Dashboard: React.FC = () => {
     if (entered.status === 200) {
       setCheckedIn(true);
       storeCheckInValue(true);
-
       // setCurrentData(hourlyData);
       toast.show({
         placement: 'top',
@@ -398,8 +396,8 @@ const Dashboard: React.FC = () => {
     setDatePickerVisibility(true);
   };
 
-  const handleConfirm = (event, date: Date) => {
-    const selectedDate: string = date.toString();
+  const handleConfirm = (event, date?: Date) => {
+    const selectedDate: string = date?.toString();
     console.log('selected', extractDateFromTimestamp(selectedDate));
     setDate(extractDateFromTimestamp(selectedDate));
     getPredictionsFromWeek(extractDateFromTimestamp(selectedDate));
@@ -509,42 +507,59 @@ const Dashboard: React.FC = () => {
             </TouchableOpacity>
           </View>
           {activeTab !== 1 &&
-            <>
+            <View alignItems='center' justifyContent='center'>
               <TouchableOpacity
                 style={{
                   paddingVertical: 7,
-                  paddingHorizontal: 14,
+                  paddingHorizontal: 16,
                   borderRadius: 8,
                   backgroundColor: isDarkMode === true ? '#242424' : 'lightgrey',
-                  marginHorizontal: 48,
                   marginTop: 8,
                   marginBottom: 8,
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: wp('80%')
                 }}
                 onPress={showDatePicker}
               >
                 {date ? (
-                  <Text color={textColor} fontSize={16}>
-                    Week from: {date}
-                  </Text>
+                  <View flexDirection='row' alignItems='center'>
+                    <Text color={textColor} fontSize={16}>
+                      {activeTab === 2 ? 'Day: ' : 'Week from: '}
+                    </Text>
+                    <DateTimePicker
+                      value={new Date()}
+                      mode='date'
+                      is24Hour={true}
+                      onChange={handleConfirm}
+                    />
+                  </View>
                 ) : (
                   activeTab === 2 ? (
-                    <Text color={textColor} fontSize={16}>Select Day:</Text>
+                    <View flexDirection='row' alignItems='center'>
+                      <Text color={textColor} fontSize={16}>Select Day:</Text>
+                      <DateTimePicker
+                        value={new Date()}
+                        mode='date'
+                        is24Hour={true}
+                        onChange={handleConfirm}
+                      />
+                    </View>
                   ) : activeTab === 3 && (
-                    <Text color={textColor} fontSize={16}>Select Week From:</Text>
+                    <View flexDirection='row' alignItems='center'>
+                      <Text color={textColor} fontSize={16}>Select Week From:</Text>
+                      <DateTimePicker
+                        value={new Date()}
+                        mode='date'
+                        is24Hour={true}
+                        onChange={handleConfirm}
+                      />
+                    </View>
                   )
                 )}
 
               </TouchableOpacity>
-              {isDatePickerVisible && (
-                <DateTimePicker
-                  value={new Date()}
-                  mode='date'
-                  is24Hour={true}
-                  onChange={handleConfirm}
-                />
-              )}
-            </>
+            </View>
           }
         </View>
         <View mt="$4" alignItems='center' flexDirection='row' justifyContent='space-between'>
@@ -568,7 +583,7 @@ const Dashboard: React.FC = () => {
               justifyContent: 'center',
               alignItems: 'center'
             }}
-            onPress={() => router.push('/stats')}
+            onPress={() => router.push('/loadingscreen')}
           >
             <View flexDirection="row" alignItems="center" justifyContent='space-between'>
               <View flexDirection='row' alignItems='center'>
