@@ -1159,3 +1159,22 @@ func GetUsersLocationsPipeLine(limit int64, skip int64, order string, email stri
 		bson.D{{Key: "$limit", Value: limit}},
 	}
 }
+
+func GetLocationsCount(email string) bson.A {
+	var mongoFilter bson.M
+	if email != "" {
+		mongoFilter = bson.M{"email": email}
+	}
+
+	return bson.A{
+		// Step 1: Match users by email
+		bson.D{{Key: "$match", Value: mongoFilter}},
+		// Step 2: Project only the size of the knownLocations array
+		bson.D{{Key: "$project", Value: bson.M{"locationCount": bson.M{"$size": "$knownLocations"}}}},
+		// Step 3: Group to sum up the total size of all knownLocations arrays
+		bson.D{{Key: "$group", Value: bson.M{
+			"_id":            nil,                              // We don't care about grouping by email here
+			"totalLocations": bson.M{"$sum": "$locationCount"}, // Total count of knownLocations
+		}}},
+	}
+}

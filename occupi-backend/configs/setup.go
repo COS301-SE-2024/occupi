@@ -108,7 +108,8 @@ func CreateCache() *redis.Client {
 
 // Create mobile link cache
 func CreateMobileCache() *redis.Client {
-	redisPassword := GetRedisPassword()
+	return nil
+	/*redisPassword := GetRedisPassword()
 	redisHost := GetRedisHost()
 	redisPort := GetRedisPort()
 
@@ -131,7 +132,7 @@ func CreateMobileCache() *redis.Client {
 	fmt.Println("Mobile Cache created!")
 	logrus.Info("Mobile Cache created!")
 
-	return client
+	return client*/
 }
 
 // Create cache for sessions

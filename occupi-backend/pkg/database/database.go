@@ -2296,20 +2296,47 @@ func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession, limit in
 
 	var locations []primitive.M
 	if err = cursor.All(ctx, &locations); err != nil {
+		logrus.Error(err)
 		return nil, 0, err
 	}
 
-	var mongoFilter bson.M
-	if email != "" {
-		mongoFilter = bson.M{"email": email}
-	}
-
-	// count documents
-	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
+	totalResults, err := CountUserLocations(ctx, appsession, email)
 	if err != nil {
-		logrus.WithError(err).Error("Failed to count documents")
+		logrus.Error(err)
 		return nil, 0, err
 	}
 
 	return locations, totalResults, nil
+}
+
+func CountUserLocations(ctx *gin.Context, appsession *models.AppSession, email string) (int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return 0, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	pipeline := analytics.GetLocationsCount(email)
+
+	// Perform aggregation
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		logrus.Error(err)
+		return 0, err
+	}
+
+	var result struct {
+		TotalLocations int64 `bson:"totalLocations"` // Map the result field
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			logrus.Error(err)
+			return 0, err
+		}
+	}
+
+	return result.TotalLocations, nil
 }

@@ -284,7 +284,7 @@ func TestGetTop3MostBookedRooms(t *testing.T) {
 
 	// check len is greater than 0
 	if len(res) == 0 {
-		t.Errorf("CalculateInOfficeRate() = %v, want greater than 0", res)
+		t.Errorf("GetTop3MostBookedRooms() = %v, want greater than 0", res)
 	}
 }
 
@@ -297,7 +297,7 @@ func TestAggregateBookings(t *testing.T) {
 
 	// check len is greater than 0
 	if len(res) == 0 {
-		t.Errorf("CalculateInOfficeRate() = %v, want greater than 0", res)
+		t.Errorf("AggregateBookings() = %v, want greater than 0", res)
 	}
 }
 
@@ -306,6 +306,15 @@ func TestGetUsersLocationsPipeLine(t *testing.T) {
 
 	// check len is greater than 0
 	if len(res) == 0 {
-		t.Errorf("CalculateInOfficeRate() = %v, want greater than 0", res)
+		t.Errorf("GetUsersLocationsPipeLine() = %v, want greater than 0", res)
+	}
+}
+
+func TestGetLocationsCount(t *testing.T) {
+	res := analytics.GetLocationsCount("test@example.com")
+
+	// check len is greater than 0
+	if len(res) == 0 {
+		t.Errorf("GetLocationsCount() = %v, want greater than 0", res)
 	}
 }
