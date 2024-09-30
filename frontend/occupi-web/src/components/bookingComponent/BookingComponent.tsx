@@ -30,6 +30,7 @@ import { ChevronDownIcon } from "@assets/index";
 import { columns, users, statusOptions } from "../data/Data";
 import { capitalize } from "../data/Utils";
 import { OccupancyModal, TopNav } from "@components/index";
+import axios from "axios";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
   ONSITE: "success",
@@ -40,6 +41,25 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
 // type BookingComponentProps = {
 //   positionColumnName: string; // Add other props as needed
 // };
+
+const handleRoleChange = async (user: User, newRole: string) => {  
+  try {  
+   const response = await axios.put('/api/toggle-admin-status', {  
+    email: user.email,  
+    role: newRole  
+   });  
+  
+   if (response.status === 200) {  
+    console.log('Role changed successfully');  
+    // Update the user role in the state  
+    // Update the users state with the updated users array  
+   } else {  
+    console.error('Error changing role:', response.status);  
+   }  
+  } catch (error) {  
+   console.error('Error changing role:', error);  
+  }  
+};
 
 const INITIAL_VISIBLE_COLUMNS = ["name", "position", "status", "role", "actions"];
 
@@ -154,26 +174,27 @@ export default function App() {
             {cellValue}
           </Chip>
         );
-      case "role":
-        return (
-          <Dropdown>
-            <DropdownTrigger>
-              <Button 
-                color={user.role === "basic" ? "primary" : "secondary"}
-                variant="flat" 
-              >
-                {user.role}
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu 
-              aria-label="Action event example" 
-              onAction={(key) => alert(key)}
-            >
-              <DropdownItem key="basic">basic</DropdownItem>
-              <DropdownItem key="admin">admin</DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-        )
+        case "role":  
+  return (  
+   <Dropdown>  
+    <DropdownTrigger>  
+      <Button  
+       color={user.role === "basic" ? "primary" : "secondary"}  
+       variant="flat"  
+      >  
+       {user.role}  
+      </Button>  
+    </DropdownTrigger>  
+    <DropdownMenu  
+      aria-label="Action event example"  
+      onAction={(key) => handleRoleChange(user, key.toString())}  
+    >  
+      <DropdownItem key="basic">basic</DropdownItem>  
+      <DropdownItem key="admin">admin</DropdownItem>  
+    </DropdownMenu>  
+   </Dropdown>  
+  )
+
         
       case "actions":
         
