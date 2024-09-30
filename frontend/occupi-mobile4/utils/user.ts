@@ -7,7 +7,10 @@ import * as SecureStore from 'expo-secure-store';
 
 export async function fetchUserDetails(email: string, token: string) {
     try {
-        const response = await getUserDetails(email, token);
+        let response = await getUserDetails(email, token); 
+        while (response.status === 429) {
+            response = await getUserDetails(email, token);
+        }
         if (response.status === 200) {
             storeUserData(JSON.stringify(response.data));
         }

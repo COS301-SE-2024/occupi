@@ -208,10 +208,6 @@ const Stats = () => {
                       <div class="metric-value" id="avgHoursPerDay">${convertToHoursAndMinutes(userAverage)}</div>
                   </div>
                   <div class="metric-card">
-                      <div class="metric-title">Work Ratio</div>
-                      <div class="metric-value" id="workRatio">${Math.floor(workRatio)}</div>
-                  </div>
-                  <div class="metric-card">
                       <div class="metric-title">Peak Hours</div>
                       <div class="metric-value" id="peakHours">N/A</div>
                   </div>
@@ -270,8 +266,15 @@ const Stats = () => {
       setInOfficeRate(inOffice);
       setIsLoading(false);
     } catch (error) {
+      setUserHours(-1);
+      setUserAverage(-1);
+      // setWorkRatio(ratio);
+      setPeakHours(-1);
+      setArrival(-1);
+      setDeparture(-1);
+      setInOfficeRate(-1);
       setIsLoading(false);
-      console.error('Error fetching user analytics:', error);
+      console.log('Error fetching user analytics:', error);
     }
   };
 

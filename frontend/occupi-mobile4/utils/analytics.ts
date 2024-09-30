@@ -16,7 +16,7 @@ export const fetchUserTotalHours = async (timeFrom?: string, timeTo?: string) =>
     }
     // console.log(req);
     const total = await getAnalytics(req, 'user-hours');
-    console.log('total');
+    // console.log('total');
     // console.log('totals',total.data[0].overallTotal);
     if (total.data === null) {
         console.log("returning -1");

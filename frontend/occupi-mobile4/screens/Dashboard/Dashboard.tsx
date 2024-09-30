@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useColorScheme, TouchableOpacity, Alert,Modal } from 'react-native';
+import { useColorScheme, TouchableOpacity, Alert, Modal } from 'react-native';
 import Navbar from '../../components/NavBar';
 import Entypo from '@expo/vector-icons/Entypo';
 import {
@@ -62,7 +62,7 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState(1);
   const [weeklyData, setWeeklyData] = useState();
   const [hourlyData, setHourlyData] = useState();
-  const counter = 0;
+  const counter = useCentrifugeCounter();
   const [isRecommendationsVisible, setIsRecommendationsVisible] = useState(false);
 
   // console.log(isDarkMode);
@@ -102,15 +102,6 @@ const Dashboard: React.FC = () => {
 
   const showWeek = () => {
     setActiveTab(3);
-    setWeekly();
-    setDate("");
-    // if (pagerRef.current) {
-    //   pagerRef.current.setPage(0);
-    // }
-  };
-
-  const showMonth = () => {
-    setActiveTab(4);
     setWeekly();
     setDate("");
     // if (pagerRef.current) {
@@ -216,7 +207,7 @@ const Dashboard: React.FC = () => {
       try {
         const prediction = await mapToClassForSpecificHours();
         setHourlyData(prediction);
-        console.log('hourly',prediction);
+        console.log('hourly', prediction);
         // if (prediction) {
         //   // console.log(prediction);
         //   setCurrentData(prediction);
@@ -436,10 +427,17 @@ const Dashboard: React.FC = () => {
         </View>
         <View pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <View alignItems='center'>
-            <Text fontWeight="bold" flexDirection='row' fontSize={wp('7%')} color={textColor}>
+            {activeTab === 1 ? (
+              <Text color={textColor} fontSize={16} fontWeight="bold">Live Data</Text>
+            ) : activeTab === 2 ? (
+              <Text color={textColor} fontSize={16} fontWeight="bold">Predicted Hourly Data</Text>
+            ) : (
+              <Text color={textColor} fontSize={16} fontWeight="bold">Predicted Weekly Data</Text>
+            )}
+            {activeTab === 1 && <Text fontWeight="bold" flexDirection='row' fontSize={wp('7%')} color={textColor}>
               {counter}
             </Text>
-            <View py="$2" flexDirection='row' alignItems='center'><Entypo name="triangle-up" size={20} color="green" /><Text fontSize={wp('4%')} color="green">1.35%</Text><Text fontSize={wp('4%')}> Today</Text></View>
+            }
           </View>
           <View w='$full' height={hp('30%')}>
             <PagerView
@@ -503,21 +501,6 @@ const Dashboard: React.FC = () => {
                 1W
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                paddingVertical: 7,
-                paddingHorizontal: 14,
-                borderRadius: 8,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: activeTab !== 4 ? 'transparent' : isDarkMode === true ? '#242424' : 'lightgrey',
-              }}
-              onPress={showMonth}
-            >
-              <Text color={activeTab === 4 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 4 ? 'bold' : 'normal'}>
-                1M
-              </Text>
-            </TouchableOpacity>
           </View>
           {activeTab !== 1 &&
             <>
@@ -541,10 +524,8 @@ const Dashboard: React.FC = () => {
                 ) : (
                   activeTab === 2 ? (
                     <Text color={textColor} fontSize={16}>Select Day:</Text>
-                  ) : activeTab === 3 ? (
+                  ) : activeTab === 3 && (
                     <Text color={textColor} fontSize={16}>Select Week From:</Text>
-                  ) : activeTab === 4 && (
-                    <Text color={textColor} fontSize={16}>Select Month:</Text>
                   )
                 )}
 
@@ -708,14 +689,14 @@ const Dashboard: React.FC = () => {
       </ScrollView >
       <Navbar style={{ position: 'absolute', bottom: 0, width: '100%' }} />
 
-    <Modal
+      <Modal
         animationType="slide"
         transparent={true}
         visible={isRecommendationsVisible}
         onRequestClose={() => setIsRecommendationsVisible(false)}
       >
         <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <View style={{ 
+          <View style={{
             backgroundColor: backgroundColor,
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,

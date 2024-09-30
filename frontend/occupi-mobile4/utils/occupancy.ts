@@ -247,7 +247,7 @@ export async function mapToAttendanceMidpointForSpecificHours() {
                 const midpoint = (min + max) / 2;
 
                 return {
-                    label: item.Hour,
+                    label: item.Hour+':00',
                     value: midpoint
                 };
             });
@@ -265,7 +265,7 @@ export async function mapToClassForSpecificHours() {
     return prediction.Hourly_Predictions
         .filter(item => specificHours.includes(item.Hour))  // Filter specific hours
         .map(item => ({
-            label: item.Hour,
+            label: item.Hour+':00',
             value: item.Predicted_Class
         }));
     }
