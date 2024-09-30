@@ -123,10 +123,10 @@ const Recommendations = ({ onClose }) => {
       setIsSpeaking(true);
       try {
         await Speech.speak(textToSpeak, {
-          language: "en-US",
-          pitch: 1.0,
-          rate: 0.9,
-          voice: "com.apple.ttsbundle.Samantha-compact",
+          language: "en-ZA",
+          pitch: 1.5,
+          rate: 1.0,
+          voice: "com.apple.ttsbundle.siri_female_en-GB_compact",
           onDone: () => setIsSpeaking(false),
           onError: (error) => {
             console.error("Speech error:", error);
