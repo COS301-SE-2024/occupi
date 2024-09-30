@@ -7791,6 +7791,42 @@ func TestDayOfTheWeek(t *testing.T) {
 	}
 }
 
+func TestDayofTheMonth(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected int
+	}{
+		{
+			name:     "Monday",
+			date:     time.Date(2024, 9, 9, 0, 0, 0, 0, time.UTC),
+			expected: 9,
+		},
+		{
+			name:     "Wednesday",
+			date:     time.Date(2024, 9, 11, 0, 0, 0, 0, time.UTC),
+			expected: 11,
+		},
+		{
+			name:     "Friday",
+			date:     time.Date(2024, 9, 13, 0, 0, 0, 0, time.UTC),
+			expected: 13,
+		},
+		{
+			name:     "Sunday",
+			date:     time.Date(2024, 9, 8, 0, 0, 0, 0, time.UTC),
+			expected: 8,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := database.DayofTheMonth(tt.date)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
 func TestMonth(t *testing.T) {
 	tests := []struct {
 		name     string
