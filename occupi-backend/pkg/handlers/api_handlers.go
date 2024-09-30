@@ -1854,3 +1854,15 @@ func GetNotificationCount(ctx *gin.Context, appsession *models.AppSession) {
 
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched notification count!", gin.H{"unread": unReadCount, "total": totalCount}))
 }
+
+func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession) {
+	locations, err := database.GetUsersLocations(ctx, appsession)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to get users locations because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched users locations!", locations))
+}

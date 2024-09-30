@@ -69,6 +69,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.PUT("/toggle-admin-status", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.ToggleAdminStatus(ctx, appsession) })
 		api.PUT("/notify-report-download", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.SendDownloadReportNotification(ctx, appsession) })
 		api.GET("/get-notifications-count", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, func(ctx *gin.Context) { handlers.GetNotificationCount(ctx, appsession) })
+		api.GET("/get-users-locations", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetUsersLocations(ctx, appsession) })
 	}
 	analytics := router.Group("/analytics")
 	{
