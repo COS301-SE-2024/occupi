@@ -93,7 +93,7 @@ interface Booking {
       expect(screen.getByText(/Conference Room/i)).toBeDefined();
 
       // Check if "John Doe" is rendered
-      const johnDoeElement = screen.queryByText((content, element) => {
+      const johnDoeElement = screen.queryByText((_content, element) => {
         return element?.textContent === 'John Doe';
       });
       expect(johnDoeElement).toBeDefined(); // Ensure the element exists
