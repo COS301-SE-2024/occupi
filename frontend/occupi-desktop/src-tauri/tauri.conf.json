@@ -20,8 +20,8 @@
     "windows": [
       {
         "title": "occupi-desktop",
-        "width": 1200,
-        "height": 600
+        "width": 1250,
+        "height": 700
       }
     ],
     "security": {
