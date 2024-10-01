@@ -6,17 +6,20 @@ import {
   FaTimesCircle,
   FaInfoCircle,
 } from "react-icons/fa";
+import axios from "axios";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 // Define types
 type OccupancyData = {
-  date: string;
-  occupancy: number;
-};
-
-type Benchmarks = {
-  averageOccupancy: number;
-  optimalOccupancy: number;
-  costPerSquareFoot: number;
+  Date: string;
+  Day_of_Week: number;
+  Day_of_month: number;
+  Is_Weekend: boolean;
+  Month: number;
+  Predicted_Attendance_Level: string;
+  Predicted_Class: number;
+  Special_Event: number;
 };
 
 type Recommendation = {
@@ -25,105 +28,141 @@ type Recommendation = {
   description: string;
 };
 
-// Simulated API call to fetch occupancy data
-const fetchOccupancyData = (): Promise<OccupancyData[]> => {
-  // This would be replaced with an actual API call
-  return Promise.resolve([
-    { date: "2023-09-01", occupancy: 65 },
-    { date: "2023-09-02", occupancy: 70 },
-    { date: "2023-09-03", occupancy: 75 },
-    { date: "2023-09-04", occupancy: 60 },
-    { date: "2023-09-05", occupancy: 80 },
-    { date: "2023-09-06", occupancy: 85 },
-    { date: "2023-09-07", occupancy: 90 },
-  ]);
-};
-
-// Simulated API call to fetch industry benchmarks
-const fetchIndustryBenchmarks = (): Promise<Benchmarks> => {
-  // This would be replaced with an actual API call to a service providing industry data
-  return Promise.resolve({
-    averageOccupancy: 75,
-    optimalOccupancy: 85,
-    costPerSquareFoot: 30,
-  });
+const fetchOccupancyData = async (date: string): Promise<OccupancyData> => {
+  const response = await axios.get(`https://ai.occupi.tech/predict_date?date=${date}`);
+  return response.data;
 };
 
 const OccupancyRecommendationEngine: React.FC = () => {
   const [occupancyData, setOccupancyData] = useState<OccupancyData[]>([]);
-  const [benchmarks, setBenchmarks] = useState<Benchmarks | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    fetchOccupancyData().then(setOccupancyData);
-    fetchIndustryBenchmarks().then(setBenchmarks);
-  }, []);
+    fetchData();
+  }, [startDate, endDate]);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    const data: OccupancyData[] = [];
+    const currentDate = new Date(startDate);
+    const lastDate = new Date(endDate);
+
+    while (currentDate <= lastDate) {
+      const formattedDate = currentDate.toISOString().split('T')[0];
+      const dayData = await fetchOccupancyData(formattedDate);
+      data.push(dayData);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    setOccupancyData(data);
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    if (occupancyData.length > 0 && benchmarks) {
+    if (occupancyData.length > 0) {
       analyzeOccupancy();
     }
-  }, [occupancyData, benchmarks]);
+  }, [occupancyData]);
 
   const analyzeOccupancy = () => {
-    if (!benchmarks) return;
-
-    const avgOccupancy =
-      occupancyData.reduce((sum, day) => sum + day.occupancy, 0) /
-      occupancyData.length;
     const newRecommendations: Recommendation[] = [];
 
-    if (avgOccupancy < benchmarks.averageOccupancy) {
+    const avgAttendance = occupancyData.reduce((sum, day) => {
+      const [min, max] = day.Predicted_Attendance_Level.split('-').map(Number);
+      return sum + (min + max) / 2;
+    }, 0) / occupancyData.length;
+
+    if (avgAttendance < 300) {
       newRecommendations.push({
         type: "warning",
-        title: "Below Average Occupancy",
-        description: `Your average occupancy (${avgOccupancy.toFixed(
-          1
-        )}%) is below the industry average (${
-          benchmarks.averageOccupancy
-        }%). Consider implementing flexible work arrangements or subleasing underutilized space.`,
+        title: "Low Average Attendance",
+        description: `Your average predicted attendance (${avgAttendance.toFixed(0)}) is low. Consider implementing strategies to increase office attendance or optimize space usage.`,
       });
-    } else if (avgOccupancy > benchmarks.optimalOccupancy) {
+    } else if (avgAttendance > 600) {
       newRecommendations.push({
         type: "success",
-        title: "High Occupancy",
-        description: `Your occupancy (${avgOccupancy.toFixed(
-          1
-        )}%) is above the optimal level (${
-          benchmarks.optimalOccupancy
-        }%). This is great for space utilization but ensure it doesn't impact employee comfort or productivity.`,
+        title: "High Average Attendance",
+        description: `Your average predicted attendance (${avgAttendance.toFixed(0)}) is high. Ensure that the office space can comfortably accommodate this level of occupancy.`,
       });
     }
 
-    if (avgOccupancy < 50) {
-      newRecommendations.push({
-        type: "error",
-        title: "Critically Low Occupancy",
-        description:
-          "Your occupancy is critically low. Consider downsizing or repurposing unused space to reduce costs.",
-      });
-    }
+    const attendanceTrend = parseInt(occupancyData[occupancyData.length - 1].Predicted_Attendance_Level.split('-')[1]) -
+                            parseInt(occupancyData[0].Predicted_Attendance_Level.split('-')[0]);
 
-    const occupancyTrend =
-      occupancyData[occupancyData.length - 1].occupancy -
-      occupancyData[0].occupancy;
-    if (occupancyTrend > 10) {
+    if (attendanceTrend > 100) {
       newRecommendations.push({
         type: "info",
-        title: "Increasing Occupancy Trend",
-        description:
-          "Occupancy is trending upwards. Prepare for potential space constraints and consider optimizing layout for higher capacity.",
+        title: "Increasing Attendance Trend",
+        description: "Attendance is predicted to increase over the selected period. Prepare for higher occupancy and consider adjusting resources accordingly.",
       });
-    } else if (occupancyTrend < -10) {
+    } else if (attendanceTrend < -100) {
       newRecommendations.push({
         type: "warning",
-        title: "Decreasing Occupancy Trend",
-        description:
-          "Occupancy is trending downwards. Investigate the cause and consider strategies to increase office attendance or reduce space.",
+        title: "Decreasing Attendance Trend",
+        description: "Attendance is predicted to decrease over the selected period. Investigate potential causes and consider strategies to encourage office attendance.",
       });
+    }
+
+    const specialEvents = occupancyData.filter(day => day.Special_Event === 1).length;
+    if (specialEvents > 0) {
+      newRecommendations.push({
+        type: "info",
+        title: "Special Events",
+        description: `There are ${specialEvents} special events scheduled in the selected period. Ensure appropriate preparations are made for these events.`,
+      });
+    }
+
+    // Seasonal analysis
+    const seasonalPatterns = analyzeSeasonalPatterns(occupancyData);
+    if (seasonalPatterns) {
+      newRecommendations.push(seasonalPatterns);
     }
 
     setRecommendations(newRecommendations);
+  };
+
+  const analyzeSeasonalPatterns = (data: OccupancyData[]): Recommendation | null => {
+    const monthlyAverages = new Array(12).fill(0).map(() => ({ sum: 0, count: 0 }));
+    
+    data.forEach(day => {
+      const [min, max] = day.Predicted_Attendance_Level.split('-').map(Number);
+      const avg = (min + max) / 2;
+      monthlyAverages[day.Month - 1].sum += avg;
+      monthlyAverages[day.Month - 1].count += 1;
+    });
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    let highestMonth = { month: "", avg: 0 };
+    let lowestMonth = { month: "", avg: Infinity };
+
+    monthlyAverages.forEach((month, index) => {
+      if (month.count > 0) {
+        const avg = month.sum / month.count;
+        if (avg > highestMonth.avg) {
+          highestMonth = { month: monthNames[index], avg };
+        }
+        if (avg < lowestMonth.avg) {
+          lowestMonth = { month: monthNames[index], avg };
+        }
+      }
+    });
+
+    if (highestMonth.avg > 0 && lowestMonth.avg < Infinity) {
+      return {
+        type: "info",
+        title: "Seasonal Attendance Patterns",
+        description: `Based on predictions, attendance is highest in ${highestMonth.month} (avg: ${highestMonth.avg.toFixed(0)}) and lowest in ${lowestMonth.month} (avg: ${lowestMonth.avg.toFixed(0)}). Plan resources and space utilization accordingly.`
+      };
+    }
+
+    return null;
   };
 
   const getIcon = (type: Recommendation["type"]) => {
@@ -146,28 +185,61 @@ const OccupancyRecommendationEngine: React.FC = () => {
       <Card>
         <CardHeader>
           <h4 className="text-lg font-semibold">
-            Occupancy Analysis and Recommendations
+            Occupancy Prediction and Recommendations
           </h4>
         </CardHeader>
         <CardBody>
-          {recommendations.map((rec, index) => (
-            <Card key={index} className={`mb-2 ${getCardColor(rec.type)}`}>
-              <CardBody className="flex items-center">
-                <div className="ml-2">
-                    <div className="flex items-center gap-3">
-                    {getIcon(rec.type)}
-                    <h5 className="font-semibold"> {rec.title}</h5>
+          <div className="flex space-x-4 mb-4">
+            <div>
+              <label className="block mb-2">Start Date</label>
+              <DatePicker
+                selected={startDate}
+                onChange={(date: Date | null) => {
+                  if (date) setStartDate(date);
+                }}
+                selectsStart
+                startDate={startDate}
+                endDate={endDate}
+              />
+            </div>
+            <div>
+              <label className="block mb-2">End Date</label>
+              <DatePicker
+                selected={endDate}
+                onChange={(date: Date | null) => {
+                  if (date) setEndDate(date);
+                }}
+                selectsEnd
+                startDate={startDate}
+                endDate={endDate}
+                minDate={startDate}
+                maxDate={new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate())}
+              />
+            </div>
+          </div>
+          {isLoading ? (
+            <p className="text-text_col">Loading predictions...</p>
+          ) : (
+            <>
+              {recommendations.map((rec, index) => (
+                <Card key={index} className={`mb-2 ${getCardColor(rec.type)}`}>
+                  <CardBody className="flex items-center">
+                    <div className="ml-2">
+                      <div className="flex items-center gap-3">
+                        {getIcon(rec.type)}
+                        <h5 className="font-semibold">{rec.title}</h5>
+                      </div>
+                      <p className="text-text_col_alt">{rec.description}</p>
                     </div>
-                  <p className="text-text_col_alt">{rec.description}</p>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-          {recommendations.length === 0 && (
-            <p className="text-text_col_secondary_alt">
-              No recommendations at this time. Your occupancy levels appear to
-              be within normal ranges.
-            </p>
+                  </CardBody>
+                </Card>
+              ))}
+              {recommendations.length === 0 && (
+                <p className="text-text_col_secondary_alt">
+                  No specific recommendations for the selected period. Occupancy levels appear to be within normal ranges.
+                </p>
+              )}
+            </>
           )}
         </CardBody>
       </Card>
