@@ -104,7 +104,6 @@ const AddIPModal = ({ onClose }: { onClose: () => void }) => {
         <Input
           label="text"
           placeholder="Enter the ip address"
-          type="password"
           variant="bordered"
           onChange={(e) => setForm({ ...form, ip: e.target.value })}
         />
@@ -237,8 +236,18 @@ const LocationPage = () => {
     }
   }, []);
 
-  const onClear = React.useCallback(() => {
+  const fetchAll = async () => {
+    setIsLoading(true);
+    const res = await DataService.fecthUserLocations();
+    const users: User[] = res.data;
+    setUsers(users);
+    setIsLoading(false);
+  }
+
+  const onClear = React.useCallback(async() => {
+    setIsValidEmail(true);
     setFilterValue("");
+    await fetchAll();
   }, []);
 
   const topContent = React.useMemo(() => {
@@ -279,12 +288,8 @@ const LocationPage = () => {
   }, [filterValue, onSearchChange, users.length]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      const res = await DataService.fecthUserLocations();
-      const users: User[] = res.data;
-      setUsers(users);
-      setIsLoading(false);
-    };
+    const fetchUsers = async() => { await fetchAll();}
+
     fetchUsers();
   }, []);
 
@@ -364,9 +369,15 @@ const LocationPage = () => {
         <ModalContent>
           {(onClose) =>
             openModal === "delete" ? (
-              <DeleteIPModal selectedUser={selectedUser} onClose={onClose} />
+              <DeleteIPModal selectedUser={selectedUser} onClose={async() => {
+                onClose();
+                await fetchAll();
+              }} />
             ) : (
-              <AddIPModal onClose={onClose} />
+              <AddIPModal onClose={async() => {
+                onClose();
+                await fetchAll();
+              }} />
             )
           }
         </ModalContent>
