@@ -272,6 +272,11 @@ func DayOfTheWeek(date time.Time) string {
 	return date.Weekday().String()
 }
 
+// DayofTheMonth returns the day of the month for the given date
+func DayofTheMonth(date time.Time) int {
+	return date.Day()
+}
+
 // Month returns the month as an int
 func Month(date time.Time) int {
 	return int(date.Month())

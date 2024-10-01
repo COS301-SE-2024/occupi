@@ -1736,9 +1736,11 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string
 			IsWeekend:      IsWeekend(time.Now()),
 			WeekOfTheYear:  WeekOfTheYear(time.Now()),
 			DayOfWeek:      DayOfTheWeek(time.Now()),
+			DayOfMonth:     DayofTheMonth(time.Now()),
 			Month:          Month(time.Now()),
 			SpecialEvent:   false, // admins can set this to true if there is a special event at a later stage
 			NumberAttended: 1,
+			AttendeesEmail: []string{email},
 		}
 
 		_, err = collection.InsertOne(ctx, attendance)

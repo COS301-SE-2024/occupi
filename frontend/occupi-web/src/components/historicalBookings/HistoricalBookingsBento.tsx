@@ -32,6 +32,7 @@ const HistoricalBookingsBento = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchDate, setSearchDate] = useState('');
+  const [visibleBookings, setVisibleBookings] = useState(3);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +64,7 @@ const HistoricalBookingsBento = () => {
     } else {
       setFilteredBookings(bookings);
     }
+    setVisibleBookings(3); // Reset visible bookings when filter changes
   }, [searchDate, bookings]);
 
   const formatDate = (dateString: string) => {
@@ -80,6 +82,10 @@ const HistoricalBookingsBento = () => {
     });
   };
 
+  const loadMoreBookings = () => {
+    setVisibleBookings(prevVisible => prevVisible + 3);
+  };
+
   if (isLoading) return <Spinner label="Loading..." />;
   if (error) return <div>Error: {error}</div>;
 
@@ -93,13 +99,12 @@ const HistoricalBookingsBento = () => {
         startContent={<Search className="text-default-400" />}
       />
 
-      {/* Display a message if no bookings match the search criteria */}
       {filteredBookings.length === 0 && (
         <div>No bookings found for the selected date.</div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredBookings.slice(0, 3).map((booking) => (
+        {filteredBookings.slice(0, visibleBookings).map((booking) => (
           <Card key={booking.occupiID} className="w-full" shadow="sm">
             <CardHeader className="flex justify-between">
               <h4 className="text-large font-bold">{booking.roomName}</h4>
@@ -130,15 +135,15 @@ const HistoricalBookingsBento = () => {
                   </PopoverTrigger>
                   <PopoverContent className="w-[300px]">
                     <div className="px-1 py-2">
-                      <h3 className="text-small font-bold">Creator:</h3>
-                      <p className="text-tiny">{booking.creators}</p>
+                      <h3 className="text-small font-bold text-text_col">Creator:</h3>
+                      <p className="text-tiny text-text_col">{booking.creators}</p>
                       <h3 className="text-small font-bold mt-2">Participants:</h3>
                       <ul className="list-disc pl-4">
                         {booking.emails.map((email, i) => (
-                          <li key={i} className="text-tiny">{email}</li>
+                          <li key={i} className="text-tiny text-text_col">{email}</li>
                         ))}
                       </ul>
-                      <p className="text-tiny mt-2">
+                      <p className="text-tiny mt-2 text-text_col">
                         Checked In: {booking.checkedIn ? 'Yes' : 'No'}
                       </p>
                     </div>
@@ -150,29 +155,12 @@ const HistoricalBookingsBento = () => {
         ))}
       </div>
 
-      {/* Only show "View More Bookings" if there are more than 3 bookings */}
-      {filteredBookings.length > 3 && (
-        <Popover placement="bottom">
-          <PopoverTrigger>
-            <Button
-              endContent={<ChevronDown className="h-4 w-4" />}
-              variant="flat"
-            >
-              View More Bookings
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[300px]">
-            <div className="px-1 py-2 max-h-[400px] overflow-y-auto">
-              {filteredBookings.slice(3).map((booking) => (
-                <div key={booking.occupiID} className="mb-4">
-                  <h3 className="text-small font-bold">{booking.roomName}</h3>
-                  <p className="text-tiny">{formatDate(booking.date)}</p>
-                  <p className="text-tiny">{formatTime(booking.start)} - {formatTime(booking.end)}</p>
-                </div>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+      {visibleBookings < filteredBookings.length && (
+        <div className="flex justify-center mt-4">
+          <Button onClick={loadMoreBookings} variant="flat">
+            Load More Bookings
+          </Button>
+        </div>
       )}
     </div>
   );
