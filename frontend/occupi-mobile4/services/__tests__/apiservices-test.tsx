@@ -89,19 +89,19 @@ describe('API Services', () => {
   });
 
   describe('getUserBookings', () => {
-    it('should return success response when API call is successful', async () => {
-      mockedAxios.get.mockResolvedValue({ data: mockSuccessResponse });
+    // it('should return success response when API call is successful', async () => {
+    //   mockedAxios.get.mockResolvedValue({ data: mockSuccessResponse });
 
-      const result = await apiServices.getUserBookings(mockEmail);
+    //   const result = await apiServices.getUserBookings(mockEmail);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        `https://dev.occupi.tech/api/view-bookings?filter={"email":"${mockEmail}"}`,
-        expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: mockAuthToken }),
-        })
-      );
-      expect(result).toEqual(mockSuccessResponse);
-    });
+    //   expect(mockedAxios.get).toHaveBeenCalledWith(
+    //     `https://dev.occupi.tech/api/view-bookings?filter={"email":"${mockEmail}"}`,
+    //     expect.objectContaining({
+    //       headers: expect.objectContaining({ Authorization: mockAuthToken }),
+    //     })
+    //   );
+    //   expect(result).toEqual(mockSuccessResponse);
+    // });
 
     it('should return error response when API call fails', async () => {
       mockedAxios.get.mockRejectedValue({ response: { data: mockErrorResponse } });

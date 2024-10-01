@@ -67,6 +67,10 @@ export interface ViewRoomsReq {
     page?: number;
 }
 
+export interface OnSiteReq {
+    email: string;
+    onSite: "Yes" | "No"
+}
 export interface CancelBookingReq {
     bookingId: string;
     roomId: string;
@@ -125,4 +129,19 @@ export interface NotificationSettingsReq {
     email: string;
     invites: "on" | "off";
     bookingReminder: "on" | "off";
+}
+
+//analytics
+
+export interface AnalyticsReq {
+    email?: string;
+    timeFrom?: string;
+    timeTo?: string;
+    limit?: number
+}
+
+
+ export interface DeleteNotiRequest {
+    email: string;
+    notiId: string;
 }

@@ -1,4 +1,8 @@
 //University Coordinates
+import { OnSiteReq } from '@/models/requests';
+import { toggleOnSite } from '@/services/apiservices';
+import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
 
 const polygon = [
     { latitude: -25.755736, longitude: 28.225309 }, // Point 1
@@ -23,3 +27,31 @@ export const isPointInPolygon = (point: { latitude: number; longitude: number })
     }
     return inside;
   };
+
+  export async function onSite(value: "Yes" | "No") {
+    let email = await SecureStore.getItemAsync('Email');
+    
+    if (!email) {
+      throw new Error('Email is null');
+    }
+
+    try {
+      const request : OnSiteReq = {
+        email: email,
+        onSite: value
+      };
+        const response = await toggleOnSite(request);
+        if (response.status === 200) {
+            return response.data
+        }
+        else if (response.status === 400) {
+          router.replace('/login');
+      }
+        else {
+            console.log(response)
+            return response.data;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+  } 
