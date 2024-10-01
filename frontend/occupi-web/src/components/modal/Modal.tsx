@@ -379,31 +379,30 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                 <Button color="danger" variant="light" onPress={onClose}>
                   Close
                 </Button>
-                {reportData ? (
-                  <PDFDownloadLink
-                    document={generateReportPDF()}
-                    fileName={`${user.name}_Stats_Report.pdf`}
-                  >
-                    {({ loading }: { loading: boolean }) => (
-                      <Button
-                        className="bg-text_col_secondary_alt text-text_col_alt"
-                        isLoading={loading}
-                      >
-                        {/* {loading ? "Preparing Report..." : "Download Report"} */}
-                        Download Report
-                      </Button>
-                    )}
-                  </PDFDownloadLink>
-                ) : (
-                  <Button
-                    className="text-text_col_alt bg-secondary_alt"
-                    onPress={handleGenerateReport}
-                    isLoading={isDownloading}
-                  >
-                    {/* {isDownloading ? "Generating Report..." : "Generate Report"} */}
-                    Generate PDF
-                  </Button>
-                )}
+                <Button
+                  className={
+                    reportData
+                      ? "bg-text_col_secondary_alt text-black"
+                      : "text-black bg-secondary_alt"
+                  }
+                  onPress={reportData ? undefined : handleGenerateReport}
+                  isLoading={isDownloading}
+                >
+                  {reportData ? (
+                    <PDFDownloadLink
+                      document={generateReportPDF()}
+                      fileName={`${user.name}_Stats_Report.pdf`}
+                    >
+                      {({ loading }) =>
+                        loading ? "Preparing Report..." : "Download Report"
+                      }
+                    </PDFDownloadLink>
+                  ) : isDownloading ? (
+                    "Generating Report..."
+                  ) : (
+                    "Generate Report"
+                  )}
+                </Button>
               </ModalFooter>
             </>
           )}
