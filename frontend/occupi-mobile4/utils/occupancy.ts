@@ -1,4 +1,4 @@
-import { fetchHourlyPredictions, getDayPredictions, getPredictions, getWeekPredictions } from '../services/aimodel';
+import { fetchHourlyPredictions, fetchHourlyPredictionsByDate, getDayPredictions, getPredictions, getWeekPredictions } from '../services/aimodel';
 import { Prediction } from '@/models/data';
 import { getRecommendations, recommendOfficeTimes, predictDay, predictHourly } from '../services/apiservices';
 
@@ -104,6 +104,20 @@ export function convertValues(data: DayValue[]): DayValue[] {
         3: 750,
         4: 1050,
         5: 1350,
+    };
+
+    return data?.map((item) => ({
+        ...item,
+        value: valueMap[item.value] || item.value, // Use the mapped value or keep the original value if not in the map
+    }));
+}
+
+export function convertValuesHour(data: DayValue[]): DayValue[] {
+    const valueMap: { [key: number]: number } = {
+        1: 450,
+        2: 750,
+        3: 1050,
+        4: 1350,
     };
 
     return data?.map((item) => ({
@@ -258,8 +272,21 @@ export async function mapToAttendanceMidpointForSpecificHours() {
     }
 }
 
-export async function mapToClassForSpecificHours() {
+export async function mapToClassForSpecificHours(date? : string) {
+    console.log('here');
     const specificHours = [7, 9, 11, 12, 13, 15, 17];
+    if (date) {
+        const prediction = await fetchHourlyPredictionsByDate(date);
+        console.log(prediction);
+        if (prediction) {
+        return prediction.Hourly_Predictions
+            .filter(item => specificHours.includes(item.Hour))  // Filter specific hours
+            .map(item => ({
+                label: item.Hour+':00',
+                value: item.Predicted_Class
+            }));
+        }
+    }
     const prediction = await fetchHourlyPredictions();
     console.log(prediction);
     if (prediction) {

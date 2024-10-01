@@ -19,12 +19,12 @@ interface Images {
 
 export interface Booking {
     checkedIn: boolean;
-    creator: string;
+    creators: string;
     date: string;
     emails: string[];
     end: string;
     floorNo: string;
-    occupiId: string;
+    occupiID: string;
     roomId: string;
     roomName: string;
     start: string;

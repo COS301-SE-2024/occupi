@@ -7,10 +7,11 @@ import * as SecureStore from 'expo-secure-store';
 import { BarChart } from "react-native-gifted-charts";
 import { useColorScheme } from 'react-native';
 import { useTheme } from './ThemeContext';
-import { convertValues } from '@/utils/occupancy';
+import { convertValues, convertValuesHour } from '@/utils/occupancy';
 
 
-const BarGraph = (data) => {
+const BarGraph = ({data,tab}) => {
+  console.log('tab',data)
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
@@ -47,7 +48,7 @@ const BarGraph = (data) => {
           endSpacing={0}
           yAxisTextStyle={{color: labels}}
           xAxisLabelTextStyle={{color: labels}}
-          data={convertValues(data.data)}
+          data={tab === 3 ? convertValues(data) : convertValuesHour(data)}
           showGradient
           hideRules
           frontColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}

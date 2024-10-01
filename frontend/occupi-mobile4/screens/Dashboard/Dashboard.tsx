@@ -16,7 +16,7 @@ import {
 //   LineChart
 // } from "react-native-chart-kit";
 import * as SecureStore from 'expo-secure-store';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { enter, exit, useCentrifugeCounter } from '@/utils/rtc';
 import { Ionicons } from '@expo/vector-icons';
 // import { router } from 'expo-router';
@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
   const [topBookings, setTopBookings] = useState([]);
   const [roomData, setRoomData] = useState<Booking>({});
   const [username, setUsername] = useState('');
-  const [date, setDate] = useState<Date>(new Date(1598051730000));
+  const [date, setDate] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [shouldCheckin, setShouldCheckin] = useState(false);
   const toast = useToast();
@@ -117,11 +117,6 @@ const Dashboard: React.FC = () => {
     setCurrentData(weeklyData);
   }
 
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate;
-    setDatePickerVisibility(false);
-    setDate(currentDate);
-  };
 
   const useLocationCheckin = () => {
     Alert.alert(
@@ -230,12 +225,23 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const getPredictionsFromWeek = async (date: string) => {
+    console.log(activeTab);
     try {
-      const prediction = await getFormattedPredictionWeekData(date);
-      if (prediction) {
-        // console.log(prediction);
-        setCurrentData(prediction);
-        // setWeeklyData(prediction);
+      if (activeTab === 3) {
+        const prediction = await getFormattedPredictionWeekData(date);
+        if (prediction) {
+          // console.log(prediction);
+          setCurrentData(prediction);
+          // setWeeklyData(prediction);
+        }
+      }
+      else {
+        const prediction = await mapToClassForSpecificHours(date);
+        if (prediction) {
+          console.log('hourly',prediction);
+          setCurrentData(prediction);
+          // setHourlyData(prediction);
+        }
       }
     } catch (error) {
       console.error('Error fetching predictions:', error);
@@ -323,6 +329,7 @@ const Dashboard: React.FC = () => {
     if (entered.status === 200) {
       setCheckedIn(true);
       storeCheckInValue(true);
+
       // setCurrentData(hourlyData);
       toast.show({
         placement: 'top',
@@ -396,8 +403,8 @@ const Dashboard: React.FC = () => {
     setDatePickerVisibility(true);
   };
 
-  const handleConfirm = (event, date?: Date) => {
-    const selectedDate: string = date?.toString();
+  const handleConfirm = (date: Date) => {
+    const selectedDate: string = date.toString();
     console.log('selected', extractDateFromTimestamp(selectedDate));
     setDate(extractDateFromTimestamp(selectedDate));
     getPredictionsFromWeek(extractDateFromTimestamp(selectedDate));
@@ -453,7 +460,7 @@ const Dashboard: React.FC = () => {
                 <LineGraph data={currentData} />
               </View>
               <View key="2" justifyContent='center'>
-                <BarGraph data={currentData} />
+                <BarGraph data={currentData} tab={activeTab} />
               </View>
             </PagerView>
           </View >
@@ -507,59 +514,41 @@ const Dashboard: React.FC = () => {
             </TouchableOpacity>
           </View>
           {activeTab !== 1 &&
-            <View alignItems='center' justifyContent='center'>
+            <>
               <TouchableOpacity
                 style={{
                   paddingVertical: 7,
-                  paddingHorizontal: 16,
+                  paddingHorizontal: 14,
                   borderRadius: 8,
                   backgroundColor: isDarkMode === true ? '#242424' : 'lightgrey',
+                  marginHorizontal: 48,
                   marginTop: 8,
                   marginBottom: 8,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: wp('80%')
+                  alignItems: 'center'
                 }}
                 onPress={showDatePicker}
               >
                 {date ? (
-                  <View flexDirection='row' alignItems='center'>
-                    <Text color={textColor} fontSize={16}>
-                      {activeTab === 2 ? 'Day: ' : 'Week from: '}
-                    </Text>
-                    <DateTimePicker
-                      value={new Date()}
-                      mode='date'
-                      is24Hour={true}
-                      onChange={handleConfirm}
-                    />
-                  </View>
+                  <Text color={textColor} fontSize={16}>
+                    Week from: {date}
+                  </Text>
                 ) : (
                   activeTab === 2 ? (
-                    <View flexDirection='row' alignItems='center'>
-                      <Text color={textColor} fontSize={16}>Select Day:</Text>
-                      <DateTimePicker
-                        value={new Date()}
-                        mode='date'
-                        is24Hour={true}
-                        onChange={handleConfirm}
-                      />
-                    </View>
+                    <Text color={textColor} fontSize={16}>Select Day:</Text>
                   ) : activeTab === 3 && (
-                    <View flexDirection='row' alignItems='center'>
-                      <Text color={textColor} fontSize={16}>Select Week From:</Text>
-                      <DateTimePicker
-                        value={new Date()}
-                        mode='date'
-                        is24Hour={true}
-                        onChange={handleConfirm}
-                      />
-                    </View>
+                    <Text color={textColor} fontSize={16}>Select Week From:</Text>
                   )
                 )}
 
               </TouchableOpacity>
-            </View>
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="date"
+                // display="calendar"
+                onConfirm={handleConfirm}
+                onCancel={hideDatePicker}
+              />
+            </>
           }
         </View>
         <View mt="$4" alignItems='center' flexDirection='row' justifyContent='space-between'>
@@ -583,7 +572,7 @@ const Dashboard: React.FC = () => {
               justifyContent: 'center',
               alignItems: 'center'
             }}
-            onPress={() => router.push('/loadingscreen')}
+            onPress={() => router.push('/stats')}
           >
             <View flexDirection="row" alignItems="center" justifyContent='space-between'>
               <View flexDirection='row' alignItems='center'>
@@ -731,7 +720,7 @@ const Dashboard: React.FC = () => {
             shadowOpacity: 0.25,
             shadowRadius: 4,
             elevation: 5,
-            height: '90%'
+            height: '80%' // Adjust this value to control how much of the screen the modal covers
           }}>
             <Recommendations onClose={() => setIsRecommendationsVisible(false)} />
           </View>

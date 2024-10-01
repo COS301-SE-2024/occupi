@@ -161,12 +161,14 @@ export async function userBookRoom(attendees: string[], startTime: string, endTi
 export async function userCheckin() {
   let roomstring = await SecureStore.getItemAsync("CurrentRoom");
   const room = JSON.parse(roomstring as string);
-  const bookingId = room?.occupiId;
+  console.log(room);
+  const bookingId = room?.occupiID;
   let email = await SecureStore.getItemAsync('Email');
   const body = {
     email: email as string,
     bookingId: bookingId
   }
+  console.log(body);
   try {
     const response = await checkin(body);
     if (response.status === 200) {
@@ -187,10 +189,10 @@ export async function userCancelBooking() {
   const room: Booking = JSON.parse(roomstring as string);
   let email = await SecureStore.getItemAsync('Email');
   const body: CancelBookingReq = {
-    bookingId: room?.occupiId,
+    bookingId: room?.occupiID,
     emails: room?.emails,
     roomId: room?.roomId,
-    creator: room.creator,
+    creator: room.creators,
     date: room?.date,
     start: room?.start,
     end: room?.end,

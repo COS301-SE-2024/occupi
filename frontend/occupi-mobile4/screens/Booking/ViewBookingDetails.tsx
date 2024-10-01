@@ -75,6 +75,7 @@ const ViewBookingDetails = () => {
     const cancelBooking = async () => {
         setIsLoading(true);
         const response = await userCancelBooking();
+        console.log(response);
         toast.show({
             placement: 'top',
             render: ({ id }) => {
@@ -89,8 +90,8 @@ const ViewBookingDetails = () => {
     };
 
     return (
-        <View pt="$16" flex="$1" backgroundColor={currentTheme === 'dark' ? 'black' : 'white'}>
-            <View flexDirection="$row" alignItems="$center" >
+        <View pt="$16" flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'}>
+            <View flexDirection="row" alignItems="center" >
                 <Icon as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
                 <Text fontWeight="$bold" fontSize={16} left="$10" color={currentTheme === 'dark' ? 'white' : 'black'}>{room?.roomName}</Text>
             </View>
@@ -118,7 +119,7 @@ const ViewBookingDetails = () => {
                     </View>
                 </View>
                 <View px="$4">
-                    <View flexDirection="$row" alignItems="$center">
+                    <View flexDirection="row" alignItems="center">
                         <Octicons name="people" size={24} color={isDarkMode ? '#fff' : '#000'} />
                         <Text color={isDarkMode ? '#fff' : '#000'} fontSize={20}> Attendees: {room?.emails?.length}</Text>
                     </View>
@@ -132,14 +133,14 @@ const ViewBookingDetails = () => {
                 {isBookingActive ? (
                     <>
                         <TouchableOpacity style={{ paddingHorizontal: 15 }}>
-                            <View flexDirection="$row" my="$2" borderRadius={10} alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                            <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                 <Ionicons name="receipt-outline" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$bold" color={isDarkMode ? '#fff' : '#000'}> ViewBooking</Text>
                             </View>
                         </TouchableOpacity>
                         
                         {isLoading ? (
                             <TouchableOpacity style={{ paddingHorizontal: 15 }} >
-                                <View flexDirection="row" my="$2" borderRadius={10} alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                     <ActivityIndicator size="small" color={isDarkMode ? '#fff' : '#000'} />
                                 </View>
                             </TouchableOpacity>
@@ -163,7 +164,7 @@ const ViewBookingDetails = () => {
 
                         {!isLoading && (
                             <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => cancelBooking()}>
-                                <View flexDirection="$row" my="$2" borderRadius={10} alignItems="$center" justifyContent="$center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
+                                <View flexDirection="$row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                     <EvilIcons name="trash" size={36} color="darkred" /><Text fontWeight="$bold" color="red">Cancel Booking</Text>
                                 </View>
                             </TouchableOpacity>

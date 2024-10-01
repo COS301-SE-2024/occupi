@@ -104,7 +104,26 @@ export async function fetchHourlyPredictions(): Promise<HourlyPrediction | undef
     return undefined;
 }
 
+export async function fetchHourlyPredictionsByDate(date: string): Promise<HourlyPrediction | undefined> {
+    // let authToken = await SecureStore.getItemAsync('Token');
+    try {
+        const response = await axios.get(`https://ai.occupi.tech/predict_day?date=${date}&start_hour=7&end_hour=17`, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+        });
+        // console.log(response.data);
+        return response.data as HourlyPrediction;
+    } catch (error) {
+        console.error(`Error in ${Function}:`, error);
+        if (axios.isAxiosError(error) && error.response?.data) {
+            return error.response.data;
+        }
+    }
 
+    return undefined;
+}
 
 export { Prediction };
 // getPredictions();
