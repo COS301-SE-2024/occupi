@@ -376,33 +376,33 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                 </div>
               </ModalBody>
               <ModalFooter>
-        <Button color="danger" variant="light" onPress={onClose}>
-          Close
-        </Button>
-        {reportData ? (
-          <PDFDownloadLink
-            document={generateReportPDF()}
-            fileName={`${user.name}_Stats_Report.pdf`}
-          >
-            {({ loading }) => (
-              <Button
-                className="bg-text_col_secondary_alt text-text_col_alt"
-                isLoading={loading}
-              >
-                {loading ? "Preparing Report..." : "Download Report"}
-              </Button>
-            )}
-          </PDFDownloadLink>
-        ) : (
-          <Button
-            className="text-text_col_alt bg-secondary_alt"
-            onPress={handleGenerateReport}
-            isLoading={isDownloading}
-          >
-            {isDownloading ? "Generating Report..." : "Generate Report"}
-          </Button>
-        )}
-      </ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+                {reportData ? (
+                  <PDFDownloadLink
+                    document={generateReportPDF()}
+                    fileName={`${user.name}_Stats_Report.pdf`}
+                  >
+                    {({ loading }: { loading: boolean }) => (
+                      <Button
+                        className="bg-text_col_secondary_alt text-text_col_alt"
+                        isLoading={loading}
+                      >
+                        {loading ? "Preparing Report..." : "Download Report"}
+                      </Button>
+                    )}
+                  </PDFDownloadLink>
+                ) : (
+                  <Button
+                    className="text-text_col_alt bg-secondary_alt"
+                    onPress={handleGenerateReport}
+                    isLoading={isDownloading}
+                  >
+                    {isDownloading ? "Generating Report..." : "Generate Report"}
+                  </Button>
+                )}
+              </ModalFooter>
             </>
           )}
         </ModalContent>
