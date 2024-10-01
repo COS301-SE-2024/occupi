@@ -389,7 +389,8 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                         className="bg-text_col_secondary_alt text-text_col_alt"
                         isLoading={loading}
                       >
-                        {loading ? "Preparing Report..." : "Download Report"}
+                        {/* {loading ? "Preparing Report..." : "Download Report"} */}
+                        Download Report
                       </Button>
                     )}
                   </PDFDownloadLink>
@@ -399,7 +400,8 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                     onPress={handleGenerateReport}
                     isLoading={isDownloading}
                   >
-                    {isDownloading ? "Generating Report..." : "Generate Report"}
+                    {/* {isDownloading ? "Generating Report..." : "Generate Report"} */}
+                    Generate PDF
                   </Button>
                 )}
               </ModalFooter>
