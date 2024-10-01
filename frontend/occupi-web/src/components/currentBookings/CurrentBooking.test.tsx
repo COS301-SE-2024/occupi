@@ -1,5 +1,5 @@
 // src/CurrentBookingsBento.test.tsx
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import CurrentBookingsBento from './CurrentBookingsBento';
 
 // Mock the fetch function globally
