@@ -3,9 +3,6 @@
 // import { render, screen, cleanup } from "@testing-library/react";
 // import Dashboard from "./Dashboard";
 
-
-
-
 // afterEach(() => {
 //   cleanup();
 // });
@@ -13,7 +10,7 @@
 // describe("Dashboard", () => {
 //   test("renders TopNav component with initial empty search query", () => {
 //     render(<Dashboard />);
-//     const inputElement = screen.getByTestId("top-nav-input") as HTMLInputElement;
+//     const inputElement = screen.getByTestId("dashboard") as HTMLInputElement;
 //     expect(inputElement).not.toBeNull();
 //   });
 

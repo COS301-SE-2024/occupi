@@ -1,59 +1,73 @@
-// import { expect, test, mock } from "bun:test";
-// import { render,cleanup } from "@testing-library/react";
-// import {AiDashCard} from "@components/index";
-// import { afterEach } from "bun:test";
+// src/AiDashCard.test.tsx
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import AiDashCard from "./AiDashCard";
+import { FaChartLine } from "react-icons/fa"; // Example icon
 
+describe("AiDashCard", () => {
+  const mockOnRemove = jest.fn();
 
-// afterEach(() => {
-//     cleanup();
-//   });
+  beforeEach(() => {
+    // Reset mocks before each test
+    mockOnRemove.mockClear();
+  });
 
-// test("AiDashCard renders correctly", () => {
-//   const mockProps = {
-//     title: "Test Card",
-//     icon: <div>Icon</div>,
-//     stat: "100",
-//     trend: 5,
-//     onRemove: mock(() => {}),
-//   };
+  afterEach(() => {
+    // Cleanup after each test to ensure a fresh DOM
+    cleanup();
+  });
 
-//   const { getByText } = render(<AiDashCard {...mockProps} />);
+  test("renders AiDashCard with correct props", () => {
+    render(
+      <AiDashCard
+        title="Revenue"
+        icon={<FaChartLine />}
+        stat="10,000"
+        trend={5}
+        onRemove={mockOnRemove}
+      />
+    );
 
-//   expect(getByText("Test Card")).toBeDefined();
-//   expect(getByText("100")).toBeDefined();
-//   expect(getByText("5% Since last month")).toBeDefined();
-// });
+    // Check if title is rendered using getByText
+    expect(screen.getByText("Revenue")).toBeDefined();
 
+    // Check if the stat is rendered using getByText
+    expect(screen.getByText("10,000")).toBeDefined();
 
+    // Check if the trend is rendered correctly with Uptrend using getByText
+    expect(screen.getByText("5% Since last month")).toBeDefined();
+  });
 
-// test("AiDashCard calls onRemove when close button is clicked", () => {
-//   const mockOnRemove = mock(() => {});
-//   const mockProps = {
-//     title: "Test Card",
-//     icon: <div>Icon</div>,
-//     stat: "100",
-//     trend: 5,
-//     onRemove: mockOnRemove,
-//   };
+  test("renders DownTrend when trend is negative", () => {
+    render(
+      <AiDashCard
+        title="Sales"
+        icon={<FaChartLine />}
+        stat="5,000"
+        trend={-3}
+        onRemove={mockOnRemove}
+      />
+    );
 
-//   const { getByText } = render(<AiDashCard {...mockProps} />);
-//   const closeButton = getByText("×");
-//   closeButton.click();
+    // Check if the stat and trend are rendered correctly using getByText
+    expect(screen.getByText("5,000")).toBeDefined();
+    expect(screen.getByText("3% Since last month")).toBeDefined();
+  });
 
-//   expect(mockOnRemove).toHaveBeenCalled();
-// });
+  test("calls onRemove when remove button is clicked", () => {
+    render(
+      <AiDashCard
+        title="Profit"
+        icon={<FaChartLine />}
+        stat="15,000"
+        trend={10}
+        onRemove={mockOnRemove}
+      />
+    );
 
-// test("AiDashCard displays negative trend correctly", () => {
-//   const mockProps = {
-//     title: "Test Card",
-//     icon: <div>Icon</div>,
-//     stat: "100",
-//     trend: -5,
-//     onRemove: mock(() => {}),
-//   };
+    // Simulate clicking the remove button using getByText
+    fireEvent.click(screen.getByText("×"));
 
-//   const { getByText } = render(<AiDashCard {...mockProps} />);
-
-//   expect(getByText("5% Since last month")).toBeDefined();
-// });
-
+    // Ensure that the mockOnRemove function was called
+    expect(mockOnRemove).toHaveBeenCalled();
+  });
+});

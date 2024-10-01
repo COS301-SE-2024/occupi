@@ -1,88 +1,72 @@
-// import { expect, test } from "bun:test";
-// import { columns, statusOptions, fetchUsers } from "./Data"; // Adjust the import path as necessary
+// // src/YourService.test.ts
+// import axios from 'axios';
+// import MockAdapter from 'axios-mock-adapter';
+// import { fetchUsers } from './Data'; // Replace 'YourService' with the actual file name
 
-// // Test the structure and integrity of columns
-// test("columns array structure and properties", () => {
-//     expect(columns).toBeInstanceOf(Array);
-//     expect(columns).toHaveLength(8);
-  
-//     columns.forEach(column => {
-//       expect(column).toBeObject();
-//       expect(column).toHaveProperty("name");
-//       expect(column).toHaveProperty("uid");
-//       expect(column.name).toBeString();
-//       expect(column.uid).toBeString();
-//     });
-  
-//     expect(columns).toContainEqual({name: "OCCUPI-ID", uid: "id", sortable: true});
-//     expect(columns).toContainEqual({name: "NAME", uid: "name", sortable: true});
-//     expect(columns).toContainEqual({name: "ROLE", uid: "role", sortable: true});
-//     expect(columns).toContainEqual({name: "DEPARTMENT", uid: "team"});
-//     expect(columns).toContainEqual({name: "EMAIL", uid: "email"});
-//     expect(columns).toContainEqual({name: "STATUS", uid: "status", sortable: true});
-//     expect(columns).toContainEqual({name: "ACTIONS", uid: "actions"});
-//     expect(columns).toContainEqual({name:"BOOKINGS THIS WEEK", uid:"bookings", sortable: true});
-  
-//     const sortableColumns = columns.filter(column => column.sortable === true);
-//     expect(sortableColumns).toHaveLength(5);
-  
-//     const nonSortableColumns = columns.filter(column => column.sortable !== true);
-//     expect(nonSortableColumns).toHaveLength(3);
+// // Create a mock adapter for axios
+// const mockAxios = new MockAdapter(axios);
+
+// describe('User Service', () => {
+//   afterEach(() => {
+//     // Clear the mock after each test
+//     mockAxios.reset();
 //   });
-// // Test the integrity and structure of users
-// // test("users array has the correct structure and content", () => {
-// //   expect(users.length).toBe(20);
-// //   users.forEach((user: { id: string; name: string; role: string; team: string; status:string; email:string; bookings: number; }) => {
-// //     expect(user).toHaveProperty('id');
-// //     expect(user).toHaveProperty('name');
-// //     expect(user).toHaveProperty('role');
-// //     expect(user).toHaveProperty('team');
-// //     expect(user).toHaveProperty('status');
-// //     expect(user).toHaveProperty('email');
-// //     expect(user).toHaveProperty('bookings');
-// //     expect(typeof user.id).toBe('number');
-// //     expect(typeof user.name).toBe('string');
-// //     expect(typeof user.role).toBe('string');
-// //     expect(typeof user.team).toBe('string');
-// //     expect(typeof user.status).toBe('string');
-// //     expect(typeof user.email).toBe('string');
-// //     expect(typeof user.bookings).toBe('number');
-// //   });
-// // });
 
-// // Test the integrity and structure of statusOptions
-// test("statusOptions array has the correct entries", () => {
-//   expect(statusOptions.length).toBe(3);
-//   statusOptions.forEach((option: { name: string; uid: string; }) => {
-//     expect(option).toHaveProperty('name');
-//     expect(option).toHaveProperty('uid');
-//     expect(typeof option.name).toBe('string');
-//     expect(typeof option.uid).toBe('string');
+//   test('fetchUsers fetches users successfully', async () => {
+//     // Mock successful API response, ignoring the URL
+//     const mockResponse = {
+//       data: [
+//         {
+//           _id: '123',
+//           occupiId: 'OCCUPI001',
+//           details: { name: 'John Doe' },
+//           email: 'john.doe@example.com',
+//           role: 'Developer',
+//           onSite: true,
+//           status: 'ONSITE',
+//         },
+//       ],
+//       meta: {
+//         currentPage: 1,
+//         totalPages: 1,
+//         totalResults: 1,
+//       },
+//       status: 200,
+//     };
+
+//     // Mock any GET request to respond with the mockResponse
+//     mockAxios.onGet(/.*/).reply(200, mockResponse);
+
+//     // Call the fetchUsers function
+//     const users = await fetchUsers();
+
+//     // Expected result
+//     const expectedUsers = [
+//       {
+//         id: 'OCCUPI001',
+//         name: 'John Doe',
+//         role: 'Developer',
+//         position: 'N/A', // Default value
+//         team: 'N/A', // Default value
+//         status: 'ONSITE',
+//         email: 'john.doe@example.com',
+//         bookings: expect.any(Number), // Random number of bookings
+//         avatar: 'https://i.pravatar.cc/150?u=OCCUPI001', // Generated avatar URL
+//       },
+//     ];
+
+//     // Assert that the fetched users match the expected result
+//     expect(users).toEqual(expectedUsers);
 //   });
-// });
 
+//   test('fetchUsers handles API error', async () => {
+//     // Mock any GET request to simulate an error
+//     mockAxios.onGet(/.*/).reply(500);
 
+//     // Call the fetchUsers function
+//     const users = await fetchUsers();
 
-// // Test the integrity and structure of users
-// test("users array has the correct structure and content 2", async () => {
-//   const users = await fetchUsers();
-  
-//   expect(users.length).toBeGreaterThanOrEqual(0);
-//   users.forEach((user) => {
-//     expect(user).toHaveProperty('id');
-//     expect(user).toHaveProperty('name');
-//     expect(user).toHaveProperty('role');
-//     expect(user).toHaveProperty('team');
-//     expect(user).toHaveProperty('status');
-//     expect(user).toHaveProperty('email');
-//     expect(user).toHaveProperty('bookings');
-//     expect(typeof user.id).toBe('string');
-//     expect(typeof user.name).toBe('string');
-//     expect(typeof user.role).toBe('string');
-//     expect(typeof user.team).toBe('string');
-//     expect(typeof user.status).toBe('string');
-//     expect(typeof user.email).toBe('string');
-//     expect(typeof user.bookings).toBe('number');
+//     // Since the API fails, we expect an empty array
+//     expect(users).toEqual([]);
 //   });
 // });
-
