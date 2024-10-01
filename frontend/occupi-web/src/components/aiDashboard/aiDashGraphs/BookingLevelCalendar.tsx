@@ -24,7 +24,7 @@ const BookingLevelCalendar = () => {
       const daysInMonth = new Date(year, month + 1, 0).getDate();
 
       const fetchPromises = [];
-      for (let day = 0; day <= daysInMonth + 1; day++) {  // Fetch one extra day
+      for (let day = 1; day <= daysInMonth + 1; day++) {  // Fetch one extra day
         const date = new Date(year, month, day);
         const formattedDate = date.toISOString().split('T')[0];
         fetchPromises.push(
@@ -92,7 +92,7 @@ const BookingLevelCalendar = () => {
 
   const renderCalendar = () => {
     const daysInMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate();
-    const firstDayOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1).getDay();
+    const firstDayOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 2).getDay();
     const days = [];
 
     for (let i = 1; i < firstDayOfMonth; i++) {

@@ -3,8 +3,6 @@ import { ScrollView, useColorScheme, TouchableOpacity, Image } from 'react-nativ
 import { Ionicons, Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
-  Toast,
-  ToastTitle,
   useToast,
   Text,
   View
@@ -26,6 +24,13 @@ const groupDataInPairs = (data) => {
   return pairs;
 };
 
+interface Images {
+  highRes: string;
+  lowRes: string;
+  midRes: string;
+  thumbnailRes: string;
+}
+
 interface Room {
   _id: string;
   roomName: string;
@@ -35,6 +40,7 @@ interface Room {
   minOccupancy: number;
   maxOccupancy: number;
   description: string;
+  roomImage : Images;
 }
 
 const BookRoom = () => {
@@ -46,6 +52,7 @@ const BookRoom = () => {
   const isDarkMode = currentTheme === "dark";
   const [layout, setLayout] = useState("row");
   const [loading, setLoading] = useState(true);
+  const [resolution, setResolution] = useState("low");
   const [roomData, setRoomData] = useState<Room[]>([]);
   const toggleLayout = () => {
     setLayout((prevLayout) => (prevLayout === "row" ? "grid" : "row"));
@@ -62,6 +69,7 @@ const BookRoom = () => {
   }, []);
 
   useEffect(() => {
+
     const getRoomData = async () => {
       try {
           const roomData = await fetchRooms('','');
@@ -74,10 +82,25 @@ const BookRoom = () => {
       } catch (error) {
           console.error('Error fetching bookings:', error);
       }
+      const setResolutionToMid = () => {
+        setTimeout(() => {
+          setResolution("mid");
+        }, 1000);
+      };
+    
+      const setResolutionToHigh = () => {
+        setTimeout(() => {
+          setResolution("high");
+        }, 3000);
+      };
+      setResolutionToMid();
+      setResolutionToHigh();
       setLoading(false);
   };
   getRoomData();
   }, [toast]);
+
+
 
 
   const backgroundColor = isDarkMode ? 'black' : 'white';
@@ -97,9 +120,6 @@ const BookRoom = () => {
         <View style={{ flexDirection: 'column', backgroundColor }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 24, color: textColor }}>Book</Text>
-          </View>
-          <View style={{ marginHorizontal: 16, marginVertical: 24, width: wp('92%'), backgroundColor: cardBackgroundColor, borderRadius: 15, borderColor: cardBackgroundColor, height: hp('5%'), justifyContent: 'center', paddingHorizontal: 10 }}>
-            <Text style={{ fontSize: wp('4%'), color: textColor }}>Quick search for an office</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 18, color: textColor }}>Rooms</Text>
@@ -133,9 +153,9 @@ const BookRoom = () => {
           <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11, marginBottom: 84 }} showsVerticalScrollIndicator={false}>
             {roomPairs.map((pair, index) => (
               <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                {pair.map((room, idx) => (
+                {pair.map((room : Room, idx) => (
                   <TouchableOpacity key={idx} style={{ flex: 1, borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginHorizontal: 4 }} onPress={() => handleRoomSelect(room)}>
-                    <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                    <Image style={{ width: '100%', height: 96, borderRadius: 10 }} source={{ uri: resolution === "low" ? room.roomImage.lowRes : resolution === "mid" ? room.roomImage.midRes : room.roomImage.highRes }} />
                     <View style={{ padding: 10 }}>
                       <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
                       <View>
@@ -164,7 +184,7 @@ const BookRoom = () => {
           <ScrollView style={{ flex: 1, marginTop: 10, paddingHorizontal: 11, marginBottom: 84 }} showsVerticalScrollIndicator={false}>
             {roomData.map((room, idx) => (
               <TouchableOpacity key={idx} style={{ flexDirection: 'row', borderWidth: 1, borderColor: cardBackgroundColor, borderRadius: 12, backgroundColor: cardBackgroundColor, marginVertical: 4, height: "fit" }} onPress={() => handleRoomSelect(room)}>
-                <Image style={{ width: '50%', height: '100%', borderRadius: 10 }} source={{ uri: 'https://content-files.shure.com/OriginFiles/BlogPosts/best-layouts-for-conference-rooms/img5.png' }} />
+                <Image style={{ width: '50%', height: '100%', borderRadius: 10 }} source={{ uri: resolution === "low" ? room.roomImage.thumbnailRes : resolution === "mid" ? room.roomImage.midRes : room.roomImage.highRes }} />
                 <View style={{ flex: 1, padding: 10, justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 18, fontWeight: 'bold', color: textColor }}>{room.roomName}</Text>
                   <View>

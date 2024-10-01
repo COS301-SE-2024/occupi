@@ -25,5 +25,37 @@ export default defineConfig(async () => ({
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+
+    proxy: {
+      '/api': {
+        target: process.env.NODE_ENV === "development" || process.env.NODE_ENV === "preview-dev" ? 'https://dev.occupi.tech' : "https://occupi.tech",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req) => {
+            console.log('Sending Request to the Target:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req) => {
+            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+          });
+        },
+      },
+      '/auth': {
+        target: process.env.NODE_ENV === "development" || process.env.NODE_ENV === "preview-dev" ? 'https://dev.occupi.tech' : "https://occupi.tech",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/auth/, '/auth'),
+      },
+      '/analytics': {
+        target: process.env.NODE_ENV === "development" || process.env.NODE_ENV === "preview-dev" ? 'https://dev.occupi.tech' : "https://occupi.tech",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/analytics/, '/analytics'),
+      },
+    }
   },
 }));

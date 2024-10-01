@@ -44,6 +44,7 @@
 # Table of contents
 
 - [Table of contents](#table-of-contents)
+- [Demo Videos](#demo-videos)
 - [Documentation](#documentation)
     - [Software Requirements Specification](#software-requirements-specification)
     - [Architecture Document](#architecture-document)
@@ -108,7 +109,7 @@ Occupi is a cross-platform app. This means that it is available on mobile, deskt
 
 <p align="center">
   <a href="https://skillicons.dev">
-    <img src="https://skillicons.dev/icons?i=androidstudio,azure,bash,bun,cypress,cloudflare,docker,figma,githubactions,go,jest,md,mongodb,nginx,postman,py,rabbitmq,react,redis,swift,tailwind,tauri,tensorflow,ts,ubuntu,vite,vitest&perline=6&theme=light" />
+    <img src="https://skillicons.dev/icons?i=androidstudio,azure,bash,bun,cypress,cloudflare,docker,figma,githubactions,go,grafana,jest,md,mongodb,nginx,postman,prometheus,py,rabbitmq,react,redis,regex,sentry,swift,tailwind,tauri,tensorflow,ts,ubuntu,vite,vitest,vscode&perline=6&theme=light" />
   </a>
 </p>
 

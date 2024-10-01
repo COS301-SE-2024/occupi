@@ -70,11 +70,11 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ isMinimized }) => {
     NotificationService.getNotificationsCount().then((res) => {
       setUnreadCount(res);
     });
-    // get notification count every 2 minutes or so
+    // get notification count every 30 seconds or so
     const interval = setInterval(async() => {
       const res = await NotificationService.getNotificationsCount();
       setUnreadCount(res);
-    }, 120000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);

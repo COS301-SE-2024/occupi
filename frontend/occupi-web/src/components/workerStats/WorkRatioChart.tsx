@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardBody, Skeleton } from "@nextui-org/react";
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { Card, CardHeader, CardBody, Skeleton, Tooltip } from "@nextui-org/react";
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { getWorkRatio } from 'WorkerStatsService';
+import { Info } from 'lucide-react';
 
 interface WorkRatioData {
   days: { weekday: string; ratio: number }[];
@@ -10,7 +11,7 @@ interface WorkRatioData {
 
 const WorkRatioChart = () => {
   const [data, setData] = useState<{ weekday: string; ratio: number }[]>([]);
-  const [overallRatio, setOverallRatio] = useState<number | null>(null);
+  const [, setOverallRatio] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -48,9 +49,13 @@ const WorkRatioChart = () => {
 
   return (
     <Card className="w-full h-[400px]">
-      <CardHeader>
-        <h2 className="text-xl font-bold">Work Ratio by Weekday</h2>
-        {overallRatio && <p className="text-sm">Overall Ratio: {overallRatio.toFixed(2)}</p>}
+      <CardHeader className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-bold">Work Ratio by Weekday</h2>
+          <Tooltip content="This chart shows the work ratio for each day of the week. A higher ratio indicates more productive work time relative to total time tracked.">
+            <Info size={20} className="text-gray-500 cursor-pointer" />
+          </Tooltip>
+        </div>
       </CardHeader>
       <CardBody>
         <ResponsiveContainer width="100%" height="100%">
@@ -59,7 +64,7 @@ const WorkRatioChart = () => {
             <PolarAngleAxis dataKey="weekday" />
             <PolarRadiusAxis />
             <Radar name="Work Ratio" dataKey="ratio" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-            <Tooltip />
+            <RechartsTooltip />
             <Legend />
           </RadarChart>
         </ResponsiveContainer>
