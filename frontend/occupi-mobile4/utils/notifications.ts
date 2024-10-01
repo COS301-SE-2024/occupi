@@ -3,8 +3,8 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { NotificationsReq } from '@/models/requests';
-import { getNotifications } from '@/services/apiservices';
+import { NotificationsReq,DeleteNotiRequest } from '@/models/requests';
+import { getNotifications, removeNotification,} from '@/services/apiservices';
 
 export function setupNotificationHandler() {
   Notifications.setNotificationHandler({
@@ -125,3 +125,36 @@ export async function getUserNotifications() {
       console.error('Error:', error);
   }
 } 
+
+export async function deleteNotification(notiId: string): Promise<boolean> {
+  const email = await SecureStore.getItemAsync('Email');
+  
+  if (!email) {
+    console.error('Email not found in SecureStore');
+    return false;
+  }
+
+  if (!notiId) {
+    console.error('Invalid notificationId:', notiId);
+    return false;
+  }
+
+  const request: DeleteNotiRequest = {
+    email,
+    notiId
+  };
+
+  try {
+    const response = await removeNotification(request);
+    if (response.status === 200) {
+      console.log('Notification deleted:', notiId);
+      return true;
+    } else {
+      console.log('Failed to delete notification:', response.message);
+      return false;
+    }
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    return false;
+  }
+}

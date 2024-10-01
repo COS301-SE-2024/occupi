@@ -4,9 +4,7 @@ import {
   Box,
   HStack,
   Text,
-  Image,
-  Center,
-  FormControl,
+  Image, FormControl,
   Heading,
   FormControlHelperText,
   EyeIcon,
@@ -26,18 +24,17 @@ import {
   InputSlot,
   ScrollView,
   FormControlLabel,
-  FormControlLabelText,
+  FormControlLabelText
 } from '@gluestack-ui/themed';
 import { AlertTriangle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
-import { Keyboard,StyleSheet, TextInput,Animated, Easing } from 'react-native';
+import { Keyboard, StyleSheet, Animated, Easing } from 'react-native';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GuestLayout from '../../layouts/GuestLayout';
-import { router } from 'expo-router';
 import { styled } from '@gluestack-style/react';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import { userResetPassword } from '@/utils/auth';

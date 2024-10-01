@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react'
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import React, { useEffect, useState } from 'react';
+import { widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import {
-    View, Text
-  } from '@gluestack-ui/themed';
-  import * as SecureStore from 'expo-secure-store';
-  import { BarChart } from "react-native-gifted-charts"
+  View
+} from '@gluestack-ui/themed';
+import * as SecureStore from 'expo-secure-store';
+import { BarChart } from "react-native-gifted-charts";
 import { useColorScheme } from 'react-native';
 import { useTheme } from './ThemeContext';
-import { convertValues } from '@/utils/occupancy';
+import { convertValues, convertValuesHour } from '@/utils/occupancy';
 
 
-const BarGraph = (data) => {
+const BarGraph = ({data,tab}) => {
+  console.log('tab',data)
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
@@ -27,14 +28,13 @@ const BarGraph = (data) => {
       }, []);
   return (
     <View
-        style={{ width: wp('100%'), height: hp('35%'), flexDirection: 'column' }}
+        style={{ width: wp('100%'), flexDirection: 'column' }}
         // style={{
         //   // marginVertical: 100,
         //   paddingVertical: 20,
         //   backgroundColor: '#414141',
         // }}
         >
-          <Text color={currentTheme === "dark" ? 'white' : 'black'} fontWeight="$medium" underline mb="$4" alignSelf='center'>Predicted Occupancy by Number</Text>
         <BarChart
           isAnimated
           width={wp('80%')}
@@ -48,21 +48,22 @@ const BarGraph = (data) => {
           endSpacing={0}
           yAxisTextStyle={{color: labels}}
           xAxisLabelTextStyle={{color: labels}}
-          data={convertValues(data.data)}
+          data={tab === 3 ? convertValues(data) : convertValuesHour(data)}
           showGradient
+          hideRules
           frontColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
           gradientColor={accentColour}
         //   barBorderTopLeftRadius={5}
         //   barBorderTopRightRadius={5}
-          spacing={20}
-          backgroundColor={currentTheme === 'dark' ? "#414141" : "white"}
+          spacing={12}
+          backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
           // rulesColor="gray"
-          rulesType="dashed"
+          // rulesType="dashed"
+          xAxisColor="transparent"
+          yAxisColor="transparent"
           initialSpacing={16}
-          yAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
-          xAxisColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
         />
       </View>
   )
