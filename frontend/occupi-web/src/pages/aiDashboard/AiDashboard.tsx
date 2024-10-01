@@ -19,81 +19,157 @@ import {
 import { Responsive, WidthProvider, Layout, Layouts } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-
+import * as WorkerStatsService from "WorkerStatsService";
 const ResponsiveGridLayout = WidthProvider(Responsive);
-
-const defaultLayouts: Layouts = {
-  lg: [
-    { i: "card1", x: 0, y: 0, w: 3, h: 2 },
-    { i: "card2", x: 3, y: 0, w: 3, h: 2 },
-    { i: "card3", x: 6, y: 0, w: 3, h: 2 },
-    { i: "card4", x: 9, y: 0, w: 3, h: 2 },
-    { i: "graph1", x: 0, y: 2, w: 6, h: 4 },
-    { i: "graph2", x: 6, y: 2, w: 6, h: 4 },
-    { i: "hourlyPrediction", x: 0, y: 6, w: 12, h: 5 },
-    { i: "hourlyCapacity", x: 0, y: 11, w: 12, h: 5 },
-  ],
-  sm: [
-    { i: "card1", x: 0, y: 0, w: 6, h: 2 }, // Wider on small screens
-    { i: "card2", x: 0, y: 2, w: 6, h: 2 },
-    { i: "card3", x: 0, y: 4, w: 6, h: 2 },
-    { i: "card4", x: 0, y: 6, w: 6, h: 2 },
-    { i: "graph1", x: 0, y: 8, w: 6, h: 4 },
-    { i: "graph2", x: 0, y: 12, w: 6, h: 4 },
-    { i: "hourlyPrediction", x: 0, y: 16, w: 6, h: 5 },
-    { i: "hourlyCapacity", x: 0, y: 21, w: 6, h: 5 },
-  ],
-  xxs: [
-    { i: "card1", x: 0, y: 0, w: 1, h: 2 }, // 1 column layout on very small screens
-    { i: "card2", x: 0, y: 2, w: 1, h: 2 },
-    { i: "card3", x: 0, y: 4, w: 1, h: 2 },
-    { i: "card4", x: 0, y: 6, w: 1, h: 2 },
-    { i: "graph1", x: 0, y: 8, w: 1, h: 4 },
-    { i: "graph2", x: 0, y: 12, w: 1, h: 4 },
-    { i: "hourlyPrediction", x: 0, y: 16, w: 1, h: 5 },
-    { i: "hourlyCapacity", x: 0, y: 21, w: 1, h: 5 },
-  ],
-};
-
-const cardData = [
-  {
-    id: "card1",
-    title: "Office Occupancy",
-    icon: <FaUsers size={24} color="white" />,
-    stat: "65%",
-    trend: 3.46,
-  },
-  {
-    id: "card2",
-    title: "Available Desks",
-    icon: <FaBed size={24} color="white" />,
-    stat: "89",
-    trend: -2.1,
-  },
-  {
-    id: "card3",
-    title: "Reservations",
-    icon: <FaClipboardList size={24} color="white" />,
-    stat: "45",
-    trend: 8.7,
-  },
-  {
-    id: "card4",
-    title: "Check-ins Today",
-    icon: <FaCalendarCheck size={24} color="white" />,
-    stat: "23",
-    trend: 3.4,
-  },
-];
-
-const originalCardLayouts: { [key: string]: Layout } = {
-  card1: { i: "card1", x: 0, y: 0, w: 3, h: 2 },
-  card2: { i: "card2", x: 3, y: 0, w: 3, h: 2 },
-  card3: { i: "card3", x: 6, y: 0, w: 3, h: 2 },
-  card4: { i: "card4", x: 9, y: 0, w: 3, h: 2 },
-};
+import { useCentrifugeCounter } from "CentrifugoService";
+import axios from "axios";
 
 const AiDashboard: React.FC = () => {
+  const counter = useCentrifugeCounter();
+  const [workRatio, setWorkRatio] = useState<number | null>(null);
+  const [currentBookings, setCurrentBookings] = useState<number | null>(null);
+  const [totalMaxCapacity, setTotalMaxCapacity] = useState<number | null>(null);
+  const [totalBookings, setTotalBookings] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchWorkRatio = async () => {
+      try {
+        const response = await WorkerStatsService.getWorkRatio({});
+        if (response.data && response.data.length > 0) {
+          const overallRatio = (response.data as { ratio: number }[])[0].ratio;
+          setWorkRatio(overallRatio);
+        }
+      } catch (error) {
+        console.error("Error fetching work ratio:", error);
+      }
+    };
+
+    const fetchCurrentBookings = async () => {
+      try {
+        const response = await axios.get("/analytics/bookings-current");
+        if (response.data && response.data.meta) {
+          setCurrentBookings(response.data.meta.totalResults);
+        }
+      } catch (error) {
+        console.error("Error fetching current bookings:", error);
+      }
+    };
+
+
+    const fetchTotalCapacityAndBookings = async () => {
+      try {
+        const [roomsResponse, bookingsResponse] = await Promise.all([
+          fetch("/api/view-rooms"),
+          fetch("/analytics/top-bookings"),
+        ]);
+
+        if (!roomsResponse.ok || !bookingsResponse.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const roomsData = await roomsResponse.json();
+        const bookingsData = await bookingsResponse.json();
+
+        if (!Array.isArray(roomsData.data) || !Array.isArray(bookingsData.data)) {
+          throw new Error("Data is not in the expected format");
+        }
+
+        let totalMaxCapacity = 0;
+        let totalBookings = 0;
+
+        roomsData.data.forEach((room: { maxOccupancy?: number }) => {
+          totalMaxCapacity += room.maxOccupancy || 0;
+        });
+
+        bookingsData.data.forEach((booking: { count: number }) => {
+          totalBookings += booking.count;
+        });
+
+        setTotalMaxCapacity(totalMaxCapacity);
+        setTotalBookings(totalBookings);
+      } catch (error) {
+        console.error("Error fetching total capacity and bookings:", error);
+      }
+    };
+
+    fetchWorkRatio();
+    fetchCurrentBookings();
+    fetchTotalCapacityAndBookings();
+
+  }, []);
+
+  const defaultLayouts: Layouts = {
+    lg: [
+      { i: "card1", x: 0, y: 0, w: 3, h: 2 },
+      { i: "card2", x: 3, y: 0, w: 3, h: 2 },
+      { i: "card3", x: 6, y: 0, w: 3, h: 2 },
+      { i: "card4", x: 9, y: 0, w: 3, h: 2 },
+      { i: "graph1", x: 0, y: 2, w: 6, h: 4 },
+      { i: "graph2", x: 6, y: 2, w: 6, h: 4 },
+      { i: "hourlyPrediction", x: 0, y: 6, w: 12, h: 5 },
+      { i: "hourlyCapacity", x: 0, y: 11, w: 12, h: 5 },
+    ],
+    sm: [
+      { i: "card1", x: 0, y: 0, w: 6, h: 2 }, // Wider on small screens
+      { i: "card2", x: 0, y: 2, w: 6, h: 2 },
+      { i: "card3", x: 0, y: 4, w: 6, h: 2 },
+      { i: "card4", x: 0, y: 6, w: 6, h: 2 },
+      { i: "graph1", x: 0, y: 8, w: 6, h: 4 },
+      { i: "graph2", x: 0, y: 12, w: 6, h: 4 },
+      { i: "hourlyPrediction", x: 0, y: 16, w: 6, h: 5 },
+      { i: "hourlyCapacity", x: 0, y: 21, w: 6, h: 5 },
+    ],
+    xxs: [
+      { i: "card1", x: 0, y: 0, w: 1, h: 2 }, // 1 column layout on very small screens
+      { i: "card2", x: 0, y: 2, w: 1, h: 2 },
+      { i: "card3", x: 0, y: 4, w: 1, h: 2 },
+      { i: "card4", x: 0, y: 6, w: 1, h: 2 },
+      { i: "graph1", x: 0, y: 8, w: 1, h: 4 },
+      { i: "graph2", x: 0, y: 12, w: 1, h: 4 },
+      { i: "hourlyPrediction", x: 0, y: 16, w: 1, h: 5 },
+      { i: "hourlyCapacity", x: 0, y: 21, w: 1, h: 5 },
+    ],
+  };
+
+  const cardData = [
+    {
+      id: "card1",
+      title: "Office Occupancy",
+      icon: <FaUsers size={24} color="white" />,
+      stat: workRatio ? `${(workRatio * 10).toFixed(2)}%` : "Loading...",
+      trend: 3.46,
+    },
+    {
+      id: "card2",
+      title: "Available Space",
+      icon: <FaBed size={24} color="white" />,
+      stat: totalMaxCapacity && totalBookings
+      ? `${totalBookings}/${totalMaxCapacity}`
+      : "Loading...",      trend: -2.1,
+    },
+    {
+      id: "card3",
+      title: "Bookings",
+      icon: <FaClipboardList size={24} color="white" />,
+      stat: currentBookings !== null ? `${currentBookings}` : "Loading...",
+      trend: 8.7,
+    },
+    {
+      id: "card4",
+      title: "Check-ins Today",
+      icon: <FaCalendarCheck size={24} color="white" />,
+      stat: `${counter}`,
+      trend: 3.4,
+    },
+  ];
+
+  const originalCardLayouts: { [key: string]: Layout } = {
+    card1: { i: "card1", x: 0, y: 0, w: 3, h: 2 },
+    card2: { i: "card2", x: 3, y: 0, w: 3, h: 2 },
+    card3: { i: "card3", x: 6, y: 0, w: 3, h: 2 },
+    card4: { i: "card4", x: 9, y: 0, w: 3, h: 2 },
+  };
+
   const [layouts, setLayouts] = useState<Layouts>(() => {
     const savedLayouts = localStorage.getItem("dashboardLayouts");
     if (savedLayouts) {
@@ -205,14 +281,16 @@ const AiDashboard: React.FC = () => {
           onClick={() => {
             console.log("Opening Modal");
             setIsModalOpen(true);
-          }}>
+          }}
+        >
           Get Recommendations
         </button>
 
         {/* Right: Reset to Default Layout Button */}
         <button
           onClick={resetToDefaultLayout}
-          className="px-4 py-2 bg-text_col text-text_col_alt font-semibold rounded-lg transition-colors duration-300 flex items-center">
+          className="px-4 py-2 bg-text_col text-text_col_alt font-semibold rounded-lg transition-colors duration-300 flex items-center"
+        >
           <FaUndo className="mr-2" /> Reset to Default Layout
         </button>
       </div>
@@ -226,7 +304,8 @@ const AiDashboard: React.FC = () => {
                   <button
                     key={card.id}
                     onClick={() => handleAddCard(card.id)}
-                    className="px-4 py-2 bg-text_col text-text_col_alt rounded-lg transition-colors duration-300 flex items-center">
+                    className="px-4 py-2 bg-text_col text-text_col_alt rounded-lg transition-colors duration-300 flex items-center"
+                  >
                     <FaPlus className="mr-2" /> Add {card.title}
                   </button>
                 )
@@ -245,7 +324,8 @@ const AiDashboard: React.FC = () => {
           isResizable={true}
           compactType="vertical"
           preventCollision={false}
-          margin={[20, 20]}>
+          margin={[20, 20]}
+        >
           {cardData.map(
             (card) =>
               visibleCards.includes(card.id) && (
@@ -268,12 +348,14 @@ const AiDashboard: React.FC = () => {
           </div>
           <div
             key="hourlyPrediction"
-            className="bg-secondary rounded-lg shadow-md p-4">
+            className="bg-secondary rounded-lg shadow-md p-4"
+          >
             <HourlyPredictionGraph />
           </div>
           <div
             key="hourlyCapacity"
-            className="bg-secondary rounded-lg shadow-md p-4">
+            className="bg-secondary rounded-lg shadow-md p-4"
+          >
             <HourlyComparisonGraph />
           </div>
         </ResponsiveGridLayout>
