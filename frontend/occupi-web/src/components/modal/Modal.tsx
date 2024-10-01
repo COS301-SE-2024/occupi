@@ -151,61 +151,103 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Overview</Text>
-          <Text style={styles.text}>Name: {reportData?.userName}</Text>
-          <Text style={styles.text}>Email: {reportData?.userEmail}</Text>
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCell}>Name:</Text>
+              <Text style={styles.tableCell}>{reportData?.userName}</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCell}>Email:</Text>
+              <Text style={styles.tableCell}>{reportData?.userEmail}</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Work Ratio</Text>
-          <Text style={styles.text}>
-            Overall Work Ratio: {reportData?.workRatio.ratio.toFixed(2)}
-          </Text>
-          {reportData?.workRatio.days.map((day, index) => (
-            <Text key={index} style={styles.text}>
-              {day.weekday}: {day.ratio.toFixed(2)}
-            </Text>
-          ))}
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableHeader}>Day</Text>
+              <Text style={styles.tableHeader}>Ratio</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCell}>Overall</Text>
+              <Text style={styles.tableCell}>
+                {reportData?.workRatio.ratio.toFixed(2)}
+              </Text>
+            </View>
+            {reportData?.workRatio.days.map((day, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{day.weekday}</Text>
+                <Text style={styles.tableCell}>{day.ratio.toFixed(2)}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Arrival & Departure Times</Text>
-          <Text style={styles.text}>
-            Overall Average Arrival:{" "}
-            {reportData?.arrivalDeparture.overallavgArrival}
-          </Text>
-          <Text style={styles.text}>
-            Overall Average Departure:{" "}
-            {reportData?.arrivalDeparture.overallavgDeparture}
-          </Text>
-          {reportData?.arrivalDeparture.days.map((day, index) => (
-            <Text key={index} style={styles.text}>
-              {day.weekday}: Arrival - {day.avgArrival}, Departure -{" "}
-              {day.avgDeparture}
-            </Text>
-          ))}
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableHeader}>Day</Text>
+              <Text style={styles.tableHeader}>Arrival</Text>
+              <Text style={styles.tableHeader}>Departure</Text>
+            </View>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCell}>Overall</Text>
+              <Text style={styles.tableCell}>
+                {reportData?.arrivalDeparture.overallavgArrival}
+              </Text>
+              <Text style={styles.tableCell}>
+                {reportData?.arrivalDeparture.overallavgDeparture}
+              </Text>
+            </View>
+            {reportData?.arrivalDeparture.days.map((day, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{day.weekday}</Text>
+                <Text style={styles.tableCell}>{day.avgArrival}</Text>
+                <Text style={styles.tableCell}>{day.avgDeparture}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Daily Hours</Text>
-          {reportData?.dailyHours.map((day, index) => (
-            <Text key={index} style={styles.text}>
-              {day.date}: {day.totalHours.toFixed(2)} hours
-            </Text>
-          ))}
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableHeader}>Date</Text>
+              <Text style={styles.tableHeader}>Total Hours</Text>
+            </View>
+            {reportData?.dailyHours.map((day, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{day.date}</Text>
+                <Text style={styles.tableCell}>
+                  {day.totalHours.toFixed(2)}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Peak Office Hours</Text>
-          {reportData?.peakHours.days.map((day, index) => (
-            <Text key={index} style={styles.text}>
-              {day.weekday}: {day.hours.join(", ")}
-            </Text>
-          ))}
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableHeader}>Day</Text>
+              <Text style={styles.tableHeader}>Hours</Text>
+            </View>
+            {reportData?.peakHours.days.map((day, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{day.weekday}</Text>
+                <Text style={styles.tableCell}>{day.hours.join(", ")}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       </Page>
     </Document>
   );
-
   const handleGenerateReport = async () => {
     setIsDownloading(true);
     try {
@@ -334,35 +376,33 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
-                </Button>
-                {reportData ? (
-                  <Button className="bg-text_col_secondary_alt  ">
-                    <PDFDownloadLink
-                      className="text-text_col_alt bg-secondary-alt"
-                      document={generateReportPDF()}
-                      fileName={`${user.name}_Stats_Report.pdf`}
-                    >
-                      {({ loading }) => (
-                        <>
-                          {loading
-                            ? "Report is loading..."
-                            : "Report ready to download"}
-                        </>
-                      )}
-                    </PDFDownloadLink>
-                  </Button>
-                ) : (
-                  <Button
-                    className="text-text_col_alt bg-secondary_alt"
-                    onPress={handleGenerateReport}
-                    isLoading={isDownloading}
-                  >
-                    {isDownloading ? "Generating Report..." : "Generate Report"}
-                  </Button>
-                )}
-              </ModalFooter>
+        <Button color="danger" variant="light" onPress={onClose}>
+          Close
+        </Button>
+        {reportData ? (
+          <PDFDownloadLink
+            document={generateReportPDF()}
+            fileName={`${user.name}_Stats_Report.pdf`}
+          >
+            {({ loading }) => (
+              <Button
+                className="bg-text_col_secondary_alt text-text_col_alt"
+                isLoading={loading}
+              >
+                {loading ? "Preparing Report..." : "Download Report"}
+              </Button>
+            )}
+          </PDFDownloadLink>
+        ) : (
+          <Button
+            className="text-text_col_alt bg-secondary_alt"
+            onPress={handleGenerateReport}
+            isLoading={isDownloading}
+          >
+            {isDownloading ? "Generating Report..." : "Generate Report"}
+          </Button>
+        )}
+      </ModalFooter>
             </>
           )}
         </ModalContent>
@@ -371,7 +411,7 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
   );
 }
 
-// Define PDF styles
+// Updated PDF styles
 const styles = StyleSheet.create({
   page: {
     padding: 30,
@@ -399,9 +439,32 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     marginBottom: 10,
+    fontWeight: "bold",
   },
-  text: {
-    fontSize: 12,
-    marginBottom: 5,
+  table: {
+    display: "flex",
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#bfbfbf",
+  },
+  tableRow: {
+    flexDirection: "row",
+  },
+  tableHeader: {
+    backgroundColor: "#f0f0f0",
+    fontWeight: "bold",
+    padding: 5,
+    flex: 1,
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#bfbfbf",
+  },
+  tableCell: {
+    padding: 5,
+    flex: 1,
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#bfbfbf",
   },
 });

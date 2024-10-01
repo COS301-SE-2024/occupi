@@ -39,7 +39,13 @@ const occupancyData = [
   { month: "March", occupancy: 75 },
   { month: "April", occupancy: 80 },
   { month: "May", occupancy: 85 },
-  { month: "June", occupancy: 90 },
+  { month: "June", occupancy: 45 },
+  { month: "July", occupancy: 95 },
+  { month: "August", occupancy: 73 },
+  { month: "September", occupancy: 81 },
+  { month: "October", occupancy: 63 },
+  { month: "November", occupancy: 85 },
+  { month: "December", occupancy: 80 },
 ];
 
 // Create styles
@@ -117,18 +123,61 @@ const styles = StyleSheet.create({
   },
 });
 
-// Mock summary data
-const summaryText = `This report provides an in-depth analysis of the office occupancy trends over the past six months, highlighting key areas for improvement and optimization based on AI-driven predictions.`;
-
+// summary data
+const summaryText = `This report provides an in-depth analysis of the office occupancy trends over highlighting key areas for improvement and optimization based on AI-driven predictions.`;
+function BasicDocument() {
 // Mock additional data for the report
-const additionalData = [
-  { category: "Total Floors", value: 5 },
-  { category: "Total Meeting Rooms", value: 12 },
-  { category: "Average Desk Utilization", value: "75%" },
-];
+const [additionalData, setAdditionalData] = useState([
+  { category: "Total Floors", value: 0 },
+  { category: "Total Meeting Rooms", value: 0 },
+  { category: "Average Desk Utilization", value: "0%" },
+]);
+
+useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [roomsResponse, bookingsResponse] = await Promise.all([
+          axios.get("/api/view-rooms"),
+          axios.get("/analytics/top-bookings"),
+        ]);
+
+        if (roomsResponse.status !== 200 || bookingsResponse.status !== 200) {
+          throw new Error("Network response was not ok");
+        }
+
+        const roomsData = roomsResponse.data.data;
+        const bookingsData = bookingsResponse.data.data;
+
+        if (!Array.isArray(roomsData) || !Array.isArray(bookingsData)) {
+          throw new Error("Data is not in the expected format");
+        }
+
+        // Calculate total floors
+        const totalFloors = new Set(roomsData.map(room => room.floorNo)).size;
+
+        // Calculate total meeting rooms
+        const totalMeetingRooms = roomsData.length;
+
+        const totalOccupancy = bookingsData.reduce((sum, booking) => sum + booking.count, 0);
+        const totalCapacity = roomsData.reduce((sum, room) => sum + (room.maxOccupancy || 0), 0);
+        const averageUtilization = totalCapacity > 0 ? (totalOccupancy / totalCapacity) * 100 : 0;
+
+        setAdditionalData([
+          { category: "Total Floors", value: totalFloors },
+          { category: "Total Meeting Rooms", value: totalMeetingRooms },
+          { category: "Average Desk Utilization", value: `${averageUtilization.toFixed(2)}%` },
+        ]);
+      } catch (err) {
+        setError(err as Error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
 // Create Document Component
-function BasicDocument() {
+
   const [searchQuery, setSearchQuery] = useState("");
   const [capacityData, setCapacityData] = useState<CapacityData[]>([]);
   const [, setLoading] = useState(true);
@@ -247,8 +296,8 @@ function BasicDocument() {
               </View>
             </View>
 
-            {/* Additional data section */}
-            <View style={styles.section}>
+           {/* Updated Additional data section */}
+           <View style={styles.section}>
               <Text style={styles.paragraph}>Additional Details</Text>
               <View style={styles.table}>
                 {additionalData.map((item, index) => (
@@ -308,10 +357,7 @@ function BasicDocument() {
             </View>
 
             {/* Visualization */}
-            <View style={styles.chartContainer}>
-              <Text>Occupancy Trends Visualization</Text>
-              {/* You can replace this Text component with actual chart images */}
-            </View>
+            
 
             <Text
               style={styles.pageNumber}
@@ -385,3 +431,7 @@ function BasicDocument() {
 }
 
 export default BasicDocument;
+
+
+
+
