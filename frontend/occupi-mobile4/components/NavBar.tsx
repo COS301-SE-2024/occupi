@@ -16,7 +16,7 @@ const NavBar = () => {
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorScheme : theme;
   const styles = getStyles(currentTheme);
-  const [accentColour, setAccentColour] = useState('#FF6B35');
+  const [accentColour, setAccentColour] = useState('greenyellow');
   const { currentTab, setCurrentTab } = useNavBar();
   const [showPopup, setShowPopup] = useState(false);
   const isDarkMode = currentTheme === "dark";

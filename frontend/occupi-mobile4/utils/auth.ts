@@ -30,7 +30,7 @@ export async function UserLogin(email: string, password: string) {
                 fetchUserDetails(email, response.data.token);
                 fetchNotificationSettings(email);
                 fetchSecuritySettings(email);
-                router.replace('/viewbookings');
+                router.replace('/home');
             }
             else {
                 setState('verify_otp_login');

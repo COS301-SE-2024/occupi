@@ -309,24 +309,15 @@ const ViewBookings = () => {
 
 
     return (
-        <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 60 }}>
+        <View px="$4" style={{ flex: 1, backgroundColor, paddingTop: 80,  }}>
             <View style={{ flexDirection: 'column', backgroundColor }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                     <Text fontWeight="$bold" fontSize={24} color={textColor}>My Bookings</Text>
                     <Tooltip
                         content="Check your current and historical bookings!"
                         placement="bottom"
                     />
                 </View>
-                <Input my="$6" w="$full" backgroundColor={cardBackgroundColor} borderRadius="$xl" borderColor={cardBackgroundColor} h={hp('5%')}>
-                    <InputField
-                        placeholder="Quick search for an office"
-                        fontSize={wp('4%')}
-                        type="text"
-                        returnKeyType="done"
-                        color={textColor}
-                    />
-                </Input>
                 <View flexDirection="row" justifyContent="space-between" alignItems="center" mb="$4">
                     <View flexDirection="row">
 

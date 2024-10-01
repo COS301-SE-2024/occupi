@@ -456,10 +456,10 @@ const Dashboard: React.FC = () => {
               ref={pagerRef}
             >
               <View key="1" justifyContent='center'>
-                <LineGraph data={currentData} />
+                <BarGraph data={currentData} tab={activeTab} />
               </View>
               <View key="2" justifyContent='center'>
-                <BarGraph data={currentData} tab={activeTab} />
+                <LineGraph data={currentData} />
               </View>
             </PagerView>
           </View >
@@ -571,7 +571,7 @@ const Dashboard: React.FC = () => {
               justifyContent: 'center',
               alignItems: 'center'
             }}
-            onPress={() => router.push('/stats')}
+            onPress={() => router.push('/loadingcreen')}
           >
             <View flexDirection="row" alignItems="center" justifyContent='space-between'>
               <View flexDirection='row' alignItems='center'>

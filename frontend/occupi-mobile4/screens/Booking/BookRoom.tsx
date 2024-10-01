@@ -121,9 +121,6 @@ const BookRoom = () => {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 24, color: textColor }}>Book</Text>
           </View>
-          <View style={{ marginHorizontal: 16, marginVertical: 24, width: wp('92%'), backgroundColor: cardBackgroundColor, borderRadius: 15, borderColor: cardBackgroundColor, height: hp('5%'), justifyContent: 'center', paddingHorizontal: 10 }}>
-            <Text style={{ fontSize: wp('4%'), color: textColor }}>Quick search for an office</Text>
-          </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 18, color: textColor }}>Rooms</Text>
             <TouchableOpacity onPress={toggleLayout}>
