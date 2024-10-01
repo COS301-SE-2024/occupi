@@ -93,7 +93,6 @@ export default function SplashScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSelectedIndex(1); // Assuming Onboarding1 is at index 1
-
       router.replace('/home'); // Navigate to Onboarding1 screen
     }, 5000); // 8 seconds
 

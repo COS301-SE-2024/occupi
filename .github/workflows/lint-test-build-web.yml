@@ -77,5 +77,31 @@ jobs:
       - name: 📦 Install dependencies with Bun
         run: bun install
 
-      - name: 🚀 Build with Next.js
+      - name: 🚀 Build with Vite.js
         run: bun run build
+
+  # test docker build and up the container then down
+  build-test-docker:
+    name: 🐋 Build Test Docker Container
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: ⬇️ Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🏗 Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: 🏗 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # run npm install so we can get package-lock.json file since it's not in the repo due to bun
+    - name: 📦 Install dependencies
+      run: npm install
+
+    - name: 🐳 Build Docker image
+      run: |
+        docker build --no-cache -t ${{ secrets.DOCKER_USERNAME }}/occupi-web:latest-develop -f Dockerfile.dev .
+
+    - name: ✅ Echo success message
+      run: echo "Docker build successful"

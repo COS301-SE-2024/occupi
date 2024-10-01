@@ -1,0 +1,344 @@
+# AI Endpoint Usage
+
+This page provides a detailed explanation of how to use the Occupi AI models. The Occupi AI models endpoint is a RESTful API that allows you to interact with the Occupi models programmatically. The Occupi AI models endpoint provides predictions on office occupancy, attendance levels, and recommendations.
+
+- [AI Endpoint Usage](#ai-endpoint-usage)
+- [Table of Contents](#table-of-contents)
+  - [Base URL](#base-url)
+  - [AI](#ai)
+    - [Predict](#predict)
+    - [Predict Week](#predict-week)
+    - [Predict Date](#predict-date)
+    - [Predict Week from Date](#predict-week-from-date)
+    - [Predict Hourly](#predict-hourly)
+    - [Predict Day](#predict-day)
+    - [Recommend](#recommend)
+    - [Recommend Office Times](#recommend-office-times)
+
+## AI
+
+The AI model endpoints are used to make predictions on the occupancy of the office space.
+
+### Base URL
+
+The base URL for the AI model endpoint is:
+
+- **URL**
+
+  `/ai.occupi.tech/`
+
+- **Method**
+
+  `GET`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** `{ "response": "Prediction API is up and running" }`
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "models unavailable" }`
+
+### Predict
+
+The `predict` endpoint is used to make a prediction on the occupancy for the office space for the current date.
+
+- **URL**
+
+  `/predict`
+
+- **Method**
+
+  `GET`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** 
+    ```json
+    {
+      "Day_of_Week": 1,
+      "Month": 8,
+      "Day_of_month": 10,
+      "Is_Weekend": false,
+      "Special_Event": 0,
+      "Predicted_Class": 2,
+      "Predicted_Attendance_Level": "50-100"
+    }
+    ```
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "An error occurred" }`
+
+### Predict Week
+
+The `predict_week` endpoint is used to make predictions on the occupancy for the office space for the current week (7 days starting from today).
+
+- **URL**
+
+  `/predict_week`
+
+- **Method**
+
+  `GET`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** 
+    ```json
+    [
+      {
+        "Date": "2024-08-10",
+        "Day_of_Week": 1,
+        "Month": 8,
+        "Day_of_month": 10,
+        "Is_Weekend": false,
+        "Special_Event": 0,
+        "Predicted_Class": 2,
+        "Predicted_Attendance_Level": "50-100"
+      },
+      ...
+    ]
+    ```
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "An error occurred" }`
+
+### Predict Date
+
+The `predict_date` endpoint is used to make predictions on the occupancy for a specific date.
+
+- **URL**
+
+  `/predict_date?date=yyyy-mm-dd`
+
+- **Method**
+
+  `GET`
+
+- **Parameters**
+  - `date`: A specific date in the format `yyyy-mm-dd`.
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** 
+    ```json
+    {
+      "Date": "2024-08-10",
+      "Day_of_Week": 1,
+      "Month": 8,
+      "Day_of_month": 10,
+      "Is_Weekend": false,
+      "Special_Event": 0,
+      "Predicted_Class": 2,
+      "Predicted_Attendance_Level": "50-100"
+    }
+    ```
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "An error occurred" }`
+
+### Predict Week from Date
+
+The `predict_week_from_date` endpoint is used to make predictions on the occupancy for the office space for the week starting from a specific date.
+
+- **URL**
+
+  `/predict_week_from_date?date=yyyy-mm-dd`
+
+- **Method**
+
+  `GET`
+
+- **Parameters**
+  - `date`: A specific date in the format `yyyy-mm-dd`.
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:** 
+    ```json
+    [
+      {
+        "Date": "2024-08-10",
+        "Day_of_Week": 1,
+        "Month": 8,
+        "Day_of_month": 10,
+        "Is_Weekend": false,
+        "Special_Event": 0,
+        "Predicted_Class": 2,
+        "Predicted_Attendance_Level": "50-100"
+      },
+      ...
+    ]
+    ```
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "An error occurred" }`
+
+### Predict Hourly
+
+The `predict_hourly` endpoint is used to make predictions on the hourly occupancy for a specific date and hour.
+
+- **URL**
+
+  `/predict_hourly?date=yyyy-mm-dd&hour=HH`
+
+- **Method**
+
+  `GET`
+
+- **Parameters**
+  - `date`: A specific date in the format `yyyy-mm-dd`.
+  - `hour`: The hour of the day (0-23).
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:**
+    ```json
+    {
+      "Date": "2024-08-10",
+      "Hour": 10,
+      "Day_of_Week": 1,
+      "Month": 8,
+      "Day_of_month": 10,
+      "Is_Weekend": false,
+      "Special_Event": 0,
+      "Predicted_Class": 2,
+      "Predicted_Attendance_Level": "50-100"
+    }
+    ```
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "An error occurred" }`
+
+### Predict Day
+
+The `predict_day` endpoint is used to make predictions for a specific date within a range of hours.
+
+- **URL**
+
+  `/predict_day?date=yyyy-mm-dd&start_hour=HH&end_hour=HH`
+
+- **Method**
+
+  `GET`
+
+- **Parameters**
+  - `date`: The date for the prediction (`yyyy-mm-dd`), defaulting to today's date.
+  - `start_hour`: The starting hour of the day (0-23).
+  - `end_hour`: The ending hour of the day (0-23).
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:**
+    ```json
+    {
+      "Date": "2024-08-10",
+      "Day_of_Week": 1,
+      "Month": 8,
+      "Day_of_month": 10,
+      "Is_Weekend": false,
+      "Special_Event": 0,
+      "Hourly_Predictions": [
+        {
+          "Hour": 6,
+          "Predicted_Class": 2,
+          "Predicted_Attendance_Level": "50-100"
+        },
+        ...
+      ]
+    }
+    ```
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "An error occurred" }`
+
+### Recommend
+
+The `recommend` endpoint is used to recommend the best day to visit the office based on predicted attendance levels.
+
+- **URL**
+
+  `/recommend`
+
+- **Method**
+
+  `GET`
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:**
+    ```json
+    {
+      "Recommendation": "Best day(s) to go to the office based on predicted attendance levels for the next seven days, excluding weekends.",
+      "Recommended_Days": [
+        {
+          "Date": "2024-08-11",
+          "Day_of_Week": 1,
+          "Month": 8,
+          "Day_of_month": 11,
+          "Is_Weekend": false,
+          "Special_Event": 0,
+          "Predicted_Class": 2,
+          "Predicted_Attendance_Level": "50-100"
+        }
+      ]
+    }
+    ```
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "An error occurred" }`
+
+### Recommend Office Times
+
+The `recommend_office_times` endpoint is used to recommend the best times to go to the office based on hourly predictions.
+
+- **URL**
+
+  `/recommend_office_times?date=yyyy-mm-dd&start_hour=HH&end_hour=HH`
+
+- **Method**
+
+  `GET`
+
+- **Parameters**
+  - `date`: The date for the prediction (`yyyy-mm-dd`), defaulting to today's date.
+  - `start_hour`: The starting hour of the day (0-23).
+  - `end_hour`: The ending hour of the day (0-23).
+
+- **Success Response**
+
+  - **Code:** 200
+  - **Content:**
+    ```json
+    {
+      "Date": "2024-08-10",
+      "Day_of_Week": 1,
+      "Best_Times": [
+        {
+          "Hour": 6,
+          "Predicted_Class": 1,
+          "Predicted_Attendance_Level": "25-50",
+          "Recommendation": "Best time to go"
+        }
+      ]
+    }
+    ```
+
+- **Error Response**
+  - **Code:** 500
+  - **Content:** `{ "error": "An error occurred" }`

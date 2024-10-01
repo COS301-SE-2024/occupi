@@ -1,12 +1,16 @@
 //this folder contains functions that will call the service functions which make api requests for authentication
 //the purpose of this file is to refine and process the data and return these to the View
 
-import { login, logout, register, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
+import { forgotPassword, login, logout, register, resetPassword, verifyOtp, verifyOtplogin, verifyOtpRegister } from "../services/authservices";
 import { fetchNotificationSettings, fetchSecuritySettings, fetchUserDetails } from "./user";
 import { router } from 'expo-router';
-import { storeUserEmail, storeToken, setState, deleteAllData } from "../services/securestore";
+import * as SecureStore from 'expo-secure-store';
+import { storeUserEmail, storeToken, setState, deleteAllData, storeOtp } from "../services/securestore";
 import { retrievePushToken } from "./notifications";
 
+function delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 export async function UserLogin(email: string, password: string) {
     storeUserEmail(email);
@@ -15,17 +19,19 @@ export async function UserLogin(email: string, password: string) {
             email: email,
             password: password
         });
+        await delay(3000);
         if (response.status === 200) {
-            // console.log('responseee',response);
+            console.log('responseee',response);
             if (response.data !== null) {
                 setState('logged_in');
-                storeToken(response.data.token);
-                // console.log('here');
+                await storeToken(response.data.token);
+                await delay(1000);
+                console.log('log in token',response.data.token);
                 fetchUserDetails(email, response.data.token);
                 fetchNotificationSettings(email);
                 fetchSecuritySettings(email);
-                router.replace('/home');
-            } 
+                router.replace('/viewbookings');
+            }
             else {
                 setState('verify_otp_login');
                 router.replace('/verify-otp')
@@ -33,12 +39,16 @@ export async function UserLogin(email: string, password: string) {
 
             return response.message;
         }
+        else if (response.status === 400) {
+            router.replace('/login');
+        }
         else {
             console.log('woahhh', response)
             return response.message;
         }
-    } catch (error) {
-        console.error('Error:', error);
+    } catch (error : Error) {
+        console.error('Error01:', error);
+        return 'Error logging in';
     }
 }
 
@@ -53,17 +63,18 @@ export async function userRegister(email: string, password: string, employeeId: 
             expoPushToken: expoPushToken
         });
         if (response.status === 200) {
-            console.log('responseee',response);
+            // console.log('responseee',response);
             setState('verify_otp_register');
             router.replace('/verify-otp');
             return response.message;
         }
         else {
-            console.log('woahhh', response)
+            console.log('woahhh', response);
             return response.message;
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error Registering:', error);
+        return 'Error Registering';
     }
 }
 
@@ -74,7 +85,7 @@ export async function verifyUserOtpRegister(email: string, otp: string) {
             otp: otp
         });
         if (response.status === 200) {
-            console.log('responseee',response);
+            // console.log('responseee',response);
             storeToken(response.data.token);
             router.replace('/set-details');
             // router.replace('/login');
@@ -89,24 +100,21 @@ export async function verifyUserOtpRegister(email: string, otp: string) {
     }
 }
 
-export async function VerifyUserOtpLogin(email : string, otp : string) {
+export async function VerifyUserOtpLogin(email: string, otp: string) {
     try {
         const response = await verifyOtplogin({
             email: email,
             otp: otp
         });
         if (response.status === 200) {
-            console.log('responseee',response);
-            if (response.data !== null) {
-                setState('logged_in');
-                storeToken(response.data.token);
-                console.log('here');
-                fetchUserDetails(email, response.data.token);
-                fetchNotificationSettings(email);
-                fetchSecuritySettings(email);
-                router.replace('/home');
-            }
-
+            // console.log('responseee',response)
+            setState('logged_in');
+            storeToken(response.data.token);
+            console.log('here');
+            fetchUserDetails(email, response.data.token);
+            fetchNotificationSettings(email);
+            fetchSecuritySettings(email);
+            router.replace('/home');
             return response.message;
         }
         else {
@@ -116,7 +124,80 @@ export async function VerifyUserOtpLogin(email : string, otp : string) {
     } catch (error) {
         console.error('Error:', error);
     }
-} 
+}
+
+export async function verifyUserOtp(email: string, otp: string) {
+    try {
+        const response = await verifyOtp({
+            email: email,
+            otp: otp
+        });
+        console.log(response);
+        if (response.status === 200) {
+            storeOtp(otp);
+            router.replace('/create-password');
+            return response.message;
+        }
+        else {
+            console.log('woahhh', response)
+            return response.message;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+export async function userForgotPassword(email: string) {
+    storeUserEmail(email);
+    const body = {
+        email: email
+    }
+    try {
+        const response = await forgotPassword(body);
+        if (response.status === 200) {
+            console.log('responseee', response);
+            setState('reset_password');
+            router.replace('/verify-otp');
+            return response.message as string;
+        }
+        else {
+            console.log('woahhh', response)
+            return response.message as string;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+export async function userResetPassword(newPassword: string, newPasswordConfirm: string) {
+    const email = await SecureStore.getItemAsync('Email') || "";
+    const otp = await SecureStore.getItemAsync('Otp');
+    const body = {
+        email: email,
+        otp: otp,
+        newPassword: newPassword,
+        newPasswordConfirm: newPasswordConfirm
+    }
+    try {
+        const response = await resetPassword(body);
+        if (response.status === 200) {
+            console.log('responseee', response);
+            setState('logged_in');
+            storeToken(response.data.token);
+            fetchUserDetails(email, response.data.token);
+            fetchNotificationSettings(email);
+            fetchSecuritySettings(email);
+            router.replace('/home');
+            return response.message as string;
+        }
+        else {
+            console.log('woahhh', response)
+            return response.message as string;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
 
 export async function UserLogout() {

@@ -22,10 +22,8 @@ services:
           condition: service_healthy
         centrifugo-prod:
           condition: service_started
-        prometheus-prod:
-          condition: service_started
-        grafana-prod:
-          condition: service_started
+        go-redis-prod:
+          condition: service_healthy
 
   rabbitmq-prod:
     image: rabbitmq:latest
@@ -60,29 +58,28 @@ services:
         soft: 262144
         hard: 262144
 
-  prometheus-prod:
-    container_name: prometheus-prod
-    image: prom/prometheus
+  go-redis-prod:
+    image: redis:latest
+    container_name: go-redis-prod
+    ports:
+      - "11000:6379"
     restart: on-failure:5
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    command:
-      - --config.file=/etc/prometheus/prometheus.prod.yml
+    environment:
+      REDIS_PASSWORD: $REDIS_PASSWORD
     volumes:
-      - ./prometheus.prod.yml:/etc/prometheus/prometheus.prod.yml
-    ports:
-      - "9090:9090"
-
-  grafana-prod:
-    container_name: grafana-prod
-    restart: on-failure:5
-    image: grafana/grafana
-    ports:
-      - "10000:3000"
+      - redis-prod:/data
+    networks:
+      - webnet
+    healthcheck:
+      test: redis-cli ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
 volumes:
   rabbitmq-prod:
   centrifugo-prod:
+  redis-prod:
 
 networks:
   webnet:

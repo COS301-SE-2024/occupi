@@ -1,0 +1,157 @@
+# Integration Testing Policy for Golang
+
+### Table of Contents
+- [Purpose](#purpose)
+- [Scope](#scope)
+- [Definition of Integration Testing](#definition-of-integration-testing)
+- [Test Case Structure](#test-case-structure)
+- [Test Coverage](#test-coverage)
+- [Environment Setup](#environment-setup)
+- [Mocking External Services](#mocking-external-services)
+- [Database Integration Testing](#database-integration-testing)
+- [Test Isolation](#test-isolation)
+- [Avoiding Flaky Tests](#avoiding-flaky-tests)
+- [Execution Strategy](#execution-strategy)
+- [Test Performance](#test-performance)
+- [Tooling](#tooling)
+- [Best Practices](#best-practices)
+- [Test Files and Directories](#test-files-and-directories)
+- [Maintenance and Refactoring](#maintenance-and-refactoring)
+- [Test Review Guidelines](#test-review-guidelines)
+- [Conclusion](#conclusion)
+
+#### Purpose
+This policy outlines the standards and practices for writing, maintaining, and executing integration tests in Golang projects. The goal is to ensure that components of the system work together correctly, detecting issues that unit tests might miss.
+
+#### Scope
+This policy applies to all Golang projects and developers responsible for integration tests, ensuring that dependencies between modules, services, or external systems behave as expected.
+
+### 1. Definition of Integration Testing
+Integration tests focus on testing how various components (e.g., modules, services, databases, external APIs) interact with each other.
+These tests ensure that multiple parts of the system work together and can detect integration issues, misconfigurations, or unexpected behaviors across services.
+
+### 2. Test Case Structure
+Integration tests should be written in Go using the testing package.
+Each test case must follow a given-when-then structure:
+Given: Set up the environment, services, and data.
+When: Invoke the function or service under test.
+Then: Assert the expected results and check the integration between components.
+Example:
+
+```go copy
+func TestUserRegistrationIntegration(t *testing.T) {
+    // Given: Set up necessary services and database state
+    db := setupTestDB()
+    userService := NewUserService(db)
+
+    // When: Call the service function
+    err := userService.RegisterUser("testuser", "password123")
+
+    // Then: Assert the expected behavior
+    if err != nil {
+        t.Fatalf("Expected no error, but got: %v", err)
+    }
+    
+    // Verify that the user exists in the database
+    user, err := userService.GetUser("testuser")
+    if err != nil || user == nil {
+        t.Fatalf("User registration failed, user not found in database")
+    }
+}
+```
+
+### 3. Test Coverage
+Integration tests must cover:
+Interactions between core modules of the application.
+External service dependencies such as databases, APIs, or messaging systems (e.g., Redis, RabbitMQ).
+Critical paths where different components work together, such as user registration, payment processing, etc.
+Aim for full coverage of the interactions between services, but avoid duplicating unit test logic.
+
+### 4. Environment Setup
+Use isolated environments (e.g., Docker containers) for external dependencies like databases, caches, and APIs to avoid interference with production systems.
+Define clear and repeatable test setup and teardown procedures, ensuring the environment is clean before each test.
+Use environment variables or configuration files for defining test environments (e.g., test database URLs, mock API endpoints).
+
+### 5. Mocking External Services
+Use mock services or fake implementations for external APIs, services, or components that cannot be fully integrated during testing.
+For example, use Dockerized versions of services like Redis, MongoDB, and PostgreSQL.
+Consider using tools like miniredis for Redis or httptest for mocking HTTP services.
+Ensure the mocks mimic real-world behavior, including edge cases such as timeouts, failures, and rate limits.
+Example of a mocked API:
+
+```go copy
+func TestFetchUserProfileIntegration(t *testing.T) {
+    mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(http.StatusOK)
+        w.Write([]byte(`{"id": "123", "name": "Test User"}`))
+    }))
+    defer mockServer.Close()
+
+    // Pass the mock server's URL to the service
+    userService := NewUserService(mockServer.URL)
+    user, err := userService.FetchUserProfile("123")
+
+    if err != nil || user.Name != "Test User" {
+        t.Fatalf("Expected 'Test User', got: %v", user.Name)
+    }
+}
+```
+
+### 6. Database Integration Testing
+When testing interactions with databases, use a separate test database that is reset before each test run to ensure clean state.
+Use transaction rollbacks to ensure the test data is removed after each test.
+When possible, leverage libraries like mtest for MongoDB or sqlmock for SQL-based databases to avoid depending on an actual database.
+
+### 7. Test Isolation
+Each test must be self-contained and independent. Tests should not share state or rely on the outcome of other tests.
+If using shared resources (like a database), ensure test data is unique or reset after each test to prevent conflicts.
+
+### 8. Avoiding Flaky Tests
+Flaky tests (those that pass or fail inconsistently) should be identified and fixed promptly.
+Ensure that external dependencies (APIs, databases) are always available or properly mocked to avoid external factors causing flaky tests.
+Add timeouts and retry mechanisms to tests that involve slow or asynchronous services.
+
+### 9. Execution Strategy
+Integration tests should be run:
+On every commit in feature branches, ideally through Continuous Integration (CI) pipelines.
+Daily/weekly as part of a more extensive testing suite to check for regressions.
+Use go test -tags=integration ./... to separate integration tests from unit tests when running the test suite.
+
+### 10. Test Performance
+Ensure that integration tests run efficiently. Avoid excessive use of long-running or blocking operations.
+If certain integration tests are slow or involve complex setup (e.g., network-based services), isolate these tests into separate categories or suites (e.g., smoke tests, end-to-end tests) that are run less frequently.
+
+### 11. Tooling
+Recommended tools for integration testing in Go:
+
+httptest for mocking HTTP services.
+sqlmock for mocking SQL-based database interactions.
+miniredis for Redis mocking.
+Docker for running isolated environments with real services (e.g., PostgreSQL, MongoDB).
+ginkgo and gomega for BDD-style testing.
+
+### 12. Best Practices
+Focus on realistic integration scenarios that reflect production use cases.
+Prefer integration tests for:
+End-to-end flows that involve multiple components (e.g., user authentication + database interactions).
+Boundary testing where two systems or services interact.
+Use real data and real services where possible, but mock external services that are out of the project's control (e.g., 3rd-party APIs).
+Periodically review and update integration tests as the application and external dependencies evolve.
+
+### 13. Test Files and Directories
+Integration tests should reside in their own directory (e.g., /tests/integration/).
+Integration test files must follow the _test.go suffix naming convention (e.g., user_service_integration_test.go).
+
+### 14. Maintenance and Refactoring
+When refactoring code, ensure that integration tests are updated to reflect the new architecture or service interactions.
+Periodically review integration tests for efficiency and relevance—remove outdated or irrelevant tests.
+
+### 15. Test Review Guidelines
+All integration tests must be reviewed for:
+Correct interaction between components (e.g., services, databases, APIs).
+Test setup correctness—services must be properly initialized, and teardown should clean up resources.
+Mock behavior—ensure mocks mimic realistic scenarios.
+
+### 16. Conclusion
+Adhering to this integration testing policy will ensure that components in the Golang codebase interact seamlessly, and issues related to cross-service functionality are detected early. Developers are encouraged to review this policy regularly to maintain alignment with industry best practices.
+

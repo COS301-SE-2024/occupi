@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
-  Alert,
+  ScrollView
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
+import { MaterialIcons } from '@expo/vector-icons';
 import {
   View,
   Radio,
@@ -18,12 +15,9 @@ import {
   RadioIndicator,
   RadioIcon,
   VStack,
-  CircleIcon,
-  Icon,
+  CircleIcon
 } from '@gluestack-ui/themed';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { router } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import GradientButton from '@/components/GradientButton';
 import LoadingGradientButton from '@/components/LoadingGradientButton';

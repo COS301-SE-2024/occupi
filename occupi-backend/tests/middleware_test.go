@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -27,8 +28,7 @@ import (
 func TestProtectedRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -62,8 +62,7 @@ func TestProtectedRoute(t *testing.T) {
 func TestProtectedRouteAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -98,8 +97,7 @@ func TestProtectedRouteAuthHeader(t *testing.T) {
 func TestProtectedRouteInvalidToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -127,8 +125,7 @@ func TestProtectedRouteInvalidToken(t *testing.T) {
 func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -156,8 +153,7 @@ func TestProtectedRouteInvalidTokenAuthHeader(t *testing.T) {
 func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -206,8 +202,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndToken(t *testing.T) {
 func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -258,8 +253,7 @@ func TestProtectedRouteNonMatchingSessionEmailAndTokenAuthHeader(t *testing.T) {
 func TestAdminRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -293,8 +287,7 @@ func TestAdminRoute(t *testing.T) {
 func TestAdminRouteAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -329,8 +322,7 @@ func TestAdminRouteAuthHeader(t *testing.T) {
 func TestUnauthorizedAccess(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -357,8 +349,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 func TestUnauthorizedAdminAccess(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -388,8 +379,7 @@ func TestUnauthorizedAdminAccess(t *testing.T) {
 func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -420,8 +410,7 @@ func TestUnauthorizedAdminAccessAuthHeader(t *testing.T) {
 func TestAccessUnprotectedRoute(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -452,8 +441,7 @@ func TestAccessUnprotectedRoute(t *testing.T) {
 func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -483,8 +471,7 @@ func TestAccessUnprotectedRouteWithToken(t *testing.T) {
 func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -515,8 +502,7 @@ func TestAccessUnprotectedRouteWithTokenAuthHeader(t *testing.T) {
 func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -563,8 +549,7 @@ func TestAccessUnprotectedRouteWithSessionInvalidToken(t *testing.T) {
 func TestAccessUnprotectedRouteWithSessionInvalidTokenAuthHeader(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -654,8 +639,7 @@ func TestAccessUnprotectedRouteWithSessionForContext(t *testing.T) {
 func TestRateLimit(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -677,7 +661,7 @@ func TestRateLimit(t *testing.T) {
 	defer server.Close()
 
 	var wg sync.WaitGroup
-	numRequests := 10
+	numRequests := 100
 	responseCodes := make([]int, numRequests)
 
 	for i := 0; i < numRequests; i++ {
@@ -692,7 +676,7 @@ func TestRateLimit(t *testing.T) {
 			defer resp.Body.Close()
 			responseCodes[index] = resp.StatusCode
 		}(i)
-		time.Sleep(100 * time.Millisecond) // Slight delay to spread out the requests
+		time.Sleep(10 * time.Millisecond) // Slight delay to spread out the requests
 	}
 
 	wg.Wait()
@@ -705,14 +689,13 @@ func TestRateLimit(t *testing.T) {
 	}
 
 	assert.Greater(t, rateLimitedCount, 0, "There should be some requests that are rate limited")
-	assert.LessOrEqual(t, rateLimitedCount, numRequests-5, "There should be at least 5 requests that are not rate limited")
+	assert.LessOrEqual(t, rateLimitedCount, numRequests-50, "There should be at least 5 requests that are not rate limited")
 }
 
 func TestRateLimitWithMultipleIPs(t *testing.T) {
 	// connect to the database
 	appsession := &models.AppSession{
-		DB:    configs.ConnectToDatabase(constants.AdminDBAccessOption),
-		Cache: configs.CreateCache(),
+		DB: configs.ConnectToDatabase(constants.AdminDBAccessOption),
 	}
 
 	// set gin run mode
@@ -734,7 +717,7 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 	defer server.Close()
 
 	var wg sync.WaitGroup
-	numRequests := 10
+	numRequests := 100
 	ip1 := "192.168.1.1"
 	ip2 := "192.168.1.2"
 	responseCodesIP1 := make([]int, numRequests)
@@ -764,7 +747,7 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 	}
 
 	// Send requests from the second IP address
-	for i := 0; i < numRequests-5; i++ {
+	for i := 0; i < numRequests-50; i++ {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
@@ -803,7 +786,7 @@ func TestRateLimitWithMultipleIPs(t *testing.T) {
 
 	// Assertions for IP1
 	assert.Greater(t, rateLimitedCountIP1, 0, "There should be some requests from IP1 that are rate limited")
-	assert.LessOrEqual(t, rateLimitedCountIP1, numRequests-5, "There should be at least 5 requests from IP1 that are not rate limited")
+	assert.LessOrEqual(t, rateLimitedCountIP1, numRequests-50, "There should be at least 50 requests from IP1 that are not rate limited")
 
 	// Assertions for IP2
 	assert.Equal(t, rateLimitedCountIP2, 0, "There should be no requests from IP2 that are rate limited")
@@ -863,8 +846,6 @@ func TestAttachOTPRateLimitMiddleware(t *testing.T) {
 			appsession := &models.AppSession{
 				DB:          nil,
 				Cache:       nil,
-				EmailsSent:  0,
-				CurrentDate: time.Now(),
 				OtpReqCache: configs.CreateOTPRateLimitCache(),
 			}
 
@@ -919,6 +900,7 @@ func TestTimezoneMiddleware(t *testing.T) {
 		timezone   string
 		statusCode int
 	}{
+		{"X-Timezone", "", 200},
 		{"X-Timezone", "America/New_York", 200},
 		{"X-Timezone", "Asia/Kolkata", 200},
 		{"X-Timezone", "Invalid/Timezone", 400},
@@ -1030,3 +1012,300 @@ func TestRealIPMiddleware_RemoteAddr(t *testing.T) {
 	assert.Equal(t, 200, w.Code)
 	assert.JSONEq(t, `{"client_ip":"203.0.113.198"}`, w.Body.String())
 }
+
+func TestLimitRequestBodySize(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	t.Run("Request body within limit with known Content-Length", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                     // 1 KB
+		body := bytes.NewReader(make([]byte, 512)) // 512 bytes
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = 512
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, `{"message":"ok"}`, w.Body.String())
+	})
+
+	t.Run("Request body exceeds limit with known Content-Length", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                      // 1 KB
+		body := bytes.NewReader(make([]byte, 2048)) // 2 KB
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = 2048
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+		assert.Contains(t, w.Body.String(), "{\"error\":{\"code\":\"REQUEST_ENTITY_TOO_LARGE\",\"details\":null,\"message\":\"Request body too large by 1024 bytes, max 1024 bytes\"},\"message\":\"Request Entity Too Large\",\"status\":413}")
+	})
+
+	t.Run("Request body within limit with unknown Content-Length", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                     // 1 KB
+		body := bytes.NewReader(make([]byte, 512)) // 512 bytes
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "application/json")
+		req.ContentLength = -1
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, `{"message":"ok"}`, w.Body.String())
+	})
+
+	t.Run("Multipart form within limit", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024 * 1024) // 1 MB
+		body := strings.NewReader("--boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"test.txt\"\r\nContent-Type: text/plain\r\n\r\nHello, World!\r\n--boundary--\r\n")
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "multipart/form-data; boundary=boundary")
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, `{"message":"ok"}`, w.Body.String())
+	})
+
+	t.Run("Multipart form exceeds limit", func(t *testing.T) {
+		// Arrange
+		maxSize := int64(1024)                      // 1 KB
+		body := bytes.NewBuffer(make([]byte, 2048)) // 2 KB
+		req, _ := http.NewRequest(http.MethodPost, "/", body)
+		req.Header.Set("Content-Type", "multipart/form-data; boundary=boundary")
+		w := httptest.NewRecorder()
+
+		r := gin.Default()
+		r.Use(middleware.LimitRequestBodySize(maxSize))
+		r.POST("/", func(ctx *gin.Context) {
+			ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
+		})
+
+		// Act
+		r.ServeHTTP(w, req)
+
+		// Assert
+		assert.Equal(t, http.StatusRequestEntityTooLarge, w.Code)
+		assert.Contains(t, w.Body.String(), "{\"error\":{\"code\":\"REQUEST_ENTITY_TOO_LARGE\",\"details\":null,\"message\":\"Request body too large by 1024 bytes, max 1024 bytes\"},\"message\":\"Request Entity Too Large\",\"status\":413}")
+	})
+}
+
+func TestBlockWeekendsAndAfterHours(t *testing.T) {
+	// Helper function to create a gin context with a specific time
+	createTestContext := func() (*gin.Context, *httptest.ResponseRecorder) {
+		gin.SetMode(gin.TestMode)
+		w := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(w)
+		return ctx, w
+	}
+
+	tests := []struct {
+		name         string
+		mockTime     time.Time
+		expectedCode int
+	}{
+		{
+			name:         "Access on a Saturday",
+			mockTime:     time.Date(2024, 9, 7, 10, 0, 0, 0, time.UTC), // Saturday at 10:00 AM
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "Access on a Sunday",
+			mockTime:     time.Date(2024, 9, 8, 10, 0, 0, 0, time.UTC), // Sunday at 10:00 AM
+			expectedCode: http.StatusOK,
+		},
+		{
+			name:         "Access before working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 6, 30, 0, 0, time.UTC), // Monday at 6:30 AM
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Access after working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 18, 0, 0, 0, time.UTC), // Monday at 6:00 PM
+			expectedCode: http.StatusForbidden,
+		},
+		{
+			name:         "Access during working hours on a weekday",
+			mockTime:     time.Date(2024, 9, 9, 10, 0, 0, 0, time.UTC), // Monday at 10:00 AM
+			expectedCode: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, w := createTestContext()
+
+			// Call the middleware with the test context and mock time
+			handler := middleware.BlockAfterHours(tt.mockTime)
+			handler(ctx)
+
+			// Assert the expected status code
+			assert.Equal(t, tt.expectedCode, w.Code)
+		})
+	}
+}
+
+/*
+func TestVerifyMobileUser(t *testing.T) {
+	email := "test@example.com"
+	role := constants.Basic
+
+	mockJWT, _, _, _ := authenticator.GenerateToken(email, role)
+	secondMockJWT, _, _, _ := authenticator.GenerateToken("test1@example.com", role)
+
+	tests := []struct {
+		name            string
+		email           string
+		expectedCode    int
+		tokenToValidate string
+		isMobileDevice  bool
+		cacheAction     bool
+		cacheErr        bool
+	}{
+		{
+			name:            "Invalid ctx that is Authorization header not set",
+			email:           email,
+			expectedCode:    http.StatusUnauthorized,
+			tokenToValidate: "",
+			isMobileDevice:  false,
+			cacheAction:     false,
+			cacheErr:        false,
+		},
+		{
+			name:            "Valid ctx with Authorization header set but not a mobile device",
+			email:           email,
+			expectedCode:    http.StatusOK,
+			tokenToValidate: mockJWT,
+			isMobileDevice:  false,
+			cacheAction:     false,
+			cacheErr:        false,
+		},
+		{
+			name:            "Valid ctx with Authorization header set and a mobile device but user not in cache",
+			email:           email,
+			expectedCode:    http.StatusBadRequest,
+			tokenToValidate: mockJWT,
+			isMobileDevice:  true,
+			cacheAction:     true,
+			cacheErr:        true,
+		},
+		{
+			name:            "Valid ctx with Authorization header set and a mobile device and token valid",
+			email:           email,
+			expectedCode:    http.StatusOK,
+			tokenToValidate: mockJWT,
+			isMobileDevice:  true,
+			cacheAction:     true,
+			cacheErr:        false,
+		},
+		{
+			name:            "Valid ctx with Authorization header set and a mobile device and token invalid",
+			email:           "test1@example.com",
+			expectedCode:    http.StatusUnauthorized,
+			tokenToValidate: secondMockJWT,
+			isMobileDevice:  true,
+			cacheAction:     true,
+			cacheErr:        false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Mock the Redis client
+			db, mock := redismock.NewClientMock()
+			appsession := &models.AppSession{MobileCache: db}
+
+			// Call the middleware with the test context
+			router := gin.Default()
+			router.Use(func(c *gin.Context) {
+				// Set the Authorization header if tokenToValidate is not empty
+				if tt.tokenToValidate != "" {
+					c.Request.Header.Set("Authorization", tt.tokenToValidate)
+				}
+				// Set the User-Agent header if isMobileDevice is true
+				if tt.isMobileDevice {
+					c.Request.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 10; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.181 Mobile Safari/537.36")
+				}
+				middleware.VerifyMobileUser(c, appsession)
+			})
+
+			// if cache action is true, then set the cache
+			if tt.cacheAction {
+				// if cache error is true, then set the cache with error
+				if tt.cacheErr {
+					// Expect the Get command to return a key not found error
+					mock.ExpectGet(cache.MobileUserKey(tt.email)).RedisNil()
+				} else {
+					// Create a sample user and marshal it into BSON
+					expectedUser := models.MobileUser{Email: tt.email, JWT: mockJWT}
+
+					userBson, err := bson.Marshal(expectedUser)
+					if err != nil {
+						t.Fatalf("failed to marshal user: %v", err)
+					}
+
+					// Expect the Get command to return the valid BSON
+					mock.ExpectGet(cache.MobileUserKey(tt.email)).SetVal(string(userBson))
+				}
+			}
+
+			// create endpoint to test middleware
+			router.GET("/ping", func(c *gin.Context) {
+				c.JSON(http.StatusOK, gin.H{"message": "pong"})
+			})
+
+			// Create a test context
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/ping", nil)
+			router.ServeHTTP(w, req)
+
+			// Assert the expected status code
+			assert.Equal(t, tt.expectedCode, w.Code)
+
+			//ensure all expectations are met
+			assert.Nil(t, mock.ExpectationsWereMet())
+		})
+	}
+
+}
+*/

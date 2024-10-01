@@ -6,6 +6,7 @@ export async function storeUserData(value: string) {
 }
 
 export async function storeToken(value: string) {
+  console.log('tokenn',value);
   await SecureStore.setItemAsync('Token', value);
 }
 
@@ -35,6 +36,14 @@ export async function storeSecuritySettings(value: string) {
 
 export async function storeCheckInValue(value: boolean) {
   await SecureStore.setItemAsync('CheckedIn', value.toString());
+}
+
+export async function storeOtp(value: string) {
+  await SecureStore.setItemAsync('Otp',value);
+}
+
+export async function storeRTCToken(value: string) {
+  await SecureStore.setItemAsync('rtc-token', value);
 }
 
 export async function getUserData() {

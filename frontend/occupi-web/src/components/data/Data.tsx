@@ -4,18 +4,14 @@ import axios from 'axios';
 const columns = [
   {name: "OCCUPI-ID", uid: "id", sortable: true},
   {name: "NAME", uid: "name", sortable: true},
-  // {name: "AGE", uid: "age", sortable: true},
   {name: "ROLE", uid: "role", sortable: true},
-  {name: "DEPARTMENT", uid: "team"},
   {name: "EMAIL", uid: "email"},
   {name: "STATUS", uid: "status", sortable: true},
   {name: "ACTIONS", uid: "actions"},
-  {name:"BOOKINGS THIS WEEK", uid:"bookings", sortable: true},
 ];
 
 const statusOptions = [
   {name: "ONSITE", uid: "ONSITE"},
-  {name: "BOOKED", uid: "BOOKED"},
   {name: "OFFSITE", uid: "OFFSITE"},
 ];
 
@@ -31,6 +27,7 @@ interface ApiUser {
   departmentNo?: string;
   status?: string;
   onSite: boolean;
+  role: string;
 }
 
 interface ApiResponse {
@@ -71,7 +68,8 @@ const fetchUsers = async (): Promise<User[]> => {
     const fetchedUsers = response.data.data.map(user => ({
       id: user.occupiId,
       name: user.details?.name || 'N/A',
-      role: user.position || 'N/A',
+      role: user.role || 'N/A',
+      position: user.position || 'N/A',
       team: user.departmentNo || 'N/A',
       status: user.onSite ? 'ONSITE' : (user.status || 'OFFSITE'),
       email: user.email,

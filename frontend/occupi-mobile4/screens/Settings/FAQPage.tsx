@@ -1,31 +1,20 @@
-import React from 'react';
-import { ScrollView, useColorScheme , StyleSheet} from 'react-native';
-import { View, Text, Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionContent } from '@gluestack-ui/themed';
-import { useTheme } from '@/components/ThemeContext';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, Pressable, Dimensions, TextInput } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { router } from 'expo-router';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { View, Text, Icon } from '@gluestack-ui/themed';
+import { Feather } from '@expo/vector-icons';
+import { useTheme } from '@/components/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
-import {
-  Icon,
-  ChevronLeftIcon,
-} from '@gluestack-ui/themed';
-const SIZES = {
-  padding: 16,
-  base: 8,
-  radius: 8,
-};
+const { width, height } = Dimensions.get('window');
 
 const FAQPage = () => {
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
-  const isDarkMode = currentTheme === 'dark';
-  const handleBack = () => {
-    router.back();
-  }
-  let colorScheme = useColorScheme();
-  
-  
+
   const faqData = [
     {
       section: "Profile Page FAQs",
@@ -153,51 +142,121 @@ const FAQPage = () => {
       ]
     },
   ];
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredFAQs = faqData.map(section => ({
+    ...section,
+    questions: section.questions.filter(item =>
+      item.question.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+  })).filter(section => section.questions.length > 0); // Remove empty sections
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: isDarkMode ? 'black' : 'white', paddingHorizontal: 16, paddingTop: 60 }}>
-    <View style={styles.header}>
-          <Icon
-            as={Feather}
-            name="chevron-left"
-            size="xl"
-            color={colorScheme === 'dark' ? 'white' : 'black'}
-            onPress={() => router.back()}
-          />
-          <Text style={{ fontSize: 21, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 2, marginRight : 20 }}>Frequently Asked Questions</Text>
-        </View>
-      <Accordion type="single" defaultValue="item-1" backgroundColor={isDarkMode ? 'black' : 'white'} marginBottom={70} shadowColor="transparent">
-        {faqData.map((section, sectionIndex) => (
-          <View key={`section-${sectionIndex}`} style={{ marginBottom: 20, backgroundColor: isDarkMode ? 'black' : 'white'}}>
-            <Text style={{ fontSize: 19, fontWeight: 'bold', color: isDarkMode ? 'white' : 'black', marginBottom: 10 }}>{section.section}</Text>
-            {section.questions.map((item, index) => (
-              <AccordionItem key={`item-${sectionIndex}-${index}`} value={`item-${sectionIndex}-${index}`} style={{ backgroundColor: isDarkMode ? 'black' : 'white'}}>
-                <AccordionHeader style={{ backgroundColor: isDarkMode ? '#2C2C2E' : '#F3F3F3', borderRadius: 10, marginBottom: 10 }}>
-                  <AccordionTrigger>
-                    <Text style={{ color: isDarkMode ? 'white' : 'black', fontSize: 16, fontWeight: 'bold' }}>{item.question}</Text>
-                  </AccordionTrigger>
-                </AccordionHeader>
-                <AccordionContent style={{ backgroundColor: isDarkMode ? 'black' : 'white', borderRadius: 10 }}>
-                  <Text style={{ color: isDarkMode ? '#CCCCCC' : '#333333', fontSize: 14 }}>{item.answer}</Text>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
+    <SafeAreaView style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <LinearGradient
+          colors={currentTheme === 'dark' ? ['#1A1A1A', '#000'] : ['#F0F0F0', '#FFF']}
+          style={{
+            paddingTop: hp('3%'),
+            paddingHorizontal: wp('4%'),
+            paddingBottom: hp('1%'),
+            borderBottomLeftRadius: 30,
+            borderBottomRightRadius: 30,
+          }}
+        >
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: hp('2%'),
+          }}>
+            <Pressable onPress={() => router.back()} style={{ padding: 10 }}>
+              <Icon
+                as={Feather}
+                name="chevron-left"
+                size="xl"
+                color={currentTheme === 'dark' ? 'white' : 'black'}
+                testID="back-button"
+              />
+            </Pressable>
+            <Text style={{
+              fontSize: wp('5%'),
+              fontWeight: 'bold',
+              color: currentTheme === 'dark' ? 'white' : 'black',
+            }}>
+              Frequently Asked Questions
+            </Text>
+            <Icon
+              as={Feather}
+              name="help-circle"
+              size="xl"
+              color={currentTheme === 'dark' ? 'white' : 'black'}
+            />
           </View>
-        ))}
-      </Accordion>
-    </ScrollView>
+          <TextInput
+            placeholder="Search FAQs..."
+            placeholderTextColor={currentTheme === 'dark' ? '#AAA' : '#666'}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={{
+              backgroundColor: currentTheme === 'dark' ? '#333' : '#E0E0E0',
+              borderRadius: 10,
+              padding: wp('2%'),
+              marginVertical: hp('2%'),
+              color: currentTheme === 'dark' ? '#FFF' : '#000',
+            }}
+          />
+        </LinearGradient>
+
+        <View style={{ padding: wp('4%') }}>
+          {filteredFAQs.map((section, sectionIndex) => (
+            <View key={`section-${sectionIndex}`} style={{ marginBottom: hp('3%') }}>
+              <Text style={{
+                fontSize: wp('4.5%'),
+                fontWeight: 'bold',
+                color: currentTheme === 'dark' ? '#FFFFFF' : '#333333',
+                marginBottom: hp('1%'),
+              }}>
+                {section.section}
+              </Text>
+              {section.questions.map((item, index) => (
+                <FAQCard key={`item-${sectionIndex}-${index}`} question={item.question} answer={item.answer} theme={currentTheme} />
+              ))}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
- 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: SIZES.padding,
-  },
-  
-});
+const FAQCard = ({ question, answer, theme }) => (
+  <View style={{
+    backgroundColor: theme === 'dark' ? '#1A1A1A' : '#F0F0F0',
+    borderRadius: 15,
+    padding: wp('4%'),
+    marginBottom: hp('2%'),
+    shadowColor: theme === 'dark' ? '#000' : '#888',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  }}>
+    <Text style={{
+      fontSize: wp('4%'),
+      fontWeight: 'bold',
+      color: theme === 'dark' ? '#FFF' : '#333',
+    }}>
+      {question}
+    </Text>
+    <Text style={{
+      fontSize: wp('3.5%'),
+      color: theme === 'dark' ? '#AAA' : '#666',
+      marginTop: hp('1%'),
+    }}>
+      {answer}
+    </Text>
+  </View>
+);
 
 export default FAQPage;

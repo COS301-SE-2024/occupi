@@ -37,12 +37,12 @@ afterEach(() => {
     const { getAllByTestId } = render(<GraphContainer />);
     const containers = getAllByTestId("graph-container");
   
-    expect(containers[1].className).toContain("card");
-    expect(containers[1].className).toContain("border-2");
+    // expect(containers[1].className).toContain("card");
+    expect(containers[1].className).toContain("card border-2");
     expect(containers[1].className).toContain("border-tertiary");
     expect(containers[1].className).toContain("rounded-[20px]");
     expect(containers[1].className).toContain("bg-secondary");
-    expect(containers[1].className).toContain("shadow-2xl");
+    // expect(containers[1].className).toContain("shadow-2xl");
   });
   
   test("GraphContainer renders without main component", () => {

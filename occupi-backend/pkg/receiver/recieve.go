@@ -37,17 +37,17 @@ func StartConsumeMessage(appsession *models.AppSession) {
 
 	go func() {
 		for _, notification := range notifications {
-			notificationSendingLogic(notification, appsession)
+			NotificationSendingLogic(notification, appsession)
 		}
 	}()
 
 	go func() {
 		for d := range msgs {
 			parts := strings.Split(string(d.Body), "|")
-			if len(parts) != 7 {
+			if len(parts) != 8 {
 				continue
 			}
-			ID, title, message, sendTimeStr, unsentExpoTokens, emails, unreadEmails := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6]
+			ID, notiID, title, message, sendTimeStr, unsentExpoTokens, emails, unreadEmails := parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]
 			sendTime, err := time.Parse(time.RFC3339, sendTimeStr)
 			if err != nil {
 				continue
@@ -55,6 +55,7 @@ func StartConsumeMessage(appsession *models.AppSession) {
 
 			notification := models.ScheduledNotification{
 				ID:                   ID,
+				NotiID:               notiID,
 				Title:                title,
 				Message:              message,
 				SendTime:             sendTime,
@@ -63,12 +64,12 @@ func StartConsumeMessage(appsession *models.AppSession) {
 				UnreadEmails:         utils.ConvertCommaDelimitedStringToArray(unreadEmails),
 			}
 
-			notificationSendingLogic(notification, appsession)
+			NotificationSendingLogic(notification, appsession)
 		}
 	}()
 }
 
-func notificationSendingLogic(notification models.ScheduledNotification, appsession *models.AppSession) {
+func NotificationSendingLogic(notification models.ScheduledNotification, appsession *models.AppSession) {
 	// to account for discrepancies in time, we should allow for a range of 5 seconds before and after the scheduled time
 	// whereby we can send the notification, after that, we should discard the notification, else if there
 	// is still more than 5 seconds before the scheduled time, we should wait until the time is right
@@ -76,14 +77,14 @@ func notificationSendingLogic(notification models.ScheduledNotification, appsess
 
 	switch {
 	case now.After(notification.SendTime.Add(-5*time.Second)) && now.Before(notification.SendTime.Add(5*time.Second)):
-		err := sendPushNotification(notification, appsession)
+		err := SendPushNotification(notification, appsession)
 		if err != nil {
 			logrus.Error("Failed to send push notification: ", err)
 		}
 	case now.Before(notification.SendTime.Add(-5 * time.Second)):
 		// wait until the time is right
 		time.Sleep(time.Until(notification.SendTime))
-		err := sendPushNotification(notification, appsession)
+		err := SendPushNotification(notification, appsession)
 		if err != nil {
 			logrus.Error("Failed to send push notification: ", err)
 		}
@@ -96,7 +97,7 @@ func notificationSendingLogic(notification models.ScheduledNotification, appsess
 	}
 }
 
-func sendPushNotification(notification models.ScheduledNotification, appsession *models.AppSession) error {
+func SendPushNotification(notification models.ScheduledNotification, appsession *models.AppSession) error {
 	for _, token := range notification.UnsentExpoPushTokens {
 		// To check the token is valid
 		pushToken, err := expo.NewExponentPushToken(token)
@@ -105,11 +106,8 @@ func sendPushNotification(notification models.ScheduledNotification, appsession 
 			continue
 		}
 
-		// Create a new Expo SDK client
-		client := expo.NewPushClient(nil)
-
 		// Publish message
-		response, err := client.Publish(
+		response, err := appsession.ExpoClient.Publish(
 			&expo.PushMessage{
 				To:       []expo.ExponentPushToken{pushToken},
 				Body:     notification.Message,
@@ -130,6 +128,11 @@ func sendPushNotification(notification models.ScheduledNotification, appsession 
 			logrus.Error("Failed to validate response: ", response.PushMessage.To, " failed")
 			continue
 		}
+	}
+
+	// if notification id is invalid or empty, return
+	if notification.ID == "" {
+		return nil
 	}
 
 	// update notification in database

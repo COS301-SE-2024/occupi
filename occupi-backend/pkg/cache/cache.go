@@ -1,8 +1,11 @@
 package cache
 
 import (
+	"context"
 	"errors"
+	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,10 +18,17 @@ func GetUser(appsession *models.AppSession, email string) (models.User, error) {
 
 	// unmarshal the user from the cache
 	var user models.User
-	userData, err := appsession.Cache.Get(UserKey(email))
+	res := appsession.Cache.Get(context.Background(), UserKey(email))
+
+	if res.Err() != nil {
+		logrus.Error("key does not exist: ", res.Err())
+		return models.User{}, res.Err()
+	}
+
+	userData, err := res.Bytes()
 
 	if err != nil {
-		logrus.Error("key does not exist: ", err)
+		logrus.Error("failed to get bytes", err)
 		return models.User{}, err
 	}
 
@@ -43,9 +53,10 @@ func SetUser(appsession *models.AppSession, user models.User) {
 	}
 
 	// set the user in the cache
-	if err := appsession.Cache.Set(UserKey(user.Email), userData); err != nil {
-		logrus.Error("failed to set user in cache", err)
-		return
+	res := appsession.Cache.Set(context.Background(), UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+	if res.Err() != nil {
+		logrus.Error("failed to set user in cache", res.Err())
 	}
 }
 
@@ -55,9 +66,10 @@ func DeleteUser(appsession *models.AppSession, email string) {
 	}
 
 	// delete the user from the cache
-	if err := appsession.Cache.Delete(UserKey(email)); err != nil {
-		logrus.Error("failed to delete user from cache", err)
-		return
+	res := appsession.Cache.Del(context.Background(), UserKey(email))
+
+	if res.Err() != nil {
+		logrus.Error("failed to delete user from cache", res.Err())
 	}
 }
 
@@ -68,10 +80,17 @@ func GetOTP(appsession *models.AppSession, email string, otp string) (models.OTP
 
 	// unmarshal the otp from the cache
 	var otpData models.OTP
-	otpDataBytes, err := appsession.Cache.Get(OTPKey(email, otp))
+	res := appsession.Cache.Get(context.Background(), OTPKey(email, otp))
+
+	if res.Err() != nil {
+		logrus.Error("key does not exist: ", res.Err())
+		return models.OTP{}, res.Err()
+	}
+
+	otpDataBytes, err := res.Bytes()
 
 	if err != nil {
-		logrus.Error("key does not exist: ", err)
+		logrus.Error("failed to get bytes", err)
 		return models.OTP{}, err
 	}
 
@@ -96,9 +115,10 @@ func SetOTP(appsession *models.AppSession, otpData models.OTP) {
 	}
 
 	// set the otp in the cache
-	if err := appsession.Cache.Set(OTPKey(otpData.Email, otpData.OTP), otpDataBytes); err != nil {
-		logrus.Error("failed to set otp in cache", err)
-		return
+	res := appsession.Cache.Set(context.Background(), OTPKey(otpData.Email, otpData.OTP), otpDataBytes, time.Duration(configs.GetCacheEviction())*time.Second)
+
+	if res.Err() != nil {
+		logrus.Error("failed to set otp in cache", res.Err())
 	}
 }
 
@@ -108,9 +128,10 @@ func DeleteOTP(appsession *models.AppSession, email string, otp string) {
 	}
 
 	// delete the otp from the cache
-	if err := appsession.Cache.Delete(OTPKey(email, otp)); err != nil {
-		logrus.Error("failed to delete otp from cache", err)
-		return
+	res := appsession.Cache.Del(context.Background(), OTPKey(email, otp))
+
+	if res.Err() != nil {
+		logrus.Error("failed to delete otp from cache", res.Err())
 	}
 }
 
@@ -127,9 +148,10 @@ func SetBooking(appsession *models.AppSession, booking models.Booking) {
 	}
 
 	// set the booking in the cache
-	if err := appsession.Cache.Set(RoomBookingKey(booking.OccupiID), bookingData); err != nil {
+	res := appsession.Cache.Set(context.Background(), RoomBookingKey(booking.OccupiID), bookingData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+	if res.Err() != nil {
 		logrus.Error("failed to set booking in cache", err)
-		return
 	}
 }
 
@@ -140,10 +162,17 @@ func GetBooking(appsession *models.AppSession, bookingID string) (models.Booking
 
 	// unmarshal the booking from the cache
 	var booking models.Booking
-	bookingData, err := appsession.Cache.Get(RoomBookingKey(bookingID))
+	res := appsession.Cache.Get(context.Background(), RoomBookingKey(bookingID))
+
+	if res.Err() != nil {
+		logrus.Error("key does not exist: ", res.Err())
+		return models.Booking{}, res.Err()
+	}
+
+	bookingData, err := res.Bytes()
 
 	if err != nil {
-		logrus.Error("key does not exist: ", err)
+		logrus.Error("failed to get bytes", err)
 		return models.Booking{}, err
 	}
 
@@ -161,62 +190,10 @@ func DeleteBooking(appsession *models.AppSession, bookingID string) {
 	}
 
 	// delete the booking from the cache
-	if err := appsession.Cache.Delete(RoomBookingKey(bookingID)); err != nil {
-		logrus.Error("failed to delete booking from cache", err)
-		return
-	}
-}
+	res := appsession.Cache.Del(context.Background(), RoomBookingKey(bookingID))
 
-func GetImage(appsession *models.AppSession, id string) (models.Image, error) {
-	if appsession.Cache == nil {
-		return models.Image{}, errors.New("cache not found")
-	}
-
-	// unmarshal the image from the cache
-	var image models.Image
-	imageData, err := appsession.Cache.Get(ImageKey(id))
-
-	if err != nil {
-		logrus.Error("key does not exist: ", err)
-		return models.Image{}, err
-	}
-
-	if err := bson.Unmarshal(imageData, &image); err != nil {
-		logrus.Error("Failed to unmarshall", err)
-		return models.Image{}, err
-	}
-
-	return image, nil
-}
-
-func SetImage(appsession *models.AppSession, id string, image models.Image) {
-	if appsession.Cache == nil {
-		return
-	}
-
-	// marshal the image
-	imageData, err := bson.Marshal(image)
-	if err != nil {
-		logrus.Error("failed to marshall", err)
-		return
-	}
-
-	// set the image in the cache
-	if err := appsession.Cache.Set(ImageKey(id), imageData); err != nil {
-		logrus.Error("failed to set user in cache", err)
-		return
-	}
-}
-
-func DeleteImage(appsession *models.AppSession, id string) {
-	if appsession.Cache == nil {
-		return
-	}
-
-	// delete the image from the cache
-	if err := appsession.Cache.Delete(ImageKey(id)); err != nil {
-		logrus.Error("failed to delete image from cache", err)
-		return
+	if res.Err() != nil {
+		logrus.Error("failed to delete booking from cache", res.Err())
 	}
 }
 
@@ -272,5 +249,119 @@ func DeleteSession(appsession *models.AppSession, uuid string) {
 	if err := appsession.SessionCache.Delete(SessionKey(uuid)); err != nil {
 		logrus.Error("failed to delete session from cache", err)
 		return
+	}
+}
+
+func CanMakeLogin(appsession *models.AppSession, email string) (bool, error) {
+	if appsession.Cache == nil {
+		return false, errors.New("cache not found")
+	}
+
+	var eviction time.Duration
+	if configs.GetGinRunMode() == "test" {
+		eviction = 2 * time.Second
+	} else {
+		eviction = 24 * time.Hour
+	}
+
+	// check if the user can make a login request
+	res := appsession.Cache.Get(context.Background(), LoginKey(email))
+
+	if res.Err() != nil {
+		// add the user to the cache with a value of 1 and evict after one day
+		// set the image in the cache
+		res1 := appsession.Cache.Set(context.Background(), LoginKey(email), 1, eviction)
+
+		if res1.Err() != nil {
+			logrus.Error("failed to set user in cache", res1.Err())
+			return false, res1.Err()
+		}
+
+		return true, nil
+	}
+
+	// check if the user has made more than 5 login requests
+	loginCount, err := res.Int()
+
+	if err != nil {
+		return false, err
+	}
+
+	// Check if the value is less than 5
+	if loginCount < 5 {
+		// Increment the value
+		loginCount += 1
+
+		// Set the new value with the same expiration time (24 hours)
+		err = appsession.Cache.Set(context.Background(), LoginKey(email), loginCount, eviction).Err()
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func GetMobileUser(appsession *models.AppSession, email string) (models.MobileUser, error) {
+	if appsession.MobileCache == nil {
+		return models.MobileUser{}, errors.New("cache not found")
+	}
+
+	// unmarshal the user from the cache
+	var user models.MobileUser
+	res := appsession.MobileCache.Get(context.Background(), MobileUserKey(email))
+
+	if res.Err() != nil {
+		logrus.Error("key does not exist: ", res.Err())
+		return models.MobileUser{}, res.Err()
+	}
+
+	userData, err := res.Bytes()
+
+	if err != nil {
+		logrus.Error("failed to get bytes", err)
+		return models.MobileUser{}, err
+	}
+
+	if err := bson.Unmarshal(userData, &user); err != nil {
+		logrus.Error("failed to unmarshall", err)
+		return models.MobileUser{}, err
+	}
+
+	return user, nil
+}
+
+func SetMobileUser(appsession *models.AppSession, user models.MobileUser) {
+	if appsession.MobileCache == nil {
+		return
+	}
+
+	// marshal the user
+	userData, err := bson.Marshal(user)
+	if err != nil {
+		logrus.Error("failed to marshall", err)
+		return
+	}
+
+	// set the user in the cache
+	res := appsession.MobileCache.Set(context.Background(), MobileUserKey(user.Email), userData, 0)
+
+	if res.Err() != nil {
+		logrus.Error("failed to set user in cache", res.Err())
+	}
+}
+
+func DeleteMobileUser(appsession *models.AppSession, email string) {
+	if appsession.MobileCache == nil {
+		return
+	}
+
+	// delete the user from the cache
+	res := appsession.MobileCache.Del(context.Background(), MobileUserKey(email))
+
+	if res.Err() != nil {
+		logrus.Error("failed to delete user from cache", res.Err())
 	}
 }

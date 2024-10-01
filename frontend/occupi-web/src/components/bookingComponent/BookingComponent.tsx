@@ -25,12 +25,12 @@ import {
   SortDescriptor,
   Tooltip,
 } from "@nextui-org/react";
-import { PlusIcon } from "@assets/index";
 import { SearchIcon } from "@assets/index";
 import { ChevronDownIcon } from "@assets/index";
 import { columns, users, statusOptions } from "../data/Data";
 import { capitalize } from "../data/Utils";
-import { OccupancyModal } from "@components/index";
+import { OccupancyModal, TopNav } from "@components/index";
+import axios from "axios";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
   ONSITE: "success",
@@ -39,14 +39,37 @@ const statusColorMap: Record<string, ChipProps["color"]> = {
 };
 
 // type BookingComponentProps = {
-//   roleColumnName: string; // Add other props as needed
+//   positionColumnName: string; // Add other props as needed
 // };
 
-const INITIAL_VISIBLE_COLUMNS = ["name", "role", "status", "actions"];
+const handleRoleChange = async (user: User, newRole: string) => {
+  try {
+    const response = await axios.put("/api/toggle-admin-status", {
+      email: user.email,
+      role: newRole,
+    });
+
+    if (response.status === 200) {
+      console.log("Role changed successfully");
+      // Update the user role in the state
+      // Update the users state with the updated users array
+    } else {
+      console.error("Error changing role:", response.status);
+    }
+  } catch (error) {
+    console.error("Error changing role:", error);
+  }
+};
+
+const INITIAL_VISIBLE_COLUMNS = [
+  "name",
+  "position",
+  "status",
+  "role",
+  "actions",
+];
 
 type User = (typeof users)[0];
-
-
 
 export default function App() {
   const [filterValue, setFilterValue] = React.useState("");
@@ -63,8 +86,7 @@ export default function App() {
     direction: "ascending",
   });
 
-  const {  onOpen } = useDisclosure();
-
+  const { onOpen } = useDisclosure();
 
   const [page, setPage] = React.useState(1);
 
@@ -120,18 +142,23 @@ export default function App() {
   const renderCell = React.useCallback((user: User, columnKey: React.Key) => {
     const cellValue = user[columnKey as keyof User];
 
+    console.log(user);
+
     switch (columnKey) {
       case "name":
         return (
           <User
-            avatarProps={{ radius: "lg", src: user.avatar }}
+            avatarProps={{
+              radius: "lg",
+              src: `https://dev.occupi.tech/api/download-profile-image?email=${user.email}&quality=low`,
+            }}
             description={user.email}
             name={cellValue}
           >
             {user.email}
           </User>
         );
-      case "role":
+      case "position":
         return (
           <div className="flex  flex-col">
             <p className="text-bold text-small text-text_col capitalize">
@@ -153,20 +180,35 @@ export default function App() {
             {cellValue}
           </Chip>
         );
+      case "role":
+        return (
+          <Dropdown>
+            <DropdownTrigger>
+              <Button
+                color={user.role === "basic" ? "primary" : "secondary"}
+                variant="flat"
+              >
+                {user.role}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu
+              aria-label="Action event example"
+              onAction={(key) => handleRoleChange(user, key.toString())}
+            >
+              <DropdownItem key="basic">basic</DropdownItem>
+              <DropdownItem key="admin">admin</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        );
 
-        
       case "actions":
-        
         return (
           <div className="relative flex items-center gap-2">
             <Tooltip content="View User Details">
               <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
                 {/* <EyeIcon /> */}
-                <div onClick={onOpen}>
-        {/* <EyeIcon />Hello */}
-        
-      </div>
-      <OccupancyModal user={user}/>
+                <div onClick={onOpen}>{/* <EyeIcon />Hello */}</div>
+                <OccupancyModal user={user} />
               </span>
             </Tooltip>
             {/* <Tooltip content="Edit user">
@@ -236,7 +278,6 @@ export default function App() {
         <div
           data-testid="input-search"
           className="flex justify-between gap-3 items-end"
-
         >
           <Input
             isClearable
@@ -290,12 +331,12 @@ export default function App() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button
+            {/* <Button
               endContent={<PlusIcon />}
               className=" bg-primary_alt text-text_col_alt"
             >
               Add New
-            </Button>
+            </Button> */}
           </div>
         </div>
         <div className="flex justify-between items-center">
@@ -370,9 +411,23 @@ export default function App() {
       initial={{ opacity: 0, scale: 0.7 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
+      className="w-full overflow-auto"
     >
+      <TopNav
+        mainComponent={
+          <div className="text-text_col font-semibold text-2xl ml-5">
+            Employees
+            <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
+              Manage your Employees, and view their occupancy statistics
+            </span>
+          </div>
+        }
+        searchQuery={""}
+        onChange={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+      />
 
-      
       <div data-testid="table" className="max-w-[95%] mx-auto">
         <Table
           aria-label="Example table with custom cells, pagination and sorting"

@@ -27,6 +27,5 @@ describe("ProfileComponent", () => {
       expect(avatarDivs.length).toBeGreaterThan(0);
       const avatarDiv = avatarDivs[0].querySelector(".avatar");
       expect(avatarDiv).toBeDefined();
-      expect(avatarDiv?.classList.contains("online")).toBe(true);
     });
   });

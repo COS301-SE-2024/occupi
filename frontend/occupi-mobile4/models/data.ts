@@ -10,17 +10,25 @@ export interface Room {
     roomNo: string; 
 }
 
+interface Images {
+    highRes: string;
+    lowRes: string;
+    midRes: string;
+    thumbnailRes: string;
+  }
+
 export interface Booking {
     checkedIn: boolean;
-    creator: string;
+    creators: string;
     date: string;
     emails: string[];
     end: string;
     floorNo: string;
-    occupiId: string;
+    occupiID: string;
     roomId: string;
     roomName: string;
     start: string;
+    roomImage : Images;
 }
 
 export interface User {
@@ -52,7 +60,7 @@ export interface NotificationSettings {
 }
 
 export interface Prediction {
-    Date: string,
+    Date: number,
     Day_of_Week: number,
     Day_of_month: number,
     Is_Weekend: boolean,
@@ -60,4 +68,20 @@ export interface Prediction {
     Predicted_Attendance_Level: string,
     Predicted_Class: number,
     Special_Event: number
+}
+
+export interface HourlyPrediction {
+    Date: number,
+    Day_of_Week: number,
+    Day_of_month: number,
+    Is_Weekend: boolean,
+    Month: number,
+    Hourly_Predictions: HourPrediction[],
+    Special_Event: number
+}
+
+export interface HourPrediction {
+    Hour: number;
+    Predicted_Attendance_Level: string,
+    Predicted_Class: number,
 }

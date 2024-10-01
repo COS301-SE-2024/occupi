@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { loginpng, OccupiLogo } from "@assets/index";
-import { Checkbox, GradientButton, InputBox, OccupiLoader } from "@components/index";
+import { GradientButton, InputBox, OccupiLoader } from "@components/index";
 import { useNavigate } from "react-router-dom";
 import AuthService from "AuthService";
 import { useUser } from "userStore";
@@ -18,6 +18,7 @@ const LoginForm = (): JSX.Element => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [requiresOtp, setRequiresOtp] = useState<boolean>(false);
+  const [webauthn, setWebauthn] = useState<boolean>(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,7 +31,7 @@ const LoginForm = (): JSX.Element => {
       return;
     }
 
-    if(!window.PublicKeyCredential || form.password !== "" ) {
+    if(!webauthn) {
       if (form.password === "") {
         setError("Please fill in password field");
         setIsLoading(false);
@@ -81,14 +82,14 @@ const LoginForm = (): JSX.Element => {
     }
     
     try {
-      setUserDetails({ email: form.email, name: "", dob: "", gender: "", employeeid: "", number: "", pronouns: "", /* other fields */ });
+      setUserDetails({ email: form.email, name: "", dob: "", gender: "", employeeid: "", number: "", pronouns: "", avatarId: "", position: "", departmentNo: "" });
       const userDetails = await AuthService.getUserDetails(form.email);
       console.log("User details from API:", userDetails);
 
       setUserDetails(userDetails);
       console.log("UserDetails after setting:", userDetails);
 
-      navigate("/dashboard/overview");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login or user details error:", error);
       if (typeof error === 'object' && error !== null && 'message' in error) {
@@ -101,7 +102,23 @@ const LoginForm = (): JSX.Element => {
     }
   };
 
+  const canUseWebauthn = () => {
+    return window.PublicKeyCredential !== undefined;
+  }
+
+  const attemptWebauthn = async () => {
+    if (!canUseWebauthn()) {
+      setWebauthn(false);
+    } else {
+      setWebauthn(true);
+    }
+  }
+
   const clickSubmit = () => { document.getElementById("LoginFormSubmitButton")?.click(); }
+
+  useEffect(() => {
+    attemptWebauthn();
+  }, []);
 
   return (
     <div className="flex flex-col lg:flex-row justify-center items-center min-h-screen p-4">
@@ -126,21 +143,25 @@ const LoginForm = (): JSX.Element => {
             setForm({ ...form, email: val, valid_email: validity })
           }}
         />
-        <InputBox
-          type="password"
-          placeholder="Enter your password"
-          label="Password"
-          submitValue={(val, validity) => {
-            setForm({ ...form, password: val, valid_password: validity })
-          }}
-        />
+        { !webauthn &&
+          <InputBox
+            type="password"
+            placeholder="Enter your password"
+            label="Password"
+            submitValue={(val, validity) => {
+              setForm({ ...form, password: val, valid_password: validity })
+            }}
+          />
+        }
 
         <div className="w-full flex flex-col sm:flex-row justify-between items-center mt-5 space-y-2 sm:space-y-0">
           <div className="flex items-center">
-            <Checkbox id="rememberMeCheckbox" />
-            <p className="text-text_col_green_leaf cursor-pointer ml-2">Remember me</p>
+            { !canUseWebauthn() ? <p className="text-text_col_green_leaf opacity-70">Use passwordless login</p> :
+              webauthn ? <p className="text-text_col_green_leaf cursor-pointer" onClick={() => setWebauthn(false)}>Use password instead</p> 
+              : <p className="text-text_col_green_leaf cursor-pointer" onClick={attemptWebauthn}>Use password-less login</p>
+            }
           </div>
-          <p className="text-text_col_green_leaf cursor-pointer">Forgot Password?</p>
+          <p className="text-text_col_green_leaf cursor-pointer" onClick={() => navigate("/forgot-password")}>Forgot Password?</p>
         </div>
 
         {error && <p className="text-red-500 mt-2">{error}</p>}
@@ -157,7 +178,8 @@ const LoginForm = (): JSX.Element => {
 
         <div className="flex items-center justify-center mt-5 mb-5">
           <p className="text-text_col">New to occupi?</p>
-          <p className="ml-2 text-text_col_green_leaf cursor-pointer">Learn more</p>
+          <a className="ml-2 text-text_col_green_leaf cursor-pointer" href="https://occupi.tech" target="ref">
+          Learn more</a>
         </div>
       </form>
     </div>

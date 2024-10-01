@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	track "github.com/middleware-labs/golang-apm/tracker"
 	"github.com/newrelic/go-agent/v3/integrations/nrgin"
-	"github.com/newrelic/go-agent/v3/integrations/nrlogrus"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/sirupsen/logrus"
 
@@ -52,9 +51,19 @@ func (app *Application) InitializeConfig() *Application {
 }
 
 func (app *Application) SetupLogger() *Application {
-	if configs.GetEnv() != prod || configs.GetEnv() != devdeployed {
-		utils.SetupLogger()
+	utils.SetupLogger()
+	return app
+}
+
+func (app *Application) SetUpTimeZone() *Application {
+	timeZone := configs.GetTimeZone()
+
+	if err := os.Setenv("TZ", timeZone); err != nil {
+		logrus.Fatal("Failed to set timezone: ", err)
 	}
+
+	time.Local, _ = time.LoadLocation(timeZone)
+
 	return app
 }
 
@@ -122,12 +131,6 @@ func (app *Application) AttachMoniteringMiddleware() *Application {
 		relicApp, err := newrelic.NewApplication(
 			newrelic.ConfigAppName(configs.GetNewRelicAppName()),
 			newrelic.ConfigLicense(configs.GetConfigLicense()),
-			newrelic.ConfigCodeLevelMetricsEnabled(true),
-			newrelic.ConfigAppLogForwardingEnabled(true),
-			func(config *newrelic.Config) {
-				logrus.SetLevel(logrus.DebugLevel)
-				config.Logger = nrlogrus.StandardLogger()
-			},
 		)
 		if err != nil {
 			logrus.Fatal("Failed to create newrelic application: ", err)

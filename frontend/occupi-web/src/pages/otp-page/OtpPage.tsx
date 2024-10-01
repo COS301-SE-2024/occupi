@@ -20,9 +20,7 @@ const OtpPage = () => {
     if (state && state.email) {
       setEmail(state.email);
     } else {
-      setError("Email not provided. Please start the login process again.");
-      // Optionally, redirect to login page after a short delay
-      // setTimeout(() => navigate('/login'), 3000);
+      navigate("/")
     }
   }, [location.state, navigate]);
 
@@ -42,7 +40,7 @@ const OtpPage = () => {
       const userDetails = await AuthService.getUserDetails(email);
       setUserDetails(userDetails);
 
-      navigate("/dashboard/overview");
+      navigate("/dashboard");
     } catch (error) {
       console.error("OTP verification error:", error);
       setError("OTP verification failed. Please try again.");

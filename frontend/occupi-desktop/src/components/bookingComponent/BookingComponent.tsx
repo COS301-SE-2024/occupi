@@ -1,5 +1,8 @@
 import React from "react";
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { useDisclosure } from "@nextui-org/react";
 
 import {
   Table,
@@ -20,34 +23,70 @@ import {
   Selection,
   ChipProps,
   SortDescriptor,
-  Tooltip
+  Tooltip,
 } from "@nextui-org/react";
-import {PlusIcon} from "@assets/index";
-import {SearchIcon} from "@assets/index";
-import {ChevronDownIcon,EyeIcon,DeleteIcon,EditIcon} from "@assets/index";
-import {columns, users, statusOptions} from "../data/Data";
-import {capitalize} from "../data/Utils";
+import { SearchIcon } from "@assets/index";
+import { ChevronDownIcon } from "@assets/index";
+import { columns, users, statusOptions } from "../data/Data";
+import { capitalize } from "../data/Utils";
+import { OccupancyModal, TopNav } from "@components/index";
+import axios from "axios";
 
 const statusColorMap: Record<string, ChipProps["color"]> = {
-  IN: "success",
-  OUT: "danger",
+  ONSITE: "success",
+  OFFSITE: "danger",
   BOOKED: "warning",
 };
 
-const INITIAL_VISIBLE_COLUMNS = ["name", "role", "status", "actions"];
+// type BookingComponentProps = {
+//   positionColumnName: string; // Add other props as needed
+// };
 
-type User = typeof users[0];
+const handleRoleChange = async (user: User, newRole: string) => {
+  try {
+    const response = await axios.put("/api/toggle-admin-status", {
+      email: user.email,
+      role: newRole,
+    });
+
+    if (response.status === 200) {
+      console.log("Role changed successfully");
+      // Update the user role in the state
+      // Update the users state with the updated users array
+    } else {
+      console.error("Error changing role:", response.status);
+    }
+  } catch (error) {
+    console.error("Error changing role:", error);
+  }
+};
+
+const INITIAL_VISIBLE_COLUMNS = [
+  "name",
+  "position",
+  "status",
+  "role",
+  "actions",
+];
+
+type User = (typeof users)[0];
 
 export default function App() {
   const [filterValue, setFilterValue] = React.useState("");
-  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(new Set([]));
-  const [visibleColumns, setVisibleColumns] = React.useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
+  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
+    new Set([])
+  );
+  const [visibleColumns, setVisibleColumns] = React.useState<Selection>(
+    new Set(INITIAL_VISIBLE_COLUMNS)
+  );
   const [statusFilter, setStatusFilter] = React.useState<Selection>("all");
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
     column: "bookings",
     direction: "ascending",
   });
+
+  const { onOpen } = useDisclosure();
 
   const [page, setPage] = React.useState(1);
 
@@ -56,7 +95,9 @@ export default function App() {
   const headerColumns = React.useMemo(() => {
     if (visibleColumns === "all") return columns;
 
-    return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
+    return columns.filter((column) =>
+      Array.from(visibleColumns).includes(column.uid)
+    );
   }, [visibleColumns]);
 
   const filteredItems = React.useMemo(() => {
@@ -64,17 +105,20 @@ export default function App() {
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((user) =>
-        user.name.toLowerCase().includes(filterValue.toLowerCase()),
+        user.name.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
-    if (statusFilter !== "all" && Array.from(statusFilter).length !== statusOptions.length) {
+    if (
+      statusFilter !== "all" &&
+      Array.from(statusFilter).length !== statusOptions.length
+    ) {
       filteredUsers = filteredUsers.filter((user) =>
-        Array.from(statusFilter).includes(user.status),
+        Array.from(statusFilter).includes(user.status)
       );
     }
 
     return filteredUsers;
-  }, [hasSearchFilter,users, filterValue, statusFilter]);
+  }, [hasSearchFilter, users, filterValue, statusFilter]);
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
 
@@ -98,52 +142,99 @@ export default function App() {
   const renderCell = React.useCallback((user: User, columnKey: React.Key) => {
     const cellValue = user[columnKey as keyof User];
 
+    console.log(user);
+
     switch (columnKey) {
       case "name":
         return (
           <User
-            avatarProps={{radius: "lg", src: user.avatar}}
+            avatarProps={{
+              radius: "lg",
+              src: `https://dev.occupi.tech/api/download-profile-image?email=${user.email}&quality=low`,
+            }}
             description={user.email}
             name={cellValue}
           >
             {user.email}
           </User>
         );
-      case "role":
+      case "position":
         return (
           <div className="flex  flex-col">
-            <p className="text-bold text-small text-text_col capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">{user.team}</p>
+            <p className="text-bold text-small text-text_col capitalize">
+              {cellValue}
+            </p>
+            <p className="text-bold text-tiny capitalize text-default-400">
+              {user.team}
+            </p>
           </div>
         );
       case "status":
         return (
-          <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
+          <Chip
+            className="capitalize"
+            color={statusColorMap[user.status]}
+            size="sm"
+            variant="flat"
+          >
             {cellValue}
           </Chip>
         );
-        case "actions":
-          return (
-            <div className="relative flex items-center gap-2">
-              <Tooltip content="Details">
-                <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                  <EyeIcon />
-                </span>
-              </Tooltip>
-              <Tooltip content="Edit user">
-                <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                  <EditIcon />
-                </span>
-              </Tooltip>
-              <Tooltip color="danger" content="Delete user">
-                <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                  <DeleteIcon />
-                </span>
-              </Tooltip>
-            </div>
-          );
-        default:
-          return cellValue;
+      case "role":
+        return (
+          <Dropdown>
+            <DropdownTrigger>
+              <Button
+                color={user.role === "basic" ? "primary" : "secondary"}
+                variant="flat"
+              >
+                {user.role}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu
+              aria-label="Action event example"
+              onAction={(key) => handleRoleChange(user, key.toString())}
+            >
+              <DropdownItem key="basic">basic</DropdownItem>
+              <DropdownItem key="admin">admin</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        );
+
+      case "actions":
+        return (
+          <div className="relative flex items-center gap-2">
+            <Tooltip content="View User Details">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                {/* <EyeIcon /> */}
+                <div onClick={onOpen}>{/* <EyeIcon />Hello */}</div>
+                <OccupancyModal user={user} />
+              </span>
+            </Tooltip>
+            {/* <Tooltip content="Edit user">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                <EditIcon />
+              </span>
+            </Tooltip> */}
+            <Tooltip content="Email user">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                <a
+                  href={`mailto:${user.email}`}
+                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
+                >
+                  <FontAwesomeIcon icon={faEnvelope} />
+                </a>
+              </span>
+            </Tooltip>
+            {/* <Tooltip color="danger" content="Delete user">
+              <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                <DeleteIcon />
+              </span>
+            </Tooltip> */}
+          </div>
+        );
+      default:
+        return cellValue;
     }
   }, []);
 
@@ -159,10 +250,13 @@ export default function App() {
     }
   }, [page]);
 
-  const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRowsPerPage(Number(e.target.value));
-    setPage(1);
-  }, []);
+  const onRowsPerPageChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setRowsPerPage(Number(e.target.value));
+      setPage(1);
+    },
+    []
+  );
 
   const onSearchChange = React.useCallback((value?: string) => {
     if (value) {
@@ -173,18 +267,21 @@ export default function App() {
     }
   }, []);
 
-  const onClear = React.useCallback(()=>{
-    setFilterValue("")
-    setPage(1)
-  },[])
+  const onClear = React.useCallback(() => {
+    setFilterValue("");
+    setPage(1);
+  }, []);
 
   const topContent = React.useMemo(() => {
     return (
       <div className="flex flex-col gap-4">
-        <div data-testid='input-search' className="flex justify-between gap-3 items-end">
+        <div
+          data-testid="input-search"
+          className="flex justify-between gap-3 items-end"
+        >
           <Input
             isClearable
-            className="w-full sm:max-w-[44%] border-none"
+            className="w-full sm:max-w-[44%] border-none mt-5"
             placeholder="Search by name..."
             startContent={<SearchIcon />}
             value={filterValue}
@@ -194,7 +291,7 @@ export default function App() {
           <div className="flex gap-3">
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon />} variant="flat">  
+                <Button endContent={<ChevronDownIcon />} variant="flat">
                   Status
                 </Button>
               </DropdownTrigger>
@@ -215,7 +312,7 @@ export default function App() {
             </Dropdown>
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon />} variant="flat"> 
+                <Button endContent={<ChevronDownIcon />} variant="flat">
                   Columns
                 </Button>
               </DropdownTrigger>
@@ -234,13 +331,18 @@ export default function App() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button  endContent={<PlusIcon />} className=" bg-primary_alt text-text_col_alt">
+            {/* <Button
+              endContent={<PlusIcon />}
+              className=" bg-primary_alt text-text_col_alt"
+            >
               Add New
-            </Button>
+            </Button> */}
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total {users.length} users</span>
+          <span className="text-default-400 text-small">
+            Total {users.length} users
+          </span>
           <label className="flex items-center text-default-400 text-small">
             Rows per page:
             <select
@@ -283,10 +385,20 @@ export default function App() {
           onChange={setPage}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
+          <Button
+            isDisabled={pages === 1}
+            size="sm"
+            variant="flat"
+            onPress={onPreviousPage}
+          >
             Previous
           </Button>
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
+          <Button
+            isDisabled={pages === 1}
+            size="sm"
+            variant="flat"
+            onPress={onNextPage}
+          >
             Next
           </Button>
         </div>
@@ -296,51 +408,65 @@ export default function App() {
 
   return (
     <motion.div
-    initial={{ opacity: 0, scale: 0.7 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.2 }}
->
-  <div data-testid='table'>
-    <Table
-    
-      aria-label="Example table with custom cells, pagination and sorting"
-      isHeaderSticky
-      bottomContent={bottomContent}
-      bottomContentPlacement="outside"
-      classNames={{
-        wrapper: "max-h-[382px]",
-      }}
-      selectedKeys={selectedKeys}
-      selectionMode="multiple"
-      sortDescriptor={sortDescriptor}
-      topContent={topContent}
-      topContentPlacement="outside"
-      onSelectionChange={setSelectedKeys}
-      onSortChange={setSortDescriptor}
+      initial={{ opacity: 0, scale: 0.7 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
+      className="w-full overflow-auto"
     >
-      <TableHeader columns={headerColumns}>
-        {(column) => (
-          <TableColumn
-            key={column.uid}
-            align={column.uid === "actions" ? "center" : "start"}
-            allowsSorting={column.sortable}
-          >
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody emptyContent={"No users found"} items={sortedItems}>
-        {(item) => (
-          <TableRow key={item.id}>
-            {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-    </div>
+      <TopNav
+        mainComponent={
+          <div className="text-text_col font-semibold text-2xl ml-5">
+            Employees
+            <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
+              Manage your Employees, and view their occupancy statistics
+            </span>
+          </div>
+        }
+        searchQuery={""}
+        onChange={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+      />
+
+      <div data-testid="table" className="max-w-[95%] mx-auto">
+        <Table
+          aria-label="Example table with custom cells, pagination and sorting"
+          isHeaderSticky
+          bottomContent={bottomContent}
+          bottomContentPlacement="outside"
+          classNames={{
+            wrapper: "max-h-[382px]",
+          }}
+          selectedKeys={selectedKeys}
+          selectionMode="multiple"
+          sortDescriptor={sortDescriptor}
+          topContent={topContent}
+          topContentPlacement="outside"
+          onSelectionChange={setSelectedKeys}
+          onSortChange={setSortDescriptor}
+        >
+          <TableHeader columns={headerColumns}>
+            {(column) => (
+              <TableColumn
+                key={column.uid}
+                align={column.uid === "actions" ? "center" : "start"}
+                allowsSorting={column.sortable}
+              >
+                {column.name}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody emptyContent={"No users found"} items={sortedItems}>
+            {(item) => (
+              <TableRow key={item.id}>
+                {(columnKey) => (
+                  <TableCell>{renderCell(item, columnKey)}</TableCell>
+                )}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </motion.div>
   );
 }
-
-
-

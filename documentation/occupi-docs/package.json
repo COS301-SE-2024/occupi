@@ -1,6 +1,6 @@
 {
     "name": "occupi-docs",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "Occupi documentation",
     "scripts": {
         "dev": "next dev",

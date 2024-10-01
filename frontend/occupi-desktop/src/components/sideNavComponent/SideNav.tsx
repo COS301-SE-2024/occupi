@@ -1,8 +1,17 @@
 import {
-  ChevronLeft, ChevronRight,
-  Grid, ColorSwatch, Home, PieChart, UserProfileGroup, OccupiLogo, Report
+  ChevronLeft,
+  ChevronRight,
+  Grid,
+  Home,
+  PieChart,
+  OccupiLogo,
+  Report,
+  Bar,
+  Worker,
+  Employee,
+  Location,
 } from "@assets/index";
-import { SideNavBarButton } from "@components/index";
+import { ProfileDropDown, SideNavBarButton } from "@components/index";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -13,10 +22,9 @@ const sidenavvariants = {
   },
   closed: {
     width: "5vw",
-    minWidth: "50px", // Set a minimum width when the side panel is closed
-
-  }
-}
+    minWidth: "57px",
+  },
+};
 
 const sidebarcontent = [
   {
@@ -24,30 +32,34 @@ const sidebarcontent = [
     text: "Dashboard",
   },
   {
-    icon: PieChart,
-    text: "Analysis",
+    icon: Employee,
+    text: "Employees",
   },
   {
-    icon: ColorSwatch,
-    text: "AI model",
+    icon: Bar,
+    text: "Booking Statistics",
+  },
+  {
+    icon: Worker,
+    text: "Worker Dashboard",
+  },
+  {
+    icon: PieChart,
+    text: "AI Analysis",
   },
   {
     icon: Home,
-    text: "Buildings",
+    text: "Rooms",
   },
   {
-    icon: UserProfileGroup,
-    text: "Teams",
+    icon: Location,
+    text: "IP addresses",
   },
   {
     icon: Report,
     text: "Reports",
   },
-  // {
-  //   icon: Faq,
-  //   text: "Help",
-  // }
-]
+];
 
 const SideNav = () => {
   const navigate = useNavigate();
@@ -56,56 +68,32 @@ const SideNav = () => {
   const [isMinimized, setIsMinimized] = useState(window.innerWidth < 1000);
   const [selectedPanel, setSelectedPanel] = useState("Dashboard");
 
-
   useEffect(() => {
     const handleResize = () => {
       setIsMinimized(window.innerWidth < 1000);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
-    // Clean up event listener on unmount
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
-
-  function setSelectedPanelF(arg: string){
-      setSelectedPanel(arg);
-      if (arg === "Dashboard") {
-        navigate('/dashboard');
-      }
-      else if (arg === "Analysis") {
-        navigate('/analysis');
-      }
-      else if (arg === "AI model") {
-        navigate('/ai-model');
-      }
-      else if (arg === "Buildings") {
-        navigate('/buildings');
-      }
-      else if (arg === "Teams") {
-        navigate('/teams');
-      }
-      else if (arg === "Notifications") {
-        navigate('/notifications');
-      }
-      else if (arg === "Settings") {
-        navigate('/settings');
-      }
-      else if (arg === "Logout") {
-        navigate('/');
-        //should not navigate to anything
-        //but rather should show a modal
-        //to confirm logout
-      }
-      else if (arg === "Reports") {
-        navigate('/reports');
-      }
-      else if (arg === "Help") {
-        navigate('/faq');
-      }
+  function setSelectedPanelF(arg: string) {
+    setSelectedPanel(arg);
+    if (arg === "Dashboard") navigate("/dashboard");
+    else if (arg === "AI Analysis") navigate("/ai-dashboard");
+    else if (arg === "Rooms") navigate("/rooms");
+    else if (arg === "Settings") navigate("/settings");
+    else if (arg === "Logout") navigate("/");
+    else if (arg === "Reports") navigate("/reports");
+    else if (arg === "Help") navigate("/faq");
+    else if (arg === "Booking Statistics") navigate("/booking-statistics/overview");
+    else if (arg === "Worker Dashboard") navigate("/worker-dashboard");
+    else if (arg === "Employees") navigate("/employees");
+    else if (arg === "IP addresses") navigate("/user-locations");
+    else;
   }
 
   function toggleSideNav() {
@@ -114,62 +102,84 @@ const SideNav = () => {
 
   useEffect(() => {
     const selectPanel = () => {
-        const pn: string = location.pathname;
-        if(pn.startsWith("/dashboard"))setSelectedPanel("Dashboard");
-        else if(pn.startsWith("/analysis"))setSelectedPanel("Analysis");
-        else if(pn.startsWith("/ai-model"))setSelectedPanel("AI model");
-        else if(pn.startsWith("/buildings"))setSelectedPanel("Buildings");
-        else if(pn.startsWith("/teams"))setSelectedPanel("Teams");
-        else if(pn.startsWith("/notifications"))setSelectedPanel("Notifications");
-        else if(pn.startsWith("/settings"))setSelectedPanel("Settings");
-        else if(pn.startsWith("/reports"))setSelectedPanel("Reports");
-        else ;
-    }
+      const pn: string = location.pathname;
+      if (pn.startsWith("/dashboard")) setSelectedPanel("Dashboard");
+      else if (pn.startsWith("/ai-dashboard")) setSelectedPanel("AI Analysis");
+      else if (pn.startsWith("/rooms")) setSelectedPanel("Rooms");
+      else if (pn.startsWith("/settings")) setSelectedPanel("Settings");
+      else if (pn.startsWith("/reports")) setSelectedPanel("Reports");
+      else if (pn.startsWith("/faq")) setSelectedPanel("Help");
+      else if (pn.startsWith("/booking-statistics")) setSelectedPanel("Booking Statistics");
+      else if (pn.startsWith("/worker-dashboard")) setSelectedPanel("Worker Dashboard");
+      else if (pn.startsWith("/employees")) setSelectedPanel("Employees");
+      else if (pn.startsWith("/user-locations")) setSelectedPanel("IP addresses");
+      else setSelectedPanel("");
+    };
 
     selectPanel();
-}, [location]);
-
+  }, [location]);
 
   return (
-  
-    <motion.div data-testid='sidenav' className="w-fit border-r-[2px] border-r-secondary flex flex-col items-center z-50"
+    <motion.div
+      data-testid="sidenav"
+      className="w-fit border-r-[2px] border-r-secondary flex flex-col items-center z-50 h-screen"
       animate={isMinimized ? "closed" : "open"}
-      variants={sidenavvariants}>
-      <div className={"flex flex-wrap items-center h-[110px] relative z-50 w-full "
-        + (isMinimized ? "justify-center" : "justify-between")}>
-        <motion.div className="flex items-center h-[110px]  w-fit cursor-pointer " whileTap={{scale: 0.98}}>
-        <div className="w-[40px] h-[40px] ml-2 mr-2">
-            <OccupiLogo />
-          </div>
-          {!isMinimized && (<h2 className="text-text_col h-[24px] mt-[-10px] font-semibold text-2xl mr-2">Occupi</h2>)}
-        </motion.div>
-        {
-          isMinimized ? 
-            <motion.div 
+      variants={sidenavvariants}
+    >
+        <div
+          className={
+            "flex flex-wrap items-center h-[110px] relative z-50 w-full " +
+            (isMinimized ? "justify-center" : "justify-between")
+          }
+        >
+          <motion.div
+            className="flex items-center h-[110px] w-fit cursor-pointer "
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setSelectedPanelF("Dashboard")}
+          >
+            <div className="w-[40px] h-[40px] ml-2 mr-2">
+              <OccupiLogo />
+            </div>
+            {!isMinimized && (
+              <h2 className="text-text_col h-[24px] mt-[-10px] font-semibold text-2xl mr-2">
+                Occupi
+              </h2>
+            )}
+          </motion.div>
+          {isMinimized ? (
+            <motion.div
               className="w-[20px] h-[40px] bg-secondary rounded-r-[10px] flex justify-center items-center cursor-pointer -right-5 absolute z-50"
-              whileTap={{scale: 0.98}} onClick={toggleSideNav}>
+              whileTap={{ scale: 0.98 }}
+              onClick={toggleSideNav}
+            >
               <ChevronRight />
             </motion.div>
-            :
-            <motion.div 
-              className="w-[20px] h-[40px] bg-secondary rounded-l-[10px] flex justify-center items-center cursor-pointer"
-              whileTap={{scale: 0.98}} onClick={toggleSideNav}>
+          ) : (
+            <motion.div
+              className="w-[20px] h-[40px] bg-secondary rounded-l-[10px] flex justify-center items-center cursor-pointer z-50"
+              whileTap={{ scale: 0.98 }}
+              onClick={toggleSideNav}
+            >
               <ChevronLeft />
             </motion.div>
-        }
-      </div>
-
-      {sidebarcontent.map((button_content, index) =>
-        <SideNavBarButton 
-        key={index}
-        icon={button_content.icon} 
-        text={button_content.text} 
-        isMinimized={isMinimized} 
-        selected_panel={selectedPanel} 
-        setSelectedPanelF={setSelectedPanelF} />
-      )}
+          )}
+        </div>
+        {sidebarcontent.map((button_content, index) => (
+          <SideNavBarButton
+            key={index}
+            icon={button_content.icon}
+            text={button_content.text}
+            isMinimized={isMinimized}
+            selected_panel={selectedPanel}
+            setSelectedPanelF={setSelectedPanelF}
+          />
+        ))}
+        <div className="flex-grow"/>
+        <div className="mb-4">
+          <ProfileDropDown isMinimized={isMinimized} />
+        </div>
     </motion.div>
-   
   );
 };
+
 export default SideNav;

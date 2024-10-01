@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Keyboard, Animated, Easing } from 'react-native';
-import { router } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 // import CookieManager from '@react-native-cookies/cookies';
-import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View, KeyboardAvoidingView, Platform } from 'react-native';
 import {
   FormControl,
@@ -13,24 +11,17 @@ import {
   VStack,
   useToast,
   Toast,
-  Box,
-  CheckIcon,
-  Checkbox,
-  ToastTitle,
+  Box, ToastTitle,
   InputField,
   FormControlError,
   FormControlErrorIcon,
   FormControlErrorText,
-  InputIcon,
-  CheckboxIndicator,
-  CheckboxIcon,
-  CheckboxLabel,
-  Image,
+  InputIcon, Image,
   Heading,
   LinkText,
   InputSlot,
   FormControlLabel,
-  FormControlLabelText,
+  FormControlLabelText
 } from '@gluestack-ui/themed';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,6 +29,7 @@ import { z } from 'zod';
 import { AlertTriangle, EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
+import FaceID from '../../screens/Login/assets/images/Occupi/face-id (1).png';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
 import GradientButton from '@/components/GradientButton';
 import { UserLogin } from '@/utils/auth';
@@ -73,8 +65,6 @@ const SignInForm = () => {
   const [biometricAvailable, setBiometricAvailable] = useState(false);
 
   const toast = useToast();
-
-
 
   useEffect(() => {
     checkBiometricAvailability();
@@ -177,8 +167,8 @@ const SignInForm = () => {
       <View style={{ alignItems: 'center', marginBottom: hp('2%') }}>
         {biometricAvailable && (
           <TouchableOpacity onPress={handleBiometricSignIn}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: hp('2%') }}>
-              <Ionicons name="finger-print" size={wp('6%')} color="black" />
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: hp('1%') }}>
+              <Image alt="faceid" source={FaceID} style={{ width: wp('10%'), height: wp('10%') }} color="black" />
             </View>
           </TouchableOpacity>
         )}
@@ -280,25 +270,7 @@ const SignInForm = () => {
         space={wp('2%')}
         mb={hp('3%')}
       >
-        <Controller
-          name="rememberme"
-          defaultValue={false}
-          control={control}
-          render={({ field: { onChange, value } }) => (
-            <Checkbox
-              aria-label="Close"
-              size="md"
-              value="Remember me"
-              isChecked={value}
-              onChange={onChange}
-            >
-              <CheckboxIndicator>
-                <CheckboxIcon as={CheckIcon} color="yellowgreen" />
-              </CheckboxIndicator>
-              <CheckboxLabel ml={wp('2%')} color="yellowgreen">Remember me</CheckboxLabel>
-            </Checkbox>
-          )}
-        />
+        
 
         <StyledExpoRouterLink href="/forgot-password">
           <LinkText color="yellowgreen" fontSize="$md">

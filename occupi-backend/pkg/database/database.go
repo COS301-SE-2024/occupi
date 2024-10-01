@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/analytics"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/cache"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/sender"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
 	"github.com/sirupsen/logrus"
@@ -177,37 +179,7 @@ func AddUser(ctx *gin.Context, appsession *models.AppSession, user models.Regist
 		return false, errors.New("database is nil")
 	}
 	// convert to user struct
-	userStruct := models.User{
-		OccupiID:             user.EmployeeID,
-		Password:             user.Password,
-		Email:                user.Email,
-		Role:                 constants.Basic,
-		OnSite:               true,
-		IsVerified:           false,
-		NextVerificationDate: time.Now(), // this will be updated once the email is verified
-		TwoFAEnabled:         false,
-		KnownLocations:       []models.Location{},
-		Details: models.Details{
-			ImageID:  "",
-			Name:     "",
-			DOB:      time.Now(),
-			Gender:   "",
-			Pronouns: "",
-		},
-		Notifications: models.Notifications{
-			Invites:         true,
-			BookingReminder: true,
-		},
-		Security: models.Security{
-			MFA:         false,
-			Biometrics:  false,
-			ForceLogout: false,
-		},
-		Status:        "",
-		Position:      "",
-		DepartmentNo:  "",
-		ExpoPushToken: user.ExpoPushToken,
-	}
+	userStruct := CreateBasicUser(user)
 	// Save the user to the database
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 	_, err := collection.InsertOne(ctx, userStruct)
@@ -320,9 +292,11 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	}
 
 	location := &models.Location{
-		City:    info.City,
-		Region:  info.Region,
-		Country: info.Country,
+		City:      info.City,
+		Region:    info.Region,
+		Country:   info.Country,
+		Location:  info.Location,
+		IPAddress: ipAddress,
 	}
 
 	// Verify the user in the database and set next date to verify to 30 days from now
@@ -856,13 +830,10 @@ func FilterCollectionWithProjection(ctx *gin.Context, appsession *models.AppSess
 		return nil, 0, err
 	}
 
-	var results []bson.M
-	if err = cursor.All(ctx, &results); err != nil {
-		return nil, 0, err
-	}
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, filter.Filter)
 
-	totalResults, err := collection.CountDocuments(ctx, filter.Filter)
-	if err != nil {
+	if errv != nil {
+		logrus.Error(err)
 		return nil, 0, err
 	}
 
@@ -1047,6 +1018,29 @@ func ReadNotifications(ctx *gin.Context, appsession *models.AppSession, email st
 	updateProjection := bson.M{"$pull": bson.M{"unreadEmails": email}}
 
 	_, err := collection.UpdateMany(ctx, updateFilter, updateProjection)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func DeleteNotificationForUser(ctx *gin.Context, appsession *models.AppSession, request models.DeleteNotiRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
+
+	// update this notification by removing this email from emails and unreademails array
+	updateFilter := bson.M{"notiId": request.NotiID}
+
+	updateProjection := bson.M{"$pull": bson.M{"emails": request.Email, "unreadEmails": request.Email}}
+
+	_, err := collection.UpdateOne(ctx, updateFilter, updateProjection)
 	if err != nil {
 		logrus.Error(err)
 		return err
@@ -1298,123 +1292,28 @@ func UpdateNotificationSettings(ctx *gin.Context, appsession *models.AppSession,
 	return nil
 }
 
-func UploadImageData(ctx *gin.Context, appsession *models.AppSession, image models.Image) (string, error) {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return "", errors.New("database is nil")
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
-
-	id, err := collection.InsertOne(ctx, image)
-	if err != nil {
-		logrus.Error(err)
-		return "", err
-	}
-
-	// add image to cache
-	cache.SetImage(appsession, id.InsertedID.(primitive.ObjectID).Hex(), image)
-
-	return id.InsertedID.(primitive.ObjectID).Hex(), nil
-}
-
-func GetImageData(ctx *gin.Context, appsession *models.AppSession, imageID string, quality string) (models.Image, error) {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return models.Image{}, errors.New("database is nil")
-	}
-
-	if imageData, err := cache.GetImage(appsession, imageID); err == nil {
-		resolutions := map[string][]byte{
-			constants.ThumbnailRes: imageData.Thumbnail,
-			constants.LowRes:       imageData.ImageLowRes,
-			constants.MidRes:       imageData.ImageMidRes,
-			constants.HighRes:      imageData.ImageHighRes,
-		}
-
-		if data, ok := resolutions[quality]; ok && len(data) > 0 {
-			return imageData, nil
-		}
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
-
-	id, err := primitive.ObjectIDFromHex(imageID)
-
-	if err != nil {
-		logrus.Error(err)
-		return models.Image{}, err
-	}
-
-	filter := bson.M{"_id": id}
-
-	// add quality attribute to projection
-	findOptions := options.FindOne()
-	findOptions.SetProjection(bson.M{"image_" + quality + "_res": 1, "_id": 0, "fileName": 1})
-
-	var image models.Image
-	err = collection.FindOne(ctx, filter, findOptions).Decode(&image)
-	if err != nil {
-		logrus.WithError(err).Error("Failed to get image data")
-		return models.Image{}, err
-	}
-
-	if imageData, err := cache.GetImage(appsession, imageID); err == nil {
-		switch quality {
-		case constants.ThumbnailRes:
-			imageData.Thumbnail = image.Thumbnail
-		case constants.LowRes:
-			imageData.ImageLowRes = image.ImageLowRes
-		case constants.MidRes:
-			imageData.ImageMidRes = image.ImageMidRes
-		case constants.HighRes:
-			imageData.ImageHighRes = image.ImageHighRes
-		}
-
-		cache.SetImage(appsession, imageID, imageData)
-	}
-
-	return image, nil
-}
-
-func DeleteImageData(ctx *gin.Context, appsession *models.AppSession, imageID string) error {
+func AddImageToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
 		return errors.New("database is nil")
 	}
 
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Images")
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
 
-	filter := bson.M{"_id": imageID}
-	_, err := collection.DeleteOne(ctx, filter)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
+	thumbnailURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), imageID, constants.ThumbnailRes)
+	lowURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), imageID, constants.LowRes)
+	midURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), imageID, constants.MidRes)
+	highURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s%s", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), imageID, constants.HighRes)
 
-	// delete image from cache
-	cache.DeleteImage(appsession, imageID)
-
-	return nil
-}
-
-func SetUserImage(ctx *gin.Context, appsession *models.AppSession, email, imageID string) error {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return errors.New("database is nil")
-	}
-
-	// get user from cache
-	userData, cacheErr := cache.GetUser(appsession, email)
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
-
-	filter := bson.M{"email": email}
-	update := bson.M{"$set": bson.M{"details.imageid": imageID}}
+	filter := bson.M{"roomId": roomID}
+	update := bson.M{"$set": bson.M{
+		"roomImage.uuid":         imageID,
+		"roomImage.thumbnailRes": thumbnailURL,
+		"roomImage.lowRes":       lowURL,
+		"roomImage.midRes":       midURL,
+		"roomImage.highRes":      highURL,
+	}}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -1422,44 +1321,10 @@ func SetUserImage(ctx *gin.Context, appsession *models.AppSession, email, imageI
 		return err
 	}
 
-	// update user in cache
-	if cacheErr == nil {
-		userData.Details.ImageID = imageID
-		cache.SetUser(appsession, userData)
-	}
-
 	return nil
 }
 
-func GetUserImage(ctx *gin.Context, appsession *models.AppSession, email string) (string, error) {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return "", errors.New("database is nil")
-	}
-
-	// check if user is in cache
-	if userData, err := cache.GetUser(appsession, email); err == nil {
-		return userData.Details.ImageID, nil
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
-
-	filter := bson.M{"email": email}
-	var user models.User
-	err := collection.FindOne(ctx, filter).Decode(&user)
-	if err != nil {
-		logrus.WithError(err).Error("Failed to get user image id")
-		return "", err
-	}
-
-	// Add the user to the cache if cache is not nil
-	cache.SetUser(appsession, user)
-
-	return user.Details.ImageID, nil
-}
-
-func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
+func DeleteImageFromRoom(ctx *gin.Context, appsession *models.AppSession, roomID, imageID string) error {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -1469,7 +1334,13 @@ func AddImageIDToRoom(ctx *gin.Context, appsession *models.AppSession, roomID, i
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
 
 	filter := bson.M{"roomId": roomID}
-	update := bson.M{"$addToSet": bson.M{"roomImageIds": imageID}}
+	update := bson.M{"$set": bson.M{
+		"roomImage.uuid":         "",
+		"roomImage.thumbnailRes": fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.ThumbnailRes),
+		"roomImage.lowRes":       fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.LowRes),
+		"roomImage.midRes":       fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.MidRes),
+		"roomImage.highRes":      fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.HighRes),
+	}}
 
 	_, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -1521,7 +1392,13 @@ func AddRoom(ctx *gin.Context, appsession *models.AppSession, rroom models.Reque
 		MaxOccupancy: rroom.MaxOccupancy,
 		Description:  rroom.Description,
 		RoomName:     rroom.RoomName,
-		RoomImageIDs: []string{},
+		RoomImage: models.RoomImage{
+			UUID:         "",
+			ThumbnailRes: fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.ThumbnailRes),
+			LowRes:       fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.LowRes),
+			MidRes:       fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.MidRes),
+			HighRes:      fmt.Sprintf("https://%s.blob.core.windows.net/%s/default-office-%s.png", configs.GetAzureAccountName(), configs.GetAzureRoomsContainerName(), constants.HighRes),
+		},
 	}
 
 	// filter - ensure no room exists with the same roomid or roomno before inserting
@@ -1604,4 +1481,864 @@ func AddUserCredential(ctx *gin.Context, appsession *models.AppSession, email st
 	}
 
 	return nil
+}
+
+func IsIPWithinRange(ctx *gin.Context, appsession *models.AppSession, email string, unrecognizedLogger *ipinfo.Core) bool {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false
+	}
+
+	// get the ip ranges from the cache
+	if user, err := cache.GetUser(appsession, email); err == nil {
+		return IsLocationInRange(user.KnownLocations, unrecognizedLogger)
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+
+	var user models.User
+
+	err := collection.FindOne(ctx, filter).Decode(&user)
+
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return IsLocationInRange(user.KnownLocations, unrecognizedLogger)
+}
+
+func GetAvailableSlots(ctx *gin.Context, appsession *models.AppSession, request models.RequestAvailableSlots) ([]models.Slot, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
+
+	filter := bson.M{
+		"roomId": request.RoomID,
+		"date":   request.Date,
+	}
+
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	var bookings []models.Booking
+	if err = cursor.All(ctx, &bookings); err != nil {
+		return nil, err
+	}
+
+	// get all slots for the room
+	slots := ComputeAvailableSlots(bookings, request.Date)
+
+	return slots, nil
+}
+
+func ToggleOnsite(ctx *gin.Context, appsession *models.AppSession, request models.RequestOnsite) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	var updatedStatus bool
+	switch request.OnSite {
+	case "Yes":
+		updatedStatus = true
+	case "No":
+		updatedStatus = false
+	default:
+		return errors.New("invalid status")
+	}
+
+	// check if user is already on site or off site and are trying to perform the same action again
+	var userData models.User
+	userData, err := cache.GetUser(appsession, request.Email)
+	if err != nil {
+		// get the user from the database
+		filter := bson.M{"email": request.Email}
+		err := collection.FindOne(ctx, filter).Decode(&userData)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to get user from database")
+			return err
+		}
+	}
+
+	if userData.OnSite && updatedStatus {
+		return errors.New("user is already onsite")
+	} else if !userData.OnSite && !updatedStatus {
+		return errors.New("user is already offsite")
+	}
+
+	filter := bson.M{"email": request.Email}
+	update := bson.M{"$set": bson.M{"onSite": updatedStatus}}
+
+	_, err = collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to update user status")
+		return err
+	}
+
+	// update user in cache
+	userData.OnSite = updatedStatus
+	cache.SetUser(appsession, userData)
+
+	if updatedStatus {
+		// add the user to the office hours collection
+		err = AddHoursToOfficeHoursCollection(ctx, appsession, request.Email)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+
+		// add their attendance to the attendance collection if there is no
+		// attendance object for this date otherwise increment the Number_Attended field
+		err = AddAttendance(ctx, appsession, request.Email)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	} else {
+		// find the user's office hours and remove them and add the removed office hours to the OfficeHoursArchive collection
+		officeHours, err := FindAndRemoveOfficeHours(ctx, appsession, request.Email)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+
+		// update the fields and add to the OfficeHoursArchive time series collection
+		err = AddOfficeHoursToArchive(ctx, appsession, officeHours)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func AddHoursToOfficeHoursCollection(ctx *gin.Context, appsession *models.AppSession, email string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// add the user to the office hours collection
+	officeHours := models.OfficeHours{
+		Email:   email,
+		Entered: CapTimeRange(),
+		Exited:  CapTimeRange(),
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
+
+	_, err := collection.InsertOne(ctx, officeHours)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to add user to office hours")
+		return err
+	}
+
+	return nil
+}
+
+func FindAndRemoveOfficeHours(ctx *gin.Context, appsession *models.AppSession, email string) (models.OfficeHours, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return models.OfficeHours{}, errors.New("database is nil")
+	}
+
+	// find the user's office hours and remove them
+	filter := bson.M{"email": email, "closed": false}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
+
+	var officeHours models.OfficeHours
+	err := collection.FindOne(ctx, filter).Decode(&officeHours)
+	if err != nil {
+		logrus.Error(err)
+		return models.OfficeHours{}, err
+	}
+
+	// remove the office hours from the OfficeHours collection
+	_, err = collection.DeleteOne(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return models.OfficeHours{}, err
+	}
+
+	return officeHours, nil
+}
+
+func AddOfficeHoursToArchive(ctx *gin.Context, appsession *models.AppSession, officeHours models.OfficeHours) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	// update the fields and add to the OfficeHoursArchive time series collection
+	officeHours.Exited = CompareAndReturnTime(officeHours.Entered, CapTimeRange())
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+	_, err := collection.InsertOne(ctx, officeHours)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+	// add their attendance to the attendance collection if there is no
+	// attendance object for this date otherwise increment the Number_Attended field
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("attendance")
+
+	// Define the start and end of the day
+	now := time.Now().Truncate(24 * time.Hour)
+	endOfDay := now.Add(24 * time.Hour)
+
+	// Create the filter for date
+	filter := bson.M{
+		"Date": bson.M{
+			"$gte": now,
+			"$lt":  endOfDay,
+		},
+	}
+
+	var attendance models.Attendance
+	err := collection.FindOne(ctx, filter).Decode(&attendance)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get attendance")
+		attendance = models.Attendance{
+			Date:           time.Now(),
+			IsWeekend:      IsWeekend(time.Now()),
+			WeekOfTheYear:  WeekOfTheYear(time.Now()),
+			DayOfWeek:      DayOfTheWeek(time.Now()),
+			DayOfMonth:     DayofTheMonth(time.Now()),
+			Month:          Month(time.Now()),
+			SpecialEvent:   false, // admins can set this to true if there is a special event at a later stage
+			NumberAttended: 1,
+			AttendeesEmail: []string{email},
+		}
+
+		_, err = collection.InsertOne(ctx, attendance)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to add user to attendance")
+			return err
+		}
+	} else {
+		// check if the email is in the Attendees_Email array
+		if utils.Contains(attendance.AttendeesEmail, email) {
+			return nil
+		}
+
+		update := bson.M{"$inc": bson.M{"Number_Attended": 1}, "$push": bson.M{"Attendees_Email": email}}
+		_, err = collection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to update attendance")
+			return err
+		}
+	}
+	return nil
+}
+
+func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, email string, filter models.AnalyticsFilterStruct, calculate string) ([]primitive.M, int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	// Prepare the aggregate
+	var pipeline bson.A
+	switch calculate {
+	case "hoursbyday":
+		pipeline = analytics.GroupOfficeHoursByDay(email, filter)
+	case "hoursbyweekday":
+		pipeline = analytics.AverageOfficeHoursByWeekday(email, filter)
+	case "ratio":
+		pipeline = analytics.RatioInOutOfficeByWeekday(email, filter)
+	case "peakhours":
+		pipeline = analytics.BusiestHoursByWeekday(email, filter)
+	case "most":
+		pipeline = analytics.LeastMostInOfficeWorker(email, filter, false)
+	case "least":
+		pipeline = analytics.LeastMostInOfficeWorker(email, filter, true)
+	case "arrivaldeparture":
+		pipeline = analytics.AverageArrivalAndDepartureTimesByWeekday(email, filter)
+	case "inofficehours":
+		pipeline = analytics.CalculateInOfficeRate(email, filter)
+	default:
+		return nil, 0, errors.New("invalid calculate value")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHoursArchive")
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	mongoFilter := MakeEmailAndTimeFilter(email, filter)
+
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, mongoFilter)
+
+	if errv != nil {
+		logrus.Error(errv)
+		return nil, 0, errv
+	}
+
+	return results, totalResults, nil
+}
+
+func CreateUser(ctx *gin.Context, appsession *models.AppSession, user models.UserRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// validate role
+	if user.Role != "admin" && user.Role != "user" {
+		return errors.New("invalid role")
+	}
+
+	_, err := collection.InsertOne(ctx, CreateAUser(user))
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) (*ipinfo.Core, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	ipInfo, err := configs.GetIPInfo(request.IP, appsession.IPInfo)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	location := models.Location{
+		City:      ipInfo.City,
+		Region:    ipInfo.Region,
+		Country:   ipInfo.Country,
+		Location:  ipInfo.Location,
+		IPAddress: request.IP,
+	}
+
+	// filter for all users emails which are in the request.Emails array also these emails
+	// don't have this location in the knownLocations array
+	filter := bson.M{"email": bson.M{"$in": request.Emails}, "knownLocations": bson.M{"$ne": location}}
+
+	update := bson.M{"$push": bson.M{"knownLocations": location}}
+
+	_, err = collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	// get users from cache and update their knownLocations
+	for _, email := range request.Emails {
+		if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
+			userData.KnownLocations = append(userData.KnownLocations, location)
+			cache.SetUser(appsession, userData)
+		}
+	}
+
+	return ipInfo, nil
+}
+
+func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) (*ipinfo.Core, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	ipInfo, err := configs.GetIPInfo(request.IP, appsession.IPInfo)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	location := models.Location{
+		City:      ipInfo.City,
+		Region:    ipInfo.Region,
+		Country:   ipInfo.Country,
+		Location:  ipInfo.Location,
+		IPAddress: request.IP,
+	}
+
+	// filter for all users emails which are in the request.Emails array and have this location in the knownLocations array
+	filter := bson.M{"email": bson.M{"$in": request.Emails}, "knownLocations": bson.M{"$eq": location}}
+
+	update := bson.M{"$pull": bson.M{"knownLocations": location}}
+
+	_, err = collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	// get users from cache and update their knownLocations
+	for _, email := range request.Emails {
+		if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
+			for i, loc := range userData.KnownLocations {
+				if loc == location {
+					userData.KnownLocations = append(userData.KnownLocations[:i], userData.KnownLocations[i+1:]...)
+					cache.SetUser(appsession, userData)
+					break
+				}
+			}
+		}
+	}
+
+	return ipInfo, nil
+}
+
+func UserHasImage(ctx *gin.Context, appsession *models.AppSession, email string) bool {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Details.HasImage
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.Details.HasImage
+}
+
+func SetHasImage(ctx *gin.Context, appsession *models.AppSession, email string, hasImage bool) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	update := bson.M{"$set": bson.M{"details.hasImage": hasImage}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// get user from cache
+	if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
+		userData.Details.HasImage = hasImage
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
+}
+
+func GetUsersGender(ctx *gin.Context, appsession *models.AppSession, email string) (string, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return "", errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.Details.Gender, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.Details.Gender, nil
+}
+
+func CheckIfUserIsAllowedNewIP(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return userData.BlockAnonymousIPAddress, nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return user.BlockAnonymousIPAddress, nil
+}
+
+func CheckIfUserShouldResetPassword(ctx *gin.Context, appsession *models.AppSession, email string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+	filter := bson.M{"email": email}
+
+	// get user from cache
+	var userData models.User
+	var cacheErr error
+	if userData, cacheErr = cache.GetUser(appsession, email); cacheErr != nil {
+		// get the user from the database
+		err := collection.FindOne(ctx, filter).Decode(&userData)
+		if err != nil {
+			logrus.Error(err)
+			return false, err
+		}
+	}
+
+	if !userData.ResetPassword {
+		return false, nil
+	}
+
+	update := bson.M{"$set": bson.M{"resetPassword": !userData.ResetPassword}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+
+	// update user in cache
+	userData.ResetPassword = !userData.ResetPassword
+	cache.SetUser(appsession, userData)
+
+	return true, nil
+}
+
+func ToggleAllowAnonymousIP(ctx *gin.Context, appsession *models.AppSession, request models.AllowAnonymousIPRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// filter for all users emails which are in the request.Emails array
+	filter := bson.M{"email": bson.M{"$in": request.Emails}}
+
+	update := bson.M{"$set": bson.M{"blockAnonymousIPAddress": request.BlockAnonymousIPAddress}}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// fetch the emails in cache and update the blockAnonymousIPAddress field
+	for _, email := range request.Emails {
+		userData, cacheErr := cache.GetUser(appsession, email)
+		if cacheErr != nil {
+			continue
+		}
+
+		userData.BlockAnonymousIPAddress = request.BlockAnonymousIPAddress
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
+}
+
+func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, creatorEmail string,
+	attendeeEmails []string, filter models.AnalyticsFilterStruct, calculate string) ([]primitive.M, int64, error) {
+
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	// Prepare the aggregate
+	var pipeline bson.A
+	var dateFilter string
+	switch calculate {
+	case "top3":
+		dateFilter = "date"
+		filter.Filter["timeTo"] = ""
+		pipeline = analytics.GetTop3MostBookedRooms(creatorEmail, attendeeEmails, filter, dateFilter)
+	case "historical":
+		// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
+		filter.Filter["timeTo"] = time.Now()
+		filter.Filter["timeFrom"] = ""
+		dateFilter = "end"
+		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
+	case "upcoming":
+		// add or overwrite "timeFrom" with time.Now and delete "timeTo" if present
+		filter.Filter["timeFrom"] = time.Now()
+		filter.Filter["timeTo"] = ""
+		dateFilter = "end"
+		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
+	default:
+		return nil, 0, errors.New("invalid calculate value")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	mongoFilter := MakeEmailAndEmailsAndTimeFilter(creatorEmail, attendeeEmails, filter, dateFilter)
+
+	results, totalResults, errv := GetResultsAndCount(ctx, collection, cursor, mongoFilter)
+
+	results = GetImagesForRooms(ctx, appsession, results)
+
+	if errv != nil {
+		logrus.Error(errv)
+		return nil, 0, errv
+	}
+
+	return results, totalResults, nil
+}
+
+func GetImagesForRooms(ctx *gin.Context, appsession *models.AppSession, results []primitive.M) []primitive.M {
+	// iterate through results and extract the roomId and add it to the roomIds array
+	roomIds := make([]string, 0)
+	for _, result := range results {
+		roomIds = append(roomIds, result["roomId"].(string))
+	}
+
+	// get the images for the rooms from the Rooms collection
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Rooms")
+	filter := bson.M{"roomId": bson.M{"$in": roomIds}}
+
+	// return only the roomImage field
+	cursor, err := collection.Find(ctx, filter, options.Find().SetProjection(bson.M{"roomImage": 1, "roomId": 1}))
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get data from database")
+		return results
+	}
+
+	// iterate through the cursor and add the roomImage to the results matching on roomId
+	var imageRes []bson.M
+	if err := cursor.All(ctx, &imageRes); err != nil {
+		logrus.WithError(err).Error("Failed to get data from cursor")
+		return results
+	}
+
+	// Create a map for quick lookup of room images by roomId
+	imageMap := make(map[string]interface{})
+	for _, image := range imageRes {
+		imageMap[image["roomId"].(string)] = image["roomImage"]
+	}
+
+	// Iterate through the results and add the roomImage from the map
+	for _, result := range results {
+		if roomImage, ok := imageMap[result["roomId"].(string)]; ok {
+			result["roomImage"] = roomImage
+		}
+	}
+
+	return results
+}
+
+func ToggleAdminStatus(ctx *gin.Context, appsession *models.AppSession, request models.RoleRequest) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// filter for user with the email
+	filter := bson.M{"email": request.Email}
+
+	// validate role is either basic or admin
+	if request.Role != constants.Admin && request.Role != constants.Basic {
+		request.Role = constants.Basic
+	}
+
+	update := bson.M{"$set": bson.M{"role": request.Role}}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// fetch the email in cache and update the role field
+	if userData, cacheErr := cache.GetUser(appsession, request.Email); cacheErr == nil {
+		userData.Role = request.Role
+		cache.SetUser(appsession, userData)
+	}
+
+	return nil
+}
+
+func CountNotifications(ctx *gin.Context, appsession *models.AppSession, email string) (int64, int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return 0, 0, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Notifications")
+
+	// filter for all notifications with the email in the unreadEmails field
+	filter := bson.M{"unreadEmails": email}
+
+	// get the count of unread notifications
+	unreadCount, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		logrus.Error(err)
+		return 0, 0, err
+	}
+
+	// count total notifications
+	totalCount, err := collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		logrus.Error(err)
+		return 0, 0, err
+	}
+
+	return unreadCount, totalCount, nil
+}
+
+func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession, limit int64, skip int64, order string, email string) ([]primitive.M, int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return nil, 0, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	pipeline := analytics.GetUsersLocationsPipeLine(limit, skip, order, email)
+
+	// get all known locations
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	var locations []primitive.M
+	if err = cursor.All(ctx, &locations); err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	totalResults, err := CountUserLocations(ctx, appsession, email)
+	if err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	return locations, totalResults, nil
+}
+
+func CountUserLocations(ctx *gin.Context, appsession *models.AppSession, email string) (int64, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return 0, errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	pipeline := analytics.GetLocationsCount(email)
+
+	// Perform aggregation
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		logrus.Error(err)
+		return 0, err
+	}
+
+	var result struct {
+		TotalLocations int64 `bson:"totalLocations"` // Map the result field
+	}
+
+	if cursor.Next(ctx) {
+		if err := cursor.Decode(&result); err != nil {
+			logrus.Error(err)
+			return 0, err
+		}
+	}
+
+	return result.TotalLocations, nil
 }

@@ -1,13 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   View,
   FormControl,
   HStack,
   Input,
-  Text,
-  VStack,
-  useToast,
+  Text, useToast,
   Toast,
   Box,
   Icon,
@@ -18,21 +16,18 @@ import {
   FormControlErrorText,
   Image,
   ChevronLeftIcon,
-  Heading,
-  Center,
-  FormControlLabel,
-  FormControlLabelText,
+  Heading, FormControlLabel,
+  FormControlLabelText
 } from '@gluestack-ui/themed';
-import GuestLayout from '../../layouts/GuestLayout';
 import Logo from '../../screens/Login/assets/images/Occupi/Occupi-gradient.png';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Keyboard, StyleSheet, TextInput, Animated, Easing } from 'react-native';
+import { Keyboard, StyleSheet, Animated, Easing } from 'react-native';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { AlertTriangle } from 'lucide-react-native';
 import StyledExpoRouterLink from '../../components/StyledExpoRouterLink';
-import { useNavigation } from '@react-navigation/native';
+import { userForgotPassword } from '@/utils/auth';
 
 const forgotPasswordSchema = z.object({
   email: z.string().min(1, 'Email is required').email(),
@@ -52,23 +47,24 @@ export default function ForgotPassword() {
   });
 
   const toast = useToast();
-  const navigation = useNavigation();
 
-  const onSubmit = (data: SignUpSchemaType) => {
-    toast.show({
-      placement: 'bottom right',
+  const onSubmit = async (data: SignUpSchemaType) => {
+    const response = await userForgotPassword(data?.email);
+    console.log(response);
+    if (response === "Invalid email") {
+      toast.show({
+      placement: 'top',
       render: ({ id }) => {
         return (
-          <Toast nativeID={id} variant="accent" action="success">
-            <ToastTitle>OTP sent successfully </ToastTitle>
+          <Toast nativeID={id} variant="accent" action="warning">
+            <ToastTitle>This email does not have an account.</ToastTitle>
           </Toast>
         );
       },
     });
-    reset();
-
+    }
+   
     // Navigate to OTP Verification screen with email as a parameter
-    navigation.navigate('verify-otp', { email: data.email });
   };
 
   const handleKeyPress = () => {
@@ -184,7 +180,7 @@ export default function ForgotPassword() {
 
           <FormControl
             my={24}
-            isInvalid={(!!errors.email) && !!errors.email}
+            isInvalid={(!!errors?.email) && !!errors?.email}
             isRequired={true}
             px="$4"
           >
@@ -232,7 +228,7 @@ export default function ForgotPassword() {
           </FormControl>
 
           <GradientButton
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(onSubmit())}
             text="Send OTP"
           />
     </View>

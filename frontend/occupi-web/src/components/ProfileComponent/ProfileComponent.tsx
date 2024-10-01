@@ -40,7 +40,7 @@ const ProfileComponent = ({
 
   return (
     <div data-testid="profile" className="flex items-center space-x-4">
-      <div className="avatar online">
+      <div className="avatar ">
         <div className="w-24 rounded-full">
           <img src={profileImage} alt="Profile" />
         </div>

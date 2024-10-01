@@ -7,15 +7,21 @@ import * as SecureStore from 'expo-secure-store';
 
 export async function fetchUserDetails(email: string, token: string) {
     try {
-        const response = await getUserDetails(email, token);
+        let response = await getUserDetails(email, token); 
+        while (response.status === 429) {
+            response = await getUserDetails(email, token);
+        }
         if (response.status === 200) {
             storeUserData(JSON.stringify(response.data));
+        }
+        else if (response.status === 400) {
+            router.replace('/login');
         }
         else {
             console.log(response)
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error User Data:', error);
     }
 }
 
@@ -31,11 +37,14 @@ export async function fetchNotificationSettings(email: string) {
             // console.log(settings);
             storeNotificationSettings(JSON.stringify(settings));
         }
+        else if (response.status === 400) {
+            router.replace('/login');
+        }
         else {
             console.log(response)
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching Notisettings:', error);
     }
 }
 
@@ -51,11 +60,14 @@ export async function fetchSecuritySettings(email: string) {
             // console.log(settings);
             storeSecuritySettings(JSON.stringify(settings));
         }
+        else if (response.status === 400) {
+            router.replace('/login');
+        }
         else {
             console.log(response)
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching secusettings:', error);
     }
 }
 
@@ -82,8 +94,11 @@ export async function updateSecurity(type: string, values: any) {
                 router.replace('/settings')
                 return "Settings updated successfully"
             }
+            else if (response.status === 400) {
+                router.replace('/login');
+            }
             else {
-                console.log(response)
+                // console.log(response)
                 return response.message;
             }
         } catch (error) {
@@ -102,8 +117,11 @@ export async function updateSecurity(type: string, values: any) {
                 router.replace('/set-security')
                 return "Successfully changed password"
             }
+            else if (response.status === 400) {
+                router.replace('/login');
+            }
             else {
-                console.log(response);
+                // console.log(response);
                 return response.message;
             }
         } catch (error) {
@@ -130,17 +148,21 @@ export async function updateDetails(name: string, dob: string, gender: string, c
             if (state === "verify_otp_register") {
                 setState("logged_out");
                 router.replace('/home');
-                return;
+                return "Details updated successfully";
             }
             router.replace('/settings')
             return "Details updated successfully"
         }
+        else if (response.status === 400) {
+            router.replace('/login');
+        }
         else {
-            console.log(response)
+            // console.log(response)
             return response.message;
         }
     } catch (error) {
         console.error('Error:', error);
+        return 'Error occurred';
     }
 }
 
@@ -151,8 +173,8 @@ export async function updateNotifications(values: any) {
     try {
         const request = {
             email: email,
-            invites: values.mfa,
-            bookingReminder: values.forceLogout
+            invites: values.invites,  // Changed from values.mfa
+            bookingReminder: values.bookingReminder  // Changed from values.forceLogout
         }
         const response = await updateNotificationSettings(request);
         if (response.status === 200) {
@@ -165,6 +187,9 @@ export async function updateNotifications(values: any) {
             storeNotificationSettings(JSON.stringify(settings));
             router.replace('/settings')
             return "Settings updated successfully"
+        }
+        else if (response.status === 400) {
+            router.replace('/login');
         }
         else {
             console.log(response)

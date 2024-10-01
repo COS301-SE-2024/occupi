@@ -20,7 +20,13 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    handleClick("/profile");
+    const path = window.location.pathname;
+    if (path === "/settings") {
+      handleClick("/profile");
+    } else if (path.includes("/settings")) {
+      const uPath = path.split("/settings")[1];
+      setSelectedItem(uPath);
+    }
   },[]);
 
   return (
@@ -48,8 +54,8 @@ const Settings = () => {
           <div className="menu p-4 w-80 bg-base-100 text-base-content bg-transparent">
               <MenuItem icon={<Userprofile />} selectedItem={selectedItem} text="Profile" path="/profile" handleClick={handleClick} />
               <MenuItem icon={<Pallete />} selectedItem={selectedItem} text="Appearance" path="/appearance" handleClick={handleClick} />
-              <MenuItem icon={<Privacy />} selectedItem={selectedItem} text="Privacy" path="/privacy" handleClick={handleClick} />
-              <MenuItem icon={<AlertIcon />} selectedItem={selectedItem} text="Help" path="/help" handleClick={handleClick} />
+              <MenuItem icon={<AlertIcon />} selectedItem={selectedItem} text="Notifications" path="/notifications" handleClick={handleClick} />
+              <MenuItem icon={<Privacy />} selectedItem={selectedItem} text="Security" path="/security" handleClick={handleClick} />
               <MenuItem icon={<HelpIcon />} selectedItem={selectedItem} text="About" path="/about" handleClick={handleClick} />
           </div>
         </motion.div>
