@@ -78,11 +78,38 @@ interface ReportData {
   };
 }
 
+type PDFDownloadLinkChildProps = {
+  blob: Blob | null;
+  url: string | null;
+  loading: boolean;
+  error: Error | null;
+};
+
 export default function OccupancyModal({ user }: OccupancyModalProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [openItems, setOpenItems] = useState<string[]>([]);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+
+
+  const PDFDownloadButton: React.FC<{ fileName: string }> = ({ fileName }) => (
+    <PDFDownloadLink
+      document={generateReportPDF()}
+      fileName={fileName}
+    >
+      {({ url, loading, error }: PDFDownloadLinkChildProps) => (
+        <Button
+          className="bg-text_col_secondary_alt text-text_col_alt"
+          isLoading={loading}
+          disabled={loading || !!error}
+          href={url || undefined}
+
+        >
+          {loading ? "Preparing Report..." : "Download Report"}
+        </Button>
+      )}
+    </PDFDownloadLink>
+  );
 
   const handleToggle = (key: string) => {
     setOpenItems((prevOpenItems) =>
@@ -376,34 +403,21 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
-                </Button>
-                <Button
-                  className={
-                    reportData
-                      ? "bg-text_col_secondary_alt text-black"
-                      : "text-black bg-secondary_alt"
-                  }
-                  onPress={reportData ? undefined : handleGenerateReport}
-                  isLoading={isDownloading}
-                >
-                  {reportData ? (
-                    <PDFDownloadLink
-                      document={generateReportPDF()}
-                      fileName={`${user.name}_Stats_Report.pdf`}
-                    >
-                      {({ loading }) =>
-                        loading ? "Preparing Report..." : "Download Report"
-                      }
-                    </PDFDownloadLink>
-                  ) : isDownloading ? (
-                    "Generating Report..."
-                  ) : (
-                    "Generate Report"
-                  )}
-                </Button>
-              </ModalFooter>
+  <Button color="danger" variant="light" onPress={onClose}>
+    Close
+  </Button>
+  {reportData ? (
+    <PDFDownloadButton fileName={`${user.name}_Stats_Report.pdf`} />
+  ) : (
+    <Button
+      className="text-text_col_alt bg-secondary_alt"
+      onPress={handleGenerateReport}
+      isLoading={isDownloading}
+    >
+      {isDownloading ? "Generating Report..." : "Generate Report"}
+    </Button>
+  )}
+</ModalFooter>
             </>
           )}
         </ModalContent>
