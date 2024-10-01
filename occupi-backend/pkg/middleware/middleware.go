@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
@@ -38,6 +39,7 @@ func ProtectedRoute(ctx *gin.Context) {
 	if !utils.IsSessionSet(ctx) {
 		err := utils.SetSession(ctx, claims)
 		if err != nil {
+			configs.CaptureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -61,6 +63,61 @@ func ProtectedRoute(ctx *gin.Context) {
 	ctx.Next()
 }
 
+func VerifyMobileUser(ctx *gin.Context, appsession *models.AppSession) {
+	ctx.Next()
+	/*
+		claims, err := utils.GetClaimsFromCTX(ctx)
+
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized,
+				utils.ErrorResponse(
+					http.StatusUnauthorized,
+					"Bad Request",
+					constants.InvalidAuthCode,
+					"User not authorized or Invalid auth token or You may have forgotten to include the Authorization header",
+					nil))
+			ctx.Abort()
+			return
+		}
+
+		if utils.IsMobileDevice(ctx) {
+			user, errv := cache.GetMobileUser(appsession, claims.Email)
+			if errv != nil && errv.Error() != "cache not found" {
+				ctx.JSON(http.StatusBadRequest,
+					utils.ErrorResponse(
+						http.StatusBadRequest,
+						"Bad Request",
+						constants.BadRequestCode,
+						"This account does not have a valid session. Attempt to login first.",
+						nil))
+				ctx.Abort()
+				return
+			}
+
+			if errv.Error() == "cache not found" {
+				ctx.Next()
+				return
+			}
+
+			headertokenStr := ctx.GetHeader("Authorization")
+
+			// check if the jwt tokens match
+			if user.JWT != headertokenStr {
+				ctx.JSON(http.StatusUnauthorized,
+					utils.ErrorResponse(
+						http.StatusUnauthorized,
+						"Bad Request",
+						constants.InvalidAuthCode,
+						"This token is no longer valid as another device has logged into this account",
+						nil))
+				ctx.Abort()
+				return
+			}
+		}
+
+		ctx.Next()*/
+}
+
 // ProtectedRoute is a middleware that checks if
 // the user has not been authenticated previously.
 func UnProtectedRoute(ctx *gin.Context) {
@@ -81,6 +138,7 @@ func UnProtectedRoute(ctx *gin.Context) {
 	if utils.IsSessionSet(ctx) {
 		err := utils.ClearSession(ctx)
 		if err != nil {
+			configs.CaptureError(ctx, err)
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			logrus.Error(err)
 			ctx.Abort()
@@ -130,6 +188,7 @@ func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSessio
 	// Add the user's IP address to the cache
 	err = appsession.OtpReqCache.Set(utils.GetClientIP(ctx), []byte("sent"))
 	if err != nil {
+		configs.CaptureError(ctx, err)
 		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		logrus.Error(err)
 		ctx.Abort()
@@ -139,8 +198,8 @@ func AttachOTPRateLimitMiddleware(ctx *gin.Context, appsession *models.AppSessio
 
 // AttachRateLimitMiddleware attaches the rate limit middleware to the router.
 func AttachRateLimitMiddleware(ginRouter *gin.Engine) {
-	// Define a rate limit: 5 requests per second
-	rate, _ := limiter.NewRateFromFormatted("5-S")
+	// Define a rate limit: 50 requests per second
+	rate, _ := limiter.NewRateFromFormatted("50-S")
 
 	store := memory.NewStore()
 	instance := limiter.New(store, rate)
@@ -231,6 +290,26 @@ func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
 				fmt.Sprintf("Request body too large by %d bytes, max %d bytes", ctx.Request.ContentLength-maxSize, maxSize),
 				nil,
 			))
+			ctx.Abort()
+			return
+		}
+
+		ctx.Next()
+	}
+}
+
+// block endpoint on weekends and after hours that is only allow access between Mon - Fri 08:00 - 17:00
+func BlockAfterHours(now time.Time) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// Check if the current time is outside working hours
+		if now.Hour() < 7 || now.Hour() >= 17 {
+			ctx.JSON(http.StatusForbidden,
+				utils.ErrorResponse(
+					http.StatusForbidden,
+					"Forbidden",
+					constants.ForbiddenCode,
+					"Access denied after hours, only allowed between 08:00 and 17:00",
+					nil))
 			ctx.Abort()
 			return
 		}

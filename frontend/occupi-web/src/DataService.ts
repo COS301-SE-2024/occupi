@@ -58,6 +58,56 @@ export class DataService {
     }
   }
 
+  public async fecthUserLocations() {
+    try {
+      const response = await axios.get(`${this.baseUrl}/get-users-locations`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user locations:', error);
+      throw error;
+    }
+  }
+
+  public async fetchUserLocationsWithOptions(page: number = 1, order: "asc" | "desc" = "asc", email: string = ""){
+    try {
+      const response = await axios.get(`${this.baseUrl}/get-users-locations?email=${email}&page=${page}&sort=${order}&limit=10`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user locations:', error);
+      throw error;
+    }
+  }
+
+  public async addIP(ip: string, email: string) {
+    try {
+      const response = await axios.post(`${this.baseUrl}/add-ip`, {
+        "emails": [email],
+        "ip": ip,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error adding IP:', error);
+      throw error;
+    }
+  }
+
+  public async removeIP(email: string, ip: string) {
+    try {
+      const response = await axios.delete(`${this.baseUrl}/remove-ip`, 
+        {
+          data: {
+              "emails": [email],
+              "ip": ip,
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error removing IP:', error);
+      throw error;
+    }
+  }
+
   // You can add more methods here for other API calls
 }
 

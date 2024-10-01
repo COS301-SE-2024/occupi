@@ -10,12 +10,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/database"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/receiver"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
+	"github.com/ccoveille/go-safecast"
 	"github.com/gin-gonic/gin"
 	"github.com/nfnt/resize"
 	"github.com/sirupsen/logrus"
@@ -26,7 +30,7 @@ func MultiDeleteImages(ctx *gin.Context, appsession *models.AppSession, containe
 		_, err := appsession.AzureClient.DeleteBlob(ctx, configs.GetAzurePFPContainerName(), id, &azblob.DeleteBlobOptions{})
 
 		if err != nil && !strings.Contains(err.Error(), "BlobNotFound") {
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to delete image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
@@ -41,7 +45,7 @@ func MultiUploadImages(ctx *gin.Context, appsession *models.AppSession, containe
 		fileData, err := os.Open(file.FileName)
 		if err != nil {
 			deleteTempFiles(files)
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to open image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
@@ -49,7 +53,7 @@ func MultiUploadImages(ctx *gin.Context, appsession *models.AppSession, containe
 
 		if _, err := appsession.AzureClient.UploadFile(ctx, containerName, utils.RemoveImageExtension(file.FileName), fileData, &azblob.UploadFileOptions{}); err != nil {
 			deleteTempFiles(files)
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to upload image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
@@ -57,7 +61,7 @@ func MultiUploadImages(ctx *gin.Context, appsession *models.AppSession, containe
 
 		if err := fileData.Close(); err != nil {
 			deleteTempFiles(files)
-			captureError(ctx, err)
+			configs.CaptureError(ctx, err)
 			logrus.WithError(err).Error("Failed to close image")
 			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 			return err
@@ -73,7 +77,15 @@ func ResizeImagesAndReturnAsFiles(ctx *gin.Context, appsession *models.AppSessio
 	files := make([]models.File, 0, len(imageWidths)) // Pre-allocate the slice
 
 	for _, width := range imageWidths {
-		widthV := uint(width)
+		// Convert the width to uint
+		widthV, err := safecast.ToUint(width)
+		if err != nil {
+			deleteTempFiles(files)
+			configs.CaptureError(ctx, err)
+			logrus.WithError(err).Error("Failed to convert width to uint")
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return nil, err
+		}
 
 		var newFileName string
 
@@ -190,4 +202,120 @@ func deleteTempFiles(files []models.File) {
 			logrus.WithError(err).Error("Failed to delete temp file")
 		}
 	}
+}
+
+func DefaultMalePFP(race ...string) string {
+	pfps := []string{
+		"default_wm1.jpg",
+		"default_wm2.jpg",
+		"default_wm3.jpg",
+		"default_wm4.jpg",
+		"default_bm1.jpg",
+	}
+
+	if len(race) == 0 {
+		// choose a random pfp
+		return pfps[utils.RandomInt(0, len(pfps)-1)]
+	} else {
+		// choose a random pfp based on the race
+		if race[0] == "white" {
+			return pfps[utils.RandomInt(0, 4)]
+		} else {
+			return pfps[utils.RandomInt(4, len(pfps)-1)]
+		}
+	}
+}
+
+func DefaultFemalePFP(race ...string) string {
+	pfps := []string{
+		"default_ww1.jpg",
+		"default_ww2.jpg",
+		"default_ww3.jpg",
+		"default_ww4.jpg",
+		"default_bw1.jpg",
+		"default_bw1.jpg",
+	}
+
+	if len(race) == 0 {
+		// choose a random pfp
+		return pfps[utils.RandomInt(0, len(pfps)-1)]
+	} else {
+		// choose a random pfp based on the race
+		if race[0] == "white" {
+			return pfps[utils.RandomInt(0, 3)]
+		} else {
+			return pfps[utils.RandomInt(4, len(pfps)-1)]
+		}
+	}
+}
+
+func DefaultNBPFP() string {
+	return "default_nb1.jpg"
+}
+
+func CreateAndSendNotificationLogic(ctx *gin.Context, appsession *models.AppSession, senderEmail string, receiverEmails []string,
+	title string, messageReciever string, messageSender string) error {
+	// get the users expo push token
+	tokens, err := database.GetUsersPushTokens(ctx, appsession, receiverEmails)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to get users push tokens because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	tokenArr, err := utils.ConvertTokensToStringArray(tokens, "expoPushToken")
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to convert tokens to string array because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	notificationReciever := models.ScheduledNotification{
+		NotiID:               utils.GenerateUUID(),
+		Title:                title,
+		Message:              messageReciever,
+		Sent:                 false,
+		SendTime:             time.Now(),
+		Emails:               receiverEmails,
+		UnsentExpoPushTokens: tokenArr,
+		UnreadEmails:         receiverEmails,
+	}
+
+	notificationSender := models.ScheduledNotification{
+		NotiID:               utils.GenerateUUID(),
+		Title:                title,
+		Message:              messageSender,
+		Sent:                 true,
+		SendTime:             time.Now(),
+		Emails:               []string{senderEmail},
+		UnsentExpoPushTokens: []string{},
+		UnreadEmails:         []string{senderEmail},
+	}
+
+	// Save the notifications to the database
+	if saved, err := database.AddNotification(ctx, appsession, notificationReciever, false); err != nil || !saved {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to save notification to the database because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	if saved, err := database.AddNotification(ctx, appsession, notificationSender, false); err != nil || !saved {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to save notification to the database because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	// send the notification
+	if err := receiver.SendPushNotification(notificationReciever, appsession); err != nil {
+		configs.CaptureError(ctx, err)
+		logrus.Error("Failed to send notification because: ", err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return err
+	}
+
+	return nil
 }

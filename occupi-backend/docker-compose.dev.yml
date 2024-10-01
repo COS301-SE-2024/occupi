@@ -65,7 +65,6 @@ services:
       - "11001:6379"
     restart: on-failure:5
     environment:
-      REDIS_USERNAME: $REDIS_USERNAME
       REDIS_PASSWORD: $REDIS_PASSWORD
     volumes:
       - redis-dev:/data
@@ -85,4 +84,3 @@ volumes:
 networks:
   webnet:
     external: true
-

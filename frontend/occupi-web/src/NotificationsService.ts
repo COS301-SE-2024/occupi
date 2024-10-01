@@ -8,12 +8,13 @@ interface NotificationResponseItem {
   message: string;
   title: string;
   unreadEmails: string[];
-  timestamp: string;
+  send_time: string;
   type: string;
 }
 
 export interface Notification {
   id: number;
+  title: string;
   message: string;
   read: boolean;
   timestamp: string;
@@ -30,16 +31,17 @@ const NotificationService = {
     }
 
     const filter = JSON.stringify({ emails: [email] });
-    const url = `${API_USER_URL}/get-notifications?filter=${encodeURIComponent(filter)}&projection=message,title,unreadEmails&limit=50&page=1`;
+    const url = `${API_USER_URL}/get-notifications?filter=${encodeURIComponent(filter)}&projection=message,title,unreadEmails,send_time&order_desc=send_time&limit=50&page=1`;
 
     try {
       const response = await axios.get<{ data: NotificationResponseItem[] }>(url);
 
       return response.data.data.map((item) => ({
         id: item.id,
+        title: item.title,
         message: item.message,
         read: item.unreadEmails.length === 0,
-        timestamp: item.timestamp,
+        timestamp: item.send_time,
         type: item.type as 'booking' | 'capacity' | 'maintenance',
       }));
     } catch (error) {
@@ -72,6 +74,29 @@ const NotificationService = {
       return fullData.map(({ id, message, type }) => ({ id, message, type }));
     } catch (error) {
       console.error("Error getting notification summary:", error);
+      throw error;
+    }
+  },
+  downloadPDFReport: async(email: string): Promise<void> => {
+    try {
+      const response = await axios.put(`${API_USER_URL}/notify-report-download`, { email: email });
+      if (response.status !== 200) {
+        throw new Error('Failed to notify report download');
+      }
+    } catch (error) {
+      console.error("Error notify report download:", error);
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error('An unexpected error occurred while notifying of report download');
+    }
+  },
+  getNotificationsCount: async (): Promise<number> => {
+    try {
+      const response = await axios.get(`${API_USER_URL}/get-notifications-count`);
+      return response.data.data.unread;
+    } catch (error) {
+      console.error("Error getting notifications count:", error);
       throw error;
     }
   }

@@ -53,8 +53,7 @@ services:
       - "11000:6379"
     restart: on-failure:5
     environment:
-      REDIS_USERNAME: 
-      REDIS_PASSWORD: 
+      REDIS_PASSWORD: user
     volumes:
       - redis-dev-local:/data
     healthcheck:

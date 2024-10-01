@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 	"os"
 	"reflect"
 	"regexp"
@@ -17,6 +18,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/sebest/logrusly"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -24,6 +26,11 @@ import (
 	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/authenticator"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
+)
+
+const (
+	prod        = "prod"
+	devdeployed = "devdeployed"
 )
 
 // sets up the logger and configures it
@@ -48,6 +55,12 @@ func SetupLogger() {
 
 	// Set log level (optional, defaults to Info)
 	logrus.SetLevel(logrus.InfoLevel)
+
+	if configs.GetEnv() == prod || configs.GetEnv() == devdeployed {
+		// Add Loggly hook to forward logs to the cloud
+		logglyHook := logrusly.NewLogglyHook(configs.GetLogglyToken(), configs.GetLogglySubDomain(), logrus.InfoLevel)
+		logrus.AddHook(logglyHook)
+	}
 }
 
 // Function to generate a random 4-digit number
@@ -390,6 +403,19 @@ func GetLimitPageSkip(queryInput models.QueryInput) (int64, int64, int64) {
 	return limit, page, skip
 }
 
+func ComputeLimitPageSkip(limit, page int64) (int64, int64, int64) {
+	if limit <= 0 {
+		limit = 50 // Default limit
+	}
+
+	if page <= 0 {
+		page = 1
+	}
+	skip := (page - 1) * limit
+
+	return limit, page, skip
+}
+
 func ConstructBookingScheduledString(emails []string) string {
 	n := len(emails)
 	if n == 0 { // this cannot happen as the creator is always included in the emails
@@ -624,4 +650,70 @@ func RemoveImageExtension(fileName string) string {
 
 	// Return the original filename if no extension matches
 	return fileName
+}
+
+func Contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func RandomInt(min, max int) int {
+	// if min is greater than max, swap the values
+	if min > max {
+		min, max = max, min
+	}
+
+	// if min is equal to max, return min
+	if min == max {
+		return min
+	}
+
+	// Calculate the range size (max - min + 1)
+	n := max - min + 1
+
+	// Generate a random number in the range [0, n)
+	randNum, err := rand.Int(rand.Reader, big.NewInt(int64(n)))
+	if err != nil {
+		return 0
+	}
+
+	// Add min to shift the number to the correct range [min, max]
+	return int(randNum.Int64()) + min
+}
+
+func ValidateIP(ip string) bool {
+	// Regex pattern for IP validation
+	var ipRegex = regexp.MustCompile(`^(\d{1,3}\.){3}\d{1,3}$`)
+	return ipRegex.MatchString(ip)
+}
+
+func IsMobileDevice(ctx *gin.Context) bool {
+	userAgent := ctx.GetHeader("User-Agent")
+	deviceType := DetectDeviceType(userAgent)
+	if deviceType == "iOS" || deviceType == "Android" {
+		return true
+	}
+	return false
+}
+
+func DetectDeviceType(userAgent string) string {
+	switch {
+	case strings.Contains(userAgent, "CFNetwork"),
+		strings.Contains(userAgent, "iPhone"),
+		strings.Contains(userAgent, "iPad"):
+		return "iOS"
+
+	case strings.Contains(userAgent, "Macintosh"):
+		return "macOS"
+
+	case strings.Contains(userAgent, "Android"):
+		return "Android"
+
+	default:
+		return "Unknown"
+	}
 }

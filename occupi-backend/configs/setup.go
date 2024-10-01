@@ -80,23 +80,59 @@ func CreateCache() *redis.Client {
 		return nil
 	}
 
-	redisUsername := GetRedisUsername()
 	redisPassword := GetRedisPassword()
 	redisHost := GetRedisHost()
 	redisPort := GetRedisPort()
 
-	url := fmt.Sprintf("redis://%s:%s@%s:%s/0?protocol=3", redisUsername, redisPassword, redisHost, redisPort)
+	url := fmt.Sprintf("redis://:%s@%s:%s/0?protocol=3", redisPassword, redisHost, redisPort)
 	opts, err := redis.ParseURL(url)
 	if err != nil {
+		fmt.Println(err)
 		logrus.Fatal(err)
 	}
 
 	client := redis.NewClient(opts)
 
+	// Test connection
+	err = client.Ping(context.Background()).Err()
+	if err != nil {
+		fmt.Println("could not connect to Redis: ", err)
+		logrus.Fatalf("could not connect to Redis: %v", err)
+	}
+
 	fmt.Println("Cache created!")
 	logrus.Info("Cache created!")
 
 	return client
+}
+
+// Create mobile link cache
+func CreateMobileCache() *redis.Client {
+	return nil
+	/*redisPassword := GetRedisPassword()
+	redisHost := GetRedisHost()
+	redisPort := GetRedisPort()
+
+	url := fmt.Sprintf("redis://:%s@%s:%s/0?protocol=3", redisPassword, redisHost, redisPort)
+	opts, err := redis.ParseURL(url)
+	if err != nil {
+		fmt.Println(err)
+		logrus.Fatal(err)
+	}
+
+	client := redis.NewClient(opts)
+
+	// Test connection
+	err = client.Ping(context.Background()).Err()
+	if err != nil {
+		fmt.Println("could not connect to mobile Redis: ", err)
+		logrus.Fatalf("could not connect to mobile Redis: %v", err)
+	}
+
+	fmt.Println("Mobile Cache created!")
+	logrus.Info("Mobile Cache created!")
+
+	return client*/
 }
 
 // Create cache for sessions
@@ -140,9 +176,10 @@ func GetIPInfo(ip string, client *ipinfo.Client) (*ipinfo.Core, error) {
 	// check if run mode is test mode
 	if GetGinRunMode() == "test" {
 		return &ipinfo.Core{
-			City:    "Cape Town",
-			Region:  "Western Cape",
-			Country: "South Africa",
+			City:     "Cape Town",
+			Region:   "Western Cape",
+			Country:  "South Africa",
+			Location: "-33.9258,18.4232",
 		}, nil
 	}
 
@@ -245,7 +282,6 @@ func CreateCentrifugoClient() *gocent.Client {
 	centrifugoAPIKey := GetCentrifugoAPIKey()
 
 	centrifugoAddr := fmt.Sprintf("http://%s:%s/api", centrifugoHost, centrifugoPort)
-
 	// Create a new Centrifugo client
 	client := gocent.New(gocent.Config{
 		Addr: centrifugoAddr,

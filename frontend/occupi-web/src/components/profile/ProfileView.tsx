@@ -1,4 +1,4 @@
-import { Upload } from '@assets/index';
+import { LoadingSM, Upload } from '@assets/index';
 import { UploadButton } from '@assets/index';
 import { Button, DatePicker, Input, SelectItem, User } from '@nextui-org/react';
 import AuthService from 'AuthService';
@@ -23,6 +23,9 @@ const ProfileView = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
   useEffect(() => {
     // Preload user details from the store
     setFirstName(userDetails?.name.split(' ')[0] || '');
@@ -35,6 +38,7 @@ const ProfileView = () => {
   }, [userDetails]);
 
   const handleFile = (files: File[]) => {
+    setIsUploading(true);
     const file = files[0];
     if (file) {
       const reader = new FileReader();
@@ -43,6 +47,17 @@ const ProfileView = () => {
       };
       reader.readAsDataURL(file);
     }
+
+    AuthService.uploadImage(file)
+    .then(() => {
+      setUploadStatus(`Upload successful`);
+        setIsUploading(false);
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+        setUploadStatus('Upload failed.');
+        setIsUploading(false);
+    });
   };
 
   const handleSaveChanges = async () => {
@@ -57,6 +72,9 @@ const ProfileView = () => {
         employeeid: userDetails?.employeeid || '',
         number,
         pronouns,
+        avatarId: userDetails?.avatarId || '',
+        position: userDetails?.position || '',
+        departmentNo: userDetails?.departmentNo || '',
       };
 
       // Call the API to update the user details
@@ -90,6 +108,9 @@ const ProfileView = () => {
   ${userDetails?.dob !== dateOfBirth?.toISOString().split('T')[0] ? `Birth Date: ${userDetails?.dob} -> ${dateOfBirth?.toISOString().split('T')[0] || 'Not Set'}\n` : ''}
 `.trim();
 
+  useEffect(() => {
+    setPfp("https://dev.occupi.tech/api/download-profile-image?quality=low");
+  }, []);
 
   return (
     <motion.div
@@ -108,13 +129,16 @@ const ProfileView = () => {
             size: 'lg',
           }}
         />
+          {/**make button unclickable during uploads */}
         <UploadButton
           accept="image/jpeg, image/png, image/jpg"
-          startContent={<Upload />}
-          endContent={<div>Upload profile picture</div>}
+          startContent={isUploading ? <LoadingSM/> : <Upload />}
+          endContent={isUploading ? <div>Uploading</div> : <div>Upload profile picture</div>}
           onUpload={handleFile}
+          classNames={isUploading ? { button: 'cursor-not-allowed' } : {}}
         />
       </div>
+      {uploadStatus !== '' && <p className='w-full h-9 text-text_col text-sm leading-none mt-4'>{uploadStatus}</p>}
 
       <div className="border-b-secondary border-b-[2px] rounded-2xl my-4" />
 

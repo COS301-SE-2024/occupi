@@ -1,0 +1,112 @@
+# Security Testing Policy
+
+### 1. Overview
+This policy defines the approach to security testing within our Golang-based system. The goal is to identify vulnerabilities and mitigate risks through periodic security assessments, including penetration testing using external tools.
+
+### 2. Scope
+The security testing policy applies to all Golang services and applications developed and maintained by our organization. The scope includes:
+
+APIs
+Web applications
+Databases
+Infrastructure components (e.g., Docker, Kubernetes, etc.)
+
+### 3. Objectives
+The objectives of security testing are to:
+
+Identify vulnerabilities that could lead to unauthorized access, data leakage, or service disruption.
+Ensure that security measures are functioning as intended.
+Strengthen the security posture of our Golang applications by mitigating identified risks.
+
+### 4. Testing Methodology
+#### 4.1 Static Code Analysis (SAST)
+Automated static code analysis tools will be employed to identify security flaws in the Golang source code during the development phase. The analysis focuses on:
+
+Identifying common security flaws such as SQL Injection, Cross-Site Scripting (XSS), and Cross-Site Request Forgery (CSRF).
+Detecting hardcoded secrets, improper use of cryptography, and insecure configuration. We have a golang linter that is in our CI/CD pipeline that checks for these vulnerabilities.
+
+#### 4.2 Dynamic Application Security Testing (DAST)
+Dynamic analysis tools will be used to test the running application in a staging environment. These tools will simulate real-world attack scenarios and attempt to exploit vulnerabilities. Key areas of focus include:
+
+Input validation and sanitization
+Session management
+Authentication and authorization flows
+
+#### 4.3 Penetration Testing
+We conduct penetration tests using external tools and expert testers to simulate targeted attacks. The tests focus on:
+
+Exploiting vulnerabilities in Golang applications and their supporting infrastructure.
+Testing against OWASP Top 10 vulnerabilities.
+Identifying risks related to sensitive data exposure, improper access control, and misconfigurations.
+Access our penetration testing reports here.
+https://example.com/penetration-testing-reports
+
+#### 4.4 Infrastructure Security
+Security testing will also cover infrastructure components like Docker, Kubernetes, CI/CD pipelines, and cloud services to identify vulnerabilities such as:
+
+Misconfigured containers and images
+Insecure network configurations
+Unpatched operating systems or dependencies
+
+### 5. Testing Frequency
+Security testing is performed at regular intervals and upon significant system changes, including:
+
+Pre-production release of major versions.
+Post-integration of critical third-party libraries.
+After significant infrastructure changes (e.g., migration to cloud, deployment of new containers).
+### 6. Tools Used
+The following tools are part of our security testing toolkit:
+
+Static Code Analysis: [e.g., GolangCI-Lint]
+Dynamic Testing: [e.g., OWASP ZAP, Burp Suite]
+Penetration Testing: [e.g., Pentest-Tools, Metasploit]
+Infrastructure Security: [e.g., Docker Bench for Security, kube-bench, Aqua Security]
+
+### 7. Reporting and Remediation
+#### 7.1 Penetration Testing Reports
+We store and maintain PDF reports from penetration testing performed by external tools and experts. The reports include detailed descriptions of vulnerabilities, severity levels, risk assessment, and recommended remediation steps.
+
+#### 7.2 Action Plan
+Upon receiving the penetration testing reports:
+
+Initial Review: The security team will review the reports to prioritize findings based on the risk level.
+Remediation Timeline: The development team will define a timeline for addressing critical and high-severity vulnerabilities.
+Post-Remediation Testing: Retesting will be performed to ensure that the fixes mitigate the identified risks.
+
+#### 7.3 Tracking and Documentation
+Vulnerabilities identified in penetration testing are logged in our issue tracking system.
+Fixes are verified through regression testing and subsequent security scans.
+A final report is generated summarizing resolved vulnerabilities and residual risks (if any).
+
+### 11. System Security Measures
+In addition to security testing, we employ a range of other security measures to protect the system and its infrastructure:
+
+#### 11.1 Network Security
+Restricted Port Access: Our system runs on an Azure Ubuntu VM, and we have minimized the attack surface by only opening essential ports:
+
+Port 22: SSH tunneling access is restricted, and authentication is conducted via SSH key pairs. Password authentication is disabled.
+Ports 80 and 443: These are open for HTTP and HTTPS traffic. All HTTP traffic on port 80 is automatically upgraded to HTTPS via NGINX, ensuring encrypted communication.
+SSH Access: All access to the VM (e.g., GitHub Actions, MongoDB access, administrative access) is handled through SSH with key-based authentication. This ensures secure connections and mitigates brute force attacks.
+
+#### 11.2 Web Security
+NGINX: We use NGINX as a reverse proxy to handle all incoming requests. NGINX automatically upgrades HTTP requests to HTTPS, ensuring that all communications with the application are encrypted.
+
+SSL/TLS Encryption: Our NGINX server enforces SSL/TLS encryption for all communications, using a valid certificate. This helps protect against man-in-the-middle (MITM) attacks.
+
+#### 11.3 Cloudflare Protection
+DDoS Mitigation: We have integrated Cloudflare as a layer of protection against Distributed Denial of Service (DDoS) attacks. Cloudflare helps mitigate attacks by absorbing and filtering malicious traffic before it reaches our infrastructure.
+
+DNS and WAF (Web Application Firewall): Cloudflare also provides DNS services and acts as a Web Application Firewall (WAF) to block common web-based attacks, including SQL Injection, XSS, and other malicious payloads.
+
+#### 11.4 Database Security
+MongoDB Access: MongoDB runs on the same Azure VM, and access is restricted to the VM's internal network or secure SSH tunneling. Direct external access is blocked, ensuring that only authorized users with SSH key pairs can connect to the database.
+
+Authentication: MongoDB is configured to use authentication for database access, with secure passwords and role-based access control to limit permissions to what is strictly necessary.
+
+#### 11.5 Infrastructure Security
+Azure Security: Our virtual machine infrastructure is hosted on Microsoft Azure, which provides additional built-in security features such as:
+Azure Security Center: Monitoring and alerts for potential security vulnerabilities and threats.
+Automatic Patching: OS-level patching is enabled to keep the system up-to-date with the latest security fixes.
+
+### 12. Conclusion
+The combination of these security measures, in conjunction with regular penetration testing and static code analysis, forms a multi-layered defense strategy that ensures the security of our Golang-based system and infrastructure.

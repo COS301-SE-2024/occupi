@@ -11,7 +11,6 @@ The API also allows you to retrieve information about these resources.
 - [Table of Contents](#table-of-contents)
   - [Base URL](#base-url)
   - [Api](#api)
-    - [Resources](#resources)
     - [Book Room](#BookRoom)
     - [View Bookings](#ViewBookings)
     - [View Rooms](#ViewRooms)
@@ -35,42 +34,25 @@ The API also allows you to retrieve information about these resources.
     - [Delete Room Image](#DeleteRoomImage)
     - [Add Room](#AddRoom)
     - [Available slots](#AvailableSlots)
+    - [Toggle on site](#ToggleOnSite)
+    - [Create user](#CreateUser)
+    - [Get IP information](#GetIPInformation)
+    - [Add IP Address](#AddIPAddress)
+    - [Remove IP Address](#RemoveIPAddress)
+    - [Toggle Allow Anonymous IP](#ToggleAllowAnonymousIP)
+    - [Delete Notifications](#DeleteNotifications)
+    - [Toggle Admin Status](#ToggleAdminStatus)
+    - [Notify Report Download](#NotifyReportDownload)
+    - [Count Unread Notifications](#CountUnreadNotifications)
+    - [Get Users Locations](#GetUsersLocations)
+
+## Base URL
+
+The base URL for the Occupi API is `https://occupi.tech`, `https://dev.occupi.tech` or `http://localhost:8080` if you are in develop mode.
 
 ## Api
 
 The API endpoints are used to interact with the Occupi platform. Mainly GET, POST, PUT, DELETE requests are used.
-
-### Resources
-
-The resources endpoints are used to create, read, update, and delete resources.
-
-- **URL**
-
-  `/api/resources`
-
-- **Method**
-
-  `GET`
-
-- **Success Response**
-
-  - **Code:** 200
-  - **Content:** `{ "message": "Resources fetched successfully" }`
-
-- **Error Response**
-
-  - **Code:** 400
-  - **Content:** `{ "message": "Bad Request" }`
-
-- **Error Response**
-  - **Code:** 500
-  - **Content:** `{ "message": "Internal server error" }`
-
-**_Example json to send:_**
-
-```json copy
-{}
-```
 
 ### BookRoom
 
@@ -867,6 +849,8 @@ or
 ```
 
 **the id is the id of the image which you will get when you get a room and is required for all requests on this endpoint**
+**alternatively, if the id is not known, you pass null and the system will return the default image**
+**eg /api/image/null?quality=mid**
 
 **Success Response**
 
@@ -1039,3 +1023,450 @@ or
 - **Code:** 400
 
 - **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+### Toggle On Site
+
+This endpoint is used to toggle the on site status of a user in the Occupi system. That is whether or not they are in the office
+Just some notes about this endpoint:
+- If the user is on site, they cannot become on site again and vice versa
+- If the user tries to toggle their status outside of office hours (8am - 5pm)Monday to Friday, they will not be able to do so
+- If the user forgets to toggle their status, the system will automatically limit their hours for the day they had forgotten to toggle their status to 5pm
+
+- **URL**
+
+  `/api/toggle-onsite`
+
+- **Method**
+    
+    `PUT`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "abcd@gmail.com", // this is not explicitly required as it can be determined by the system
+  "onSite": "Yes" // required, can be "Yes" or "No" (exact match)
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully toggled on site status!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+### Create User
+
+This endpoint is used to create a user in the Occupi system. Only Admins can create users.
+
+- **URL**
+
+  `/api/create-user`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "employee_id": "OCCUPI20240000", // required
+  "password": "password", // required
+  "email": "abcd@example.com", // required
+  "role": "admin", // optional or you can set the role to "basic" but defaults to "basic"
+  "details": {
+    "contactNo": "000 000 0000", // optional
+    "name": "John Doe", // optional
+    "dob": "2002-03-08 00:00:00 +0000 UTC", // optional defaults to current
+    "gender": "Male", // optional
+    "pronouns": "he/him" // optional
+  },
+  "notifications": {
+    "invites": "on", // optional
+    "bookingReminder": "on" // optional
+  },
+  "status": "active", // optional
+  "position": "Software Engineer", // optional
+  "departmentNo": 1, // optional
+  "expoPushToken": "ExponentPushToken[000000000000000000000000]", // optional
+  "blockAnonymousIPAddress": false // optional, this blocks this account from adding new login locations
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully created user!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Get IP Information
+
+This endpoint is used to get the IP information of this IP address(which is currently your real IP address). Only Admins can get IP information.
+
+- **URL**
+
+  `/api/get-ip-info`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  // your ip address is inferred from the request
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched IP information!", "data": {"ip information"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Add IP Address
+
+This endpoint is used to add an IP address to the Occupi system. Only Admins can add IP addresses.
+
+- **URL**
+
+  `/api/add-ip`
+
+- **Method**
+    
+    `POST`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "ip": "10.0.0.4", // required
+  "emails": ["email 1", "email 2"] // required, these are the emails that can use this ip address for logging in
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully added IP address!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Delete IP Address
+
+This endpoint is used to delete an IP address from the Occupi system. Only Admins can delete IP addresses.
+
+- **URL**
+
+  `/api/remove-ip`
+
+- **Method**
+    
+    `DELETE`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "ip": "10.0.0.4", // required
+  "emails": ["email 1", "email 2"] // required, these are the emails that will not be able to use this ip for logging in anymore
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully removed IP address!", "data": null }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Toggle Allow anonymous IP
+
+This endpoint is used to toggle the allow anonymous IP status of a user in the Occupi system. That is whether or not they can add new login locations
+
+- **URL**
+
+  `/api/toggle-allow-anonymous-ip`
+
+- **Method**
+    
+    `PUT`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "emails": ["email 1", "email 2"], // required, these are the emails that will have their status toggled
+  "allowAnonymousIPAddress": true // required, can be true or false
+}
+
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully toggled allow anonymous IP status!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Delete Notifications
+
+This endpoint is used to delete notifications for a user in the Occupi system.
+
+- **URL**
+
+  `/api/delete-notification`
+
+- **Method**
+    
+    `DELETE`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // optional, if not provided, the email is inferred from the token
+  "notiId": "000000000000000000000" // required
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully deleted notification!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Toggle Admin Status
+
+This endpoint is used to toggle the admin status of a user in the Occupi system. Only Admins can toggle admin status.
+
+- **URL**
+
+  `/api/toggle-admin-status`
+
+- **Method**
+    
+    `PUT`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // required
+  "role": "basic" // required, can be "basic" or "admin" but any invalid value will default to "basic"
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully toggled admin status!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Notify Report Download
+
+This endpoint is used to notify the system that a report has been downloaded. Only Admins can notify the system that a report has been downloaded.
+
+- **URL**
+
+  `/api/notify-report-download`
+
+- **Method**
+    
+    `PUT`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // required
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully notified report download!", "data": null }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Count Unread Notifications
+
+This endpoint is used to count the number of unread notifications for a user in the Occupi system.
+
+- **URL**
+
+  `/api/get-notifications-count`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // optional, if not provided, the email is inferred from the token
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched notification count!", "data": {"count": 0} }`
+
+**Error Response**
+
+- **Code:** 400
+
+- **Content:** `{ "status":  400, "message": "Invalid request payload", "error": {"code":"BAD_REQUEST","details":null,"message":"Invalid JSON payload"} }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`
+
+### Get Users Locations
+
+This endpoint is used to get the locations of users in the Occupi system that they are allowed to login from. This will return the ip address, city, region, country and longitude and latitude of the location.
+
+- **URL**
+
+  `/api/get-users-locations`
+
+- **Method**
+    
+    `GET`
+
+- **Request Body**
+
+- **Content**
+
+```json copy
+{
+  "email": "email 1", // optional, if not provided, then no email is filtered
+  "sort": "asc", // optional, can be "asc" or "desc" but defaults to "asc"
+  "limit": 50, // optional, defaults to 50
+  "page": 1 // optional, defaults to 1
+}
+```
+
+**Success Response**
+
+- **Code:** 200
+
+- **Content:** `{ "status":  200, "message": "Successfully fetched user locations!", "data": ["list of user locations"] }`
+
+**Error Response**
+
+- **Code:** 500
+
+- **Content:** `{ "status":  500, "message": "Internal server error", "error": {"code":"INTERNAL_SERVER_ERROR","details":null,"message":"Internal server error"} }`

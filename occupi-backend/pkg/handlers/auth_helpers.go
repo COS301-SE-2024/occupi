@@ -299,16 +299,6 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, err
 	}
 
-	if !verified {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(
-			http.StatusBadRequest,
-			"Not verified",
-			constants.IncompleteAuthCode,
-			"Please verify your email before logging in",
-			nil))
-		return false, nil
-	}
-
 	// check if the user is an admin
 	if role == constants.Admin {
 		isAdmin, err := database.CheckIfUserIsAdmin(ctx, appsession, email)
@@ -356,9 +346,34 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 				nil))
 			return false, nil
 		}
+
+		blockAnonymousIPAddress, err := database.CheckIfUserIsAllowedNewIP(ctx, appsession, email)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return false, err
+		}
+
+		if blockAnonymousIPAddress {
+			ctx.JSON(http.StatusForbidden, utils.ErrorResponse(
+				http.StatusForbidden,
+				"Forbidden from access",
+				constants.ForbiddenCode,
+				"This login attempt is forbidden as this account is not allowed to login from new anonymous locations",
+				nil))
+			return false, nil
+		}
 	}
 
-	// chec if the user has mfa enabled
+	// check if the user should reset their password
+	shouldResetPassword, err := database.CheckIfUserShouldResetPassword(ctx, appsession, email)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return false, err
+	}
+
+	// check if the user has mfa enabled
 	mfaEnabled, err := database.CheckIfUserHasMFAEnabled(ctx, appsession, email)
 
 	if err != nil {
@@ -367,7 +382,7 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 	}
 
 	switch {
-	case isVerificationDue:
+	case isVerificationDue, !verified:
 		// update verification status in database to false
 		_, err = database.UpdateVerificationStatusTo(ctx, appsession, email, false)
 		if err != nil {
@@ -387,6 +402,12 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 
 	case !isIPValid:
 		if _, err := SendOTPEMailForIPInfo(ctx, appsession, email, constants.ConfirmIPAddress, unrecognizedLogger); err != nil {
+			return false, err
+		}
+		return false, nil
+
+	case shouldResetPassword:
+		if _, err := SendOTPEmail(ctx, appsession, email, constants.ResetPassword); err != nil {
 			return false, err
 		}
 		return false, nil
@@ -567,4 +588,19 @@ func CanLogin(ctx *gin.Context, appsession *models.AppSession, email string) (bo
 		return false, err
 	}
 	return true, nil
+}
+
+func AddMobileUser(ctx *gin.Context, appsession *models.AppSession, email string, jwt string) {
+	// check if ctx req header is a mobile device(either iOS or Android)
+	if !utils.IsMobileDevice(ctx) {
+		return
+	}
+
+	mobileUser := models.MobileUser{
+		Email: email,
+		JWT:   jwt,
+	}
+
+	// add the user to the mobile user cache(or overwrite the user if they already exist)
+	cache.SetMobileUser(appsession, mobileUser)
 }

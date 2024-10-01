@@ -2,7 +2,7 @@ import axios from "axios";
 
 const API_URL = "/auth"; // This will be proxied to https://dev.occupi.tech
 const API_USER_URL = "/api"; // Adjust this if needed
-
+const RTC_URL = "/rtc"; // Adjust this if needed
 interface PublicKeyCredential {
   id: string;
   rawId: ArrayBuffer;
@@ -229,11 +229,11 @@ const AuthService = {
     }
   },
 
-  getUserDetails: async (email: string) => {
+  getUserDetails: async (email: string = "") => {
     try {
-      console.log(API_USER_URL);
+      
       const response = await axios.get(
-        `${API_USER_URL}/user-details?email=${email}`,
+        `${API_USER_URL}/user-details${email ? `?email=${email}` : ""}`,
         {
           headers: {
             Accept: "application/json",
@@ -283,7 +283,7 @@ const AuthService = {
   sendResetEmail: async (email: string) => {
     try {
       const response = await axios.post(`${API_URL}/forgot-password`, {
-        "email": email
+        email: email,
       });
       if (response.data.status === 200) {
         return response.data;
@@ -299,14 +299,22 @@ const AuthService = {
     }
   },
 
-  resetPassword: async (email: string, otp: string, newPassword: string, newPasswordConfirm: string) => {
+  resetPassword: async (
+    email: string,
+    otp: string,
+    newPassword: string,
+    newPasswordConfirm: string
+  ) => {
     try {
-      const response = await axios.post(`${API_URL}/reset-password-admin-login`, {
-        "email": email,
-        "otp": otp,
-        "newPassword": newPassword,
-        "newPasswordConfirm": newPasswordConfirm
-      });
+      const response = await axios.post(
+        `${API_URL}/reset-password-admin-login`,
+        {
+          email: email,
+          otp: otp,
+          newPassword: newPassword,
+          newPasswordConfirm: newPasswordConfirm,
+        }
+      );
       if (response.data.status === 200) {
         return response.data;
       } else {
@@ -320,6 +328,46 @@ const AuthService = {
       throw new Error("An unexpected error occurred while sending reset email");
     }
   },
+  getToken: async () => {
+    try {
+      console.log("Getting RTC token");
+      const response = await axios.get(`${RTC_URL}/get-token`, {
+        headers: {
+          Accept: "application/json",
+        },
+        withCredentials: true,
+      });
+      return response.data.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
+    }
+  },
+  uploadImage: (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      return axios.post(`${API_USER_URL}/upload-profile-image`, formData, {
+          headers: {
+              'Content-Type': 'multipart/form-data',
+          },
+      });
+  },
+  pingAuth: async () => {
+    try {
+      const response = await axios.get(`/ping-auth`, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
+    }
+  }
 };
 
 function bufferEncode(value: ArrayBuffer): string {

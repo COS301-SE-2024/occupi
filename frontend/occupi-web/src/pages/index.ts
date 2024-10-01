@@ -16,6 +16,13 @@ import AboutPage from "./about/AboutPage";
 import SecurityPage from "./securityPage/SecurityPage";
 import ForgotPassword from './forgot-password/ForgotPassword';
 import ResetPassword from './reset-password/ResetPassword';
+import OccupancyRecommendationEngine from "./visitations/Visitations";
+import BuildingTower from "@components/aiDashboard/aiDashGraphs/BuildingTower";
+import BookingLevelCalendar from "@components/aiDashboard/aiDashGraphs/BookingLevelCalendar";
+import BookingStats from "./bookingStats/bookingStats";
+import WorkerStatsDashboard from "./worker-dash/WorkerDashboard";
+import BookingsDashboardPage from "./bookingsDash/BookingsDashboardPage";
+import LocationPage from './Locations-page/LocationPage';
 export {
   LoginForm,
   OtpPage,
@@ -34,5 +41,13 @@ export {
   AboutPage,
   SecurityPage,
   ForgotPassword,
-  ResetPassword
+  ResetPassword,
+  OccupancyRecommendationEngine,
+  BuildingTower,
+  BookingLevelCalendar,
+  BookingStats,
+  WorkerStatsDashboard,
+  BookingsDashboardPage,
+  LocationPage
+
 };

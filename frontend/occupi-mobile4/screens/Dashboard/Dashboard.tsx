@@ -117,7 +117,6 @@ const Dashboard: React.FC = () => {
     setCurrentData(weeklyData);
   }
 
-
   const useLocationCheckin = () => {
     Alert.alert(
       'At the office',

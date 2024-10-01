@@ -102,14 +102,13 @@ type ImageRequest struct {
 }
 
 type RequestRoom struct {
-	RoomID       string   `json:"roomId" binding:"required,startswith=RM"`
-	RoomNo       string   `json:"roomNo" binding:"required"`
-	FloorNo      string   `json:"floorNo" binding:"required"`
-	MinOccupancy int      `json:"minOccupancy" binding:"required"`
-	MaxOccupancy int      `json:"maxOccupancy" binding:"required"`
-	Description  string   `json:"description" binding:"required"`
-	RoomName     string   `json:"roomName" binding:"required"`
-	Resources    []string `json:"resources" binding:"required"`
+	RoomID       string `json:"roomId" binding:"required,startswith=RM"`
+	RoomNo       string `json:"roomNo" binding:"required"`
+	FloorNo      string `json:"floorNo" binding:"required"`
+	MinOccupancy int    `json:"minOccupancy" binding:"required"`
+	MaxOccupancy int    `json:"maxOccupancy" binding:"required"`
+	Description  string `json:"description" binding:"required"`
+	RoomName     string `json:"roomName" binding:"required"`
 }
 
 type WebAuthnSession struct {
@@ -127,4 +126,78 @@ type RequestAvailableSlots struct {
 type Slot struct {
 	Start time.Time `json:"start"`
 	End   time.Time `json:"end"`
+}
+
+type RequestOnsite struct {
+	Email  string `json:"email" binding:"omitempty,email"`
+	OnSite string `json:"onSite" binding:"required"`
+}
+
+type RequestHours struct {
+	Email    string    `json:"email" binding:"omitempty,email"`
+	TimeFrom time.Time `json:"timeFrom" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	TimeTo   time.Time `json:"timeTo" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	Limit    int64     `json:"limit"`
+	Page     int64     `json:"page"`
+}
+
+type RequestBooking struct {
+	Creator   string    `json:"creator" binding:"omitempty,email"`
+	Attendees []string  `json:"attendees" binding:"omitempty,email"`
+	TimeFrom  time.Time `json:"timeFrom" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	TimeTo    time.Time `json:"timeTo" binding:"omitempty" time_format:"2006-01-02T15:04:05Z07:00"`
+	Limit     int64     `json:"limit"`
+	Page      int64     `json:"page"`
+}
+
+type RequestSpecialEvent struct {
+	Date           time.Time `json:"date" binding:"required"`
+	IsSpecialEvent string    `json:"isSpecialEvent" binding:"required"`
+}
+
+type UserRequest struct {
+	EmployeeID              string              `json:"employee_id" binding:"omitempty,startswith=OCCUPI"`
+	Password                string              `json:"password" binding:"required,min=8"`
+	Email                   string              `json:"email" binding:"required,email"`
+	Role                    string              `json:"role" binding:"omitempty"`
+	Details                 DetailsRequest      `json:"details" binding:"omitempty"`
+	Notifications           NotificationRequest `json:"notifications" binding:"omitempty"`
+	Status                  string              `json:"status" bson:"status, omitempty"`
+	Position                string              `json:"position" bson:"position, omitempty"`
+	DepartmentNo            string              `json:"departmentNo" bson:"departmentNo, omitempty"`
+	ExpoPushToken           string              `json:"expoPushToken" binding:"omitempty"`
+	BlockAnonymousIPAddress bool                `json:"blockAnonymousIPAddress" binding:"omitempty"`
+}
+
+type DetailsRequest struct {
+	ContactNo string    `json:"contactNo" binding:"omitempty"`
+	Name      string    `json:"name" binding:"omitempty"`
+	DOB       time.Time `json:"dob" binding:"omitempty"`
+	Gender    string    `json:"gender" binding:"omitempty"`
+	Pronouns  string    `json:"pronouns" binding:"omitempty"`
+}
+
+type NotificationRequest struct {
+	Invites         bool `json:"invites" binding:"omitempty"`
+	BookingReminder bool `json:"bookingReminder" binding:"omitempty"`
+}
+
+type RequestIP struct {
+	IP     string   `json:"ip" binding:"omitempty"`
+	Emails []string `json:"emails" binding:"omitempty"`
+}
+
+type AllowAnonymousIPRequest struct {
+	Emails                  []string `json:"emails" binding:"omitempty"`
+	BlockAnonymousIPAddress bool     `json:"blockAnonymousIPAddress" binding:"omitempty"`
+}
+
+type DeleteNotiRequest struct {
+	Email  string `json:"email" binding:"omitempty,email"`
+	NotiID string `json:"notiId" binding:"required"`
+}
+
+type RoleRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	Role  string `json:"role" binding:"required"`
 }

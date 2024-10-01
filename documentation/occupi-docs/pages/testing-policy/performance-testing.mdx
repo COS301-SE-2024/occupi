@@ -1,0 +1,103 @@
+# Performance Testing Policy
+
+### 1. Overview
+This policy defines the approach to performance testing for our system, which aims to ensure that our Golang-based applications perform reliably under expected and peak loads. Performance testing is carried out using K6 to simulate various traffic conditions, and reports are generated to guide optimization efforts.
+
+### 2. Scope
+The performance testing policy applies to all production and pre-production environments of the system. Key components included in the scope are:
+
+APIs
+Web applications
+Databases
+Network infrastructure
+Supporting services (e.g., NGINX, Redis, MongoDB)
+
+### 3. Objectives
+The objectives of performance testing are to:
+
+Verify the system's ability to handle expected and peak user loads.
+Measure key performance metrics such as response time, throughput, latency, and error rates.
+Identify bottlenecks or areas for optimization in terms of resource utilization (CPU, memory, I/O).
+Ensure the scalability and stability of the system under increased load.
+
+### 4. Testing Methodology
+#### 4.1 Types of Performance Testing
+The following types of performance tests are conducted on the system:
+
+Load Testing: Simulates normal and peak user traffic to ensure the system can handle expected user loads. This is done using predefined test scripts and scenarios with varying levels of load (measured in Virtual Users - VUs).
+
+Stress Testing: Involves testing the system beyond its normal operational capacity to observe how it behaves under extreme loads, uncovering failure points and performance degradation.
+
+Spike Testing: Simulates sudden increases in traffic over short periods to ensure that the system can recover quickly from traffic spikes without failures.
+
+Soak (Endurance) Testing: Evaluates system performance and stability over an extended period to detect potential memory leaks, resource exhaustion, or degradation over time.
+
+#### 4.2 Tool Used: K6
+We use K6, a modern load-testing tool, to simulate load scenarios and measure system performance under various conditions. K6 is integrated with our CI/CD pipeline to allow for automated performance tests with every major release or infrastructure update.
+
+Key Metrics Collected:
+Response Time: The time it takes for the server to respond to a request.
+Throughput: The number of requests processed per second.
+Latency: The delay experienced during communication between the client and server.
+Error Rate: The percentage of requests that result in errors.
+Resource Utilization: CPU, memory, and I/O usage statistics on the system under test.
+
+#### 4.3 Test Environment
+Performance testing is conducted in a staging environment that mirrors production as closely as possible. Key components of the test environment include:
+
+Servers: Azure Ubuntu VMs running the Golang application, database (MongoDB), and NGINX reverse proxy.
+Database: MongoDB with similar size and data volume to production.
+Network: Simulated traffic over HTTPS, handled by NGINX, and routed via Cloudflare.
+
+#### 4.4 Performance Testing Workflow
+Test Case Definition: Define the performance test cases, including expected traffic patterns, peak load scenarios, and critical user journeys.
+Test Script Creation: Write test scripts using K6 that simulate traffic patterns, specific API calls, or full user workflows.
+Test Execution: Execute the tests in the staging environment, simulating varying levels of load (normal, peak, stress).
+Metrics Collection: Monitor and collect metrics such as response time, throughput, error rates, and system resource utilization.
+Analyze Results: Analyze the test results to identify bottlenecks, resource exhaustion, or performance degradation.
+Optimization: Based on findings, implement optimizations (e.g., code improvements, scaling, or infrastructure tuning).
+
+### 5. Testing Frequency
+Performance testing is conducted at key stages of the system's lifecycle:
+
+Prior to major releases.
+After significant infrastructure changes (e.g., scaling changes, new databases).
+During periods of expected increased traffic.
+On a scheduled basis (e.g., quarterly) to ensure continued performance compliance.
+
+### 6. Reporting and Analysis
+#### 6.1 K6 Performance Reports
+We generate comprehensive reports after each performance test, detailing:
+
+Test Scenarios: Description of the load, number of virtual users, and duration of the test.
+Key Metrics: Response time, throughput, latency, error rates, and system resource usage.
+Pass/Fail Criteria: Comparison of actual performance against predefined success criteria (e.g., response time should not exceed 500ms under load).
+Bottlenecks Identified: Summary of any areas of the system that exhibited performance degradation or instability under load.
+
+#### 6.2 Action Plan
+Based on the performance testing results:
+
+Initial Review: The development and operations teams review the results to determine the severity of any bottlenecks or failures.
+Optimization: System bottlenecks are addressed through performance tuning, code optimization, and/or infrastructure scaling.
+Re-testing: After implementing changes, performance tests are re-run to validate the effectiveness of the optimizations.
+6.3 Tracking and Documentation
+All test results and reports are stored in a centralized repository for tracking and future reference.
+Performance trends over time are monitored to ensure that the system maintains consistent or improved performance across releases.
+
+### 7. Performance Benchmarks
+Our system aims to meet the following performance benchmarks:
+
+Response Time: API response times should remain below 500ms under normal load and below 1 second under peak load.
+Error Rate: Less than 1% error rate during normal and peak operations.
+Throughput: The system should handle at least 50 requests per second under peak load per client.
+Resource Utilization: CPU and memory usage should not exceed 80% under peak load.
+
+### 8. Tools and Infrastructure
+K6: Primary load-testing tool used for simulating user traffic and generating reports.
+Monitoring Tools: [e.g., New Relic, Prometheus, Grafana] for real-time monitoring of system performance during tests.
+Azure VM: Used as the environment for load testing, with key services including MongoDB and NGINX configured similarly to production.
+
+### 9. Roles and Responsibilities
+Development Team: Creates and maintains performance test scripts, implements performance optimizations.
+Operations Team: Monitors system resource usage, adjusts infrastructure scaling based on test results.
+Quality Assurance Team: Oversees the execution of performance tests and ensures that performance benchmarks are met.

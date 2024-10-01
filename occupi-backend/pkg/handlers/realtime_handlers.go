@@ -1,113 +1,84 @@
 package handlers
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"sync"
+	"time"
 
+	"github.com/COS301-SE-2024/occupi/occupi-backend/configs"
+	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/utils"
-	"github.com/centrifugal/gocent/v3"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
+	"github.com/golang-jwt/jwt/v4"
 )
 
-var (
-	counter int
-	mu      sync.Mutex
-)
+func generateToken(expirationMinutes int) (string, error) {
+	// Define the secret key used to sign the token
+	var secretKey = []byte(configs.GetCentrifugoSecret())
 
-// Enter handles the check-in request
-func Enter(ctx *gin.Context, appsession *models.AppSession) {
-	mu.Lock()
-	defer mu.Unlock()
-	counter++
-	uuid, err := publishCounter(ctx, appsession)
+	// Define the token claims
+	claims := jwt.MapClaims{
+		"sub": "1",                                                                   // Subject: the user this token belongs to
+		"exp": time.Now().Add(time.Minute * time.Duration(expirationMinutes)).Unix(), // Expiration time
+		"iat": time.Now().Unix(),                                                     // Issued at time
+		"nbf": time.Now().Unix(),                                                     // Not before time                                                  // Issuer: identifies the principal that issued the JWT
+	}
+
+	// Create the token using the HS256 signing method and the claims
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign the token with the secret key
+	tokenString, err := token.SignedString(secretKey)
 	if err != nil {
-		captureError(ctx, err)
-		logrus.WithError(err).Error("error publishing message")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	return tokenString, nil
+}
+
+// getRTCToken is a Gin handler that generates a JWT token and returns it in the response
+func GetRTCToken(ctx *gin.Context, app *models.AppSession) {
+	// Generate a token with an expiration time of 60 minutes
+	token, err := generateToken(1440)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Token generation failed", constants.InternalServerErrorCode, "Failed to generate token", nil))
 		return
 	}
+	ctx.SetCookie(
+		"rtc_token", // Cookie name
+		token,       // Cookie value (the JWT token)
+		86400,       // Max age in seconds (60 minutes)
+		"/",         // Path
+		"",          // Domain (leave empty for default)
+		true,        // Secure (true if serving over HTTPS)
+		false,       // HttpOnly (false to allow JavaScript access)
+	)
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Counter incremented", gin.H{"counter": counter, "uuid": uuid}))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Token generated successfully", token))
 }
 
-// Exit handles the exit request
-func Exit(ctx *gin.Context, appsession *models.AppSession) {
-	mu.Lock()
-	defer mu.Unlock()
-	if counter > 0 {
-		counter--
-	}
-	uuid, err := publishCounter(ctx, appsession)
-	if err != nil {
-		captureError(ctx, err)
-		logrus.WithError(err).Error("error publishing message")
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+// IncrementHandler is a Gin handler to increment the counter
+func Enter(ctx *gin.Context, app *models.AppSession) {
+	if err := app.Counter.Increment(ctx); err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Increment failed", constants.InternalServerErrorCode, "Failed to increment", nil))
 		return
 	}
-
-	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Counter Decremented", gin.H{"counter": counter, "uuid": uuid}))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Counter incremented", app.Counter.GetCounterValue()))
 }
 
-// publishCounter publishes the current counter value to Centrifugo
-func publishCounter(ctx *gin.Context, appsession *models.AppSession) (string, error) {
-	uuid := utils.GenerateUUID()
-	data := models.CentrigoCounterNode{
-		UUID:    uuid,
-		Count:   counter,
-		Message: fmt.Sprintf("Counter is now at %d", counter),
+// DecrementHandler is a Gin handler to decrement the counter
+func Exit(ctx *gin.Context, app *models.AppSession) {
+	if err := app.Counter.Decrement(ctx); err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Decrement failed", constants.InternalServerErrorCode, "Failed to decrement", nil))
+		return
 	}
-
-	jsonData, _ := json.Marshal(data)
-	_, err := appsession.Centrifugo.Publish(ctx, "public:counter", jsonData)
-	if err != nil {
-		return "", fmt.Errorf("error publishing message: %v", err)
-	}
-	return uuid, nil
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Counter decremented", app.Counter.GetCounterValue()))
 }
 
-// readCounter reads the current counter value from Centrifugo currently unused but will be used in the future
-func ReadCounter(ctx *gin.Context, appsession *models.AppSession, targetUUID string) (*models.CentrigoCounterNode, error) {
-	historyResult, err := appsession.Centrifugo.History(ctx, "public:counter")
-	if err != nil {
-		return nil, fmt.Errorf("error reading message: %v", err)
-	}
-
-	// Check if there are any publications
-	if len(historyResult.Publications) == 0 {
-		return nil, errors.New("no publications found")
-	}
-
-	// Find the publication with the matching UUID
-	var selectedPublication gocent.Publication
-	found := false
-	for _, pub := range historyResult.Publications {
-		var counterData models.CentrigoCounterNode
-		if err := json.Unmarshal(pub.Data, &counterData); err != nil {
-			return nil, fmt.Errorf("error unmarshalling data: %v", err)
-		}
-		if counterData.UUID == targetUUID {
-			selectedPublication = pub
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return nil, fmt.Errorf("no publication found with UUID: %s", targetUUID)
-	}
-
-	// Access the data of the selected publication
-	messageData := selectedPublication.Data
-
-	var counterData models.CentrigoCounterNode
-	if err := json.Unmarshal(messageData, &counterData); err != nil {
-		return nil, fmt.Errorf("error unmarshalling data: %v", err)
-	}
-
-	return &counterData, nil
+func GetCurrentCount(ctx *gin.Context, app *models.AppSession) {
+	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Current count", app.Counter.GetCounterValue()))
 }

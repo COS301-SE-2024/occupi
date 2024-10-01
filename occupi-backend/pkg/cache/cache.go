@@ -303,3 +303,65 @@ func CanMakeLogin(appsession *models.AppSession, email string) (bool, error) {
 
 	return false, nil
 }
+
+func GetMobileUser(appsession *models.AppSession, email string) (models.MobileUser, error) {
+	if appsession.MobileCache == nil {
+		return models.MobileUser{}, errors.New("cache not found")
+	}
+
+	// unmarshal the user from the cache
+	var user models.MobileUser
+	res := appsession.MobileCache.Get(context.Background(), MobileUserKey(email))
+
+	if res.Err() != nil {
+		logrus.Error("key does not exist: ", res.Err())
+		return models.MobileUser{}, res.Err()
+	}
+
+	userData, err := res.Bytes()
+
+	if err != nil {
+		logrus.Error("failed to get bytes", err)
+		return models.MobileUser{}, err
+	}
+
+	if err := bson.Unmarshal(userData, &user); err != nil {
+		logrus.Error("failed to unmarshall", err)
+		return models.MobileUser{}, err
+	}
+
+	return user, nil
+}
+
+func SetMobileUser(appsession *models.AppSession, user models.MobileUser) {
+	if appsession.MobileCache == nil {
+		return
+	}
+
+	// marshal the user
+	userData, err := bson.Marshal(user)
+	if err != nil {
+		logrus.Error("failed to marshall", err)
+		return
+	}
+
+	// set the user in the cache
+	res := appsession.MobileCache.Set(context.Background(), MobileUserKey(user.Email), userData, 0)
+
+	if res.Err() != nil {
+		logrus.Error("failed to set user in cache", res.Err())
+	}
+}
+
+func DeleteMobileUser(appsession *models.AppSession, email string) {
+	if appsession.MobileCache == nil {
+		return
+	}
+
+	// delete the user from the cache
+	res := appsession.MobileCache.Del(context.Background(), MobileUserKey(email))
+
+	if res.Err() != nil {
+		logrus.Error("failed to delete user from cache", res.Err())
+	}
+}

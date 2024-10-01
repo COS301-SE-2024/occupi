@@ -1,12 +1,19 @@
 package database
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/ipinfo/go/v2/ipinfo"
+	"github.com/sirupsen/logrus"
 	"github.com/umahmood/haversine"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/models"
@@ -18,13 +25,13 @@ func CreateBasicUser(user models.RegisterUser) models.User {
 		Password:             user.Password,
 		Email:                user.Email,
 		Role:                 constants.Basic,
-		OnSite:               true,
+		OnSite:               false,
 		IsVerified:           false,
 		NextVerificationDate: time.Now(), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
 		Details: models.Details{
-			ImageID:  "",
+			HasImage: false,
 			Name:     "",
 			DOB:      time.Now(),
 			Gender:   "",
@@ -38,11 +45,14 @@ func CreateBasicUser(user models.RegisterUser) models.User {
 			MFA:         false,
 			Biometrics:  false,
 			ForceLogout: false,
+			Credentials: webauthn.Credential{},
 		},
-		Status:        "",
-		Position:      "",
-		DepartmentNo:  "",
-		ExpoPushToken: user.ExpoPushToken,
+		Status:                  "",
+		Position:                "",
+		DepartmentNo:            "",
+		ExpoPushToken:           user.ExpoPushToken,
+		ResetPassword:           false,
+		BlockAnonymousIPAddress: false,
 	}
 }
 
@@ -52,13 +62,13 @@ func CreateAdminUser(user models.RegisterUser) models.User {
 		Password:             user.Password,
 		Email:                user.Email,
 		Role:                 constants.Admin,
-		OnSite:               true,
+		OnSite:               false,
 		IsVerified:           false,
 		NextVerificationDate: time.Now(), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
 		Details: models.Details{
-			ImageID:  "",
+			HasImage: false,
 			Name:     "",
 			DOB:      time.Now(),
 			Gender:   "",
@@ -72,17 +82,69 @@ func CreateAdminUser(user models.RegisterUser) models.User {
 			MFA:         false,
 			Biometrics:  false,
 			ForceLogout: false,
+			Credentials: webauthn.Credential{},
 		},
-		Status:        "",
-		Position:      "",
-		DepartmentNo:  "",
-		ExpoPushToken: user.ExpoPushToken,
+		Status:                  "",
+		Position:                "",
+		DepartmentNo:            "",
+		ExpoPushToken:           user.ExpoPushToken,
+		ResetPassword:           false,
+		BlockAnonymousIPAddress: false,
+	}
+}
+
+func CreateAUser(user models.UserRequest) models.User {
+	return models.User{
+		OccupiID:             user.EmployeeID,
+		Password:             user.Password,
+		Email:                user.Email,
+		Role:                 user.Role,
+		OnSite:               false,
+		IsVerified:           false,
+		NextVerificationDate: time.Now(), // this will be updated once the email is verified
+		TwoFAEnabled:         false,
+		KnownLocations:       []models.Location{},
+		Details: models.Details{
+			HasImage:  false,
+			ContactNo: user.Details.ContactNo,
+			Name:      user.Details.Name,
+			DOB:       user.Details.DOB,
+			Gender:    user.Details.Gender,
+			Pronouns:  user.Details.Pronouns,
+		},
+		Notifications: models.Notifications{
+			BookingReminder: user.Notifications.BookingReminder,
+			Invites:         user.Notifications.Invites,
+		},
+		Security: models.Security{
+			MFA:         false,
+			ForceLogout: false,
+			Credentials: webauthn.Credential{},
+		},
+		Status:                  user.Status,
+		Position:                user.Position,
+		DepartmentNo:            user.DepartmentNo,
+		ExpoPushToken:           user.ExpoPushToken,
+		ResetPassword:           true,
+		BlockAnonymousIPAddress: user.BlockAnonymousIPAddress,
 	}
 }
 
 func IsLocationInRange(locations []models.Location, unrecognizedLogger *ipinfo.Core) bool {
 	// Return true if there are no locations
 	if len(locations) == 0 {
+		return true
+	}
+
+	// check if each loc.Location is == "" and return true if all are
+	allEmpty := true
+	for _, loc := range locations {
+		if loc.Location != "" {
+			allEmpty = false
+			break
+		}
+	}
+	if allEmpty {
 		return true
 	}
 
@@ -160,4 +222,122 @@ func ComputeAvailableSlots(bookings []models.Booking, dateOfBooking time.Time) [
 	}
 
 	return availableSlots
+}
+
+// caps time now to range of 8:00 AM to 5:00 PM
+func CapTimeRange() time.Time {
+	now := time.Now()
+	if now.Hour() < 7 {
+		now = time.Date(now.Year(), now.Month(), now.Day(), 7, 0, 0, 0, time.UTC)
+	} else if now.Hour() > 17 {
+		now = time.Date(now.Year(), now.Month(), now.Day(), 17, 0, 0, 0, time.UTC)
+	}
+	return now
+}
+
+// CompareAndReturnTime validates the newTime against the oldTime and returns:
+// - oldTime's date at 5 PM if newTime's date is after oldTime's date or newTime's time is after 5 PM on the same date.
+// - newTime if it's on the same date as oldTime and before or at 5 PM.
+func CompareAndReturnTime(oldTime, newTime time.Time) time.Time {
+	// Set 5 PM time on oldTime's date
+	oldDateFivePM := time.Date(oldTime.Year(), oldTime.Month(), oldTime.Day(), 17, 0, 0, 0, oldTime.Location())
+
+	// Compare dates
+	oldDate := time.Date(oldTime.Year(), oldTime.Month(), oldTime.Day(), 0, 0, 0, 0, oldTime.Location())
+	newDate := time.Date(newTime.Year(), newTime.Month(), newTime.Day(), 0, 0, 0, 0, newTime.Location())
+
+	if newDate.After(oldDate) {
+		return oldDateFivePM
+	} else if newDate.Equal(oldDate) && newTime.After(oldDateFivePM) {
+		return oldDateFivePM
+	}
+
+	return newTime
+}
+
+// IsWeekend checks if the given date is a weekend
+func IsWeekend(date time.Time) bool {
+	// Check if the given date is a Saturday or Sunday
+	return date.Weekday() == time.Saturday || date.Weekday() == time.Sunday
+}
+
+// WeekOfTheYear returns the week number of the year for the given date
+func WeekOfTheYear(date time.Time) int {
+	_, week := date.ISOWeek()
+	return week
+}
+
+// DayOfTheWeek returns the day of the week for the given date as a string
+func DayOfTheWeek(date time.Time) string {
+	return date.Weekday().String()
+}
+
+// DayofTheMonth returns the day of the month for the given date
+func DayofTheMonth(date time.Time) int {
+	return date.Day()
+}
+
+// Month returns the month as an int
+func Month(date time.Time) int {
+	return int(date.Month())
+}
+
+func MakeEmailAndTimeFilter(email string, filter models.AnalyticsFilterStruct) bson.M {
+	mongoFilter := bson.M{}
+	if email != "" {
+		mongoFilter["email"] = email
+	}
+
+	switch {
+	case filter.Filter["timeFrom"] != "" && filter.Filter["timeTo"] != "":
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"], "$lte": filter.Filter["timeTo"]}
+	case filter.Filter["timeTo"] != "":
+		mongoFilter["entered"] = bson.M{"$lte": filter.Filter["timeTo"]}
+	case filter.Filter["timeFrom"] != "":
+		mongoFilter["entered"] = bson.M{"$gte": filter.Filter["timeFrom"]}
+	}
+
+	return mongoFilter
+}
+
+func MakeEmailAndEmailsAndTimeFilter(creatorEmail string, attendeeEmails []string, filter models.AnalyticsFilterStruct, dateFilter string) bson.M {
+	mongoFilter := bson.M{}
+	if creatorEmail != "" {
+		mongoFilter["creator"] = creatorEmail
+	}
+
+	// filter attendeeEmails in emails array
+	if len(attendeeEmails) > 0 {
+		fmt.Println(attendeeEmails)
+		fmt.Println(len(attendeeEmails))
+		mongoFilter["emails"] = bson.M{"$in": attendeeEmails}
+	}
+
+	switch {
+	case filter.Filter["timeFrom"] != "" && filter.Filter["timeTo"] != "":
+		mongoFilter[dateFilter] = bson.M{"$gte": filter.Filter["timeFrom"], "$lte": filter.Filter["timeTo"]}
+	case filter.Filter["timeTo"] != "":
+		mongoFilter[dateFilter] = bson.M{"$lte": filter.Filter["timeTo"]}
+	case filter.Filter["timeFrom"] != "":
+		mongoFilter[dateFilter] = bson.M{"$gte": filter.Filter["timeFrom"]}
+	}
+
+	return mongoFilter
+}
+
+func GetResultsAndCount(ctx *gin.Context, collection *mongo.Collection, cursor *mongo.Cursor, mongoFilter primitive.M) ([]bson.M, int64, error) {
+	var results []bson.M
+	if err := cursor.All(ctx, &results); err != nil {
+		logrus.WithError(err).Error("Failed to get data")
+		return []bson.M{}, 0, err
+	}
+
+	// count documents
+	totalResults, err := collection.CountDocuments(ctx, mongoFilter)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to count documents")
+		return []bson.M{}, 0, err
+	}
+
+	return results, totalResults, nil
 }

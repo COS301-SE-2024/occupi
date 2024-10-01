@@ -1,3 +1,4 @@
+import React from 'react';
 import { GraphContainer } from "@components/index";
 import { Button } from "@nextui-org/react";
 import { FaArrowRight } from "react-icons/fa";
@@ -14,6 +15,7 @@ interface StatCardProps {
     direction: "up" | "down";
   };
   comparisonText: string;
+  onClick?: () => void; // Added optional onClick prop
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -24,6 +26,7 @@ const StatCard: React.FC<StatCardProps> = ({
   count,
   trend,
   comparisonText,
+  onClick, // Added onClick to the destructured props
 }) => {
   return (
     <GraphContainer
@@ -50,7 +53,10 @@ const StatCard: React.FC<StatCardProps> = ({
               </span>
             </div>
           </div>
-          <Button className="bg-primary_alt text-text_col_alt text-sm font-medium leading-normal w-full mt-10">
+          <Button 
+            className="bg-primary_alt text-text_col_alt text-sm font-medium leading-normal w-full mt-10"
+            onClick={onClick} // Added onClick prop to the Button
+          >
             See more
             <FaArrowRight className="ml-2" />
           </Button>

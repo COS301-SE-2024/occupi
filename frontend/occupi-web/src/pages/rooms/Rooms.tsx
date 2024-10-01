@@ -16,7 +16,6 @@ import {
   Chip,
   ModalContent,
 } from "@nextui-org/react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import {
   FaRegBuilding,
@@ -28,7 +27,9 @@ import {
   FaPlus,
   FaUpload,
 } from "react-icons/fa";
-import { AddRoomModal, EditRoomModal, FeedBackModal, TopNav } from "@components/index";
+import { AddRoomModal, FeedBackModal, TopNav } from "@components/index";
+import { uploadRoomImage } from 'Api';
+import axios from "axios";
 
 interface Room {
   description: string;
@@ -38,8 +39,15 @@ interface Room {
   roomId: string;
   roomName: string;
   roomNo: string;
-  imageUrl?: string;
+  roomImage?: {
+    uuid: string;
+    thumbnailRes: string;
+    lowRes: string;
+    midRes: string;
+    highRes: string;
+  };
   isDisabled: boolean;
+  resources: string[];
 }
 
 interface ApiResponse {
@@ -58,15 +66,14 @@ const Rooms: React.FC = () => {
   const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [, setEditingRoom] = useState<Room | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [filterCriteria, setFilterCriteria] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [, setIsEditModalOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
-
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [roomToDisable, setRoomToDisable] = useState<Room | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     fetchRooms();
@@ -78,14 +85,13 @@ const Rooms: React.FC = () => {
 
   const fetchRooms = async () => {
     try {
-      const response = await axios.get<ApiResponse>(
-        "/api/view-rooms?filter={}"
-      );
+      const response = await axios.get<ApiResponse>("/api/view-rooms?filter={}");
       setRooms(response.data.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching rooms:", error);
       setLoading(false);
+      setErrorMessage("Failed to fetch rooms. Please try again later.");
     }
   };
 
@@ -98,28 +104,27 @@ const Rooms: React.FC = () => {
     }
   };
 
-  // const uploadImage = async () => {
-  //   if (!imageFile || !selectedRoom) return;
+  const uploadImage = async () => {
+    if (!imageFile || !selectedRoom) return;
 
-  //   const formData = new FormData();
-  //   formData.append("image", imageFile);
-  //   formData.append("roomId", selectedRoom.roomId);
-
-  //   try {
-  //     await axios.post("/api/upload-room-image", formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-  //     setIsUploadModalOpen(false);
-  //     setSelectedRoom(null);
-  //     setEditingRoom(null);
-  //     setImageFile(null);
-  //     fetchRooms();
-  //   } catch (error) {
-  //     console.error("Error uploading image:", error);
-  //   }
-  // };
+    try {
+      const response = await uploadRoomImage(imageFile, selectedRoom.roomId);
+      if (response.status === 200) {
+        const updatedRoom = {
+          ...selectedRoom,
+          imageUrl: response.data.id,
+        };
+        setRooms(rooms.map(r => r.roomId === selectedRoom.roomId ? updatedRoom : r));
+        setFilteredRooms(filteredRooms.map(r => r.roomId === selectedRoom.roomId ? updatedRoom : r));
+        setIsUploadModalOpen(false);
+        setSelectedRoom(null);
+        setImageFile(null);
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setErrorMessage("Failed to upload image. Please try again.");
+    }
+  };
 
   const handleEdit = (room: Room) => {
     setSelectedRoom(room);
@@ -144,86 +149,63 @@ const Rooms: React.FC = () => {
         isDisabled: !roomToDisable.isDisabled,
       };
 
-      setRooms(
-        rooms.map((r) => (r.roomId === roomToDisable.roomId ? updatedRoom : r))
-      );
-      setFilteredRooms(
-        filteredRooms.map((r) =>
-          r.roomId === roomToDisable.roomId ? updatedRoom : r
-        )
-      );
+      setRooms(rooms.map((r) => (r.roomId === roomToDisable.roomId ? updatedRoom : r)));
+      setFilteredRooms(filteredRooms.map((r) => (r.roomId === roomToDisable.roomId ? updatedRoom : r)));
 
       setIsFeedbackModalOpen(false);
       setRoomToDisable(null);
     } catch (error) {
       console.error("Error toggling room state:", error);
-    }
-  };
-  const handleSaveRoom = async (updatedRoom: Room) => {
-    try {
-      // Make an API call to update the room
-      await axios.put(`/api/update-room/${updatedRoom.roomId}`, updatedRoom);
-      // Update the rooms state
-      setRooms(
-        rooms.map((r) => (r.roomId === updatedRoom.roomId ? updatedRoom : r))
-      );
-      setFilteredRooms(
-        filteredRooms.map((r) =>
-          r.roomId === updatedRoom.roomId ? updatedRoom : r
-        )
-      );
-    } catch (error) {
-      console.error("Error updating room:", error);
+      setErrorMessage("Failed to update room state. Please try again.");
     }
   };
 
-  const handleAddRoom = async (newRoom: Room) => {
+  // const handleSaveRoom = async (updatedRoom: Room) => {
+  //   try {
+  //     await axios.put(`/api/update-room/${updatedRoom.roomId}`, updatedRoom);
+  //     setRooms(rooms.map((r) => (r.roomId === updatedRoom.roomId ? updatedRoom : r)));
+  //     setFilteredRooms(filteredRooms.map((r) => (r.roomId === updatedRoom.roomId ? updatedRoom : r)));
+  //   } catch (error) {
+  //     console.error("Error updating room:", error);
+  //     setErrorMessage("Failed to update room. Please try again.");
+  //   }
+  // };
+
+  const handleAddRoom = async (newRoom: Omit<Room, 'roomId' | 'imageUrl' | 'isDisabled'>) => {
     try {
-      const response = await axios.put("/api/add-room", newRoom);
+      // Generate a unique roomId
+      const roomId = `RM${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+      
+      const roomToAdd = {
+        ...newRoom,
+        roomId,
+        resources: [], // Add default resources or get from form
+        isDisabled: false
+      };
+
+      console.log("Sending room data:", roomToAdd); // Log the data being sent
+
+      const response = await axios.put("/api/add-room", roomToAdd);
+      
+      console.log("Server response:", response.data); // Log the server's response
+
       if (response.data.status === 200) {
-        setRooms([...rooms, newRoom]);
-        setFilteredRooms([...filteredRooms, newRoom]);
+        setRooms([...rooms, roomToAdd]);
+        setFilteredRooms([...filteredRooms, roomToAdd]);
         setIsAddRoomModalOpen(false);
+      } else {
+        console.error("Error adding room:", response.data.message);
+        setErrorMessage(`Failed to add room: ${response.data.message}`);
       }
     } catch (error) {
-      console.error("Error adding room:", error);
-    }
-  };
-
-  const uploadImage2 = async () => {
-    if (!imageFile || !selectedRoom) return;
-
-    const formData = new FormData();
-    formData.append("image", imageFile);
-    formData.append("roomId", selectedRoom.roomId);
-
-    try {
-      const response = await axios.post("/api/upload-room-image", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (response.data.status === 200) {
-        // Update the room's imageUrl in the state
-        const updatedRoom = {
-          ...selectedRoom,
-          imageUrl: response.data.data.id,
-        };
-        setRooms(
-          rooms.map((r) => (r.roomId === selectedRoom.roomId ? updatedRoom : r))
-        );
-        setFilteredRooms(
-          filteredRooms.map((r) =>
-            r.roomId === selectedRoom.roomId ? updatedRoom : r
-          )
-        );
-        setIsUploadModalOpen(false);
-        setSelectedRoom(null);
-        setImageFile(null);
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error details:", error.response?.data);
+        console.error("Request config:", error.config);
+        setErrorMessage(`Error adding room: ${error.response?.data?.message || error.message}`);
+      } else {
+        console.error("Error adding room:", error);
+        setErrorMessage("An unexpected error occurred while adding the room.");
       }
-    } catch (error) {
-      console.error("Error uploading image:", error);
     }
   };
 
@@ -233,18 +215,29 @@ const Rooms: React.FC = () => {
         mainComponent={
           <div className="text-text_col font-semibold text-2xl ml-5">
             Rooms
-            <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
-              Update And Edit Available rooms in the Building{" "}
+            <span className="block text-sm opacity-65 text-text_col_secondary_alt">
+              Update And Edit Available rooms in the Building
             </span>
           </div>
         }
         searchQuery={""}
         onChange={function (e: React.ChangeEvent<HTMLInputElement>): void {
           console.log(e.target.value);
-          // Weird linting fix
-          throw new Error("Function not implemented.");
         }}
       />
+
+      {errorMessage && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{errorMessage}</span>
+          <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
+            <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" onClick={() => setErrorMessage("")}>
+              <title>Close</title>
+              <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+            </svg>
+          </span>
+        </div>
+      )}
 
       <div className="flex items-center justify-between mb-4 mt-2">
         <h2 className="text-text_col text-2xl font-bold"></h2>
@@ -263,18 +256,10 @@ const Rooms: React.FC = () => {
             </Button>
           </DropdownTrigger>
           <DropdownMenu>
-            <DropdownItem onPress={() => setFilterCriteria("all")}>
-              All
-            </DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("1")}>
-              Floor 1
-            </DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("2")}>
-              Floor 2
-            </DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("3")}>
-              Floor 3
-            </DropdownItem>
+            <DropdownItem onPress={() => setFilterCriteria("all")}>All</DropdownItem>
+            <DropdownItem onPress={() => setFilterCriteria("1")}>Floor 1</DropdownItem>
+            <DropdownItem onPress={() => setFilterCriteria("2")}>Floor 2</DropdownItem>
+            <DropdownItem onPress={() => setFilterCriteria("3")}>Floor 3</DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </div>
@@ -287,7 +272,7 @@ const Rooms: React.FC = () => {
       >
         {loading
           ? Array.from({ length: 5 }).map((_, index) => (
-              <Skeleton key={index} className=" h-48 bg-secondary rounded-lg" />
+              <Skeleton key={index} className="h-48 bg-secondary rounded-lg" />
             ))
           : filteredRooms.map((room) => (
               <motion.div
@@ -304,17 +289,17 @@ const Rooms: React.FC = () => {
                   )}
                   <div className="p-4 flex flex-col md:flex-row">
                     <div className="w-full md:w-1/3 mb-4 md:mb-0 md:mr-4">
-                      {room.imageUrl ? (
+                      {room.roomImage ? (
                         <Image
-                          src={room.imageUrl}
+
+                          src={room.roomImage.midRes}
+
                           alt={room.roomName}
                           className="w-full h-48 object-cover rounded-lg"
                         />
                       ) : (
                         <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
-                          <span className="text-gray-400">
-                            No image available
-                          </span>
+                          <span className="text-gray-400">No image available</span>
                         </div>
                       )}
                       <Button
@@ -329,12 +314,8 @@ const Rooms: React.FC = () => {
                       </Button>
                     </div>
                     <div className="w-full md:w-2/3 flex flex-col">
-                      <h4 className="text-text_col text-xl font-bold mb-2">
-                        {room.roomName}
-                      </h4>
-                      <p className="text-text_col mb-2 flex-grow">
-                        {room.description}
-                      </p>
+                      <h4 className="text-text_col text-xl font-bold mb-2">{room.roomName}</h4>
+                      <p className="text-text_col mb-2 flex-grow">{room.description}</p>
                       <div className="flex items-center mb-1">
                         <FaRegBuilding className="mr-2" />
                         <p className="text-text_col">Floor: {room.floorNo}</p>
@@ -378,20 +359,17 @@ const Rooms: React.FC = () => {
         onClose={() => {
           setIsUploadModalOpen(false);
           setSelectedRoom(null);
-          setEditingRoom(null);
+          setImageFile(null);
         }}
         motionProps={{
           initial: { opacity: 0, scale: 0.9 },
           animate: { opacity: 1, scale: 1 },
           exit: { opacity: 0, scale: 0.9 },
         }}
-        // className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50 backdrop-blur-sm"
       >
         <ModalContent>
           <ModalHeader className="text-text_col flex flex-col gap-1">
-            <h3 className="text-text_col text-lg font-bold">
-              Upload Room Image
-            </h3>
+            <h3 className="text-text_col text-lg font-bold">Upload Room Image</h3>
           </ModalHeader>
           <ModalBody>
             <Input
@@ -406,19 +384,19 @@ const Rooms: React.FC = () => {
             />
           </ModalBody>
           <ModalFooter>
-            <Button color="primary" onPress={uploadImage2}>
+            <Button color="primary" onPress={uploadImage}>
               Upload Image
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      <EditRoomModal
+      {/* <EditRoomModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveRoom}
         room={selectedRoom}
-      />
+      /> */}
 
       <AddRoomModal
         isOpen={isAddRoomModalOpen}
@@ -426,18 +404,18 @@ const Rooms: React.FC = () => {
         onSave={handleAddRoom}
       />
 
-<FeedBackModal
-  title="Confirm Action"
-  message={`Are you sure you want to ${roomToDisable?.isDisabled ? 'enable' : 'disable'} this room?`}
-  closeButtonLabel="Cancel"
-  actionButtonLabel="Confirm"
-  isOpen={isFeedbackModalOpen}
-  onClose={() => {
-    setIsFeedbackModalOpen(false);
-    setRoomToDisable(null);
-  }}
-  onAction={confirmDisable}
-/>
+      <FeedBackModal
+        title="Confirm Action"
+        message={`Are you sure you want to ${roomToDisable?.isDisabled ? 'enable' : 'disable'} this room?`}
+        closeButtonLabel="Cancel"
+        actionButtonLabel="Confirm"
+        isOpen={isFeedbackModalOpen}
+        onClose={() => {
+          setIsFeedbackModalOpen(false);
+          setRoomToDisable(null);
+        }}
+        onAction={confirmDisable}
+      />
     </div>
   );
 };

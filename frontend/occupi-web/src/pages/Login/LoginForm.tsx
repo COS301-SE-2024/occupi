@@ -82,14 +82,14 @@ const LoginForm = (): JSX.Element => {
     }
     
     try {
-      setUserDetails({ email: form.email, name: "", dob: "", gender: "", employeeid: "", number: "", pronouns: "", /* other fields */ });
+      setUserDetails({ email: form.email, name: "", dob: "", gender: "", employeeid: "", number: "", pronouns: "", avatarId: "", position: "", departmentNo: "" });
       const userDetails = await AuthService.getUserDetails(form.email);
       console.log("User details from API:", userDetails);
 
       setUserDetails(userDetails);
       console.log("UserDetails after setting:", userDetails);
 
-      navigate("/dashboard/overview");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login or user details error:", error);
       if (typeof error === 'object' && error !== null && 'message' in error) {

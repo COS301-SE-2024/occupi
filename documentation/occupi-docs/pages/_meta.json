@@ -2,6 +2,7 @@
   "index": "Introduction",
   "api-documentation": "Api documentation",
   "coding-standards": "Coding Standards",
+  "testing-policy": "Testing Policy",
   "installation": {
     "title": "Installation",
     "type": "page"

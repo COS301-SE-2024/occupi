@@ -48,6 +48,7 @@ const (
 	CentrifugoAKy           = "CENTRIFUGO_API_KEY"
 	CentrifugoHost          = "CENTRIFUGO_HOST"
 	CentrifugoPort          = "CENTRIFUGO_PORT"
+	CentrifugoSC            = "CENTRIFUGO_SECRET"
 	NewRelicAppName         = "NEW_RELIC_APP_NAME"
 	SentryDSN               = "SENTRY_DSN"
 	PassPhrase              = "TEST_PASS_PHRASE"
@@ -56,7 +57,6 @@ const (
 	MiddelwareAT            = "MIDDLEWARE_AT"
 	MiddlewareTarget        = "MIDDLEWARE_TARGET"
 	MiddlewareAgentService  = "MW_AGENT_SERVICE"
-	RedisUsername           = "REDIS_USERNAME"
 	RedisPassword           = "REDIS_PASSWORD"
 	RedisHost               = "REDIS_HOST"
 	RedisPort               = "REDIS_PORT"
@@ -64,6 +64,9 @@ const (
 	AzurePFPContainerName   = "AZURE_PFP_CONTAINER_NAME"
 	AzureRoomsContainerName = "AZURE_ROOMS_CONTAINER_NAME"
 	AzureAccountKey         = "AZURE_ACCOUNT_KEY"
+	TimeZone                = "TIMEZONE"
+	LogglyT                 = "LOGGLY_TOKEN"
+	LogglySubdomain         = "LOGGLY_SUBDOMAIN"
 )
 
 // init viper
@@ -439,6 +442,14 @@ func GetCentrifugoPort() string {
 	return port
 }
 
+func GetCentrifugoSecret() string {
+	csc := viper.GetString(CentrifugoSC)
+	if csc == "" {
+		csc = "CENTRIFUGO_SECRET"
+	}
+	return csc
+}
+
 // gets the config license as defined in the config.yaml file
 func GetConfigLicense() string {
 	license := viper.GetString(NewRelicLicenseKey)
@@ -504,14 +515,6 @@ func GetMiddlewareAgentService() string {
 	return service
 }
 
-func GetRedisUsername() string {
-	username := viper.GetString(RedisUsername)
-	if username == "" {
-		username = "REDIS_USERNAME"
-	}
-	return username
-}
-
 func GetRedisPassword() string {
 	password := viper.GetString(RedisPassword)
 	if password == "" {
@@ -566,4 +569,28 @@ func GetAzureAccountKey() string {
 		accountKey = "AZURE_ACCOUNT_KEY"
 	}
 	return accountKey
+}
+
+func GetTimeZone() string {
+	timeZone := viper.GetString(TimeZone)
+	if timeZone == "" {
+		timeZone = "TIMEZONE"
+	}
+	return timeZone
+}
+
+func GetLogglyToken() string {
+	tk := viper.GetString(LogglyT)
+	if tk == "" {
+		tk = "LOGGLY_TOKEN"
+	}
+	return tk
+}
+
+func GetLogglySubDomain() string {
+	domain := viper.GetString(LogglySubdomain)
+	if domain == "" {
+		domain = "LOGGLY_SUBDOMAIN"
+	}
+	return domain
 }

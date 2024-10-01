@@ -1709,6 +1709,73 @@ func TestGetLimitPageSkip(t *testing.T) {
 	}
 }
 
+func TestComputeLimitPageSkip(t *testing.T) {
+	tests := []struct {
+		name      string
+		Limit     int64
+		Page      int64
+		wantLimit int64
+		wantPage  int64
+		wantSkip  int64
+	}{
+		{
+			name:      "Valid limit and page",
+			Limit:     10,
+			Page:      2,
+			wantLimit: 10,
+			wantPage:  2,
+			wantSkip:  10,
+		},
+		{
+			name:      "Valid limit again",
+			Limit:     100,
+			Page:      1,
+			wantLimit: 100,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Negative limit",
+			Limit:     -1,
+			Page:      1,
+			wantLimit: 50,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Zero page",
+			Limit:     10,
+			Page:      0,
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+		{
+			name:      "Negative page",
+			Limit:     10,
+			Page:      -1,
+			wantLimit: 10,
+			wantPage:  1,
+			wantSkip:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotLimit, gotPage, gotSkip := utils.ComputeLimitPageSkip(tt.Limit, tt.Page)
+			if gotLimit != tt.wantLimit {
+				t.Errorf("ComputeLimitPageSkip() gotLimit = %v, want %v", gotLimit, tt.wantLimit)
+			}
+			if gotPage != tt.wantPage {
+				t.Errorf("ComputeLimitPageSkip() gotPage = %v, want %v", gotPage, tt.wantPage)
+			}
+			if gotSkip != tt.wantSkip {
+				t.Errorf("ComputeLimitPageSkip() gotSkip = %v, want %v", gotSkip, tt.wantSkip)
+			}
+		})
+	}
+}
+
 func TestFormatIPAddressConfirmationEmailBody(t *testing.T) {
 	tests := []struct {
 		otp      string
@@ -2831,4 +2898,203 @@ func TestRemoveImageExtension(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestContains(t *testing.T) {
+	tests := []struct {
+		name     string
+		slice    []string
+		element  string
+		expected bool
+	}{
+		{
+			name:     "element present in slice",
+			slice:    []string{"apple", "banana", "cherry"},
+			element:  "banana",
+			expected: true,
+		},
+		{
+			name:     "element not present in slice",
+			slice:    []string{"apple", "banana", "cherry"},
+			element:  "orange",
+			expected: false,
+		},
+		{
+			name:     "empty slice",
+			slice:    []string{},
+			element:  "banana",
+			expected: false,
+		},
+		{
+			name:     "element present as the only element",
+			slice:    []string{"apple"},
+			element:  "apple",
+			expected: true,
+		},
+		{
+			name:     "element present multiple times",
+			slice:    []string{"apple", "banana", "apple", "cherry"},
+			element:  "apple",
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := utils.Contains(tt.slice, tt.element)
+			if result != tt.expected {
+				t.Errorf("Contains(%v, %v) = %v; want %v", tt.slice, tt.element, result, tt.expected)
+			}
+		})
+	}
+}
+
+// TestRandomInt tests the RandomInt function with various cases
+func TestRandomInt(t *testing.T) {
+	tests := []struct {
+		name string
+		min  int
+		max  int
+	}{
+		{name: "min less than max", min: 1, max: 10},
+		{name: "min greater than max (swapping)", min: 10, max: 1},
+		{name: "min equal to max", min: 5, max: 5},  // Edge case where min == max
+		{name: "negative range", min: -10, max: -1}, // Negative numbers
+		{name: "mixed negative and positive", min: -5, max: 5},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			randomNum := utils.RandomInt(tt.min, tt.max)
+
+			// Assert that the random number is within the specified range [min, max]
+			min := tt.min
+			max := tt.max
+
+			// Since min might be greater than max, ensure min and max are swapped for range checking
+			if min > max {
+				min, max = max, min
+			}
+
+			if randomNum < min || randomNum > max {
+				t.Errorf("Random number %d not in range [%d, %d]", randomNum, min, max)
+			}
+		})
+	}
+}
+
+func TestRandomIntErrorHandling(t *testing.T) {
+	// Ensure it doesn't return 0 when min == max
+	result := utils.RandomInt(10, 10)
+	if result != 10 {
+		t.Errorf("Expected 10, got %d", result)
+	}
+}
+
+func TestDetectDeviceType(t *testing.T) {
+	tests := []struct {
+		userAgent string
+		expected  string
+	}{
+		// iOS examples
+		{"Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1", "iOS"},
+		{"Expo/1017616 CFNetwork/1490.0.4 Darwin/23.2.0", "iOS"},
+		{"Dalvik/2.1.0 (Linux; U; Android 11; Pixel 5 Build/RQ2A.210405.005)", "Android"},
+
+		// macOS example
+		{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15", "macOS"},
+
+		// Android example
+		{"Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.93 Mobile Safari/537.36", "Android"},
+
+		// Unknown device example
+		{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36", "Unknown"},
+	}
+
+	for _, test := range tests {
+		result := utils.DetectDeviceType(test.userAgent)
+		if result != test.expected {
+			t.Errorf("For user agent %s, expected %s, got %s", test.userAgent, test.expected, result)
+		}
+	}
+}
+
+func TestIsMobileDevice(t *testing.T) {
+	// Create a table of test cases
+	tests := []struct {
+		userAgent string
+		expected  bool
+	}{
+		// iOS mobile case
+		{"Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1", true},
+
+		// Android mobile case
+		{"Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.93 Mobile Safari/537.36", true},
+
+		// macOS desktop case
+		{"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15", false},
+
+		// Unknown device case
+		{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36", false},
+	}
+
+	for _, test := range tests {
+		// Create a mock gin context with the User-Agent header
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
+		c.Request.Header.Set("User-Agent", test.userAgent)
+
+		// Call the function and compare the result with the expected value
+		result := utils.IsMobileDevice(c)
+		if result != test.expected {
+			t.Errorf("For user agent %s, expected %v, got %v", test.userAgent, test.expected, result)
+		}
+	}
+}
+
+func TestFormatIPAddressAddedEmailBody(t *testing.T) {
+	// Mock ipInfo data
+	ip := net.ParseIP("192.168.1.1")
+	ipInfo := &ipinfo.Core{
+		IP:          ip,
+		City:        "New York",
+		Region:      "New York",
+		CountryName: "USA",
+	}
+
+	privilegeGranterEmail := "admin@occupi.com"
+
+	// Call the function to generate email body
+	emailBody := utils.FormatIPAddressAddedEmailBody(ipInfo, privilegeGranterEmail)
+
+	// Check that the email body contains expected information
+	assert.Contains(t, emailBody, "IP Address Added")
+	assert.Contains(t, emailBody, "<b>IP Address:</b> 192.168.1.1")
+	assert.Contains(t, emailBody, "<b>This allows you to login from:</b> New York, New York, USA")
+	assert.Contains(t, emailBody, privilegeGranterEmail)
+	assert.Contains(t, emailBody, "The Occupi Team")
+}
+
+func TestFormatIPAddressRemovedEmailBody(t *testing.T) {
+	// Mock ipInfo data
+	ip := net.ParseIP("192.168.1.1")
+	ipInfo := &ipinfo.Core{
+		IP:          ip,
+		City:        "New York",
+		Region:      "New York",
+		CountryName: "USA",
+	}
+
+	privilegeGranterEmail := "admin@occupi.com"
+
+	// Call the function to generate email body
+	emailBody := utils.FormatIPAddressRemovedEmailBody(ipInfo, privilegeGranterEmail)
+
+	// Check that the email body contains expected information
+	assert.Contains(t, emailBody, "IP Address Removed")
+	assert.Contains(t, emailBody, "<b>IP Address:</b> 192.168.1.1")
+	assert.Contains(t, emailBody, "<b>This IP address was allowed to login from:</b> New York, New York, USA")
+	assert.Contains(t, emailBody, privilegeGranterEmail)
+	assert.Contains(t, emailBody, "The Occupi Team")
 }
