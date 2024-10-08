@@ -367,6 +367,19 @@ const AuthService = {
       }
       throw new Error("An unexpected error occurred");
     }
+  },
+  pingAdmin: async () => {
+    try {
+      const response = await axios.get(`/ping-admin`, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
+    }
   }
 };
 

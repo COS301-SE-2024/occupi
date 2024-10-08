@@ -21,18 +21,12 @@ interface UserStore {
 }
 
 export const useUserStore = create<UserStore>()(
-  persist(
-    (set) => ({
-      userDetails: null,
-      setUserDetails: (details) => {
-        set({ userDetails: details });
-      },
-    }),
-    {
-      name: "user-storage",
-      storage: createJSONStorage(() => localStorage),
-    }
-  )
+  (set) => ({
+    userDetails: null,
+    setUserDetails: (details) => {
+      set({ userDetails: details });
+    },
+  }),
 );
 
 // Hook for easier usage in components

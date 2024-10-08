@@ -14,11 +14,13 @@ const ProtectedRoute = (props: ProtectedRouteProps) => {
 
   useEffect(() => {
     const checkAuthentication = async () => {
-      if (userDetails === null) {
-        const res = await AuthService.pingAuth();
-        if (res.status === 200 && res.message === "pong -> I am alive and kicking and you are auth'd") {
+      if(userDetails === null){
+        const res = await AuthService.pingAdmin();
+        if (res.status === 200 && res.message === "pong -> I am alive and kicking and you are an admin") {
           const userDeets = await AuthService.getUserDetails();
           setUserDetails(userDeets);
+        } else {
+          setUserDetails(null);
         }
       }
     };
