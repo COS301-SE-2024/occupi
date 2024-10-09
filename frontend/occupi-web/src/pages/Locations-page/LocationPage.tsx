@@ -49,7 +49,7 @@ const WHITELISTEDHEAD = [
     label: "IP ADDRESS",
   },
   {
-    key: "actions",
+    key: "whitelisted actions",
     label: "ACTIONS",
   },
 ]
@@ -64,7 +64,7 @@ const BLACKLISTEDHEAD = [
     label: "IP ADDRESS",
   },
   {
-    key: "actions",
+    key: "blacklisted actions",
     label: "ACTIONS",
   },
 ]
@@ -115,7 +115,13 @@ const DeleteIPModal = ({
   );
 };
 
-const AddIPModal = ({ onClose }: { onClose: () => void }) => {
+const AddIPModal = ({ 
+  onClose,
+  view
+}: { 
+  onClose: () => void,
+  view: "whitelisted" | "blacklisted"
+}) => {
   const [form, setForm] = React.useState<{
     email: string;
     ip: string;
@@ -123,23 +129,41 @@ const AddIPModal = ({ onClose }: { onClose: () => void }) => {
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
+  const validateEmail = (email: string) => {
+    return email.match(
+      /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+  };
+
+  const validateIP = (ip: string) => {
+    return ip.match(
+      /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/
+    );
+  };
+
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
-        Add new IP address
+        {view === "whitelisted" ? "Add new IP address" : "Add new Blacklisted IP address"}
       </ModalHeader>
       <ModalBody>
         <Input
+          value={form.email}
           autoFocus
           label="Email"
           placeholder="Enter the users email"
           variant="bordered"
+          errorMessage="Please enter a valid email"
+          isInvalid={!validateEmail(form.email)}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
         <Input
-          label="text"
+          value={form.ip}
+          label="IP address"
           placeholder="Enter the ip address"
           variant="bordered"
+          errorMessage="Please enter a valid ip address"
+          isInvalid={!validateIP(form.ip)}
           onChange={(e) => setForm({ ...form, ip: e.target.value })}
         />
       </ModalBody>
@@ -152,13 +176,20 @@ const AddIPModal = ({ onClose }: { onClose: () => void }) => {
           isLoading={isLoading}
           onPress={() => {
             setIsLoading(true);
-            DataService.addIP(form.ip, form.email).then(() => {
-              setIsLoading(false);
-              onClose();
-            });
+            if (view === "whitelisted"){
+              DataService.addIP(form.ip, form.email).then(() => {
+                setIsLoading(false);
+                onClose();
+              });
+            } else{
+              DataService.removeIP(form.ip, form.email).then(() => {
+                setIsLoading(false);
+                onClose();
+              });
+            }
           }}
         >
-          Add IP
+          {view === "whitelisted" ? "Add IP" : "Block IP"}
         </Button>
       </ModalFooter>
     </>
@@ -399,7 +430,7 @@ const LocationPage = () => {
               Whitelisted IP's
             </Button>
             <Button
-              color={view.current === "whitelisted" ? "primary" : "default"}
+              color={view.current === "blacklisted" ? "primary" : "default"}
               variant={view.current === "blacklisted" ? "flat" : "solid"}
               onClick={async() => {view.current = "blacklisted"; await fetchAll();}}
             >
@@ -482,7 +513,7 @@ const LocationPage = () => {
                 await fetchAll();
               }} />
             ) : openModal === "add" ? (
-              <AddIPModal onClose={async() => {
+              <AddIPModal view={view.current} onClose={async() => {
                 onClose();
                 await fetchAll();
               }} />
