@@ -63,12 +63,17 @@ func (app *Application) SetUpTimeZone() *Application {
 		logrus.Fatal("Failed to set timezone: ", err)
 	}
 
-	time.Local, _ = time.LoadLocation(timeZone)
+	// Load location from the time package
+	Local, err := time.LoadLocation(timeZone)
+	if err != nil {
+		logrus.Fatal("Failed to load location: ", err)
+	}
+	time.Local = Local
 
 	// print system timezone
-	fmt.Printf("System timezone: %s", time.Local.String())
+	fmt.Printf("System timezone: %s\n", time.Local.String())
 	// print system time
-	fmt.Printf("System time: %s", time.Now().String())
+	fmt.Printf("System time: %s\n", time.Now().String())
 
 	return app
 }
