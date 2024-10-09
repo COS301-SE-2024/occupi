@@ -1663,7 +1663,7 @@ func FindAndRemoveOfficeHours(ctx *gin.Context, appsession *models.AppSession, e
 	}
 
 	// find the user's office hours and remove them
-	filter := bson.M{"email": email, "closed": false}
+	filter := bson.M{"email": email}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
 
