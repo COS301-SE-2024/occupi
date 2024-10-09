@@ -310,11 +310,11 @@ func TestGetUsersLocationsPipeLine(t *testing.T) {
 	}
 }
 
-func TestGetLocationsCount(t *testing.T) {
-	res := analytics.GetLocationsCount("test@example.com")
+func TestGetBlacklistPipeLine(t *testing.T) {
+	res := analytics.GetBlacklistPipeLine(0, 0, "asc", "test@example.com")
 
 	// check len is greater than 0
 	if len(res) == 0 {
-		t.Errorf("GetLocationsCount() = %v, want greater than 0", res)
+		t.Errorf("GetBlacklistPipeLine() = %v, want greater than 0", res)
 	}
 }
