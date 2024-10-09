@@ -70,10 +70,30 @@ export class DataService {
 
   public async fetchUserLocationsWithOptions(page: number = 1, order: "asc" | "desc" = "asc", email: string = ""){
     try {
-      const response = await axios.get(`${this.baseUrl}/get-users-locations?email=${email}&page=${page}&sort=${order}&limit=10`);
+      const response = await axios.get(`${this.baseUrl}/get-users-locations?email=${email}&page=${page}&sort=${order}&limit=50`);
       return response.data;
     } catch (error) {
       console.error('Error fetching user locations:', error);
+      throw error;
+    }
+  }
+
+  public async fetchUserBlacklist() {
+    try {
+      const response = await axios.get(`${this.baseUrl}/get-blacklist`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user blacklist:', error);
+      throw error;
+    }
+  }
+
+  public async fetchUserBlacklistWithOptions(page: number = 1, order: "asc" | "desc" = "asc", email: string = ""){
+    try {
+      const response = await axios.get(`${this.baseUrl}/get-blacklist?email=${email}&page=${page}&sort=${order}&limit=50`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user blacklist:', error);
       throw error;
     }
   }
