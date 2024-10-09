@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -63,6 +64,11 @@ func (app *Application) SetUpTimeZone() *Application {
 	}
 
 	time.Local, _ = time.LoadLocation(timeZone)
+
+	// print system timezone
+	fmt.Printf("System timezone: %s", time.Local.String())
+	// print system time
+	fmt.Printf("System time: %s", time.Now().String())
 
 	return app
 }
