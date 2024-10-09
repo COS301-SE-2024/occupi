@@ -21,6 +21,7 @@ type User struct {
 	NextVerificationDate    time.Time     `json:"nextVerificationDate" bson:"nextVerificationDate"`
 	TwoFAEnabled            bool          `json:"twoFAEnabled" bson:"twoFAEnabled"`
 	KnownLocations          []Location    `json:"knownLocations" bson:"knownLocations"`
+	BlackListedIP           []string      `json:"blackListedIP" bson:"blackListedIP"`
 	Details                 Details       `json:"details" bson:"details, omitempty"`
 	Notifications           Notifications `json:"notifications" bson:"notifications, omitempty"`
 	Security                Security      `json:"security" bson:"security, omitempty"`

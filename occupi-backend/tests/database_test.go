@@ -9127,6 +9127,109 @@ func TestAddIP(t *testing.T) {
 
 }
 
+func TestWhiteListIP(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode to test
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Valid request for testing
+	ip := "127.0.0.1"
+	emails := []string{"user1@test.com", "user2@test.com"}
+
+	// Test case: Nil database
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.WhiteListIP(ctx, appsession, emails, ip)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+		mt.ClearMockResponses()
+	})
+
+	// Test case: UpdateMany failure
+	mt.Run("UpdateMany failure", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate an error during UpdateMany
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000, // Example error code
+			Message: "update failed",
+		}))
+
+		err := database.WhiteListIP(ctx, appsession, emails, ip)
+		assert.NotNil(t, err, "Expected an error on UpdateMany failure")
+		assert.EqualError(t, err, "update failed", "Expected error for failed UpdateMany")
+		mt.ClearMockResponses()
+	})
+
+	// Test case: Successfully removed IP location
+	mt.Run("Successfully removed IP location", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate a successful UpdateMany operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.WhiteListIP(ctx, appsession, emails, ip)
+		assert.NoError(t, err, "Expected no error for successful UpdateMany")
+
+		mt.ClearMockResponses()
+	})
+
+	// Test case: Update in cache
+	mt.Run("Update in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		// add user to Cache
+		user := models.User{
+			Email:         emails[0],
+			BlackListedIP: []string{ip},
+		}
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+		assert.Nil(t, res.Err())
+
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Simulate a successful UpdateMany operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		updatedUser := models.User{
+			Email:         emails[0],
+			BlackListedIP: []string{},
+		}
+
+		userData, err = bson.Marshal(updatedUser)
+		assert.Nil(t, err)
+
+		// mock the get operation
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// mock the set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		err = database.WhiteListIP(ctx, appsession, emails, ip)
+
+		assert.Nil(t, err)
+
+		mt.ClearMockResponses()
+	})
+}
+
 func TestRemoveIP(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 
@@ -9236,6 +9339,311 @@ func TestRemoveIP(t *testing.T) {
 		assert.Nil(t, err)
 
 		mt.ClearMockResponses()
+	})
+}
+
+func TestBlackListIP(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode to test
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Valid request for testing
+	ip := "127.0.0.1"
+	emails := []string{"user1@test.com", "user2@test.com"}
+
+	// Test case: Nil database
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Create a mock AppSession with a nil database
+		appsession := &models.AppSession{DB: nil}
+
+		err := database.BlackListIP(ctx, appsession, emails, ip)
+		assert.EqualError(t, err, "database is nil", "Expected error for nil database")
+		mt.ClearMockResponses()
+	})
+
+	// Test case: UpdateMany failure
+	mt.Run("UpdateMany failure", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate an error during UpdateMany
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000, // Example error code
+			Message: "update failed",
+		}))
+
+		err := database.BlackListIP(ctx, appsession, emails, ip)
+		assert.NotNil(t, err, "Expected an error on UpdateMany failure")
+		assert.EqualError(t, err, "update failed", "Expected error for failed UpdateMany")
+		mt.ClearMockResponses()
+	})
+
+	// Test case: Successfully added IP location
+	mt.Run("Successfully added IP location", func(mt *mtest.T) {
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{DB: mt.Client}
+
+		// Simulate a successful UpdateMany operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		err := database.BlackListIP(ctx, appsession, emails, ip)
+		assert.NoError(t, err, "Expected no error for successful UpdateMany")
+
+		mt.ClearMockResponses()
+	})
+
+	// Test case: Update in cache
+	mt.Run("Update in cache", func(mt *mtest.T) {
+		Cache, mock := redismock.NewClientMock()
+
+		// add user to Cache
+		user := models.User{
+			Email: emails[0],
+		}
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// Mock the Set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// set the user in the Cache
+		res := Cache.Set(context.Background(), cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+		assert.Nil(t, res.Err())
+
+		// Create a mock AppSession with a valid database client
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		// Simulate a successful UpdateMany operation
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		updatedUser := models.User{
+			Email:         emails[0],
+			BlackListedIP: []string{ip},
+		}
+
+		userData, err = bson.Marshal(updatedUser)
+		assert.Nil(t, err)
+
+		// mock the get operation
+		mock.ExpectGet(cache.UserKey(user.Email)).SetVal(string(userData))
+
+		// mock the set operation
+		mock.ExpectSet(cache.UserKey(user.Email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		err = database.BlackListIP(ctx, appsession, emails, ip)
+
+		assert.Nil(t, err)
+
+		mt.ClearMockResponses()
+	})
+
+}
+
+func TestIsIPBlackListed(t *testing.T) {
+	// Setup mock MongoDB instance
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	gin.SetMode(configs.GetGinRunMode())
+
+	// Create a new HTTP request with the POST method.
+	req, _ := http.NewRequest("POST", "/", nil)
+
+	// Create a new ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
+	w := httptest.NewRecorder()
+
+	// Create a new context with the Request and ResponseWriter.
+	ctx, _ := gin.CreateTestContext(w)
+	ctx.Request = req
+
+	// Optionally, set any values in the context.
+	ctx.Set("test", "test")
+
+	email := "test@example.com"
+	ip := "172.172.172.172"
+
+	mt.Run("Nil database", func(mt *mtest.T) {
+		// Call the function under test
+		appsession := &models.AppSession{}
+		isBlacklisted, err := database.IsIPBlackListed(ctx, appsession, email, ip)
+
+		// Validate the result
+		assert.False(t, isBlacklisted)
+		assert.EqualError(t, err, "database is nil")
+	})
+
+	mt.Run("Ip is blacklisted", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "blackListedIP", Value: []string{ip}},
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isBlacklisted, err := database.IsIPBlackListed(ctx, appsession, email, ip)
+
+		// Validate the result
+		assert.True(t, isBlacklisted)
+		assert.Nil(t, err)
+	})
+
+	mt.Run("Ip is not blacklisted", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
+			{Key: "email", Value: email},
+			{Key: "blackListedIP", Value: []string{}},
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isBlacklisted, err := database.IsIPBlackListed(ctx, appsession, email, ip)
+
+		// Validate the result
+		assert.False(t, isBlacklisted)
+		assert.Nil(t, err)
+	})
+
+	mt.Run("Ip is blacklisted in Cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		user := models.User{
+			Email:         email,
+			BlackListedIP: []string{ip},
+		}
+
+		// marshal and add the user to cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// mock expect set
+		mock.ExpectSet(cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// add email to Cache
+		res1 := Cache.Set(context.Background(), cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res1.Err())
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+
+		// Call the function under test
+		isBlacklisted, err := database.IsIPBlackListed(ctx, appsession, email, ip)
+
+		// Validate the result
+		assert.True(t, isBlacklisted)
+		assert.Nil(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+
+		// Check if the email exists in the Cache
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		emailv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, emailv)
+
+		// bson unmarshal the user
+		var user1 models.User
+		err = bson.Unmarshal(emailv, &user1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, user, user1)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Ip is not blacklisted in Cache", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		Cache, mock := redismock.NewClientMock()
+
+		appsession := &models.AppSession{
+			DB:    mt.Client,
+			Cache: Cache,
+		}
+
+		user := models.User{
+			Email:         email,
+			BlackListedIP: []string{},
+		}
+
+		// marshal and add the user to cache
+		userData, err := bson.Marshal(user)
+
+		assert.Nil(t, err)
+
+		// mock expect set
+		mock.ExpectSet(cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second).SetVal(string(userData))
+
+		// add email to Cache
+		res1 := Cache.Set(context.Background(), cache.UserKey(email), userData, time.Duration(configs.GetCacheEviction())*time.Second)
+
+		assert.Nil(t, res1.Err())
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+
+		// Call the function under test
+		isBlacklisted, err := database.IsIPBlackListed(ctx, appsession, email, ip)
+
+		// Validate the result
+		assert.False(t, isBlacklisted)
+		assert.Nil(t, err)
+
+		// mock expect get
+		mock.ExpectGet(cache.UserKey(email)).SetVal(string(userData))
+
+		// Check if the email exists in the Cache
+		res := Cache.Get(context.Background(), cache.UserKey(email))
+		emailv, err := res.Bytes()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, emailv)
+
+		// bson unmarshal the user
+		var user1 models.User
+		err = bson.Unmarshal(emailv, &user1)
+
+		assert.Nil(t, err)
+		assert.Equal(t, user, user1)
+
+		// Ensure all expectations are met
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	mt.Run("Handle find error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    1,
+			Message: "find error",
+		}))
+
+		// Call the function under test
+		appsession := &models.AppSession{
+			DB: mt.Client,
+		}
+		isBlacklisted, err := database.IsIPBlackListed(ctx, appsession, email, ip)
+
+		// Validate the result
+		assert.False(t, isBlacklisted)
+		assert.NotNil(t, err)
 	})
 }
 
@@ -11098,7 +11506,7 @@ func TestGetUsersLocations(t *testing.T) {
 		// Call the function under test
 		appsession := &models.AppSession{}
 
-		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "", "whitelist")
 
 		// Validate the result
 		assert.Nil(t, results)
@@ -11119,7 +11527,7 @@ func TestGetUsersLocations(t *testing.T) {
 		}
 
 		// Call the function under test
-		results, total, err := database.GetUsersLocations(ctx, appSession, 50, 0, "asc", "")
+		results, total, err := database.GetUsersLocations(ctx, appSession, 50, 0, "asc", "", "blacklist")
 
 		// Validate the result
 		assert.Nil(t, results)
@@ -11142,35 +11550,12 @@ func TestGetUsersLocations(t *testing.T) {
 			DB: mt.Client,
 		}
 
-		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "", "whitelist")
 
 		// Validate the result
 		assert.Nil(t, results)
 		assert.Equal(t, int64(0), total)
 		assert.EqualError(t, err, "cursor.id should be an int64 but is a BSON invalid", "Expected error for failed cursor")
-	})
-
-	mt.Run("Failed count", func(mt *mtest.T) {
-		// Mock Find to return the OfficeHours document
-		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
-			{Key: "email", Value: user.Email},
-			{Key: "knownLocations", Value: user.KnownLocations},
-		}))
-
-		// Mock CountDocuments to return an error
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-		// Create a mock AppSession with a valid database
-		appsession := &models.AppSession{
-			DB: mt.Client,
-		}
-
-		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
-
-		// Validate the result
-		assert.Nil(t, results)
-		assert.Equal(t, int64(0), total)
-		assert.EqualError(t, err, "database response does not contain a cursor", "Expected error for failed count documents")
 	})
 
 	mt.Run("Successful query", func(mt *mtest.T) {
@@ -11180,117 +11565,16 @@ func TestGetUsersLocations(t *testing.T) {
 			{Key: "knownLocations", Value: user.KnownLocations},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
-			{Key: "n", Value: int64(1)},
-			{Key: "email", Value: user.Email},
-			{Key: "knownLocations", Value: user.KnownLocations},
-		}))
-
 		// Create a mock AppSession with a valid database
 		appsession := &models.AppSession{
 			DB: mt.Client,
 		}
 
-		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "")
+		results, total, err := database.GetUsersLocations(ctx, appsession, 50, 0, "asc", "", "blacklist")
 
 		// Validate the result
 		assert.NoError(t, err, "Expected no error for successful query")
 		assert.Equal(t, int64(0), total, "Expected 0 total result")
-		assert.NotNil(t, results, "Expected non-nil results")
-	})
-}
-
-func TestCountUserLocations(t *testing.T) {
-	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-
-	// Set gin run mode
-	gin.SetMode(configs.GetGinRunMode())
-	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
-
-	user := models.User{
-		Email: "test@example.com",
-		KnownLocations: []models.Location{
-			{
-				City:      "Johannesburg",
-				Region:    "Gauteng",
-				Country:   "South Africa",
-				Location:  "-23.9285, 30.0407",
-				IPAddress: "0.0.0.0",
-			},
-		},
-	}
-
-	mt.Run("Nil database", func(mt *mtest.T) {
-		// Call the function under test
-		appsession := &models.AppSession{}
-
-		count, err := database.CountUserLocations(ctx, appsession, "")
-
-		assert.Equal(t, int64(0), count)
-		assert.EqualError(t, err, "database is nil")
-	})
-
-	mt.Run("Aggregation failure", func(mt *mtest.T) {
-		// Mock the aggregate operation to return an error
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
-			Code:    11000,
-			Message: "aggregate error",
-		}))
-
-		// Initialize the app session with the mock client
-		appSession := &models.AppSession{
-			DB: mt.Client,
-		}
-
-		// Call the function under test
-		count, err := database.CountUserLocations(ctx, appSession, "")
-
-		// Validate the result
-		assert.Equal(t, int64(0), count)
-		assert.EqualError(t, err, "aggregate error")
-	})
-
-	/*mt.Run("Failed cursor", func(mt *mtest.T) {
-		// Mock Find to return the OfficeHours document
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
-			{Key: "email", Value: user.Email},
-			{Key: "knownLocations", Value: user.KnownLocations},
-		}))
-
-		// Mock CountDocuments to return an error
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-		// Create a mock AppSession with a valid database
-		appsession := &models.AppSession{
-			DB: mt.Client,
-		}
-
-		_, _ = database.CountUserLocations(ctx, appsession, "")
-	})*/
-
-	mt.Run("Aggregation success", func(mt *mtest.T) {
-		// Mock Find to return the OfficeHours document
-		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
-			{Key: "email", Value: user.Email},
-			{Key: "knownLocations", Value: user.KnownLocations},
-		}))
-
-		// Mock Find to return the OfficeHours document
-		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".Users", mtest.FirstBatch, bson.D{
-			{Key: "n", Value: int64(1)},
-			{Key: "email", Value: user.Email},
-			{Key: "knownLocations", Value: user.KnownLocations},
-		}))
-
-		// Create a mock AppSession with a valid database
-		appsession := &models.AppSession{
-			DB: mt.Client,
-		}
-
-		count, err := database.CountUserLocations(ctx, appsession, "")
-
-		// Validate the result
-		assert.NoError(t, err, "Expected no error for successful query")
-		assert.Equal(t, int64(0), count, "Expected 1 total result")
+		assert.Nil(t, results, "Expected nil results")
 	})
 }
