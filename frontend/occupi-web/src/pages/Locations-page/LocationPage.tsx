@@ -77,6 +77,7 @@ const DeleteIPModal = ({
   onClose: () => void;
 }) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [err, setErr] = React.useState<string | null>(null);
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
@@ -89,6 +90,7 @@ const DeleteIPModal = ({
         <ul>{selectedUser?.region}</ul>
         <ul>{selectedUser?.country}</ul>
         <h4>They will recieve an email notifying them of this change</h4>
+        {err && <p className="text-red-500">{err}</p>}
       </ModalBody>
       <ModalFooter>
         <Button color="primary" variant="light" onPress={onClose}>
@@ -105,6 +107,9 @@ const DeleteIPModal = ({
             ).then(() => {
               setIsLoading(false);
               onClose();
+            }).catch((err) => {
+              setErr(err.message);
+              setIsLoading(false);
             });
           }}
         >
@@ -128,6 +133,7 @@ const AddIPModal = ({
   }>({ email: "", ip: "" });
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [err, setErr] = React.useState<string | null>(null);
 
   const validateEmail = (email: string) => {
     return email.match(
@@ -166,6 +172,7 @@ const AddIPModal = ({
           isInvalid={!validateIP(form.ip)}
           onChange={(e) => setForm({ ...form, ip: e.target.value })}
         />
+        {err && <p className="text-red-500">{err}</p>}
       </ModalBody>
       <ModalFooter>
         <Button color="primary" variant="light" onPress={onClose}>
@@ -180,11 +187,17 @@ const AddIPModal = ({
               DataService.addIP(form.ip, form.email).then(() => {
                 setIsLoading(false);
                 onClose();
+              }).catch((err) => {
+                setErr(err.message);
+                setIsLoading(false);
               });
             } else{
               DataService.removeIP(form.ip, form.email).then(() => {
                 setIsLoading(false);
                 onClose();
+              }).catch((err) => {
+                setErr(err.message);
+                setIsLoading(false);
               });
             }
           }}
@@ -204,6 +217,7 @@ const UnblockIPModal = ({
   onClose: () => void;
 }) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [err, setErr] = React.useState<string | null>(null);
 
   return (
     <>
@@ -212,9 +226,9 @@ const UnblockIPModal = ({
       </ModalHeader>
       <ModalBody>
         <h3>Are you sure you want to allow this IP address?</h3>
-        <h4>This will allow {selectedUser?.email} to use to login: </h4>
-        <ul>{selectedUser?.blackListedIP}</ul>
+        <h4>This will allow {selectedUser?.email} to use <ul>{selectedUser?.blackListedIP}</ul> to login</h4>
         <h4>They will recieve an email notifying them of this change</h4>
+        {err && <p className="text-red-500">{err}</p>}
       </ModalBody>
       <ModalFooter>
         <Button color="primary" variant="light" onPress={onClose}>
@@ -225,9 +239,12 @@ const UnblockIPModal = ({
           isLoading={isLoading}
           onPress={() => {
             setIsLoading(true);
-            DataService.addIP(selectedUser?.blackListedIP ?? "", selectedUser?.blackListedIP ?? "").then(() => {
+            DataService.addIP(selectedUser?.blackListedIP ?? "", selectedUser?.email ?? "").then(() => {
               setIsLoading(false);
               onClose();
+            }).catch((err) => {
+              setErr(err.message);
+              setIsLoading(false);
             });
           }}
         >
