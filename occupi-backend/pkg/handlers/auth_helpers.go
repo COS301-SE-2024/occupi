@@ -333,8 +333,8 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 		return false, err
 	}
 
-	// check if the login location is within 1000km of the other locations, if not block the login and unverify the user
 	if !isIPValid {
+		// check if the login location is within 1000km of the other locations, if not block the login and unverify the user
 		isInRange := database.IsIPWithinRange(ctx, appsession, email, unrecognizedLogger)
 
 		if !isInRange {
@@ -347,6 +347,7 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 			return false, nil
 		}
 
+		// check if the user is allowed to login from new anonymous locations
 		blockAnonymousIPAddress, err := database.CheckIfUserIsAllowedNewIP(ctx, appsession, email)
 
 		if err != nil {
@@ -360,6 +361,24 @@ func PreLoginAccountChecks(ctx *gin.Context, appsession *models.AppSession, emai
 				"Forbidden from access",
 				constants.ForbiddenCode,
 				"This login attempt is forbidden as this account is not allowed to login from new anonymous locations",
+				nil))
+			return false, nil
+		}
+
+		// check if this ip address is blacklisted for this user
+		isBlacklisted, err := database.IsIPBlackListed(ctx, appsession, email, utils.GetClientIP(ctx))
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+			return false, err
+		}
+
+		if isBlacklisted {
+			ctx.JSON(http.StatusForbidden, utils.ErrorResponse(
+				http.StatusForbidden,
+				"Forbidden from access",
+				constants.ForbiddenCode,
+				"This login attempt is forbidden as this ip address is blacklisted",
 				nil))
 			return false, nil
 		}

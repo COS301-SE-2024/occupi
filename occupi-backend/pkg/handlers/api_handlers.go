@@ -1443,6 +1443,14 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// remove the ip address from the blacklist for this user
+	err = database.WhiteListIP(ctx, appsession, request.Emails, request.IP)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
 	// get logged users email from ctx
 	email, errv := AttemptToGetEmail(ctx, appsession)
 	if errv != nil {
@@ -1509,6 +1517,14 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession) {
 			constants.InternalServerErrorCode,
 			"Failed to remove IP",
 			nil))
+		return
+	}
+
+	// add this ip address to blacklist for this user
+	err = database.BlackListIP(ctx, appsession, request.Emails, request.IP)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -1855,7 +1871,7 @@ func GetNotificationCount(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched notification count!", gin.H{"unread": unReadCount, "total": totalCount}))
 }
 
-func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession) {
+func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession, ipPrivelege string) {
 	var email string
 	var order string
 	var limit int64
@@ -1900,7 +1916,7 @@ func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession) {
 	}
 	skip := (page - 1) * limit
 
-	locations, totalResults, err := database.GetUsersLocations(ctx, appsession, limit, skip, order, email)
+	locations, totalResults, err := database.GetUsersLocations(ctx, appsession, limit, skip, order, email, ipPrivelege)
 	if err != nil {
 		configs.CaptureError(ctx, err)
 		logrus.Error("Failed to get users locations because: ", err)

@@ -557,14 +557,6 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 		return
 	}
 
-	// delete the otp from the database
-	if _, err := database.DeleteOTP(ctx, appsession, userotp.Email, userotp.OTP); err != nil {
-		configs.CaptureError(ctx, err)
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		// the otp will autodelete after an hour so we can continue
-	}
-
 	// generate a jwt token for the user
 	token, expirationTime, err := GenerateJWTTokenAndStartSession(ctx, appsession, userotp.Email, role)
 
