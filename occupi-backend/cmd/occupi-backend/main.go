@@ -25,6 +25,7 @@ package main
 
 import (
 	"flag"
+	_ "time/tzdata"
 
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/application"
 )
