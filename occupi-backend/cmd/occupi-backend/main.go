@@ -20,7 +20,6 @@ The environment flag is used to specify the environment in which the server shou
 		-env=test
 			This specifies that the server should run in test mode.
 */
-
 package main
 
 import (

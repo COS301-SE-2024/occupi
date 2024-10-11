@@ -310,7 +310,8 @@ func BlockAfterHours(now time.Time) gin.HandlerFunc {
 		}
 
 		// Check if the current time is outside working hours
-		if now.Hour() < 7 || now.Hour() >= 17 {
+		// this is not a fix as timezone is not gmt+2 so we subtract 2 hours from the current time
+		if now.Hour()-2 < 7 || now.Hour()-2 >= 17 {
 			ctx.JSON(http.StatusForbidden,
 				utils.ErrorResponse(
 					http.StatusForbidden,
