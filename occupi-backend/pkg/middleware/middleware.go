@@ -316,7 +316,7 @@ func BlockAfterHours(now time.Time) gin.HandlerFunc {
 					http.StatusForbidden,
 					"Forbidden",
 					constants.ForbiddenCode,
-					"Access denied after hours, only allowed between 08:00 and 17:00",
+					fmt.Sprintf("Access denied after hours, only allowed between 08:00 and 17:00, time now is %s", now.Format("15:04")),
 					nil))
 			ctx.Abort()
 			return
