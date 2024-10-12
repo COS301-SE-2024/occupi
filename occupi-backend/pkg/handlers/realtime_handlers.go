@@ -19,10 +19,10 @@ func generateToken(expirationMinutes int) (string, error) {
 
 	// Define the token claims
 	claims := jwt.MapClaims{
-		"sub": "1",                                                                   // Subject: the user this token belongs to
-		"exp": time.Now().Add(time.Minute * time.Duration(expirationMinutes)).Unix(), // Expiration time
-		"iat": time.Now().Unix(),                                                     // Issued at time
-		"nbf": time.Now().Unix(),                                                     // Not before time                                                  // Issuer: identifies the principal that issued the JWT
+		"sub": "1",                                                                                  // Subject: the user this token belongs to
+		"exp": time.Now().In(time.Local).Add(time.Minute * time.Duration(expirationMinutes)).Unix(), // Expiration time
+		"iat": time.Now().In(time.Local).Unix(),                                                     // Issued at time
+		"nbf": time.Now().In(time.Local).Unix(),                                                     // Not before time                                                  // Issuer: identifies the principal that issued the JWT
 	}
 
 	// Create the token using the HS256 signing method and the claims

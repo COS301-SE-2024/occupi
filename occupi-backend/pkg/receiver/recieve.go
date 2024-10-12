@@ -73,7 +73,7 @@ func NotificationSendingLogic(notification models.ScheduledNotification, appsess
 	// to account for discrepancies in time, we should allow for a range of 5 seconds before and after the scheduled time
 	// whereby we can send the notification, after that, we should discard the notification, else if there
 	// is still more than 5 seconds before the scheduled time, we should wait until the time is right
-	now := time.Now()
+	now := time.Now().In(time.Local)
 
 	switch {
 	case now.After(notification.SendTime.Add(-5*time.Second)) && now.Before(notification.SendTime.Add(5*time.Second)):

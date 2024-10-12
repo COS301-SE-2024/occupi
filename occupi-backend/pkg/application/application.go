@@ -73,7 +73,7 @@ func (app *Application) SetUpTimeZone() *Application {
 	// print system timezone
 	fmt.Printf("System timezone: %s\n", time.Local.String())
 	// print system time
-	fmt.Printf("System time: %s\n", time.Now().String())
+	fmt.Printf("System time: %s\n", time.Now().In(time.Local).String())
 
 	return app
 }

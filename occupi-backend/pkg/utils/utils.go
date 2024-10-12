@@ -78,7 +78,7 @@ func generateRandomNumber() (int, error) {
 
 // Function to generate an employee ID with the structure OCCUPIYYYYXXXX
 func GenerateEmployeeID() string {
-	currentYear := time.Now().Year()
+	currentYear := time.Now().In(time.Local).Year()
 	randomNum, err := generateRandomNumber()
 	if err != nil {
 		return "OCCUPI00000000"
@@ -96,7 +96,7 @@ func ValidateEmployeeID(employeeID string) bool {
 
 // Function to generate an employee ID with the structure OCCUPIYYYYXXXX
 func GenerateBookingID() string {
-	currentYear := time.Now().Year()
+	currentYear := time.Now().In(time.Local).Year()
 	randomNum, err := generateRandomNumber()
 	if err != nil {
 		return "BOOKOCCUPI00000000"
@@ -615,10 +615,10 @@ func GetClientIP(ctx *gin.Context) string {
 func GetClientTime(ctx *gin.Context) time.Time {
 	loc, exists := ctx.Get("timezone")
 	if !exists {
-		return time.Now()
+		return time.Now().In(time.Local)
 	}
 
-	return time.Now().In(loc.(*time.Location))
+	return time.Now().In(time.Local).In(loc.(*time.Location))
 }
 
 func GenerateUUID() string {

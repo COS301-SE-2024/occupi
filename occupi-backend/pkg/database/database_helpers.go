@@ -27,13 +27,13 @@ func CreateBasicUser(user models.RegisterUser) models.User {
 		Role:                 constants.Basic,
 		OnSite:               false,
 		IsVerified:           false,
-		NextVerificationDate: time.Now(), // this will be updated once the email is verified
+		NextVerificationDate: time.Now().In(time.Local), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
 		Details: models.Details{
 			HasImage: false,
 			Name:     "",
-			DOB:      time.Now(),
+			DOB:      time.Now().In(time.Local),
 			Gender:   "",
 			Pronouns: "",
 		},
@@ -64,13 +64,13 @@ func CreateAdminUser(user models.RegisterUser) models.User {
 		Role:                 constants.Admin,
 		OnSite:               false,
 		IsVerified:           false,
-		NextVerificationDate: time.Now(), // this will be updated once the email is verified
+		NextVerificationDate: time.Now().In(time.Local), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
 		Details: models.Details{
 			HasImage: false,
 			Name:     "",
-			DOB:      time.Now(),
+			DOB:      time.Now().In(time.Local),
 			Gender:   "",
 			Pronouns: "",
 		},
@@ -101,7 +101,7 @@ func CreateAUser(user models.UserRequest) models.User {
 		Role:                 user.Role,
 		OnSite:               false,
 		IsVerified:           false,
-		NextVerificationDate: time.Now(), // this will be updated once the email is verified
+		NextVerificationDate: time.Now().In(time.Local), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
 		Details: models.Details{
@@ -226,7 +226,7 @@ func ComputeAvailableSlots(bookings []models.Booking, dateOfBooking time.Time) [
 
 // caps time now to range of 8:00 AM to 5:00 PM
 func CapTimeRange() time.Time {
-	now := time.Now()
+	now := time.Now().In(time.Local)
 	if now.Hour() < 7 {
 		now = time.Date(now.Year(), now.Month(), now.Day(), 7, 0, 0, 0, time.UTC)
 	} else if now.Hour() > 17 {

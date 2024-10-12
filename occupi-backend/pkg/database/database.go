@@ -205,7 +205,7 @@ func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp s
 	otpStruct := models.OTP{
 		Email:      email,
 		OTP:        otp,
-		ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetOTPExpiration())),
+		ExpireWhen: time.Now().In(time.Local).In(time.Local).Add(time.Second * time.Duration(configs.GetOTPExpiration())),
 	}
 	_, err := collection.InsertOne(ctx, otpStruct)
 	if err != nil {
@@ -228,7 +228,7 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 
 	// Check if the OTP exists in the cache if cache is not nil
 	if otpdata, err := cache.GetOTP(appsession, email, otp); err == nil {
-		if time.Now().After(otpdata.ExpireWhen) {
+		if time.Now().In(time.Local).After(otpdata.ExpireWhen) {
 			return false, nil
 		}
 		return true, nil
@@ -245,7 +245,7 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 	}
 
 	// Check if the OTP has expired
-	if time.Now().After(otpStruct.ExpireWhen) {
+	if time.Now().In(time.Local).After(otpStruct.ExpireWhen) {
 		return false, nil
 	}
 
@@ -306,7 +306,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	update := bson.M{
 		"$set": bson.M{
 			"isVerified":           true,
-			"nextVerificationDate": time.Now().AddDate(0, 0, 30),
+			"nextVerificationDate": time.Now().In(time.Local).AddDate(0, 0, 30),
 		},
 		"$addToSet": bson.M{
 			"knownLocations": location,
@@ -321,7 +321,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 
 	if userData, err := cache.GetUser(appsession, email); err == nil {
 		userData.IsVerified = true
-		userData.NextVerificationDate = time.Now().AddDate(0, 0, 30)
+		userData.NextVerificationDate = time.Now().In(time.Local).AddDate(0, 0, 30)
 		userData.KnownLocations = append(userData.KnownLocations, *location)
 		cache.SetUser(appsession, userData)
 	}
@@ -367,7 +367,7 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 	}
 
 	if userData, err := cache.GetUser(appsession, email); err == nil {
-		if !time.Now().After(userData.NextVerificationDate) {
+		if !time.Now().In(time.Local).After(userData.NextVerificationDate) {
 			return false, nil
 		}
 		return true, nil
@@ -386,7 +386,7 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 	// Add the user to the cache if cache is not nil
 	cache.SetUser(appsession, user)
 
-	if !time.Now().After(user.NextVerificationDate) {
+	if !time.Now().In(time.Local).After(user.NextVerificationDate) {
 		return false, nil
 	}
 	return true, nil
@@ -681,7 +681,7 @@ func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token str
 	}
 
 	// Check if the current time is after the token's expiration time.
-	if time.Now().After(resetToken.ExpireWhen) {
+	if time.Now().In(time.Local).After(resetToken.ExpireWhen) {
 		// Return false indicating the token has expired.
 		return false, nil
 	}
@@ -744,7 +744,7 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
 	}
 
 	// Check if the token has expired
-	if time.Now().After(resetToken.ExpireWhen) {
+	if time.Now().In(time.Local).After(resetToken.ExpireWhen) {
 		return false, "Token has expired", nil
 	}
 
@@ -758,7 +758,7 @@ func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) er
 	update := bson.M{
 		"$set": bson.M{
 			"twoFACode":       code,
-			"twoFACodeExpiry": time.Now().Add(10 * time.Minute),
+			"twoFACodeExpiry": time.Now().In(time.Local).Add(10 * time.Minute),
 		},
 	}
 	_, err := collection.UpdateOne(ctx, filter, update)
@@ -771,7 +771,7 @@ func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) 
 	filter := bson.M{
 		"email":           email,
 		"twoFACode":       code,
-		"twoFACodeExpiry": bson.M{"$gt": time.Now()},
+		"twoFACodeExpiry": bson.M{"$gt": time.Now().In(time.Local)},
 	}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
@@ -1716,7 +1716,7 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("attendance")
 
 	// Define the start and end of the day
-	now := time.Now().Truncate(24 * time.Hour)
+	now := time.Now().In(time.Local).Truncate(24 * time.Hour)
 	endOfDay := now.Add(24 * time.Hour)
 
 	// Create the filter for date
@@ -1732,12 +1732,12 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string
 	if err != nil {
 		logrus.WithError(err).Error("Failed to get attendance")
 		attendance = models.Attendance{
-			Date:           time.Now(),
-			IsWeekend:      IsWeekend(time.Now()),
-			WeekOfTheYear:  WeekOfTheYear(time.Now()),
-			DayOfWeek:      DayOfTheWeek(time.Now()),
-			DayOfMonth:     DayofTheMonth(time.Now()),
-			Month:          Month(time.Now()),
+			Date:           time.Now().In(time.Local),
+			IsWeekend:      IsWeekend(time.Now().In(time.Local)),
+			WeekOfTheYear:  WeekOfTheYear(time.Now().In(time.Local)),
+			DayOfWeek:      DayOfTheWeek(time.Now().In(time.Local)),
+			DayOfMonth:     DayofTheMonth(time.Now().In(time.Local)),
+			Month:          Month(time.Now().In(time.Local)),
 			SpecialEvent:   false, // admins can set this to true if there is a special event at a later stage
 			NumberAttended: 1,
 			AttendeesEmail: []string{email},
@@ -2253,13 +2253,13 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cre
 		pipeline = analytics.GetTop3MostBookedRooms(creatorEmail, attendeeEmails, filter, dateFilter)
 	case "historical":
 		// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
-		filter.Filter["timeTo"] = time.Now()
+		filter.Filter["timeTo"] = time.Now().In(time.Local)
 		filter.Filter["timeFrom"] = ""
 		dateFilter = "end"
 		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
 	case "upcoming":
 		// add or overwrite "timeFrom" with time.Now and delete "timeTo" if present
-		filter.Filter["timeFrom"] = time.Now()
+		filter.Filter["timeFrom"] = time.Now().In(time.Local)
 		filter.Filter["timeTo"] = ""
 		dateFilter = "end"
 		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)

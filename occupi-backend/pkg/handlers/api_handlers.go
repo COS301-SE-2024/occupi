@@ -1249,7 +1249,7 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 		// default time is since 1970
 		timeFromStr := ctx.DefaultQuery("timeFrom", "1970-01-01T00:00:00Z")
 		// default time is now
-		timeToStr := ctx.DefaultQuery("timeTo", time.Now().Format(time.RFC3339))
+		timeToStr := ctx.DefaultQuery("timeTo", time.Now().In(time.Local).Format(time.RFC3339))
 
 		timeFrom, err1 := time.Parse(time.RFC3339, timeFromStr)
 		timeTo, err2 := time.Parse(time.RFC3339, timeToStr)
@@ -1286,7 +1286,7 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 		// ensure that the time from and time to are set else set them to default
 		if request.TimeFrom.IsZero() || request.TimeTo.IsZero() {
 			request.TimeFrom = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
-			request.TimeTo = time.Now()
+			request.TimeTo = time.Now().In(time.Local)
 		}
 
 		// ensure that the limit is set else set it to default
@@ -1644,7 +1644,7 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cal
 		// default time is since 1970
 		timeFromStr := ctx.DefaultQuery("timeFrom", "1970-01-01T00:00:00Z")
 		// default time is now
-		timeToStr := ctx.DefaultQuery("timeTo", time.Now().Format(time.RFC3339))
+		timeToStr := ctx.DefaultQuery("timeTo", time.Now().In(time.Local).Format(time.RFC3339))
 
 		timeFrom, err1 := time.Parse(time.RFC3339, timeFromStr)
 		timeTo, err2 := time.Parse(time.RFC3339, timeToStr)
@@ -1681,7 +1681,7 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cal
 		// ensure that the time from and time to are set else set them to default
 		if request.TimeFrom.IsZero() || request.TimeTo.IsZero() {
 			request.TimeFrom = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
-			request.TimeTo = time.Now()
+			request.TimeTo = time.Now().In(time.Local)
 		}
 
 		// ensure that the limit is set else set it to default

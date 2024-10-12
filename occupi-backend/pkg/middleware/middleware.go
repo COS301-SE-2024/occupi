@@ -301,17 +301,8 @@ func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
 // block endpoint on weekends and after hours that is only allow access between Mon - Fri 08:00 - 17:00
 func BlockAfterHours(now time.Time) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		timeZone := configs.GetTimeZone()
-
-		// check system timeozone == timeZone else set system timezone to timeZone
-		if time.Local.String() != timeZone {
-			logrus.Info("Setting system timezone to ", timeZone)
-			time.Local, _ = time.LoadLocation(timeZone)
-		}
-
-		// Check if the current time is outside working hours
-		// this is not a fix as timezone is not gmt+2 so we subtract 2 hours from the current time
-		if now.Hour()-2 < 7 || now.Hour()-2 >= 17 {
+		// Check if the current time is outside working hours (08:00 - 17:00)
+		if now.Hour() < 8 || now.Hour() >= 17 {
 			ctx.JSON(http.StatusForbidden,
 				utils.ErrorResponse(
 					http.StatusForbidden,
@@ -320,7 +311,7 @@ func BlockAfterHours(now time.Time) gin.HandlerFunc {
 					fmt.Sprintf("Access denied after hours, only allowed between 08:00 and 17:00, time now is %s", now.Format("15:04")),
 					gin.H{
 						"serverTime":     now.Format("2006-01-02 15:04:05"),
-						"serverTimezone": timeZone,
+						"serverTimezone": now.Location().String(),
 					}))
 			ctx.Abort()
 			return
