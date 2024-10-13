@@ -299,8 +299,15 @@ func LimitRequestBodySize(maxSize int64) gin.HandlerFunc {
 }
 
 // block endpoint on weekends and after hours that is only allow access between Mon - Fri 08:00 - 17:00
-func BlockAfterHours(now time.Time) gin.HandlerFunc {
+func BlockAfterHours(arg ...time.Time) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		var now time.Time
+		if len(arg) > 0 {
+			now = arg[0]
+		} else {
+			now = time.Now().In(time.Local)
+		}
+
 		// Check if the current time is outside working hours (08:00 - 17:00)
 		if now.Hour() < 8 || now.Hour() >= 17 {
 			ctx.JSON(http.StatusForbidden,
