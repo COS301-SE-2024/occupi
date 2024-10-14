@@ -198,8 +198,8 @@ func ComputeAvailableSlots(bookings []models.Booking, dateOfBooking time.Time) [
 
 	// Define the boundaries
 	// 8:00 AM to 5:00 PM
-	startOfDay := time.Date(dateOfBooking.Year(), dateOfBooking.Month(), dateOfBooking.Day(), 8, 0, 0, 0, time.UTC) // 8:00 AM
-	endOfDay := time.Date(dateOfBooking.Year(), dateOfBooking.Month(), dateOfBooking.Day(), 17, 0, 0, 0, time.UTC)  // 5:00 PM
+	startOfDay := time.Date(dateOfBooking.Year(), dateOfBooking.Month(), dateOfBooking.Day(), 8, 0, 0, 0, time.Local) // 8:00 AM
+	endOfDay := time.Date(dateOfBooking.Year(), dateOfBooking.Month(), dateOfBooking.Day(), 17, 0, 0, 0, time.Local)  // 5:00 PM
 
 	previousEnd := startOfDay
 
@@ -228,9 +228,9 @@ func ComputeAvailableSlots(bookings []models.Booking, dateOfBooking time.Time) [
 func CapTimeRange() time.Time {
 	now := time.Now().In(time.Local)
 	if now.Hour() < 7 {
-		now = time.Date(now.Year(), now.Month(), now.Day(), 7, 0, 0, 0, time.UTC)
+		now = time.Date(now.Year(), now.Month(), now.Day(), 7, 0, 0, 0, time.Local)
 	} else if now.Hour() > 17 {
-		now = time.Date(now.Year(), now.Month(), now.Day(), 17, 0, 0, 0, time.UTC)
+		now = time.Date(now.Year(), now.Month(), now.Day(), 17, 0, 0, 0, time.Local)
 	}
 	return now
 }

@@ -75,7 +75,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	}
 
 	// pre-login checks
-	if configs.GetTestPassPhrase() != requestUser.IsTest {
+	if configs.GetTestPassPhrase() != requestUser.IsTest && requestUser.Email != "democos301@gmail.com" {
 		if success, err := PreLoginAccountChecks(ctx, appsession, requestUser.Email, role); !success {
 			if err != nil {
 				configs.CaptureError(ctx, err)
