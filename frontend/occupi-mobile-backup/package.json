@@ -51,7 +51,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.52.0",
-    "react-native": "0.74.2",
+    "react-native": "0.75.2",
     "react-native-calendar-picker": "^6.1.5",
     "react-native-calendars": "^1.1305.0",
     "react-native-chart-kit": "^6.12.0",
