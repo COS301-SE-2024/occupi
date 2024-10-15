@@ -571,7 +571,7 @@ const Dashboard: React.FC = () => {
               justifyContent: 'center',
               alignItems: 'center'
             }}
-            onPress={() => router.push('/loadingcreen')}
+            onPress={() => router.push('/loadingscreen')}
           >
             <View flexDirection="row" alignItems="center" justifyContent='space-between'>
               <View flexDirection='row' alignItems='center'>
