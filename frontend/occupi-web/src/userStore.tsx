@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 
 interface UserDetails {
   email: string;
@@ -21,18 +20,12 @@ interface UserStore {
 }
 
 export const useUserStore = create<UserStore>()(
-  persist(
-    (set) => ({
-      userDetails: null,
-      setUserDetails: (details) => {
-        set({ userDetails: details });
-      },
-    }),
-    {
-      name: "user-storage",
-      storage: createJSONStorage(() => localStorage),
-    }
-  )
+  (set) => ({
+    userDetails: null,
+    setUserDetails: (details) => {
+      set({ userDetails: details });
+    },
+  }),
 );
 
 // Hook for easier usage in components

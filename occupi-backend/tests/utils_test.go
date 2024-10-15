@@ -2728,7 +2728,7 @@ func TestGetClientTime(t *testing.T) {
 			}
 
 			// Check that the time is recent (within the last second)
-			assert.WithinDuration(t, time.Now(), got, time.Second)
+			assert.WithinDuration(t, time.Now().In(time.Local), got, time.Second)
 		})
 	}
 }

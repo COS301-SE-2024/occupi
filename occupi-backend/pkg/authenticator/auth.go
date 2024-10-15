@@ -21,9 +21,9 @@ func GenerateToken(email string, role string, optionalExpiryTime ...time.Duratio
 	var expirationTime time.Time
 
 	if len(optionalExpiryTime) == 0 {
-		expirationTime = time.Now().Add(24 * 7 * time.Hour)
+		expirationTime = time.Now().In(time.Local).Add(24 * 7 * time.Hour)
 	} else {
-		expirationTime = time.Now().Add(optionalExpiryTime[0])
+		expirationTime = time.Now().In(time.Local).Add(optionalExpiryTime[0])
 	}
 
 	claims := &Claims{

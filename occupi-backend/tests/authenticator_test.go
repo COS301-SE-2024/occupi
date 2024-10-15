@@ -17,7 +17,7 @@ func TestGenerateToken(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotEmpty(t, tokenString)
-	require.WithinDuration(t, time.Now().Add(24*7*time.Hour), expirationTime, time.Second)
+	require.WithinDuration(t, time.Now().In(time.Local).Add(24*7*time.Hour), expirationTime, time.Second)
 
 	// Validate the token
 	claims, err := authenticator.ValidateToken(tokenString)

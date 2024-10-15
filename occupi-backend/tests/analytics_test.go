@@ -301,7 +301,7 @@ func TestAggregateBookings(t *testing.T) {
 	}
 }
 
-func TestGetUsersLocationsPipeLine(t *testing.T) {
+func TestGetUsersLocationsPipeLineAsc(t *testing.T) {
 	res := analytics.GetUsersLocationsPipeLine(0, 0, "asc", "test@example.com")
 
 	// check len is greater than 0
@@ -310,11 +310,29 @@ func TestGetUsersLocationsPipeLine(t *testing.T) {
 	}
 }
 
-func TestGetLocationsCount(t *testing.T) {
-	res := analytics.GetLocationsCount("test@example.com")
+func TestGetUsersLocationsPipeLineDesc(t *testing.T) {
+	res := analytics.GetUsersLocationsPipeLine(0, 0, "desc", "test@example.com")
 
 	// check len is greater than 0
 	if len(res) == 0 {
-		t.Errorf("GetLocationsCount() = %v, want greater than 0", res)
+		t.Errorf("GetUsersLocationsPipeLine() = %v, want greater than 0", res)
+	}
+}
+
+func TestGetBlacklistPipeLineAsc(t *testing.T) {
+	res := analytics.GetBlacklistPipeLine(0, 0, "asc", "test@example.com")
+
+	// check len is greater than 0
+	if len(res) == 0 {
+		t.Errorf("GetBlacklistPipeLine() = %v, want greater than 0", res)
+	}
+}
+
+func TestGetBlacklistPipeLineDesc(t *testing.T) {
+	res := analytics.GetBlacklistPipeLine(0, 0, "desc", "test@example.com")
+
+	// check len is greater than 0
+	if len(res) == 0 {
+		t.Errorf("GetBlacklistPipeLine() = %v, want greater than 0", res)
 	}
 }

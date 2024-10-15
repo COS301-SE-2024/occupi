@@ -1141,16 +1141,31 @@ func GetUsersLocationsPipeLine(limit int64, skip int64, order string, email stri
 		bson.D{{Key: "$match", Value: matchFilter}},
 		bson.D{{Key: "$unwind", Value: "$knownLocations"}},
 		bson.D{
-			{Key: "$project",
+			{Key: "$facet",
 				Value: bson.D{
-					{Key: "_id", Value: 0},
-					{Key: "email", Value: 1},
-					{Key: "name", Value: "$details.name"},
-					{Key: "city", Value: "$knownLocations.city"},
-					{Key: "region", Value: "$knownLocations.region"},
-					{Key: "country", Value: "$knownLocations.country"},
-					{Key: "location", Value: "$knownLocations.location"},
-					{Key: "ipAddress", Value: "$knownLocations.ipAddress"},
+					{Key: "metadata",
+						Value: bson.A{
+							bson.D{{Key: "$count", Value: "total"}},
+						},
+					},
+					{Key: "data",
+						Value: bson.A{
+							bson.D{
+								{Key: "$project",
+									Value: bson.D{
+										{Key: "_id", Value: 0},
+										{Key: "email", Value: 1},
+										{Key: "name", Value: "$details.name"},
+										{Key: "city", Value: "$knownLocations.city"},
+										{Key: "region", Value: "$knownLocations.region"},
+										{Key: "country", Value: "$knownLocations.country"},
+										{Key: "location", Value: "$knownLocations.location"},
+										{Key: "ipAddress", Value: "$knownLocations.ipAddress"},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -1160,7 +1175,7 @@ func GetUsersLocationsPipeLine(limit int64, skip int64, order string, email stri
 	}
 }
 
-func GetLocationsCount(email string) bson.A {
+func GetBlacklistPipeLine(limit int64, skip int64, order string, email string) bson.A {
 	// Create a match filter
 	matchFilter := bson.D{}
 
@@ -1169,22 +1184,33 @@ func GetLocationsCount(email string) bson.A {
 		matchFilter = append(matchFilter, bson.E{Key: "email", Value: bson.D{{Key: "$eq", Value: email}}})
 	}
 
+	var sort int64
+	if order == "asc" {
+		sort = 1
+	} else {
+		sort = -1
+	}
+
 	return bson.A{
-		// Step 1: Match users by email
 		bson.D{{Key: "$match", Value: matchFilter}},
-		// Step 2: Project only the size of the knownLocations array
+		bson.D{{Key: "$unwind", Value: "$blackListedIP"}},
 		bson.D{
-			{Key: "$project",
+			{Key: "$facet",
 				Value: bson.D{
-					{Key: "locationCount",
-						Value: bson.D{
-							{Key: "$size",
-								Value: bson.D{
-									{Key: "$ifNull",
-										Value: bson.A{
-											"$knownLocations",
-											bson.A{},
-										},
+					{Key: "metadata",
+						Value: bson.A{
+							bson.D{{Key: "$count", Value: "total"}},
+						},
+					},
+					{Key: "data",
+						Value: bson.A{
+							bson.D{
+								{Key: "$project",
+									Value: bson.D{
+										{Key: "_id", Value: 0},
+										{Key: "email", Value: 1},
+										{Key: "name", Value: "$details.name"},
+										{Key: "blackListedIP", Value: 1},
 									},
 								},
 							},
@@ -1193,10 +1219,8 @@ func GetLocationsCount(email string) bson.A {
 				},
 			},
 		},
-		// Step 3: Group to sum up the total size of all knownLocations arrays
-		bson.D{{Key: "$group", Value: bson.M{
-			"_id":            nil,                              // We don't care about grouping by email here
-			"totalLocations": bson.M{"$sum": "$locationCount"}, // Total count of knownLocations
-		}}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "email", Value: sort}}}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
 	}
 }

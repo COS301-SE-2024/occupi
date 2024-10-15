@@ -888,7 +888,7 @@ func TestTimezoneMiddleware(t *testing.T) {
 			loc = time.UTC
 		}
 
-		currentTime := time.Now().In(loc.(*time.Location))
+		currentTime := time.Now().In(time.Local).In(loc.(*time.Location))
 
 		c.JSON(200, gin.H{
 			"current_time": currentTime.Format(time.RFC3339),
@@ -922,7 +922,7 @@ func TestTimezoneMiddleware(t *testing.T) {
 				loc, err := time.LoadLocation(tt.timezone)
 				assert.NoError(t, err)
 
-				expectedTime := time.Now().In(loc).Format(time.RFC3339)
+				expectedTime := time.Now().In(time.Local).In(loc).Format(time.RFC3339)
 				assert.Contains(t, response["current_time"], expectedTime[:19]) // Compare only date and time part
 			}
 		})
@@ -1130,57 +1130,99 @@ func TestLimitRequestBodySize(t *testing.T) {
 	})
 }
 
-func TestBlockWeekendsAndAfterHours(t *testing.T) {
-	// Helper function to create a gin context with a specific time
-	createTestContext := func() (*gin.Context, *httptest.ResponseRecorder) {
-		gin.SetMode(gin.TestMode)
-		w := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(w)
-		return ctx, w
-	}
+func TestBlockAfterHours(t *testing.T) {
+	// Set up Gin in test mode
+	gin.SetMode(gin.TestMode)
 
 	tests := []struct {
-		name         string
-		mockTime     time.Time
-		expectedCode int
+		name           string
+		now            time.Time
+		timeZone       string
+		expectedStatus int
+		expectedBody   string
 	}{
 		{
-			name:         "Access on a Saturday",
-			mockTime:     time.Date(2024, 9, 7, 10, 0, 0, 0, time.UTC), // Saturday at 10:00 AM
-			expectedCode: http.StatusOK,
+			name:           "Should allow access during working hours at 8am JHB time",
+			now:            time.Date(2024, 10, 9, 10, 0, 0, 0, time.UTC), // 10:00 UTC
+			timeZone:       "Africa/Johannesburg",                         // UTC+2 will make it go to 12:00
+			expectedStatus: http.StatusOK,
+			expectedBody:   "OK",
 		},
 		{
-			name:         "Access on a Sunday",
-			mockTime:     time.Date(2024, 9, 8, 10, 0, 0, 0, time.UTC), // Sunday at 10:00 AM
-			expectedCode: http.StatusOK,
+			name:           "Should allow access during working hours at 4pm JHB time",
+			now:            time.Date(2024, 10, 9, 14, 0, 0, 0, time.UTC), // 14:00 UTC
+			timeZone:       "Africa/Johannesburg",                         // UTC+2 will make it go to 16:00
+			expectedStatus: http.StatusOK,
+			expectedBody:   "OK",
 		},
 		{
-			name:         "Access before working hours on a weekday",
-			mockTime:     time.Date(2024, 9, 9, 6, 30, 0, 0, time.UTC), // Monday at 6:30 AM
-			expectedCode: http.StatusForbidden,
+			name:           "Should deny access after working hours at 5pm utc but is 7pm JHB time",
+			now:            time.Date(2024, 10, 9, 17, 0, 0, 0, time.UTC), // 17:00 UTC
+			timeZone:       "Africa/Johannesburg",                         // UTC+2 will make it go to 19:00
+			expectedStatus: http.StatusForbidden,
+			expectedBody:   "Forbidden",
 		},
 		{
-			name:         "Access after working hours on a weekday",
-			mockTime:     time.Date(2024, 9, 9, 18, 0, 0, 0, time.UTC), // Monday at 6:00 PM
-			expectedCode: http.StatusForbidden,
+			name:           "Should deny access after working hours at 8pm JHB time",
+			now:            time.Date(2024, 10, 9, 18, 0, 0, 0, time.UTC), // 18:00 UTC
+			timeZone:       "Africa/Johannesburg",                         // UTC+2 will make it go to 20:00
+			expectedStatus: http.StatusForbidden,
+			expectedBody:   "Forbidden",
 		},
 		{
-			name:         "Access during working hours on a weekday",
-			mockTime:     time.Date(2024, 9, 9, 10, 0, 0, 0, time.UTC), // Monday at 10:00 AM
-			expectedCode: http.StatusOK,
+			name:           "Should allow access right at 8am JHB time",
+			now:            time.Date(2024, 10, 9, 6, 0, 0, 0, time.UTC), // 06:00 UTC
+			timeZone:       "Africa/Johannesburg",                        // UTC+2 will make it go to 08:00
+			expectedStatus: http.StatusOK,
+			expectedBody:   "OK",
+		},
+		{
+			name:           "Should deny access outside working hours in a different timezone",
+			now:            time.Date(2024, 10, 9, 10, 0, 0, 0, time.UTC), // 10:00 UTC
+			timeZone:       "America/New_York",                            // UTC-4 will make it 06:00
+			expectedStatus: http.StatusForbidden,
+			expectedBody:   "Forbidden",
+		},
+		{
+			name:           "Should deny access after working hours in a different timezone",
+			now:            time.Date(2024, 10, 9, 22, 0, 0, 0, time.UTC), // 22:00 UTC
+			timeZone:       "America/New_York",                            // UTC-4 will make it 18:00
+			expectedStatus: http.StatusForbidden,
+			expectedBody:   "Forbidden",
+		},
+		{
+			name:           "Should allow access during working hours in a different timezone",
+			now:            time.Date(2024, 10, 9, 18, 0, 0, 0, time.UTC), // 18:00 UTC
+			timeZone:       "America/New_York",                            // UTC-4 will make it 14:00
+			expectedStatus: http.StatusOK,
+			expectedBody:   "OK",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, w := createTestContext()
+			// Create a test request
+			w := httptest.NewRecorder()
+			_, r := gin.CreateTestContext(w)
 
-			// Call the middleware with the test context and mock time
-			handler := middleware.BlockAfterHours(tt.mockTime)
-			handler(ctx)
+			// Load location from the time package
+			Local, err := time.LoadLocation(tt.timeZone)
+			if err != nil {
+				t.Fatalf("failed to load location: %v", err)
+			}
 
-			// Assert the expected status code
-			assert.Equal(t, tt.expectedCode, w.Code)
+			// Attach middleware to a test route
+			r.GET("/test", middleware.BlockAfterHours(tt.now.In(Local)), func(ctx *gin.Context) {
+				ctx.String(http.StatusOK, "OK")
+			})
+
+			// Make a test request
+			req, _ := http.NewRequest("GET", "/test", nil)
+			r.ServeHTTP(w, req)
+
+			// Validate response
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			assert.Contains(t, w.Body.String(), tt.expectedBody)
 		})
 	}
 }

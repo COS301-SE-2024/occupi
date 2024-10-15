@@ -50,11 +50,13 @@ import ailoader from "./images/ailoader.gif";
 import Worker from "./icons/Worker";
 import Employee from "./icons/Employee";
 import Location from './icons/Location';
+import Reload from './icons/Reload';
 export {
     loginpng, OccupiLogo, login_image, CheckSquareContained, CloseDrawer, OpenDrawer,
     Grid, PieChart, ColorSwatch, Home, UserProfileGroup, Bell, SettingsIcon, Logout,
     Loading,SettingsImg, Macbook1, Macbook2, Macbook3,
     Userprofile, Pallete, Privacy, AlertIcon, HelpIcon, GraphCol, Cal,
     ChevronDown, ChevronLeft, ChevronRight, Bf, Uptrend, DownTrend, SearchIcon,ChevronDownIcon,PlusIcon,VerticalDotsIcon,EditIcon,EyeIcon,DeleteIcon,occupiLogo,Report,Faq
-    ,UploadButton,Upload,Bar,AI_loader,LCPW,ailoader,Worker,LoadingSM,Employee,Location
+    ,UploadButton,Upload,Bar,AI_loader,LCPW,ailoader,Worker,LoadingSM,Employee,Location,
+    Reload  
 }

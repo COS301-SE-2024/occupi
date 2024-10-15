@@ -67,6 +67,7 @@ const (
 	TimeZone                = "TIMEZONE"
 	LogglyT                 = "LOGGLY_TOKEN"
 	LogglySubdomain         = "LOGGLY_SUBDOMAIN"
+	DemoEmail               = "DEMO_EMAIL"
 )
 
 // init viper
@@ -593,4 +594,12 @@ func GetLogglySubDomain() string {
 		domain = "LOGGLY_SUBDOMAIN"
 	}
 	return domain
+}
+
+func GetDemoEmail() string {
+	email := viper.GetString(DemoEmail)
+	if email == "" {
+		email = "DEMO_EMAIL"
+	}
+	return email
 }

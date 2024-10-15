@@ -205,7 +205,7 @@ func AddOTP(ctx *gin.Context, appsession *models.AppSession, email string, otp s
 	otpStruct := models.OTP{
 		Email:      email,
 		OTP:        otp,
-		ExpireWhen: time.Now().Add(time.Second * time.Duration(configs.GetOTPExpiration())),
+		ExpireWhen: time.Now().In(time.Local).In(time.Local).Add(time.Second * time.Duration(configs.GetOTPExpiration())),
 	}
 	_, err := collection.InsertOne(ctx, otpStruct)
 	if err != nil {
@@ -228,7 +228,7 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 
 	// Check if the OTP exists in the cache if cache is not nil
 	if otpdata, err := cache.GetOTP(appsession, email, otp); err == nil {
-		if time.Now().After(otpdata.ExpireWhen) {
+		if time.Now().In(time.Local).After(otpdata.ExpireWhen) {
 			return false, nil
 		}
 		return true, nil
@@ -245,7 +245,7 @@ func OTPExists(ctx *gin.Context, appsession *models.AppSession, email string, ot
 	}
 
 	// Check if the OTP has expired
-	if time.Now().After(otpStruct.ExpireWhen) {
+	if time.Now().In(time.Local).After(otpStruct.ExpireWhen) {
 		return false, nil
 	}
 
@@ -306,7 +306,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 	update := bson.M{
 		"$set": bson.M{
 			"isVerified":           true,
-			"nextVerificationDate": time.Now().AddDate(0, 0, 30),
+			"nextVerificationDate": time.Now().In(time.Local).AddDate(0, 0, 30),
 		},
 		"$addToSet": bson.M{
 			"knownLocations": location,
@@ -321,7 +321,7 @@ func VerifyUser(ctx *gin.Context, appsession *models.AppSession, email string, i
 
 	if userData, err := cache.GetUser(appsession, email); err == nil {
 		userData.IsVerified = true
-		userData.NextVerificationDate = time.Now().AddDate(0, 0, 30)
+		userData.NextVerificationDate = time.Now().In(time.Local).AddDate(0, 0, 30)
 		userData.KnownLocations = append(userData.KnownLocations, *location)
 		cache.SetUser(appsession, userData)
 	}
@@ -367,7 +367,7 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 	}
 
 	if userData, err := cache.GetUser(appsession, email); err == nil {
-		if !time.Now().After(userData.NextVerificationDate) {
+		if !time.Now().In(time.Local).After(userData.NextVerificationDate) {
 			return false, nil
 		}
 		return true, nil
@@ -386,7 +386,7 @@ func CheckIfNextVerificationDateIsDue(ctx *gin.Context, appsession *models.AppSe
 	// Add the user to the cache if cache is not nil
 	cache.SetUser(appsession, user)
 
-	if !time.Now().After(user.NextVerificationDate) {
+	if !time.Now().In(time.Local).After(user.NextVerificationDate) {
 		return false, nil
 	}
 	return true, nil
@@ -681,7 +681,7 @@ func CheckResetToken(ctx *gin.Context, db *mongo.Client, email string, token str
 	}
 
 	// Check if the current time is after the token's expiration time.
-	if time.Now().After(resetToken.ExpireWhen) {
+	if time.Now().In(time.Local).After(resetToken.ExpireWhen) {
 		// Return false indicating the token has expired.
 		return false, nil
 	}
@@ -744,7 +744,7 @@ func ValidateResetToken(ctx context.Context, db *mongo.Client, email, token stri
 	}
 
 	// Check if the token has expired
-	if time.Now().After(resetToken.ExpireWhen) {
+	if time.Now().In(time.Local).After(resetToken.ExpireWhen) {
 		return false, "Token has expired", nil
 	}
 
@@ -758,7 +758,7 @@ func SaveTwoFACode(ctx context.Context, db *mongo.Client, email, code string) er
 	update := bson.M{
 		"$set": bson.M{
 			"twoFACode":       code,
-			"twoFACodeExpiry": time.Now().Add(10 * time.Minute),
+			"twoFACodeExpiry": time.Now().In(time.Local).Add(10 * time.Minute),
 		},
 	}
 	_, err := collection.UpdateOne(ctx, filter, update)
@@ -771,7 +771,7 @@ func VerifyTwoFACode(ctx context.Context, db *mongo.Client, email, code string) 
 	filter := bson.M{
 		"email":           email,
 		"twoFACode":       code,
-		"twoFACodeExpiry": bson.M{"$gt": time.Now()},
+		"twoFACodeExpiry": bson.M{"$gt": time.Now().In(time.Local)},
 	}
 	var user models.User
 	err := collection.FindOne(ctx, filter).Decode(&user)
@@ -1663,7 +1663,7 @@ func FindAndRemoveOfficeHours(ctx *gin.Context, appsession *models.AppSession, e
 	}
 
 	// find the user's office hours and remove them
-	filter := bson.M{"email": email, "closed": false}
+	filter := bson.M{"email": email}
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("OfficeHours")
 
@@ -1716,7 +1716,7 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("attendance")
 
 	// Define the start and end of the day
-	now := time.Now().Truncate(24 * time.Hour)
+	now := time.Now().In(time.Local).Truncate(24 * time.Hour)
 	endOfDay := now.Add(24 * time.Hour)
 
 	// Create the filter for date
@@ -1732,12 +1732,12 @@ func AddAttendance(ctx *gin.Context, appsession *models.AppSession, email string
 	if err != nil {
 		logrus.WithError(err).Error("Failed to get attendance")
 		attendance = models.Attendance{
-			Date:           time.Now(),
-			IsWeekend:      IsWeekend(time.Now()),
-			WeekOfTheYear:  WeekOfTheYear(time.Now()),
-			DayOfWeek:      DayOfTheWeek(time.Now()),
-			DayOfMonth:     DayofTheMonth(time.Now()),
-			Month:          Month(time.Now()),
+			Date:           time.Now().In(time.Local),
+			IsWeekend:      IsWeekend(time.Now().In(time.Local)),
+			WeekOfTheYear:  WeekOfTheYear(time.Now().In(time.Local)),
+			DayOfWeek:      DayOfTheWeek(time.Now().In(time.Local)),
+			DayOfMonth:     DayofTheMonth(time.Now().In(time.Local)),
+			Month:          Month(time.Now().In(time.Local)),
 			SpecialEvent:   false, // admins can set this to true if there is a special event at a later stage
 			NumberAttended: 1,
 			AttendeesEmail: []string{email},
@@ -1883,6 +1883,52 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession, request models.Reque
 	return ipInfo, nil
 }
 
+func WhiteListIP(ctx *gin.Context, appsession *models.AppSession, emails []string, ip string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// filter for all users emails which are in emails that have this ip in the blackListedIP field
+	filter := bson.M{"email": bson.M{"$in": emails}, "blackListedIP": bson.M{"$eq": ip}}
+
+	// pull this ip from the array
+	update := bson.M{"$pull": bson.M{"blackListedIP": ip}}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	for _, email := range emails {
+		// Fetch user from cache
+		if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
+			updatedBlackListedIPs := []string{}
+
+			// Process the blackListedIP array
+			for _, blackIP := range userData.BlackListedIP {
+				// Exclude the IP that needs to be whitelisted
+				if blackIP != ip {
+					updatedBlackListedIPs = append(updatedBlackListedIPs, blackIP)
+				}
+			}
+
+			// Update the user's BlackListedIP array if a change occurred
+			if len(updatedBlackListedIPs) != len(userData.BlackListedIP) {
+				userData.BlackListedIP = updatedBlackListedIPs
+				// Update the cache once per user, after processing all IPs
+				cache.SetUser(appsession, userData)
+			}
+		}
+	}
+
+	return nil
+}
+
 func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.RequestIP) (*ipinfo.Core, error) {
 	// check if database is nil
 	if appsession.DB == nil {
@@ -1919,18 +1965,87 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession, request models.Re
 
 	// get users from cache and update their knownLocations
 	for _, email := range request.Emails {
+		// Fetch user from cache
 		if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
-			for i, loc := range userData.KnownLocations {
-				if loc == location {
-					userData.KnownLocations = append(userData.KnownLocations[:i], userData.KnownLocations[i+1:]...)
-					cache.SetUser(appsession, userData)
-					break
+			updatedKnownLocations := []models.Location{}
+
+			// Process the KnownLocations array
+			for _, loc := range userData.KnownLocations {
+				// Exclude the location that needs to be removed
+				if loc != location {
+					updatedKnownLocations = append(updatedKnownLocations, loc)
 				}
+			}
+
+			// Update the user's KnownLocations array if a change occurred
+			if len(updatedKnownLocations) != len(userData.KnownLocations) {
+				userData.KnownLocations = updatedKnownLocations
+				// Update the cache once per user, after processing all locations
+				cache.SetUser(appsession, userData)
 			}
 		}
 	}
 
 	return ipInfo, nil
+}
+
+func BlackListIP(ctx *gin.Context, appsession *models.AppSession, emails []string, ip string) error {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return errors.New("database is nil")
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	filter := bson.M{"email": bson.M{"$in": emails}}
+
+	update := bson.M{"$push": bson.M{"blackListedIP": ip}}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// get users from cache and update their knownLocations
+	for _, email := range emails {
+		if userData, cacheErr := cache.GetUser(appsession, email); cacheErr == nil {
+			userData.BlackListedIP = append(userData.BlackListedIP, ip)
+			cache.SetUser(appsession, userData)
+		}
+	}
+
+	return nil
+}
+
+func IsIPBlackListed(ctx *gin.Context, appsession *models.AppSession, email, ip string) (bool, error) {
+	// check if database is nil
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// check if user is in cache
+	if userData, err := cache.GetUser(appsession, email); err == nil {
+		return utils.Contains(userData.BlackListedIP, ip), nil
+	}
+
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
+
+	// check if ip is in blackListedIP array
+	filter := bson.M{"email": email}
+	var user models.User
+	err := collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		logrus.Error(err)
+		return false, err
+	}
+
+	// Add the user to the cache if cache is not nil
+	cache.SetUser(appsession, user)
+
+	return utils.Contains(user.BlackListedIP, ip), nil
 }
 
 func UserHasImage(ctx *gin.Context, appsession *models.AppSession, email string) bool {
@@ -2138,13 +2253,13 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cre
 		pipeline = analytics.GetTop3MostBookedRooms(creatorEmail, attendeeEmails, filter, dateFilter)
 	case "historical":
 		// add or overwrite "timeTo" with time.Now and delete "timeFrom" if present
-		filter.Filter["timeTo"] = time.Now()
+		filter.Filter["timeTo"] = time.Now().In(time.Local)
 		filter.Filter["timeFrom"] = ""
 		dateFilter = "end"
 		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
 	case "upcoming":
 		// add or overwrite "timeFrom" with time.Now and delete "timeTo" if present
-		filter.Filter["timeFrom"] = time.Now()
+		filter.Filter["timeFrom"] = time.Now().In(time.Local)
 		filter.Filter["timeTo"] = ""
 		dateFilter = "end"
 		pipeline = analytics.AggregateBookings(creatorEmail, attendeeEmails, filter, dateFilter)
@@ -2278,7 +2393,7 @@ func CountNotifications(ctx *gin.Context, appsession *models.AppSession, email s
 	return unreadCount, totalCount, nil
 }
 
-func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession, limit int64, skip int64, order string, email string) ([]primitive.M, int64, error) {
+func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession, limit int64, skip int64, order string, email string, ipPrivelege string) ([]primitive.M, int64, error) {
 	// check if database is nil
 	if appsession.DB == nil {
 		logrus.Error("Database is nil")
@@ -2287,7 +2402,12 @@ func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession, limit in
 
 	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
 
-	pipeline := analytics.GetUsersLocationsPipeLine(limit, skip, order, email)
+	var pipeline primitive.A
+	if ipPrivelege == "whitelist" {
+		pipeline = analytics.GetUsersLocationsPipeLine(limit, skip, order, email)
+	} else {
+		pipeline = analytics.GetBlacklistPipeLine(limit, skip, order, email)
+	}
 
 	// get all known locations
 	cursor, err := collection.Aggregate(ctx, pipeline)
@@ -2296,49 +2416,33 @@ func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession, limit in
 		return nil, 0, err
 	}
 
+	type FacetResult struct {
+		Metadata []struct {
+			Total int64 `bson:"total"`
+		} `bson:"metadata"`
+		Data []primitive.M `bson:"data"`
+	}
+
+	var facetResults []FacetResult
+	if err = cursor.All(ctx, &facetResults); err != nil {
+		logrus.Error(err)
+		return nil, 0, err
+	}
+
+	// Initialize variables for data and count
 	var locations []primitive.M
-	if err = cursor.All(ctx, &locations); err != nil {
-		logrus.Error(err)
-		return nil, 0, err
-	}
+	var totalResults int64
 
-	totalResults, err := CountUserLocations(ctx, appsession, email)
-	if err != nil {
-		logrus.Error(err)
-		return nil, 0, err
-	}
+	// Check if facetResults contains data
+	if len(facetResults) > 0 {
+		// Extract data (locations)
+		locations = facetResults[0].Data
 
-	return locations, totalResults, nil
-}
-
-func CountUserLocations(ctx *gin.Context, appsession *models.AppSession, email string) (int64, error) {
-	// check if database is nil
-	if appsession.DB == nil {
-		logrus.Error("Database is nil")
-		return 0, errors.New("database is nil")
-	}
-
-	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("Users")
-
-	pipeline := analytics.GetLocationsCount(email)
-
-	// Perform aggregation
-	cursor, err := collection.Aggregate(ctx, pipeline)
-	if err != nil {
-		logrus.Error(err)
-		return 0, err
-	}
-
-	var result struct {
-		TotalLocations int64 `bson:"totalLocations"` // Map the result field
-	}
-
-	if cursor.Next(ctx) {
-		if err := cursor.Decode(&result); err != nil {
-			logrus.Error(err)
-			return 0, err
+		// Extract total count from metadata
+		if len(facetResults[0].Metadata) > 0 {
+			totalResults = facetResults[0].Metadata[0].Total
 		}
 	}
 
-	return result.TotalLocations, nil
+	return locations, totalResults, nil
 }

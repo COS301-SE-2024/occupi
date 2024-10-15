@@ -19,7 +19,7 @@ import {
   ModalHeader,
   useDisclosure,
 } from "@nextui-org/react";
-import { SearchIcon, DeleteIcon } from "@assets/index";
+import { SearchIcon, DeleteIcon, Reload } from "@assets/index";
 import DataService from "DataService";
 import { motion } from "framer-motion";
 import { TopNav } from "@components/index";
@@ -32,7 +32,42 @@ type User = {
   country: string;
   location: string;
   ipAddress: string;
+  blackListedIP: string;
 };
+
+const WHITELISTEDHEAD = [
+  {
+    key: "name",
+    label: "NAME",
+  },
+  {
+    key: "location",
+    label: "LOCATION",
+  },
+  {
+    key: "IP address",
+    label: "IP ADDRESS",
+  },
+  {
+    key: "whitelisted actions",
+    label: "ACTIONS",
+  },
+]
+
+const BLACKLISTEDHEAD = [
+  {
+    key: "name",
+    label: "NAME",
+  },
+  {
+    key: "BlackListed IP address",
+    label: "IP ADDRESS",
+  },
+  {
+    key: "blacklisted actions",
+    label: "ACTIONS",
+  },
+]
 
 const DeleteIPModal = ({
   selectedUser,
@@ -42,6 +77,7 @@ const DeleteIPModal = ({
   onClose: () => void;
 }) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [err, setErr] = React.useState<string | null>(null);
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
@@ -54,6 +90,7 @@ const DeleteIPModal = ({
         <ul>{selectedUser?.region}</ul>
         <ul>{selectedUser?.country}</ul>
         <h4>They will recieve an email notifying them of this change</h4>
+        {err && <p className="text-red-500">{err}</p>}
       </ModalBody>
       <ModalFooter>
         <Button color="primary" variant="light" onPress={onClose}>
@@ -70,6 +107,9 @@ const DeleteIPModal = ({
             ).then(() => {
               setIsLoading(false);
               onClose();
+            }).catch((err) => {
+              setErr(err.message);
+              setIsLoading(false);
             });
           }}
         >
@@ -80,33 +120,59 @@ const DeleteIPModal = ({
   );
 };
 
-const AddIPModal = ({ onClose }: { onClose: () => void }) => {
+const AddIPModal = ({ 
+  onClose,
+  view
+}: { 
+  onClose: () => void,
+  view: "whitelisted" | "blacklisted"
+}) => {
   const [form, setForm] = React.useState<{
     email: string;
     ip: string;
   }>({ email: "", ip: "" });
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [err, setErr] = React.useState<string | null>(null);
+
+  const validateEmail = (email: string) => {
+    return email.match(
+      /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+  };
+
+  const validateIP = (ip: string) => {
+    return ip.match(
+      /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/
+    );
+  };
 
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
-        Add new IP address
+        {view === "whitelisted" ? "Add new IP address" : "Add new Blacklisted IP address"}
       </ModalHeader>
       <ModalBody>
         <Input
+          value={form.email}
           autoFocus
           label="Email"
           placeholder="Enter the users email"
           variant="bordered"
+          errorMessage="Please enter a valid email"
+          isInvalid={!validateEmail(form.email)}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
         <Input
-          label="text"
+          value={form.ip}
+          label="IP address"
           placeholder="Enter the ip address"
           variant="bordered"
+          errorMessage="Please enter a valid ip address"
+          isInvalid={!validateIP(form.ip)}
           onChange={(e) => setForm({ ...form, ip: e.target.value })}
         />
+        {err && <p className="text-red-500">{err}</p>}
       </ModalBody>
       <ModalFooter>
         <Button color="primary" variant="light" onPress={onClose}>
@@ -117,13 +183,72 @@ const AddIPModal = ({ onClose }: { onClose: () => void }) => {
           isLoading={isLoading}
           onPress={() => {
             setIsLoading(true);
-            DataService.addIP(form.ip, form.email).then(() => {
+            if (view === "whitelisted"){
+              DataService.addIP(form.ip, form.email).then(() => {
+                setIsLoading(false);
+                onClose();
+              }).catch((err) => {
+                setErr(err.message);
+                setIsLoading(false);
+              });
+            } else{
+              DataService.removeIP(form.ip, form.email).then(() => {
+                setIsLoading(false);
+                onClose();
+              }).catch((err) => {
+                setErr(err.message);
+                setIsLoading(false);
+              });
+            }
+          }}
+        >
+          {view === "whitelisted" ? "Add IP" : "Block IP"}
+        </Button>
+      </ModalFooter>
+    </>
+  );
+};
+
+const UnblockIPModal = ({
+  selectedUser,
+  onClose,
+}: {
+  selectedUser: User | null;
+  onClose: () => void;
+}) => {
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [err, setErr] = React.useState<string | null>(null);
+
+  return (
+    <>
+      <ModalHeader className="flex flex-col gap-1">
+        Add new IP address
+      </ModalHeader>
+      <ModalBody>
+        <h3>Are you sure you want to allow this IP address?</h3>
+        <h4>This will allow {selectedUser?.email} to use <ul>{selectedUser?.blackListedIP}</ul> to login</h4>
+        <h4>They will recieve an email notifying them of this change</h4>
+        {err && <p className="text-red-500">{err}</p>}
+      </ModalBody>
+      <ModalFooter>
+        <Button color="primary" variant="light" onPress={onClose}>
+          Close
+        </Button>
+        <Button
+          color="default"
+          isLoading={isLoading}
+          onPress={() => {
+            setIsLoading(true);
+            DataService.addIP(selectedUser?.blackListedIP ?? "", selectedUser?.email ?? "").then(() => {
               setIsLoading(false);
               onClose();
+            }).catch((err) => {
+              setErr(err.message);
+              setIsLoading(false);
             });
           }}
         >
-          Add IP
+          Allow IP
         </Button>
       </ModalFooter>
     </>
@@ -139,10 +264,11 @@ const LocationPage = () => {
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
   const { isOpen, onClose, onOpen } = useDisclosure();
-  const [openModal, setOpenModal] = React.useState<"delete" | "add" | null>(
+  const [openModal, setOpenModal] = React.useState<"delete" | "add" | "allowip" | null>(
     null
   );
   const [isValidEmail, setIsValidEmail] = React.useState<boolean>(true);
+  const view = React.useRef<"whitelisted" | "blacklisted">("whitelisted");
 
   const renderCell = React.useCallback((user: User, columnKey: React.Key) => {
     const cellValue = user[columnKey as keyof User];
@@ -178,7 +304,13 @@ const LocationPage = () => {
             {user.ipAddress === "" ? "No ip address available" : user.ipAddress}
           </Code>
         );
-      case "actions":
+      case "BlackListed IP address":
+        return (
+          <Code>
+            {user.blackListedIP === "" ? "No ip address available" : user.blackListedIP}
+          </Code>
+        );
+      case "whitelisted actions":
         return (
           <Button
             color="danger"
@@ -190,6 +322,20 @@ const LocationPage = () => {
             }}
           >
             <DeleteIcon />
+          </Button>
+        );
+      case "blacklisted actions":
+        return (
+          <Button
+            color="default"
+            isIconOnly
+            onClick={() => {
+              onOpen();
+              setSelectedUser(user);
+              setOpenModal("allowip");
+            }}
+          >
+            <Reload />
           </Button>
         );
       default:
@@ -218,11 +364,20 @@ const LocationPage = () => {
       setIsLoading(true);
       setIsValidEmail(true);
       setFilterValue(value);
-      const res = await DataService.fetchUserLocationsWithOptions(
-        1,
-        "asc",
-        value
-      );
+      let res;
+      if (view.current === "whitelisted"){
+        res = await DataService.fetchUserLocationsWithOptions(
+          1,
+          "asc",
+          value
+        );
+      } else {
+        res = await DataService.fetchUserBlacklistWithOptions(
+          1,
+          "asc",
+          value
+        );
+      }
       if (res.data === null) {
         setUsers([]);
       } else {
@@ -238,8 +393,13 @@ const LocationPage = () => {
 
   const fetchAll = async () => {
     setIsLoading(true);
-    const res = await DataService.fecthUserLocations();
-    const users: User[] = res.data;
+    let res;
+    if (view.current === "whitelisted") {
+      res = await DataService.fecthUserLocations();
+    } else {
+      res = await DataService.fetchUserBlacklist();
+    }
+    const users: User[] = res?.data;
     setUsers(users);
     setIsLoading(false);
   }
@@ -278,10 +438,25 @@ const LocationPage = () => {
           </div>
         </div>
         <div className="flex justify-between items-center">
+          <div className="flex gap-3">
+            <Button
+              color={view.current === "whitelisted" ? "primary" : "default"}
+              variant={view.current === "whitelisted" ? "flat" : "solid"}
+              onClick={async() => {view.current = "whitelisted"; await fetchAll();}}
+            >
+              Whitelisted IP's
+            </Button>
+            <Button
+              color={view.current === "blacklisted" ? "primary" : "default"}
+              variant={view.current === "blacklisted" ? "flat" : "solid"}
+              onClick={async() => {view.current = "blacklisted"; await fetchAll();}}
+            >
+              Blacklisted IP's
+            </Button>
+          </div>
           <span className="text-default-400 text-small">
             Total {users.length} results
           </span>
-          <div></div>
         </div>
       </div>
     );
@@ -325,26 +500,7 @@ const LocationPage = () => {
           topContentPlacement="outside"
           onSelectionChange={setSelectedKeys}
         >
-          <TableHeader
-            columns={[
-              {
-                key: "name",
-                label: "NAME",
-              },
-              {
-                key: "location",
-                label: "LOCATION",
-              },
-              {
-                key: "IP address",
-                label: "IP ADDRESS",
-              },
-              {
-                key: "actions",
-                label: "ACTIONS",
-              },
-            ]}
-          >
+          <TableHeader columns={view.current === "whitelisted" ? WHITELISTEDHEAD : BLACKLISTEDHEAD}>
             {(column) => (
               <TableColumn key={column.key}>{column.label}</TableColumn>
             )}
@@ -373,12 +529,17 @@ const LocationPage = () => {
                 onClose();
                 await fetchAll();
               }} />
-            ) : (
-              <AddIPModal onClose={async() => {
+            ) : openModal === "add" ? (
+              <AddIPModal view={view.current} onClose={async() => {
                 onClose();
                 await fetchAll();
               }} />
-            )
+            ) : openModal === "allowip" ? (
+              <UnblockIPModal selectedUser={selectedUser} onClose={async() => {
+                onClose();
+                await fetchAll();
+              }} />
+            ) : <></>
           }
         </ModalContent>
       </Modal>

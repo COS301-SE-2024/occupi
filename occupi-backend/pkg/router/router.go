@@ -1,8 +1,6 @@
 package router
 
 import (
-	"time"
-
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/constants"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/handlers"
 	"github.com/COS301-SE-2024/occupi/occupi-backend/pkg/middleware"
@@ -60,7 +58,7 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.DELETE("/delete-room-image", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.DeleteRoomImage(ctx, appsession) })
 		api.PUT("/add-room", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddRoom(ctx, appsession) })
 		api.GET("/available-slots", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, func(ctx *gin.Context) { handlers.GetAvailableSlots(ctx, appsession) })
-		api.PUT("/toggle-onsite", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.BlockAfterHours(time.Now()), func(ctx *gin.Context) { handlers.ToggleOnsite(ctx, appsession) })
+		api.PUT("/toggle-onsite", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.BlockAfterHours(), func(ctx *gin.Context) { handlers.ToggleOnsite(ctx, appsession) })
 		api.POST("/create-user", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.CreateUser(ctx, appsession) })
 		api.GET("/get-ip-info", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetIPInfo(ctx, appsession) })
 		api.POST("/add-ip", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.AddIP(ctx, appsession) })
@@ -69,7 +67,8 @@ func OccupiRouter(router *gin.Engine, appsession *models.AppSession) {
 		api.PUT("/toggle-admin-status", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.ToggleAdminStatus(ctx, appsession) })
 		api.PUT("/notify-report-download", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.SendDownloadReportNotification(ctx, appsession) })
 		api.GET("/get-notifications-count", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, func(ctx *gin.Context) { handlers.GetNotificationCount(ctx, appsession) })
-		api.GET("/get-users-locations", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetUsersLocations(ctx, appsession) })
+		api.GET("/get-users-locations", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetUsersLocations(ctx, appsession, "whitelist") })
+		api.GET("/get-blacklist", middleware.ProtectedRoute, func(ctx *gin.Context) { middleware.VerifyMobileUser(ctx, appsession) }, middleware.AdminRoute, func(ctx *gin.Context) { handlers.GetUsersLocations(ctx, appsession, "blacklist") })
 	}
 	analytics := router.Group("/analytics")
 	{

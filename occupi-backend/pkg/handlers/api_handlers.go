@@ -1249,7 +1249,7 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 		// default time is since 1970
 		timeFromStr := ctx.DefaultQuery("timeFrom", "1970-01-01T00:00:00Z")
 		// default time is now
-		timeToStr := ctx.DefaultQuery("timeTo", time.Now().Format(time.RFC3339))
+		timeToStr := ctx.DefaultQuery("timeTo", time.Now().In(time.Local).Format(time.RFC3339))
 
 		timeFrom, err1 := time.Parse(time.RFC3339, timeFromStr)
 		timeTo, err2 := time.Parse(time.RFC3339, timeToStr)
@@ -1286,7 +1286,7 @@ func GetAnalyticsOnHours(ctx *gin.Context, appsession *models.AppSession, calcul
 		// ensure that the time from and time to are set else set them to default
 		if request.TimeFrom.IsZero() || request.TimeTo.IsZero() {
 			request.TimeFrom = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
-			request.TimeTo = time.Now()
+			request.TimeTo = time.Now().In(time.Local)
 		}
 
 		// ensure that the limit is set else set it to default
@@ -1443,6 +1443,14 @@ func AddIP(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// remove the ip address from the blacklist for this user
+	err = database.WhiteListIP(ctx, appsession, request.Emails, request.IP)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
+		return
+	}
+
 	// get logged users email from ctx
 	email, errv := AttemptToGetEmail(ctx, appsession)
 	if errv != nil {
@@ -1509,6 +1517,14 @@ func RemoveIP(ctx *gin.Context, appsession *models.AppSession) {
 			constants.InternalServerErrorCode,
 			"Failed to remove IP",
 			nil))
+		return
+	}
+
+	// add this ip address to blacklist for this user
+	err = database.BlackListIP(ctx, appsession, request.Emails, request.IP)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
 		return
 	}
 
@@ -1628,7 +1644,7 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cal
 		// default time is since 1970
 		timeFromStr := ctx.DefaultQuery("timeFrom", "1970-01-01T00:00:00Z")
 		// default time is now
-		timeToStr := ctx.DefaultQuery("timeTo", time.Now().Format(time.RFC3339))
+		timeToStr := ctx.DefaultQuery("timeTo", time.Now().In(time.Local).Format(time.RFC3339))
 
 		timeFrom, err1 := time.Parse(time.RFC3339, timeFromStr)
 		timeTo, err2 := time.Parse(time.RFC3339, timeToStr)
@@ -1665,7 +1681,7 @@ func GetAnalyticsOnBookings(ctx *gin.Context, appsession *models.AppSession, cal
 		// ensure that the time from and time to are set else set them to default
 		if request.TimeFrom.IsZero() || request.TimeTo.IsZero() {
 			request.TimeFrom = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
-			request.TimeTo = time.Now()
+			request.TimeTo = time.Now().In(time.Local)
 		}
 
 		// ensure that the limit is set else set it to default
@@ -1855,7 +1871,7 @@ func GetNotificationCount(ctx *gin.Context, appsession *models.AppSession) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Successfully fetched notification count!", gin.H{"unread": unReadCount, "total": totalCount}))
 }
 
-func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession) {
+func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession, ipPrivelege string) {
 	var email string
 	var order string
 	var limit int64
@@ -1900,7 +1916,7 @@ func GetUsersLocations(ctx *gin.Context, appsession *models.AppSession) {
 	}
 	skip := (page - 1) * limit
 
-	locations, totalResults, err := database.GetUsersLocations(ctx, appsession, limit, skip, order, email)
+	locations, totalResults, err := database.GetUsersLocations(ctx, appsession, limit, skip, order, email, ipPrivelege)
 	if err != nil {
 		configs.CaptureError(ctx, err)
 		logrus.Error("Failed to get users locations because: ", err)

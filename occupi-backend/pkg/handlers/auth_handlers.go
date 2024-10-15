@@ -75,7 +75,7 @@ func Login(ctx *gin.Context, appsession *models.AppSession, role string, cookies
 	}
 
 	// pre-login checks
-	if configs.GetTestPassPhrase() != requestUser.IsTest {
+	if configs.GetTestPassPhrase() != requestUser.IsTest && requestUser.Email != configs.GetDemoEmail() {
 		if success, err := PreLoginAccountChecks(ctx, appsession, requestUser.Email, role); !success {
 			if err != nil {
 				configs.CaptureError(ctx, err)
@@ -555,14 +555,6 @@ func VerifyOTP(ctx *gin.Context, appsession *models.AppSession, login bool, role
 			"OTP verified successfully!",
 			nil))
 		return
-	}
-
-	// delete the otp from the database
-	if _, err := database.DeleteOTP(ctx, appsession, userotp.Email, userotp.OTP); err != nil {
-		configs.CaptureError(ctx, err)
-		ctx.JSON(http.StatusInternalServerError, utils.InternalServerError())
-		logrus.Error(err)
-		// the otp will autodelete after an hour so we can continue
 	}
 
 	// generate a jwt token for the user

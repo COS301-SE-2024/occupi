@@ -262,7 +262,7 @@ const AuthService = {
   verifyOtpLogin: async (email: string, otp: string) => {
     try {
       console.log("Verifying OTP:", email, otp);
-      const response = await axios.post(`${API_URL}/verify-otp-login`, {
+      const response = await axios.post(`${API_URL}/verify-otp-admin-login`, {
         email,
         otp,
       });
@@ -358,6 +358,19 @@ const AuthService = {
   pingAuth: async () => {
     try {
       const response = await axios.get(`/ping-auth`, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        throw error.response.data;
+      }
+      throw new Error("An unexpected error occurred");
+    }
+  },
+  pingAdmin: async () => {
+    try {
+      const response = await axios.get(`/ping-admin`, {
         withCredentials: true,
       });
       return response.data;
