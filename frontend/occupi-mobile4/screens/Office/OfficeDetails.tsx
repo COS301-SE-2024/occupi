@@ -163,14 +163,14 @@ const OfficeDetails = () => {
       <View pt="$12" px="$8" pb="$4" backgroundColor={isDarkMode ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Icon right="$4" as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
         <Text right="$2" fontWeight="$bold" fontSize={22} style={{ color: isDarkMode ? '#fff' : '#000' }}>{room?.roomName}</Text>
-        <View alignItems="center" flexDirection="row" w="$24" justifyContent="space-between">
+        {/* <View alignItems="center" flexDirection="row" w="$24" justifyContent="space-between">
           <View rounded="$full" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} p="$2">
             <Feather name="heart" size={24} color={isDarkMode ? '#fff' : '#000'} />
           </View>
           <View rounded="$full" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} p="$2">
             <Feather name="share" mx="$8" size={24} color={currentTheme === 'dark' ? 'white' : 'black'} />
           </View>
-        </View>
+        </View> */}
       </View >
       <ScrollView style={{ backgroundColor: isDarkMode ? '#000' : '#fff' }}>
         <View height="$64" mt="$2" mb="$8">

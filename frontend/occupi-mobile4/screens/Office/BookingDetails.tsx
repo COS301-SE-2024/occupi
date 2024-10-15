@@ -504,10 +504,10 @@ const BookingDetails = () => {
                 <Text color={isDark ? '#000' : '#fff'}>Check out: {endTime}</Text>
               </View>
             </View>
-            <View mt="$1" flexDirection="row" alignItems="center" right="$6">
-              <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius={50} w="$10" />
-              <Text color={isDark ? '#000' : '#fff'}>------------------------------------------------------------------------</Text>
-              <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius={50} w="$10" />
+            <View mt="$1" flexDirection="row" alignItems="center">
+              {/* <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius={50} w="$10" /> */}
+              <Text color={isDark ? '#000' : '#fff'}>--------------------------------------------------</Text>
+              {/* <Box backgroundColor={isDark ? '#000' : '#fff'} h="$10" borderRadius={50} w="$10" /> */}
             </View>
             <View px="$4" py="$2">
               <View flexDirection="row" alignItems="center">

@@ -59,6 +59,7 @@ const ViewBookingDetails = () => {
     const checkin = async () => {
         setIsLoading(true);
         const response = await userCheckin();
+        setCheckedIn(true);
         toast.show({
             placement: 'top',
             render: ({ id }) => {
@@ -132,11 +133,11 @@ const ViewBookingDetails = () => {
                 
                 {isBookingActive ? (
                     <>
-                        <TouchableOpacity style={{ paddingHorizontal: 15 }}>
+                        {/* <TouchableOpacity style={{ paddingHorizontal: 15 }}>
                             <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
                                 <Ionicons name="receipt-outline" size={24} color={isDarkMode ? '#fff' : '#000'} /><Text fontWeight="$bold" color={isDarkMode ? '#fff' : '#000'}> ViewBooking</Text>
                             </View>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                         
                         {isLoading ? (
                             <TouchableOpacity style={{ paddingHorizontal: 15 }} >
@@ -153,12 +154,12 @@ const ViewBookingDetails = () => {
                                     </View>
                                 </TouchableOpacity>
                             ) : (
-                                <TouchableOpacity style={{ paddingHorizontal: 15 }} onPress={() => checkin()}>
+                                <View style={{ paddingHorizontal: 15 }}>
                                     <View flexDirection="row" my="$2" borderRadius={10} alignItems="center" justifyContent="center" backgroundColor={isDarkMode ? '#2C2C2E' : '#F3F3F3'} h="$11">
-                                        <MaterialIcons name="logout" size={24} color={isDarkMode ? '#fff' : '#000'} />
-                                        <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Check out</Text>
+                                        {/* <MaterialIcons name="logout" size={24} color={isDarkMode ? '#fff' : '#000'} /> */}
+                                        <Text fontWeight="bold" color={isDarkMode ? '#fff' : '#000'}> Checked in successfully</Text>
                                     </View>
-                                </TouchableOpacity>
+                                </View>
                             )
                         )}
 
