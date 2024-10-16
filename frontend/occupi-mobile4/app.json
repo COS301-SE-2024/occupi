@@ -17,9 +17,6 @@
     },
     "ios": {
       "supportsTablet": true,
-      "config": {
-        "usesNonExemptEncryption": false
-      },
       "infoPlist": {
         "NSFaceIDUsageDescription": "This app uses Face ID or Touch ID to confirm bookings.",
         "NSLocationWhenInUseUsageDescription": "This app uses your location to provide relevant information."
@@ -30,7 +27,11 @@
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -67,6 +68,12 @@
       "eas": {
         "projectId": "0127a6f2-e29a-4a67-a134-be8c4daed566"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0127a6f2-e29a-4a67-a134-be8c4daed566"
     }
   }
 }

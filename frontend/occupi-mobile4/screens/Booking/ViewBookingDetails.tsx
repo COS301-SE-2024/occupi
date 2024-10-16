@@ -92,7 +92,7 @@ const ViewBookingDetails = () => {
 
     return (
         <View pt="$16" flex={1} backgroundColor={currentTheme === 'dark' ? 'black' : 'white'}>
-            <View flexDirection="row" alignItems="center" >
+            <View flexDirection="row">
                 <Icon as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
                 <Text fontWeight="$bold" fontSize={16} left="$10" color={currentTheme === 'dark' ? 'white' : 'black'}>{room?.roomName}</Text>
             </View>
