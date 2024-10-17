@@ -103,6 +103,7 @@ const Settings = () => {
 
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
+    { title: 'My Stats', description: 'View Personal Statistics', iconName: 'pie-chart', onPress: () => router.push('/stats')},
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
     { title: 'Appearance', description: 'Customize your viewing experience', iconName: 'image', onPress: () => router.push('/set-appearance') },
@@ -155,8 +156,8 @@ const Settings = () => {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }}>
-      <ScrollView style={{ backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }} contentContainerStyle={{ paddingBottom: 80, paddingTop: 40 }}>
+    <View style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF', paddingTop: 40 }}>
+      <ScrollView style={{ backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }} contentContainerStyle={{ paddingBottom: 80 }}>
         <LinearGradient
           colors={currentTheme === 'dark' ? ['#1A1A1A', '#000'] : ['#F0F0F0', '#FFF']}
           style={{

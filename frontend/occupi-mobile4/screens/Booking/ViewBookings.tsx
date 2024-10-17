@@ -4,7 +4,7 @@ import { View, Text, Input, InputField, Image } from '@gluestack-ui/themed';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import RNPickerSelect from 'react-native-picker-select';
 import { Octicons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import Navbar from '../../components/NavBar';
 import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
@@ -147,25 +147,30 @@ const ViewBookings = () => {
 
 
     const onRefresh = React.useCallback(() => {
-        const getRoomData = async () => {
+        setRefreshing(true);
+        const fetchBookings = async () => {
             try {
-                const roomData = await fetchUserBookings(selectedSort);
-                if (roomData) {
-                    // console.log(roomData);
-                    setRoomData(roomData);
-                } else {
-                    setRoomData([]); // Default value if no username is found
+                const currentData = await getCurrentBookings();
+                const historicalData = await getHistoricalBookings();
+
+                if (currentData && currentData.data) {
+                    setCurrentBookings(currentData.data);
+                }
+                if (historicalData && historicalData.data) {
+                    setPastBookings(historicalData.data);
                 }
             } catch (error) {
                 console.error('Error fetching bookings:', error);
+            } finally {
+                setRefreshing(false);
             }
-            setLoading(false);
         };
-        setRefreshing(true);
+
+        // fetchBookings();
         setTimeout(() => {
             setRefreshing(false);
-            getRoomData();
-        }, 2000);
+            fetchBookings();
+        }, 1500);
     }, []);
 
     const toggleLayout = () => {
@@ -354,7 +359,7 @@ const ViewBookings = () => {
                                     { label: 'Recent', value: 'Recent' },
                                     { label: 'Oldest', value: 'Oldest' },
                                 ]}
-                                placeholder={{ label: 'Recent', value: 'Recent' }}
+                                placeholder={{ label: 'Sort By:', value: 'Recent' }}
                                 // backgroundColor={cardBackgroundColor}
                                 style={{
                                     inputIOS: {
@@ -394,6 +399,13 @@ const ViewBookings = () => {
                     </TouchableOpacity>
                 </View>
             </View>
+
+            <TouchableOpacity 
+                style={{ width: wp('80%'), backgroundColor: accentColour, alignItems: 'center', alignSelf: 'center', height: hp('6%'), justifyContent: 'center', borderRadius: 10 }}
+                onPress={() => router.push('/bookings')}
+            >
+                <View flexDirection='row' alignItems='center'><Text fontSize={25} fontWeight={'$medium'} color={textColor}>Create Booking  </Text><Feather name="plus" size={24} color={textColor} /></View>
+            </TouchableOpacity>
 
             {loading === true ? (
                 <>

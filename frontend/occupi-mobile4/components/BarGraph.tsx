@@ -56,7 +56,7 @@ const BarGraph = ({data,tab}) => {
         //   barBorderTopLeftRadius={5}
         //   barBorderTopRightRadius={5}
           spacing={12}
-          backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
+          backgroundColor={"transparent"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
           // rulesColor="gray"
