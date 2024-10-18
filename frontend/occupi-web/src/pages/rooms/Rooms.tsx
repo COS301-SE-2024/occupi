@@ -213,7 +213,7 @@ const Rooms: React.FC = () => {
     <div className="w-full overflow-auto">
       <TopNav
         mainComponent={
-          <div className="text-text_col font-semibold text-2xl ml-5">
+          <div className="text-text_col font-semibold text-2xl ">
             Rooms
             <span className="block text-sm opacity-65 text-text_col_secondary_alt">
               Update And Edit Available rooms in the Building
@@ -239,8 +239,7 @@ const Rooms: React.FC = () => {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-4 mt-2">
-        <h2 className="text-text_col text-2xl font-bold"></h2>
+      <div className="flex items-center justify-between mb-4 mt-2 w-[calc(100%-5.3rem)] ml-9">
         <Button
           className="text-text_col_alt font-semibold bg-secondary_alt"
           onPress={() => setIsAddRoomModalOpen(true)}
@@ -248,24 +247,24 @@ const Rooms: React.FC = () => {
           <FaPlus className="mr-2" />
           Add New Room
         </Button>
-        <Dropdown>
-          <DropdownTrigger>
-            <Button className="text-text_col_alt font-semibold bg-secondary_alt">
-              <FaFilter className="mr-2 " />
-              Filter by Floor
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu>
-            <DropdownItem onPress={() => setFilterCriteria("all")}>All</DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("1")}>Floor 1</DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("2")}>Floor 2</DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("3")}>Floor 3</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+          <Dropdown>
+            <DropdownTrigger>
+              <Button className="text-text_col_alt font-semibold bg-secondary_alt">
+                <FaFilter className="mr-2 " />
+                Filter by Floor
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu>
+              <DropdownItem onPress={() => setFilterCriteria("all")}>All</DropdownItem>
+              <DropdownItem onPress={() => setFilterCriteria("1")}>Floor 1</DropdownItem>
+              <DropdownItem onPress={() => setFilterCriteria("2")}>Floor 2</DropdownItem>
+              <DropdownItem onPress={() => setFilterCriteria("3")}>Floor 3</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
       </div>
 
       <motion.div
-        className="space-y-4"
+        className="space-y-4 ml-9 w-[calc(100%-5.3rem)]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -275,13 +274,9 @@ const Rooms: React.FC = () => {
               <Skeleton key={index} className="h-48 bg-secondary rounded-lg" />
             ))
           : filteredRooms.map((room) => (
-              <motion.div
-                key={room.roomId}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="mb-4 relative"
-              >
-                <Card className="w-full bg-secondary mx-4 relative">
+                <Card 
+                  key={room.roomId}
+                  className="w-full bg-secondary relative">
                   {room.isDisabled && (
                     <Chip color="danger" className="absolute top-2 right-2">
                       Disabled
@@ -349,7 +344,6 @@ const Rooms: React.FC = () => {
                     </div>
                   </div>
                 </Card>
-              </motion.div>
             ))}
       </motion.div>
 
