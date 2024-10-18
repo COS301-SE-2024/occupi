@@ -25,7 +25,6 @@ import {
   FaEdit,
   FaTrashAlt,
   FaPlus,
-  FaUpload,
 } from "react-icons/fa";
 import { AddRoomModal, FeedBackModal, TopNav } from "@components/index";
 import { uploadRoomImage } from 'Api';
@@ -69,7 +68,7 @@ const Rooms: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [filterCriteria, setFilterCriteria] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
-  const [, setIsEditModalOpen] = useState(false);
+  const [editModal, setIsEditModalOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [roomToDisable, setRoomToDisable] = useState<Room | null>(null);
@@ -264,7 +263,7 @@ const Rooms: React.FC = () => {
       </div>
 
       <motion.div
-        className="space-y-4 ml-9 w-[calc(100%-5.3rem)]"
+        className="space-y-4 ml-9 w-[calc(100%-5.3rem)] mb-9"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -290,23 +289,13 @@ const Rooms: React.FC = () => {
                           src={room.roomImage.midRes}
 
                           alt={room.roomName}
-                          className="w-full h-48 object-cover rounded-lg"
+                          className="w-full h-full object-cover rounded-lg"
                         />
                       ) : (
                         <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
                           <span className="text-gray-400">No image available</span>
                         </div>
                       )}
-                      <Button
-                        className="mt-2 text-text_col_alt font-semibold bg-secondary_alt"
-                        onPress={() => {
-                          setSelectedRoom(room);
-                          setIsUploadModalOpen(true);
-                        }}
-                      >
-                        <FaUpload className="mr-2" />
-                        Upload Image
-                      </Button>
                     </div>
                     <div className="w-full md:w-2/3 flex flex-col">
                       <h4 className="text-text_col text-xl font-bold mb-2">{room.roomName}</h4>
