@@ -53,6 +53,7 @@
     "chalk": "^5.3.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "core-js": "^3.38.1",
     "dom-to-image": "^2.6.0",
     "express": "^4.19.2",
     "flexsearch": "^0.7.43",
@@ -113,6 +114,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "daisyui": "^4.12.10",
+    "esbuild": "^0.24.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
@@ -125,7 +127,7 @@
     "react-use-cookie": "^1.6.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.5.2",
-    "vite": "^5.3.2",
+    "vite": "^5.4.9",
     "vite-plugin-mkcert": "^1.17.5"
   }
 }

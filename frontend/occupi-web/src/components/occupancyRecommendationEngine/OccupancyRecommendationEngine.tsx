@@ -181,18 +181,19 @@ const OccupancyRecommendationEngine: React.FC = () => {
   };
 
   return (
-    <div className="p-4 space-y-4 text-text_col_secondary_alt">
-      <Card>
+    <div className="space-y-4 text-text_col_secondary_alt w-full">
+      <Card className="w-full">
         <CardHeader>
           <h4 className="text-lg font-semibold">
             Occupancy Prediction and Recommendations
           </h4>
         </CardHeader>
         <CardBody>
-          <div className="flex space-x-4 mb-4">
+          <div className="flex space-x-2 mb-4">
             <div>
               <label className="block mb-2">Start Date</label>
-              <DatePicker
+                <DatePicker
+                className="w-3/4"
                 selected={startDate}
                 onChange={(date: Date | null) => {
                   if (date) setStartDate(date);
@@ -205,6 +206,7 @@ const OccupancyRecommendationEngine: React.FC = () => {
             <div>
               <label className="block mb-2">End Date</label>
               <DatePicker
+                className="w-3/4"
                 selected={endDate}
                 onChange={(date: Date | null) => {
                   if (date) setEndDate(date);

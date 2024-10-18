@@ -54,14 +54,14 @@ const UserStatsComponent = ({ email }: { email: string }) => {
     return (
       <div className="font-bold ">
         Loading...
-        <img className=" h-96 w-62" src={AI_loader} alt="" />
+        <img className=" h-36 w-auto" src={AI_loader} alt="" />
       </div>
     );
   if (error) return <div className="text-text_col_red_salmon">Error: {error}</div>;
 
   return (
     <div className="p-4 text-text_col_secondary_alt rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-4 text-white">Occubot User Statistics</h1>
+      <h1 className="text-2xl font-bold mb-4">Occubot User Statistics</h1>
       {stats && (
         <div className="space-y-2 text-white">
           <p className="text-text_col_secondary_alt">

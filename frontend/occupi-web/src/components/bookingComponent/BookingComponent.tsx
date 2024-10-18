@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { useDisclosure } from "@nextui-org/react";
+import { button, useDisclosure } from "@nextui-org/react";
 
 import {
   Table,
@@ -147,20 +147,20 @@ export default function App() {
     switch (columnKey) {
       case "name":
         return (
-          <User
-            avatarProps={{
-              radius: "lg",
-              src: `https://dev.occupi.tech/api/download-profile-image?email=${user.email}&quality=low`,
-            }}
-            description={user.email}
-            name={cellValue}
-          >
-            {user.email}
-          </User>
+            <User
+              avatarProps={{
+                radius: "lg",
+                src: `https://dev.occupi.tech/api/download-profile-image?email=${user.email}&quality=low`,
+              }}
+              description={user.email}
+              name={cellValue}
+            >
+              {user.email}
+            </User>
         );
       case "position":
         return (
-          <div className="flex  flex-col">
+          <div className="flex flex-col">
             <p className="text-bold text-small text-text_col capitalize">
               {cellValue}
             </p>
@@ -203,35 +203,39 @@ export default function App() {
 
       case "actions":
         return (
-          <div className="relative flex items-center gap-2">
-            <Tooltip content="View User Details">
-              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                {/* <EyeIcon /> */}
-                <div onClick={onOpen}>{/* <EyeIcon />Hello */}</div>
-                <OccupancyModal user={user} />
-              </span>
-            </Tooltip>
-            {/* <Tooltip content="Edit user">
-              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                <EditIcon />
-              </span>
-            </Tooltip> */}
-            <Tooltip content="Email user">
-              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
-                <a
-                  href={`mailto:${user.email}`}
-                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                >
-                  <FontAwesomeIcon icon={faEnvelope} />
-                </a>
-              </span>
-            </Tooltip>
-            {/* <Tooltip color="danger" content="Delete user">
-              <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                <DeleteIcon />
-              </span>
-            </Tooltip> */}
-          </div>
+          // <div className="relative gap-2 flex justify-center items-center">
+          //   <Tooltip content="View User Details">
+          //     <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+          //       {/* <EyeIcon /> */}
+          //       <div onClick={onOpen}>{/* <EyeIcon />Hello */}</div>
+          //       <OccupancyModal user={user} />
+          //     </span>
+          //   </Tooltip>
+          //   {/* <Tooltip content="Edit user">
+          //     <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+          //       <EditIcon />
+          //     </span>
+          //   </Tooltip> */}
+          //   <Tooltip content="Email user">
+          //     <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+          //       <a
+          //         href={`mailto:${user.email}`}
+          //         className="text-lg text-default-400 cursor-pointer active:opacity-50"
+          //       >
+          //         <FontAwesomeIcon icon={faEnvelope} />
+          //       </a>
+          //     </span>
+          //   </Tooltip>
+          //   {/* <Tooltip color="danger" content="Delete user">
+          //     <span className="text-lg text-danger cursor-pointer active:opacity-50">
+          //       <DeleteIcon />
+          //     </span>
+          //   </Tooltip> */}
+          // </div>
+          <>
+          <OccupancyModal user={user} />
+          </>
+          
         );
       default:
         return cellValue;
@@ -378,8 +382,8 @@ export default function App() {
         <Pagination
           isCompact
           showControls
-          showShadow
-          color="primary"
+          // showShadow
+          color="default"
           page={page}
           total={pages}
           onChange={setPage}
@@ -438,7 +442,7 @@ export default function App() {
             wrapper: "max-h-[382px]",
           }}
           selectedKeys={selectedKeys}
-          selectionMode="multiple"
+          selectionMode="none"
           sortDescriptor={sortDescriptor}
           topContent={topContent}
           topContentPlacement="outside"
@@ -458,11 +462,13 @@ export default function App() {
           </TableHeader>
           <TableBody emptyContent={"No users found"} items={sortedItems}>
             {(item) => (
-              <TableRow key={item.id}>
+              // <div>
+              <TableRow key={item.id} >
                 {(columnKey) => (
                   <TableCell>{renderCell(item, columnKey)}</TableCell>
                 )}
               </TableRow>
+              // </div>   
             )}
           </TableBody>
         </Table>
