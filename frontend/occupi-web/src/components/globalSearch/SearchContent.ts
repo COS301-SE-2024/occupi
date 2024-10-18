@@ -15,5 +15,7 @@ export const pages = [
     { id: 15, path: "/employees", title: "Employees", description: "View employee details and employee statistics on an individualised level" },
     { id: 16, path: "/booking-statistics/overview", title: "Bookings Overview", description: "View overview statistics on bookings" },
     { id: 17, path: "/booking-statistics/bookings-dashboard", title: "Bookings Dashboard", description: "View deeper statistics on bookings" },
-    { id: 18, path: "/user-locations", title: "User login locations", description: "Manage users allowed login locations, see their ip addresses for these allowed locations"}
+    { id: 18, path: "/user-locations", title: "User login locations", description: "Manage users allowed login locations, see their ip addresses for these allowed locations"},
+    { id: 19, path: "/", title: "At a glance", description: "View the overview of the system info at a glance" },
+    { id: 20, path: "/employees", title: "Admin", description: "Change admin status of employees" },
   ];
