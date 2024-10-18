@@ -18,4 +18,15 @@ export const pages = [
     { id: 18, path: "/user-locations", title: "User login locations", description: "Manage users allowed login locations, see their ip addresses for these allowed locations"},
     { id: 19, path: "/", title: "At a glance", description: "View the overview of the system info at a glance" },
     { id: 20, path: "/employees", title: "Admin", description: "Change admin status of employees" },
+    { id: 21, path: "/employees", title: "Employee Statistics", description: "View employee statistics" },
+    { id: 22, path: "/employees", title: "Site status", description: "View employee on site and offsite status" },
+    { id: 23, path: "/employees", title: "Mail employee", description: "Send a personalised email to your employee" },
+    { id: 24, path: "/employees", title: "Employee Hours", description: "View users total on site hours" },
+    { id: 25, path: "/employees", title: "Employee average arrival and departure", description: "View users average arrival and departure times" },
+    { id: 26, path: "/employees", title: "Employee average on site time", description: "View users average on site time" },
+    { id: 27, path: "/employees", title: "Employee peak hours time", description: "View users peak hours on site" },
+    { id: 28, path: "/employees", title: "Generate report", description: "Generate a report on employee statistics" },
+    { id: 29, path: "/employees", title: "Search for employees", description: "View employee check-ins" },
+    { id: 30, path: "/booking-statistics/bookings-dashboard", title: "Top 3 bookings", description: "View top 3 bookings in the system" },
+    
   ];
