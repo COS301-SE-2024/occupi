@@ -83,8 +83,6 @@ export default function App() {
     direction: "ascending",
   });
 
-  const { onOpen } = useDisclosure();
-
   const [page, setPage] = React.useState(1);
 
   const hasSearchFilter = Boolean(filterValue);
