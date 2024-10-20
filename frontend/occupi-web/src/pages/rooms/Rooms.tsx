@@ -314,6 +314,7 @@ const Rooms: React.FC = () => {
                         <FaRegComments className="mr-2" />
                         <p className="text-text_col">Room No: {room.roomNo}</p>
                       </div>
+                      {/*}
                       <div className="flex items-center justify-end">
                         <Button
                           className="text-text_col_alt font-semibold bg-secondary_alt mr-2"
@@ -329,7 +330,7 @@ const Rooms: React.FC = () => {
                           <FaTrashAlt className="mr-2" />
                           {room.isDisabled ? "Enable" : "Disable"}
                         </Button>
-                      </div>
+                      </div>*/}
                     </div>
                   </div>
                 </Card>
