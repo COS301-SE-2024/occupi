@@ -53,7 +53,7 @@
     - [Testing Policy](#testing-policy)
     - [User Manuals](#user-manuals)
 - [Accessing the app](#accessing-the-app)
-- [Video Demo](#video-demo]
+- [Video Demo](#video-demo)
 - [Tech Stack](#tech-stack)
 - [Contributing](#contributing)
 - [Reporting security issues](#reporting-security-issues)
