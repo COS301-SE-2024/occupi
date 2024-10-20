@@ -154,10 +154,10 @@ function BasicDocument() {
         const roomsData = roomsResponse.data.data;
         const bookingsData = bookingsResponse.data.data;
 
-        const totalFloors = new Set(roomsData.map((room: { floorNo: any; }) => room.floorNo)).size;
+        const totalFloors = new Set(roomsData.map((room: { floorNo: number; }) => room.floorNo)).size;
         const totalMeetingRooms = roomsData.length;
-        const totalOccupancy = bookingsData.reduce((sum: any, booking: { count: any; }) => sum + booking.count, 0);
-        const totalCapacity = roomsData.reduce((sum: any, room: { maxOccupancy: any; }) => sum + (room.maxOccupancy || 0), 0);
+        const totalOccupancy = bookingsData.reduce((sum: number, booking: { count: number; }) => sum + booking.count, 0);
+        const totalCapacity = roomsData.reduce((sum: number, room: { maxOccupancy: number; }) => sum + (room.maxOccupancy || 0), 0);
         const averageUtilization = totalCapacity > 0 ? (totalOccupancy / totalCapacity) * 100 : 0;
 
         setAdditionalData([
