@@ -167,7 +167,7 @@ const Appearance = () => {
                 }} />
               </Pressable>
             ))}
-            <TouchableOpacity onPress={() => setShowColourPicker(!showColourPicker)} style={{ backgroundColor: '#e2e2e2', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderRadius: 10, padding: 10 }}>
+            <TouchableOpacity onPress={() => setShowColourPicker(!showColourPicker)} style={{ backgroundColor: 'grey', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderRadius: 10, padding: 10 }}>
               <Text style={{
                 fontSize: wp('5%'),
                 // fontWeight: 'bold',

@@ -83,8 +83,8 @@ const NavBar = () => {
     <View style={styles.container}>
       <View style={styles.navbar}>
         <View style={styles.leftButtons}>
-          {renderTabButton('Book', 'book', '/bookings')}
-          {renderTabButton('Bookings', 'search', '/viewbookings')}
+          {/* {renderTabButton('Book', 'book', '/bookings')} */}
+          {renderTabButton('Bookings', 'book', '/viewbookings')}
         </View>
         {renderTabButton('Home', 'home', '/home', true)}
         <View style={styles.rightButtons}>
