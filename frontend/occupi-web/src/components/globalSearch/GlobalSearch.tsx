@@ -83,6 +83,13 @@ const GlobalSearch = () => {
                             </div>
                             ) : null;
                         })}
+                        {
+                            results.length === 0 && searchQuery.length > 0 && (
+                                <div className="w-full rounded-[15px] bg-secondary p-[8px] cursor-pointer">
+                                    <h4>No results found</h4>
+                                </div>
+                            )
+                        }
                     </ModalBody>
                     <div className="mb-4"/>
                 </ModalContent>
