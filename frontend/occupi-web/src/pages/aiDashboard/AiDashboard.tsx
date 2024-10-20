@@ -135,14 +135,14 @@ const AiDashboard: React.FC = () => {
     {
       id: "card1",
       title: "Office Occupancy",
-      icon: <FaUsers size={24} color="white" />,
+      icon: <FaUsers size={24}  />,
       stat: workRatio ? `${(workRatio * 10).toFixed(2)}%` : "Loading...",
       trend: 3.46,
     },
     {
       id: "card2",
       title: "Available Space",
-      icon: <FaBed size={24} color="white" />,
+      icon: <FaBed size={24}  />,
       stat: totalMaxCapacity && totalBookings
       ? `${totalBookings}/${totalMaxCapacity}`
       : "Loading...",      trend: -2.1,
@@ -150,14 +150,14 @@ const AiDashboard: React.FC = () => {
     {
       id: "card3",
       title: "Bookings",
-      icon: <FaClipboardList size={24} color="white" />,
+      icon: <FaClipboardList size={24}  />,
       stat: currentBookings !== null ? `${currentBookings}` : "Loading...",
       trend: 8.7,
     },
     {
       id: "card4",
       title: "Check-ins Today",
-      icon: <FaCalendarCheck size={24} color="white" />,
+      icon: <FaCalendarCheck size={24}  />,
       stat: `${counter}`,
       trend: 3.4,
     },
@@ -340,21 +340,21 @@ const AiDashboard: React.FC = () => {
                 </div>
               )
           )}
-          <div key="graph1" className="bg-secondary rounded-lg shadow-md p-4">
+          <div key="graph1" className="border border-gray-200 dark:border-gray-700  rounded-lg shadow-md p-4">
             <PredictedCapacityGraph />
           </div>
-          <div key="graph2" className="bg-secondary rounded-lg shadow-md p-4">
+          <div key="graph2" className="border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-4">
             <CapacityComparisonGraph />
           </div>
           <div
             key="hourlyPrediction"
-            className="bg-secondary rounded-lg shadow-md p-4"
+            className="border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-4"
           >
             <HourlyPredictionGraph />
           </div>
           <div
             key="hourlyCapacity"
-            className="bg-secondary rounded-lg shadow-md p-4"
+            className=" border border-gray-200 dark:border-gray-700 rounded-lg shadow-md p-4"
           >
             <HourlyComparisonGraph />
           </div>

@@ -281,7 +281,7 @@ const Rooms: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 className="mb-4 relative"
               >
-                <Card className="w-full bg-secondary mx-4 relative">
+                <Card className="w-auto mx-2 ">
                   {room.isDisabled && (
                     <Chip color="danger" className="absolute top-2 right-2">
                       Disabled
