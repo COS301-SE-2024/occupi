@@ -7,6 +7,7 @@ import {
   ModalHeader,
 } from "@nextui-org/react";
 import DataService from "DataService";
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 
 const AddIPModal = ({ 
     onClose,
@@ -22,6 +23,11 @@ const AddIPModal = ({
   
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const [err, setErr] = React.useState<string | null>(null);
+    const [selectedLocation, setSelectedLocation] = React.useState({lat: 0, lng: 0});
+    const { isLoaded } = useJsApiLoader({
+      id: 'google-map-script',
+      googleMapsApiKey: 'YOUR_API_KEY',
+    })
   
     const validateEmail = (email: string) => {
       return email === "" ? true : email.match(
@@ -34,6 +40,30 @@ const AddIPModal = ({
         /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/
       );
     };
+
+    const onMapClick = (e: google.maps.MapMouseEvent) => {
+      const lat = e.latLng?.lat();
+      const lng = e.latLng?.lng();
+      if(lat === undefined || lng === undefined) return;
+      setSelectedLocation({ lat, lng });
+      estimateIp(lat, lng); // Call the function to estimate IP
+    };
+
+    const estimateIp = async (lat: number, lng: number) => {
+      try {
+        const response = await axios.get(
+          `https://ipinfo.io/${lat},${lng}/json?token=YOUR_IPINFO_TOKEN`
+        );
+        if(response.data.ip){
+          setForm({ ...form, ip: response.data.ip });
+        }else{
+          setErr('Failed to estimate IP');
+        }
+      } catch (error) {
+        console.error(error);
+        setErr('Failed to estimate IP');
+      }
+    };
   
     return (
       <>
@@ -42,7 +72,19 @@ const AddIPModal = ({
         </ModalHeader>
         <ModalBody className="flex">
           <div className="bg-slate-100 w-[20vw] h-full">
-
+            {
+              isLoaded ?
+                <GoogleMap
+                  mapContainerStyle={{width: "20vw", height: "100%"}}
+                  center={{ lat: 0, lng: 0 }}
+                  zoom={10}
+                  onClick={onMapClick}
+                >
+                  {selectedLocation && <Marker position={selectedLocation} />}
+                </GoogleMap>
+                :
+                <></>
+            }
           </div>
           <Input
             value={form.email}
