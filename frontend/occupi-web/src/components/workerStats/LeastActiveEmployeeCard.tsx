@@ -99,7 +99,7 @@ const LeastActiveEmployeeCard = () => {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-tiny opacity-80">Activity Level</span>
+            <span className="text-tiny opacity-80">Efficiency</span>
             <Progress 
               size="sm" 
               radius="sm" 
