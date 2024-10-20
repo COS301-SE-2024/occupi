@@ -39,7 +39,7 @@ const UserWorkRatioChart = ({ email }: UserWorkRatioChartProps) => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
-    const chartData = userWorkRatioData?.data.map((entry: WorkRatioEntry, index: number) => ({
+    const chartData = userWorkRatioData?.data.map((entry: WorkRatioEntry) => ({
     name: `In office %`,
     value: Math.round(entry.ratio * 10)
   }));

@@ -1,8 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { button, useDisclosure } from "@nextui-org/react";
+import { useDisclosure } from "@nextui-org/react";
 
 import {
   Table,
@@ -22,8 +20,7 @@ import {
   Pagination,
   Selection,
   ChipProps,
-  SortDescriptor,
-  Tooltip,
+  SortDescriptor
 } from "@nextui-org/react";
 import { SearchIcon } from "@assets/index";
 import { ChevronDownIcon } from "@assets/index";
