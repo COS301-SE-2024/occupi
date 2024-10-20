@@ -215,10 +215,10 @@ plt.ylabel('Attendance Level')
 plt.title('Predicted Attendance Levels for the Week')
 plt.show()
 
-# Save the model in the SavedModel format
-tf.saved_model.save(model, 'attendance_model/1')
-# model.export('C:/Users/retha/Capstone/occupi/models/attendance_model/1')
+# # Save the model in the SavedModel format
+# tf.saved_model.save(model, 'attendance_model/1')
+# # model.export('C:/Users/retha/Capstone/occupi/models/attendance_model/1')
 
-new_model = tf.keras.models.load_model('C:/Users/retha/Capstone/occupi/attendance_model.keras')
-new_model.summary()
-tf.saved_model.save(new_model, 'serving/')  # Save the model in the SavedModel format
+# new_model = tf.keras.models.load_model('C:/Users/retha/Capstone/occupi/attendance_model.keras')
+# new_model.summary()
+# tf.saved_model.save(new_model, 'serving/')  # Save the model in the SavedModel format
