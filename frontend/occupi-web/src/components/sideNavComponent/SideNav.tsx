@@ -110,7 +110,7 @@ const SideNav = () => {
       else if (pn.startsWith("/reports")) setSelectedPanel("Reports");
       else if (pn.startsWith("/faq")) setSelectedPanel("Help");
       else if (pn.startsWith("/booking-statistics")) setSelectedPanel("Booking Statistics");
-      else if (pn.startsWith("/worker-dashboard")) setSelectedPanel("Worker Dashboard");
+      else if (pn.startsWith("/worker-dashboard")) setSelectedPanel("Company Statistics");
       else if (pn.startsWith("/employees")) setSelectedPanel("Employees");
       else if (pn.startsWith("/user-locations")) setSelectedPanel("IP addresses");
       else setSelectedPanel("");
