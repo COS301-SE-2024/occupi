@@ -12,7 +12,6 @@ import { TopNav } from "@components/index";
 import { occupiLogo } from "@assets/index";
 import axios from "axios";
 
-// Define the interface for the data
 interface CapacityData {
   date: string;
   day: string;
@@ -32,7 +31,6 @@ interface ResponseItem {
   Special_Event: number;
 }
 
-// Sample data
 const occupancyData = [
   { month: "January", occupancy: 60 },
   { month: "February", occupancy: 70 },
@@ -48,7 +46,6 @@ const occupancyData = [
   { month: "December", occupancy: 80 },
 ];
 
-// Create styles
 const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
@@ -71,8 +68,18 @@ const styles = StyleSheet.create({
     textAlign: "right",
     textTransform: "uppercase",
   },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#333333",
+    paddingBottom: 5,
+    borderBottom: "1 solid #CCCCCC",
+  },
   section: {
-    marginVertical: 10,
+    marginVertical: 15,
+    padding: 10,
+    backgroundColor: "#FAFAFA",
   },
   paragraph: {
     marginVertical: 10,
@@ -112,28 +119,27 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "grey",
   },
-  chartContainer: {
-    marginVertical: 20,
-    width: "100%",
-    height: 200,
-    backgroundColor: "#E5E5E5",
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
+  bulletPoint: {
+    marginLeft: 10,
+    fontSize: 12,
   },
 });
 
-// summary data
 const summaryText = `This report provides an in-depth analysis of the office occupancy trends over highlighting key areas for improvement and optimization based on AI-driven predictions.`;
-function BasicDocument() {
-// Mock additional data for the report
-const [additionalData, setAdditionalData] = useState([
-  { category: "Total Floors", value: 0 },
-  { category: "Total Meeting Rooms", value: 0 },
-  { category: "Average Desk Utilization", value: "0%" },
-]);
 
-useEffect(() => {
+function BasicDocument() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [capacityData, setCapacityData] = useState<CapacityData[]>([]);
+  const [, setLoading] = useState(true);
+  const [, setError] = useState<Error | null>(null);
+  const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
+  const [additionalData, setAdditionalData] = useState([
+    { category: "Total Floors", value: 0 },
+    { category: "Total Meeting Rooms", value: 0 },
+    { category: "Average Desk Utilization", value: "0%" },
+  ]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const [roomsResponse, bookingsResponse] = await Promise.all([
@@ -148,18 +154,10 @@ useEffect(() => {
         const roomsData = roomsResponse.data.data;
         const bookingsData = bookingsResponse.data.data;
 
-        if (!Array.isArray(roomsData) || !Array.isArray(bookingsData)) {
-          throw new Error("Data is not in the expected format");
-        }
-
-        // Calculate total floors
-        const totalFloors = new Set(roomsData.map(room => room.floorNo)).size;
-
-        // Calculate total meeting rooms
+        const totalFloors = new Set(roomsData.map((room: { floorNo: number; }) => room.floorNo)).size;
         const totalMeetingRooms = roomsData.length;
-
-        const totalOccupancy = bookingsData.reduce((sum, booking) => sum + booking.count, 0);
-        const totalCapacity = roomsData.reduce((sum, room) => sum + (room.maxOccupancy || 0), 0);
+        const totalOccupancy = bookingsData.reduce((sum: number, booking: { count: number; }) => sum + booking.count, 0);
+        const totalCapacity = roomsData.reduce((sum: number, room: { maxOccupancy: number; }) => sum + (room.maxOccupancy || 0), 0);
         const averageUtilization = totalCapacity > 0 ? (totalOccupancy / totalCapacity) * 100 : 0;
 
         setAdditionalData([
@@ -176,26 +174,10 @@ useEffect(() => {
     fetchData();
   }, []);
 
-// Create Document Component
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [capacityData, setCapacityData] = useState<CapacityData[]>([]);
-  const [, setLoading] = useState(true);
-  const [, setError] = useState<Error | null>(null);
-  const [selectedMonths, setSelectedMonths] = useState<string[]>([]);
-
-  const handleInputChange = (e: {
-    target: { value: React.SetStateAction<string> };
-  }) => {
-    setSearchQuery(e.target.value);
-  };
-
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCapacityData = async () => {
       try {
-        const response = await axios.get<ResponseItem[]>(
-          "https://ai.occupi.tech/predict_week"
-        );
+        const response = await axios.get<ResponseItem[]>("https://ai.occupi.tech/predict_week");
         const formattedData = response.data.map((item: ResponseItem) => ({
           date: item.Date,
           day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][item.Day_of_Week],
@@ -211,18 +193,20 @@ useEffect(() => {
       }
     };
 
-    fetchData();
+    fetchCapacityData();
   }, []);
 
+  const handleInputChange = (e: { target: { value: React.SetStateAction<string> }}) => {
+    setSearchQuery(e.target.value);
+  };
+
   const handleMonthSelection = (month: string) => {
-    setSelectedMonths((prevMonths) =>
-      prevMonths.includes(month)
-        ? prevMonths.filter((m) => m !== month)
-        : [...prevMonths, month]
+    setSelectedMonths(prev => 
+      prev.includes(month) ? prev.filter(m => m !== month) : [...prev, month]
     );
   };
 
-  const filteredOccupancyData = occupancyData.filter((data) =>
+  const filteredOccupancyData = occupancyData.filter(data =>
     selectedMonths.includes(data.month)
   );
 
@@ -232,7 +216,7 @@ useEffect(() => {
         mainComponent={
           <div className="text-text_col font-semibold text-2xl ml-5">
             Reports
-            <span className="block text-sm opacity-65  text-text_col_secondary_alt ">
+            <span className="block text-sm opacity-65 text-text_col_secondary_alt">
               Generate and download reports for Analysis
             </span>
           </div>
@@ -241,7 +225,6 @@ useEffect(() => {
         onChange={handleInputChange}
       />
 
-      {/* Month Filter */}
       <div className="flex flex-wrap mb-4">
         {occupancyData.map((data) => (
           <button
@@ -267,13 +250,28 @@ useEffect(() => {
             </View>
 
             <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Executive Summary</Text>
               <Text style={styles.paragraph}>{summaryText}</Text>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.paragraph}>
-                Monthly Office Occupancy Table
-              </Text>
+              <Text style={styles.sectionTitle}>Facility Overview</Text>
+              <View style={styles.table}>
+                {additionalData.map((item, index) => (
+                  <View style={styles.tableRow} key={index}>
+                    <View style={styles.tableCol}>
+                      <Text style={styles.tableCell}>{item.category}</Text>
+                    </View>
+                    <View style={styles.tableCol}>
+                      <Text style={styles.tableCell}>{item.value}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Monthly Occupancy Analysis</Text>
               <View style={styles.table}>
                 <View style={[styles.tableRow, styles.tableHeader]}>
                   <View style={styles.tableCol}>
@@ -296,26 +294,8 @@ useEffect(() => {
               </View>
             </View>
 
-           {/* Updated Additional data section */}
-           <View style={styles.section}>
-              <Text style={styles.paragraph}>Additional Details</Text>
-              <View style={styles.table}>
-                {additionalData.map((item, index) => (
-                  <View style={styles.tableRow} key={index}>
-                    <View style={styles.tableCol}>
-                      <Text style={styles.tableCell}>{item.category}</Text>
-                    </View>
-                    <View style={styles.tableCol}>
-                      <Text style={styles.tableCell}>{item.value}</Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            {/* AI Predicted Capacity */}
             <View style={styles.section}>
-              <Text style={styles.paragraph}>AI Predicted Capacity for the Week</Text>
+              <Text style={styles.sectionTitle}>Weekly Capacity Forecast</Text>
               <View style={styles.table}>
                 <View style={[styles.tableRow, styles.tableHeader]}>
                   <View style={styles.tableCol}>
@@ -356,71 +336,56 @@ useEffect(() => {
               </View>
             </View>
 
-            {/* Visualization */}
-            
-
             <Text
               style={styles.pageNumber}
-              render={({ pageNumber, totalPages }) =>
-                `${pageNumber} / ${totalPages}`
-              }
+              render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
               fixed
             />
           </Page>
 
-          {/* Second Page */}
           <Page size="A4" style={styles.page}>
             <View style={styles.header}>
               <Image style={styles.logo} src={occupiLogo} />
-              <Text style={styles.title}>Occupi Report - Summary</Text>
+              <Text style={styles.title}>Occupi Report - Analysis</Text>
             </View>
 
             <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Weekly Attendance Insights</Text>
               <Text style={styles.paragraph}>
-                This page provides a summary of the occupancy trends observed
-                over the past six months. It highlights the overall increase in
-                office utilization and recommends strategies to optimize
-                workspace efficiency.
+                Based on AI predictions, here are the key metrics for the upcoming week:
+              </Text>
+              <Text style={styles.bulletPoint}>
+                • Peak Attendance: {Math.max(...capacityData.map(d => parseInt(d.predicted.split('-')[1])))}% 
+                ({capacityData.find(d => d.predicted === Math.max(...capacityData.map(d => parseInt(d.predicted.split('-')[1]))).toString())?.day})
+              </Text>
+              <Text style={styles.bulletPoint}>
+                • Lowest Attendance: {Math.min(...capacityData.map(d => parseInt(d.predicted.split('-')[0])))}%
+                ({capacityData.find(d => d.predicted === Math.min(...capacityData.map(d => parseInt(d.predicted.split('-')[0]))).toString())?.day})
+              </Text>
+              <Text style={styles.bulletPoint}>
+                • Weekend Days: {capacityData.filter(d => d.isWeekend).length}
+              </Text>
+              <Text style={styles.bulletPoint}>
+                • Special Events: {capacityData.filter(d => d.specialEvent).length}
               </Text>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.paragraph}>
-                Weekly Attendance Analysis
+              <Text style={styles.sectionTitle}>Recommendations</Text>
+              <Text style={styles.bulletPoint}>
+                • Optimize office hours based on peak occupancy patterns
               </Text>
-              <Text style={styles.paragraph}>
-                Based on the AI predictions, here's a summary of the upcoming week:
+              <Text style={styles.bulletPoint}>
+                • Restructure meeting room allocation for maximum efficiency
               </Text>
-              <Text style={styles.paragraph}>
-                - Highest predicted attendance: {Math.max(...capacityData.map(d => parseInt(d.predicted.split('-')[1])))} (on {capacityData.find(d => d.predicted === Math.max(...capacityData.map(d => parseInt(d.predicted.split('-')[1]))).toString())?.day})
-              </Text>
-              <Text style={styles.paragraph}>
-                - Lowest predicted attendance: {Math.min(...capacityData.map(d => parseInt(d.predicted.split('-')[0])))} (on {capacityData.find(d => d.predicted === Math.min(...capacityData.map(d => parseInt(d.predicted.split('-')[0]))).toString())?.day})
-              </Text>
-              <Text style={styles.paragraph}>
-                - Number of weekend days: {capacityData.filter(d => d.isWeekend).length}
-              </Text>
-              <Text style={styles.paragraph}>
-                - Special events this week: {capacityData.filter(d => d.specialEvent).length}
-              </Text>
-            </View>
-
-            {/* Recommendations */}
-            <View style={styles.section}>
-              <Text style={styles.paragraph}>Recommendations</Text>
-              <Text style={styles.paragraph}>
-                - Adjust office hours to align with peak occupancy times.
-                - Re-evaluate the use of meeting rooms and common areas to
-                maximize efficiency.
-                - Consider flexible work policies to balance occupancy across different days.
+              <Text style={styles.bulletPoint}>
+                • Implement flexible work policies to balance daily occupancy
               </Text>
             </View>
 
             <Text
               style={styles.pageNumber}
-              render={({ pageNumber, totalPages }) =>
-                `${pageNumber} / ${totalPages}`
-              }
+              render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
               fixed
             />
           </Page>
@@ -431,7 +396,3 @@ useEffect(() => {
 }
 
 export default BasicDocument;
-
-
-
-

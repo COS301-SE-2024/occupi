@@ -16,7 +16,7 @@ const ProtectedRoute = (props: ProtectedRouteProps) => {
     const checkAuthentication = async () => {
       if(userDetails === null){
         const res = await AuthService.pingAdmin();
-        if (res.status === 200 && res.message === "pong -> I am alive and kicking and you are an admin") {
+        if (res.status === 200) {
           const userDeets = await AuthService.getUserDetails();
           setUserDetails(userDeets);
         } else {
