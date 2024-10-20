@@ -28,5 +28,7 @@ export const pages = [
     { id: 28, path: "/employees", title: "Generate report", description: "Generate a report on employee statistics" },
     { id: 29, path: "/employees", title: "Search for employees", description: "View employee check-ins" },
     { id: 30, path: "/booking-statistics/bookings-dashboard", title: "Top 3 bookings", description: "View top 3 bookings in the system" },
-    
+    { id: 31, path: "/booking-statistics/bookings-dashboard", title: "Current bookings", description: "View current bookings in the system" },
+    { id: 32, path: "/booking-statistics/bookings-dashboard", title: "Booking statistics", description: "View booking statistics" },
+    { id: 33, path: "/booking-statistics/bookings-dashboard", title: "Booking history", description: "View historical data on bookings"}
   ];
