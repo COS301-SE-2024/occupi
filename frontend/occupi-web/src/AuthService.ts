@@ -373,7 +373,7 @@ const AuthService = {
       const response = await axios.get(`/ping-admin`, {
         withCredentials: true,
       });
-      return response.data;
+      return response;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
         throw error.response.data;

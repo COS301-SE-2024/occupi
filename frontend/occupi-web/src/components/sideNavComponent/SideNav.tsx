@@ -41,7 +41,7 @@ const sidebarcontent = [
   },
   {
     icon: Worker,
-    text: "Worker Dashboard",
+    text: "Company Statistics",
   },
   {
     icon: PieChart,
@@ -90,7 +90,7 @@ const SideNav = () => {
     else if (arg === "Reports") navigate("/reports");
     else if (arg === "Help") navigate("/faq");
     else if (arg === "Booking Statistics") navigate("/booking-statistics/overview");
-    else if (arg === "Worker Dashboard") navigate("/worker-dashboard");
+    else if (arg === "Company Statistics") navigate("/worker-dashboard");
     else if (arg === "Employees") navigate("/employees");
     else if (arg === "Location") navigate("/user-locations");
     else;

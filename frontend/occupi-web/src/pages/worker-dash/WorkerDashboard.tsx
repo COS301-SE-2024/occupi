@@ -237,9 +237,9 @@ const WorkerStatsDashboard: React.FC = () => {
       <TopNav
         mainComponent={
           <div className="text-text_col font-semibold text-2xl ml-5">
-            Employee Statistics
+            Company Statistics
             <span className="block text-sm opacity-65 text-text_col_secondary_alt">
-              See all Your Employee Statistics from Occubot
+              See all Your Company Statistics from Occubot
             </span>
           </div>
         }
