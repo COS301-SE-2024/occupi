@@ -1,6 +1,5 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { useDisclosure } from "@nextui-org/react";
 
 import {
   Table,
