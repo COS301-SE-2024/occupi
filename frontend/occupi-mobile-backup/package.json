@@ -32,7 +32,7 @@
     "@testing-library/react-native": "^12.5.1",
     "@ui-kitten/components": "^5.3.1",
     "date-fns": "^3.6.0",
-    "expo": "~51.0.14",
+    "expo": "~51.0.31",
     "expo-blur": "^13.0.2",
     "expo-constants": "~16.0.2",
     "expo-file-system": "^17.0.1",
