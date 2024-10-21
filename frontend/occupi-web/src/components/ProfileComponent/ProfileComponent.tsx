@@ -24,7 +24,7 @@ const ProfileComponent = ({
         break;
       case "offsite":
         colorClass = "badge-error";
-        text = "offsite of Office";
+        text = "Offsite";
         break;
       case "booked":
         colorClass = "badge-warning";

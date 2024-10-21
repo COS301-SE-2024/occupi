@@ -3,7 +3,7 @@ import {
   BuildingTower,
   BookingLevelCalendar,
   OccupancyRecommendationEngine,
-  TopNav,TabComponent
+  TopNav, TabComponent
 } from "@components/index";
 import { motion, AnimatePresence } from "framer-motion";
 import { Info } from "lucide-react";
@@ -41,7 +41,7 @@ const BookingStats: React.FC = () => {
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
-      className="absolute right-4 top-full mt-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-20"
+      className="absolute top-full bg-white dark:bg-gray-800 rounded-lg shadow-lg z-20"
     >
       <h3 className="font-bold mb-2 text-text_col_secondary_alt">
         Color Legend
@@ -78,7 +78,7 @@ const BookingStats: React.FC = () => {
     >
       <TopNav
         mainComponent={
-          <TabComponent setSelectedTab={() => {}} />
+          <TabComponent setSelectedTab={() => { }} />
         }
         searchQuery={searchQuery}
         onChange={handleInputChange}
@@ -89,47 +89,43 @@ const BookingStats: React.FC = () => {
       >
         Visitations Dashboard
       </motion.h1> */}
-      <motion.div
-        className="absolute bottom-4 right-4 cursor-pointer"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <Tooltip content="View color legend">
-          <Info
-            size={24}
-            className="text-indigo-500"
-            onClick={() => setShowLegend(!showLegend)}
-          />
-        </Tooltip>
-      </motion.div>
+
       <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         variants={itemVariants}
       >
         <motion.div
-          className="rounded-lg shadow-lg p-6 h-[450px] relative overflow-visible"
+          className="rounded-lg  p-6 h-[450px] relative overflow-visible"
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
-          <h2 className="text-2xl font-semibold mb-4 text-text_col_secondary_alt">
+          <h2 className="text-2xl font-semibold text-text_col_secondary_alt">
             Building Overview
           </h2>
           <BuildingTower />
-
-          <AnimatePresence>{showLegend && <Legend />}</AnimatePresence>
         </motion.div>
         <motion.div
-          className="rounded-lg shadow-lg p-6"
+          className="rounded-lg p-6 "
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
-          <h2 className="text-2xl font-semibold mb-4 text-text_col_secondary_alt">
-            Booking Calendar
-          </h2>
+          <div className="flex flex-row justify-start items-center mb-3">
+            <h2 className="text-2xl font-semibold text-text_col_secondary_alt">
+              Booking Calendar&nbsp;
+            </h2>
+            <Tooltip content="View color legend">
+              <Info
+                size={24}
+                className="text-indigo-500"
+                onClick={() => setShowLegend(!showLegend)}
+              />
+            </Tooltip>
+          </div>
           <BookingLevelCalendar />
+          <AnimatePresence>{showLegend && <Legend />}</AnimatePresence>
         </motion.div>
         <motion.div
-          className="rounded-lg shadow-lg p-6 md:col-span-2 lg:col-span-1"
+          className="rounded-lg p-6 md:col-span-2 lg:col-span-1"
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
