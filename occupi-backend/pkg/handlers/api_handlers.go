@@ -84,6 +84,19 @@ func BookRoom(ctx *gin.Context, appsession *models.AppSession) {
 		return
 	}
 
+	// check if no booking has been made that coincides with the start and end time of this booking
+	coinciding, err := database.CheckCoincidingBookings(ctx, appsession, booking)
+	if err != nil {
+		configs.CaptureError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse(http.StatusInternalServerError, "Failed to book", constants.InternalServerErrorCode, "Failed to book", nil))
+		return
+	}
+
+	if coinciding {
+		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse(http.StatusBadRequest, "Booking coincides with another booking", constants.BadRequestCode, "Booking coincides with another booking", nil))
+		return
+	}
+
 	// Generate a unique ID for the booking
 	booking.ID = primitive.NewObjectID().Hex()
 	booking.OccupiID = utils.GenerateBookingID()

@@ -1366,8 +1366,7 @@ func TestAddOTP(t *testing.T) {
 		mock.ExpectGet(cache.OTPKey(email, otp)).SetVal(string(otpData))
 
 		// Verify the otp was added to the Cache
-		res := Cache.Get(context.Background(), cache.OTPKey(email, otp))
-		_, err = res.Bytes()
+		_ = Cache.Get(context.Background(), cache.OTPKey(email, otp))
 
 		//assert.Nil(t, err)
 		//assert.NotNil(t, otpv)
@@ -11576,5 +11575,168 @@ func TestGetUsersLocations(t *testing.T) {
 		assert.NoError(t, err, "Expected no error for successful query")
 		assert.Equal(t, int64(0), total, "Expected 0 total result")
 		assert.Nil(t, results, "Expected nil results")
+	})
+}
+
+// TestCheckCoincidingBookings contains all test cases with sub-tests
+func TestCheckCoincidingBookings(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+
+	// Set gin run mode
+	gin.SetMode(configs.GetGinRunMode())
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+
+	// Test cases
+	mt.Run("Database Is Nil", func(mt *mtest.T) {
+		// Database is nil case
+		appsessionNil := &models.AppSession{DB: nil}
+		booking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 9, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 14, 0, 0, 0, time.UTC),
+		}
+
+		result, err := database.CheckCoincidingBookings(ctx, appsessionNil, booking)
+
+		// Assertions
+		assert.Error(t, err)
+		assert.Equal(t, "database is nil", err.Error())
+		assert.False(t, result)
+	})
+
+	mt.Run("NoConflict", func(mt *mtest.T) {
+		// No overlapping booking in the database
+		booking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 13, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 14, 0, 0, 0, time.UTC),
+		}
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch))
+
+		appsession := &models.AppSession{DB: mt.Client}
+
+		result, err := database.CheckCoincidingBookings(ctx, appsession, booking)
+
+		assert.NoError(t, err)
+		assert.False(t, result)
+	})
+
+	mt.Run("WithConflict_FullyEnclosed", func(mt *mtest.T) {
+		// Test with an existing booking that fully encloses the new one (10am-12pm, new booking 9am-1pm)
+		booking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 9, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 13, 0, 0, 0, time.UTC),
+		}
+		existingBooking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 10, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 12, 0, 0, 0, time.UTC),
+		}
+		firstBatch := mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "roomId", Value: existingBooking.RoomID},
+			{Key: "start", Value: existingBooking.Start},
+			{Key: "end", Value: existingBooking.End},
+		})
+		mt.AddMockResponses(firstBatch)
+
+		appsession := &models.AppSession{DB: mt.Client}
+
+		result, err := database.CheckCoincidingBookings(ctx, appsession, booking)
+
+		assert.NoError(t, err)
+		assert.True(t, result)
+	})
+
+	mt.Run("WithConflict_NewFullyEnclosesExisting", func(mt *mtest.T) {
+		// Test with a new booking that fully encloses an existing one (new 9am-2pm, existing 10am-12pm)
+		booking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 9, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 14, 0, 0, 0, time.UTC),
+		}
+		existingBooking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 10, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 12, 0, 0, 0, time.UTC),
+		}
+		firstBatch := mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "roomId", Value: existingBooking.RoomID},
+			{Key: "start", Value: existingBooking.Start},
+			{Key: "end", Value: existingBooking.End},
+		})
+		mt.AddMockResponses(firstBatch)
+
+		appsession := &models.AppSession{DB: mt.Client}
+
+		result, err := database.CheckCoincidingBookings(ctx, appsession, booking)
+
+		assert.NoError(t, err)
+		assert.True(t, result)
+	})
+
+	mt.Run("PartialOverlap_StartInsideExistingEndAfter", func(mt *mtest.T) {
+		// Test with a booking that starts inside and ends after existing booking (existing 10am-12pm, new 11am-1pm)
+		booking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 11, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 13, 0, 0, 0, time.UTC),
+		}
+		existingBooking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 10, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 12, 0, 0, 0, time.UTC),
+		}
+		firstBatch := mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch, bson.D{
+			{Key: "roomId", Value: existingBooking.RoomID},
+			{Key: "start", Value: existingBooking.Start},
+			{Key: "end", Value: existingBooking.End},
+		})
+		mt.AddMockResponses(firstBatch)
+
+		appsession := &models.AppSession{DB: mt.Client}
+
+		result, err := database.CheckCoincidingBookings(ctx, appsession, booking)
+
+		assert.NoError(t, err)
+		assert.True(t, result)
+	})
+
+	mt.Run("NoConflict_NonOverlapping", func(mt *mtest.T) {
+		// No overlap (existing 8am-9am, new booking 9am-10am)
+		booking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 9, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 10, 0, 0, 0, time.UTC),
+		}
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, configs.GetMongoDBName()+".RoomBooking", mtest.FirstBatch))
+
+		appsession := &models.AppSession{DB: mt.Client}
+
+		result, err := database.CheckCoincidingBookings(ctx, appsession, booking)
+
+		assert.NoError(t, err)
+		assert.False(t, result)
+	})
+
+	mt.Run("DatabaseError", func(mt *mtest.T) {
+		// Simulate database error
+		booking := models.Booking{
+			RoomID: "Room1",
+			Start:  time.Date(2024, 10, 20, 9, 0, 0, 0, time.UTC),
+			End:    time.Date(2024, 10, 20, 14, 0, 0, 0, time.UTC),
+		}
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(mtest.CommandError{
+			Code:    11000,
+			Message: "mock error",
+		}))
+
+		appsession := &models.AppSession{DB: mt.Client}
+
+		result, err := database.CheckCoincidingBookings(ctx, appsession, booking)
+
+		assert.Error(t, err)
+		assert.False(t, result)
 	})
 }
