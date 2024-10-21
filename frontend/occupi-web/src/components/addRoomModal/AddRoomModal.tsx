@@ -58,7 +58,7 @@ const AddRoomModal: React.FC<AddRoomModalProps> = ({ isOpen, onClose, onSave }) 
 
     setIsLoading(true);
 
-    DataService.addRoom(newRoom).then((_) => {
+    DataService.addRoom(newRoom).then(() => {
       onSave(newRoom);
       setNewRoom({
         roomId: "",

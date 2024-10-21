@@ -22,8 +22,6 @@ import {
   FaRegUser,
   FaRegComments,
   FaFilter,
-  FaEdit,
-  FaTrashAlt,
   FaPlus,
 } from "react-icons/fa";
 import { AddRoomModal, FeedBackModal, TopNav } from "@components/index";
@@ -68,7 +66,6 @@ const Rooms: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [filterCriteria, setFilterCriteria] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
-  const [editModal, setIsEditModalOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [roomToDisable, setRoomToDisable] = useState<Room | null>(null);
@@ -123,16 +120,6 @@ const Rooms: React.FC = () => {
       console.error("Error uploading image:", error);
       setErrorMessage("Failed to upload image. Please try again.");
     }
-  };
-
-  const handleEdit = (room: Room) => {
-    setSelectedRoom(room);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDisable = (room: Room) => {
-    setRoomToDisable(room);
-    setIsFeedbackModalOpen(true);
   };
 
   const confirmDisable = async () => {
