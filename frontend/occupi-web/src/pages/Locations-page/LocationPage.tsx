@@ -9,7 +9,6 @@ import {
   Input,
   Button,
   User,
-  Selection,
   Code,
   Spinner,
   Modal,
@@ -69,9 +68,6 @@ const BLACKLISTEDHEAD = [
 
 const LocationPage = () => {
   const [filterValue, setFilterValue] = React.useState("");
-  const [selectedKeys, setSelectedKeys] = React.useState<Selection>(
-    new Set([])
-  );
   const [users, setUsers] = React.useState<User[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
@@ -306,11 +302,8 @@ const LocationPage = () => {
           classNames={{
             wrapper: "max-h-[65vh]",
           }}
-          selectedKeys={selectedKeys}
-          selectionMode="multiple"
           topContent={topContent}
           topContentPlacement="outside"
-          onSelectionChange={setSelectedKeys}
         >
           <TableHeader columns={view.current === "whitelisted" ? WHITELISTEDHEAD : BLACKLISTEDHEAD}>
             {(column) => (
@@ -333,7 +326,7 @@ const LocationPage = () => {
         </Table>
       </div>
 
-      <Modal backdrop="blur" isOpen={isOpen} onClose={onClose} size={openModal === "add" ? "5xl" : undefined}>
+      <Modal backdrop="blur" isOpen={isOpen} onClose={onClose}>
         <ModalContent>
           {(onClose) =>
             openModal === "delete" ? (
