@@ -12,6 +12,18 @@ export interface User {
   bookings: number;
 }
 
+interface Room {
+  roomId: string;
+  roomNo: string;
+  floorNo: string;
+  minOccupancy: number;
+  maxOccupancy: number;
+  description: string;
+  resources: string[];
+  roomName: string;
+  isDisabled: boolean;
+}
+
 interface ApiResponse {
   status: number;
   message: string;
@@ -124,6 +136,25 @@ export class DataService {
       return response.data;
     } catch (error) {
       console.error('Error removing IP:', error);
+      throw error;
+    }
+  }
+
+  public async addRoom(room: Room) {
+    try {
+      const response = await axios.put(`${this.baseUrl}/add-room`, {
+        "roomId": room.roomId,
+        "roomNo": room.roomNo,
+        "floorNo": room.floorNo,
+        "minOccupancy": room.minOccupancy,
+        "maxOccupancy": room.maxOccupancy,
+        "description": room.description,
+        "resources": room.resources,
+        "roomName": room.roomName,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error adding room:', error);
       throw error;
     }
   }
