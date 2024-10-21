@@ -105,14 +105,21 @@
 
 Occupi is a cross-platform app. This means that it is available on mobile, desktop and on the web.
 - If you would like to access the web app, please access <a href="https://dev.occupi.tech/">occupi-web</a>
+  - NOTE: To use the web app you require admin access. Please make use of the following login credentials to test:
+      - email: democos301@gmail.com
+      - password: Qwertyuiop@123
 - If you would like to access the mobile app from an android, please download the apk from the following link: [Occupi Mobile Download](https://expo.dev/artifacts/eas/cf8KD2QQyanzt8nuLpQT9k.apk).
 - If you would like to access the mobile app from an iOS device please download the 'Expo Go' app from the Apple App Store and scan the qr code below:
 
 <p align="center">
 <a href="https://play.google.com/store/apps">
-  <img  height=150 src="https://qr.expo.dev/eas-update?slug=exp&projectId=0127a6f2-e29a-4a67-a134-be8c4daed566&groupId=8b074288-170b-45f4-a812-cea795985d19&host=u.expo.dev">
+  <img  height=250 src="https://qr.expo.dev/eas-update?slug=exp&projectId=0127a6f2-e29a-4a67-a134-be8c4daed566&groupId=8b074288-170b-45f4-a812-cea795985d19&host=u.expo.dev">
 </a>
 </p>
+
+-  Once in the app, make use of the following details for the best experience:
+  - email: kamogelomoeketse@gmail.com
+  - password: Qwertyuiop@123
 
 # Tech Stack
 
