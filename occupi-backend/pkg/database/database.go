@@ -86,11 +86,6 @@ func CheckCoincidingBookings(ctx *gin.Context, appsession *models.AppSession, bo
 		return false, err // Other errors
 	}
 
-	logrus.Info("Existing booking: ", existingbooking)
-	logrus.Info("Room id's match: ", existingbooking.RoomID == booking.RoomID)
-	logrus.Info("Room id to check: ", booking.RoomID)
-	logrus.Info("Existing room id: ", existingbooking.RoomID)
-
 	return true, nil
 }
 
