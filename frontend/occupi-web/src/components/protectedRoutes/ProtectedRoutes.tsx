@@ -16,14 +16,18 @@ const ProtectedRoute = (props: ProtectedRouteProps) => {
 
   useEffect(() => {
     const checkAuthentication = async () => {
-      if(userDetails === null){
-        const res = await AuthService.pingAdmin();
-        if (res.status === 200) {
-          const userDeets = await AuthService.getUserDetails();
-          setUserDetails(userDeets);
-        } else {
-          setUserDetails(null);
+      try{
+        if(userDetails === null){
+          const res = await AuthService.pingAdmin();
+          if (res.status === 200) {
+            const userDeets = await AuthService.getUserDetails();
+            setUserDetails(userDeets);
+          } else {
+            setUserDetails(null);
+          }
         }
+      } catch (error) {
+        setUserDetails(null);
       }
       setLoading(false); // Set loading to false after the check is done
     };
