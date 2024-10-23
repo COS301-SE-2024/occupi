@@ -52,6 +52,7 @@
     - [Coding standards](#coding-standards)
     - [Testing Policy](#testing-policy)
     - [User Manuals](#user-manuals)
+- [Advert](#advert)
 - [Accessing the app](#accessing-the-app)
 - [Video Demo](#video-demo)
 - [Tech Stack](#tech-stack)
@@ -97,6 +98,9 @@
 [Occupi User Manuals](https://drive.google.com/drive/folders/16wsGrMDBS70aWmDdxxUvabBc0nhhdsIx?usp=sharing)
 
 </p>
+
+# Advert
+[Advert](https://youtu.be/yIMWj9U-AXU?si=5gkp-qb6L3Mu0z9j)
 
 # Video Demo
 [Occupi Video Demo](https://youtu.be/0ctuEamWblg?si=3QPJKfhPq3EaSquS)
