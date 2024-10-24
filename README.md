@@ -117,7 +117,7 @@ Occupi is a cross-platform app. This means that it is available on mobile, deskt
 
 <p align="center">
 <a href="https://play.google.com/store/apps">
-  <img  height=250 src="https://qr.expo.dev/eas-update?slug=exp&projectId=0127a6f2-e29a-4a67-a134-be8c4daed566&groupId=8b074288-170b-45f4-a812-cea795985d19&host=u.expo.dev">
+  <img  height=250 src="https://qr.expo.dev/eas-update?slug=exp&projectId=0127a6f2-e29a-4a67-a134-be8c4daed566&groupId=9cb0cdf4-44bf-479f-b23e-e2fe8bf76bac&host=u.expo.dev">
 </a>
 </p>
 
