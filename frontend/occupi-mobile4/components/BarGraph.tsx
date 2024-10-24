@@ -48,7 +48,7 @@ const BarGraph = ({data,tab}) => {
           endSpacing={0}
           yAxisTextStyle={{color: labels}}
           xAxisLabelTextStyle={{color: labels}}
-          data={tab === 3 ? convertValues(data) : convertValuesHour(data)}
+          data={tab === 2 ? convertValues(data) : convertValuesHour(data)}
           showGradient
           hideRules
           frontColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
