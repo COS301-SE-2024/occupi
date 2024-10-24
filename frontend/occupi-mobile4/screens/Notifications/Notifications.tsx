@@ -158,8 +158,9 @@ const Notifications = () => {
     fetchNotifications();
   }
   
-  const renderNotificationItem = ({ item }) => (
+  const renderNotificationItem = ({ item, index }) => (
     <NotificationItem
+      key={index}
       notification={item}
       accentColour={accentColour}
       isDarkMode={isDarkMode}
@@ -202,9 +203,9 @@ const Notifications = () => {
             </Input>
             <View flexDirection="row" justifyContent="space-between" alignItems="center" mb="$4">
               <HStack space="sm">
-                {['All', 'Invitations', 'Updates'].map((tab) => (
+                {['All', 'Invitations', 'Updates'].map((tab, index) => (
                   <Button
-                    key={tab}
+                    key={index}
                     onPress={() => setActiveTab(tab.toLowerCase())}
                     variant={activeTab === tab.toLowerCase() ? "solid" : "outline"}
                     backgroundColor={activeTab === tab.toLowerCase() ? accentColour : 'transparent'}
@@ -240,15 +241,16 @@ const Notifications = () => {
           ) : (
             <FlatList
               data={filteredNotifications}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <NotificationItem
+                  key = { item}
                   notification={item}
                   accentColour={accentColour}
                   isDarkMode={isDarkMode}
                   onSwipeLeft={handleSwipeLeft}
                 />
               )}
-              keyExtractor={(item) => item.id}
+              // keyExtractor={(item) => item.id}
               contentContainerStyle={{ paddingBottom: 84 }}
               refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accentColour} />

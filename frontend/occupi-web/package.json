@@ -130,5 +130,8 @@
     "typescript": "^5.5.2",
     "vite": "^5.4.9",
     "vite-plugin-mkcert": "^1.17.5"
-  }
+  },
+  "trustedDependencies": [
+    "protobufjs"
+  ]
 }

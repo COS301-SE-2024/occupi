@@ -17,7 +17,7 @@ const { width, height } = Dimensions.get('window');
 
 const Settings = () => {
   const [name, setName] = useState('');
-  const [profileImage, setProfileImage] = useState('https://www.kamogelomoeketse.online/assets/main-D2LspijS.png');
+  const [profileImage, setProfileImage] = useState('https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=');
   const toast = useToast();
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
@@ -103,6 +103,7 @@ const Settings = () => {
 
   const data = [
     { title: 'My account', description: 'Make changes to your account', iconName: 'user', onPress: () => router.replace('/profile')},
+    { title: 'My Stats', description: 'View Personal Statistics', iconName: 'pie-chart', onPress: () => router.push('/stats')},
     { title: 'Notifications', description: 'Manage your notifications', iconName: 'bell', onPress: () => router.push('set-notifications')},
     { title: 'Security', description: 'Enhance your security', iconName: 'shield', onPress: () => router.push('/set-security') },
     { title: 'Appearance', description: 'Customize your viewing experience', iconName: 'image', onPress: () => router.push('/set-appearance') },
@@ -155,8 +156,8 @@ const Settings = () => {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }}>
-      <ScrollView style={{ backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }} contentContainerStyle={{ paddingBottom: 80, paddingTop: 40 }}>
+    <View style={{ flex: 1, backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF', paddingTop: 40 }}>
+      <ScrollView style={{ backgroundColor: currentTheme === 'dark' ? '#000' : '#FFF' }} contentContainerStyle={{ paddingBottom: 80 }}>
         <LinearGradient
           colors={currentTheme === 'dark' ? ['#1A1A1A', '#000'] : ['#F0F0F0', '#FFF']}
           style={{

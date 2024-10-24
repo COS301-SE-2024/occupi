@@ -11,7 +11,7 @@ import { convertValues, convertValuesHour } from '@/utils/occupancy';
 
 
 const BarGraph = ({data,tab}) => {
-  console.log('tab',data)
+  console.log('hah',data)
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;
@@ -56,7 +56,7 @@ const BarGraph = ({data,tab}) => {
           // barBorderTopLeftRadius={5}
           // barBorderTopRightRadius={5}
           spacing={12}
-          backgroundColor={currentTheme === 'dark' ? "transparent" : "white"}
+          backgroundColor={"transparent"}
           // showVerticalLines
           // verticalLinesColor="rgba(14,164,164,0.5)"
           // rulesColor="gray"
