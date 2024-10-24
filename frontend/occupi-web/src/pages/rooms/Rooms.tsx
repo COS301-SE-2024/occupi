@@ -22,10 +22,7 @@ import {
   FaRegUser,
   FaRegComments,
   FaFilter,
-  FaEdit,
-  FaTrashAlt,
   FaPlus,
-  FaUpload,
 } from "react-icons/fa";
 import { AddRoomModal, FeedBackModal, TopNav } from "@components/index";
 import { uploadRoomImage } from 'Api';
@@ -69,7 +66,6 @@ const Rooms: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [filterCriteria, setFilterCriteria] = useState<string>("all");
   const [loading, setLoading] = useState<boolean>(true);
-  const [, setIsEditModalOpen] = useState(false);
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [roomToDisable, setRoomToDisable] = useState<Room | null>(null);
@@ -124,16 +120,6 @@ const Rooms: React.FC = () => {
       console.error("Error uploading image:", error);
       setErrorMessage("Failed to upload image. Please try again.");
     }
-  };
-
-  const handleEdit = (room: Room) => {
-    setSelectedRoom(room);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDisable = (room: Room) => {
-    setRoomToDisable(room);
-    setIsFeedbackModalOpen(true);
   };
 
   const confirmDisable = async () => {
@@ -213,7 +199,7 @@ const Rooms: React.FC = () => {
     <div className="w-full overflow-auto">
       <TopNav
         mainComponent={
-          <div className="text-text_col font-semibold text-2xl ml-5">
+          <div className="text-text_col font-semibold text-2xl ">
             Rooms
             <span className="block text-sm opacity-65 text-text_col_secondary_alt">
               Update And Edit Available rooms in the Building
@@ -239,8 +225,7 @@ const Rooms: React.FC = () => {
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-4 mt-2">
-        <h2 className="text-text_col text-2xl font-bold"></h2>
+      <div className="flex items-center justify-between mb-4 mt-2 w-[calc(100%-5.3rem)] ml-9">
         <Button
           className="text-text_col_alt font-semibold bg-secondary_alt"
           onPress={() => setIsAddRoomModalOpen(true)}
@@ -248,24 +233,24 @@ const Rooms: React.FC = () => {
           <FaPlus className="mr-2" />
           Add New Room
         </Button>
-        <Dropdown>
-          <DropdownTrigger>
-            <Button className="text-text_col_alt font-semibold bg-secondary_alt">
-              <FaFilter className="mr-2 " />
-              Filter by Floor
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu>
-            <DropdownItem onPress={() => setFilterCriteria("all")}>All</DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("1")}>Floor 1</DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("2")}>Floor 2</DropdownItem>
-            <DropdownItem onPress={() => setFilterCriteria("3")}>Floor 3</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+          <Dropdown>
+            <DropdownTrigger>
+              <Button className="text-text_col_alt font-semibold bg-secondary_alt">
+                <FaFilter className="mr-2 " />
+                Filter by Floor
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu>
+              <DropdownItem onPress={() => setFilterCriteria("all")}>All</DropdownItem>
+              <DropdownItem onPress={() => setFilterCriteria("1")}>Floor 1</DropdownItem>
+              <DropdownItem onPress={() => setFilterCriteria("2")}>Floor 2</DropdownItem>
+              <DropdownItem onPress={() => setFilterCriteria("3")}>Floor 3</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
       </div>
 
       <motion.div
-        className="space-y-4"
+        className="space-y-4 ml-9 w-[calc(100%-5.3rem)] mb-9"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -275,13 +260,9 @@ const Rooms: React.FC = () => {
               <Skeleton key={index} className="h-48 bg-secondary rounded-lg" />
             ))
           : filteredRooms.map((room) => (
-              <motion.div
-                key={room.roomId}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="mb-4 relative"
-              >
-                <Card className="w-full bg-secondary mx-4 relative">
+                <Card 
+                  key={room.roomId}
+                  className="w-full bg-secondary relative">
                   {room.isDisabled && (
                     <Chip color="danger" className="absolute top-2 right-2">
                       Disabled
@@ -295,23 +276,13 @@ const Rooms: React.FC = () => {
                           src={room.roomImage.midRes}
 
                           alt={room.roomName}
-                          className="w-full h-48 object-cover rounded-lg"
+                          className="w-full h-full object-cover rounded-lg"
                         />
                       ) : (
                         <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg">
                           <span className="text-gray-400">No image available</span>
                         </div>
                       )}
-                      <Button
-                        className="mt-2 text-text_col_alt font-semibold bg-secondary_alt"
-                        onPress={() => {
-                          setSelectedRoom(room);
-                          setIsUploadModalOpen(true);
-                        }}
-                      >
-                        <FaUpload className="mr-2" />
-                        Upload Image
-                      </Button>
                     </div>
                     <div className="w-full md:w-2/3 flex flex-col">
                       <h4 className="text-text_col text-xl font-bold mb-2">{room.roomName}</h4>
@@ -330,6 +301,7 @@ const Rooms: React.FC = () => {
                         <FaRegComments className="mr-2" />
                         <p className="text-text_col">Room No: {room.roomNo}</p>
                       </div>
+                      {/*}
                       <div className="flex items-center justify-end">
                         <Button
                           className="text-text_col_alt font-semibold bg-secondary_alt mr-2"
@@ -345,11 +317,10 @@ const Rooms: React.FC = () => {
                           <FaTrashAlt className="mr-2" />
                           {room.isDisabled ? "Enable" : "Disable"}
                         </Button>
-                      </div>
+                      </div>*/}
                     </div>
                   </div>
                 </Card>
-              </motion.div>
             ))}
       </motion.div>
 

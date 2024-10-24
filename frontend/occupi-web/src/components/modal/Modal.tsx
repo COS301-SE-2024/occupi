@@ -10,7 +10,6 @@ import {
   Accordion,
   AccordionItem,
 } from "@nextui-org/react";
-import { EyeIcon } from "@assets/index";
 import {
   ProfileComponent,
   UserStatsComponent,
@@ -240,7 +239,7 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
             {reportData?.peakHours.days.map((day, index) => (
               <View key={index} style={styles.tableRow}>
                 <Text style={styles.tableCell}>{day.weekday}</Text>
-                <Text style={styles.tableCell}>{day.hours.join(", ")}</Text>
+                <Text style={styles.tableCell}>{day.hours[0]}:00, {day.hours[1]}:00, {day.hours[2]}:00</Text>
               </View>
             ))}
           </View>
@@ -260,10 +259,14 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
     }
   };
 
+  const sendEmail = () => {
+    window.location.href = `mailto:${user.email}`;
+  };
+
   return (
     <>
       <div onClick={onOpen}>
-        <EyeIcon />
+      <Button onClick={onOpen}><div>View Stats</div></Button>
       </div>
       <Modal
         size="5xl"
@@ -318,7 +321,7 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                     <AccordionItem
                       key="2"
                       aria-label="Work Ratio Chart"
-                      title="Work Ratio Chart"
+                      title="In-Office Rate Chart"
                       onClick={() => handleToggle("2")}
                     >
                       {openItems.includes("2") && (
@@ -405,6 +408,14 @@ export default function OccupancyModal({ user }: OccupancyModalProps) {
                     {isDownloading ? "Generating Report..." : "Generate Report"}
                   </Button>
                 )}
+                <Button
+                    className="text-text_col_alt bg-secondary_alt"
+                    isLoading={isDownloading}
+                    onClick={sendEmail}
+                  >
+                    {/* <a className="text-text_col_alt" href={`mailto:${user.email}`} title="Click to email">Email</a> */}
+                    Send Email
+                  </Button>
               </ModalFooter>
             </>
           )}

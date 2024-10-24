@@ -207,12 +207,12 @@ const BuildingTower: React.FC = () => {
 
   return (
     <div
-      style={{ width: "100%", height: "100%", minHeight: "500px" }}
+      style={{ width: "100%", height: "100%" }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
     >
       <Canvas
-        camera={{ position: [15, 15, 15], fov: 50 }}
+        camera={{ position: [15, 15, 15], fov: 50, zoom:2 }}
         onCreated={({ gl }) => {
           gl.domElement.addEventListener(
             "touchstart",
@@ -233,7 +233,7 @@ const BuildingTower: React.FC = () => {
           target={[0, (floorData.length * 1.2) / 2, 0]}
           maxPolarAngle={Math.PI / 2}
           enableDamping={false}
-          enableZoom={true}
+          enableZoom={false}
           enablePan={true}
           enableRotate={true}
         />

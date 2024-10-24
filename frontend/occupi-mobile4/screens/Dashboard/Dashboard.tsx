@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
   };
 
   const showHourly = () => {
-    setActiveTab(2);
+    setActiveTab(1);
     setHourly();
     setDate("");
     // if (pagerRef.current) {
@@ -101,7 +101,7 @@ const Dashboard: React.FC = () => {
   };
 
   const showWeek = () => {
-    setActiveTab(3);
+    setActiveTab(2);
     setWeekly();
     setDate("");
     // if (pagerRef.current) {
@@ -206,7 +206,7 @@ const Dashboard: React.FC = () => {
       try {
         const prediction = await mapToClassForSpecificHours();
         setHourlyData(prediction);
-        console.log('hourly', prediction);
+        // console.log('hourly', prediction);
         // if (prediction) {
         //   // console.log(prediction);
         //   setCurrentData(prediction);
@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
   const getPredictionsFromWeek = async (date: string) => {
     console.log(activeTab);
     try {
-      if (activeTab === 3) {
+      if (activeTab === 2) {
         const prediction = await getFormattedPredictionWeekData(date);
         if (prediction) {
           // console.log(prediction);
@@ -237,7 +237,7 @@ const Dashboard: React.FC = () => {
       else {
         const prediction = await mapToClassForSpecificHours(date);
         if (prediction) {
-          console.log('hourly',prediction);
+          console.log('hourly', prediction);
           setCurrentData(prediction);
           // setHourlyData(prediction);
         }
@@ -435,19 +435,20 @@ const Dashboard: React.FC = () => {
             style={{ width: wp('7%'), height: wp('7%'), flexDirection: 'column', tintColor: isDarkMode ? 'white' : 'black' }}
           />
         </View>
+        <View alignItems='center' mb="$6">
+          <Text color={textColor} fontSize={16} fontWeight="bold">Live Occupancy</Text>
+        <Text fontWeight="bold" flexDirection='row' fontSize={wp('7%')} color={textColor}>
+          {counter}
+        </Text>
+        </View>
+        
         <View pb="$1" pt="$4" borderRadius={7} backgroundColor={cardBackgroundColor}>
           <View alignItems='center'>
             {activeTab === 1 ? (
-              <Text color={textColor} fontSize={16} fontWeight="bold">Live Data</Text>
-            ) : activeTab === 2 ? (
               <Text color={textColor} fontSize={16} fontWeight="bold">Predicted Hourly Data</Text>
             ) : (
               <Text color={textColor} fontSize={16} fontWeight="bold">Predicted Weekly Data</Text>
             )}
-            {activeTab === 1 && <Text fontWeight="bold" flexDirection='row' fontSize={wp('7%')} color={textColor}>
-              {counter}
-            </Text>
-            }
           </View>
           <View w='$full' height={hp('30%')}>
             <PagerView
@@ -468,21 +469,13 @@ const Dashboard: React.FC = () => {
               style={{
                 paddingVertical: 7,
                 paddingHorizontal: 14,
-                alignItems: 'center',
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'center',
                 borderRadius: 8,
                 backgroundColor: activeTab !== 1 ? 'transparent' : isDarkMode === true ? '#242424' : 'lightgrey',
               }}
-              onPress={showLive}
+              onPress={showHourly}
             >
               <Text color={activeTab === 1 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 1 ? 'bold' : 'normal'}>
-                Live
-                {/* <Tooltip
-                  content="Know what's happening in the office, live!"
-                  placement="bottom"
-                /> */}
+                Hourly
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -492,28 +485,13 @@ const Dashboard: React.FC = () => {
                 borderRadius: 8,
                 backgroundColor: activeTab !== 2 ? 'transparent' : isDarkMode === true ? '#242424' : 'lightgrey',
               }}
-              onPress={showHourly}
-            >
-              <Text color={activeTab === 2 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 2 ? 'bold' : 'normal'}>
-                1D
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-                paddingVertical: 7,
-                paddingHorizontal: 14,
-                borderRadius: 8,
-                backgroundColor: activeTab !== 3 ? 'transparent' : isDarkMode === true ? '#242424' : 'lightgrey',
-              }}
               onPress={showWeek}
             >
-              <Text color={activeTab === 3 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 3 ? 'bold' : 'normal'}>
-                1W
+              <Text color={activeTab === 2 ? textColor : 'gray'} fontSize={16} fontWeight={activeTab === 2 ? 'bold' : 'normal'}>
+                Weekly
               </Text>
             </TouchableOpacity>
           </View>
-          {activeTab !== 1 &&
-            <>
               <TouchableOpacity
                 style={{
                   paddingVertical: 7,
@@ -529,12 +507,12 @@ const Dashboard: React.FC = () => {
               >
                 {date ? (
                   <Text color={textColor} fontSize={16}>
-                    Week from: {date}
+                    {activeTab === 1 ? "Hourly data for:" : "Week From:"} {date}
                   </Text>
                 ) : (
-                  activeTab === 2 ? (
+                  activeTab === 1 ? (
                     <Text color={textColor} fontSize={16}>Select Day:</Text>
-                  ) : activeTab === 3 && (
+                  ) : activeTab === 2 && (
                     <Text color={textColor} fontSize={16}>Select Week From:</Text>
                   )
                 )}
@@ -547,8 +525,7 @@ const Dashboard: React.FC = () => {
                 onConfirm={handleConfirm}
                 onCancel={hideDatePicker}
               />
-            </>
-          }
+            
         </View>
         <View mt="$4" alignItems='center' flexDirection='row' justifyContent='space-between'>
           {checkedIn ? (

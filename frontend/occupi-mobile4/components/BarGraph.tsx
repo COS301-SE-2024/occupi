@@ -42,19 +42,19 @@ const BarGraph = ({data,tab}) => {
           maxValue={1500}
           noOfSections={5}
           // hideRules
-        //   animateOnDataChange={true}
+          // animateOnDataChange={true}
           animationDuration={500}
-        //   onDataChangeAnimationDuration={100}
+          // onDataChangeAnimationDuration={100}
           endSpacing={0}
           yAxisTextStyle={{color: labels}}
           xAxisLabelTextStyle={{color: labels}}
-          data={tab === 3 ? convertValues(data) : convertValuesHour(data)}
+          data={tab === 2 ? convertValues(data) : convertValuesHour(data)}
           showGradient
           hideRules
           frontColor={currentTheme === 'dark' ? "lightgray" : "darkgrey"}
           gradientColor={accentColour}
-        //   barBorderTopLeftRadius={5}
-        //   barBorderTopRightRadius={5}
+          // barBorderTopLeftRadius={5}
+          // barBorderTopRightRadius={5}
           spacing={12}
           backgroundColor={"transparent"}
           // showVerticalLines

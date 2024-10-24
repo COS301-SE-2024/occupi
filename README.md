@@ -50,7 +50,11 @@
     - [Architecture Document](#architecture-document)
     - [Deployment Diagram](#deployment-diagram)
     - [Coding standards](#coding-standards)
+    - [Testing Policy](#testing-policy)
+    - [User Manuals](#user-manuals)
+- [Advert](#advert)
 - [Accessing the app](#accessing-the-app)
+- [Video Demo](#video-demo)
 - [Tech Stack](#tech-stack)
 - [Contributing](#contributing)
 - [Reporting security issues](#reporting-security-issues)
@@ -76,35 +80,50 @@
 
 
 ### Software Requirements Specification
-[Document](https://docs.occupi.tech/srs)
+[SRS Document](https://drive.google.com/file/d/1TXrxMlDO6CXCS-8LaTarYS4sdShkN-t_/view?usp=sharing)
 
 ### Architecture Document
-[Diagram](null) <br>
 [Document](https://docs.occupi.tech/architecture)
 
 ### Deployment Diagram
 [Deployment](https://docs.occupi.tech/deployment)
 
 ### Coding standards
-[Go coding Standards](https://docs.occupi.tech/coding-standards/go-coding-standards)
+[Coding Standards](https://docs.occupi.tech/coding-standards)
+
+### Testing policy
+[Testing Policy](https://docs.occupi.tech/testing-policy)
+
+### User Manuals
+[Occupi User Manuals](https://drive.google.com/drive/folders/16wsGrMDBS70aWmDdxxUvabBc0nhhdsIx?usp=sharing)
 
 </p>
+
+# Advert
+[Advert](https://youtu.be/yIMWj9U-AXU?si=5gkp-qb6L3Mu0z9j)
+
+# Video Demo
+[Occupi Video Demo](https://youtu.be/0ctuEamWblg?si=3QPJKfhPq3EaSquS)
 
 # Accessing the app
 
 Occupi is a cross-platform app. This means that it is available on mobile, desktop and on the web.
-- If you would like to access the desktop app under the <a href="https://github.com/COS301-SE-2024/occupi/releases">releases tab</a>
-- If you would like to access the web app, please access <a href="https://app.occupi.tech/">occupi-web</a>
-- If you would like to access the mobile app, please search for it on either google play store or apples app store. Or simply click the icons below to be taken to their respective download pages.
+- If you would like to access the web app, please access <a href="https://dev.occupi.tech/">occupi-web</a>
+  - NOTE: To use the web app you require admin access. Please make use of the following login credentials to test:
+      - email: democos301@gmail.com
+      - password: Qwertyuiop@123
+- If you would like to access the mobile app from an android, please download the apk from the following link: [Occupi Mobile Download](https://expo.dev/artifacts/eas/cf8KD2QQyanzt8nuLpQT9k.apk).
+- If you would like to access the mobile app from an iOS device please download the 'Expo Go' app from the Apple App Store and scan the qr code below:
 
 <p align="center">
-<a href="https://www.apple.com/app-store/">
-  <img height=60 src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg">
-</a>
 <a href="https://play.google.com/store/apps">
-  <img  height=60 src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg">
+  <img  height=250 src="https://qr.expo.dev/eas-update?slug=exp&projectId=0127a6f2-e29a-4a67-a134-be8c4daed566&groupId=8b074288-170b-45f4-a812-cea795985d19&host=u.expo.dev">
 </a>
 </p>
+
+-  Once in the app, make use of the following details for the best experience:
+  - email: kamogelomoeketse@gmail.com
+  - password: Qwertyuiop@123
 
 # Tech Stack
 

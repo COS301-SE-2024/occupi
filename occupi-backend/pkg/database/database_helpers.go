@@ -30,6 +30,7 @@ func CreateBasicUser(user models.RegisterUser) models.User {
 		NextVerificationDate: time.Now().In(time.Local), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
+		BlackListedIP:        []string{},
 		Details: models.Details{
 			HasImage: false,
 			Name:     "",
@@ -67,6 +68,7 @@ func CreateAdminUser(user models.RegisterUser) models.User {
 		NextVerificationDate: time.Now().In(time.Local), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
+		BlackListedIP:        []string{},
 		Details: models.Details{
 			HasImage: false,
 			Name:     "",
@@ -104,6 +106,7 @@ func CreateAUser(user models.UserRequest) models.User {
 		NextVerificationDate: time.Now().In(time.Local), // this will be updated once the email is verified
 		TwoFAEnabled:         false,
 		KnownLocations:       []models.Location{},
+		BlackListedIP:        []string{},
 		Details: models.Details{
 			HasImage:  false,
 			ContactNo: user.Details.ContactNo,

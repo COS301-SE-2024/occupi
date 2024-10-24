@@ -70,6 +70,9 @@ import BookingsDashboard from "./bookingsDashboardComponent/BookingsDashboard";
 import HourlyPredictionGraph from "./aiDashboard/aiDashGraphs/HourlyPredictionGraph";
 import HourlyComparisonGraph from "./aiDashboard/aiDashGraphs/HourlyComparisonGraph";
 import RecommendationsModal from "./recommendationModal/recommendationModal";
+import DeleteIPModal from './modal/DeleteIPModal';
+import AddIPModal from './modal/AddIPModal';
+import UnblockIPModal from './modal/UnblockIPModal';
 
 export {
   DrawerComponent,
@@ -142,4 +145,7 @@ export {
   HourlyPredictionGraph,
   HourlyComparisonGraph,
   RecommendationsModal,
+  DeleteIPModal,
+  AddIPModal,
+  UnblockIPModal
 };

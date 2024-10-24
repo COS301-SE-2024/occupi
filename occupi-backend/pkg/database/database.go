@@ -59,6 +59,36 @@ func GetAllData(ctx *gin.Context, appsession *models.AppSession) []bson.M {
 	return users
 }
 
+func CheckCoincidingBookings(ctx *gin.Context, appsession *models.AppSession, booking models.Booking) (bool, error) {
+	if appsession.DB == nil {
+		logrus.Error("Database is nil")
+		return false, errors.New("database is nil")
+	}
+
+	// Check if the booking exists in the database
+	collection := appsession.DB.Database(configs.GetMongoDBName()).Collection("RoomBooking")
+
+	filter := bson.M{
+		"roomId": booking.RoomID,
+		"$and": []bson.M{
+			{"start": bson.M{"$lt": booking.End}}, // Existing booking starts before new booking ends
+			{"end": bson.M{"$gt": booking.Start}}, // Existing booking ends after new booking starts
+		},
+	}
+
+	var existingbooking models.Booking
+	err := collection.FindOne(ctx, filter).Decode(&existingbooking)
+	if err != nil {
+		logrus.Error(err)
+		if err == mongo.ErrNoDocuments {
+			return false, nil // No conflict found
+		}
+		return false, err // Other errors
+	}
+
+	return true, nil
+}
+
 // attempts to save booking in database
 func SaveBooking(ctx *gin.Context, appsession *models.AppSession, booking models.Booking) (bool, error) {
 	// check if database is nil
