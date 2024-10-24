@@ -59,7 +59,7 @@ const Dashboard: React.FC = () => {
   const toast = useToast();
   const [currentData, setCurrentData] = useState();
   const pagerRef = useRef<PagerView>(null);
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(2);
   const [weeklyData, setWeeklyData] = useState();
   const [hourlyData, setHourlyData] = useState();
   const counter = useCentrifugeCounter();
@@ -193,7 +193,7 @@ const Dashboard: React.FC = () => {
       try {
         const prediction = await getFormattedPredictionData();
         if (prediction) {
-          // console.log(prediction);
+          console.log('hhahah',prediction);
           setCurrentData(prediction);
           setWeeklyData(prediction);
         }
@@ -224,7 +224,7 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const getPredictionsFromWeek = async (date: string) => {
-    console.log(activeTab);
+    // console.log(activeTab);
     try {
       if (activeTab === 2) {
         const prediction = await getFormattedPredictionWeekData(date);
@@ -404,7 +404,7 @@ const Dashboard: React.FC = () => {
 
   const handleConfirm = (date: Date) => {
     const selectedDate: string = date.toString();
-    console.log('selected', extractDateFromTimestamp(selectedDate));
+    // console.log('selected', extractDateFromTimestamp(selectedDate));
     setDate(extractDateFromTimestamp(selectedDate));
     getPredictionsFromWeek(extractDateFromTimestamp(selectedDate));
     hideDatePicker();

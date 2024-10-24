@@ -11,7 +11,7 @@ import { convertValues, convertValuesHour } from '@/utils/occupancy';
 
 
 const BarGraph = ({data,tab}) => {
-  console.log('tab',data)
+  console.log('hah',data)
   const colorscheme = useColorScheme();
   const { theme } = useTheme();
   const currentTheme = theme === "system" ? colorscheme : theme;

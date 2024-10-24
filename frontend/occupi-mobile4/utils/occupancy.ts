@@ -288,7 +288,7 @@ export async function mapToClassForSpecificHours(date? : string) {
         }
     }
     const prediction = await fetchHourlyPredictions();
-    console.log(prediction);
+    // console.log(prediction);
     if (prediction) {
     return prediction.Hourly_Predictions
         .filter(item => specificHours.includes(item.Hour))  // Filter specific hours
