@@ -571,7 +571,7 @@ const Dashboard: React.FC = () => {
               justifyContent: 'center',
               alignItems: 'center'
             }}
-            onPress={() => router.push('/loadingscreen')}
+            onPress={() => router.push('/stats')}
           >
             <View flexDirection="row" alignItems="center" justifyContent='space-between'>
               <View flexDirection='row' alignItems='center'>
@@ -594,7 +594,7 @@ const Dashboard: React.FC = () => {
               borderRadius: 8,
               marginTop: 18,
               height: 60,
-              backgroundColor: recommendationColor,
+              backgroundColor: cardBackgroundColor,
               justifyContent: 'center',
               alignItems: 'center'
             }}
