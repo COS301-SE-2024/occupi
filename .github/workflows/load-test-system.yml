@@ -2,8 +2,8 @@ name: Load Test System 🏋️💪
 
 # trigger action to run once a month on Sunday at 12:00 AM
 on:
-    schedule:
-      - cron: "0 0 1 * *"
+    push:
+      branches: ["main"]
 
     workflow_dispatch:
 
