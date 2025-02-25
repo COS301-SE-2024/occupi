@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, useColorScheme, TouchableOpacity, Image } from 'react-native';
-import { Ionicons, Octicons } from '@expo/vector-icons';
+import { Ionicons, Octicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import {
   useToast,
   Text,
-  View
+  View,
+  Icon
 } from '@gluestack-ui/themed';
 
 import Navbar from '../../components/NavBar';
@@ -118,7 +119,8 @@ const BookRoom = () => {
     <>
       <View style={{ flex: 1, backgroundColor, paddingTop: 60, top: 0 }}>
         <View style={{ flexDirection: 'column', backgroundColor }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', paddingHorizontal: 16 }}>
+            <Icon right="$4" as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => router.back()} />
             <Text style={{ fontWeight: 'bold', fontSize: 24, color: textColor }}>Book</Text>
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16 }}>

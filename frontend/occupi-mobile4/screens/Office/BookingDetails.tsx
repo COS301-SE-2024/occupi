@@ -549,10 +549,28 @@ const BookingDetails = () => {
 
           </View>
           {/* </Text> */}
-          <TouchableOpacity style={{ paddingHorizontal: 0, marginBottom: 50, width: wp('80%') }} onPress={() => router.push('/home')}>
-            <View flexDirection="row" mt="$8" borderRadius="$lg" alignItems="center" justifyContent="center" backgroundColor={isDark ? '#2C2C2E' : '#F3F3F3'} h="$11">
-              <Text fontWeight="$bold" color="black">Home</Text>
-            </View>
+          <TouchableOpacity style={{ paddingHorizontal: 0, marginVertical: 50, width: wp('80%') }} onPress={() => router.push('/home')}>
+          <LinearGradient
+                colors={["#614DC8", "#86EBCC", "#B2FC3A", "#EEF060"]}
+                locations={[0.02, 0.31, 0.67, 0.97]}
+                start={[0, 1]}
+                end={[1, 0]}
+                style={{
+                  padding: 15,
+                  alignItems: "center",
+                  borderRadius: 15,
+                }}
+              >
+                <Text
+                  style={{
+                    color: isDark ? "#000" : "#fff",
+                    fontSize: 16,
+                    fontWeight: "bold",
+                  }}
+                >
+                  Home
+                </Text>
+              </LinearGradient>
           </TouchableOpacity>
         </View>
       )}

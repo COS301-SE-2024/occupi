@@ -14,6 +14,7 @@ const { width } = Dimensions.get('window');
 const Appearance = () => {
   const [accentColour, setAccentColour] = useState('greenyellow');
   const [customColor, setCustomColor] = useState('#FFFFFF');
+  const [showColourPicker, setShowColourPicker] = useState(false);
   const { theme, setTheme } = useTheme();
   const colorScheme = useColorScheme();
   const currentTheme = theme === "system" ? colorScheme : theme;
@@ -131,70 +132,78 @@ const Appearance = () => {
             marginBottom: hp('1%'),
             color: currentTheme === 'dark' ? '#FFF' : '#000',
           }}>Accent Color
-          <Tooltip content="Choose a theme color for a personalized experience." placement="bottom" /></Text>
+            <Tooltip content="Choose a theme color for a personalized experience." placement="bottom" /></Text>
 
           <View style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          marginVertical: hp('2%'),
-          padding: wp('4%'),
-          backgroundColor: currentTheme === 'dark' ? '#1A1A1A' : '#F0F0F0',
-          borderRadius: 15,
-            
-          }}>
-            {['lightgrey', '#FF4343', '#FFB443', 'greenyellow', '#43FF61', '#43F4FF', '#4383FF', '#AC43FF', '#FF43F7', 'purple'].map(color => (
-            <Pressable 
-              key={color} 
-              onPress={() => setAccentColour(color)} 
-              style={{
-                width: wp('12%'),
-                height: wp('12%'),
-                borderRadius: wp('6%'),
-                marginLeft: wp('3%'),
-                marginBottom: hp('2%'),
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <View style={{
-                width: '100%',
-                height: '100%',
-                backgroundColor: color,
-                borderRadius: wp('6%'),
-                borderWidth: accentColour === color ? 3 : 0,
-                borderColor: currentTheme === 'dark' ? '#FFF' : '#000',
-              }} />
-            </Pressable>
-          ))}
-        </View>
-
-          <Text style={{
-            fontSize: wp('5%'),
-            fontWeight: 'bold',
-            marginTop: hp('2%'),
-            marginBottom: hp('1%'),
-            color: currentTheme === 'dark' ? '#FFF' : '#000',
-          }}>Custom Color
-          <Tooltip content="Create your unique color with our advanced color picker." placement="bottom" /></Text>
-
-          
-
-          <View style={{
-            marginVertical: 20,
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            marginVertical: hp('2%'),
+            padding: wp('4%'),
             backgroundColor: currentTheme === 'dark' ? '#1A1A1A' : '#F0F0F0',
             borderRadius: 15,
-            padding: 10,
-            width: wp('90%'),
+            justifyContent: 'center'
           }}>
-            <ColorPicker
-              style={{ width: '100%', height: hp('25%') }}
-              value={customColor}
-              onComplete={(color) => setAccentColour(color.hex)}
-            >
-              <Preview />
-              <HueSlider />
-              <Panel1 />
-            </ColorPicker>
+            {['lightgrey', '#FF4343', '#FFB443', 'greenyellow', '#43FF61', '#43F4FF', '#4383FF', '#AC43FF', '#FF43F7', 'purple'].map(color => (
+              <Pressable
+                key={color}
+                onPress={() => setAccentColour(color)}
+                style={{
+                  width: wp('12%'),
+                  height: wp('12%'),
+                  borderRadius: wp('6%'),
+                  marginLeft: wp('3%'),
+                  marginBottom: hp('2%'),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <View style={{
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: color,
+                  borderRadius: wp('6%'),
+                  borderWidth: accentColour === color ? 3 : 0,
+                  borderColor: currentTheme === 'dark' ? '#FFF' : '#000',
+                }} />
+              </Pressable>
+            ))}
+            <TouchableOpacity onPress={() => setShowColourPicker(!showColourPicker)} style={{ backgroundColor: 'grey', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderRadius: 10, padding: 10 }}>
+              <Text style={{
+                fontSize: wp('5%'),
+                // fontWeight: 'bold',
+                // marginTop: hp('2%'),
+                // marginLeft: wp('3%'),
+                marginRight: wp('3%'),
+                // marginBottom: hp('1%'),
+                color: currentTheme === 'dark' ? '#FFF' : '#000',
+              }}>Select Custom Color
+                {/* <Tooltip content="Select your unique color with our advanced color picker." placement="bottom" /> */}
+              </Text>
+              {showColourPicker ? (
+                <Feather name="chevron-down" size={20} color={currentTheme === 'dark' ? 'white' : 'black'} />
+              ) : (
+                <Feather name="chevron-right" size={20} color={currentTheme === 'dark' ? 'white' : 'black'} />
+              )}
+            </TouchableOpacity>
+            {showColourPicker &&
+            <View style={{
+              marginVertical: 20,
+              backgroundColor: currentTheme === 'dark' ? '#1A1A1A' : '#F0F0F0',
+              borderRadius: 15,
+              padding: 10,
+              width: wp('90%'),
+            }}>
+              <ColorPicker
+                style={{ width: '100%', height: hp('25%') }}
+                value={accentColour}
+                onComplete={(color) => setAccentColour(color.hex)}
+              >
+                <Preview />
+                <HueSlider />
+                <Panel1 />
+              </ColorPicker>
+            </View>
+          }
           </View>
         </View>
 

@@ -160,7 +160,7 @@ const OfficeDetails = () => {
   return (
     <>
       {/* Top Section */}
-      <View pt="$12" px="$8" pb="$4" backgroundColor={isDarkMode ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View pt="$12" px="$8" pb="$4" backgroundColor={isDarkMode ? 'black' : 'white'} style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
         <Icon right="$4" as={Feather} name="chevron-left" size="xl" color={currentTheme === 'dark' ? 'white' : 'black'} onPress={() => navigation.goBack()} />
         <Text right="$2" fontWeight="$bold" fontSize={22} style={{ color: isDarkMode ? '#fff' : '#000' }}>{room?.roomName}</Text>
         {/* <View alignItems="center" flexDirection="row" w="$24" justifyContent="space-between">

@@ -291,7 +291,7 @@ const Recommendations = ({ onClose }) => {
                 </Text>
               </Box>
             ))}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={speakRecommendation}
               style={{
                 flexDirection: "row",
@@ -313,7 +313,7 @@ const Recommendations = ({ onClose }) => {
               >
                 {isSpeaking ? "Stop" : "Listen to Recommendations"}
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </Box>
         </VStack>
       </ScrollView>
